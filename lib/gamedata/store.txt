@@ -1,0 +1,308 @@
+# File: store.txt
+
+
+# === Understanding store.txt ===
+
+# store: store name
+# type: store type
+# owner: max purse : name (as many or few as you like >1)
+# turnover: turnover (how many items the store turns over)
+# slots: min : max (number of 'normal' slots to keep stocked)
+# normal: type name : item name (for the normal stocking list) : rarity : price
+#         factor
+# always: type name : ?item name (for things to always stock)
+# buy: type name (base types the store will buy)
+# buy-flag: flag : type name (types to buy if the flag is present)
+#
+# Store types must match the following values:
+#  1 = STORE_GENERAL
+#  2 = STORE_TEMPLE
+#  3 = STORE_B_MARKET
+#  4 = STORE_XBM
+#  5 = STORE_TAVERN
+#  6 = STORE_HOME
+#  7 = STORE_PLAYER
+#
+# There must be one and only one store with each of the types above. Other
+# stores and custom stores must have no type defined (0 = STORE_OTHER).
+#
+# Custom stores MUST be placed at the proper location (between regular stores
+# and black market), otherwise towns may not be generated properly.
+#
+# Don't forget to update terrain.txt (and the prf files) if you add custom
+# stores to this file.
+
+
+# General store
+store:General Store
+type:1
+owner:5000:Bilbo the Friendly (Hobbit)
+owner:10000:Rincewind the Chicken (Human)
+owner:20000:Snafu the Midget (Gnome)
+owner:30000:Lyar-el the Comely (Elf)
+slots:0:4
+turnover:2
+always:cloak:Cloak
+always:food:Ration of Food
+always:light:Wooden Torch
+always:flask:Flask of Oil
+always:digger:Shovel
+always:digger:Pick
+always:rock:Rock
+always:shot:Iron Shot
+always:arrow:Arrow
+always:bolt:Bolt
+normal:food:Pint of Fine Wine
+normal:food:Slime Mold
+normal:food:Flask of Whisky
+normal:food:Hard Biscuit
+normal:food:Pint of Fine Ale
+normal:mushroom:Stoneskin
+normal:light:Lantern
+normal:stone:House Foundation Stone
+normal:scroll:House Creation
+buy:light
+buy:food
+buy:mushroom
+buy:flask
+buy:digger
+buy:crop
+buy:horn
+
+# Armoury
+store:Armoury
+owner:5000:Kon-Dar the Ugly (Half-Orc)
+owner:10000:Darg-Low the Grim (Human)
+owner:25000:Decado the Handsome (Dunadan)
+owner:30000:Mauglin the Grumpy (Dwarf)
+slots:6:18
+turnover:9
+normal:boots:Pair of Leather Sandals
+normal:boots:Pair of Leather Boots
+normal:boots:Pair of Iron Shod Boots
+normal:helm:Hard Leather Cap
+normal:helm:Metal Cap
+normal:helm:Iron Helm
+normal:soft armour:Robe
+normal:soft armour:Soft Leather Armour
+normal:soft armour:Studded Leather Armour
+normal:soft armour:Hard Leather Armour
+normal:soft armour:Leather Scale Mail
+normal:hard armour:Metal Scale Mail
+normal:hard armour:Chain Mail
+normal:gloves:Set of Leather Gloves
+normal:gloves:Set of Gauntlets
+normal:shield:Wicker Shield
+normal:shield:Small Metal Shield
+normal:shield:Leather Shield
+buy:boots
+buy:gloves
+buy:crown
+buy:helm
+buy:shield
+buy:cloak
+buy:soft armour
+buy:hard armour
+buy:dragon armour
+
+# Weaponsmith
+store:Weapon Smiths
+owner:5000:Ithyl-Mak the Beastly (Half-Troll)
+owner:10000:Arndal Beast-Slayer (Half-Elf)
+owner:25000:Tarl Beast-Master (Hobbit)
+owner:30000:Oglign Dragon-Slayer (Dwarf)
+slots:3:14
+turnover:9
+normal:rock:Rock
+normal:shot:Iron Shot
+normal:arrow:Arrow
+normal:bolt:Bolt
+normal:sword:Dagger
+normal:sword:Main Gauche
+normal:sword:Rapier
+normal:sword:Short Sword
+normal:sword:Cutlass
+normal:sword:Tulwar
+normal:sword:Broad Sword
+normal:sword:Long Sword
+normal:sword:Scimitar
+normal:sword:Katana
+normal:sword:Bastard Sword
+normal:polearm:Spear
+normal:polearm:Awl-Pike
+normal:polearm:Trident
+normal:polearm:Pike
+normal:polearm:Beaked Axe
+normal:polearm:Broad Axe
+normal:polearm:Battle Axe
+normal:polearm:Lance
+normal:polearm:Lucerne Hammer
+normal:hafted:Whip
+normal:bow:Sling
+normal:bow:Short Bow
+normal:bow:Long Bow
+normal:bow:Light Crossbow
+buy:shot
+buy:bolt
+buy:arrow
+buy:bow
+buy:sword
+buy:polearm
+buy:hafted
+buy:rock
+buy:mage staff
+
+# Temple
+store:Temple
+type:2
+owner:15000:Ludwig the Humble (Human)
+owner:20000:Gunnar the Paladin (Human)
+owner:25000:Delilah the Pure (Elf)
+owner:30000:Keldon the Wise (Dwarf)
+slots:6:14
+turnover:9
+always:prayer book
+always:potion:Cure Light Wounds
+always:scroll:Remove Curse
+always:scroll:Life
+normal:hafted:Whip
+normal:hafted:Quarterstaff
+normal:hafted:Mace
+normal:hafted:Ball-and-Chain
+normal:hafted:War Hammer
+normal:hafted:Morning Star
+normal:hafted:Flail
+normal:hafted:Lead-Filled Mace
+normal:scroll:Blessing
+normal:scroll:Holy Chant
+normal:scroll:Light
+normal:potion:Boldness
+normal:potion:Heroism
+normal:potion:Neutralize Poison
+normal:potion:Cure Serious Wounds
+normal:potion:Cure Critical Wounds
+normal:potion:Healing:10:300
+buy:prayer book
+buy:scroll
+buy:potion
+buy:hafted
+buy-flag:BLESSED:sword
+buy-flag:BLESSED:polearm
+
+# Alchemist
+store:Alchemy Shop
+owner:10000:Mauser the Chemist (Half-Elf)
+owner:10000:Wizzle the Chaotic (Hobbit)
+owner:15000:Ga-nat the Greedy (Gnome)
+owner:15000:Vella the Slender (Human)
+slots:6:10
+turnover:9
+always:scroll:Word of Recall
+always:scroll:Phase Door
+normal:scroll:Monster Confusion
+normal:scroll:Magic Mapping
+normal:scroll:Detect Invisible
+normal:scroll:Recharging
+normal:scroll:Satisfy Hunger
+normal:potion:Boldness
+normal:potion:Berserk Strength
+normal:potion:Resist Heat
+normal:potion:Resist Cold
+normal:potion:Restore Life Levels
+normal:potion:Infravision
+buy:scroll
+buy:potion
+
+# Magic-user's
+store:Magic Shop
+owner:15000:Ariel the Sorceress (Half-Elf)
+owner:20000:Buggerby the Great (Gnome)
+owner:25000:Inglorian the Mage (Human)
+owner:30000:Luthien Starshine (High-Elf)
+slots:4:14
+turnover:9
+always:magic book
+normal:ring:Searching
+normal:ring:Levitation
+normal:ring:Protection
+normal:amulet:Slow Digestion
+normal:amulet:Resist Acid
+normal:wand:Light
+normal:wand:Slow Monster
+normal:wand:Confuse Monster
+normal:wand:Magic Missile
+normal:wand:Stinking Cloud
+normal:wand:Stone to Mud
+normal:staff:Teleportation
+normal:staff:Light
+normal:staff:Magic Mapping
+normal:staff:Detect Invisible
+normal:staff:Detect Evil
+buy:magic book
+buy:amulet
+buy:ring
+buy:staff
+buy:wand
+buy:rod
+buy:scroll
+buy:potion
+
+# Bookseller
+store:Bookseller
+owner:15000:Yveen the Witch (Half-Elf)
+owner:20000:Narn the Short (Gnome)
+owner:25000:Lord X the Black (Human)
+owner:30000:Senya the Beautiful (High-Elf)
+slots:0:2
+turnover:0
+always:nature book
+always:shadow book
+always:psi book
+always:elemental book
+buy:nature book
+buy:shadow book
+buy:psi book
+buy:elemental book
+
+# Place custom stores here
+
+# Black Market - no stock given but we still need slot/turnover info
+store:Black Market
+type:3
+owner:15000:Lo-Hak the Awful (Half-Troll)
+owner:20000:Histor the Goblin (Kobold)
+owner:25000:Durwin the Shifty (Half-Orc)
+owner:30000:Drago the Fair (Elf)
+slots:6:18
+turnover:9
+
+# Expensive Black Market - no stock given but we still need slot/turnover info
+store:Expensive Black Market
+type:4
+owner:15000:Eek the Yeek (Yeek)
+owner:20000:Zak the Kobold (Kobold)
+owner:25000:Fangorn the Treebeard (Ent)
+owner:30000:Lisa the Green (Thunderlord)
+slots:8:16
+turnover:9
+
+store:Tavern
+type:5
+owner:0:Tavern
+owner:0:Tavern
+owner:0:Tavern
+owner:0:Tavern
+
+store:Home
+type:6
+owner:0:Your home
+owner:0:Your home
+owner:0:Your home
+owner:0:Your home
+
+store:Player shop
+type:7
+owner:0:Player shop
+owner:0:Player shop
+owner:0:Player shop
+owner:0:Player shop

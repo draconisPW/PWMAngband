@@ -1,0 +1,14 @@
+# File: quest.txt
+
+# This file contains the fixed (and only) quests.
+
+
+name:Sauron
+level:99
+race:Sauron, the Sorcerer
+number:1
+
+name:Morgoth
+level:100
+race:Morgoth, Lord of Darkness
+number:1

@@ -1,0 +1,497 @@
+###################################################################
+#
+#  makefile.bcc - MAngband makefile for Borland C++ 5.5 (Win32)
+#
+#  This makefile, along with necessary code, was written by
+#  Yakina (yakina@dsb.to) and modified for MAngband use.
+#
+#  How to compile:
+#  1. install bcc++5.5 first - from http://www.borland.com/
+#  2. go to the directory 'src' of Mangband
+#     (the directory this file is in.)
+#  3. change the 'BCCDIR = ..' option or set environment variable `BCCDIR'
+#     to the directory you installed bcc++
+#  4. type 'make -f makefile.bcc' to compile client
+#     (or 'make -f makefile.bcc server' if you want a server.)
+#  5. copy the binary (mangclient.exe) to the directory of MAngband
+#     (available from http://www.mangband.org/)
+#  6. enjoy!
+#
+###################################################################
+
+
+###################################################################
+#
+#       Borland specific directives ---
+#
+.AUTODEPEND
+
+
+###################################################################
+#
+# Set tool and version names:
+!ifndef BCCDIR
+BCCDIR     = "C:\Program Files (x86)\Borland\CBuilder6"
+!endif
+
+CPP        = $(BCCDIR)\bin\bcc32
+LINKER     = $(BCCDIR)\bin\ilink32
+RC         = $(BCCDIR)\bin\brc32
+
+
+###################################################################
+#
+# Name of the *.exe-file
+
+SERV_EXE = mangband.exe
+CLI_EXE = mangclient.exe
+
+
+###################################################################
+#
+# Debug mode (un-comment for debugging)
+
+# DBGOPT= -v -x -xp
+
+
+###################################################################
+#
+# Set any compiler options
+
+CCOPTS = -Hc -tW -lGn -w8080 -w-8004 -w-8057 \
+	-D_WIN32_WINNT=0x0500 -DWINVER=0x0500 \
+	-DWIN32 -D_WINDOWS -DSTRICT \
+	-I$(BCCDIR)\include
+
+LDFLAGS = -L$(BCCDIR)\lib
+
+
+# Compile flags:
+CPPFLAGS= $(CCOPTS) $(DBGOPT)
+
+
+######################## Targets ##################################
+
+SERV_SRCS = \
+  common\buildid.c \
+  common\datafile.c \
+  common\display.c \
+  common\guid.c \
+  common\md5.c \
+  common\net-win.c \
+  common\obj-gear-common.c \
+  common\obj-tval.c \
+  common\option.c \
+  common\parser.c \
+  common\randname.c \
+  common\sockbuf.c \
+  common\source.c \
+  common\util.c \
+  common\z-bitflag.c \
+  common\z-color.c \
+  common\z-dice.c \
+  common\z-expression.c \
+  common\z-file.c \
+  common\z-form.c \
+  common\z-rand.c \
+  common\z-set.c \
+  common\z-type.c \
+  common\z-util.c \
+  common\z-virt.c \
+  server\account.c \
+  server\cave.c \
+  server\cave-map.c \
+  server\cave-square.c \
+  server\cave-view.c \
+  server\channel.c \
+  server\cmd-cave.c \
+  server\cmd-innate.c \
+  server\cmd-misc.c \
+  server\cmd-obj.c \
+  server\cmd-pickup.c \
+  server\control.c \
+  server\display-ui.c \
+  server\effects.c \
+  server\game-world.c \
+  server\generate.c \
+  server\gen-cave.c \
+  server\gen-chunk.c \
+  server\gen-monster.c \
+  server\gen-room.c \
+  server\gen-util.c \
+  server\help-ui.c \
+  server\history-ui.c \
+  server\house.c \
+  server\init.c \
+  server\knowledge-ui.c \
+  server\load.c \
+  server\main.c \
+  server\map-ui.c \
+  server\message.c \
+  server\metaclient.c \
+  server\mon-attack.c \
+  server\mon-blows.c \
+  server\mon-desc.c \
+  server\mon-init.c \
+  server\mon-list.c \
+  server\mon-list-ui.c \
+  server\mon-lore.c \
+  server\mon-lore-ui.c \
+  server\mon-make.c \
+  server\mon-move.c \
+  server\mon-msg.c \
+  server\mon-predicate.c \
+  server\mon-spell.c \
+  server\mon-summon.c \
+  server\mon-timed.c \
+  server\mon-util.c \
+  server\netserver.c \
+  server\obj-chest.c \
+  server\obj-curse.c \
+  server\obj-desc.c \
+  server\obj-gear.c \
+  server\obj-ignore.c \
+  server\obj-info.c \
+  server\obj-init.c \
+  server\obj-inscrip.c \
+  server\obj-knowledge.c \
+  server\obj-list.c \
+  server\obj-list-ui.c \
+  server\obj-make.c \
+  server\obj-pile.c \
+  server\obj-power.c \
+  server\obj-properties.c \
+  server\obj-randart.c \
+  server\obj-slays.c \
+  server\obj-ui.c \
+  server\obj-util.c \
+  server\party.c \
+  server\player.c \
+  server\player-attack.c \
+  server\player-birth.c \
+  server\player-calcs.c \
+  server\player-history.c \
+  server\player-path.c \
+  server\player-quest.c \
+  server\player-spell.c \
+  server\player-timed.c \
+  server\player-ui.c \
+  server\player-util.c \
+  server\prefs-ui.c \
+  server\project.c \
+  server\project-feat.c \
+  server\project-mon.c \
+  server\project-obj.c \
+  server\project-player.c \
+  server\save.c \
+  server\savefile.c \
+  server\sched-win.c \
+  server\score.c \
+  server\score-ui.c \
+  server\store.c \
+  server\s-util.c \
+  server\target.c \
+  server\target-ui.c \
+  server\trap.c \
+  server\wilderness.c \
+  server\z-quark.c \
+  server\z-queue.c \
+  server\z-textblock.c
+
+SERV_OBJS = \
+  common\buildid.obj \
+  common\datafile.obj \
+  common\display.obj \
+  common\guid.obj \
+  common\md5.obj \
+  common\net-win.obj \
+  common\obj-gear-common.obj \
+  common\obj-tval.obj \
+  common\option.obj \
+  common\parser.obj \
+  common\randname.obj \
+  common\sockbuf.obj \
+  common\source.obj \
+  common\util.obj \
+  common\z-bitflag.obj \
+  common\z-color.obj \
+  common\z-dice.obj \
+  common\z-expression.obj \
+  common\z-file.obj \
+  common\z-form.obj \
+  common\z-rand.obj \
+  common\z-set.obj \
+  common\z-type.obj \
+  common\z-util.obj \
+  common\z-virt.obj \
+  server\account.obj \
+  server\cave.obj \
+  server\cave-map.obj \
+  server\cave-square.obj \
+  server\cave-view.obj \
+  server\channel.obj \
+  server\cmd-cave.obj \
+  server\cmd-innate.obj \
+  server\cmd-misc.obj \
+  server\cmd-obj.obj \
+  server\cmd-pickup.obj \
+  server\control.obj \
+  server\display-ui.obj \
+  server\effects.obj \
+  server\game-world.obj \
+  server\generate.obj \
+  server\gen-cave.obj \
+  server\gen-chunk.obj \
+  server\gen-monster.obj \
+  server\gen-room.obj \
+  server\gen-util.obj \
+  server\help-ui.obj \
+  server\history-ui.obj \
+  server\house.obj \
+  server\init.obj \
+  server\knowledge-ui.obj \
+  server\load.obj \
+  server\main.obj \
+  server\map-ui.obj \
+  server\message.obj \
+  server\metaclient.obj \
+  server\mon-attack.obj \
+  server\mon-blows.obj \
+  server\mon-desc.obj \
+  server\mon-init.obj \
+  server\mon-list.obj \
+  server\mon-list-ui.obj \
+  server\mon-lore.obj \
+  server\mon-lore-ui.obj \
+  server\mon-make.obj \
+  server\mon-move.obj \
+  server\mon-msg.obj \
+  server\mon-predicate.obj \
+  server\mon-spell.obj \
+  server\mon-summon.obj \
+  server\mon-timed.obj \
+  server\mon-util.obj \
+  server\netserver.obj \
+  server\obj-chest.obj \
+  server\obj-curse.obj \
+  server\obj-desc.obj \
+  server\obj-gear.obj \
+  server\obj-ignore.obj \
+  server\obj-info.obj \
+  server\obj-init.obj \
+  server\obj-inscrip.obj \
+  server\obj-knowledge.obj \
+  server\obj-list.obj \
+  server\obj-list-ui.obj \
+  server\obj-make.obj \
+  server\obj-pile.obj \ 
+  server\obj-power.obj \
+  server\obj-properties.obj \
+  server\obj-randart.obj \
+  server\obj-slays.obj \
+  server\obj-ui.obj \
+  server\obj-util.obj \
+  server\party.obj \
+  server\player.obj \
+  server\player-attack.obj \
+  server\player-birth.obj \
+  server\player-calcs.obj \
+  server\player-history.obj \
+  server\player-path.obj \
+  server\player-quest.obj \
+  server\player-spell.obj \
+  server\player-timed.obj \
+  server\player-ui.obj \
+  server\player-util.obj \
+  server\prefs-ui.obj \
+  server\project.obj \
+  server\project-feat.obj \
+  server\project-mon.obj \
+  server\project-obj.obj \
+  server\project-player.obj \
+  server\save.obj \
+  server\savefile.obj \
+  server\sched-win.obj \
+  server\score.obj \
+  server\score-ui.obj \
+  server\store.obj \
+  server\s-util.obj \
+  server\target.obj \
+  server\target-ui.obj \
+  server\trap.obj \
+  server\wilderness.obj \
+  server\z-quark.obj \
+  server\z-queue.obj \
+  server\z-textblock.obj
+
+CLI_SRCS = \
+  common\buildid.c \
+  common\datafile.c \
+  common\display.c \
+  common\guid.c \
+  common\md5.c \
+  common\net-win.c \
+  common\obj-gear-common.c \
+  common\obj-tval.c \
+  common\option.c \
+  common\parser.c \
+  common\randname.c \
+  common\sockbuf.c \
+  common\source.c \
+  common\util.c \
+  common\z-bitflag.c \
+  common\z-color.c \
+  common\z-dice.c \
+  common\z-expression.c \
+  common\z-file.c \
+  common\z-form.c \
+  common\z-rand.c \
+  common\z-type.c \
+  common\z-util.c \
+  common\z-virt.c \
+  client\c-cmd.c \
+  client\c-cmd-obj.c \
+  client\c-option.c \
+  client\c-player.c \
+  client\cmd-core.c \
+  client\conf.c \
+  client\game-event.c \
+  client\game-input.c \
+  client\grafmode.c \
+  client\main-win.c \
+  client\netclient.c \
+  client\snd-win.c \
+  client\sound-core.c \
+  client\ui-birth.c \
+  client\ui-command.c \
+  client\ui-context.c \
+  client\ui-curse.c \
+  client\ui-death.c \
+  client\ui-display.c \
+  client\ui-event.c \
+  client\ui-game.c \
+  client\ui-init.c \
+  client\ui-input.c \
+  client\ui-keymap.c \
+  client\ui-knowledge.c \
+  client\ui-menu.c \
+  client\ui-message.c \
+  client\ui-object.c \
+  client\ui-options.c \
+  client\ui-output.c \
+  client\ui-prefs.c \
+  client\ui-spell.c \
+  client\ui-store.c \
+  client\ui-term.c \
+  client\win-layout.c \
+  win\readdib.c \
+  win\readpng.c \
+  win\scrnshot.c
+
+CLI_OBJS = \
+  common\buildid.obj \
+  common\datafile.obj \
+  common\display.obj \
+  common\guid.obj \
+  common\md5.obj \
+  common\net-win.obj \
+  common\obj-gear-common.obj \
+  common\obj-tval.obj \
+  common\option.obj \
+  common\parser.obj \
+  common\randname.obj \
+  common\sockbuf.obj \
+  common\source.obj \
+  common\util.obj \
+  common\z-bitflag.obj \
+  common\z-color.obj \
+  common\z-dice.obj \
+  common\z-expression.obj \
+  common\z-file.obj \
+  common\z-form.obj \
+  common\z-rand.obj \
+  common\z-type.obj \
+  common\z-util.obj \
+  common\z-virt.obj \
+  client\c-cmd.obj \
+  client\c-cmd-obj.obj \
+  client\c-option.obj \
+  client\c-player.obj \
+  client\cmd-core.obj \
+  client\conf.obj \
+  client\game-event.obj \
+  client\game-input.obj \
+  client\grafmode.obj \
+  client\main-win.obj \
+  client\netclient.obj \
+  client\snd-win.obj \
+  client\sound-core.obj \
+  client\ui-birth.obj \
+  client\ui-command.obj \
+  client\ui-context.obj \
+  client\ui-curse.obj \
+  client\ui-death.obj \
+  client\ui-display.obj \
+  client\ui-event.obj \
+  client\ui-game.obj \
+  client\ui-init.obj \
+  client\ui-input.obj \
+  client\ui-keymap.obj \
+  client\ui-knowledge.obj \
+  client\ui-menu.obj \
+  client\ui-message.obj \
+  client\ui-object.obj \
+  client\ui-options.obj \
+  client\ui-output.obj \
+  client\ui-prefs.obj \
+  client\ui-spell.obj \
+  client\ui-store.obj \
+  client\ui-term.obj \
+  client\win-layout.obj \
+  win\readdib.obj \
+  win\readpng.obj \
+  win\scrnshot.obj
+
+default: client
+
+server: $(SERV_EXE)
+
+client: $(CLI_EXE)
+
+clean:
+	-@if exist ..\*.exe del ..\*.exe >nul
+	-@if exist ..\*.tds del ..\*.tds >nul
+	-@if exist ..\obj\*.obj del ..\obj\*.obj >nul
+	-@if exist ..\obj\*.res del ..\obj\*.res >nul
+	-@if exist client\*.obj del client\*.obj >nul
+	-@if exist common\*.obj del common\*.obj >nul
+	-@if exist server\*.obj del server\*.obj >nul
+	-@if exist win\*.obj del win\*.obj >nul
+	-@if exist win\*.res del win\*.res >nul
+	-@if exist *.tds del *.tds >nul
+	-@if exist *.ilc del *.ilc >nul
+	-@if exist *.ild del *.ild >nul
+	-@if exist *.ilf del *.ilf >nul
+	-@if exist *.ils del *.ils >nul
+
+
+########################### Explicit Rules ########################
+$(SERV_EXE): $(SERV_OBJS)
+	$(LINKER) -ap $(LDFLAGS) -x $(SERV_OBJS) c0x32.obj, $(SERV_EXE),, cw32mt.lib import32.lib ws2_32.lib
+
+$(CLI_EXE): $(CLI_OBJS) win\angband.res
+	$(LINKER) -aa $(LDFLAGS) -x $(CLI_OBJS) c0w32.obj, $(CLI_EXE),, cw32.lib import32.lib ws2_32.lib win\libpng.lib win\zlib.lib win\msimg32.lib,, win\angband.res
+
+win\angband.res: win\angband.rc
+	$(RC) -r win\angband.rc
+
+########################### Implicit Rules ########################
+.c.obj:
+	$(CPP) $(CPPFLAGS) -o$*.obj -c {$? }
+
+.c.i:
+	$(CPP) $(CPPFLAGS) -c -Sr -Sd {$? }
+
+.obj.exe:
+	$(CPP) $(CPPFLAGS) $<
+

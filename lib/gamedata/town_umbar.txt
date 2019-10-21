@@ -1,0 +1,162 @@
+# File: town_umbar.txt
+
+
+# This file is used to initialize the "town of Umbar" information for 
+# PWMAngband.
+
+# Do not modify this file unless you know exactly what you are doing,
+# unless you wish to risk possible system crashes and broken savefiles.
+
+# === Understanding town_umbar.txt ===
+
+# feat : special feat : special feat : % chance of generating the second feat
+# map : lines giving full layout of town using symbols in town_feat.txt
+# mask : lines giving full layout of town using special symbols in town_feat.txt
+
+# 'feat' is the special feats replacing fake blank features (' ')
+
+# 'map' lines describe the layout of the town (symbols).
+# There MUST be "dungeon-hgt" lines with a size of "dungeon-wid"
+# (see constants.txt).
+
+# 'mask' lines describe the layout of the town (special symbols).
+# There MUST be "dungeon-hgt" lines with a size of "dungeon-wid"
+# (see constants.txt).
+
+
+# Special feats: sand/sandwall
+feat:sand:sandwall:10
+
+map:######################################################################################################################################################################################################
+map:#                                                                                                                                                                                                    #
+map:#                                                                                                                                                                                                    #
+map:#                                                                                                                                                                                                    #
+map:#                                                                                                                                         ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#
+map:#                                                                                                                                         ,                                                          #
+map:#                                                                                                                                         ,                                                          #
+map:#                                                                                                                                         ,                                                          #
+map:#                                                                                                                    ####                 ,                 ####                                     #
+map:#                                                                                                                    ###1,,,,,,,,,,,,,,,,,,                 ####                                     #
+map:#                      T                                                                                             ####                 ,,,,,,,,,,,,,,,,,,2###                                     #
+map:#                                                                                                                    ####                 ,                 ####                                     #
+map:#                                                                                                                                         ,                                                          #
+map:#                                                                                                                                         ,                                                          #
+map:#                                                     @@@@@@                                                                              ,                                                          #
+map:#                                                  @@@@VVVV@                                                                              ,                                                          #
+map:#                                               @@@@VVVVVV@@                                                                              ,                                                          #
+map:#                                             @@@VVVVVVVV@@                                                                               ,                                                          #
+map:#                                            @@VVVVVVVV@@@                                                                                ,                                                          #
+map:#                                           @@VVVVVV@@@@                                                             ####                 ,                 ####                                     #
+map:#                                         @@@VVVV@@@@                                                                ###3,,,,,,,,,,,,,,,,,,                 ####                                     #
+map:#                                         @VVVV@@@                                                                   ####                 ,,,,,,,,,,,,,,,,,,4###                                     #
+map:#                                        VVVV                                                                        ####                 ,                 ####                                     #
+map:#                                      VVVV                                                                                               ,                                                          #
+map:#                                    VVVV                                                                                                 ,                                                          #
+map:#                                  VVVV                                                                                                   ,                                                          #
+map:#                                VVVV                                                                                                     ,                                                          #
+map:#                              VVVV                                                                                                       ,                                                          #
+map:#                            VVVV                                                                                                         ,                                                          #
+map:#                          VVVV                                                                                                           ,                                                          #
+map:#                        VVVV                                               T                                        ####                 ,                 ####                                     #
+map:#                      VVVV                                                                                          ###5,,,,,,,,,,,,,,,,,,                 ####                                     #
+map:#                    VVVV                                                                                            ####                 ,,,,,,,,,,,,,,,,,,6###                                     #
+map:#                  VVVV                                                                                              ####                 ,                 ####                                     #
+map:#VVVVVVVVVVV     VVVV                                                                                                                     ,                                                          #
+map:#VVVVVVVVVVVVVVVVVV                                                                                                                       ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVV                                                                                                                   ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                               ,                                        T                 #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                           ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV             ###                                                                                       ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV      #########                                                                                    ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV###############,,,,,,,,,,,,,,,,,                                           ####                 ,                 ####                                     #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV#########                   ,                                           ###9,,,,,,,,,,,,,,,,,,                 ####                                     #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV###                      ,                                           ####                 ,,,,,,,,,,,,,,,,,,7###                                     #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                      ,                                           ####                 ,                 ####                                     #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                    ,                                                                ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                  ,                                                                ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV        ##      ,                                                                ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV    ######    ,                                                                ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV##########,,,,,,,,,,,,,                                                      ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV######              ,                                                      ,               ########                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV##                ,                                                      ,               #~~~~~~#                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                ,                                 ####                 ,               #~~~~~~#                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV              ,                                 ###B,,,,,,,,,,,,,,,,,,               #~~~~~~#                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV            ,                                 ####                 ,,,,,,,,,,,,,,,,8~~~~~~#                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV     #    ,                                 ####                 ,               #~~~~~~#                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  ###   ,                                                      ,               #~~~~~~#                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV#####,,,                                                      ,               ########                                   #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV###   ,                                                      ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV#    ,                                                      ,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV    ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,                                                          #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                     #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                     #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                    #
+map:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                    #
+map:######################################################################################################################################################################################################
+
+mask:######################################################################################################################################################################################################
+mask:#                                                                                                                                                                                                    #
+mask:#                                                                                                                                                                                                    #
+mask:#                                                                                                                                                                                                    #
+mask:#                                                                                                                                         ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,#
+mask:#                                                                                                                                         ,                                                          #
+mask:#                                                                                                                                         ,                                                          #
+mask:#                                                                                                                                         ,                                                          #
+mask:#                                                                                                                    ####                 ,                 ####                                     #
+mask:#                                                                                                                    ###1,,,,,,,,,,,,,,,,,,                 ####                                     #
+mask:#                      D                                                                                             ####                 ,,,,,,,,,,,,,,,,,,2###                                     #
+mask:#                                                                                                                    ####                 ,                 ####                                     #
+mask:#                                                                                                                                         ,                                                          #
+mask:#                                                                                                                                         ,                                                          #
+mask:#                                                     @@@@@@                                                                              ,                                                          #
+mask:#                                                  @@@@VVVV@                                                                              ,                                                          #
+mask:#                                               @@@@VVVVVV@@                                                                              ,                                                          #
+mask:#                                             @@@VVVVVVVV@@                                                                               ,                                                          #
+mask:#                                            @@VVVVVVVV@@@                                                                                ,                                                          #
+mask:#                                           @@VVVVVV@@@@                                                             ####                 ,                 ####                                     #
+mask:#                                         @@@VVVV@@@@                                                                ###3,,,,,,,,,,,,,,,,,,                 ####                                     #
+mask:#                                         @VVVV@@@                                                                   ####                 ,,,,,,,,,,,,,,,,,,4###                                     #
+mask:#                                        VVVV                                                                        ####                 ,                 ####                                     #
+mask:#                                      VVVV                                                                                               ,                                                          #
+mask:#                                    VVVV                                                                                                 ,                                                          #
+mask:#                                  VVVV                                                                                                   ,                                                          #
+mask:#                                VVVV                                                                                                     ,                                                          #
+mask:#                              VVVV                                                                                                       ,                                                          #
+mask:#                            VVVV                                                                                                         ,                                                          #
+mask:#                          VVVV                                                                                                           ,                                                          #
+mask:#                        VVVV                                               D                                        ####                 ,                 ####                                     #
+mask:#                      VVVV                                                                                          ###5,,,,,,,,,,,,,,,,,,                 ####                                     #
+mask:#                    VVVV                                                                                            ####                 ,,,,,,,,,,,,,,,,,,6###                                     #
+mask:#                  VVVV                                                                                              ####                 ,                 ####                                     #
+mask:#VVVVVVVVVVV     VVVV                                                                                                                     ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVV                                                                                                                       ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVV                                                                                                                   ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                               ,                                        D                 #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                           ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV             ###                                                                                       ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV      #########                                                                                    ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV###############,,,,,,,,,,,,,,,,,                                           ####                 ,                 ####                                     #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV#########                   ,                                           ###9,,,,,,,,,,,,,,,,,,                 ####                                     #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV###                      ,                                           ####                 ,,,,,,,,,,,,,,,,,,7###                                     #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                      ,                                           ####                 ,                 ####                                     #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                    ,                                                                ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                  ,                                                                ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV        ##      ,                                                                ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV    ######    ,                                                                ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV##########,,,,,,,,,,,,,                                                      ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV######              ,                                                      ,               ########                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV##                ,                                                      ,               #~~~~~~#                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                ,                                 ####                 ,               #~~~~~~#                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV              ,                                 ###B,,,,,,,,,,,,,,,,,,               #~~~~~~#                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV            ,                                 ####                 ,,,,,,,,,,,,,,,,8~~~~~~#                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV     #    ,                                 ####                 ,               #~~~~~~#                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV  ###   ,                                                      ,               #~~~~~~#                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV#####,,,                                                      ,               ########                                   #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV###   ,                                                      ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV#    ,                                                      ,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV    ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,                                                          #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                     #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                     #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                    #
+mask:#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV                                                                                                                    #
+mask:######################################################################################################################################################################################################
