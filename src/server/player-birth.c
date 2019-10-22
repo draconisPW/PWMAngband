@@ -485,7 +485,7 @@ static void get_money(struct player *p, bool no_recall)
     p->au = z_info->start_gold;
 
     /* Give double starting gold to no_recall characters */
-    if ((cfg_diving_mode == 2) || no_recall) p->au *= 2;
+    if ((cfg_diving_mode == 3) || no_recall) p->au *= 2;
 }
 
 
@@ -603,7 +603,7 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
         }
 
         /* Don't give unnecessary starting equipment to no_recall characters */
-        if (((cfg_diving_mode == 2) || no_recall) && !si->flag) continue;
+        if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
 
         player_outfit_aux(p, si->kind, (byte)num);
     }
@@ -611,7 +611,7 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
     /* Sanity check */
     if (p->au < 0) p->au = 0;
 
-    if (cfg_diving_mode || no_recall || is_dm_p(p)) return;
+    if ((cfg_diving_mode > 1) || no_recall || is_dm_p(p)) return;
 
     /* Give the player a deed of property */
     player_outfit_aux(p, lookup_kind_by_name(TV_DEED, "Deed of Property"), 1);
@@ -779,7 +779,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         reposition = true;
 
         /* No-recall players are simply pushed up one level (should be safe) */
-        if ((cfg_diving_mode == 2) || no_recall) push_up = true;
+        if ((cfg_diving_mode == 3) || no_recall) push_up = true;
     }
 
     /*
@@ -839,7 +839,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         if (push_up) p->wpos.depth = dungeon_get_next_level(p, p->wpos.depth, -1);
 
         /* Put us in base town */
-        else if (cfg_diving_mode || no_recall)
+        else if ((cfg_diving_mode > 1) || no_recall)
             memcpy(&p->wpos, base_wpos(), sizeof(struct worldpos));
 
         /* Put us in starting town */
@@ -1017,7 +1017,7 @@ static void player_admin(struct player *p)
     p->dm_flags |= (DM___MENU | DM_CAN_MUTATE_SELF);
 #endif
 
-    if (cfg_dungeon_master && !strcmp(p->name, cfg_dungeon_master))
+    if (cfg_dungeon_master && !my_stricmp(p->name, cfg_dungeon_master))
     {
         /* All DM powers! */
         p->dm_flags = 0xFFFFFFFF;

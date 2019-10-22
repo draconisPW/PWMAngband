@@ -69,7 +69,7 @@ extern void set_player_index(connection_t *connp, long idx);
 extern int Setup_net_server(void);
 extern void setup_contact_socket(void);
 extern bool Report_to_meta(int flag);
-extern bool Destroy_connection(int ind, char *reason);
+extern void Destroy_connection(int ind, char *reason);
 extern void Stop_net_server(void);
 extern void* console_buffer(int ind, bool read);
 extern bool Conn_is_alive(int ind);
@@ -174,6 +174,8 @@ extern int cmd_ignore_drop(struct player *p);
 extern int cmd_run(struct player *p, int dir);
 extern int cmd_rest(struct player *p, s16b resting);
 extern int cmd_tunnel(struct player *p);
+extern int cmd_fire_at_nearest(struct player *p);
+extern int cmd_cast(struct player *p, s16b book, s16b spell, int dir);
 
 /*** General network functions ***/
 extern bool process_pending_commands(int ind);

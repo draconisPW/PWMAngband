@@ -473,7 +473,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
 
             /* Disturb on appearance (except townies, friendlies and hidden mimics) */
             if (OPT(p, disturb_near) && (mon->level > 0) && pvm_check(p, mon) &&
-                !monster_is_camouflaged(mon))
+                !monster_is_camouflaged(mon) && !p->firing_request)
             {
                 disturb(p, 1);
             }
@@ -1588,7 +1588,8 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             mflag_on(p->pflag[id], MFLAG_VIEW);
 
             /* Disturb on appearance (except friendlies and hidden mimics) */
-            if (OPT(p, disturb_near) && pvp_check(p, q, PVP_CHECK_ONE, true, 0x00) && !q->k_idx)
+            if (OPT(p, disturb_near) && pvp_check(p, q, PVP_CHECK_ONE, true, 0x00) && !q->k_idx &&
+                 !p->firing_request)
             {
                 /* Disturb */
                 disturb(p, 1);

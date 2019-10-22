@@ -1050,7 +1050,7 @@ static void set_recall_depth(struct player *p, quark_t note)
                         (2 == sscanf(inscription, "%d,%d", &x, &y)))
                     {
                         /* Forbid if no wilderness */
-                        if (cfg_diving_mode || OPT(p, birth_no_recall))
+                        if ((cfg_diving_mode > 1) || OPT(p, birth_no_recall))
                         {
                             /* Deactivate recall */
                             memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
@@ -4588,7 +4588,7 @@ static bool effect_handler_MAP_WILD(effect_handler_context_t *context)
     int max_radius = radius_wild - 1;
 
     /* Default to magic map if no wilderness */
-    if (cfg_diving_mode || OPT(context->origin->player, birth_no_recall))
+    if ((cfg_diving_mode > 1) || OPT(context->origin->player, birth_no_recall))
     {
         effect_handler_MAP_AREA(context);
         return true;
@@ -5059,7 +5059,7 @@ static bool effect_handler_RECALL(effect_handler_context_t *context)
     context->ident = true;
 
     /* No recall */
-    if (((cfg_diving_mode == 2) || OPT(context->origin->player, birth_no_recall)) &&
+    if (((cfg_diving_mode == 3) || OPT(context->origin->player, birth_no_recall)) &&
         !context->origin->player->total_winner)
     {
         msg(context->origin->player, "Nothing happens.");
@@ -5864,7 +5864,7 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     }
 
     /* Restricted by choice */
-    if (OPT(q, birth_no_stores))
+    if (cfg_no_stores || OPT(q, birth_no_stores))
     {
         msg(context->origin->player, "%s cannot be reached.", q->name);
         return false;

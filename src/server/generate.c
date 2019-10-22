@@ -1076,7 +1076,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
             continue;
         }
 
-        /* Ensure quest monsters and fixed encounters (normal servers) */
+        /* Ensure quest monsters and fixed encounters (wilderness) */
         if (p)
         {
             int i;
@@ -1086,7 +1086,8 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                 struct monster_race *race = &r_info[i];
                 bool quest_monster = (is_quest_active(p, chunk->wpos.depth) &&
                     rf_has(race->flags, RF_QUESTOR));
-                bool fixed_encounter = (rf_has(race->flags, RF_PWMANG_FIXED) && !cfg_diving_mode);
+                bool fixed_encounter = (rf_has(race->flags, RF_PWMANG_FIXED) &&
+                    (cfg_diving_mode < 2));
 
                 /* The monster must be an unseen quest monster/fixed encounter of this depth. */
                 if (race->lore.spawned) continue;

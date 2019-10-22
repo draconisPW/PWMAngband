@@ -386,13 +386,6 @@ static void process_world(struct player *p, struct chunk *c)
 
     /*** Check the Time ***/
 
-    /* Send time indicator */
-    if (!(turn.turn % ((10L * z_info->day_length) / 24)))
-    {
-        /* TODO */
-        /* send hour = 1 + (turn.turn % (5 * z_info->day_length)) * 12 / (5 * z_info->day_length) + is_daytime() */
-    }
-
     /* Play an ambient sound at regular intervals. */
     if (!(turn.turn % ((10L * z_info->day_length) / 4))) play_ambient_sound(p);
 
@@ -446,7 +439,7 @@ static void process_world(struct player *p, struct chunk *c)
 
     /* Check for creature generation */
     /* Hack -- increase respawn rate on no_recall servers */
-    if (one_in_((cfg_diving_mode == 2)? z_info->alloc_monster_chance / 4:
+    if (one_in_((cfg_diving_mode == 3)? z_info->alloc_monster_chance / 4:
         z_info->alloc_monster_chance))
     {
         if (in_wild(&p->wpos))
@@ -1480,8 +1473,8 @@ static void generate_new_level(struct player *p)
         /* Illuminate */
         cave_illuminate(p, c, is_daytime());
 
-        /* Ensure fixed encounters on special levels (normal servers) */
-        if (special_level(&c->wpos) && !cfg_diving_mode)
+        /* Ensure fixed encounters on special levels (wilderness) */
+        if (special_level(&c->wpos) && (cfg_diving_mode < 2))
         {
             int i, y, x;
 

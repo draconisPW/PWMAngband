@@ -185,7 +185,7 @@ int Setup_net_server(void)
 }
 
 
-static void Conn_set_state(connection_t *connp, int state)
+static void Conn_set_state(connection_t *connp, int state, long timeout)
 {
     static int num_conn_busy;
     static int num_conn_playing;
@@ -198,23 +198,12 @@ static void Conn_set_state(connection_t *connp, int state)
     connp->state = state;
     ht_copy(&connp->start, &turn);
 
-    if (connp->state == CONN_PLAYING)
-    {
+    if ((connp->state == CONN_PLAYING) || (connp->state == CONN_QUIT))
         num_conn_playing++;
-        connp->timeout = PLAY_TIMEOUT;
-    }
-    else if (connp->state == CONN_QUIT)
-    {
-        num_conn_playing++;
-        connp->timeout = QUIT_TIMEOUT;
-    }
-    else if (connp->state == CONN_SETUP)
-        connp->timeout = SETUP_TIMEOUT;
     else if (connp->state == CONN_FREE)
-    {
         num_conn_busy--;
-        connp->timeout = FREE_TIMEOUT;
-    }
+
+    if (timeout) connp->timeout = timeout;
     login_in_progress = num_conn_busy - num_conn_playing;
 }
 
@@ -259,7 +248,7 @@ static void do_quit(int ind)
     else
     {
         /* Otherwise wait for the timeout */
-        Conn_set_state(connp, CONN_QUIT);
+        Conn_set_state(connp, CONN_QUIT, QUIT_TIMEOUT);
     }
 }
 
@@ -507,14 +496,14 @@ static int Setup_connection(u32b account, char *real, char *nick, char *addr, ch
         connp->console_authenticated = false;
         connp->console_listen = false;
 
-        Conn_set_state(connp, CONN_CONSOLE);
+        Conn_set_state(connp, CONN_CONSOLE, 0);
     }
 
     /* Non-players leave now */
     if (conntype != CONNTYPE_PLAYER)
         return free_conn_index;
 
-    Conn_set_state(connp, CONN_SETUP);
+    Conn_set_state(connp, CONN_SETUP, SETUP_TIMEOUT);
 
     /* Remove the contact input handler */
     remove_input(sock);
@@ -1047,42 +1036,41 @@ static void wipe_connection(connection_t *connp)
  * closed.  If our connection to it has been closed, then connp->w.sock will
  * be set to -1.
  */
-bool Destroy_connection(int ind, char *reason)
+void Destroy_connection(int ind, char *reason)
 {
     connection_t *connp = get_connection(ind);
-    int len, sock;
-    char pkt[NORMAL_WID];
 
     if (connp->state == CONN_FREE)
     {
         errno = 0;
         plog_fmt("Cannot destroy empty connection (\"%s\")", reason);
-        return true;
+        return;
     }
-
-    sock = connp->w.sock;
-    if (sock != -1) remove_input(sock);
 
     if (connp->conntype == CONNTYPE_PLAYER)
     {
-        my_strcpy(&pkt[1], reason, sizeof(pkt) - 2);
-        pkt[0] = PKT_QUIT;
-        len = strlen(pkt) + 2;
-        pkt[len - 1] = PKT_END;
-        pkt[len] = '\0';
-        if (sock != -1)
+        if (connp->w.sock != -1)
         {
-            if (DgramWrite(sock, pkt, len) != len)
+            char pkt[NORMAL_WID];
+            int len;
+
+            pkt[0] = PKT_QUIT;
+            my_strcpy(&pkt[1], reason, sizeof(pkt) - 2);
+            len = strlen(pkt) + 2;
+            pkt[len - 1] = PKT_END;
+            pkt[len] = '\0';
+
+            if (DgramWrite(connp->w.sock, pkt, len) != len)
             {
-                GetSocketError(sock);
-                DgramWrite(sock, pkt, len);
+                GetSocketError(connp->w.sock);
+                DgramWrite(connp->w.sock, pkt, len);
             }
         }
         plog_fmt("Goodbye %s=%s@%s (\"%s\")", (connp->nick? connp->nick: ""),
             (connp->real? connp->real: ""), (connp->host? connp->host: ""), reason);
     }
 
-    Conn_set_state(connp, CONN_FREE);
+    Conn_set_state(connp, CONN_FREE, FREE_TIMEOUT);
 
     if (connp->id != -1) Delete_player(get_player_index(connp));
     string_free(connp->real);
@@ -1095,13 +1083,15 @@ bool Destroy_connection(int ind, char *reason)
     Sockbuf_cleanup(&connp->c);
     Sockbuf_cleanup(&connp->q);
 
+    if (connp->w.sock != -1)
+    {
+        DgramClose(connp->w.sock);
+        remove_input(connp->w.sock);
+    }
+
     wipe_connection(connp);
 
     num_logouts++;
-
-    if (sock != -1) DgramClose(sock);
-
-    return true;
 }
 
 
@@ -3221,6 +3211,29 @@ int cmd_tunnel(struct player *p)
 }
 
 
+int cmd_fire_at_nearest(struct player *p)
+{
+    byte starting = 0;
+
+    connection_t *connp = get_connp(p, "fire_at_nearest");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->q, "%b%b", (unsigned)PKT_FIRE_AT_NEAREST, (unsigned)starting);
+}
+
+
+int cmd_cast(struct player *p, s16b book, s16b spell, int dir)
+{
+    byte starting = 0;
+
+    connection_t *connp = get_connp(p, "cast");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->q, "%b%hd%hd%c%b", (unsigned)PKT_SPELL, (int)book, (int)spell,
+        (int)dir, (unsigned)starting);
+}
+
+
 /*** Receiving ***/
 
 
@@ -3333,8 +3346,7 @@ static int Receive_icky(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &icky)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_icky read error");
+        if (n == -1) Destroy_connection(ind, "Receive_icky read error");
         return n;
     }
 
@@ -3359,8 +3371,7 @@ static int Receive_symbol_query(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_symbol_query read error");
+        if (n == -1) Destroy_connection(ind, "Receive_symbol_query read error");
         return n;
     }
 
@@ -3386,8 +3397,7 @@ static int Receive_poly_race(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_poly_race read error");
+        if (n == -1) Destroy_connection(ind, "Receive_poly_race read error");
         return n;
     }
 
@@ -3412,8 +3422,7 @@ static int Receive_breath(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_breath read error");
+        if (n == -1) Destroy_connection(ind, "Receive_breath read error");
         return n;
     }
 
@@ -3448,8 +3457,7 @@ static int Receive_walk(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_walk read error");
+        if (n == -1) Destroy_connection(ind, "Receive_walk read error");
         return n;
     }
 
@@ -3508,8 +3516,7 @@ static int Receive_run(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_run read error");
+        if (n == -1) Destroy_connection(ind, "Receive_run read error");
         return n;
     }
 
@@ -3562,8 +3569,7 @@ static int Receive_tunnel(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%b", &ch, &dir, &starting)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_tunnel read error");
+        if (n == -1) Destroy_connection(ind, "Receive_tunnel read error");
         return n;
     }
 
@@ -3604,8 +3610,7 @@ static int Receive_aim_wand(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_aim_wand read error");
+        if (n == -1) Destroy_connection(ind, "Receive_aim_wand read error");
         return n;
     }
 
@@ -3640,8 +3645,7 @@ static int Receive_drop(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &amt)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_drop read error");
+        if (n == -1) Destroy_connection(ind, "Receive_drop read error");
         return n;
     }
 
@@ -3675,8 +3679,7 @@ static int Receive_ignore_drop(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_ignore_drop read error");
+        if (n == -1) Destroy_connection(ind, "Receive_ignore_drop read error");
         return n;
     }
 
@@ -3712,8 +3715,7 @@ static int Receive_fire(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &dir, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_fire read error");
+        if (n == -1) Destroy_connection(ind, "Receive_fire read error");
         return n;
     }
 
@@ -3749,8 +3751,7 @@ static int Receive_pickup(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b%hd", &ch, &ignore, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_pickup read error");
+        if (n == -1) Destroy_connection(ind, "Receive_pickup read error");
         return n;
     }
 
@@ -3823,8 +3824,7 @@ static int Receive_destroy(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &des)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_destroy read error");
+        if (n == -1) Destroy_connection(ind, "Receive_destroy read error");
         return n;
     }
 
@@ -3852,8 +3852,7 @@ static int Receive_target_closest(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &mode)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_target_closest read error");
+        if (n == -1) Destroy_connection(ind, "Receive_target_closest read error");
         return n;
     }
 
@@ -3878,9 +3877,9 @@ static int Receive_cast(int ind, char *errmsg)
     char dir;
     int n;
     s16b book, spell;
-    byte ch;
+    byte ch, starting;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%hd%c", &ch, &book, &spell, &dir)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%hd%c%b", &ch, &book, &spell, &dir, &starting)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, errmsg);
         return n;
@@ -3893,13 +3892,19 @@ static int Receive_cast(int ind, char *errmsg)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p))
+        /* Repeat casting 99 times if fire-till-kill mode is active */
+        if (starting)
         {
-            do_cmd_cast(p, book, spell, dir);
-            return 2;
+            if (OPT(p, fire_till_kill) && (dir == 5)) p->firing_request = 99;
+            else p->firing_request = 1;
+            starting = 0;
         }
 
-        Packet_printf(&connp->q, "%b%hd%hd%c", (unsigned)ch, (int)book, (int)spell, (int)dir);
+        if (do_cmd_cast(p, book, spell, dir)) return 2;
+
+        /* If we don't have enough energy to cast, queue the command */
+        Packet_printf(&connp->q, "%b%hd%hd%c%b", (unsigned)ch, (int)book, (int)spell, (int)dir,
+            (unsigned)starting);
         return 0;
     }
 
@@ -3923,8 +3928,7 @@ static int Receive_open(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_open read error");
+        if (n == -1) Destroy_connection(ind, "Receive_open read error");
         return n;
     }
 
@@ -3966,8 +3970,7 @@ static int Receive_quaff(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_quaff read error");
+        if (n == -1) Destroy_connection(ind, "Receive_quaff read error");
         return n;
     }
 
@@ -4002,8 +4005,7 @@ static int Receive_read(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_read read error");
+        if (n == -1) Destroy_connection(ind, "Receive_read read error");
         return n;
     }
 
@@ -4038,8 +4040,7 @@ static int Receive_take_off(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_take_off read error");
+        if (n == -1) Destroy_connection(ind, "Receive_take_off read error");
         return n;
     }
 
@@ -4074,8 +4075,7 @@ static int Receive_use(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_use read error");
+        if (n == -1) Destroy_connection(ind, "Receive_use read error");
         return n;
     }
 
@@ -4111,8 +4111,7 @@ static int Receive_throw(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &dir, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_throw read error");
+        if (n == -1) Destroy_connection(ind, "Receive_throw read error");
         return n;
     }
 
@@ -4147,8 +4146,7 @@ static int Receive_wield(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &slot)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_wield read error");
+        if (n == -1) Destroy_connection(ind, "Receive_wield read error");
         return n;
     }
 
@@ -4184,8 +4182,7 @@ static int Receive_zap(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_zap read error");
+        if (n == -1) Destroy_connection(ind, "Receive_zap read error");
         return n;
     }
 
@@ -4220,8 +4217,7 @@ static int Receive_target_interactive(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b%lu", &ch, &mode, &query)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_target_interactive read error");
+        if (n == -1) Destroy_connection(ind, "Receive_target_interactive read error");
         return n;
     }
 
@@ -4250,8 +4246,7 @@ static int Receive_inscribe(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &item, inscription)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_inscribe read error");
+        if (n == -1) Destroy_connection(ind, "Receive_inscribe read error");
         return n;
     }
 
@@ -4279,8 +4274,7 @@ static int Receive_uninscribe(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_uninscribe read error");
+        if (n == -1) Destroy_connection(ind, "Receive_uninscribe read error");
         return n;
     }
 
@@ -4309,8 +4303,7 @@ static int Receive_activate(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_activate read error");
+        if (n == -1) Destroy_connection(ind, "Receive_activate read error");
         return n;
     }
 
@@ -4345,8 +4338,7 @@ static int Receive_disarm(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_disarm read error");
+        if (n == -1) Destroy_connection(ind, "Receive_disarm read error");
         return n;
     }
 
@@ -4381,8 +4373,7 @@ static int Receive_eat(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_eat read error");
+        if (n == -1) Destroy_connection(ind, "Receive_eat read error");
         return n;
     }
 
@@ -4417,8 +4408,7 @@ static int Receive_fill(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_fill read error");
+        if (n == -1) Destroy_connection(ind, "Receive_fill read error");
         return n;
     }
 
@@ -4453,8 +4443,7 @@ static int Receive_locate(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_locate read error");
+        if (n == -1) Destroy_connection(ind, "Receive_locate read error");
         return n;
     }
 
@@ -4481,8 +4470,7 @@ static int Receive_map(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &mode)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_map read error");
+        if (n == -1) Destroy_connection(ind, "Receive_map read error");
         return n;
     }
 
@@ -4510,8 +4498,7 @@ static int Receive_stealth_mode(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_stealth_mode read error");
+        if (n == -1) Destroy_connection(ind, "Receive_stealth_mode read error");
         return n;
     }
 
@@ -4538,8 +4525,7 @@ static int Receive_quest(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_quest read error");
+        if (n == -1) Destroy_connection(ind, "Receive_quest read error");
         return n;
     }
 
@@ -4568,8 +4554,7 @@ static int Receive_close(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_close read error");
+        if (n == -1) Destroy_connection(ind, "Receive_close read error");
         return n;
     }
 
@@ -4604,8 +4589,7 @@ static int Receive_gain(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &book, &spell)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_gain read error");
+        if (n == -1) Destroy_connection(ind, "Receive_gain read error");
         return n;
     }
 
@@ -4639,8 +4623,7 @@ static int Receive_go_up(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_go_up read error");
+        if (n == -1) Destroy_connection(ind, "Receive_go_up read error");
         return n;
     }
 
@@ -4674,8 +4657,7 @@ static int Receive_go_down(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_go_down read error");
+        if (n == -1) Destroy_connection(ind, "Receive_go_down read error");
         return n;
     }
 
@@ -4711,8 +4693,7 @@ static int Receive_drop_gold(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%ld", &ch, &amt)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_drop_gold read error");
+        if (n == -1) Destroy_connection(ind, "Receive_drop_gold read error");
         return n;
     }
 
@@ -4746,8 +4727,7 @@ static int Receive_redraw(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_redraw read error");
+        if (n == -1) Destroy_connection(ind, "Receive_redraw read error");
         return n;
     }
 
@@ -4776,8 +4756,7 @@ static int Receive_rest(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &resting)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_rest read error");
+        if (n == -1) Destroy_connection(ind, "Receive_rest read error");
         return n;
     }
 
@@ -4811,8 +4790,7 @@ static int Receive_ghost(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &ability, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_ghost read error");
+        if (n == -1) Destroy_connection(ind, "Receive_ghost read error");
         return n;
     }
 
@@ -4846,8 +4824,7 @@ static int Receive_suicide(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_suicide read error");
+        if (n == -1) Destroy_connection(ind, "Receive_suicide read error");
         return n;
     }
 
@@ -4861,7 +4838,7 @@ static int Receive_suicide(int ind)
         /* End character (or retire if winner) */
         do_cmd_suicide(p);
 
-        /* Send any remaining information over the network (the tomsbtone) */
+        /* Send any remaining information over the network (the tombstone) */
         Net_output_p(p);
 
         /* Get rid of him */
@@ -4885,8 +4862,7 @@ static int Receive_steal(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_steal read error");
+        if (n == -1) Destroy_connection(ind, "Receive_steal read error");
         return n;
     }
 
@@ -4934,8 +4910,7 @@ static int Receive_master(int ind)
      */
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &command, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_master read error");
+        if (n == -1) Destroy_connection(ind, "Receive_master read error");
         return n;
     }
 
@@ -4961,8 +4936,7 @@ static int Receive_mimic(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd%c", &ch, &page, &spell, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_mimic read error");
+        if (n == -1) Destroy_connection(ind, "Receive_mimic read error");
         return n;
     }
 
@@ -5018,8 +4992,7 @@ static int Receive_observe(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_observe read error");
+        if (n == -1) Destroy_connection(ind, "Receive_observe read error");
         return n;
     }
 
@@ -5054,8 +5027,7 @@ static int Receive_store_examine(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%b", &ch, &item, &describe)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_store_examine read error");
+        if (n == -1) Destroy_connection(ind, "Receive_store_examine read error");
         return n;
     }
 
@@ -5083,8 +5055,7 @@ static int Receive_alter(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_alter read error");
+        if (n == -1) Destroy_connection(ind, "Receive_alter read error");
         return n;
     }
 
@@ -5114,12 +5085,11 @@ static int Receive_fire_at_nearest(int ind)
     connection_t *connp = get_connection(ind);
     struct player *p;
     int n;
-    byte ch;
+    byte ch, starting;
 
-    if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &starting)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_fire_at_nearest read error");
+        if (n == -1) Destroy_connection(ind, "Receive_fire_at_nearest read error");
         return n;
     }
 
@@ -5130,13 +5100,18 @@ static int Receive_fire_at_nearest(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p))
+        /* Repeat firing 99 times if fire-till-kill mode is active */
+        if (starting)
         {
-            do_cmd_fire_at_nearest(p);
-            return 2;
+            if (OPT(p, fire_till_kill)) p->firing_request = 99;
+            else p->firing_request = 1;
+            starting = 0;
         }
 
-        Packet_printf(&connp->q, "%b", (unsigned)ch);
+        if (do_cmd_fire_at_nearest(p)) return 2;
+
+        /* If we don't have enough energy to fire, queue the command */
+        Packet_printf(&connp->q, "%b%b", (unsigned)ch, (unsigned)starting);
         return 0;
     }
 
@@ -5154,8 +5129,7 @@ static int Receive_jump(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_jump read error");
+        if (n == -1) Destroy_connection(ind, "Receive_jump read error");
         return n;
     }
 
@@ -5198,8 +5172,7 @@ static int Receive_social(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%s", &ch, &dir, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_social read error");
+        if (n == -1) Destroy_connection(ind, "Receive_social read error");
         return n;
     }
 
@@ -5226,8 +5199,7 @@ static int Receive_monlist(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_monlist read error");
+        if (n == -1) Destroy_connection(ind, "Receive_monlist read error");
         return n;
     }
 
@@ -5252,8 +5224,7 @@ static int Receive_feeling(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_feeling read error");
+        if (n == -1) Destroy_connection(ind, "Receive_feeling read error");
         return n;
     }
 
@@ -5285,8 +5256,7 @@ static int Receive_interactive(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%lu", &ch, &type, &key)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_interactive read error");
+        if (n == -1) Destroy_connection(ind, "Receive_interactive read error");
         return n;
     }
 
@@ -5311,8 +5281,7 @@ static int Receive_fountain(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_fountain read error");
+        if (n == -1) Destroy_connection(ind, "Receive_fountain read error");
         return n;
     }
 
@@ -5346,8 +5315,7 @@ static int Receive_time(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_time read error");
+        if (n == -1) Destroy_connection(ind, "Receive_time read error");
         return n;
     }
 
@@ -5374,8 +5342,7 @@ static int Receive_objlist(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_objlist read error");
+        if (n == -1) Destroy_connection(ind, "Receive_objlist read error");
         return n;
     }
 
@@ -5400,8 +5367,7 @@ static int Receive_center(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_center read error");
+        if (n == -1) Destroy_connection(ind, "Receive_center read error");
         return n;
     }
 
@@ -5428,8 +5394,7 @@ static int Receive_toggle_ignore(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_toggle_ignore read error");
+        if (n == -1) Destroy_connection(ind, "Receive_toggle_ignore read error");
         return n;
     }
 
@@ -5460,8 +5425,7 @@ static int Receive_use_any(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_use_any read error");
+        if (n == -1) Destroy_connection(ind, "Receive_use_any read error");
         return n;
     }
 
@@ -5496,8 +5460,7 @@ static int Receive_store_order(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_store_order read error");
+        if (n == -1) Destroy_connection(ind, "Receive_store_order read error");
         return n;
     }
 
@@ -5525,8 +5488,7 @@ static int Receive_track_object(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_track_object read error");
+        if (n == -1) Destroy_connection(ind, "Receive_track_object read error");
         return n;
     }
 
@@ -5606,9 +5568,12 @@ static void update_birth_options(struct player *p, struct birth_options *options
     }
 
     /* Server options supercede birth options */
-    if (cfg_limit_stairs == 3) OPT(p, birth_force_descend) = false;
-    if (cfg_diving_mode == 2) OPT(p, birth_no_recall) = false;
-    if (cfg_no_ghost) OPT(p, birth_no_ghost) = false;
+    if (cfg_limit_stairs == 3) OPT(p, birth_force_descend) = true;
+    if (cfg_diving_mode == 3) OPT(p, birth_no_recall) = true;
+    if (cfg_no_artifacts) OPT(p, birth_no_artifacts) = true;
+    if (cfg_no_selling) OPT(p, birth_no_selling) = true;
+    if (cfg_no_stores) OPT(p, birth_no_stores) = true;
+    if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
 
     /* Fruit bat mode: not when a Dragon, a Shapechanger or a Necromancer */
     if (pf_has(p->race->pflags, PF_DRAGON) || pf_has(p->clazz->pflags, PF_MONSTER_SPELLS) ||
@@ -5618,7 +5583,7 @@ static void update_birth_options(struct player *p, struct birth_options *options
     }
 
     /* Fruit bat mode supercedes no-ghost mode */
-    if (OPT(p, birth_fruit_bat)) OPT(p, birth_no_ghost) = false;
+    if (OPT(p, birth_fruit_bat)) OPT(p, birth_no_ghost) = true;
 
     /* Update form */
     if (OPT(p, birth_fruit_bat) != options->fruit_bat)
@@ -5861,7 +5826,7 @@ static int Enter_player(int ind)
 
     Send_play(ind);
 
-    Conn_set_state(connp, CONN_PLAYING);
+    Conn_set_state(connp, CONN_PLAYING, PLAY_TIMEOUT);
 
     /* Send party information */
     Send_party(p);
@@ -5903,9 +5868,17 @@ static int Enter_player(int ind)
     if (cfg_limit_stairs == 3)
         msg(p, "Server is force-down.");
     if (cfg_diving_mode == 1)
-        msg(p, "Server has no wilderness.");
+        msg(p, "Server has fast wilderness.");
     if (cfg_diving_mode == 2)
+        msg(p, "Server has no wilderness.");
+    if (cfg_diving_mode == 3)
         msg(p, "Server is no-recall.");
+    if (cfg_no_artifacts)
+        msg(p, "Server has no artifacts.");
+    if (cfg_no_selling)
+        msg(p, "Server is no-selling.");
+    if (cfg_no_stores)
+        msg(p, "Server has no stores.");
     if (cfg_no_ghost)
         msg(p, "Server is no-ghost.");
 
@@ -6344,8 +6317,7 @@ static int Receive_options(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &settings)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_options read error");
+        if (n == -1) Destroy_connection(ind, "Receive_options read error");
         return n;
     }
 
@@ -6357,7 +6329,7 @@ static int Receive_options(int ind)
 
             if (n <= 0)
             {
-                Destroy_connection(ind, "Receive_options read error");
+                if (n == -1) Destroy_connection(ind, "Receive_options read error");
                 return n;
             }
         }
@@ -6371,7 +6343,7 @@ static int Receive_options(int ind)
 
         if (n <= 0)
         {
-            Destroy_connection(ind, "Receive_options read error");
+            if (n == -1) Destroy_connection(ind, "Receive_options read error");
             return n;
         }
 
@@ -6411,8 +6383,7 @@ static int Receive_char_dump(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_char_dump read error");
+        if (n == -1) Destroy_connection(ind, "Receive_char_dump read error");
         return n;
     }
 
@@ -6444,8 +6415,7 @@ static int Receive_message(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%S", &ch, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_message read error");
+        if (n == -1) Destroy_connection(ind, "Receive_message read error");
         return n;
     }
 
@@ -6574,8 +6544,7 @@ static int Receive_item(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &curse)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_item read error");
+        if (n == -1) Destroy_connection(ind, "Receive_item read error");
         return n;
     }
 
@@ -6603,8 +6572,7 @@ static int Receive_sell(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &amt)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_sell read error");
+        if (n == -1) Destroy_connection(ind, "Receive_sell read error");
         return n;
     }
 
@@ -6647,8 +6615,7 @@ static int Receive_party(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &command, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_party read error");
+        if (n == -1) Destroy_connection(ind, "Receive_party read error");
         return n;
     }
 
@@ -6674,8 +6641,7 @@ static int Receive_special_line(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &type, &line)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_special_line read error");
+        if (n == -1) Destroy_connection(ind, "Receive_special_line read error");
         return n;
     }
 
@@ -6722,8 +6688,7 @@ static int Receive_fullmap(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_fullmap read error");
+        if (n == -1) Destroy_connection(ind, "Receive_fullmap read error");
         return n;
     }
 
@@ -6751,8 +6716,7 @@ static int Receive_poly(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &number)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_poly read error");
+        if (n == -1) Destroy_connection(ind, "Receive_poly read error");
         return n;
     }
 
@@ -6791,8 +6755,7 @@ static int Receive_purchase(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &amt)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_purchase read error");
+        if (n == -1) Destroy_connection(ind, "Receive_purchase read error");
         return n;
     }
 
@@ -6835,8 +6798,7 @@ static int Receive_store_leave(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_store_leave read error");
+        if (n == -1) Destroy_connection(ind, "Receive_store_leave read error");
         return n;
     }
 
@@ -6914,8 +6876,7 @@ static int Receive_store_confirm(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_store_confirm read error");
+        if (n == -1) Destroy_connection(ind, "Receive_store_confirm read error");
         return n;
     }
 
@@ -6954,8 +6915,7 @@ static int Receive_ignore(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_ignore read error");
+        if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
         return n;
     }
 
@@ -6967,7 +6927,7 @@ static int Receive_ignore(int ind)
 
         if (n <= 0)
         {
-            Destroy_connection(ind, "Receive_ignore read error");
+            if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
             mem_free(new_kind_ignore);
             return n;
         }
@@ -6987,7 +6947,7 @@ static int Receive_ignore(int ind)
         n = Packet_scanf(&connp->r, "%hd%b", &repeat, &last);
         if (n <= 0)
         {
-            Destroy_connection(ind, "Receive_ignore read error");
+            if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
             for (k = 0; k < z_info->e_max; k++) mem_free(new_ego_ignore_types[k]);
             mem_free(new_ego_ignore_types);
             mem_free(new_kind_ignore);
@@ -7013,7 +6973,7 @@ static int Receive_ignore(int ind)
 
         if (n <= 0)
         {
-            Destroy_connection(ind, "Receive_ignore read error");
+            if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
             for (k = 0; k < z_info->e_max; k++) mem_free(new_ego_ignore_types[k]);
             mem_free(new_ego_ignore_types);
             mem_free(new_kind_ignore);
@@ -7076,8 +7036,7 @@ static int Receive_flush(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_flush read error");
+        if (n == -1) Destroy_connection(ind, "Receive_flush read error");
         return n;
     }
 
@@ -7108,8 +7067,7 @@ static int Receive_channel(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_channel read error");
+        if (n == -1) Destroy_connection(ind, "Receive_channel read error");
         return n;
     }
 
@@ -7138,8 +7096,7 @@ static int Receive_history(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &line, buf)) <= 0)
     {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_history read error");
+        if (n == -1) Destroy_connection(ind, "Receive_history read error");
         return n;
     }
 
@@ -7272,6 +7229,11 @@ bool process_pending_commands(int ind)
         /* Cancel repeated commands */
         if ((type != PKT_TUNNEL) && (type != PKT_KEEPALIVE) && p->digging_request)
             p->digging_request = 0;
+        if ((type != PKT_FIRE_AT_NEAREST) && (type != PKT_PRAY) && (type != PKT_SPELL) &&
+            (type != PKT_KEEPALIVE) && p->firing_request)
+        {
+            p->firing_request = 0;
+        }
 
         result = (*receive_tbl[type])(ind);
         if (connp->state == CONN_PLAYING) ht_copy(&connp->start, &turn);

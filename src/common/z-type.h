@@ -251,6 +251,8 @@ struct angband_constants
 
     /* Object creation constants, read from constants.txt */
     u16b max_obj_depth;         /* Maximum depth used in object allocation */
+    u16b good_obj;              /* Chance of object being "good" */
+    u16b ego_obj;               /* Chance of object being "great" */
     u16b great_obj;             /* 1/chance of inflating the requested object level */
     u16b great_ego;             /* 1/chance of inflating the requested ego item level */
     u16b fuel_torch;            /* Maximum amount of fuel in a torch */

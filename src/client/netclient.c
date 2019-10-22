@@ -2913,7 +2913,8 @@ static int Receive_quit(void)
     char pkt;
     char reason[NORMAL_WID];
 
-    /* Redraw stuff before quitting to show the cause of death */
+    /* Redraw stuff before quitting to show the cause of death (and last messages) */
+    player->upkeep->redraw |= (PR_MESSAGE);
     redraw_stuff();
     Term_fresh();
 
@@ -4192,9 +4193,11 @@ int Send_target_closest(int mode)
 int Send_cast(int book, int spell, int dir)
 {
     int n;
+    byte starting = 1;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%hd%c", (unsigned)PKT_SPELL, book, spell, dir)) <= 0)
-        return n;
+    n = Packet_printf(&wbuf, "%b%hd%hd%c%b", (unsigned)PKT_SPELL, book, spell, dir,
+        (unsigned)starting);
+    if (n <= 0) return n;
 
     return 1;
 }
@@ -4218,9 +4221,11 @@ int Send_open(struct command *cmd)
 int Send_pray(int book, int spell, int dir)
 {
     int n;
+    byte starting = 1;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%hd%c", (unsigned)PKT_PRAY, book, spell, dir)) <= 0)
-        return n;
+    n = Packet_printf(&wbuf, "%b%hd%hd%c%b", (unsigned)PKT_PRAY, book, spell, dir,
+        (unsigned)starting);
+    if (n <= 0) return n;
 
     return 1;
 }
@@ -4934,8 +4939,9 @@ int Send_alter(struct command *cmd)
 int Send_fire_at_nearest(void)
 {
     int n;
+    byte starting = 1;
 
-    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_FIRE_AT_NEAREST)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%b", (unsigned)PKT_FIRE_AT_NEAREST, (unsigned)starting)) <= 0)
         return n;
 
     return 1;

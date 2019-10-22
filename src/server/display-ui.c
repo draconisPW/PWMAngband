@@ -189,7 +189,7 @@ static void prt_health(struct player *p)
     {
         /* Extract various states */
         is_unseen = !player_is_visible(p, health_who->idx);
-        is_dead = false;
+        is_dead = ((health_who->player->chp < 0)? true: false);
         is_afraid = (player_of_has(health_who->player, OF_AFRAID)? true: false);
         is_confused = (health_who->player->timed[TMD_CONFUSED]? true: false);
         is_stunned = (health_who->player->timed[TMD_PARALYZED]? true: false);
@@ -1625,6 +1625,8 @@ static void player_strip(struct player *p, bool perma_death)
 
     mem_free(gear);
 
+    if (perma_death) return;
+
     /* Drop gold if player has any */
     if (p->alive && p->au)
     {
@@ -1778,11 +1780,14 @@ void player_death(struct player *p)
     {
         char brave[40];
 
-        if (OPT(p, birth_no_ghost) || OPT(p, birth_no_recall) || OPT(p, birth_force_descend))
+        if ((OPT(p, birth_no_ghost) && !cfg_no_ghost) ||
+            (OPT(p, birth_no_recall) && (cfg_diving_mode < 3)) ||
+            (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3)))
         {
-            strnfmt(brave, sizeof(brave), "The%s%s%s", OPT(p, birth_no_ghost)? " brave": "",
-                OPT(p, birth_no_recall)? " hardcore": "",
-                OPT(p, birth_force_descend)? " diving": "");
+            strnfmt(brave, sizeof(brave), "The%s%s%s",
+                (OPT(p, birth_no_ghost) && !cfg_no_ghost)? " brave": "",
+                (OPT(p, birth_no_recall) && (cfg_diving_mode < 3))? " hardcore": "",
+                (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3))? " diving": "");
         }
         else
             my_strcpy(brave, "The unfortunate", sizeof(brave));
@@ -2379,7 +2384,7 @@ static void manual_design(struct player *p, struct chunk *c, bool new_level)
         if (!COORDS_EQUAL(&q->wpos, &p->wpos)) continue;
 
         /* No-recall players are simply pushed up one level (should be safe) */
-        if ((cfg_diving_mode == 2) || OPT(q, birth_no_recall))
+        if ((cfg_diving_mode == 3) || OPT(q, birth_no_recall))
         {
             struct worldpos wpos;
 

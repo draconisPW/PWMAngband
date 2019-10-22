@@ -329,7 +329,10 @@ int Sockbuf_read(sockbuf_t *sbuf)
             {
                 /* Give a different message for disconnected clients */
                 if (errno != ECONNRESET)
+                {
                     plog_fmt("Can't read on socket: error %d", errno);
+                    plog(GetSocketErrorMessageAux(errno));
+                }
                 else
                     plog("Disconnected from server...");
                 return -1;

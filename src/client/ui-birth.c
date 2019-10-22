@@ -1693,7 +1693,7 @@ void get_char_name(void)
         i = A2I(c.code);
 
         /* Check for legality */
-        if ((i > (size_t)char_num) || (i >= max_account_chars)) continue;
+        if ((i > (size_t)char_num) || (i >= (size_t)max_account_chars)) continue;
 
         /* Paranoia */
         if ((i == (size_t)char_num) || (char_expiry[i] > 0) || (char_expiry[i] == -1))

@@ -960,7 +960,7 @@ bool is_owner(struct player *p, struct object *obj)
     if (!obj->owner) return true;
 
     /* No restriction */
-    if (!OPT(p, birth_no_stores)) return true;
+    if (!(cfg_no_stores || OPT(p, birth_no_stores))) return true;
 
     /* Must be the owner */
     return (obj->owner == p->id);

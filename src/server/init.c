@@ -48,9 +48,6 @@ bool cfg_newbies_cannot_drop = true;
 s32b cfg_level_unstatic_chance = 60;
 bool cfg_random_artifacts = false;
 s32b cfg_retire_timer = -1;
-s16b cfg_limit_stairs = 0;
-bool cfg_diving_mode = 0;
-bool cfg_no_ghost = false;
 bool cfg_more_towns = false;
 bool cfg_artifact_drop_shallow = true;
 bool cfg_limit_player_connections = true;
@@ -71,6 +68,12 @@ s16b cfg_party_sharelevel = -1;
 bool cfg_turn_based = false;
 bool cfg_limited_esp = false;
 bool cfg_double_purse = false;
+s16b cfg_limit_stairs = 0;
+s16b cfg_diving_mode = 0;
+bool cfg_no_artifacts = false;
+bool cfg_no_selling = true;
+bool cfg_no_stores = false;
+bool cfg_no_ghost = false;
 bool cfg_ai_learn = false;
 
 
@@ -494,6 +497,10 @@ static enum parser_error parse_constants_obj_make(struct parser *p)
 
     if (streq(label, "max-depth"))
         z->max_obj_depth = value;
+    else if (streq(label, "good-obj"))
+        z->good_obj = value;
+    else if (streq(label, "ego-obj"))
+        z->ego_obj = value;
     else if (streq(label, "great-obj"))
         z->great_obj = value;
     else if (streq(label, "great-ego"))
@@ -3386,24 +3393,6 @@ static void set_server_option(char *option, char *value)
         cfg_retire_timer = atoi(value);
     else if (!strcmp(option, "ALLOW_RANDOM_ARTIFACTS"))
         cfg_random_artifacts = str_to_boolean(value);
-    else if (!strcmp(option, "LIMIT_STAIRS"))
-    {
-        cfg_limit_stairs = atoi(value);
-
-        /* Sanity checks */
-        if (cfg_limit_stairs < 0) cfg_limit_stairs = 0;
-        if (cfg_limit_stairs > 3) cfg_limit_stairs = 3;
-    }
-    else if (!strcmp(option, "DIVING_MODE"))
-    {
-        cfg_diving_mode = atoi(value);
-
-        /* Sanity checks */
-        if (cfg_diving_mode < 0) cfg_diving_mode = 0;
-        if (cfg_diving_mode > 2) cfg_diving_mode = 2;
-    }
-    else if (!strcmp(option, "NO_GHOST"))
-        cfg_no_ghost = str_to_boolean(value);
     else if (!strcmp(option, "MORE_TOWNS"))
         cfg_more_towns = str_to_boolean(value);
     else if (!strcmp(option, "ARTIFACT_DROP_SHALLOW"))
@@ -3467,6 +3456,30 @@ static void set_server_option(char *option, char *value)
         cfg_limited_esp = str_to_boolean(value);
     else if (!strcmp(option, "DOUBLE_PURSE"))
         cfg_double_purse = str_to_boolean(value);
+    else if (!strcmp(option, "LIMIT_STAIRS"))
+    {
+        cfg_limit_stairs = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_limit_stairs < 0) cfg_limit_stairs = 0;
+        if (cfg_limit_stairs > 3) cfg_limit_stairs = 3;
+    }
+    else if (!strcmp(option, "DIVING_MODE"))
+    {
+        cfg_diving_mode = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_diving_mode < 0) cfg_diving_mode = 0;
+        if (cfg_diving_mode > 3) cfg_diving_mode = 3;
+    }
+    else if (!strcmp(option, "NO_ARTIFACTS"))
+        cfg_no_artifacts = str_to_boolean(value);
+    else if (!strcmp(option, "NO_SELLING"))
+        cfg_no_selling = str_to_boolean(value);
+    else if (!strcmp(option, "NO_STORES"))
+        cfg_no_stores = str_to_boolean(value);
+    else if (!strcmp(option, "NO_GHOST"))
+        cfg_no_ghost = str_to_boolean(value);
     else if (!strcmp(option, "AI_LEARN"))
         cfg_ai_learn = str_to_boolean(value);
     else plog_fmt("Error : unrecognized mangband.cfg option %s", option);

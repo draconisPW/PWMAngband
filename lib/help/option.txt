@@ -184,6 +184,12 @@ Freeze screen after detecting monsters '[pause_after_detect]'
 Disturb whenever monsters bash down doors '[disturb_bash]'
   Disturb the player when any monster bashes a door on the level.
 
+.. _fire_till_kill:
+
+Activate fire-till-kill mode '[fire_till_kill]'
+  This option enables repeat casting and shooting until there are no more
+  enemies on the screen (or the player is disturbed).
+
 Birth (difficulty) options
 ==========================
 

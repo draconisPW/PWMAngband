@@ -30,6 +30,7 @@ OP(disturb_icky, "Get out of icky screens when disturbed", MANGBAND, false, true
 OP(active_auto_retaliator, "Active auto-retaliator", MANGBAND, true, true)
 OP(pause_after_detect, "Freeze screen after detecting monsters", MANGBAND, true, true)
 OP(disturb_bash, "Disturb whenever monsters bash down doors", MANGBAND, true, true)
+OP(fire_till_kill, "Activate fire-till-kill mode", MANGBAND, false, true)
 OP(birth_force_descend, "Force player descent", BIRTH, false, true)
 OP(birth_no_recall, "Word of Recall has no effect", BIRTH, false, true)
 OP(birth_no_artifacts, "Restrict creation of artifacts", BIRTH, false, true)

@@ -882,6 +882,7 @@ void disturb(struct player *p, int stop_search)
 
     /* Cancel repeated commands */
     p->digging_request = 0;
+    p->firing_request = 0;
 
     /* Cancel Resting */
     if (player_is_resting(p))

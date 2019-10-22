@@ -316,9 +316,9 @@ static void console_who(int ind, char *dummy)
 
         /* Challenge options */
         strnfmt(brave, sizeof(brave), "a%s%s%s level",
-            OPT(p, birth_no_ghost)? " brave": "",
-            OPT(p, birth_no_recall)? " hardcore": "",
-            OPT(p, birth_force_descend)? " diving": "");
+            (OPT(p, birth_no_ghost) && !cfg_no_ghost)? " brave": "",
+            (OPT(p, birth_no_recall) && (cfg_diving_mode < 3))? " hardcore": "",
+            (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3))? " diving": "");
 
         if (OPT(p, birth_fruit_bat)) batty = "(batty) ";
 
@@ -395,9 +395,9 @@ static void console_whois(int ind, char *name)
 
     /* Output player information */
     strnfmt(brave, sizeof(brave), "a%s%s%s level",
-        OPT(p, birth_no_ghost)? " brave": "",
-        OPT(p, birth_no_recall)? " hardcore": "",
-        OPT(p, birth_force_descend)? " diving": "");
+        (OPT(p, birth_no_ghost) && !cfg_no_ghost)? " brave": "",
+        (OPT(p, birth_no_recall) && (cfg_diving_mode < 3))? " hardcore": "",
+        (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3))? " diving": "");
     if (OPT(p, birth_fruit_bat)) batty = "(batty) ";
 
     /* General character description */

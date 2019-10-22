@@ -645,6 +645,9 @@ void wr_stores(void *unused)
         wr_store(store);
     }
 
+    /* Note the store orders */
+    wr_u16b(STORE_ORDERS);
+
     /* Dump the store orders */
     for (i = 0; i < STORE_ORDERS; i++) wr_string(store_orders[i]);
 }

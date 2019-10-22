@@ -609,10 +609,15 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
     p->feeling = -1;
 
     /* Update the wilderness map */
-    if (cfg_diving_mode || no_recall)
+    if ((cfg_diving_mode > 1) || no_recall)
         wild_set_explored(p, base_wpos());
     else
+    {
         wild_set_explored(p, start_wpos());
+
+        /* On "fast" wilderness servers, we also know the location of the base town */
+        if (cfg_diving_mode == 1) wild_set_explored(p, base_wpos());
+    }
 
     /* Copy channels pointer */
     p->on_channel = Conn_get_console_channels(conn);

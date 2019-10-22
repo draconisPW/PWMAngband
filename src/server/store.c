@@ -584,6 +584,10 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
     struct owner *proprietor = store_at(p)->owner;
     int factor;
 
+    /* Hack -- expensive BM factor */
+    if (cfg_diving_mode == 3) factor = 4;
+    else factor = 8;
+
     /* Player owned shops */
     if (p->store_num == STORE_PLAYER)
     {
@@ -609,11 +613,11 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
         if (askprice <= 0) return (0L);
 
         /* Never get too silly: 2x the expensive black market price is enough! */
-        maxprice = price * 20;
+        maxprice = price * 2 * factor;
 
         /* Black markets suck */
         if (house->color == PLAYER_STORE_BM) price = price * 2;
-        if (house->color == PLAYER_STORE_XBM) price = price * 10;
+        if (house->color == PLAYER_STORE_XBM) price = price * factor;
 
         /* Use sellers asking price as base price */
         if (askprice > price) price = askprice;
@@ -638,10 +642,6 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
     /* The black market is always a worse deal */
     if (store_black_market(p->store_num)) adjust = 150;
 
-    /* Hack -- expensive BM factor */
-    if (cfg_diving_mode == 2) factor = 5;
-    else factor = 10;
-
     /* Shop is buying */
     if (store_buying)
     {
@@ -656,7 +656,7 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
         if (p->store_num == STORE_XBM) price = floor(price / factor);
 
         /* Check for no_selling option */
-        if (OPT(p, birth_no_selling)) return (0L);
+        if (cfg_no_selling || OPT(p, birth_no_selling)) return (0L);
     }
 
     /* Shop is selling */
@@ -2658,7 +2658,7 @@ void store_confirm(struct player *p)
     object_desc(p, o_name, sizeof(o_name), sold_item, ODESC_PREFIX | ODESC_FULL);
 
     /* Describe the result (in message buffer) */
-    if (OPT(p, birth_no_selling))
+    if (cfg_no_selling || OPT(p, birth_no_selling))
         msg(p, "You had %s (%c).", o_name, label);
     else
     {
@@ -2883,7 +2883,8 @@ void do_cmd_store(struct player *p, int pstore)
         if (which == STORE_TAVERN) return;
 
         /* Check if we can enter the store */
-        if (OPT(p, birth_no_stores) || ((which == STORE_HOME) && (cfg_diving_mode != 1)))
+        if (cfg_no_stores || OPT(p, birth_no_stores) ||
+            ((which == STORE_HOME) && (cfg_diving_mode != 2)))
         {
             msg(p, "The doors are locked.");
             return;
@@ -2936,7 +2937,7 @@ void do_cmd_store(struct player *p, int pstore)
     else
     {
         /* Check if we can enter the store */
-        if (OPT(p, birth_no_stores))
+        if (cfg_no_stores || OPT(p, birth_no_stores))
         {
             msg(p, "The doors are locked.");
             return;

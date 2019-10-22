@@ -1277,7 +1277,7 @@ static bool monster_turn_multiply(struct chunk *c, struct monster *mon)
 
     /* Multiply slower in crowded areas */
     /* Hack -- multiply even more slowly on no_recall servers */
-    if (cfg_diving_mode == 2)
+    if (cfg_diving_mode == 3)
         allow_breed = ((k < 4) && one_in_((k + 1) * z_info->repro_monster_rate * 2));
     else
         allow_breed = ((k < 4) && (!k || one_in_(k * z_info->repro_monster_rate)));
@@ -1872,7 +1872,8 @@ static void monster_turn_move(struct source *who, struct chunk *c, struct monste
 
         /* Possible disturb */
         if (!who->monster && monster_is_visible(who->player, mon->midx) &&
-            monster_is_in_view(who->player, mon->midx) && OPT(who->player, disturb_near))
+            monster_is_in_view(who->player, mon->midx) && OPT(who->player, disturb_near) &&
+            !who->player->firing_request)
         {
             /* Disturb (except townies, friendlies and hidden mimics) */
             if ((mon->level > 0) && pvm_check(who->player, mon) && !monster_is_camouflaged(mon))

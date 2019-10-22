@@ -764,6 +764,7 @@ struct player
     bool full_refresh;              /* Full refresh (includes monster/object lists) */
     byte digging_request;
     byte digging_dir;
+    byte firing_request;
     bool shimmer;                   /* Hack -- optimize multi-hued code (players) */
     bool delayed_display;           /* Hack -- delay messages after character creation */
     bool did_visuals;               /* Hack -- projection indicator (visuals) */

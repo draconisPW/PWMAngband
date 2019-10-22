@@ -61,6 +61,13 @@ static const char *look_health_desc(bool living, int chp, int mhp)
 {
     int perc;
 
+    /* Dead */
+    if (chp < 0)
+    {
+        /* No damage */
+        return (living? "dead": "destroyed");
+    }
+
     /* Healthy */
     if (chp >= mhp)
     {

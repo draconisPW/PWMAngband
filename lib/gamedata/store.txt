@@ -283,7 +283,7 @@ owner:15000:Eek the Yeek (Yeek)
 owner:20000:Zak the Kobold (Kobold)
 owner:25000:Fangorn the Treebeard (Ent)
 owner:30000:Lisa the Green (Thunderlord)
-slots:6:18
+slots:8:16
 turnover:9
 
 store:10:Tavern

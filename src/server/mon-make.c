@@ -694,8 +694,8 @@ static bool allow_race(struct monster_race *race, struct worldpos *wpos)
     if (rf_has(race->flags, RF_FORCE_DEPTH) && (race->level > wpos->depth))
         return false;
 
-    /* Some monsters never appear out of their dungeon/town (normal servers) */
-    if (!cfg_diving_mode && race->wpos &&
+    /* Some monsters never appear out of their dungeon/town (wilderness) */
+    if ((cfg_diving_mode < 2) && race->wpos &&
         !((race->wpos->wy == wpos->wy) && (race->wpos->wx == wpos->wx)))
     {
         return false;
@@ -746,7 +746,7 @@ struct monster_race *get_mon_num(struct chunk *c, int level, bool summon)
     alloc_entry *table = alloc_race_table;
 
     /* No monsters in the base town (no_recall servers) */
-    if ((cfg_diving_mode == 2) && in_base_town(&c->wpos)) return (0);
+    if ((cfg_diving_mode == 3) && in_base_town(&c->wpos)) return (0);
 
     /* No monsters in dynamically generated towns */
     if (dynamic_town(&c->wpos)) return (0);

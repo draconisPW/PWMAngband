@@ -453,7 +453,7 @@ bool inven_drop_okay(struct player *p, struct object *obj)
         (p->wpos.depth < obj->artifact->level) && !kf_has(obj->kind->kind_flags, KF_QUEST_ART))
     {
         /* Do not apply this rule to no_recall characters and DMs */
-        if ((cfg_diving_mode < 2) && !is_dm_p(p)) return false;
+        if ((cfg_diving_mode < 3) && !is_dm_p(p)) return false;
     }
 
     return true;
