@@ -35,7 +35,6 @@ extern int Send_destroy(struct object *obj, bool des);
 extern int Send_target_closest(int mode);
 extern int Send_cast(int book, int spell, int dir);
 extern int Send_open(struct command *cmd);
-extern int Send_pray(int book, int spell, int dir);
 extern int Send_quaff(struct command *cmd);
 extern int Send_read(struct command *cmd);
 extern int Send_take_off(struct command *cmd);

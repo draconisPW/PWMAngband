@@ -1486,8 +1486,6 @@ int Send_class_struct_info(int ind)
     for (c = classes; c; c = c->next)
     {
         byte tval = 0;
-        const struct magic_realm *realm = c->magic.spell_realm;
-        const char *spell_realm = (realm? realm->name: "");
 
         if (c->magic.num_books)
             tval = c->magic.books[0].tval;
@@ -1528,11 +1526,21 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
-        if (Packet_printf(&connp->c, "%b%b%c%s", (unsigned)c->magic.total_spells, (unsigned)tval,
-            c->magic.num_books, spell_realm) <= 0)
+        if (Packet_printf(&connp->c, "%b%b%c", (unsigned)c->magic.total_spells, (unsigned)tval,
+            c->magic.num_books) <= 0)
         {
             Destroy_connection(ind, "Send_class_struct_info write error");
             return -1;
+        }
+        for (j = 0; j < (u32b)c->magic.num_books; j++)
+        {
+            struct class_book *book = &c->magic.books[j];
+
+            if (Packet_printf(&connp->c, "%s", book->realm->name) <= 0)
+            {
+                Destroy_connection(ind, "Send_class_struct_info write error");
+                return -1;
+            }
         }
     }
 
@@ -2559,6 +2567,15 @@ int Send_spell_info(struct player *p, int book, int i, const char *out_val,
     return Packet_printf(&connp->c, "%b%hd%hd%s%b%b%b%b", (unsigned)PKT_SPELL_INFO,
         book, i, out_val, (unsigned)flags->line_attr, (unsigned)flags->flag,
         (unsigned)flags->dir_attr, (unsigned)flags->proj_attr);
+}
+
+
+int Send_book_info(struct player *p, int book, const char *name)
+{
+    connection_t *connp = get_connp(p, "book info");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->c, "%b%hd%s", (unsigned)PKT_BOOK_INFO, book, name);
 }
 
 
@@ -3969,12 +3986,6 @@ static int Receive_open(int ind)
     }
 
     return 1;
-}
-
-
-static int Receive_pray(int ind)
-{
-    return Receive_cast(ind, "Receive_pray read error");
 }
 
 
@@ -7275,8 +7286,8 @@ bool process_pending_commands(int ind)
         /* Cancel repeated commands */
         if ((type != PKT_TUNNEL) && (type != PKT_KEEPALIVE) && p->digging_request)
             p->digging_request = 0;
-        if ((type != PKT_FIRE_AT_NEAREST) && (type != PKT_PRAY) && (type != PKT_SPELL) &&
-            (type != PKT_KEEPALIVE) && p->firing_request)
+        if ((type != PKT_FIRE_AT_NEAREST) && (type != PKT_SPELL) && (type != PKT_KEEPALIVE) &&
+            p->firing_request)
         {
             p->firing_request = 0;
         }

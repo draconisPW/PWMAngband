@@ -130,6 +130,7 @@ extern int Send_show_floor(struct player *p, byte mode);
 extern int Send_char(struct player *p, int x, int y, u16b a, char c, u16b ta, char tc);
 extern int Send_spell_info(struct player *p, int book, int i, const char *out_val,
     spell_flags *flags);
+extern int Send_book_info(struct player *p, int book, const char *name);
 extern int Send_floor(struct player *p, byte num, const struct object *obj,
     struct object_xtra *info_xtra);
 extern int Send_special_other(struct player *p, char *header, byte peruse, bool protect);

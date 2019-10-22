@@ -596,14 +596,17 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
     for (si = p->clazz->start_items; si; si = si->next)
     {
         int num = rand_range(si->min, si->max);
+        struct object_kind *kind = lookup_kind(si->tval, si->sval);
+
+        my_assert(kind);
 
         /* Without start_kit, only start with food and light */
-        if (!start_kit && !tval_is_food_k(si->kind) && !tval_is_light_k(si->kind)) continue;
+        if (!start_kit && !tval_is_food_k(kind) && !tval_is_light_k(kind)) continue;
 
         /* Don't give unnecessary starting equipment to no_recall characters */
         if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
 
-        player_outfit_aux(p, si->kind, (byte)num);
+        player_outfit_aux(p, kind, (byte)num);
     }
 
     /* Sanity check */
@@ -620,16 +623,17 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
       for (si = p->clazz->start_items; si; si = si->next)
       {
           struct object *obj;
+          struct object_kind *kind = lookup_kind(si->tval, si->sval);
 
           /* Skip food and light (we get them) */
-          if (tval_is_food_k(si->kind) || tval_is_light_k(si->kind)) continue;
+          if (tval_is_food_k(kind) || tval_is_light_k(kind)) continue;
 
           /* Skip starting equipment no_recall characters don't get */
           if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
 
           /* Prepare the item */
           obj = object_new();
-          object_prep(p, obj, si->kind, 0, MINIMISE);
+          object_prep(p, obj, kind, 0, MINIMISE);
           obj->number = si->min;
           object_notice_everything_aux(p, obj, false, false);
 
@@ -680,14 +684,12 @@ static void player_outfit_dm(struct player *p)
 #endif
 
     /* All books */
-    if (p->clazz->magic.spell_realm && p->clazz->magic.spell_realm->book_noun)
+    for (i = 0; i < p->clazz->magic.num_books; i++)
     {
-        for (i = 0; i < p->clazz->magic.num_books; i++)
-        {
-            struct class_book *book = &p->clazz->magic.books[i];
+        struct class_book *book = &p->clazz->magic.books[i];
 
+        if (book->realm->book_noun)
             player_outfit_aux(p, lookup_kind(book->tval, book->sval), 1);
-        }
     }
 
     /* Other useful stuff */

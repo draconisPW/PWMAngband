@@ -233,7 +233,8 @@ struct dragon_breed
  */
 struct start_item
 {
-    struct object_kind *kind;   /* Object kind */
+    int tval;                   /* General object type (see TV_ macros) */
+    int sval;                   /* Object sub-type */
     int min;                    /* Minimum starting amount */
     int max;                    /* Maximum starting amount */
     int flag;                   /* Flag for no_recall characters */
@@ -260,14 +261,15 @@ struct class_spell
 {
     char *name;
     char *text;
-    struct effect *effect;  /* The spell's effect */
-    int sidx;               /* The index of this spell for this class */
-    int bidx;               /* The index into the player's books array */
-    int slevel;             /* Required level (to learn) */
-    int smana;              /* Required mana (to cast) */
-    int sfail;              /* Minimum chance of failure */
-    int sexp;               /* Encoded experience bonus */
-    int sproj;              /* Can be projected */
+    struct effect *effect;              /* The spell's effect */
+    const struct magic_realm *realm;    /* The magic realm of this spell */
+    int sidx;                           /* The index of this spell for this class */
+    int bidx;                           /* The index into the player's books array */
+    int slevel;                         /* Required level (to learn) */
+    int smana;                          /* Required mana (to cast) */
+    int sfail;                          /* Minimum chance of failure */
+    int sexp;                           /* Encoded experience bonus */
+    int sproj;                          /* Can be projected */
 };
 
 /*
@@ -275,11 +277,12 @@ struct class_spell
  */
 struct class_book
 {
-    byte tval;                  /* Item type of the book */
-    int sval;                   /* Item sub-type for book (book number) */
-    int realm;                  /* The magic realm of this book */
-    int num_spells;             /* Number of spells in this book */
-    struct class_spell *spells; /* Spells in the book */
+    byte tval;                          /* Item type of the book */
+    int sval;                           /* Item sub-type for book (book number) */
+    bool dungeon;                       /* Whether this is a dungeon book */
+    const struct magic_realm *realm;    /* The magic realm of this book */
+    int num_spells;                     /* Number of spells in this book */
+    struct class_spell *spells;         /* Spells in the book */
 };
 
 /*
@@ -288,8 +291,7 @@ struct class_book
 struct class_magic
 {
     byte spell_first;                       /* Level of first spell */
-    int spell_weight;                       /* Max armour weight to avoid mana penalties */
-    const struct magic_realm *spell_realm;  /* Primary spellcasting realm */
+    int spell_weight;                       /* Max armor weight to avoid mana penalties */
     int num_books;                          /* Number of spellbooks */
     struct class_book *books;               /* Details of spellbooks */
     byte total_spells;                      /* Number of spells for this class */

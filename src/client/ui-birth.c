@@ -487,11 +487,27 @@ static void class_help(int i, void *db, const region *l)
     skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp,
         r->r_exp + c->c_exp, -1);
 
-    if (c->magic.spell_realm)
+    if (c->magic.total_spells)
     {
         char adjective[24];
+        char realm[17];
+        struct class_book *book = &c->magic.books[0];
+        int i;
 
-        strnfmt(adjective, sizeof(adjective), "%s magic", c->magic.spell_realm->name);
+        my_strcpy(realm, book->realm->name, sizeof(realm));
+
+        for (i = 1; i < c->magic.num_books; i++)
+        {
+            book = &c->magic.books[i];
+
+            if (!strstr(realm, book->realm->name))
+            {
+                my_strcat(realm, "/", sizeof(realm));
+                my_strcat(realm, book->realm->name, sizeof(realm));
+            }
+        }
+
+        strnfmt(adjective, sizeof(adjective), "%s magic", realm);
         format_help(CLASS_AUX_COL, j++, "Learns %-23s", adjective);
     }
 
@@ -1343,7 +1359,7 @@ bool get_server_name(void)
     while (ptr - buf < bytes)
     {
         /* Check for no entry */
-        if (*ptr == '\0')
+        if ((*ptr == '\0') || ((*ptr == '\n') && mang_meta))
         {
             ptr++;
             continue;

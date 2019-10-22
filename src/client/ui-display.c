@@ -1197,17 +1197,17 @@ static int dump_spells(int book, int y, int col)
     Term_get_size(&w, &h);
 
     /* Check for end of the book */
-    while (spell_info[book][i].info[0] != '\0')
+    while (book_info[book].spell_info[i].info[0] != '\0')
     {
         /* End of terminal */
         if (y >= h) break;
 
         /* Dump the info */
-        line_attr = spell_info[book][i].flag.line_attr;
+        line_attr = book_info[book].spell_info[i].flag.line_attr;
         if ((line_attr == COLOUR_WHITE) || (line_attr == COLOUR_L_GREEN))
         {
             strnfmt(out_val, sizeof(out_val), "%c-%c) %s", I2A(book), I2A(i),
-                spell_info[book][i].info);
+                book_info[book].spell_info[i].info);
             c_prt(line_attr, out_val, y, col);
             y++;
         }

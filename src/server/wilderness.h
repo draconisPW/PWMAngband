@@ -62,6 +62,7 @@ extern struct file_parser wild_info_parser;
 struct town_feat
 {
     char symbol;            /* Symbol */
+    char special;           /* Special symbol */
     int feat_idx;           /* Index of wilderness terrain feature */
     struct town_feat *next;
 };

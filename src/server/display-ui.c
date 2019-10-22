@@ -431,8 +431,6 @@ void dump_spells(struct player *p, struct object *obj)
     const char *comment = help;
     byte line_attr;
     char spell_name[31];
-    const struct magic_realm *realm = p->clazz->magic.spell_realm;
-    const char *name = (realm? realm->name: "");
 
     /* Get the book */
     int bidx = object_to_book_index(p, obj);
@@ -440,6 +438,8 @@ void dump_spells(struct player *p, struct object *obj)
 
     /* Requires a spellbook */
     if (!book) return;
+
+    Send_book_info(p, bidx, book->realm->name);
 
     /* Dump the spells */
     for (j = 0; j < book->num_spells; j++)
@@ -503,7 +503,7 @@ void dump_spells(struct player *p, struct object *obj)
         flags.proj_attr = spell->sproj;
 
         /* Dump the spell --(-- */
-        if (streq(name, "elemental"))
+        if (streq(spell->realm->name, "elemental"))
         {
             strnfmt(spell_name, sizeof(spell_name), "%s (%d)", spell->name,
                 p->spell_power[spell_index]);

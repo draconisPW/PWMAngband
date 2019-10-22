@@ -724,7 +724,7 @@ bool player_is_immune(struct player *p, int element)
  */
 bool player_can_cast(struct player *p, bool show_msg)
 {
-    if (!p->clazz->magic.spell_realm)
+    if (!p->clazz->magic.total_spells)
     {
         if (show_msg) msg(p, "You cannot pray or produce magics.");
         return false;
@@ -786,8 +786,6 @@ static int scan_items(struct player *p, struct object **item_list, size_t item_m
 static bool spell_okay_to_study(struct player *p, int spell_index)
 {
     const struct class_spell *spell = spell_by_index(&p->clazz->magic, spell_index);
-    const struct magic_realm *realm = p->clazz->magic.spell_realm;
-    const char *name = (realm? realm->name: "");
 
     /* Skip illegible spells */
     if (spell->slevel >= 99) return false;
@@ -796,7 +794,7 @@ static bool spell_okay_to_study(struct player *p, int spell_index)
     if (p->spell_flags[spell_index] & PY_SPELL_FORGOTTEN) return false;
     if (!(p->spell_flags[spell_index] & PY_SPELL_LEARNED)) return (spell->slevel <= p->lev);
     if (!(p->spell_flags[spell_index] & PY_SPELL_WORKED)) return false;
-    return (streq(name, "elemental"));
+    return (streq(spell->realm->name, "elemental"));
 }
 
 

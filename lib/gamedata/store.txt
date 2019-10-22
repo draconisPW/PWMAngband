@@ -233,8 +233,8 @@ buy:rod
 buy:scroll
 buy:potion
 
-# House of Arcanes
-store:7:House of Arcanes
+# Bookseller
+store:7:Bookseller
 owner:15000:Yveen the Witch (Half-Elf)
 owner:20000:Narn the Short (Gnome)
 owner:25000:Lord X the Black (Human)

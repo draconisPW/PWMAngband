@@ -517,7 +517,7 @@ static int Receive_struct_info(void)
             s16b c_adj, c_skills, c_exp;
             byte cidx, c_mhp, total_spells, tval;
             char num_books;
-            char spell_realm[NORMAL_WID];
+            char realm[NORMAL_WID];
 
             classes = NULL;
 
@@ -600,8 +600,7 @@ static int Receive_struct_info(void)
 
                     c->pflags[j] = pflag;
                 }
-                if ((n = Packet_scanf(&rbuf, "%b%b%c%s", &total_spells, &tval, &num_books,
-                    spell_realm)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%b%c", &total_spells, &tval, &num_books)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -611,16 +610,35 @@ static int Receive_struct_info(void)
                     mem_free(c);
                     return n;
                 }
-                bytes_read += 4 + strlen(spell_realm);
+                bytes_read += 3;
 
                 c->c_mhp = c_mhp;
                 c->c_exp = c_exp;
-                if (strlen(spell_realm)) c->magic.spell_realm = lookup_realm(spell_realm);
                 c->magic.total_spells = total_spells;
                 c->magic.num_books = num_books;
+                c->magic.books = mem_zalloc(num_books * sizeof(struct class_book));
 
                 /* Hack -- put the tval in the unused "spell_first" field */
                 c->magic.spell_first = tval;
+
+                for (j = 0; j < num_books; j++)
+                {
+                    struct class_book *book = &c->magic.books[j];
+
+                    if ((n = Packet_scanf(&rbuf, "%s", realm)) <= 0)
+                    {
+                        /* Rollback the socket buffer */
+                        Sockbuf_rollback(&rbuf, bytes_read);
+
+                        /* Packet isn't complete, graceful failure */
+                        string_free(c->name);
+                        mem_free(c);
+                        return n;
+                    }
+                    bytes_read += 1 + strlen(realm);
+
+                    if (strlen(realm)) book->realm = lookup_realm(realm);
+                }
 
                 c->next = classes;
                 classes = c;
@@ -2183,20 +2201,38 @@ static int Receive_spell_info(void)
 
     /* Hack -- wipe the arrays if blank */
     if (!strlen(buf))
-        memset(spell_info, 0, MAX_PAGES * MAX_SPELLS_PER_PAGE * sizeof(struct spell_info));
+        memset(book_info, 0, MAX_PAGES * sizeof(struct book_info));
 
     /* Save the info */
     else
     {
-        spell_info[book][line].flag.line_attr = line_attr;
-        spell_info[book][line].flag.flag = flag;
-        spell_info[book][line].flag.dir_attr = dir_attr;
-        spell_info[book][line].flag.proj_attr = proj_attr;
-        my_strcpy(spell_info[book][line].info, buf, NORMAL_WID);
+        book_info[book].spell_info[line].flag.line_attr = line_attr;
+        book_info[book].spell_info[line].flag.flag = flag;
+        book_info[book].spell_info[line].flag.dir_attr = dir_attr;
+        book_info[book].spell_info[line].flag.proj_attr = proj_attr;
+        my_strcpy(book_info[book].spell_info[line].info, buf, NORMAL_WID);
     }
 
     /* Redraw */
     player->upkeep->redraw |= PR_SPELL;
+
+    return 1;
+}
+
+
+static int Receive_book_info(void)
+{
+    byte ch;
+    int n;
+    s16b book;
+    char realm[NORMAL_WID];
+
+    if ((n = Packet_scanf(&rbuf, "%b%hd%s", &ch, &book, realm)) <= 0)
+    {
+        return n;
+    }
+
+    if (strlen(realm)) book_info[book].realm = lookup_realm(realm);
 
     return 1;
 }
@@ -2763,7 +2799,7 @@ static int Receive_spell_desc(void)
         return n;
 
     /* Save the info */
-    my_strcpy(spell_info[book][line].desc, buf, MSG_LEN);
+    my_strcpy(book_info[book].spell_info[line].desc, buf, MSG_LEN);
 
     return 1;
 }
@@ -4230,19 +4266,6 @@ int Send_open(struct command *cmd)
 }
 
 
-int Send_pray(int book, int spell, int dir)
-{
-    int n;
-    byte starting = 1;
-
-    n = Packet_printf(&wbuf, "%b%hd%hd%c%b", (unsigned)PKT_PRAY, book, spell, dir,
-        (unsigned)starting);
-    if (n <= 0) return n;
-
-    return 1;
-}
-
-
 int Send_quaff(struct command *cmd)
 {
     int n;
@@ -5525,16 +5548,7 @@ int cmd_cast(struct command *cmd)
     Send_track_object(book->oidx);
 
     spell = textui_obj_cast(book->info_xtra.bidx, &dir);
-    if (spell != -1)
-    {
-        const struct magic_realm *realm = player->clazz->magic.spell_realm;
-        const char *name = (realm? realm->name: "");
-
-        if (streq(name, "divine"))
-            Send_pray(book->oidx, spell, dir);
-        else
-            Send_cast(book->oidx, spell, dir);
-    }
+    if (spell != -1) Send_cast(book->oidx, spell, dir);
     return 1;
 }
 
@@ -5559,16 +5573,7 @@ int cmd_project(struct command *cmd)
     Send_track_object(book->oidx);
 
     spell = textui_obj_project(book->info_xtra.bidx, &dir);
-    if (spell != -1)
-    {
-        const struct magic_realm *realm = player->clazz->magic.spell_realm;
-        const char *name = (realm? realm->name: "");
-
-        if (streq(name, "divine"))
-            Send_pray(book->oidx, spell, dir);
-        else
-            Send_cast(book->oidx, spell, dir);
-    }
+    if (spell != -1) Send_cast(book->oidx, spell, dir);
     return 1;
 }
 
