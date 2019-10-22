@@ -2663,24 +2663,27 @@ static bool effect_handler_DEEP_NIGHTS(effect_handler_context_t *context)
     for (i = 1; i <= NumPlayers; i++)
     {
         struct player *player = player_get(i);
-        struct object *obj;
 
         /* Only works for players on the level */
         if (!COORDS_EQUAL(&player->wpos, &context->origin->player->wpos)) continue;
 
-        /* Get the light source */
-        obj = equipped_item_by_slot_name(player, "light");
-
-        /* Bye bye light */
-        if (obj && (obj->timeout > 0) && !of_has(obj->flags, OF_NO_FUEL))
+        /* Only works on hostile players */
+        if (pvp_check(context->origin->player, player, PVP_CHECK_ONE, true, 0x00))
         {
-            msg(player, "Your light suddently empty.");
+            /* Get the light source */
+            struct object *obj = equipped_item_by_slot_name(player, "light");
 
-            /* No more light, it's Rogues day today :) */
-            obj->timeout = 0;
+            /* Bye bye light */
+            if (obj && (obj->timeout > 0) && !of_has(obj->flags, OF_NO_FUEL))
+            {
+                msg(player, "Your light suddenly empty.");
 
-            /* Redraw */
-            player->upkeep->redraw |= (PR_EQUIP);
+                /* No more light, it's Rogues day today :) */
+                obj->timeout = 0;
+
+                /* Redraw */
+                player->upkeep->redraw |= (PR_EQUIP);
+            }
         }
 
         /* Forget every grid */

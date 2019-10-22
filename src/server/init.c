@@ -55,7 +55,6 @@ s16b cfg_max_townies = -1;
 s16b cfg_max_trees = -1;
 s32b cfg_tcp_port = 18346;
 bool cfg_chardump_color = false;
-bool cfg_auto_dump = false;
 s16b cfg_pvp_hostility = PVP_SAFE;
 bool cfg_base_monsters = true;
 bool cfg_extra_monsters = false;
@@ -3415,8 +3414,6 @@ static void set_server_option(char *option, char *value)
     }
     else if (!strcmp(option, "CHARACTER_DUMP_COLOR"))
         cfg_chardump_color = str_to_boolean(value);
-    else if (!strcmp(option, "AUTO_DUMP"))
-        cfg_auto_dump = str_to_boolean(value);
     else if (!strcmp(option, "PVP_HOSTILITY"))
     {
         cfg_pvp_hostility = atoi(value);

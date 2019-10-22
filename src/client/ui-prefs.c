@@ -910,6 +910,30 @@ static enum parser_error parse_prefs_flavor(struct parser *p)
 }
 
 
+static enum parser_error parse_prefs_inscribe(struct parser *p)
+{
+    int tvi, svi;
+    struct object_kind *kind;
+    struct prefs_data *d = parser_priv(p);
+
+    assert(d != NULL);
+    if (d->bypass) return PARSE_ERROR_NONE;
+
+    tvi = tval_find_idx(parser_getsym(p, "tval"));
+    if (tvi < 0) return PARSE_ERROR_UNRECOGNISED_TVAL;
+
+    svi = lookup_sval(tvi, parser_getsym(p, "sval"));
+    if (svi < 0) return PARSE_ERROR_UNRECOGNISED_SVAL;
+
+    kind = lookup_kind(tvi, svi);
+    if (!kind) return PARSE_ERROR_UNRECOGNISED_SVAL;
+
+    /*add_autoinscription(kind->kidx, parser_getstr(p, "text"), true);*/
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_prefs_keymap_action(struct parser *p)
 {
     const char *act = "";
@@ -1114,6 +1138,7 @@ static struct parser *init_parse_prefs(bool user)
     parser_reg(p, "trap sym idx sym lighting int attr int char", parse_prefs_trap);
     parser_reg(p, "GF sym type sym direction uint attr uint char", parse_prefs_gf);
     parser_reg(p, "flavor uint idx int attr int char", parse_prefs_flavor);
+    parser_reg(p, "inscribe sym tval sym sval str text", parse_prefs_inscribe);
     parser_reg(p, "keymap-act ?str act", parse_prefs_keymap_action);
     parser_reg(p, "keymap-input int mode str key", parse_prefs_keymap_input);
     parser_reg(p, "message sym type sym attr", parse_prefs_message);

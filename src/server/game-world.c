@@ -1070,12 +1070,32 @@ static void process_player_cleanup(struct player *p)
  */
 static void process_player(struct player *p)
 {
+    int i;
+    bool debug_mode = false;
+
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *q = player_get(i);
+
+        if (q->upkeep->new_level_method)
+        {
+            debug_mode = true;
+            break;
+        }
+    }
+
+    if (debug_mode) plog_fmt("BEGIN process_player(%s)", p->name);
+
     /* Try to execute any commands on the command queue. */
     /* NB: process_pending_commands may have deleted the connection! */
     if (process_pending_commands(p->conn)) return;
 
+    if (debug_mode) plog_fmt("process_player_cleanup()", p->name);
+
     if (!p->upkeep->new_level_method && !p->upkeep->funeral)
         process_player_cleanup(p);
+
+    if (debug_mode) plog_fmt("END process_player(%s)", p->name);
 }
 
 
@@ -1708,11 +1728,29 @@ static void energize_monsters(struct chunk *c)
 static void pre_turn_game_loop(void)
 {
     int i, x, y;
+    bool debug_mode = false;
+
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *p = player_get(i);
+
+        if (p->upkeep->new_level_method)
+        {
+            debug_mode = true;
+            break;
+        }
+    }
+
+    if (debug_mode) plog("BEGIN pre_turn_game_loop()");
 
     on_new_level();
 
+    if (debug_mode) plog("Handle any network stuff");
+
     /* Handle any network stuff */
     Net_input();
+
+    if (debug_mode) plog("Process monsters with even more energy first");
 
     /* Process monsters with even more energy first */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1732,6 +1770,8 @@ static void pre_turn_game_loop(void)
 
     /* Check for death */
     process_death();
+
+    if (debug_mode) plog("END pre_turn_game_loop()");
 }
 
 

@@ -3155,8 +3155,7 @@ static int Receive_char_dump(void)
         return n;
 
     /* Begin receiving */
-    if (streq(buf, "BEGIN_NORMAL_DUMP") || streq(buf, "BEGIN_MANUAL_DUMP") ||
-        streq(buf, "BEGIN_AUTO_DUMP"))
+    if (streq(buf, "BEGIN_NORMAL_DUMP") || streq(buf, "BEGIN_MANUAL_DUMP"))
     {
         if (streq(buf, "BEGIN_MANUAL_DUMP")) dump_only = true;
 
@@ -3166,11 +3165,9 @@ static int Receive_char_dump(void)
     }
 
     /* End receiving */
-    else if (streq(buf, "END_NORMAL_DUMP") || streq(buf, "END_MANUAL_DUMP") ||
-        streq(buf, "END_AUTO_DUMP"))
+    else if (streq(buf, "END_NORMAL_DUMP") || streq(buf, "END_MANUAL_DUMP"))
     {
         char tmp[MSG_LEN];
-        bool ok = true;
         char fname[NORMAL_WID];
 
         /* Access the temporary file */
@@ -3179,12 +3176,7 @@ static int Receive_char_dump(void)
         file_close(fp);
         strnfmt(fname, sizeof(fname), "%s.txt", nick);
 
-        if (streq(buf, "END_AUTO_DUMP"))
-            path_build(buf, sizeof(buf), ANGBAND_DIR_USER, fname);
-        else
-            ok = get_file(fname, buf, sizeof(buf));
-
-        if (ok)
+        if (get_file(fname, buf, sizeof(buf)))
         {
             c_msg_print(NULL);
 

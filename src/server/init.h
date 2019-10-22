@@ -35,7 +35,6 @@ extern s16b cfg_max_townies;
 extern s16b cfg_max_trees;
 extern s32b cfg_tcp_port;
 extern bool cfg_chardump_color;
-extern bool cfg_auto_dump;
 extern s16b cfg_pvp_hostility;
 extern bool cfg_base_monsters;
 extern bool cfg_extra_monsters;

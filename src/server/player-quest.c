@@ -301,13 +301,6 @@ int quest_check(struct player *p, struct chunk *c, const struct monster *m)
             /* Winner dump */
             my_strcpy(player->death_info.died_from, "winner", sizeof(player->death_info.died_from));
             player_dump(player, true);
-            if (cfg_auto_dump)
-            {
-                char dumpname[42];
-
-                strnfmt(dumpname, sizeof(dumpname), "%s.txt", p->name);
-                Send_dump_character(get_connection(p->conn), dumpname, 3);
-            }
 
             /* Set his retire_timer if necessary */
             if (cfg_retire_timer >= 0) player->retire_timer = cfg_retire_timer;

@@ -724,6 +724,9 @@ static bool remove_hostility(struct player *attacker, struct player *target, boo
  */
 bool pvp_check(struct player *attacker, struct player *target, int mode, bool silent, byte feat)
 {
+    /* Paranoia: we cannot be hostile toward self! */
+    if (attacker == target) return false;
+
     switch (mode)
     {
         case PVP_CHECK_ONE:

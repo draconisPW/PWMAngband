@@ -1834,16 +1834,7 @@ void player_death(struct player *p)
 
     /* Death dump (except ghosts and retiring winners) */
     if ((p->ghost != 1) && !(p->total_winner && !p->alive))
-    {
         player_dump(p, p->alive);
-        if (cfg_auto_dump)
-        {
-            char dumpname[42];
-
-            strnfmt(dumpname, sizeof(dumpname), "%s.txt", p->name);
-            Send_dump_character(get_connection(p->conn), dumpname, 3);
-        }
-    }
 
     /*
      * Handle every item (including gold):
@@ -4718,13 +4709,13 @@ void describe_player(struct player *p, struct player *q)
     {
         char buf[N_HIST_WRAP], tmp[N_HIST_WRAP];
 
-        /* Replace "you" with "he/she/it" */
-        strrepall(buf, sizeof(buf), q->history[i], "You", pm);
-        strrepall(tmp, sizeof(tmp), buf, "you", pm2);
-
         /* Replace "your" with "his/her/its" */
-        strrepall(buf, sizeof(buf), tmp, "Your", poss);
+        strrepall(buf, sizeof(buf), q->history[i], "Your", poss);
         strrepall(tmp, sizeof(tmp), buf, "your", poss2);
+
+        /* Replace "you" with "he/she/it" */
+        strrepall(buf, sizeof(buf), tmp, "You", pm);
+        strrepall(tmp, sizeof(tmp), buf, "you", pm2);
 
         /* Replace "are/have" with "is/has" */
         strrepall(buf, sizeof(buf), tmp, "are", "is");

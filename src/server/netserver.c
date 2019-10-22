@@ -2936,7 +2936,7 @@ int Send_birth_options(int ind, struct birth_options *options)
 /*
  * Send a character dump to the client
  *
- * mode: 1 = normal dump, 2 = manual death dump, 3 = automatic death dump
+ * mode: 1 = normal dump, 2 = manual death dump
  */
 bool Send_dump_character(connection_t *connp, const char *dumpname, int mode)
 {
@@ -2957,7 +2957,6 @@ bool Send_dump_character(connection_t *connp, const char *dumpname, int mode)
     {
         case 1: tok = "BEGIN_NORMAL_DUMP"; break;
         case 2: tok = "BEGIN_MANUAL_DUMP"; break;
-        case 3: tok = "BEGIN_AUTO_DUMP"; break;
     }
     Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, tok);
 
@@ -2970,7 +2969,6 @@ bool Send_dump_character(connection_t *connp, const char *dumpname, int mode)
     {
         case 1: tok = "END_NORMAL_DUMP"; break;
         case 2: tok = "END_MANUAL_DUMP"; break;
-        case 3: tok = "END_AUTO_DUMP"; break;
     }
     Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, tok);
 

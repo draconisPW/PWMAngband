@@ -554,7 +554,9 @@ static void player_outfit_aux(struct player *p, struct object_kind *k, byte numb
     obj->ignore_protect = 1;
 
     /* Deduct the cost of the item from starting cash */
-    p->au -= (s32b)object_value(p, obj, obj->number);
+    /* PWMAngband: food and light are free */
+    if (!tval_is_food_k(k) && !tval_is_light_k(k))
+        p->au -= (s32b)object_value(p, obj, obj->number);
 
     /* Carry the item */
     inven_carry(p, obj, true, false);
@@ -595,12 +597,8 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
     {
         int num = rand_range(si->min, si->max);
 
-        /* Without start_kit, only start with 1 food and 1 light */
-        if (!start_kit)
-        {
-            if (!tval_is_food_k(si->kind) && !tval_is_light_k(si->kind)) continue;
-            num = 1;
-        }
+        /* Without start_kit, only start with food and light */
+        if (!start_kit && !tval_is_food_k(si->kind) && !tval_is_light_k(si->kind)) continue;
 
         /* Don't give unnecessary starting equipment to no_recall characters */
         if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
@@ -610,6 +608,37 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
 
     /* Sanity check */
     if (p->au < 0) p->au = 0;
+
+    /*
+     * Without start_kit, start at least with the amount of gold we would need for buying
+     * the items we don't get
+     */
+    if (!start_kit)
+    {
+      int value = 0;
+
+      for (si = p->clazz->start_items; si; si = si->next)
+      {
+          struct object *obj;
+
+          /* Skip food and light (we get them) */
+          if (tval_is_food_k(si->kind) || tval_is_light_k(si->kind)) continue;
+
+          /* Skip starting equipment no_recall characters don't get */
+          if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
+
+          /* Prepare the item */
+          obj = object_new();
+          object_prep(p, obj, si->kind, 0, MINIMISE);
+          obj->number = si->min;
+          object_notice_everything_aux(p, obj, false, false);
+
+          /* Add the value */
+          value += object_value(p, obj, obj->number);
+          object_delete(&obj);
+      }
+      if (p->au < value) p->au = value;
+    }
 
     if ((cfg_diving_mode > 1) || no_recall || is_dm_p(p)) return;
 

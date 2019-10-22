@@ -1253,7 +1253,7 @@ bool player_set_food(struct player *p, int v)
                  * destroy his connection (this will hopefully prevent
                  * people from starving while afk)
                  */
-                if (p->chp == p->mhp) p->starving = true;
+                if ((p->chp == p->mhp) && OPT(p, disturb_faint)) p->starving = true;
                 break;
             }
             case 1:

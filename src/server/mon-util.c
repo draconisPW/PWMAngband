@@ -1019,13 +1019,6 @@ static void end_game(struct player *p, const struct monster *m)
             /* Dump */
             my_strcpy(player->death_info.died_from, "winner", sizeof(player->death_info.died_from));
             player_dump(player, true);
-            if (cfg_auto_dump)
-            {
-                char dumpname[42];
-
-                strnfmt(dumpname, sizeof(dumpname), "%s.txt", player->name);
-                Send_dump_character(get_connection(player->conn), dumpname, 3);
-            }
 
             /* Retire */
             do_cmd_suicide(player);
