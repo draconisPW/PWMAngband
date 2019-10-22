@@ -824,6 +824,19 @@ struct player_class *player_id2class(guid id)
 }
 
 
+struct player_class *lookup_player_class(const char *name)
+{
+    struct player_class *c;
+
+    for (c = classes; c; c = c->next)
+    {
+        if (streq(c->name, name)) break;
+    }
+
+    return c;
+}
+
+
 int player_cmax(void)
 {
     int n = 0;
@@ -1167,4 +1180,15 @@ struct trap_kind *lookup_trap(const char *desc)
 
     /* Return our best match */
     return closest;
+}
+
+
+/*
+ * Returns N which is the 1 in N chance for recharging to fail.
+ */
+int recharge_failure_chance(const struct object *obj, int strength)
+{
+    int raw_chance = (strength + 100 - obj->kind->level - (10 * (obj->pval / obj->number))) / 15;
+
+    return ((raw_chance > 1)? raw_chance: 1);
 }

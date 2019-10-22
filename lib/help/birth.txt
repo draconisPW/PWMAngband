@@ -23,7 +23,7 @@ Once you have chosen a server, you will be asked to enter your account name.
 Since your account will be saved on a distant server, you will also be asked
 to provide a password to protect your account. Don't forget this password...
 you will be asked to provide it again each time you want to access your account
-and play with your characters!  If you don't have an account on the server you
+and play with your characters! If you don't have an account on the server you
 chose, one will be created for you with the password you provided. This
 account will allow you to create characters and to maintain a list of all the
 characters you created (so you don't accidentally forget the name of some of
@@ -31,10 +31,8 @@ your characters...)
 
 Once you have access to the list of characters from your account, choose one
 (or select "New character" to create a new one). The game will use the name
-and password of the character you chose in the list as default values for your
-character name and password (for new characters, the game will use the
-account name and password as default values). You may change character name
-and password as you wish.
+of the character you chose in the list as default value for your character
+name (for new characters, the game will use the account name as default value).
 
 Upon the death of your first character, you will be given the choice to
 generate a new character obeying the same constraints: this is the quick-start
@@ -79,11 +77,11 @@ abilities such as infravision.
 Each character has a number of "experience points", which increases as the
 character defeats monsters and attempts new spells and uses new items.
 Characters also have a level, which is based on experience. The amount of
-experience required to gain a new level is dependent on the character race
-and class. Races and classes with more intrinsic benefits require more
-experience to gain levels. As the experience rises, so does the level, and
-as the level rises, certain other abilities and characteristics rise as
-well. All characters start at 0 experience and at the first level.
+experience required to gain a new level is dependent on the character race.
+Races with more intrinsic benefits require more experience to gain levels.
+As the experience rises, so does the level, and as the level rises, certain
+other abilities and characteristics rise as well. All characters start at
+0 experience and at the first level.
 
 Each character has some gold, which can be used to buy items from the shops
 in the town, and which can be obtained not only from selling items to the
@@ -357,6 +355,13 @@ Mage
   are his true realm and he will get fewer blows with melee weapons than
   other classes.
 
+.. _Druid:
+
+Druid
+  A Druid is a priest of nature. They have the power to control animals. They
+  can also shapeshift into animals as they gain experience. Wisdom is their
+  primary stat.
+
 .. _Priest:
 
 Priest
@@ -372,6 +377,25 @@ Priest
   are better off using blunt weapons such as maces. Wisdom is the priest's
   primary stat and at high enough levels they can cast many prayers without
   a chance of failure. Priests have poor stealth.
+
+.. _Necromancer:
+
+Necromancer
+  Necromancers are dark spellcasters, masters of death and undeath. They are
+  very close to mages, but have a special set of spells and abilities
+  that make them truly unique to play. Necromancers have to rely on their
+  special abilities. They are not as good as mages for spellcasting, and are
+  no great fighters as well...
+
+.. _Paladin:
+
+Paladin
+  A Paladin is a warrior/priest. He is a very good fighter, second only to
+  the warrior class, but not very good at missile weapons. He receives
+  prayers at a slower pace then the priest, but can use all but the most
+  powerful prayers. A paladin lacks much in the way of abilities. He is poor
+  at stealth and magical devices. He has a decent saving throw due to his
+  divine alliance. His primary stats are strength and wisdom.
 
 .. _Rogue:
 
@@ -393,22 +417,18 @@ Ranger
   A Ranger is a warrior/mage and a very powerful class. He is a good
   fighter, and one of the best of all the classes with missile weapons,
   especially bows. The ranger learns spells much more slowly than a mage, but
-  is capable of learning all but the most powerful spells. Because a ranger is
-  really a dual class character, more experience is required for him to
-  advance. A ranger has good stealth, a good saving throw, and is good with
-  magical devices. His primary stats are strength, intelligence and dexterity.
+  is capable of learning all but the most powerful spells. A ranger has
+  good stealth, a good saving throw, and is good with magical devices.
+  His primary stats are strength, wisdom and dexterity.
 
-.. _Paladin:
+.. _Blackguard:
 
-Paladin
-  A Paladin is a warrior/priest. He is a very good fighter, second only to
-  the warrior class, but not very good at missile weapons. He receives
-  prayers at a slower pace then the priest, but can use all but the most
-  powerful prayers. Because a paladin is really a dual class character, it
-  requires more experience to advance him. A paladin lacks much in the way
-  of abilities. He is poor at stealth and magical devices. He has a decent
-  saving throw due to his divine alliance. His primary stats are strength and
-  wisdom.
+Blackguard
+  A Blackguard is equivalent in power to the righteous paladin, but devote
+  himself to the powers of darkness. Blackguards consort with demons and devils
+  and serve dark deities, attacking with stealth and honourless guile, or
+  straightforward smiting the forces of good that stand in their way. Their
+  primary stats are strength and intelligence.
 
 .. _Sorceror:
 
@@ -484,16 +504,6 @@ Summoner
   their kills. Summoners use wisdom to cast spells and summon allies, and to
   determine how many of them they can control and how effectively they can
   control them.
-
-.. _Necromancer:
-
-Necromancer
-  Necromancers are dark spellcasters, masters of death and undeath. They are
-  very close to mages (same stats and many spells in common), but have a
-  special set of spells and abilities that make them truly unique to play.
-  Necromancers have to rely on their special abilities. They are not as good
-  as mages for spellcasting (in particular they get almost no offensive
-  attacks), and are no great fighters as well...
 
 .. _Shapechanger:
 
@@ -637,10 +647,9 @@ Stat Bonus Tables
 
 Stats, hit dice, infravision and experience point modifications due to 
 race and class are listed in the following table. To get the total hit 
-dice and XP modifier, add the "race" and "class" numbers: for instance, 
-a Dwarf Priest has a hit die of 11+2=13 (i.e. he will get 1d13 hit 
-points per level, adjusted for constitution) and an XP modifier of 
-20+20=40%.
+dice, add the "race" and "class" numbers: for instance, a Dwarf Priest
+has a hit die of 11+2=13 (i.e. he will get 1d13 hit points per level,
+adjusted for constitution).
 
 ================ ===  ===  ===  ===  ===  =========  ========  ====== 
     Race         STR  INT  WIS  DEX  CON  HD (base)  XP/level  Infra
@@ -657,30 +666,32 @@ points per level, adjusted for constitution) and an XP modifier of
     High-Elf      +1   +3   -1   +3   +1      10       +100%   40'
     Kobold        -1   -1    0   +2   +2       8        +15%   50'
     Yeek          -5   -5   -5   -5   -5       6        -50%   None
-    Ent           +8   -4   +2   -4   +8      14       +200%   50'
+    Ent           +8   -4   +2   -4   +8      14       +175%   50'
     Thunderlord   +6   +2   +1   +1   +3      12       +250%   None
     Dragon         0    0    0    0    0      13       +350%   10'
 ================ ===  ===  ===  ===  ===  =========  ========  ======
 
-================ ===  ===  ===  ===  ===  ========== ========
-    Class        STR  INT  WIS  DEX  CON  HD (bonus) XP/level
-================ ===  ===  ===  ===  ===  ========== ========
-    Warrior       +3   -2   -2   +2   +2      10         +0%
-    Mage          -3   +3    0    0   -2       1        +30%
-    Priest        -1   -3   +3   -1   +1       2        +20%
-    Rogue          0   +1   -3   +3   -1       6        +25%
-    Ranger         0   +2   -2   +1   -1       5        +30%
-    Paladin       +1   -3   +1   -1   +2       7        +35%
-    Sorceror      -5   +5    0    0   -3       0        +35%
-    Unbeliever    +3   -4   -3   +2   +2       9        +15%
-    Archer        -2   -2   +2   +2    0       4        +30%
-    Monk          +1   -2    0   +2   +1       8        +10%
-    Telepath      -1   -2   +3   -1    0       3        +20%
-    Elementalist  -4   +4    0    0   -2       1        +30%
-    Summoner      -5   -5   +5   -5   -5       0        +25%
-    Necromancer   -3   +3    0    0   -2       1        +30%
-    Shapechanger  +1   -1   -1   +1   +1       5        +40%
-================ ===  ===  ===  ===  ===  ========== ========
+================ ===  ===  ===  ===  ===  ==========
+    Class        STR  INT  WIS  DEX  CON  HD (bonus)
+================ ===  ===  ===  ===  ===  ==========
+    Warrior       +3   -2   -2   +2   +2      10
+    Mage          -3   +3    0    0   -2       1
+    Druid         -2    0   +3   -2    0       2
+    Priest        -1   -3   +3   -1   +1       2
+    Necromancer   -3   +3    0    0   -2       1
+    Paladin       +1   -3   +1   -1   +2       7
+    Rogue          0   +1   -3   +3   -1       5
+    Ranger         0    0   +2   +1   -1       6
+    Blackguard    +2    0   -3    0   +2       8
+    Sorceror      -5   +5    0    0   -3       0
+    Unbeliever    +3   -4   -3   +2   +2       9
+    Archer        -2   -2   +2   +2    0       4
+    Monk          +1   -2    0   +2   +1       8
+    Telepath      -1   -2   +3   -1    0       3
+    Elementalist  -4   +4    0    0   -2       1
+    Summoner      -5   -5   +5   -5   -5       0
+    Shapechanger  +1   -1   -1   +1   +1       5
+================ ===  ===  ===  ===  ===  ==========
  
 Ability Tables
 ==============
@@ -709,19 +720,21 @@ Ability Tables
  Class      DisarmP DisarmM Device   Save   Stealth Search   Fight   Bows 
 =========== ======= ======= ======= ======= ======= ======= ======= =======
  Warrior    42(+10) 28(+08) 18(+7)  18(+10)  0(+0)  10(+12) 70(+45) 55(+45)
- Mage       35(+09) 43(+11) 36(+13) 30(+9)   2(+0)  10(+12) 34(+15) 20(+15)
- Priest     34(+08) 27(+07) 30(+10) 32(+12)  2(+0)  10(+14) 48(+20) 35(+20)
- Rogue      43(+11) 36(+10) 32(+10) 28(+10)  3(+1)  20(+16) 60(+40) 66(+30)
- Ranger     36(+10) 42(+10) 32(+10) 28(+10)  3(+0)  15(+15) 56(+30) 72(+45)
- Paladin    34(+08) 27(+07) 24(+10) 25(+11)  0(+0)  10(+12) 68(+35) 40(+30)
+ Mage       35(+09) 43(+11) 36(+13) 30(+9)   2(+0)  10(+12) 35(+15) 20(+15)
+ Druid      30(+10) 30(+10) 24(+10) 30(+10)  3(+0)  12(+12) 45(+20) 40(+30)
+ Priest     34(+08) 27(+07) 30(+10) 32(+12)  2(+0)  10(+14) 45(+20) 35(+20)
+ Necromncer 30(+10) 35(+12) 36(+13) 30(+9)   2(+0)  10(+12) 35(+25) 20(+15)
+ Paladin    34(+08) 27(+07) 24(+10) 25(+11)  0(+0)  10(+12) 65(+40) 40(+30)
+ Rogue      43(+11) 36(+10) 32(+10) 28(+10)  3(+1)  20(+16) 35(+45) 66(+30)
+ Ranger     36(+10) 42(+10) 32(+10) 28(+10)  3(+0)  15(+15) 60(+40) 72(+45)
+ Blackguard 20(+15) 20(+10) 24(+10) 25(+11)  0(+0)  10(+12) 60(+40) 50(+30)
  Sorceror   35(+09) 50(+12) 40(+15) 30(+9)   2(+0)  10(+12) 30(+11) 20(+15)
- Unbeliever 42(+10) 21(+07)  3(+2)  32(+14)  0(+0)  10(+12) 70(+45) 55(+45)
+ Unbeliever 42(+10) 21(+07)  0(+0)  32(+14)  0(+0)  10(+12) 70(+45) 55(+45)
  Archer     42(+10) 28(+08) 32(+10) 28(+10)  2(+0)  15(+15) 56(+30) 82(+55)
  Monk       42(+10) 28(+08) 32(+11) 28(+10)  3(+1)  20(+16) 64(+40) 60(+30)
  Telepath   34(+08) 28(+08) 30(+13) 30(+6)   1(+0)  15(+15) 42(+20) 30(+20)
  Elemntalst 35(+09) 49(+11) 36(+13) 30(+9)   2(+0)  10(+12) 34(+15) 20(+15)
  Summoner   20(+06) 20(+06) 36(+13) 30(+9)   2(+0)  10(+14) 34(+15) 20(+15)
- Necromncer 35(+09) 43(+11) 36(+13) 30(+9)   2(+0)  10(+12) 34(+15) 20(+15)
  Shapechger 36(+10) 34(+08) 35(+10) 28(+10)  1(+0)  10(+12) 60(+40) 66(+30)
 =========== ======= ======= ======= ======= ======= ======= ======= =======
 

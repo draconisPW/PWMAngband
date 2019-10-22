@@ -91,7 +91,7 @@ priority:1
 name:open floor
 graphics:.:w
 priority:16
-flags:LOS | PROJECT | PASSABLE | FLOOR | OBJECT | EASY | TRAP | RUNE | TORCH
+flags:LOS | PROJECT | PASSABLE | FLOOR | OBJECT | EASY | TRAP | TORCH
 desc:An open floor or bare ground. Can be walked across by anything, and can
 desc: hold traps or items. Does not break line of sight.
 
@@ -409,7 +409,7 @@ desc:A section of street.
 name:pit floor
 graphics:.:D
 priority:16
-flags:LOS | PROJECT | PASSABLE | FLOOR | PIT | OBJECT | EASY | TRAP | RUNE
+flags:LOS | PROJECT | PASSABLE | FLOOR | PIT | OBJECT | EASY | TRAP
 desc:An open floor or bare ground that prevents any form of teleportation.
 
 name:grass
@@ -530,115 +530,225 @@ flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 
-name:closed house door (General Store)
-graphics:+:u
-priority:24
-flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:1:0
-desc:A safe piece of Middle Earth, and the only place you can store goods
-desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in a General Store can be dropped inside and
-desc: sold to other players.
+# PWMAngband-specific colorized house doors
 
-name:closed house door (Armoury)
-graphics:+:s
-priority:24
-flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:2:0
-desc:A safe piece of Middle Earth, and the only place you can store goods
-desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in an Armoury can be dropped inside and
-desc: sold to other players.
-
-name:closed house door (Weapon Smiths)
+name:closed house door (white)
 graphics:+:w
 priority:24
 flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:3:0
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in a Weapon Smiths can be dropped inside and
-desc: sold to other players.
+desc: Objects dropped inside can be sold to other players.
 
-name:closed house door (Temple)
-graphics:+:g
+name:closed house door (slate)
+graphics:+:s
 priority:24
 flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:4:0
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in a Temple can be dropped inside and
-desc: sold to other players.
+desc: Objects dropped inside can be sold to other players.
 
-name:closed house door (Alchemy Shop)
-graphics:+:b
-priority:24
-flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:5:0
-desc:A safe piece of Middle Earth, and the only place you can store goods
-desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in an Alchemy Shop can be dropped inside and
-desc: sold to other players.
-
-name:closed house door (Magic Shop)
-graphics:+:r
-priority:24
-flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:6:0
-desc:A safe piece of Middle Earth, and the only place you can store goods
-desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in a Magic Shop can be dropped inside and
-desc: sold to other players.
-
-name:closed house door (Bookseller)
+name:closed house door (orange)
 graphics:+:o
 priority:24
 flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:7:0
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in a Bookseller's can be dropped inside and
-desc: sold to other players.
+desc: Objects dropped inside can be sold to other players.
 
-name:closed house door (Black Market)
+name:closed house door (red)
+graphics:+:r
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (green)
+graphics:+:g
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (blue)
+graphics:+:b
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (umber)
+graphics:+:u
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (light dark)
 graphics:+:D
 priority:24
 flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:8:0
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in a Black Market can be dropped inside and
-desc: sold to other players.
+desc: Objects dropped inside can be sold to other players.
 
-name:closed house door (Expensive Black Market)
-graphics:+:v
+name:closed house door (light white)
+graphics:+:W
 priority:24
 flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:9:0
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything that can be sold in a Black Market can be dropped inside and
-desc: sold to other players.
+desc: Objects dropped inside can be sold to other players.
 
-name:closed house door (Tavern)
+name:closed house door (light purple)
+graphics:+:P
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (yellow)
 graphics:+:y
 priority:24
 flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:10:0
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything can be dropped inside and sold to other players.
+desc: Objects dropped inside can be sold to other players.
 
-name:closed house door (Home)
+name:closed house door (light red)
+graphics:+:R
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (light green)
+graphics:+:G
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (light blue)
 graphics:+:B
 priority:24
 flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
-info:11:0
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
-desc: Anything can be dropped inside and sold to other players.
+desc: Objects dropped inside can be sold to other players.
 
-# New PWMAngband terrain (at the end of file to avoid breaking custom levels)
+name:closed house door (light umber)
+graphics:+:U
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (purple)
+graphics:+:p
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (violet)
+graphics:+:v
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (teal)
+graphics:+:t
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (mud)
+graphics:+:m
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (light yellow)
+graphics:+:Y
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (magenta)
+graphics:+:i
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (light teal)
+graphics:+:T
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (light violet)
+graphics:+:V
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (light pink)
+graphics:+:I
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (mustard)
+graphics:+:M
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (blue slate)
+graphics:+:z
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+name:closed house door (deep light blue)
+graphics:+:Z
+priority:24
+flags:DOOR_HOME | DOOR_CLOSED | INTERESTING
+desc:A safe piece of Middle Earth, and the only place you can store goods
+desc: safely apart from on your person. This is a closed door from such house.
+desc: Objects dropped inside can be sold to other players.
+
+# PWMAngband-specific terrain elements
 
 name:ash
 graphics:.:s

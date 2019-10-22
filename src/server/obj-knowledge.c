@@ -857,9 +857,6 @@ void object_set_base_known(struct player *p, struct object *obj)
  */
 void object_sense(struct player *p, struct object *obj)
 {
-    int y = obj->iy;
-    int x = obj->ix;
-
     /* Make the new object */
     struct object *new_obj = object_new();
 
@@ -867,10 +864,9 @@ void object_sense(struct player *p, struct object *obj)
     object_prep(p, new_obj, (tval_is_money(obj)? unknown_gold_kind: unknown_item_kind), 0, MINIMISE);
 
     /* Attach it to the current floor pile */
-    new_obj->iy = y;
-    new_obj->ix = x;
+    loc_copy(&new_obj->grid, &obj->grid);
     memcpy(&new_obj->wpos, &obj->wpos, sizeof(struct worldpos));
-    pile_insert_end(&p->cave->squares[y][x].obj, new_obj);
+    pile_insert_end(&square_p(p, &new_obj->grid)->obj, new_obj);
 }
 
 
@@ -988,7 +984,7 @@ void player_know_object(struct player *p, struct object *obj)
             object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
             msg(p, "You have %s (%c).", o_name, gear_to_label(p, obj));
         }
-        else if (square_holds_object(chunk_get(&p->wpos), p->py, p->px, obj))
+        else if (square_holds_object(chunk_get(&p->wpos), &p->grid, obj))
         {
             object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
             msg(p, "On the ground: %s.", o_name);
@@ -1011,7 +1007,7 @@ void update_player_object_knowledge(struct player *p)
     /* PWMAngband: only objects under the player */
     if (c)
     {
-        for (obj = square_object(c, p->py, p->px); obj; obj = obj->next)
+        for (obj = square_object(c, &p->grid); obj; obj = obj->next)
             player_know_object(p, obj);
     }
 
@@ -1028,7 +1024,7 @@ void update_player_object_knowledge(struct player *p)
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
-    if (c) redraw_floor(&p->wpos, p->py, p->px);
+    if (c) redraw_floor(&p->wpos, &p->grid);
 }
 
 
@@ -1386,13 +1382,6 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     for (i = 0; i < STAT_MAX; i++)
     {
         if (modifiers[i]) of_on(obvious_mask, sustain_flag(i));
-    }
-
-    /* Special case FA, needed for mages wielding gloves */
-    if (player_has(p, PF_CUMBER_GLOVE) && (obj->tval == TV_GLOVES) &&
-        (modifiers[OBJ_MOD_DEX] <= 0) && !kf_has(obj->kind->kind_flags, KF_SPELLS_OK))
-    {
-        of_on(obvious_mask, OF_FREE_ACT);
     }
 
     /* Notice obvious flags */
@@ -1814,7 +1803,8 @@ bool object_flavor_was_tried(struct player *p, const struct object *obj)
  */
 static void object_flavor_aware_aux(struct player *p, struct object *obj, bool send)
 {
-    int y, x;
+    struct loc begin, end;
+    struct loc_iterator iter;
     struct chunk *c;
 
     /* Pretend aware */
@@ -1840,25 +1830,27 @@ static void object_flavor_aware_aux(struct player *p, struct object *obj, bool s
     c = chunk_get(&p->wpos);
     if (!c) return;
 
-    /* Some objects change tile on awareness, so update display for all floor objects of this kind */
-    for (y = 1; y < c->height; y++)
-    {
-        for (x = 1; x < c->width; x++)
-        {
-            bool light = false;
-            const struct object *floor_obj;
+    loc_init(&begin, 1, 1);
+    loc_init(&end, c->width, c->height);
+    loc_iterator_first(&iter, &begin, &end);
 
-            for (floor_obj = square_object(c, y, x); floor_obj; floor_obj = floor_obj->next)
+    /* Some objects change tile on awareness, so update display for all floor objects of this kind */
+    do
+    {
+        bool light = false;
+        const struct object *floor_obj;
+
+        for (floor_obj = square_object(c, &iter.cur); floor_obj; floor_obj = floor_obj->next)
+        {
+            if (floor_obj->kind == obj->kind)
             {
-                if (floor_obj->kind == obj->kind)
-                {
-                    light = true;
-                    break;
-                }
+                light = true;
+                break;
             }
-            if (light) square_light_spot_aux(p, c, y, x);
         }
+        if (light) square_light_spot_aux(p, c, &iter.cur);
     }
+    while (loc_iterator_next_strict(&iter));
 }
 
 

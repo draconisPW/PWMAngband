@@ -41,9 +41,9 @@ bool beta_version(void)
  * Current version number of PWMAngband
  */
 #define VERSION_MAJOR   1
-#define VERSION_MINOR   2
+#define VERSION_MINOR   3
 #define VERSION_PATCH   0
-#define VERSION_EXTRA   2
+#define VERSION_EXTRA   1
 
 
 u16b current_version(void)
@@ -56,9 +56,9 @@ u16b current_version(void)
  * Minimum version number of PWMAngband client allowed
  */
 #define MIN_VERSION_MAJOR   1
-#define MIN_VERSION_MINOR   2
+#define MIN_VERSION_MINOR   3
 #define MIN_VERSION_PATCH   0
-#define MIN_VERSION_EXTRA   2
+#define MIN_VERSION_EXTRA   1
 
 
 u16b min_version(void)

@@ -662,10 +662,12 @@ Save screen dump (|')'|)
   - forum embedded html for vBulletin, suitable for pasting in
     web forums like http://angband.oook.cz/forums.
 
-Steal from a player ('J') or Steal from a player ('S')
+Steal ('J') or Steal ('S')
   This command allows you to steal gold or items from other players. Stealing
   is usually disabled on most of the servers. If allowed, a failed attempt at
   stealing will make the offended player automatically hostile.
+  Playing a Rogue will also allow you to steal gold or items from sleeping
+  monsters with this command.
 
 Get a quest ('^Q')
   This command allows players to do some random quests. Each quest will be

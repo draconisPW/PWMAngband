@@ -225,7 +225,7 @@ static struct menu sex_menu, race_menu, class_menu, roller_menu;
 /* Upper left column and row, width, and lower column */
 static region gender_region = {SEX_COL, TABLE_ROW, 12, MENU_ROWS};
 static region race_region = {RACE_COL, TABLE_ROW, 15, MENU_ROWS};
-static region class_region = {CLASS_COL, TABLE_ROW, 16, MENU_ROWS};
+static region class_region = {CLASS_COL, TABLE_ROW, 16, 0};
 static region roller_region = {ROLLER_COL, TABLE_ROW, 30, MENU_ROWS};
 
 
@@ -484,8 +484,7 @@ static void class_help(int i, void *db, const region *l)
             format_help(CLASS_AUX_COL, j, "%s%+3d", name, adj);
     }
 
-    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp,
-        r->r_exp + c->c_exp, -1);
+    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp, r->r_exp, -1);
 
     if (c->magic.total_spells)
     {
@@ -757,9 +756,6 @@ static enum birth_stage roller_command(enum birth_stage current_stage)
 
         /* Hack -- remove the fake "ghost" class */
         n--;
-
-        /* Restrict choices for Dragon race */
-        if (pf_has(player->race->pflags, PF_DRAGON)) n -= 2;
 
         /* Class menu similar to race. */
         init_birth_menu(menu, n, (player->clazz? player->clazz->cidx: 0), &class_region,

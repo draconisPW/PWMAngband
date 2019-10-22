@@ -87,7 +87,7 @@ Original Keyset Command Summary
  'g'     Get objects on floor           'G'    Gain new spells/prayers
  'h'     Fire default ammo at target    'H'    (unused)
  'i'     Inventory list                 'I'    Observe an item
- 'j'     (unused)                       'J'    Steal from a player
+ 'j'     (unused)                       'J'    Steal
  'k'     Ignore an item                 'K'    Toggle ignore
  'l'     Look around                    'L'    Locate player on map
  'm'     Cast a spell                   'M'    Full dungeon map
@@ -158,7 +158,7 @@ Roguelike Keyset Command Summary
  'p'    Project a spell                 'P'    Browse a book (Peruse)
  'q'    Quaff a potion                  'Q'    End character & quit
  'r'    Read a scroll                   'R'    Rest for a period
- 's'    (unused)                        'S'    Steal from a player
+ 's'    (unused)                        'S'    Steal
  't'    Fire an item                    'T'    Take off equipment
  'u'    (walk - north east)             'U'    (run - north east)
  'v'    Throw an item                   'V'    Polymorph into a monster

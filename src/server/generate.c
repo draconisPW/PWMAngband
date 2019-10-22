@@ -687,26 +687,27 @@ static void cleanup_template_parser(void)
  */
 static void place_feeling(struct player *p, struct chunk *c)
 {
-    int y, x, i, j;
+    int i, j;
     int tries = 500;
 
     for (i = 0; i < z_info->feeling_total; i++)
     {
         for (j = 0; j < tries; j++)
         {
+            struct loc grid;
+
             /* Pick a random dungeon coordinate */
-            y = randint0(c->height);
-            x = randint0(c->width);
+            loc_init(&grid, randint0(c->width), randint0(c->height));
 
             /* Check to see if it is not a wall */
-            if (square_iswall(c, y, x)) continue;
+            if (square_iswall(c, &grid)) continue;
 
             /* Check to see if it is already marked */
-            if (square_isfeel(c, y, x)) continue;
+            if (square_isfeel(c, &grid)) continue;
 
             /* Set the cave square appropriately */
-            sqinfo_on(c->squares[y][x].info, SQUARE_FEEL);
-            if (p) sqinfo_on(p->cave->squares[y][x].info, SQUARE_FEEL);
+            sqinfo_on(square(c, &grid)->info, SQUARE_FEEL);
+            if (p) sqinfo_on(square_p(p, &grid)->info, SQUARE_FEEL);
 
             break;
         }
@@ -788,7 +789,7 @@ static bool labyrinth_check(struct worldpos *wpos)
     struct location *dungeon;
 
     /* Get the dungeon */
-    COORDS_SET(&dpos, wpos->wy, wpos->wx, 0);
+    wpos_init(&dpos, &wpos->grid, 0);
     dungeon = get_dungeon(&dpos);
 
     /* Some dungeons are real mazes */
@@ -824,7 +825,7 @@ static bool cavern_check(struct worldpos *wpos)
     struct location *dungeon;
 
     /* Get the dungeon */
-    COORDS_SET(&dpos, wpos->wy, wpos->wx, 0);
+    wpos_init(&dpos, &wpos->grid, 0);
     dungeon = get_dungeon(&dpos);
 
     /* Some dungeons have an extra chance at generating caverns */
@@ -846,7 +847,7 @@ static bool arena_check(struct worldpos *wpos)
     struct location *dungeon;
 
     /* Get the dungeon */
-    COORDS_SET(&dpos, wpos->wy, wpos->wx, 0);
+    wpos_init(&dpos, &wpos->grid, 0);
     dungeon = get_dungeon(&dpos);
 
     /* Some dungeons have a chance at generating arenas */
@@ -927,7 +928,7 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
         char path[MSG_LEN];
 
         /* Get town file */
-        get_town_file(town_file, sizeof(town_file), town->name);
+        get_town_file(town_file, sizeof(town_file), town->shortname);
         path_build(path, sizeof(path), ANGBAND_DIR_GAMEDATA, format("%s.txt", town_file));
 
         /*
@@ -958,36 +959,39 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
  */
 static void set_artifacts_generated(struct player *p, struct chunk *c)
 {
-    int y, x;
+    struct loc begin, end;
+    struct loc_iterator iter;
     struct object *obj;
 
-    for (y = 0; y < c->height; y++)
+    loc_init(&begin, 0, 0);
+    loc_init(&end, c->width, c->height);
+    loc_iterator_first(&iter, &begin, &end);
+
+    do
     {
-        for (x = 0; x < c->width; x++)
+        for (obj = square_object(c, &iter.cur); obj; obj = obj->next)
         {
-            for (obj = square_object(c, y, x); obj; obj = obj->next)
+            byte *pinfo;
+
+            /* Skip non artifacts */
+            if (!obj->artifact) continue;
+
+            /* True artifacts */
+            if (true_artifact_p(obj)) pinfo = p->art_info;
+            else pinfo = p->randart_info;
+
+            /* Preserve artifacts from dungeon generation errors */
+            if (pinfo[obj->artifact->aidx] >= ARTS_CREATED)
             {
-                byte *pinfo;
+                pinfo[obj->artifact->aidx] -= ARTS_CREATED;
 
-                /* Skip non artifacts */
-                if (!obj->artifact) continue;
-
-                /* True artifacts */
-                if (true_artifact_p(obj)) pinfo = p->art_info;
-                else pinfo = p->randart_info;
-
-                /* Preserve artifacts from dungeon generation errors */
-                if (pinfo[obj->artifact->aidx] >= ARTS_CREATED)
-                {
-                    pinfo[obj->artifact->aidx] -= ARTS_CREATED;
-
-                    /* Mark the artifact as "generated" if dungeon is ready */
-                    if (!ht_zero(&c->generated) && !pinfo[obj->artifact->aidx])
-                        set_artifact_info(p, obj, ARTS_GENERATED);
-                }
+                /* Mark the artifact as "generated" if dungeon is ready */
+                if (!ht_zero(&c->generated) && !pinfo[obj->artifact->aidx])
+                    set_artifact_info(p, obj, ARTS_GENERATED);
             }
         }
     }
+    while (loc_iterator_next_strict(&iter));
 }
 
 
@@ -1014,26 +1018,30 @@ static void cave_clear(struct player *p, struct chunk *c)
  */
 void cave_wipe(struct chunk *c)
 {
-    int x, y, i;
+    int i;
+    struct loc begin, end;
+    struct loc_iterator iter;
 
     /* Clear the monsters */
     wipe_mon_list(c);
 
-    /* Deal with artifacts */
-    for (y = 0; y < c->height; y++)
-    {
-        for (x = 0; x < c->width; x++)
-        {
-            struct object *obj = square_object(c, y, x);
+    loc_init(&begin, 0, 0);
+    loc_init(&end, c->width, c->height);
+    loc_iterator_first(&iter, &begin, &end);
 
-            /* Preserve unseen artifacts */
-            while (obj)
-            {
-                preserve_artifact(obj);
-                obj = obj->next;
-            }
+    /* Deal with artifacts */
+    do
+    {
+        struct object *obj = square_object(c, &iter.cur);
+
+        /* Preserve unseen artifacts */
+        while (obj)
+        {
+            preserve_artifact(obj);
+            obj = obj->next;
         }
     }
+    while (loc_iterator_next_strict(&iter));
 
     /* Cancel tracking for all players */
     for (i = 1; i <= NumPlayers; i++)
@@ -1068,7 +1076,8 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
     /* Generate */
     for (tries = 0; (tries < 100) && error; tries++)
     {
-        int y, x;
+        struct loc begin, end;
+        struct loc_iterator iter;
         struct dun_data dun_body;
 
         error = NULL;
@@ -1107,6 +1116,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                     rf_has(race->flags, RF_QUESTOR));
                 bool fixed_encounter = (rf_has(race->flags, RF_PWMANG_FIXED) &&
                     (cfg_diving_mode < 2));
+                struct loc grid;
 
                 /* The monster must be an unseen quest monster/fixed encounter of this depth. */
                 if (race->lore.spawned) continue;
@@ -1114,22 +1124,24 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                 if (race->level != chunk->wpos.depth) continue;
 
                 /* Pick a location and place the monster */
-                find_empty(chunk, &y, &x);
-                place_new_monster(p, chunk, y, x, race, MON_ASLEEP | MON_GROUP, ORIGIN_DROP);
+                find_empty(chunk, &grid);
+                place_new_monster(p, chunk, &grid, race, MON_ASLEEP | MON_GROUP, ORIGIN_DROP);
             }
         }
 
+        loc_init(&begin, 0, 0);
+        loc_init(&end, chunk->width, chunk->height);
+        loc_iterator_first(&iter, &begin, &end);
+
         /* Clear generation flags. */
-        for (y = 0; y < chunk->height; y++)
+        do
         {
-            for (x = 0; x < chunk->width; x++)
-            {
-                sqinfo_off(chunk->squares[y][x].info, SQUARE_WALL_INNER);
-                sqinfo_off(chunk->squares[y][x].info, SQUARE_WALL_OUTER);
-                sqinfo_off(chunk->squares[y][x].info, SQUARE_WALL_SOLID);
-                sqinfo_off(chunk->squares[y][x].info, SQUARE_MON_RESTRICT);
-            }
+            sqinfo_off(square(chunk, &iter.cur)->info, SQUARE_WALL_INNER);
+            sqinfo_off(square(chunk, &iter.cur)->info, SQUARE_WALL_OUTER);
+            sqinfo_off(square(chunk, &iter.cur)->info, SQUARE_WALL_SOLID);
+            sqinfo_off(square(chunk, &iter.cur)->info, SQUARE_MON_RESTRICT);
         }
+        while (loc_iterator_next_strict(&iter));
 
         /* Regenerate levels that overflow their maxima */
         if (cave_monster_max(chunk) >= z_info->level_monster_max) error = "too many monsters";
@@ -1153,13 +1165,13 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
     if (random_level(&chunk->wpos))
     {
         plog_fmt("New Level %dft at (%d, %d) Ratings obj:%lu/mon:%lu", chunk->wpos.depth * 50,
-            chunk->wpos.wx, chunk->wpos.wy, chunk->obj_rating / chunk->wpos.depth,
+            chunk->wpos.grid.x, chunk->wpos.grid.y, chunk->obj_rating / chunk->wpos.depth,
             chunk->mon_rating / chunk->wpos.depth);
     }
     else
     {
-        plog_fmt("New Level %dft at (%d, %d)", chunk->wpos.depth * 50, chunk->wpos.wx,
-            chunk->wpos.wy);
+        plog_fmt("New Level %dft at (%d, %d)", chunk->wpos.depth * 50, chunk->wpos.grid.x,
+            chunk->wpos.grid.y);
     }
 
     /* Place dungeon squares to trigger feeling (not on the surface) */
@@ -1193,7 +1205,7 @@ struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
     /* Determine level size requirements (only for random levels) */
     if (random_level(wpos))
     {
-        struct wild_type *w_ptr = get_wt_info_at(wpos->wy, wpos->wx);
+        struct wild_type *w_ptr = get_wt_info_at(&wpos->grid);
         int n;
 
         /* Check level above (must be a valid random level) */
@@ -1204,7 +1216,7 @@ struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
             {
                 struct worldpos check;
 
-                COORDS_SET(&check, wpos->wy, wpos->wx, n);
+                wpos_init(&check, &wpos->grid, n);
                 if (random_level(&check))
                 {
                     c = chunk_get(&check);
@@ -1227,7 +1239,7 @@ struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
             {
                 struct worldpos check;
 
-                COORDS_SET(&check, wpos->wy, wpos->wx, n);
+                wpos_init(&check, &wpos->grid, n);
                 if (random_level(&check))
                 {
                     c = chunk_get(&check);

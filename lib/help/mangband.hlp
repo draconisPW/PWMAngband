@@ -169,7 +169,7 @@ Extra Commands
 --------------
 
 ====== ========================== ====== ==========================
-'J'    Steal from a player
+'J'    Steal
 ']'    Display item list          '['    Display monster list
 '^Q'   Get a quest                '^S'   Socials
 '^R'   Redraw the screen          ')'    Save screen dump

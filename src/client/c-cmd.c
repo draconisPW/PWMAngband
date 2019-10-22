@@ -30,7 +30,7 @@ void textui_cmd_poly(void)
     int number;
 
     /* Non mimics */
-    if (!player_has(player, PF_MONSTER_SPELLS))
+    if (!player_has(player, PF_SHAPECHANGE))
     {
         c_msg_print("You are too solid.");
         return;
@@ -65,7 +65,8 @@ void textui_cmd_poly(void)
         special_line_type = SPECIAL_FILE_POLY;
 
         /* Set the header */
-        my_strcpy(special_line_header[NTERM_WIN_OVERHEAD], "Killed List",
+        my_strcpy(special_line_header[NTERM_WIN_OVERHEAD],
+            (player_has(player, PF_MONSTER_SPELLS)? "Killed List": "Forms"),
             sizeof(special_line_header[0]));
 
         /* Call the file perusal */
@@ -1786,6 +1787,16 @@ static int cmd_master_aux_debug(void)
                 my_strcat(buf, tmp, sizeof(buf));
                 my_strcat(buf, "|", sizeof(buf));
                 res = get_string_ex("Enter third parameter: ", tmp, sizeof(tmp), false);
+                if (res == 1) return 1;
+                if ((res == 2) || !tmp[0]) continue;
+                my_strcat(buf, tmp, sizeof(buf));
+                my_strcat(buf, "|", sizeof(buf));
+                res = get_string_ex("Enter y parameter: ", tmp, sizeof(tmp), false);
+                if (res == 1) return 1;
+                if ((res == 2) || !tmp[0]) continue;
+                my_strcat(buf, tmp, sizeof(buf));
+                my_strcat(buf, "|", sizeof(buf));
+                res = get_string_ex("Enter x parameter: ", tmp, sizeof(tmp), false);
                 if (res == 1) return 1;
                 if ((res == 2) || !tmp[0]) continue;
                 my_strcat(buf, tmp, sizeof(buf));

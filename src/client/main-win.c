@@ -2174,7 +2174,7 @@ static void windows_map_aux(void)
     }
 
     /* Highlight the player */
-    Term_curs_win(player->px - min_x, player->py - min_y);
+    Term_curs_win(player->grid.x - min_x, player->grid.y - min_y);
 }
 
 
@@ -2673,9 +2673,7 @@ static void setup_menus(void)
         mode = graphics_modes;
         while (mode)
         {
-            /* Disable pseudo-3D tiles */
-            if (!mode->distorted)
-                EnableMenuItem(hm, mode->grafID + IDM_OPTIONS_GRAPHICS_NONE, MF_ENABLED);
+            EnableMenuItem(hm, mode->grafID + IDM_OPTIONS_GRAPHICS_NONE, MF_ENABLED);
             mode = mode->pNext;
         }
 

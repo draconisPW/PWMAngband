@@ -96,7 +96,6 @@ static enum parser_error parse_graf_extra(struct parser *p)
     mode->alphablend = parser_getuint(p, "alpha");
     mode->overdrawRow = parser_getuint(p, "row");
     mode->overdrawMax = parser_getuint(p, "max");
-    mode->distorted = parser_getuint(p, "distorted");
 
     return PARSE_ERROR_NONE;
 }
@@ -111,7 +110,7 @@ static struct parser *init_parse_grafmode(void)
     parser_reg(p, "directory sym dirname", parse_graf_directory);
     parser_reg(p, "size uint wid uint hgt str filename", parse_graf_size);
     parser_reg(p, "pref str prefname", parse_graf_pref);
-    parser_reg(p, "extra uint alpha uint row uint max uint distorted", parse_graf_extra);
+    parser_reg(p, "extra uint alpha uint row uint max", parse_graf_extra);
 
     return p;
 }
@@ -274,7 +273,6 @@ bool is_current_graphics_mode(byte id)
 
 bool is_tile_distorted(byte id, byte width, byte height)
 {
-    if (get_graphics_mode(id, true)->distorted) return true;
     return (width * height > 1);
 }
 

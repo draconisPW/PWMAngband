@@ -8,7 +8,6 @@
 
 #define SERVER_SAVE     10      /* Minutes between server saves */
 #define SERVER_PURGE    24      /* Hours between server purges */
-#define GROW_TREE       5000    /* How often to grow a new tree in the starting town */
 
 /*
  * Time bubble scale factors in percentage terms
