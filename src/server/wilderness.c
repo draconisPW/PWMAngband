@@ -2985,7 +2985,7 @@ static enum parser_error parse_town_desc(struct parser *p)
 }
 
 
-static void get_town_file(char *buf, size_t len, const char *name)
+void get_town_file(char *buf, size_t len, const char *name)
 {
     char *str;
 
@@ -3067,7 +3067,33 @@ static void wild_town_gen_layout(struct chunk *c)
                 }
             }
 
-            square_set_feat(c, y, x, feat);
+            /* Hack -- stairs */
+            if (feat == FEAT_MORE)
+            {
+                /* Place a staircase */
+                square_set_downstairs(c, y, x);
+
+                /* Hack -- the players start on the stairs while recalling */
+                square_set_join_rand(c, y, x);
+            }
+
+            /* Hack -- safe floor */
+            else if (feat == FEAT_FLOOR_SAFE)
+            {
+                /* Create the tavern, make it PvP-safe */
+                square_add_safe(c, y, x);
+
+                /* Declare this to be a room */
+                sqinfo_on(c->squares[y][x].info, SQUARE_GLOW);
+                sqinfo_on(c->squares[y][x].info, SQUARE_VAULT);
+                sqinfo_on(c->squares[y][x].info, SQUARE_ROOM);
+
+                /* Hack -- have everyone start in the tavern */
+                if (*t == 'x') square_set_join_down(c, y, x);
+            }
+
+            else
+                square_set_feat(c, y, x, feat);
         }
     }
 

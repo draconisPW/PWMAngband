@@ -767,6 +767,10 @@ static void process_player_world(struct player *p, struct chunk *c)
 
     /*** Damage over Time ***/
 
+    /* Take damage from permanent wraithform while inside walls */
+    if ((p->timed[TMD_WRAITHFORM] == -1) && !square_ispassable(c, p->py, p->px))
+        take_hit(p, 1, "hypoxia", false, "was entombed into solid terrain");
+
     /* Take damage from Undead Form */
     if (player_undead(p))
         take_hit(p, 1, "fading", false, "faded away");
@@ -828,7 +832,7 @@ static void process_player_world(struct player *p, struct chunk *c)
     }
 
     /* Regenerate Hit Points if needed */
-    if (p->chp < p->mhp) player_regen_hp(p);
+    if (p->chp < p->mhp) player_regen_hp(p, c);
 
     /* Regenerate mana if needed */
     if (p->csp < p->msp) player_regen_mana(p);
@@ -948,6 +952,21 @@ static void process_player_cleanup(struct player *p)
 {
     int timefactor, time;
     struct chunk *c = chunk_get(&p->wpos);
+    int i;
+    bool debug_mode = false;
+
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *q = player_get(i);
+
+        if (q->upkeep->new_level_method)
+        {
+            debug_mode = true;
+            break;
+        }
+    }
+
+    if (debug_mode) plog_fmt("BEGIN process_player_cleanup(%s)", p->name);
 
     /* If we are in a slow time condition, give visual warning */
     timefactor = time_factor(p, c);
@@ -966,8 +985,12 @@ static void process_player_cleanup(struct player *p)
     /* Determine basic frequency of regen in game turns, then scale by players local time bubble */
     time = move_energy(p->wpos.depth) / (10 * timefactor);
 
+    if (debug_mode) plog("Process the world of that player every ten scaled turns");
+
     /* Process the world of that player every ten "scaled" turns */
     if (!(turn.turn % time)) process_player_world(p, c);
+
+    if (debug_mode) plog("Flicker multi-hued players, party leaders and elementalists");
 
     /* Only when needed, every five game turns */
     if (!(turn.turn % 5))
@@ -986,8 +1009,14 @@ static void process_player_cleanup(struct player *p)
             {
                 struct player *q = player_get(j);
 
+                /* Ignore the player that we're updating */
+                if (q == p) continue;
+
                 /* If he's not here, skip him */
                 if (!COORDS_EQUAL(&q->wpos, &p->wpos)) continue;
+
+                /* If he's not here YET, also skip him */
+                if (q->upkeep->new_level_method) continue;
 
                 /* Flicker multi-hued players */
                 if (p->poly_race && monster_shimmer(p->poly_race) && allow_shimmer(q))
@@ -1003,6 +1032,8 @@ static void process_player_cleanup(struct player *p)
             }
         }
     }
+
+    if (debug_mode) plog("Check monster recall");
 
     /* Check monster recall */
     if (p->upkeep->monster_race.race)
@@ -1059,6 +1090,8 @@ static void process_player_cleanup(struct player *p)
 
     /* Refresh stuff */
     refresh_stuff(p);
+
+    if (debug_mode) plog_fmt("END process_player_cleanup(%s)", p->name);
 }
 
 
@@ -1070,32 +1103,12 @@ static void process_player_cleanup(struct player *p)
  */
 static void process_player(struct player *p)
 {
-    int i;
-    bool debug_mode = false;
-
-    for (i = 1; i <= NumPlayers; i++)
-    {
-        struct player *q = player_get(i);
-
-        if (q->upkeep->new_level_method)
-        {
-            debug_mode = true;
-            break;
-        }
-    }
-
-    if (debug_mode) plog_fmt("BEGIN process_player(%s)", p->name);
-
     /* Try to execute any commands on the command queue. */
     /* NB: process_pending_commands may have deleted the connection! */
     if (process_pending_commands(p->conn)) return;
 
-    if (debug_mode) plog_fmt("process_player_cleanup()", p->name);
-
     if (!p->upkeep->new_level_method && !p->upkeep->funeral)
         process_player_cleanup(p);
-
-    if (debug_mode) plog_fmt("END process_player(%s)", p->name);
 }
 
 
@@ -1449,15 +1462,11 @@ static void generate_new_level(struct player *p)
     bool new_level = false;
     struct chunk *c;
 
-    plog("BEGIN generate_new_level()");
-
     id = get_player_index(get_connection(p->conn));
     c = chunk_get(&p->wpos);
 
     /* Paranoia */
     if (!chunk_has_players(&p->wpos)) return;
-
-    plog_fmt("  depth=%d", p->wpos.depth);
 
     /* Play ambient sound on change of level. */
     play_ambient_sound(p);
@@ -1473,8 +1482,6 @@ static void generate_new_level(struct player *p)
     {
         new_level = true;
 
-        plog("  new level");
-
         /* Generate a dungeon level there */
         c = prepare_next_level(p, &p->wpos);
 
@@ -1484,8 +1491,6 @@ static void generate_new_level(struct player *p)
     /* Apply illumination */
     else
     {
-        plog("  existing level");
-
         /* Clear the flags for each cave grid (cave dimensions may have changed) */
         player_cave_new(p, c->height, c->width);
         player_cave_clear(p, true);
@@ -1631,8 +1636,6 @@ static void generate_new_level(struct player *p)
 
     /* Detect secret doors and traps */
     search(p, c);
-
-    plog("END generate_new_level()");
 }
 
 
@@ -1728,29 +1731,11 @@ static void energize_monsters(struct chunk *c)
 static void pre_turn_game_loop(void)
 {
     int i, x, y;
-    bool debug_mode = false;
-
-    for (i = 1; i <= NumPlayers; i++)
-    {
-        struct player *p = player_get(i);
-
-        if (p->upkeep->new_level_method)
-        {
-            debug_mode = true;
-            break;
-        }
-    }
-
-    if (debug_mode) plog("BEGIN pre_turn_game_loop()");
 
     on_new_level();
 
-    if (debug_mode) plog("Handle any network stuff");
-
     /* Handle any network stuff */
     Net_input();
-
-    if (debug_mode) plog("Process monsters with even more energy first");
 
     /* Process monsters with even more energy first */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1770,8 +1755,6 @@ static void pre_turn_game_loop(void)
 
     /* Check for death */
     process_death();
-
-    if (debug_mode) plog("END pre_turn_game_loop()");
 }
 
 
@@ -1781,25 +1764,9 @@ static void pre_turn_game_loop(void)
 static void post_turn_game_loop(void)
 {
     int i, x, y;
-    bool debug_mode = false;
-
-    for (i = 1; i <= NumPlayers; i++)
-    {
-        struct player *p = player_get(i);
-
-        if (p->upkeep->new_level_method)
-        {
-            debug_mode = true;
-            break;
-        }
-    }
-
-    if (debug_mode) plog("BEGIN post_turn_game_loop()");
 
     /* Check for death */
     process_death();
-
-    if (debug_mode) plog("Process the rest of the monsters");
 
     /* Process the rest of the monsters */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1826,8 +1793,6 @@ static void post_turn_game_loop(void)
     /* Check for death */
     process_death();
 
-    if (debug_mode) plog("Process the objects");
-
     /* Process the objects */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
@@ -1843,8 +1808,6 @@ static void post_turn_game_loop(void)
             }
         }
     }
-
-    if (debug_mode) plog("Process the world (global)");
 
     /* Process the world */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1863,8 +1826,6 @@ static void post_turn_game_loop(void)
         }
     }
 
-    if (debug_mode) plog("Process the world (players)");
-
     /* Process the world */
     for (i = 1; i <= NumPlayers; i++)
     {
@@ -1875,12 +1836,8 @@ static void post_turn_game_loop(void)
             process_world(p, chunk_get(&p->wpos));
     }
 
-    if (debug_mode) plog("Process everything else");
-
     /* Process everything else */
     process_various();
-
-    if (debug_mode) plog("Give energy to all players");
 
     /* Give energy to all players */
     for (i = 1; i <= NumPlayers; i++)
@@ -1890,8 +1847,6 @@ static void post_turn_game_loop(void)
         /* Give the player some energy */
         if (!p->upkeep->new_level_method && !p->upkeep->funeral) energize_player(p);
     }
-
-    if (debug_mode) plog("Give energy to all monsters");
 
     /* Give energy to all monsters */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1908,8 +1863,6 @@ static void post_turn_game_loop(void)
             }
         }
     }
-
-    if (debug_mode) plog("Count game turns");
 
     /* Count game turns */
     ht_add(&turn, 1);
@@ -1943,8 +1896,6 @@ static void post_turn_game_loop(void)
         }
     }
 
-    if (debug_mode) plog("Refresh everybody's displays");
-
     /* Refresh everybody's displays */
     for (i = 1; i <= NumPlayers; i++)
     {
@@ -1960,12 +1911,8 @@ static void post_turn_game_loop(void)
         p->full_refresh = false;
     }
 
-    if (debug_mode) plog("Send any information over the network");
-
     /* Send any information over the network */
     Net_output();
-
-    if (debug_mode) plog("Get rid of dead players");
 
     /* Get rid of dead players */
     for (i = NumPlayers; i > 0; i--)
@@ -2005,11 +1952,7 @@ static void post_turn_game_loop(void)
         Destroy_connection(p->conn, "Starving to death!");
     }
 
-    if (debug_mode) plog("Housekeeping on leaving a level");
-
     on_leave_level();
-
-    if (debug_mode) plog("Make a new level if requested");
 
     /* Make a new level if requested */
     for (i = 1; i <= NumPlayers; i++)
@@ -2018,8 +1961,6 @@ static void post_turn_game_loop(void)
 
         if (p->upkeep->new_level_method) generate_new_level(p);
     }
-
-    if (debug_mode) plog("END post_turn_game_loop()");
 }
 
 

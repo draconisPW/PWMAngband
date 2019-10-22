@@ -213,6 +213,21 @@ struct player_race
 };
 
 /*
+ * Dragon breed info
+ */
+struct dragon_breed
+{
+    struct dragon_breed *next;
+    char *d_name;               /* Dragon name */
+    byte d_fmt;                 /* Dragon name format ("dragon" or "drake") */
+    char *w_name;               /* Wyrm name */
+    byte w_fmt;                 /* Wyrm name format ("xxx wyrm" or "wyrm of xxx") */
+    byte commonness;            /* Commonnes of the breed */
+    s16b r_exp;                 /* Experience factor */
+    byte immune;                /* Immunity to element? */
+};
+
+/*
  * Items the player starts with. Used in player_class and specified in
  * class.txt.
  */
@@ -798,6 +813,7 @@ struct player
 
 extern struct player_body *bodies;
 extern struct player_race *races;
+extern struct dragon_breed *breeds;
 extern struct player_class *classes;
 extern struct magic_realm *realms;
 

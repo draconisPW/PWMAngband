@@ -1270,6 +1270,7 @@ static bool effect_handler_BALL(effect_handler_context_t *context)
         {
             ty = context->origin->player->py;
             tx = context->origin->player->px;
+            who->target = context->origin->player;
         }
     }
     else
@@ -1960,6 +1961,7 @@ static bool effect_handler_BREATH(effect_handler_context_t *context)
         {
             ty = context->origin->player->py;
             tx = context->origin->player->px;
+            who->target = context->origin->player;
         }
     }
     else

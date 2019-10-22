@@ -43,3 +43,5 @@ feat:O:street
 feat:-:grass
 feat:T:tree
 feat:^:mountain
+feat:>:down staircase
+feat:x:safe floor

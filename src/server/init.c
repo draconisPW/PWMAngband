@@ -2077,6 +2077,104 @@ static struct file_parser p_race_parser =
 
 
 /*
+ * Initialize dragon breeds
+ */
+
+
+static enum parser_error parse_dragon_breed_dragon(struct parser *p)
+{
+    struct dragon_breed *h = parser_priv(p);
+    struct dragon_breed *r = mem_zalloc(sizeof(*r));
+
+    r->next = h;
+    r->d_name = string_make(parser_getsym(p, "name"));
+    r->d_fmt = (byte)parser_getuint(p, "format");
+
+    parser_setpriv(p, r);
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_dragon_breed_wyrm(struct parser *p)
+{
+    struct dragon_breed *r = parser_priv(p);
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    r->w_name = string_make(parser_getsym(p, "name"));
+    r->w_fmt = (byte)parser_getuint(p, "format");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_dragon_breed_info(struct parser *p)
+{
+    struct dragon_breed *r = parser_priv(p);
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    r->commonness = (byte)parser_getuint(p, "commonness");
+    r->r_exp = (s16b)parser_getint(p, "r_exp");
+    r->immune = (byte)parser_getuint(p, "immune");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static struct parser *init_parse_dragon_breed(void)
+{
+    struct parser *p = parser_new();
+
+    parser_setpriv(p, NULL);
+    parser_reg(p, "dragon sym name uint format", parse_dragon_breed_dragon);
+    parser_reg(p, "wyrm sym name uint format", parse_dragon_breed_wyrm);
+    parser_reg(p, "info uint commonness int r_exp uint immune", parse_dragon_breed_info);
+
+    return p;
+}
+
+
+static errr run_parse_dragon_breed(struct parser *p)
+{
+    return parse_file_quit_not_found(p, "dragon_breed");
+}
+
+
+static errr finish_parse_dragon_breed(struct parser *p)
+{
+    breeds = parser_priv(p);
+    parser_destroy(p);
+    return 0;
+}
+
+
+static void cleanup_dragon_breed(void)
+{
+    struct dragon_breed *p = breeds;
+    struct dragon_breed *next;
+
+    while (p)
+    {
+        next = p->next;
+        string_free(p->d_name);
+        string_free(p->w_name);
+        mem_free(p);
+        p = next;
+    }
+}
+
+
+static struct file_parser dragon_breed_parser =
+{
+    "dragon_breed",
+    init_parse_dragon_breed,
+    run_parse_dragon_breed,
+    finish_parse_dragon_breed,
+    cleanup_dragon_breed
+};
+
+
+/*
  * Initialize player magic realms
  */
 
@@ -3106,6 +3204,7 @@ static struct
     {"history charts", &history_parser},
     {"bodies", &body_parser},
     {"player races", &p_race_parser},
+    {"dragon breeds", &dragon_breed_parser},
     {"magic realms", &realm_parser},
     {"player classes", &class_parser},
     {"flavours", &flavor_parser},

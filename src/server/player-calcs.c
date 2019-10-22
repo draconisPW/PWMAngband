@@ -2302,7 +2302,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 95 / 100;
     if (p->timed[TMD_IMAGE])
         state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 8 / 10;
-    if (p->timed[TMD_WRAITHFORM]) of_on(state->flags, OF_IMPAIR_HP);
 
     /* Analyze flags - check for fear */
     if (of_has(state->flags, OF_AFRAID))
@@ -2492,6 +2491,10 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     calc_torch(p, state, update);
     calc_mana(p, state, update);
     calc_hitpoints(p, state, update);
+
+    /* PWMAngband: display a message when a monk becomes encumbered */
+    if (player_has(p, PF_MARTIAL_ARTS) && !unencumbered_monk)
+        state->cumber_armor = true;
 }
 
 

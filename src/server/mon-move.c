@@ -56,7 +56,7 @@ static bool can_path_player(struct player *p, const struct monster *mon, struct 
     int m;
 
     /* If player is in LOS, there's no need to go around walls */
-    if (projectable_wall(c, y1, x1, y2, x2)) return true;
+    if (projectable(c, y1, x1, y2, x2, PROJECT_NONE, false)) return true;
 
     /* Analyze "dy" */
     if (y2 < y1)
@@ -859,7 +859,7 @@ static bool get_move_find_hiding(struct player *p, struct chunk *c, struct monst
             if (!square_isemptyfloor(c, y, x)) continue;
 
             /* Check for hidden, available grid */
-            if (!square_isview(p, y, x) && projectable(c, fy, fx, y, x, PROJECT_STOP))
+            if (!square_isview(p, y, x) && projectable(c, fy, fx, y, x, PROJECT_STOP, true))
             {
                 /* Calculate distance from player */
                 dis = distance(y, x, py, px);
@@ -2576,25 +2576,21 @@ static bool player_invis(struct player *p, struct monster *mon)
     if (monster_is_invisible(mon->race)) return false;
 
     mlv = (s16b)mon->level;
-    if (rf_has(mon->race->flags, RF_NO_SLEEP)) mlv += 5;
-    if (rf_has(mon->race->flags, RF_DRAGON)) mlv += 10;
-    if (rf_has(mon->race->flags, RF_UNDEAD)) mlv += 12;
-    if (rf_has(mon->race->flags, RF_DEMON)) mlv += 10;
-    if (rf_has(mon->race->flags, RF_ANIMAL)) mlv += 3;
+    if (rf_has(mon->race->flags, RF_NO_SLEEP)) mlv += 10;
+    if (rf_has(mon->race->flags, RF_DRAGON)) mlv += 20;
+    if (rf_has(mon->race->flags, RF_UNDEAD)) mlv += 15;
+    if (rf_has(mon->race->flags, RF_DEMON)) mlv += 15;
+    if (rf_has(mon->race->flags, RF_ANIMAL)) mlv += 15;
     if (rf_has(mon->race->flags, RF_ORC)) mlv -= 15;
     if (rf_has(mon->race->flags, RF_TROLL)) mlv -= 10;
     if (monster_is_stupid(mon->race)) mlv /= 2;
     if (monster_is_smart(mon->race)) mlv = (mlv * 5) / 4;
     if (monster_is_unique(mon->race)) mlv *= 2;
+    if ((p->timed[TMD_INVIS] == -1) && !p->ghost) mlv = (mlv * 7) / 10;
     if (mlv < 0) mlv = 0;
 
     /* High level monsters can't be fooled */
     if (mlv > p->lev) return false;
-
-    /* Monsters can sometimes see invisible players */
-    /* 1 every 100 game turns at max */
-    /* This will act like a super slow monster effect */
-    if (CHANCE(mlv, p->lev * 100)) return false;
 
     /* Player is invisible */
     return true;

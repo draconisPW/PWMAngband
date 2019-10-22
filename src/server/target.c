@@ -178,12 +178,12 @@ bool target_able(struct player *p, struct source *who)
     {
         return (COORDS_EQUAL(&p->wpos, &who->player->wpos) && player_is_visible(p, who->idx) &&
             !who->player->k_idx &&
-            projectable(c, p->py, p->px, who->player->py, who->player->px, PROJECT_NONE) &&
+            projectable(c, p->py, p->px, who->player->py, who->player->px, PROJECT_NONE, true) &&
             !p->timed[TMD_IMAGE]);
     }
 
     return (who->monster->race && monster_is_obvious(p, who->idx, who->monster) &&
-        projectable(c, p->py, p->px, who->monster->fy, who->monster->fx, PROJECT_NONE) &&
+        projectable(c, p->py, p->px, who->monster->fy, who->monster->fx, PROJECT_NONE, true) &&
         !p->timed[TMD_IMAGE]);
 }
 

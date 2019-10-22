@@ -1499,7 +1499,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             if (square_isseen(p, py, px))
             {
                 /* Handle "invisible" players */
-                if ((q->poly_race && monster_is_invisible(q->poly_race)) || q->timed[TMD_INVIS])
+                if (q->timed[TMD_INVIS])
                 {
                     /* See invisible */
                     if (player_of_has(p, OF_SEE_INVIS))

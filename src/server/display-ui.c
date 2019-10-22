@@ -421,7 +421,7 @@ static void prt_floor_item(struct player *p)
 }
 
 
-static void dump_spells(struct player *p, struct object *obj)
+void dump_spells(struct player *p, struct object *obj)
 {
     int j;
     spell_flags flags;
@@ -758,6 +758,15 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
 }
 
 
+static bool is_dragon_immune(struct monster_race *race)
+{
+    struct dragon_breed *dn = get_dragon_form(race);
+
+    if (dn) return (dn->immune? true: false);
+    return false;
+}
+
+
 /*
  * Obtain the "elements" for the player as if he was an item
  */
@@ -803,31 +812,47 @@ void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
     /* Handle polymorphed players */
     if (p->poly_race)
     {
-        if (rf_has(p->poly_race->flags, RF_HURT_ROCK)) el_info[ELEM_SHARD].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_HURT_FIRE)) el_info[ELEM_FIRE].res_level = -1;
-        if (rf_has(p->poly_race->flags, RF_HURT_COLD)) el_info[ELEM_COLD].res_level = -1;
-        if (rf_has(p->poly_race->flags, RF_IM_ACID)) el_info[ELEM_ACID].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_ELEC)) el_info[ELEM_ELEC].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_FIRE)) el_info[ELEM_FIRE].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_COLD)) el_info[ELEM_COLD].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_POIS)) el_info[ELEM_POIS].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_NETHER)) el_info[ELEM_NETHER].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_NEXUS)) el_info[ELEM_NEXUS].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_DISEN)) el_info[ELEM_DISEN].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_ACID)) el_info[ELEM_ACID].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_ELEC)) el_info[ELEM_ELEC].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_FIRE)) el_info[ELEM_FIRE].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_COLD)) el_info[ELEM_COLD].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_POIS)) el_info[ELEM_POIS].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_NETH)) el_info[ELEM_NETHER].res_level = 1;
+        bool dragon_immune = (player_has(p, PF_DRAGON) && is_dragon_immune(p->poly_race));
+
+        if (rf_has(p->poly_race->flags, RF_IM_ACID))
+            el_info[ELEM_ACID].res_level = (dragon_immune? 3: 1);
+        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_ACID))
+            el_info[ELEM_ACID].res_level = 1;
+
+        if (rf_has(p->poly_race->flags, RF_IM_ELEC))
+            el_info[ELEM_ELEC].res_level = (dragon_immune? 3: 1);
+        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_ELEC))
+            el_info[ELEM_ELEC].res_level = 1;
+
+        if (rf_has(p->poly_race->flags, RF_IM_FIRE))
+            el_info[ELEM_FIRE].res_level = (dragon_immune? 3: 1);
+        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_FIRE))
+            el_info[ELEM_FIRE].res_level = 1;
+        else if (rf_has(p->poly_race->flags, RF_HURT_FIRE))
+            el_info[ELEM_FIRE].res_level = -1;
+
+        if (rf_has(p->poly_race->flags, RF_IM_COLD))
+            el_info[ELEM_COLD].res_level = (dragon_immune? 3: 1);
+        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_COLD))
+            el_info[ELEM_COLD].res_level = 1;
+        else if (rf_has(p->poly_race->flags, RF_HURT_COLD))
+            el_info[ELEM_COLD].res_level = -1;
+
+        if (rf_has(p->poly_race->flags, RF_IM_POIS) || rsf_has(p->poly_race->spell_flags, RSF_BR_POIS))
+            el_info[ELEM_POIS].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_LIGHT)) el_info[ELEM_LIGHT].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_DARK)) el_info[ELEM_DARK].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_SOUN)) el_info[ELEM_SOUND].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_HURT_ROCK) || rsf_has(p->poly_race->spell_flags, RSF_BR_SHAR))
+            el_info[ELEM_SHARD].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_NEXUS) || rsf_has(p->poly_race->spell_flags, RSF_BR_NEXU))
+            el_info[ELEM_NEXUS].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_NETHER) || rsf_has(p->poly_race->spell_flags, RSF_BR_NETH))
+            el_info[ELEM_NETHER].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_CHAO)) el_info[ELEM_CHAOS].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_DISE)) el_info[ELEM_DISEN].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_NEXU)) el_info[ELEM_NEXUS].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_DISEN) || rsf_has(p->poly_race->spell_flags, RSF_BR_DISE))
+            el_info[ELEM_DISEN].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_TIME)) el_info[ELEM_TIME].res_level = 1;
-        if (rsf_has(p->poly_race->spell_flags, RSF_BR_SHAR)) el_info[ELEM_SHARD].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_MANA)) el_info[ELEM_MANA].res_level = 1;
     }
 }

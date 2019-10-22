@@ -132,7 +132,7 @@ extern int Send_floor(struct player *p, byte num, const struct object *obj,
     struct object_xtra *info_xtra);
 extern int Send_special_other(struct player *p, char *header, byte peruse, bool protect);
 extern int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number,
-    byte owned, s32b price, byte tval, byte max, const char *name);
+    byte owned, s32b price, byte tval, byte max, s16b bidx, const char *name);
 extern int Send_store_info(struct player *p, int num, char *name, char *owner, int items,
     s32b purse);
 extern int Send_target_info(struct player *p, int x, int y, bool dble, const char *buf);

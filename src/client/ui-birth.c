@@ -351,6 +351,17 @@ static const char *get_resist_desc(int element)
 }
 
 
+static const char *get_elem_desc_other(int element)
+{
+    switch (element)
+    {
+        case ELEM_FIRE: return "Vulnerable to fire";
+
+        default: return "Undocumented element";
+    }
+}
+
+
 static const char *get_pflag_desc(bitflag flag)
 {
     switch (flag)
@@ -410,6 +421,14 @@ static void race_help(int i, void *db, const region *l)
         if (n_flags >= flag_space) break;
         if (r->el_info[k].res_level != 1) continue;
         format_help(RACE_AUX_COL, j++, "%-30s", get_resist_desc(k));
+        n_flags++;
+    }
+
+    for (k = 0; k < ELEM_MAX; k++)
+    {
+        if (n_flags >= flag_space) break;
+        if ((r->el_info[k].res_level == 0) || (r->el_info[k].res_level == 1)) continue;
+        format_help(RACE_AUX_COL, j++, "%-30s", get_elem_desc_other(k));
         n_flags++;
     }
 

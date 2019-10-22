@@ -24,6 +24,7 @@
 struct object_kind *k_info;
 struct ego_item *e_info;
 struct player_race *races;
+struct dragon_breed *breeds;
 struct player_class *classes;
 struct magic_realm *realms;
 struct player_body *bodies;

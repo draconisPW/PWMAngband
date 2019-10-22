@@ -918,8 +918,27 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
     }
     else if (in_base_town(wpos))
         profile = find_cave_profile("town");
-    else if (in_start_town(wpos))
-        profile = find_cave_profile("mang_town");
+    else if (in_town(wpos))
+    {
+        /* Get town info */
+        struct location *town = get_town(wpos);
+
+        char town_file[20];
+        char path[MSG_LEN];
+
+        /* Get town file */
+        get_town_file(town_file, sizeof(town_file), town->name);
+        path_build(path, sizeof(path), ANGBAND_DIR_GAMEDATA, format("%s.txt", town_file));
+
+        /*
+         * If there's a town file, use the profile inside to create the town.
+         * Otherwise, create a default MAngband-style town.
+         */
+        if (file_exists(path))
+            profile = find_cave_profile("wilderness");
+        else
+            profile = find_cave_profile("mang_town");
+    }
     else
         profile = find_cave_profile("wilderness");
 

@@ -1713,7 +1713,7 @@ static void display_entry(struct player *p, struct object *obj, bool home)
     s32b price = -1, amt = 0;
     char o_name[NORMAL_WID];
     byte attr;
-    s16b wgt;
+    s16b wgt, bidx;
     byte num;
 
     /* Describe the object - preserving inscriptions in the home */
@@ -1786,7 +1786,9 @@ static void display_entry(struct player *p, struct object *obj, bool home)
     num = find_inven(p, obj);
 
     /* Send the info */
-    Send_store(p, obj->oidx, attr, wgt, obj->number, num, price, obj->tval, (byte)amt, o_name);
+    dump_spells(p, obj);
+    bidx = (s16b)object_to_book_index(p, obj);
+    Send_store(p, obj->oidx, attr, wgt, obj->number, num, price, obj->tval, (byte)amt, bidx, o_name);
 }
 
 
@@ -1931,6 +1933,15 @@ static void display_store(struct player *p)
     char store_name[NORMAL_WID];
     char store_owner_name[NORMAL_WID];
     s32b purse;
+    spell_flags flags;
+
+    flags.line_attr = COLOUR_WHITE;
+    flags.flag = RSF_NONE;
+    flags.dir_attr = 0;
+    flags.proj_attr = 0;
+
+    /* Wipe the spell array (for browsing books in store) */
+    Send_spell_info(p, 0, 0, "", &flags);
 
     /* Send the inventory */
     if (p->store_num != STORE_PLAYER)

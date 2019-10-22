@@ -2342,14 +2342,14 @@ static int Receive_store(void)
     int n;
     char name[MSG_LEN];
     byte attr;
-    s16b wgt;
+    s16b wgt, bidx;
     char pos;
     s32b price;
     byte num, owned, tval, max;
     byte ch;
 
-    if ((n = Packet_scanf(&rbuf, "%b%c%b%hd%b%b%ld%b%b%s", &ch, &pos, &attr, &wgt, &num, &owned,
-        &price, &tval, &max, name)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%c%b%hd%b%b%ld%b%b%hd%s", &ch, &pos, &attr, &wgt, &num, &owned,
+        &price, &tval, &max, &bidx, name)) <= 0)
     {
         return n;
     }
@@ -2364,6 +2364,7 @@ static int Receive_store(void)
     current_store.stock[pos].info_xtra.attr = attr;
     current_store.stock[pos].info_xtra.max = max;
     current_store.stock[pos].info_xtra.owned = owned;
+    current_store.stock[pos].info_xtra.bidx = bidx;
 
     my_strcpy(store_names[pos], name, sizeof(store_names[0]));
 

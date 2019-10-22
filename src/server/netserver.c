@@ -2599,14 +2599,14 @@ int Send_special_other(struct player *p, char *header, byte peruse, bool protect
 
 
 int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number, byte owned,
-    s32b price, byte tval, byte max, const char *name)
+    s32b price, byte tval, byte max, s16b bidx, const char *name)
 {
     connection_t *connp = get_connp(p, "store");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%b%b%s", (unsigned)PKT_STORE,
+    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%b%b%hd%s", (unsigned)PKT_STORE,
         (int)pos, (unsigned)attr, (int)wgt, (unsigned)number, (unsigned)owned,
-        price, (unsigned)tval, (unsigned)max, name);
+        price, (unsigned)tval, (unsigned)max, (int)bidx, name);
 }
 
 
@@ -6831,7 +6831,7 @@ static int Receive_store_leave(int ind)
         p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
+        p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_SPELL);
 
         sound(p, MSG_STORE_LEAVE);
 
