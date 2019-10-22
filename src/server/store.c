@@ -594,9 +594,6 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
         double maxprice, askprice;
         struct house_type *house = house_get(p->player_store_num);
 
-        /* Check for no_selling option */
-        if (store_buying && my_stristr(quark_str(obj->note), "*for sale")) return (0L);
-
         /* Disable selling true artifacts */
         if (true_artifact_p(obj)) return (0L);
 

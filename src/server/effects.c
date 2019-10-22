@@ -918,14 +918,14 @@ static struct player *get_inscribed_player(struct player *p, quark_t note)
         return NULL;
     }
 
-    /* Scan the inscription for @P */
+    /* Scan the inscription for #P */
     while ((*inscription != '\0') && !q)
     {
-        if (*inscription == '@')
+        if (*inscription == '#')
         {
             inscription++;
 
-            /* A valid @P has been located */
+            /* A valid #P has been located */
             if (*inscription == 'P')
             {
                 inscription++;
@@ -1008,8 +1008,8 @@ static void set_descent(struct player *p)
 /*
  * Selects the recall depth.
  *
- * Inscribe @Rdepth to recall to a specific depth.
- * Inscribe @Rx,y to recall to a specific wilderness level (this assumes
+ * Inscribe #Rdepth to recall to a specific depth.
+ * Inscribe #Rx,y to recall to a specific wilderness level (this assumes
  * that the player has explored the respective wilderness level).
  */
 static void set_recall_depth(struct player *p, quark_t note)
@@ -1030,10 +1030,10 @@ static void set_recall_depth(struct player *p, quark_t note)
     /* Check for a valid inscription */
     if (inscription)
     {
-        /* Scan the inscription for @R */
+        /* Scan the inscription for #R */
         while (*inscription != '\0')
         {
-            if (*inscription == '@')
+            if (*inscription == '#')
             {
                 inscription++;
 
@@ -1042,7 +1042,7 @@ static void set_recall_depth(struct player *p, quark_t note)
                     int x, y;
                     char buf[NORMAL_WID];
 
-                    /* A valid @R has been located */
+                    /* A valid #R has been located */
                     inscription++;
 
                     /* Convert the inscription into wilderness coordinates */

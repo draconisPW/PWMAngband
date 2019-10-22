@@ -109,6 +109,7 @@ extern int Send_various(struct player *p, int height, int weight, int age);
 extern int Send_stat(struct player *p, int stat, int stat_top, int stat_use, int stat_max,
     int stat_add, int stat_cur);
 extern int Send_history(struct player *p, int line, const char *hist);
+extern int Send_autoinscription(struct player *p, struct object_kind *kind);
 extern int Send_index(struct player *p, int i, int index, byte type);
 extern int Send_item_request(struct player *p, byte tester_hook, char *dice_string);
 extern int Send_title(struct player *p, const char *title);

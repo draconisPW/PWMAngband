@@ -251,6 +251,13 @@ void do_cmd_uninscribe(struct player *p, int item)
     obj->note = 0;
     msg(p, "Inscription removed.");
 
+    /* PWMAngband: remove autoinscription if aware */
+    if (p->obj_aware[obj->kind->kidx])
+    {
+        remove_autoinscription(p, obj->kind->kidx);
+        Send_autoinscription(p, obj->kind);
+    }
+
     /* Update global "preventive inscriptions" */
     update_prevent_inscriptions(p);
 
@@ -344,10 +351,15 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     message_flush(p);
 
     /* Save the inscription */
-    if (cfg_no_selling || OPT(p, birth_no_selling))
-        obj->note = quark_add(format("*%s", inscription));
-    else
-        obj->note = quark_add(inscription);
+    obj->note = quark_add(inscription);
+
+    /* PWMAngband: add autoinscription if aware and inscription has the right format (@xn) */
+    if (p->obj_aware[obj->kind->kidx] && (strlen(inscription) == 3) && (inscription[0] == '@') &&
+        isalpha(inscription[1]) && isdigit(inscription[2]))
+    {
+        add_autoinscription(p, obj->kind->kidx, inscription);
+        Send_autoinscription(p, obj->kind);
+    }
 
     /* Update global "preventive inscriptions" */
     update_prevent_inscriptions(p);

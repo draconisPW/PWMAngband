@@ -391,11 +391,8 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
         /* Perform the transaction */
         p->au -= price;
         p->upkeep->redraw |= PR_GOLD;
-        if (!(cfg_no_selling || OPT(q, birth_no_selling)))
-        {
-            q->au += price;
-            q->upkeep->redraw |= PR_GOLD;
-        }
+        q->au += price;
+        q->upkeep->redraw |= PR_GOLD;
 
         /* Know original object */
         object_notice_everything(p, obj);
@@ -409,8 +406,7 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
 
         /* Message */
         msg(p, "You bought %s for %d gold.", o_name, price);
-        if (!(cfg_no_selling || OPT(q, birth_no_selling)))
-            msg(q, "You sold %s for %d gold.", o_name, price);
+        msg(q, "You sold %s for %d gold.", o_name, price);
 
         /* Erase the inscription */
         obj->note = 0;

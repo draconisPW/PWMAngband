@@ -1384,5 +1384,9 @@ u16b connection_type_ok(u16b conntype)
 {
     if (conntype == CONNTYPE_PLAYER) return CONNTYPE_PLAYER;
     if (conntype == 8202 || conntype == 8205) return CONNTYPE_CONSOLE;
+
+    /* PuTTY via Telnet */
+    if (conntype == 65531) return CONNTYPE_CONSOLE;
+
     return CONNTYPE_ERROR;
 }

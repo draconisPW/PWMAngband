@@ -198,6 +198,33 @@ void option_dump(ang_file *f)
 
 
 /*
+ * Dump autoinscriptions
+ */
+void dump_autoinscriptions(ang_file *f)
+{
+    int i;
+
+    for (i = 0; i < z_info->k_max; i++)
+    {
+        struct object_kind *k = &k_info[i];
+        char name[120];
+        const char *note;
+
+        if (!k->name || !k->tval) continue;
+
+        note = Client_setup.note_aware[i];
+        if (note && !STRZERO(note))
+        {
+            object_short_name(name, sizeof(name), k->name);
+            file_putf(f, "inscribe:%s:%s:%s\n", tval_find_name(k->tval), name, note);
+        }
+    }
+
+    file_put(f, "\n");
+}
+
+
+/*
  * Write all current window settings to a user preference file.
  */
 void window_dump(ang_file *f)
@@ -914,6 +941,7 @@ static enum parser_error parse_prefs_inscribe(struct parser *p)
 {
     int tvi, svi;
     struct object_kind *kind;
+    const char *note;
     struct prefs_data *d = parser_priv(p);
 
     assert(d != NULL);
@@ -928,7 +956,12 @@ static enum parser_error parse_prefs_inscribe(struct parser *p)
     kind = lookup_kind(tvi, svi);
     if (!kind) return PARSE_ERROR_UNRECOGNISED_SVAL;
 
-    /*add_autoinscription(kind->kidx, parser_getstr(p, "text"), true);*/
+    note = parser_getstr(p, "text");
+    if (strlen(note) != 3) return PARSE_ERROR_INVALID_AUTOINSCRIPTION;
+    if (note[0] != '@') return PARSE_ERROR_INVALID_AUTOINSCRIPTION;
+    if (!isalpha(note[1])) return PARSE_ERROR_INVALID_AUTOINSCRIPTION;
+    if (!isdigit(note[2])) return PARSE_ERROR_INVALID_AUTOINSCRIPTION;
+    my_strcpy(Client_setup.note_aware[kind->kidx], note, sizeof(Client_setup.note_aware[0]));
 
     return PARSE_ERROR_NONE;
 }

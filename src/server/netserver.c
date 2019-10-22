@@ -474,6 +474,7 @@ static int Setup_connection(u32b account, char *real, char *nick, char *addr, ch
             connp->Client_setup.t_char = mem_zalloc(z_info->trap_max * sizeof(char_lit));
             connp->Client_setup.flvr_x_attr = mem_zalloc(flavor_max * sizeof(byte));
             connp->Client_setup.flvr_x_char = mem_zalloc(flavor_max * sizeof(char));
+            connp->Client_setup.note_aware = mem_zalloc(z_info->k_max * sizeof(char_note));
             connp->has_setup = true;
         }
 
@@ -992,6 +993,7 @@ static void wipe_connection(connection_t *connp)
     char (*t_char)[LIGHTING_MAX];
     byte *flvr_x_attr;
     char *flvr_x_char;
+    char (*note_aware)[4];
     bool has_setup = connp->has_setup;
 
     /* Save */
@@ -1007,6 +1009,7 @@ static void wipe_connection(connection_t *connp)
         f_char = connp->Client_setup.f_char;
         t_char = connp->Client_setup.t_char;
         flvr_x_char = connp->Client_setup.flvr_x_char;
+        note_aware = connp->Client_setup.note_aware;
     }
 
     /* Wipe */
@@ -1026,6 +1029,7 @@ static void wipe_connection(connection_t *connp)
         connp->Client_setup.f_char = f_char;
         connp->Client_setup.t_char = t_char;
         connp->Client_setup.flvr_x_char = flvr_x_char;
+        connp->Client_setup.note_aware = note_aware;
     }
 }
 
@@ -1116,6 +1120,7 @@ void Stop_net_server(void)
             mem_free(connp->Client_setup.t_char);
             mem_free(connp->Client_setup.flvr_x_attr);
             mem_free(connp->Client_setup.flvr_x_char);
+            mem_free(connp->Client_setup.note_aware);
         }
     }
 
@@ -2143,6 +2148,20 @@ int Send_history(struct player *p, int line, const char *hist)
     if (connp == NULL) return 0;
 
     return Packet_printf(&connp->c, "%b%hd%s", (unsigned)PKT_HISTORY, line, hist);
+}
+
+
+int Send_autoinscription(struct player *p, struct object_kind *kind)
+{
+    const char *note;
+
+    connection_t *connp = get_connp(p, "autoinscriptions");
+    if (connp == NULL) return 0;
+
+    note = get_autoinscription(p, kind);
+    if (!note) note = "";
+
+    return Packet_printf(&connp->c, "%b%lu%s", (unsigned)PKT_AUTOINSCR, kind->kidx, note);
 }
 
 
@@ -7106,6 +7125,33 @@ static int Receive_history(int ind)
         break_mind_link(p);
 
         my_strcpy(p->history[line], buf, sizeof(p->history[0]));
+    }
+
+    return 1;
+}
+
+
+static int Receive_autoinscriptions(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    int i, n;
+    byte ch;
+
+    if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
+    {
+        if (n == -1) Destroy_connection(ind, "Receive_autoinscriptions read error");
+        return n;
+    }
+
+    for (i = 0; i < z_info->k_max; i++)
+    {
+        n = Packet_scanf(&connp->r, "%s", connp->Client_setup.note_aware[i]);
+
+        if (n <= 0)
+        {
+            if (n == -1) Destroy_connection(ind, "Receive_autoinscriptions read error");
+            return n;
+        }
     }
 
     return 1;

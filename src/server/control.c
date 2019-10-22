@@ -53,7 +53,7 @@ static void console_help(int ind, char *name);
 
 static console_command_ops console_commands[] =
 {
-    {"help", console_help, 0, "[TOPIC]\nExplain a command or list all avaliable"},
+    {"help", console_help, 0, "[TOPIC]\nExplain a command or list all available"},
     {"listen", console_listen, 0, "[CHANNEL]\nAttach self to #public or specified"},
     {"who", console_who, 0, "\nList players"},
     {"shutdown", console_shutdown, 0, "\nKill server"},

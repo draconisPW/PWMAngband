@@ -351,6 +351,7 @@ void client_ready(bool newchar)
     cmd_init();
 
     Send_options(true);
+    Send_autoinscriptions();
 
     /* Send visual preferences */
     Net_verify();
@@ -685,6 +686,7 @@ void cleanup_angband(void)
     mem_free(Client_setup.t_char);
     mem_free(Client_setup.flvr_x_attr);
     mem_free(Client_setup.flvr_x_char);
+    mem_free(Client_setup.note_aware);
 
     /* Free the messages */
     messages_free();

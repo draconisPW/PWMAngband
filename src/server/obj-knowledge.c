@@ -1824,6 +1824,7 @@ static void object_flavor_aware_aux(struct player *p, struct object *obj, bool s
     /* Fully aware of the effects */
     p->obj_aware[obj->kind->kidx] = true;
     if (send) Send_aware(p, obj->kind->kidx);
+    apply_autoinscription(p, obj);
 
     /* A bunch of things are now known */
     obj->known->pval = 1;

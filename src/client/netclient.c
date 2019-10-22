@@ -347,6 +347,9 @@ static int Receive_struct_info(void)
             Client_setup.flvr_x_attr = mem_zalloc(flavor_max * sizeof(byte));
             Client_setup.flvr_x_char = mem_zalloc(flavor_max * sizeof(char));
 
+            /* Autoinscriptions */
+            Client_setup.note_aware = mem_zalloc(z_info->k_max * sizeof(char_note));
+
             /* Alloc */
             player->obj_aware = mem_zalloc(z_info->k_max * sizeof(bool));
             player->kind_ignore = mem_zalloc(z_info->k_max * sizeof(byte));
@@ -3877,6 +3880,22 @@ static int Receive_history(void)
 }
 
 
+static int Receive_autoinscriptions(void)
+{
+    int n;
+    byte ch;
+    u32b kidx;
+    char note_aware[4];
+
+    if ((n = Packet_scanf(&rbuf, "%b%lu%s", &ch, &kidx, note_aware)) <= 0)
+        return n;
+
+    my_strcpy(Client_setup.note_aware[kidx], note_aware, sizeof(Client_setup.note_aware[0]));
+
+    return 1;
+}
+
+
 /*** Sending ***/
 
 
@@ -5430,6 +5449,24 @@ int Send_history(int line, const char *hist)
 
     if ((n = Packet_printf(&wbuf, "%b%hd%s", (unsigned)PKT_HISTORY, line, hist)) <= 0)
         return n;
+
+    return 1;
+}
+
+
+int Send_autoinscriptions(void)
+{
+    int i, n;
+
+    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_AUTOINSCR)) <= 0)
+        return n;
+
+    for (i = 0; i < z_info->k_max; i++)
+    {
+        n = Packet_printf(&wbuf, "%s", Client_setup.note_aware[i]);
+        if (n <= 0)
+            return n;
+    }
 
     return 1;
 }

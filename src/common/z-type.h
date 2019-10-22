@@ -111,6 +111,8 @@ enum grid_light_level
 typedef byte byte_lit[LIGHTING_MAX];
 typedef char char_lit[LIGHTING_MAX];
 
+typedef char char_note[4];
+
 /* The setup data that the client transmits to the server */
 typedef struct
 {
@@ -127,6 +129,7 @@ typedef struct
     char *r_char;
     byte proj_attr[PROJ_MAX][BOLT_MAX];
     char proj_char[PROJ_MAX][BOLT_MAX];
+    char (*note_aware)[4];
 } client_setup_t;
 
 extern client_setup_t Client_setup;

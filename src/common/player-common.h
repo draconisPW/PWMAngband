@@ -792,6 +792,8 @@ struct player
     /* Shared monster/object list instances */
     void *monster_list_subwindow;
     void *object_list_subwindow;
+
+    quark_t* note_aware;    /* Autoinscription quark number */
 };
 
 extern struct player_body *bodies;

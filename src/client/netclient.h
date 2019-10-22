@@ -105,6 +105,7 @@ extern int Send_ignore(void);
 extern int Send_flush(void);
 extern int Send_chan(const char *channel);
 extern int Send_history(int line, const char *hist);
+extern int Send_autoinscriptions(void);
 
 /*** Commands ***/
 extern int textui_spell_browse(struct command *cmd);
