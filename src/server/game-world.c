@@ -79,6 +79,22 @@ bool is_daytime(void)
 }
 
 
+void dusk_or_dawn(struct player *p, struct chunk *c, bool dawn)
+{
+    /* Day breaks */
+    if (dawn) msg(p, "The sun has risen.");
+
+    /* Night falls */
+    else msg(p, "The sun has fallen.");
+
+    /* Clear the flags for each cave grid */
+    player_cave_clear(p, false);
+
+    /* Illuminate */
+    cave_illuminate(p, c, dawn);
+}
+
+
 /*
  * The amount of energy gained in a turn by a player or monster
  */
@@ -405,17 +421,7 @@ static void process_world(struct player *p, struct chunk *c)
         /* Check for dawn */
         dawn = (!(turn.turn % (10L * z_info->day_length)));
 
-        /* Day breaks */
-        if (dawn) msg(p, "The sun has risen.");
-
-        /* Night falls */
-        else msg(p, "The sun has fallen.");
-
-        /* Clear the flags for each cave grid */
-        player_cave_clear(p, false);
-
-        /* Illuminate */
-        cave_illuminate(p, c, dawn);
+        dusk_or_dawn(p, c, dawn);
 
         loc_init(&begin, 0, 0);
         loc_init(&end, c->width, c->height);

@@ -1,4 +1,3 @@
-=====================
 Quick reference guide
 =====================
 
@@ -6,12 +5,12 @@ This is a quick reference guide, see http://mangband.org/help/ for full help!
 (use up/down arrow keys to scroll this text)
 
 Command Summary
-===============
+---------------
 
 Commands are listed using the original keyset.
 
 Inventory Commands
-------------------
+******************
 
 ====== ========================== ====== ==========================
 'i'    Inventory list             'e'    Equipment list
@@ -22,7 +21,7 @@ Inventory Commands
 ====== ========================== ====== ==========================
 
 Movement Commands
------------------
+*****************
  
 To walk, use the direction keys on your numpad.
 To run (much faster), hold down Shift and use the numpad direction keys.
@@ -35,7 +34,7 @@ If running doesn't work, try pressing Numlock.
 ====== ========================== ====== ==========================
  
 Resting Commands
-----------------
+****************
 
 ====== ========================== ====== ==========================
 'R'    Rest for a period
@@ -44,26 +43,26 @@ Resting Commands
 ====== ========================== ====== ==========================
  
 Stealth Commands
-----------------
+****************
 
 ====== ========================== ====== ==========================
 'S'    Toggle stealth mode
 ====== ========================== ====== ==========================
  
 Alter Commands
---------------
+**************
 
 ====== ========================== ====== ==========================
 'c'    Close a door               'T'    Dig a tunnel
 'o'    Open a door or chest       '+'    Alter grid
 '_'    Drink/fill from a fountain
-'D'    Disarm a trap or chest
+'D'    Disarm a trap or chest     'J'    Steal
 ====== ========================== ====== ==========================
  
 To alter a grid you can also hold down Ctrl and use the numpad direction keys.
  
 Spell and Prayer Commands
--------------------------
+*************************
 
 ====== ========================== ====== ==========================
 'm'    Cast a spell               'p'    Project a spell
@@ -71,14 +70,14 @@ Spell and Prayer Commands
 ====== ========================== ====== ==========================
  
 Monster Spell Commands
-----------------------
+**********************
 
 ====== ========================== ====== ==========================
 'y'    Use dragon breath attack   'V'    Polymorph into a monster 
 ====== ========================== ====== ==========================
  
 Object Manipulation Commands
-----------------------------
+****************************
 
 ====== ========================== ====== ==========================
 'q'    Quaff a potion             'r'    Read a scroll
@@ -87,7 +86,7 @@ Object Manipulation Commands
 ====== ========================== ====== ==========================
 
 Magical Object Commands
------------------------
+***********************
 
 ====== ========================== ====== ==========================
 'a'    Aim a wand                 'u'    Use a staff
@@ -95,7 +94,7 @@ Magical Object Commands
 ====== ========================== ====== ==========================
 
 Throwing and Missile Weapons
-----------------------------
+****************************
 
 ====== ========================== ====== ==========================
 'f'    Fire an item               'v'    Throw an item
@@ -105,7 +104,7 @@ Throwing and Missile Weapons
 ====== ========================== ====== ==========================
 
 Looking Commands
-----------------
+****************
 
 ====== ========================== ====== ==========================
 'M'    Full dungeon map           'L'    Locate player on map
@@ -114,7 +113,7 @@ Looking Commands
 ====== ========================== ====== ==========================
 
 Message Commands
-----------------
+****************
 
 ====== ========================== ====== ==========================
 ':'    Enter chat mode            '^Z'   Use chat command
@@ -123,7 +122,7 @@ Message Commands
 ====== ========================== ====== ==========================
  
 Player House Commands
----------------------
+*********************
 
 ====== ========================== ====== ==========================
 '^E'   Buy a house
@@ -133,7 +132,7 @@ To buy or sell a house, press this key outside a house.
 To view your own shop inventory, press this key inside a house.
  
 Game Status Commands
---------------------
+********************
 
 ====== ========================== ====== ==========================
 '~'    Check knowledge            'P'    Access party menu
@@ -142,7 +141,7 @@ Game Status Commands
 ====== ========================== ====== ==========================
  
 Saving and Exiting Commands
----------------------------
+***************************
  
 ====== ========================== ====== ==========================
 '^X'   Save and quit              'Q'    End character & quit
@@ -151,7 +150,7 @@ Saving and Exiting Commands
 To end your character you can also press the '^C' key.
  
 User pref file commands
------------------------
+***********************
 
 ====== ========================== ====== ==========================
 '='    Set options
@@ -159,17 +158,16 @@ User pref file commands
 ====== ========================== ====== ==========================
  
 Help
-----
+****
 
 ====== ========================== ====== ==========================
 '?'    Help                       '/'    Identify monster
 ====== ========================== ====== ==========================
  
 Extra Commands
---------------
+**************
 
 ====== ========================== ====== ==========================
-'J'    Steal
 ']'    Display item list          '['    Display monster list
 '^Q'   Get a quest                '^S'   Socials
 '^R'   Redraw the screen          ')'    Save screen dump
@@ -179,7 +177,7 @@ Extra Commands
 Pressing Enter will display the command menu.
 
 Newbie Guide for Multiplayer Angband
-====================================
+------------------------------------
 
 An Introduction to MAngband - by Warrior (warrior@mangband.org)
 
@@ -190,7 +188,7 @@ Before you read this guide, listen to this bit of advice:
     - (Alex Dingle, maintainer 1998-2002)
 
 Part I -- The Basics
---------------------
+********************
 
 1. What is MAngband? 
 
@@ -233,7 +231,7 @@ resurrect you can start over by hitting 'Q'. Ghosts also have certain undead
 powers, accessible via the 'm' command.
 
 Part II -- Keymaps
-------------------
+******************
 
 If you want to survive in MAngband, you will have to learn some basic keymaps. 
 This is because the game is in realtime and the adventurer will often find 

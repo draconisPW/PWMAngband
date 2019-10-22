@@ -1,9 +1,8 @@
-==================
 Attacking monsters
 ==================
 
 Attacking and Being Attacked
-============================
+----------------------------
  
 Attacking is simple in PWMAngband. If you move into a creature, you attack it.
 You can attack from a distance by firing a missile or by magical means
@@ -54,7 +53,7 @@ other types of monsters differently.
 .. |'I'nspect| replace:: 'I'\nspect
 
 Monster Memories
-================
+----------------
 
 There are hundreds of different creatures in the pits of Angband, many of
 which have the same letter symbol and color on the screen. The exact
@@ -83,7 +82,7 @@ other magical means to learn about monster's abilities that don't require
 you to actually experience the attacks.
 
 Your Weapon
-===========
+-----------
 
 Carrying a weapon in your backpack does you no good. You must wield a 
 weapon before it can be used in a fight. A secondary weapon can be kept by
@@ -136,7 +135,7 @@ identification.
 Some of the more common ego weapons are described at the end of this file.
 
 Your Armor Class
-================
+----------------
 
 Your armor class (or AC) is a number that describes the amount and the
 quality of armor being worn. Armor class will generally run from about 0 to
@@ -164,7 +163,7 @@ chances of hitting monsters. This can range from nonexistent for very light
 armor to '(-8)' for the heaviest armor!
 
 Monster status effects
-======================
+----------------------
 
 You will find some spells and items which can affect monsters in ways which
 do not involve directly dealing them damage. These are 'status effects'.
@@ -218,7 +217,7 @@ Monsters can also suffer from two status ailments, poison and bleeding:
   Normal duration 5-10 turns
 
 Non-melee attacks and resistances
-=================================
+---------------------------------
 
 The player may at some time gain access to non-melee attacks, and many 
 monsters also have them. Perhaps the most famous of this type of attack is 
@@ -279,7 +278,7 @@ character or monster level.
 In the case of fire, cold, lightning, acid and poison, if the monster has
 resistance to a player attack of this kind it will take almost no damage.
 If the player has one or more permanent sources of resistance, they will take
-1/3 of the damage he would normally take: if the player has a temporary
+1/3 of the damage they would normally take: if the player has a temporary
 source of resistance (whether from potion, spell or item activation), this
 will also reduce the damage to 1/3 of its normal level, allowing the
 character to take only 1/9 damage if they have both permanent and temporary
@@ -381,7 +380,7 @@ the side-effects of a time attack, or indeed to anything but the stunning
 effects of a gravity attack.
 
 A note on speed
-===============
+---------------
 
 Monsters which do not move at normal speed generally move "slowly" (-10 to
 speed), "fast" (+10), "very fast" (+20) or "incredibly fast" (+30). (It will 
@@ -415,7 +414,7 @@ subtracted from the player or monster's speed temporarily, for the duration
 of the spell or breath's effect.
 
 Ego weapons and armor
-=====================
+---------------------
 
 Some of the ego weapons that you might find in the dungeon are listed
 below. This will give you a small taste of the items that can be found.
@@ -423,7 +422,8 @@ However if you wish to discover these items on your own, you may not wish
 to continue. Ego weapons are denoted by the following "names":
 
 Ego Melee Weapons (and Diggers):
---------------------------------
+********************************
+
 (Defender)
   A magical weapon that actually helps the wielder defend himself, thus
   increasing his/her armor class, and protecting him/her against damage
@@ -449,7 +449,7 @@ Ego Melee Weapons (and Diggers):
 (Blessed)
   A blessed blade will increase your wisdom. If you are a priest, wielding
   a non-blessed sword or polearm causes a small penalty while attacking and
-  may infuriate your god, decreasing the chances that he will accept your
+  may infuriate your god, decreasing the chances that she will accept your
   prayers: a blessed blade may be wielded without this penalty. Blessed
   blades also have one extra, random, power.
 
@@ -493,7 +493,8 @@ Shovels and Picks of Digging
   impassable obstacle.
 
 Ego Missile Launchers and Ammo:
--------------------------------
+*******************************
+
 Launchers of Accuracy
   These launchers have an unnaturally high to-hit number, making them
   extremely accurate.
@@ -538,7 +539,8 @@ Some pieces of armor will possess special abilities denoted by the following
 names:
 
 Ego Armors and Shields:
------------------------
+***********************
+
 of Resist Acid, Lightning, Fire or Cold
   A character wearing armor or a shield with one such resistance will take
   only 1/3 of normal damage from attacks involving the relevant element of
@@ -572,7 +574,8 @@ Dragon Scale Mails
   a dragon would. Dragon Scale Mails can also have egos as well.
 
 Ego Helms:
-----------
+**********
+
 Stat Boosting Helms
   There are magical helms found in the dungeon that have the ability to
   boost the wearer's intelligence, or wisdom. In addition to boosting the
@@ -622,7 +625,8 @@ Helm of Regeneration
   regenerative effects.
  
 Ego Cloaks:
------------
+***********
+
 Cloak of Protection
   This finely made cloak will come with an unnaturally high enchantment and
   is not affected by elemental based attacks. It will also provide
@@ -637,7 +641,8 @@ Cloak of Aman
   enchantment, and one random resistance.
 
 Ego Gloves:
------------
+***********
+
 Gloves of Free Action
   The wearer of these gloves will find himself resistant to paralyzing
   attacks as well as some slowing attacks. Because of the special nature of
@@ -658,7 +663,8 @@ Gauntlets of Power
   wearer's to-hit and to-dam numbers.
 
 Ego Boots:
-----------
+**********
+
 Boots of Slow Descent
   These boots protect the wearer from the effects of small falls.
 

@@ -1,6 +1,5 @@
-===============================
- A Players' Guide to PWMAngband 
-===============================
+A Players' Guide to PWMAngband 
+==============================
 
 This guide assumes familiarity with the basic mechanics of the game. If you're
 completely new to PWMAngband, check out the user's manual and just start
@@ -33,11 +32,11 @@ Until you find Sauron, your task is to survive and eventually get to level 99.
 The next point is that you don't need to fight any particular monster (other
 than the big two). Yes, there might be a rather impressive hoard in that
 vault – but if the monsters guarding it are too many or too fierce, well, just
-give it a pass. PWMAngband offers an endless supply of monsters and treasure and
+give it a pass. Angband offers an endless supply of monsters and treasure and
 everything. There will always be another day – provided you live to see another
 day. Sometimes you just have to bug out and run for your life.
 
-So, let me recap, the vital points of PWMAngband are:
+So, let me recap, the vital points of Angband are:
 
 * go down a lot of stairs
 * kill Sauron (dl 99)
@@ -78,25 +77,24 @@ Example character::
  Speed             Normal    To-hit        33,+4
  Max Depth           Town    Shots        1/turn
 
-
 A Fighting Chance
-`````````````````
+*****************
 
 For a melee character, the most important measure of power is how much damage
 they can do in a single turn. Consider the above cl 1 character with 3 blows
 from a Rapier (+7,+9), in a fight vs an out-of-depth Bullroarer, with no
-escapes, no ranged weapons, and no armor. On the face, they have no chance.
-However, if they can get in the first blow he in fact has a 71% chance of
+escapes, no ranged weapons, and no armor. On the face, she has no chance.
+However, if she can get in the first blow, she in fact has a 71% chance of
 killing Bullroarer in a single turn, and a 95% chance of frightening him.
 
 Further, with full buffing (!Hero, ?Blessing ?Berserk Strength), the character
 has an 81% chance of killing him in a single turn. As well as improving the
 to-hit probability from 91% to 95%, this corresponds to a 50% reduction in the
 chance of failure in a dangerous situation. Finally, assuming 'Anar' does win
-this battle, he gets 450 experience, and immediately goes jumps to cl 8.
+this battle, she gets 450 experience, and immediately goes jumps to cl 8.
 
 Missile Damage
-``````````````
+**************
 
 With proper preparation even a weak character has an almost guaranteed chance
 of killing Bullroarer, if you meet him at a distance (across a lighted room).
@@ -106,7 +104,7 @@ However, flasks of oil do 7HP nominal damage when thrown, and do triple damage
 of oil will finish him off.
 
 Summary
-```````
+*******
 
 * Character power is more closely associated with damage output rather than
   HP or character level.
@@ -171,7 +169,7 @@ Your starting equipment will include more than enough food and illumination for
 the first trip down.
 
 The first trip
-``````````````
+**************
 
 It's quite possible to get to 500' (dl 10) or deeper in the first trip into the
 dungeon. Plan to return when either you have enough stuff that your character
@@ -182,7 +180,7 @@ damage (arrows if you are a ranger, flasks of oil if you are otherwise weak.)
 Since you don't have much, don't spend it on less valuable monsters.
 
 What to kill
-````````````
+************
 
 * Any mobs of monsters that you can defeat (kill or frighten) in a single turn
   and either give good experience (a pack of wolves) or good drops (weaker
@@ -192,7 +190,7 @@ What to kill
 * Easy kills that are likely to drop something worthwhile.
 
 What to ignore
-``````````````
+**************
 
 * Monsters that will damage or destroy gear. (jellies, water hounds, etc)
 * Non-valuable monsters that are likely to use up consumables (baby bronze
@@ -207,7 +205,7 @@ What to ignore
   Just close the door and move on.)
 
 What to avoid
-`````````````
+*************
 
 * Anything that can kill you in a single turn.
 
@@ -238,15 +236,15 @@ better tips I've learned while trying to explore the depths... (to Level ~35).
 Additional advice would be greatly appreciated!
 
 Start simple
-````````````
+************
 
-Begin your PWMAngband career as a warrior. Warriors are relatively simple to
+Begin your Angband career as a warrior. Warriors are relatively simple to
 begin with, and are less likely to be eaten by a pack of jackals.
 
 Focus!
-``````
+******
 
-PWMAngband is a very harsh game, in that the character you've been playing for
+Angband is a very harsh game, in that the character you've been playing for
 months could be killed by a single careless action. Playing when tired or
 drunk is probably a good way to leave yourself with nothing but a sad tale to
 share on the forums. If you have the ability to sense monsters or traps then
@@ -254,9 +252,9 @@ use it. This is particularly important when you begin to encounter monsters
 that, without the appropriate gear, will kill your character in a single move.
 
 Use that stuff
-``````````````
+**************
 
-PWMAngband has potions, spell books, wands, staffs, rods, activate-able items,
+Angband has potions, spell books, wands, staffs, rods, activate-able items,
 melee weapons, ranged weapons, and whatnot. They're meant to be used, for
 crying out loud! It can take a while to get used to using all the different
 types of items, but they work best when used in concert. For those able to use
@@ -265,17 +263,17 @@ running low, and allow you access to spells that may not normally be available
 to your class. They are also very useful for dealing with monsters that
 
 Rangers have a bow
-```````````````````
+******************
 
 Really a subset of the previous point, but it happens so often... Don't try to
 play a ranger like a warrior -- rely on the bow! Similarly for mages, don't do
 a Gandalf. He may be able to draw a sword and rush headlong in to a pack or
-orcs, but mages in PWMAngband are considerably more fragile. Priests are better
+orcs, but mages in Angband are considerably more fragile. Priests are better
 equipped to engage in melee combat - with their healing abilities compensating
 for their somewhat fragile nature.
 
 Stockpile!
-``````````
+**********
 
 Players may not be inclined to carry multiples of an item, or do so in a
 limited quantity, perhaps due to weight encumbrance concerns. Don't be afraid
@@ -290,17 +288,17 @@ how much stuff they can carry, so consider carrying additional copies of the
 spellbooks that you know you can't afford to lose during a fight.
 
 An item you don't use is useless
-````````````````````````````````
+********************************
 
 Common fallacy: you find an incredibly powerful Staff of Mighty BOOM! (3
 charges), or a single Potion of become Chuck Norris, and then you keep
 carrying it around and never actually use it. It could be a life insurance,
 but you might still reconsider your strategy: maybe you've become too careful
-lately (PWMAngband rewards deliberate risk-taking, after all). Or maybe you
+lately (Angband rewards deliberate risk-taking, after all). Or maybe you
 should just sell the thing and invest the money into something you do use.
 
 Identifying your items
-``````````````````````
+**********************
 
 Most items found will initially be unidentified. Characters able to pray or
 cast spells will later develop the ability to identify items. Starting out, a
@@ -330,14 +328,14 @@ the value of an item by keeping it in their bag while they explore the
 dungeons.
 
 The dungeon is dark
-```````````````````
+*******************
 
 Players will readily note that corridors are unlit; however, what may not be
 blatantly obvious is that the dungeon gets darker with depth, until it's pitch
 black. ALWAYS carry a light source. DON'T drop a light source for more loot!
 
 You can RUN AWAY
-````````````````
+****************
 
 There is NO RULE that you have to clean out a dungeon -- AT ALL. See something
 you can't handle? Don't be afraid to leave -- NOW. Sure you could try to avoid
@@ -346,7 +344,7 @@ can still LEAVE NOW. Nearly finished with the level? You can still leave NOW.
 Think of it as a tactical strike, not a genocide mission.
 
 Get away NOW!
-`````````````
+*************
 
 Sure, you should pay more attention and not get yourself in a next turn =
 death situation, but this is not always avoidable and no one (presumably) is
@@ -362,7 +360,7 @@ apparent that the monsters are breeding more quickly than the player can kill
 them.
 
 Level 1 is still there
-``````````````````````
+**********************
 
 Don't forget that you can always replay, and re-re-play the early levels for
 ANY reason whatsoever. Recalled from a depth too deep? Dive from level 1 and
@@ -372,7 +370,7 @@ you want to return to an earlier level -- you never know what could be lurking
 around the corner.
 
 Black Market Deals
-``````````````````
+******************
 
 Don't be afraid to buy from the "blackmarket". Sure the prices are more
 expensive than the other stores, but it tends to offer a good selection of
@@ -384,7 +382,7 @@ to increase your stats, so it's worth checking it each time you visit the town
 for your character.
 
 Try a Different Strategy
-````````````````````````
+************************
 
 Sure, what you're doing kinda works, but your characters keep dying off.
 Playing conservatively? Try playing a character as though the "iron-man"
@@ -397,7 +395,7 @@ Don't be afraid to throw away characters -- DIVE aggressively until you get a
 good feel for your character and you've leveled up.
 
 On Depth and Item Value
-```````````````````````
+***********************
 
 Whenever you kill a monster that may drop an item, a lot of randomness is
 played out. No need to go into detail just here (if you really want to know,
@@ -408,7 +406,7 @@ useful stuff even on the very first level, but the chances are rather small.
 In short: if you want to find better things, you need to go deeper.
 
 The monster barely matters
-``````````````````````````
+**************************
 
 If a monster drops an item, it can be anything. Really. You may find rare
 spellbooks on illiterate Trolls, and jellies may drop artifact weapons. Some
@@ -417,7 +415,7 @@ objects -- but still, the dungeon level is the most important factor. What was
 "exceptional" on dl8 will probably be rather uninteresting on level 30.
 
 Regarding Artifacts
-```````````````````
+*******************
 
 For every single item, there is a 1 in 1000 chance that it will be an
 artifact. This might seem slim, but considering the number of monsters you
@@ -434,7 +432,7 @@ Angband, but making considerable progress of late, particularly with my (now)
 current character.
 
 RUN AWAY!
-`````````
+*********
 
 Very first tip is a basic tenet repeated throughout the guide; however, it is
 far too easy to become engrossed in your achievements (eg an awesome artifact,
@@ -466,9 +464,9 @@ to play it very conservatively, you will still find great items and better
 yet, you have a higher chance of survival.
 
 Information Awareness
-`````````````````````
+*********************
 
-PWMAngband offers a LOT of information on a LOT of different screens. If you
+Angband offers a LOT of information on a LOT of different screens. If you
 haven't already, try enabling multiple consoles -- ALL of them -- and then try
 out different options / combinations. Being able to view a lot of information
 simultaneously at a glance is a considerable benefit over having to be
@@ -477,7 +475,7 @@ diligent enough to manually check each relevant screen each time.
 Also, change the text size. Sure you may be accustomed to your terminal font
 and size for reading; however, you can read and make sense from context a lot
 easier than you can reliably identify the glyph, color, and relative position
-of every character on the screen. PWMAngband may be a text-based game, but you
+of every character on the screen. Angband may be a text-based game, but you
 don't have to play with a tiny (or even normal size font). Using a slightly
 larger font makes identifying things a LOT easier. The SDL interface is
 perhaps the easiest for using multiple terminals and changing fonts.
@@ -485,7 +483,7 @@ perhaps the easiest for using multiple terminals and changing fonts.
 This alone has greatly contributed to my survivability!
 
 Start from the Beginning
-````````````````````````
+************************
 
 Trying to mature your character through the clvl / dlvl 20s can be challenging
 until you can survive even lower depths. One tip here is to use Recall
@@ -497,7 +495,7 @@ exceptionally easy; however, it guarantees that you will always enter a level
 on stairs, facilitating running away.
 
 Item Collecting
-```````````````
+***************
 
 Its easy to stockpile, but you'll run out of space VERY quickly. Further, what
 was useful may not be useful now and what's useful now may not be useful
@@ -519,7 +517,7 @@ price. Remember, {magic} is usually worth still more than standard, and {ego}
 is usually worth more than {magic}...
 
 Take a Break
-````````````
+************
 
 Again, this is another basic tip repeated thorough out the guide; however,
 learn to stop playing. You can always save your game and resume later when you
@@ -530,7 +528,7 @@ This may be difficult at first, but it can help you avoid running decent
 characters into the ground for avoidable mistakes...
 
 Don't forget your Ranged Attacks!
-`````````````````````````````````
+*********************************
 
 Granted, as your character develops, you become more powerful at melee;
 however, this does not preclude you from using ranged attacks! It is far to

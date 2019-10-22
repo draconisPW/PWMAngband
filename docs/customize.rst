@@ -1,4 +1,3 @@
-====================
 Customising the game
 ====================
 
@@ -7,98 +6,8 @@ methods for selecting objects, keymaps for different commands, changing the
 visuals (using graphical tiles), creating subwindows, and saving
 customizations for use on future characters.
 
-Ignore settings
-================
-      
-PWMAngband allows you to ignore specific items that you don't want to see
-anymore. These items are marked 'ignored' and any similar items are hidden
-from view. The easiest way to ignore an item is with the 'k' (or '^D')
-command; the object is dropped and then hidden from view. When ignoring an
-object, you will be given a choice of ignoring just that object, or all
-objects like it in some way.
-
-The entire ignoring system can also be accessed from the options menu ('=')
-by choosing "i) Item ignoring setup". This allows ignore settings for
-non-wearable items, and quality and ego ignore settings (described below)
-for wearable items, to be viewed or changed.
-
-There is a quality setting for each wearable item type. Ignoring a wearable
-item will prompt you with a question about whether you wish to ignore all of
-that type of item with a certain quality setting, or of an ego type, or both.
-
-The quality settings are:
-
-worthless
-  Weapon/armor with negative AC, to-hit or to-dam, or item with zero base cost.
-
-average
-  Weapon/armor with no pluses no minuses, or any other non-magical item.
-
-good
-  Weapon/armor with positive AC, to-hit or to-dam, but without any special
-  abilities, brands, slays, stat-boosts, resistances, or magical items.
- 
-non-artifact
-  This setting only leaves artifacts unignored.
-
-Using Inscriptions
-==================
-
-Inscriptions are notes you can mark on objects using the '{' command. You can
-use this to give the game commands about the object, which are listed below.
-
-Inscribing an item with '=g':
-    This marks an item as 'always pick up'. This is sometimes useful for
-    picking up ammunition after a shootout.
-
-Inscribing an item with '!' followed by a command letter or '*':
-    This means "prevent me from using this item". '!w' means 'prevent me from
-    wielding', '!d' means 'prevent me from dropping', and so on. If you
-    inscribe an item with '!*' then the game will prevent any use of the item.
-
-    Say you inscribed your potion of Speed with '!q'. This would prevent
-    you from drinking it to be sure you really meant to.
-
-    Similarly, using !v!k!d makes it very hard for you to accidentally
-    throw, ignore or put down the item it is inscribed on.
-
-    Some adventurers use this for Scrolls of Word of Recall so they don't
-    accidentally return to the dungeon too soon.
-
-Inscribing an item with '@', followed by a command latter, followed by 0-9:
-    Normally when you select an item from your inventory you must enter the
-    letter that corresponds to the item. Since the order of your inventory
-    changes as items get added and removed, this can get annoying. You
-    can instead assign certain items numbers when using a command so that
-    wherever they are in your backpack, you can use the same keypresses.
-    If you have multiple items inscribed with the same thing, the game will
-    use the first one.
-
-    For example, if you inscribe a staff of Cure Light Wounds with '@u1',
-    you can refer to it by pressing 1 when 'u'sing it. You could also
-    inscribe a wand of Wonder with '@a1', and when using 'a', 1 would select
-    that wand.
-
-    Spellcasters should inscribe their books, so that if they lose them they
-    do not cast the wrong spell. If you are mage and the beginner's spellbook
-    is the first in your inventory, casting 'maa' will cast magic missile. But
-    if you lose your spellbook, casting 'maa' will cast the first spell in
-    whatever new book is in the top of your inventory. This can be a waste in
-    the best case scenario and exceedingly dangerous in the worst! By
-    inscribing your spellbooks with '@m1', '@m2', etc., if you lose your first
-    spellbook and attempt to cast magic missile by using 'm1a', you cannot
-    accidentally select the wrong spellbook.
-
-Inscribing an item with '^', followed by a command letter:
-    When you inscribe an item with '^', the game prevents you from doing that
-    action. You might inscribe '^>' on an item if you want to be reminded to
-    take it off before going down stairs.
-    
-    Like with '!', you can use '*' for the command letter if you want the game
-    to prevent you from doing any action. This can get very annoying!
-
 User Pref Files
-===============
+---------------
 
 PWMAngband allows you to change various aspects of the game to suit your
 tastes. You may define keymaps (changing the way PWMAngband maps your
@@ -139,8 +48,98 @@ Several options menu items allow you to load existing user pref files, create
 new user pref files, append information to existing user pref files, and/or
 interact with various of the user preferences.
 
+Ignore settings
+---------------
+      
+PWMAngband allows you to ignore specific items that you don't want to see
+anymore. These items are marked 'ignored' and any similar items are hidden
+from view. The easiest way to ignore an item is with the 'k' (or '^D')
+command; the object is dropped and then hidden from view. When ignoring an
+object, you will be given a choice of ignoring just that object, or all
+objects like it in some way.
+
+The entire ignoring system can also be accessed from the options menu ('=')
+by choosing "i) Item ignoring setup". This allows ignore settings for
+non-wearable items, and quality and ego ignore settings (described below)
+for wearable items, to be viewed or changed.
+
+There is a quality setting for each wearable item type. Ignoring a wearable
+item will prompt you with a question about whether you wish to ignore all of
+that type of item with a certain quality setting, or of an ego type, or both.
+
+The quality settings are:
+
+worthless
+  Weapon/armor with negative AC, to-hit or to-dam, or item with zero base cost.
+
+average
+  Weapon/armor with no pluses no minuses, or any other non-magical item.
+
+good
+  Weapon/armor with positive AC, to-hit or to-dam, but without any special
+  abilities, brands, slays, stat-boosts, resistances, or magical items.
+ 
+non-artifact
+  This setting only leaves artifacts unignored.
+
+Using Inscriptions
+------------------
+
+Inscriptions are notes you can mark on objects using the '{' command. You can
+use this to give the game commands about the object, which are listed below.
+
+Inscribing an item with '=g':
+    This marks an item as 'always pick up'. This is sometimes useful for
+    picking up ammunition after a shootout.
+
+Inscribing an item with '!' followed by a command letter or '*':
+    This means "prevent me from using this item". '!w' means 'prevent me from
+    wielding', '!d' means 'prevent me from dropping', and so on. If you
+    inscribe an item with '!*' then the game will prevent any use of the item.
+
+    Say you inscribed your potion of Speed with '!q'. This would prevent
+    you from drinking it to be sure you really meant to.
+
+    Similarly, using !v!k!d makes it very hard for you to accidentally
+    throw, ignore or put down the item it is inscribed on.
+
+    Some adventurers use this for Scrolls of Word of Recall so they don't
+    accidentally return to the dungeon too soon.
+
+Inscribing an item with '@', followed by a command letter, followed by 0-9:
+    Normally when you select an item from your inventory you must enter the
+    letter that corresponds to the item. Since the order of your inventory
+    changes as items get added and removed, this can get annoying. You
+    can instead assign certain items numbers when using a command so that
+    wherever they are in your backpack, you can use the same keypresses.
+    If you have multiple items inscribed with the same thing, the game will
+    use the first one.
+
+    For example, if you inscribe a staff of Cure Light Wounds with '@u1',
+    you can refer to it by pressing 1 when 'u'sing it. You could also
+    inscribe a wand of Wonder with '@a1', and when using 'a', 1 would select
+    that wand.
+
+    Spellcasters should inscribe their books, so that if they lose them they
+    do not cast the wrong spell. If you are mage and the beginner's spellbook
+    is the first in your inventory, casting 'maa' will cast magic missile. But
+    if you lose your spellbook, casting 'maa' will cast the first spell in
+    whatever new book is in the top of your inventory. This can be a waste in
+    the best case scenario and exceedingly dangerous in the worst! By
+    inscribing your spellbooks with '@m1', '@m2', etc., if you lose your first
+    spellbook and attempt to cast magic missile by using 'm1a', you cannot
+    accidentally select the wrong spellbook.
+
+Inscribing an item with '^', followed by a command letter:
+    When you inscribe an item with '^', the game prevents you from doing that
+    action. You might inscribe '^>' on an item if you want to be reminded to
+    take it off before going down stairs.
+    
+    Like with '!', you can use '*' for the command letter if you want the game
+    to prevent you from doing any action. This can get very annoying!
+
 Subwindows
-==========
+----------
 
 In addition to the main window, you can create additional window displays
 that have other secondary information on them. You can access the subwindow
@@ -150,7 +149,7 @@ from the menu bar. There are a variety of subwindow choices and you should
 experiment to see which ones are the most useful for you.
 
 User Pref Files (Keymaps)
-=========================
+-------------------------
 
 The "Interact with keymaps" menu allows you to set up keymaps. Keymaps map
 a single keypress to a series of keypresses. For example you might map the
@@ -207,7 +206,7 @@ can see the full list in pref.prf but they shouldn't impact on you in any way.
 To avoid triggering a keymap, you can use the backslash ('\\') command.
 
 User Pref Files (Colors)
-========================
+------------------------
 
 The "Interact with colors" menu allows you to change the actual internal
 values used to display various colors. This command may or may not have any
@@ -220,7 +219,7 @@ Colors can be specified in user pref files as lines of the form
 'V:<N>:<V>:<R>:<G>:<B>'.
 
 User Pref Files (Options)
-=========================
+-------------------------
 
 The "Interact with options" command allows you to turn options on or off.
 You may turn options off or on using the user pref commands of the form

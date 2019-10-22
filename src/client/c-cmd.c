@@ -1737,9 +1737,10 @@ static int cmd_master_aux_debug(void)
         /* Selections */
         Term_putstr(5, 4, -1, COLOUR_WHITE, "(1) Perform an effect (EFFECT_XXX)");
         Term_putstr(5, 5, -1, COLOUR_WHITE, "(2) Create a trap");
+        Term_putstr(5, 6, -1, COLOUR_WHITE, "(3) Advance time");
 
         /* Prompt */
-        Term_putstr(0, 7, -1, COLOUR_WHITE, "Command: ");
+        Term_putstr(0, 8, -1, COLOUR_WHITE, "Command: ");
 
         /* Get a key */
         ke = inkey_ex();
@@ -1818,6 +1819,27 @@ static int cmd_master_aux_debug(void)
 
                 /* Get the name */
                 res = get_string_ex("Create which trap? ", tmp, sizeof(tmp), false);
+                if (res == 1) return 1;
+                if ((res == 2) || !tmp[0]) continue;
+                my_strcat(buf, tmp, sizeof(buf));
+
+                Send_master(MASTER_DEBUG, buf);
+                return 1;
+            }
+
+            /* Advance time */
+            if (ke.key.code == '3')
+            {
+                int res;
+                char tmp[NORMAL_WID];
+
+                buf[0] = 'H';
+                buf[1] = '\0';
+
+                memset(tmp, 0, sizeof(tmp));
+
+                /* Get the amount */
+                res = get_string_ex("Amount (1-12 hours): ", tmp, sizeof(tmp), false);
                 if (res == 1) return 1;
                 if ((res == 2) || !tmp[0]) continue;
                 my_strcat(buf, tmp, sizeof(buf));

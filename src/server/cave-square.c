@@ -1992,7 +1992,7 @@ bool square_isnormal(struct chunk *c, struct loc *grid)
 {
     if (square_isvisibletrap(c, grid)) return true;
     return (!tf_has(f_info[square(c, grid)->feat].flags, TF_FLOOR) &&
-        !tf_has(f_info[square(c, grid)->feat].flags, TF_FLOOR_BORING));
+        !tf_has(f_info[square(c, grid)->feat].flags, TF_BORING));
 }
 
 

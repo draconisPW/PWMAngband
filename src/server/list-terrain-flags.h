@@ -40,7 +40,7 @@ TF(FIERY, "Is fire-based")
 /* PWMAngband */
 TF(FLOOR_SAFE, "Is safe floor")
 TF(FLOOR_OTHER, "Is other floor")
-TF(FLOOR_BORING, "Is boring floor")
+TF(BORING, "Is boring")
 TF(PIT, "Part of a pit")
 TF(BORDER, "Is a border wall")
 TF(ARENA, "Is an arena wall")

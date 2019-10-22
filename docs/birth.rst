@@ -1,4 +1,3 @@
-====================
 Creating a Character
 ====================
 
@@ -91,7 +90,7 @@ based on the character's social class (higher is better) and stats (less
 powerful characters start with more gold). Each character also starts out
 with a few useful items, which may be kept, or sold to a shop-keeper for
 more gold. However, especially valuable items will never sell for the full
-price, as each shopkeeper has a maximum that he is prepared to pay for any
+price, as each shopkeeper has a maximum that they are prepared to pay for any
 item. The more generous shopkeepers may buy your items for up to 30,000
 gold pieces: but some are really stingy, and will pay no more than 5,000.
 
@@ -104,13 +103,13 @@ X is the intrinsic AC of the armour in question, and Y is the magical bonus
 to armour class provided by that item.
 
 Each character has "hit points", or hp, representing how much damage the 
-character can sustain before he dies. How many hit points a character has
+character can sustain before they die. How many hit points a character has
 is determined by race, class, level and constitution, as follows: each race
 has a basic "hit dice" number - for instance, a Dwarf's basic hit die is
 11, while a hobbit's is 7. This is modified by class: for instance, a
 warrior gets a +10 bonus to the hit die, while a mage gets a +1 bonus and a
 priest +2, so a dwarven warrior's total hit die will be (11+10)=21 - meaning
-that he gets between 1 and 21 hit points per level. If he were a priest,
+that they get between 1 and 21 hit points per level. If they were a priest,
 his hit dice would be (11+2)=13, and get between 1 and 13 hit points per
 level. The hobbit mage would get only 1-8 hps per level. (All characters
 get the maximum at first level: thereafter it is a random roll of 1dX where
@@ -139,7 +138,7 @@ most important boons in the game and therefore one of the rarest and most
 sought after.
 
 Races
-=====
+-----
 
 There are fifteen different races that you can choose to play in PWMAngband. 
 Each race has its own adjustments to a character's stats and abilities. 
@@ -316,13 +315,12 @@ Dragon
   dragon. At level 45, they polymorph into a mighty wyrm. Finally, at level 50,
   they become an ancient wyrm. Dragons cannot wield any weapons; they get
   special melee attacks instead (biting and clawing) that increase in power as
-  they gain levels. Dragons can play all classes except necromancer and
-  shapechanger. Starting at level 5, Dragons are able to breathe their
+  they gain levels. Starting at level 5, Dragons are able to breathe their
   corresponding element, but using this ability costs them hit points. At that
   level, they also gain the innate resistances and abilities of their type.
 
 Classes
-=======
+-------
  
 Once a race has been chosen, you will need to pick a class. The class 
 is the character's occupation and determines stat bonuses, abilities, 
@@ -333,8 +331,8 @@ hit dice, and what spells (if any) the character can learn.
 Warrior
   A Warrior is a hack-and-slash character, who solves most of his problems
   by cutting them to pieces, but will occasionally fall back on the help of
-  a magical device. His prime stats are strength, constitution, and
-  dexterity, and he will strike more blows with melee weapons than any
+  a magical device. Their prime stats are strength, constitution, and
+  dexterity, and they will strike more blows with melee weapons than any
   other class. A Warrior will be excellent at fighting, shooting and
   throwing, but bad at most other skills. A warrior has bad stealth and
   cannot learn any spells.
@@ -342,25 +340,30 @@ Warrior
 .. _Mage:
 
 Mage
-  A Mage must live by his wits. He cannot hope to simply hack his way
+  A Mage must live by his wits. They cannot hope to simply hack his way
   through the dungeon, and so must therefore use his magic to defeat,
   deceive, confuse, and escape. A mage is not really complete without an
-  assortment of magical devices to use in addition to his spells. He can
+  assortment of magical devices to use in addition to his spells. They can
   master the higher level magical devices far easier than anyone else, and
   has the excellent saving throws to resist effects of spells cast at him.
-  However, he is incredibly weak, getting few hit dice and suffering strong
-  penalties to strength and constitution. Intelligence is his primary stat
-  and at high levels he can cast many spells without a chance of failure.
+  However, they are incredibly weak, getting few hit dice and suffering strong
+  penalties to strength and constitution. Intelligence is their primary stat
+  and at high levels they can cast many spells without a chance of failure.
   There is no rule that says a mage cannot become a good fighter, but spells
-  are his true realm and he will get fewer blows with melee weapons than
+  are their true realm and they will get fewer blows with melee weapons than
   other classes.
 
 .. _Druid:
 
 Druid
-  A Druid is a priest of nature. They have the power to control animals. They
-  can also shapeshift into animals as they gain experience. Wisdom is their
-  primary stat.
+  A Druid is a lover of nature, and at one with the natural world. Druids
+  have control of their environment and direct power over creatures, leading
+  even to the ability to take their forms. Druid skills are moderate, and
+  they have some fighting ability, especially when transformed. A druid will
+  usually seek to shape the flow of events to their purpose rather than
+  using devices or missiles, but at high levels they do gain access to
+  potent nature-based magic. Druids rely on their wisdom, and have good
+  saving throws.
 
 .. _Priest:
 
@@ -371,64 +374,70 @@ Priest
   Priests receive their spells from a deity, and therefore do not choose
   which spells they will learn. They are familiar with magical devices,
   preferring to call them "instruments of God", but are not as good as a
-  mage in their use. Priests have great saving throws, and make decent
-  fighters, but they are not as good at using sharp weapons (swords and
-  polearms) owing to the holy strictures about shedding blood, so they
-  are better off using blunt weapons such as maces. Wisdom is the priest's
+  mage in their use. Priests have great saving throws, and make passable
+  fighters, better if they can find a blessed weapon. Wisdom is the priest's
   primary stat and at high enough levels they can cast many prayers without
   a chance of failure. Priests have poor stealth.
 
 .. _Necromancer:
 
 Necromancer
-  Necromancers are dark spellcasters, masters of death and undeath. They are
-  very close to mages, but have a special set of spells and abilities
-  that make them truly unique to play. Necromancers have to rely on their
-  special abilities. They are not as good as mages for spellcasting, and are
-  no great fighters as well...
+  A Necromancer seeks to master the spirits of sentient creatures, creating
+  servants of their own will. They have chosen a dark and wicked path, and
+  run a continual risk of harm to their own body and mind. Necromancers love
+  shadows and hate light, automatically shrouding themselves in darkness.
+  Their spells require high intelligence, and frequently harm the caster or
+  place them in danger. In return they achieve awesome power at high levels.
+  The ultimate aim of the necromancer is to supplant the Dark Enemy and set
+  up a tyranny in his place.
 
 .. _Paladin:
 
 Paladin
-  A Paladin is a warrior/priest. He is a very good fighter, second only to
-  the warrior class, but not very good at missile weapons. He receives
-  prayers at a slower pace then the priest, but can use all but the most
-  powerful prayers. A paladin lacks much in the way of abilities. He is poor
-  at stealth and magical devices. He has a decent saving throw due to his
-  divine alliance. His primary stats are strength and wisdom.
+  A Paladin is a warrior/priest. Paladins are very good fighters, second
+  only to the warrior class, but not very good at missile weapons. They
+  receive prayers at a slower pace than the priest, but can use all but the
+  most powerful prayers. A paladin lacks much in the way of abilities.
+  Paladins have poor stealth, perception, searching, and magical device use.
+  They have a decent saving throw due to their divine alliance. Their
+  primary stats are strength and wisdom.
 
 .. _Rogue:
 
 Rogue
-  A Rogue is a character that prefers to live by his cunning, but is
-  capable of fighting his way out of a tight spot. He is the master of
-  traps and locks, no device being impossible for him to overcome. A rogue
-  has a high stealth allowing him to sneak around many creatures without
-  having to fight, or sneak up and get the first blow. A rogue is better than
-  warriors or paladins with magical devices, but still cannot rely on their
-  performance. Rogues can also learn a few spells, but not the powerful
-  offensive spells mages can use, and there will always be a chance of failure
-  even with the simplest spells. A rogue's primary stats are dexterity and
-  intelligence.
+  A Rogue is a character that prefers to live by their cunning, but is
+  capable of fighting their way out of a tight spot. The master of traps and
+  locks, to the experienced rogue no device is impossible to overcome. A rogue
+  has a high stealth enabling sneaking around many creatures without
+  having to fight, or sneaking up and get the first blow. They can steal items
+  from monsters, but need to be wary of being caught in the act. Rogues'
+  perception is higher than any other class, and many times they will notice
+  a trap or secret door before having to search. A rogue is better than
+  the more fighting oriented classes with magical devices, but still cannot
+  rely on their performance. Rogues can also learn a few spells, but not the
+  powerful offensive spells mages can use, and there will always be a chance
+  of failure even with the simplest spells. A rogue's primary stats are
+  dexterity and intelligence.
 
 .. _Ranger:
 
 Ranger
-  A Ranger is a warrior/mage and a very powerful class. He is a good
-  fighter, and one of the best of all the classes with missile weapons,
-  especially bows. The ranger learns spells much more slowly than a mage, but
-  is capable of learning all but the most powerful spells. A ranger has
-  good stealth, a good saving throw, and is good with magical devices.
-  His primary stats are strength, wisdom and dexterity.
+  A Ranger is at home in nature, and good at turning the environment to
+  good use. Rangers are good fighters, and one of the best of all the classes
+  with missile weapons, especially bows. The ranger learns chiefly spells of
+  survival and forest craft. A ranger has good stealth, good perception,
+  good searching, a good saving throw, and is good with magical devices.
+  Their primary stats are strength, wisdom and dexterity.
 
 .. _Blackguard:
 
 Blackguard
-  A Blackguard is equivalent in power to the righteous paladin, but devote
-  himself to the powers of darkness. Blackguards consort with demons and devils
-  and serve dark deities, attacking with stealth and honourless guile, or
-  straightforward smiting the forces of good that stand in their way. Their
-  primary stats are strength and intelligence.
+  A Blackguard is a brawler of no principle, who lives for the joy of maiming
+  and killing. Blackguards prefer heavy weapons and shields, and learn a few
+  spells for the purpose of wreaking more destruction. Their lust for blood
+  is legendary, with a blackguard in full cry nigh on impossible to kill.
+  Blackguards scorn skills apart from slaughter, and require strength and
+  intelligence (or rat-cunning) to thrive in the dungeon.
 
 .. _Sorceror:
 
@@ -517,7 +526,7 @@ Shapechanger
   instead...).
 
 Stats
-=====
+-----
 
 After gender, race and class are selected, you will be able to decide 
 what stat levels your character will have, by allocating a finite number 
@@ -572,7 +581,7 @@ Constitution
   game, but will be the most important stat at the end.
 
 Skills
-======
+------
 
 Characters possess some different skills which can help them to survive. 
 The starting skill levels of a character are based upon race and class. 
@@ -584,7 +593,7 @@ Infravision
   is cool or cold, infravision will not allow the player to see walls and
   objects. Infravision will allow a character to see any warm-blooded
   creatures up to a certain distance. This ability works equally well with
-  or without a light source. However, some of Angband's creatures are
+  or without a light source. However, some of PWMAngband's creatures are
   cold-blooded, and will not be detected unless lit up by a light source.
   All non-human races have innate infravision. Humans (including Dunedain)
   cannot gain infravision unless it is magically enhanced. Infravision does
@@ -643,12 +652,12 @@ Searching (Perception)
   This skill is based on race and class, and increases with character level.
 
 Stat Bonus Tables
-=================
+-----------------
 
 Stats, hit dice, infravision and experience point modifications due to 
 race and class are listed in the following table. To get the total hit 
 dice, add the "race" and "class" numbers: for instance, a Dwarf Priest
-has a hit die of 11+2=13 (i.e. he will get 1d13 hit points per level,
+has a hit die of 11+2=13 (i.e. they will get 1d13 hit points per level,
 adjusted for constitution).
 
 ================ ===  ===  ===  ===  ===  =========  ========  ====== 
@@ -694,7 +703,7 @@ adjusted for constitution).
 ================ ===  ===  ===  ===  ===  ==========
  
 Ability Tables
-==============
+--------------
  
 ============ ======  ======  =====  =======  ======  ======  =====
  Race        Disarm  Device   Save  Stealth  Search  Fight   Bows
@@ -751,7 +760,7 @@ characters to each other in the absence of other bonuses from high stats
 intelligence bonus to magical device usage, etc.) or wearing magical items.
 
 Stat rollers
-============
+------------
 
 There are currently two different ways to determine the starting stats of
 your character - you can choose which one to use from the birth screen.
@@ -773,7 +782,7 @@ Standard roller
   the third stat have been rolled.
 
 Character Name
-==============
+--------------
 
 In general, the actual choice of a name is not important, but do
 keep in mind that it may have some effect on the game itself. For example,

@@ -1,4 +1,3 @@
-================
 Playing the Game
 ================
 
@@ -27,6 +26,11 @@ used, by defining new "keymaps". To avoid the use of any "keymaps", press
 backslash ('\\') plus the "underlying command" key. You may enter
 "control-keys" as a caret ('^') plus the key (so '^' + 'p' yields
 '^p').
+
+Some commands allow an optional "repeat count", which allows you to tell
+the game that you wish to do the command multiple times, unless you press a
+key or are otherwise disturbed. In PWMAngband, such commands are set on
+auto-repeast and a repeat count of 99 is normally applied.
 
 Some commands will prompt for extra information, such as a direction, an
 inventory or equipment item, a spell, a textual inscription, the symbol of
@@ -75,7 +79,7 @@ direction. Both keysets allow the use of the '5' key to "stand still",
 which is most convenient when using the original keyset.
 
 Original Keyset Command Summary
-===============================
+-------------------------------
 
 ======== =============================  ====== ============================
  'a'     Aim a wand                     'A'    Activate an object
@@ -133,11 +137,11 @@ Original Keyset Command Summary
  '\\'     (special - bypass keymap)      '~'    Check knowledge
  '`'     (special - escape)             '?'    Help
  '/'     Identify monster               '|'    Quiver list
- 'TAB'   (unused)
+ 'TAB'   (unused)                       'BKS'  (unused)
 ======== =============================  ====== ============================
 
 Roguelike Keyset Command Summary
-================================
+--------------------------------
 
 ======= =============================  ======= ============================
  'a'    Zap a rod (Activate)            'A'    Activate an object
@@ -201,7 +205,7 @@ Roguelike Keyset Command Summary
 Note: 'BKS' is equal to the BACKSPACE key.
 
 Special Keys
-============
+------------
  
 Certain special keys may be intercepted by the operating system or the host
 machine, causing unexpected results. In general, these special keys are
@@ -216,7 +220,7 @@ Pressing backslash ('\\') before a command will bypass all keymaps, and
 the next keypress will be interpreted as an "underlying command" key,
 unless it is a caret ('^'), in which case the keypress after that will be
 turned into a control-key and interpreted as a command in the underlying
-Angband keyset. The backslash key is useful for creating actions which are
+PWMAngband keyset. The backslash key is useful for creating actions which are
 not affected by any keymap definitions that may be in force, for example,
 the sequence '\\' + '.' + '6' will always mean "run east", even if the
 '.' key has been mapped to a different underlying command.
@@ -230,7 +234,7 @@ abort the command. The '[y/n]' prompts may be answered with 'y' or
 'n', or 'escape'.
  
 Selection of Objects
-====================
+--------------------
  
 Many commands will prompt for a particular object to be used.
 For example, the command to read a scroll will ask you which of the
@@ -249,4 +253,4 @@ upper case is used, then the particular option is described, and you are
 given the option of confirming or retracting that choice. Upper case
 selection is thus safer, but requires an extra key stroke.
 
-For more information on selecting object, see the file 'customize.txt'.
+For more information on selecting object, see 'Customising the game'.

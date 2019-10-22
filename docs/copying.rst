@@ -1,4 +1,3 @@
-===================
 Copying Information
 ===================
 
@@ -20,9 +19,6 @@ exceptions:
      This library is distributed under the terms of the GNU LGPL license:
      http://www.gnu.org/copyleft/lesser.html
 
- * Adam Bolt's (16x16) graphics may be redistributed and used for any purpose, 
-   with or without modification.
-
  * David Gervais' (32x32) graphics may be redistributed, modified, and used
    only under the terms of the Creative Commons Attribution 3.0 licence:
    http://creativecommons.org/licenses/by/3.0/
@@ -40,9 +36,8 @@ exceptions:
    under the GPL.
 
 It is considered good practice to retain this statement for derivatives, rather
-than (e.g.) redistributing Adam Bolt's tiles under the GPL, or choosing to make
-a variant which is only under one of the Angband or GPL licences.  This allows
-easier sharing of changes between variants.
+than (e.g.) choosing to make a variant which is only under one of the Angband or
+GPL licences. This allows easier sharing of changes between variants.
 
 ------------------------------------------------------------------------------
 

@@ -1,16 +1,15 @@
-===================
 Version Information
 ===================
 
-PWMAngband 1.3.0 is based on Angband 4.1.3 and MAngband 1.1.4. The latest
-build for PWMAngband 1.3.0 is beta 0.
+PWMAngband 1.3.0 is based on Angband 4.1.3 and MAngband 1.x. The latest
+build for PWMAngband 1.3.0 is build 2.
 
-Angband information was last updated for Angband 4.1.x.
-MAngband information was last updated for MAngband 1.1.4.
+Angband information was last updated for Angband 4.1.3.
+MAngband information was last updated for MAngband 1.x.
 PWMAngband information was last updated for PWMAngband 1.3.0.
 
 Angband Version Information
-===========================
+---------------------------
 
 This part remains here mainly for historical purposes.
 
@@ -32,7 +31,7 @@ Please be sure to read the copyright information contained in the file
 'copying.txt'.
 
 Brief Version History
-=====================
+---------------------
 
 First came "VMS Moria", by Robert Alan Koeneke (1985).
 
@@ -172,7 +171,7 @@ versions, and changes planned for upcoming versions, and lists various
 email addresses and web sites related to Angband.
 
 Some of the changes between Angband 2.6.1 and 3.0.6
-===================================================
+---------------------------------------------------
 
 It is very hard to pin down, along the way from 2.6.2 to 3.0.6, exactly
 what changes were made, and exactly when they were made. Most releases
@@ -245,7 +244,7 @@ for poison branded weapons to the game. Angband 2.9.3 made the character
 class itself customizable to an extent.
 
 A Posting from the Original Author
-==================================
+----------------------------------
 
   | From: koeneke@ionet.net (Robert Alan Koeneke)
   | Newsgroups: rec.games.roguelike.angband,rec.games.roguelike.moria
@@ -363,10 +362,10 @@ A Posting from the Original Author
   | koeneke@ionet.net
 
 Previous Versions (outdated)
-============================
+----------------------------
 
 VMS Moria Version 4.8
----------------------
+*********************
 
 ===========   ========
 Version 0.1   03/25/83
@@ -400,7 +399,7 @@ Student/University of Oklahoma    Student/University of Oklahoma
 ===============================   ================================
 
 Umoria Version 5.2 (formerly UNIX Moria)
-----------------------------------------
+****************************************
 
 ============ ========
 Version 4.83  5/14/87
@@ -432,7 +431,7 @@ and many others...
   are included in all such copies.
 
 Early Angband credits
----------------------
+*********************
 
 Version 2.0
   Alex Cutler, Andy Astrand, Sean Marsh, Geoff Hill, Charles Teague.
@@ -456,7 +455,7 @@ Version 2.9
   04/10/2000 Robert Ruehlmann
 
 Contributors (incomplete)
-=========================
+-------------------------
 
 Peter Berger, "Prfnoff", Arcum Dagsson, Ed Cogburn, Matthias Kurzke,
 Ben Harrison, Steven Fuerst, Julian Lighton, Andrew Hill, Werner Baer,
@@ -467,7 +466,7 @@ Greg Wooledge, Keldon Jones, Shayne Steele, Dr. Andrew White, Musus Umbra,
 Jonathan Ellis
 
 MAngband Version Information
-============================
+----------------------------
 
 Make sure to visit the Official MAngband Home Page (http://mangband.org/) for
 the most up to date information about MAngband.
@@ -477,13 +476,13 @@ documentation references, live information, forums and much more about the
 MAngband community available here: http://www.mangband.org/Main/Documentation
 
 Previous Versions (outdated)
-============================
+----------------------------
 
 - MAngband 0.1 - 0.5: Keldon Jones (keldon@umr.edu)
 - MAngband 0.6 - 0.7: Alex Dingle (adingle@crud.net)
 
 PWMAngband Version Information
-==============================
+------------------------------
 
 Make sure to visit the Official PWMAngband Forum
 (http://www.mangband.org/forum/viewforum.php?f=9) for the most up to date
@@ -493,7 +492,7 @@ Lists of changes made between versions and documentation about the new features
 can be found on the PWMAngband forum.
 
 A Note from the Maintainer
-==========================
+--------------------------
 
 I have been playing MAngband and TomeNET since 1999, enjoying both of these
 multiplayer variants of Angband. Unfortunately, I was frustrated with the
@@ -514,7 +513,7 @@ new features (and fix bugs...), while adding the new improvements from both
 vanilla Angband and MAngband.
 
 Previous Versions (milestones)
-==============================
+------------------------------
 
 - PWMAngband 0.9.9    : 06/30/2007 (Angband 2.x    + MAngband 0.7.3)
 - PWMAngband 1.0.0    : 01/28/2008 (Angband 3.0.6  + MAngband 1.0.0)

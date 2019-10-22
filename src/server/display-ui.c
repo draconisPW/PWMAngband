@@ -2593,7 +2593,6 @@ static void master_level(struct player *p, char *parms)
             exit_design(p, c, false);
             break;
         }
-
     }
 }
 
@@ -4316,6 +4315,36 @@ static void master_debug(struct player *p, char *parms)
             trap = lookup_trap(&parms[1]);
             if (trap) place_trap(c, &p->grid, trap->tidx, 0);
             else msg(p, "Trap not found.");
+
+            break;
+        }
+
+        /* Advance time */
+        case 'H':
+        {
+            int nbhours = atoi(&parms[1]);
+
+            if ((nbhours >= 1) && (nbhours <= 12))
+            {
+                bool daytime = is_daytime();
+                int i, nbturns = (5 * z_info->day_length * nbhours) / 12;
+
+                ht_add(&turn, nbturns);
+
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    struct player *player = player_get(i);
+
+                    ht_copy(&get_connection(player->conn)->start, &turn);
+                    ht_add(&player->game_turn, nbturns);
+                    msg(player, "Time advanced by %d hour%s.", nbhours, PLURAL(nbhours));
+                    Send_turn(player, ht_div(&player->game_turn, cfg_fps),
+                        ht_div(&player->player_turn, 1), ht_div(&player->active_turn, 1));
+
+                    if ((player->wpos.depth == 0) && (is_daytime() != daytime))
+                        dusk_or_dawn(player, chunk_get(&player->wpos), is_daytime());
+                }
+            }
 
             break;
         }

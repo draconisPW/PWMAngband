@@ -44,7 +44,7 @@ The "lib/screens" directory contains various special text data files.
 The 'news.txt' file is displayed to the user when the game starts up. It
 contains basic information such as my name and email address, and the names
 of some of the people who have been responsible for previous versions of
-Angband. You may edit this file (slightly) to include local "site specific"
+PWMAngband. You may edit this file (slightly) to include local "site specific"
 information such as who compiled the local executable. You should refer the
 user to a special "online help" file, if necessary, that describes any local
 modifications in detail. The first line of this file should be blank, and

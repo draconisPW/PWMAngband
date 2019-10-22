@@ -1,82 +1,19 @@
-===================
-General information
-===================
-
-Using the Online Help
-=====================
-
-You can press Escape ('ESC') at any time to leave the online help.
-
-You can press Space to advance one page.
-
-General Information
-===================
-
-PWMAngband is basically a complex multiplayer dungeon simulation. A player
-creates a character, choosing from a variety of races and classes, and then
-plays that character over a period of days, weeks, even months.
-
-The player will begin his adventure on the town level where he may acquire
-supplies, weapons, armor, and magical devices by buying from various shop
-owners. Then the player can descend into the Pits of Angband, where he will
-explore the many levels of the dungeon, gaining experience by killing
-fierce creatures, collecting powerful objects and valuable treasure, and
-returning to town occasionally to buy and sell supplies. Eventually, as the
-player grows more experienced, he may attempt to win the game by defeating
-Morgoth, the Lord of Darkness, who resides far below the surface.
-
-Note that PWMAngband is a very complex game, and it may be difficult to grasp
-everything at first, especially if you have never played a "roguelike" game
-before. You should probably browse through all of the "online help files",
-especially this one, before beginning any serious adventuring...
-
-About the game
-==============
-
-PWMAngband is available for Windows systems, although it can be played under
-Linux by simply using WiNE. It is written in C, and the source code is freely
-available.
-
-See the Official PWMAngband Forum Page at
-http://www.mangband.org/forum/viewforum.php?f=9 for up to date information
-about the latest version of PWMAngband, including a complete list of recent
-modifications. Feel free to post compliments, complaints, suggestions,
-bug reports...
-
-See the Official MAngband Home Page at http://mangband.org/ for up to
-date information about the latest version of MAngband, including a complete
-list of recent modifications.
-
-See the Official Angband Home Page at http://rephial.org/ for up to date 
-information about the latest version of Angband, including a complete list
-of recent modifications and a wiki about the game which includes a full
-user guide.
-
-This version of PWMAngband is under the GNU General Public Licence (GPL) 
-version 2. A copy of this licence is included with the game, in the file 
-copying.txt.
-
-The basic help files supplied with this game are more or less up to date,
-but when in doubt, you should ask the newsgroup or the forum for
-confirmation.
-
-Remember to tell all your friends about how much you like PWMAngband...
-
 A quick demonstration
 =====================
 
-PWMAngband is, as mentioned above, a very complex game, so you may want to try
-the following quick demonstration. The following instructions are for
-demonstration purposes only, and so they are intentionally boring.
+PWMAngband is a very complex game, so you may want to try the following quick
+demonstration. The following instructions are for demonstration purposes only,
+and so they are intentionally boring.
 
 For this demo, we will assume that you have never played PWMAngband before,
 that you have not requested any special "sub-windows", that you have not
 requested any special "graphics" modes, that you have a "numeric keypad" on
 your computer, and that you are using the default options, including, in
 particular, the "original" command set. If any of these assumptions are
-incorrect, you will need to keep in mind that this demo may not work. There
-are many ways to view this file while playing, in particular, you should be
-able to view it using the "online help" built into the game.
+incorrect, you will need to keep in mind that this demo may not work; in
+particular note that Windows users will be using graphical tiles by default,
+so unless you turn off graphics map symbols below will be replaced by
+little pictures. There are many ways to view this file while playing.
 
 The first step is to select a server on which to play. If the metaserver is
 up, a list of servers will automatically appear when the client is launched.
@@ -91,12 +28,11 @@ character.
 
 During character creation, you will be shown the character information screen,
 and you will be asked a series of questions. For this demo, enter a character
-name and a password to protect your character (you can use the default name and
-password which are equal to the account's name and password), and press 'a'
-three times to select a "female human warrior" character. Then press 'b' and
-'Enter' to choose the standard roller, and choose stat order by pressing
-'a', 'e', 'd', 'f', 'c', and 'b'. Press 'Enter' twice and your
-character will be placed into the "town".
+name (you can use the default name which is equal to the account's name), and
+press 'a' three times to select a "female human warrior" character. Then press
+'b' and 'Enter' to choose the standard roller, and choose stat order by pressing
+'a', 'e', 'd', 'f', 'c', and 'b'. Press 'Enter' twice and your character will be
+placed into the "town".
 
 You should now be looking at the basic dungeon interaction screen. To the
 left is some information about your character. To the right is an overhead

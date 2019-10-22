@@ -1,4 +1,3 @@
-===================
 Option Descriptions
 ===================
 
@@ -19,7 +18,7 @@ progress), "flush" (forget any keypresses waiting in the keypress queue),
 below).
 
 User interface Options
-======================
+----------------------
 
 .. _rogue_like_commands:
 
@@ -130,7 +129,7 @@ Show effective speed as multiplier '[effective_speed]'
   or 'Fast (x4.1)').
 
 MAngband options
-================
+----------------
 
 .. _view_orange_light:
 
@@ -203,7 +202,7 @@ Risky casting '[risky_casting]'
   at the risk of damaging constitution and getting paralyzed
 
 Birth (difficulty) options
-==========================
+--------------------------
 
 .. _birth_force_descend:
 
@@ -271,11 +270,10 @@ Death is permanent '[birth_no_ghost]'
 Play as a fruit bat '[birth_fruit_bat]'
   Turns you into a fruit bat at birth, giving you +10 speed at the cost of 40%
   of your maximum HPs. This makes the early game a lot easier and the end game
-  a lot harder. Not available if you play a Dragon, a Shapechanger or a
-  Necromancer.
+  a lot harder. Not available if you play a Dragon.
 
 Window flags
-============
+------------
 
 Some platforms support "sub-windows", which are windows which can be used
 to display useful information generally available through other means. The
@@ -338,7 +336,7 @@ Display special info
   Display special recall screens in a separate sub-window.
 
 Left Over Information
-=====================
+---------------------
 
 The 'hitpoint_warn' value, if non-zero, is the percentage of maximal
 hitpoints at which the player is warned that he may die. It is also used as

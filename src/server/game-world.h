@@ -27,6 +27,7 @@ extern u32b seed_flavor;
 extern hturn turn;
 
 extern bool is_daytime(void);
+extern void dusk_or_dawn(struct player *p, struct chunk *c, bool dawn);
 extern int turn_energy(int speed);
 extern int frame_energy(int speed);
 extern void run_game_loop(void);

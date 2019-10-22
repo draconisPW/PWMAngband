@@ -28,7 +28,7 @@
 #include "../win/win-term.h"
 #include <wingdi.h>
 
-#define HELP_GENERAL "angband.hlp"
+#define HELP_GENERAL "index.txt"
 #define HELP_SPOILERS "spoilers.hlp"
 
 #ifndef GetWindowLongPtr

@@ -1,4 +1,3 @@
-=====================
 Exploring the Dungeon
 =====================
 
@@ -9,7 +8,7 @@ direct your character through their adventure, you will enter single
 character commands (see 'commands.txt').
 
 Symbols On Your Map
-===================
+-------------------
 
 Symbols on your map can be broken down into three categories: features of
 the dungeon such as walls, floor, doors, and traps; objects which can be
@@ -25,7 +24,7 @@ Note that you can use a "user pref file" to change any of these symbols to
 something you are more comfortable with.
  
 Features that do not block line of sight
-----------------------------------------
+****************************************
 
 ===== =========================  =====  ================================== 
 '.'   A floor space              '1'    Entrance to General Store
@@ -43,7 +42,7 @@ Features that do not block line of sight
 ===== =========================  =====  ================================== 
 
 Features that block line of sight
----------------------------------
+*********************************
 
 ===== =========================  =====  ==================================
 '#'   A secret door              '#'    A wall
@@ -55,7 +54,7 @@ Features that block line of sight
 ===== =========================  =====  ==================================
 
 Objects
--------
+*******
  
 =====  =============================  =====  =============================
 '!'    Potion, flask, empty bottle    '/'    A pole-arm, or a horn
@@ -72,7 +71,7 @@ Objects
 =====  =============================  =====  =============================
  
 Monsters
---------
+********
 
 =====   =================== =====  ==================================== 
 '$'     Creeping Coins      ','    Mushroom Patch
@@ -105,7 +104,7 @@ Monsters
 =====   =================== =====  ====================================
 
 The Town Level
-==============
+--------------
 
 The town level is where you will begin your adventure. The town consists of
 ten buildings (each with an entrance), some townspeople, some houses that can
@@ -115,7 +114,7 @@ daytime (or night time), but note that the sun rises and falls (rather
 instantly) as time passes.
 
 Townspeople
-===========
+-----------
 
 The town contains many different kinds of people. There are the street
 urchins, young children who will mob an adventurer for money, and seem to
@@ -135,7 +134,7 @@ experience is awarded for killing the town inhabitants, though you may
 acquire treasure.
 
 Town Buildings
-==============
+--------------
 
 Your character will begin their adventure with some basic supplies, and some
 extra gold with which to purchase more supplies at the town stores.
@@ -218,14 +217,14 @@ Your Home ('0')
   servers.
 
 The Wilderness
-==============
+--------------
 
 The wilderness is the area outside of the Town. It has more houses that can be
 bought (inside the "Suburb" area), some "public" buildings, and many monsters
 are roaming it. Be careful, as the Wilderness is really dangerous at night!
 
 Within The Dungeon
-==================
+------------------
 
 Once your character is adequately supplied with food, light, armor, and
 weapons, he is ready to enter the dungeon. Move on top of the '>' symbol
@@ -262,7 +261,7 @@ oil, as appropriate. There are rumours of objects of exceptional power
 which glow with their own never-ending light.
 
 Objects Found In The Dungeon
-============================
+----------------------------
 
 The mines are full of objects just waiting to be picked up and used. How
 did they get there?  Well, the main source for useful items are all the
@@ -341,7 +340,7 @@ between tasty food and a poisonous mushroom is a fine one, and sometimes a
 chest full of treasure will grow teeth in its lid and bite your hand off...
 
 Cursed Objects
-==============
+--------------
 
 Some objects, often objects of great power, have been cursed. There are many
 curses in the game, and they can appear on any wearable object. Curses may
@@ -355,7 +354,7 @@ attempts. It is up to you to balance the risks and rewards in your use
 of cursed items.
 
 Mining
-======
+------
 
 Some treasure within the dungeon can be found only by mining it out of the
 walls. Many rich strikes exist within each level, but must be found and
@@ -375,7 +374,7 @@ simply kill monsters and discover items in the dungeon to sell, than to
 walk around digging for treasure. But, early on, mineral veins can be a
 wonderful source of easy treasure.
 
-If the character has a scroll, staff, or spell of treasure location, he can
+If the character has a scroll, staff, or spell of treasure location, they can
 immediately locate all strikes of treasure within a vein shown on the
 screen. This makes mining much easier and more profitable.
 
@@ -395,7 +394,7 @@ imply that these rooms are guarded by incredibly powerful monsters, so
 beware!
 
 Traps
-=====
+-----
 
 There are many traps located in the dungeon of varying danger. These traps
 are hidden from sight and are triggered only when your character walks over
@@ -419,7 +418,7 @@ the traps that exist at the time of detection, it does not inform you of
 new ones that have since been created.
 
 Staircases, Secret Doors, Passages, and Rooms
-=============================================
+---------------------------------------------
 
 Staircases are the manner in which you get deeper or climb out of the
 dungeon. The symbols for the up and down staircases are the same as the
@@ -447,7 +446,7 @@ and can often be counted on to leave them open behind them when they pass
 through.
 
 Level and object feelings
-=========================
+-------------------------
 
 Unless you have disabled the option to get feelings you will get a message 
 upon entering a dungeon giving you a general feel of how dangerous that 
@@ -496,7 +495,7 @@ if you need to explore more before getting a feeling about the value
 of the treasures present in the dungeon.
 
 Winning The Game
-================
+----------------
 
 If your character has killed Sauron (a difficult task), who lives on level 
 99 (4950') in the dungeon, a magical staircase will appear that will allow 
@@ -521,9 +520,9 @@ that until you retire, you can still be killed, so you may want to retire
 before wandering into yet another horde of greater demons.
 
 Upon Death and Dying
-====================
+--------------------
  
-If your character falls below 0 hit points, he/she has died and cannot be
+If your character falls below 0 hit points, they have died and cannot be
 restored... unless you're playing on a server allowing "ghost" characters and
 didn't choose the "no ghost" option at birth. In this case, your character
 becomes a "ghost": all worn and carried items are dropped on the floor and the

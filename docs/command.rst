@@ -1,4 +1,3 @@
-====================
 Command Descriptions
 ====================
 
@@ -8,6 +7,9 @@ keyset, the name and key of the roguelike command is also shown if it is
 different. Then comes a brief description of the command, including 
 information about alternative methods of specifying the command in each 
 keyset, when needed.
+
+Some commands use the "repeat count" to automatically repeat the command
+several times.
 
 Most commands take no "energy" to perform, while other commands only take
 energy when they cause the world to change in some way. For example,
@@ -23,7 +25,7 @@ Command lists ('Enter')
   specific commands.
 
 Inventory Commands
-==================
+------------------
 
 Inventory list ('i')
   Displays a list of objects being carried but not equipped. You can carry
@@ -90,7 +92,7 @@ Take off equipment ('t') or Take off equipment ('T')
   with this command. This command takes some energy.
 
 Movement Commands
-=================
+-----------------
 
 Moving (arrow keys, number keys) or (arrow keys, number keys, 'yuhjklbn')
   This causes you to move one step in a given direction. If the square you
@@ -135,7 +137,7 @@ Go down staircase ('>')
   This command takes some energy.
 
 Resting Commands
-================
+----------------
 
 Stay still (with pickup) (',') or Stay still (with pickup) ('.')
   Stays in the same square for one move. If you normally pick up objects
@@ -162,7 +164,7 @@ Rest ('R')
   number of turns to rest), and takes some energy.
 
 Stealth Commands
-================
+----------------
 
 Toggle stealth mode ('S') or Toggle stealth mode ('#')
   Only Rogues are able to use this command. When first pressed, the message
@@ -174,7 +176,7 @@ Toggle stealth mode ('S') or Toggle stealth mode ('#')
   command again.
 
 Alter Commands
-==============
+--------------
 
 Tunnel ('T') or Tunnel ('^T')
   Tunnelling or mining is a very useful art. There are many kinds of rock,
@@ -220,6 +222,15 @@ Alter ('+')
   mode) as a kind of generic "alter the terrain feature of an adjacent
   grid" command. This command requires a direction, and takes some energy.
 
+Steal ('J') or Steal ('S')
+  This command allows you to steal gold or items from other players. Stealing
+  is usually disabled on most of the servers. If allowed, a failed attempt at
+  stealing will make the offended player automatically hostile.
+  This command also allows rogues to try and steal gold or items from sleeping
+  monsters. Stealing works better when the player is stealthy and faster than
+  the target monster. A failed theft will wake the monster.
+  This command requires a direction, and takes some energy.
+
 Drink/fill an empty bottle from a fountain ('_')
   When standing on a fountain square, this command allows you to interact with
   the fountain. Dried out fountains will produce no effect. If you carry empty
@@ -231,7 +242,7 @@ Drink/fill an empty bottle from a fountain ('_')
   experienced. This command takes some energy.
 
 Spell and Prayer Commands
-=========================
+-------------------------
 
 Browse a book ('b') or Peruse a book ('P')
   Only spellcasters can read spell or prayer books. Fighters cannot read any
@@ -272,7 +283,7 @@ Project a spell or a prayer ('p')
   a target. This command takes some energy.
 
 Monster Spell Commands
-======================
+----------------------
 
 Use dragon breath attack ('y') or Use dragon breath attack ('f')
   Only Dragons or Shapechangers that polymorph into a form that can use breath
@@ -288,7 +299,7 @@ Polymorph into a monster ('V')
   and kill counts. This command takes some energy.
 
 Object Manipulation Commands
-============================
+----------------------------
 
 Eat some food ('E')
   You must eat regularly to prevent starvation. As you grow hungry, a
@@ -327,10 +338,9 @@ Inscribe an object ('{')
   when appropriate. These "fake" inscriptions remain all the time, even if the
   player chooses to add a "real" inscription on top of it later.
 
-  In addition, PWMAngband will occasionally place a "real" inscription on an
-  object for you, normally as the result of your character getting a
-  "feeling" about the item. All characters will get "feelings" about
-  weapons and armor after carrying them for a while.
+  In addition, PWMAngband will place the inscription '??' on an object for you
+  if the object has a property (or "rune") that you have not learned yet.
+  This inscription will remain until you know all the runes on the object.
 
   An item labeled as '{empty}' was found to be out of charges, and an
   item labeled as '{tried}' is a "flavored" item which the character has
@@ -348,7 +358,7 @@ Toggle ignore ('K') or Toggle ignore ('O')
   of their ignore setting. See the customize section for more info.
 
 Magical Object Commands
-=======================
+-----------------------
 
 Activate an object ('A')
   You have heard rumors of special weapons and armor deep in the Pits,
@@ -386,7 +396,7 @@ Zap a rod ('z') or Activate a rod ('a')
   target. This command takes some energy.
 
 Throwing and Missile Weapons
-============================
+----------------------------
 
 Fire an item ('f') or Fire an item ('t')
   This command will allow you to fire a missile from either
@@ -459,7 +469,7 @@ Target closest monster (''')
   This will allow you to aim your ranged attacks at the closest valid target.
         
 Looking Commands
-================
+----------------
 
 Full screen map ('M')
   This command will show a map of the entire dungeon, reduced by a factor
@@ -515,7 +525,7 @@ Full wilderness map ('^W')
   will have the same effect as using the command in the Town.
 
 Message Commands
-================
+----------------
 
 Repeat level feeling ('^F')
   Repeats the feeling about the monsters in the dungeon level that you got
@@ -542,7 +552,7 @@ Describe object ('^D') or Describe object ('BACKSPACE')
   inventory in the chat window.
 
 Player House Commands
-=====================
+---------------------
 
 Buy a house ('^E')
   Allows you to purchase a house to store extra objects once your inventory is
@@ -552,12 +562,14 @@ Buy a house ('^E')
   used in front of the house door, inside of the house.
 
 Game Status Commands
-====================
+--------------------
 
 Character Description ('C')
   Brings up a full description of your character, including your skill
   levels, your current and potential stats, and various other information.
-  From this screen, you can change your password.
+  From this screen, you can use the file character description command to save
+  your character status to a file. That command saves additional information,
+  including your background, your inventory, and the contents of your houses.
 
 Check knowledge ('~')
   This command allows you to ask about the knowledge possessed by your
@@ -586,7 +598,7 @@ Display current time ('%')
   of sunrise/sunset.  
  
 Saving and Exiting Commands
-===========================
+---------------------------
 
 Save and Quit ('^X')
   To save your game so that you can return to it later, use this command.
@@ -601,7 +613,7 @@ Quit ('Q')
   pressing '^C'.
 
 User Pref File Commands
-=======================
+-----------------------
 
 Interact with options ('=')
   Allow you to interact with options. The "window" options allow you to specify
@@ -630,7 +642,7 @@ Enter Dungeon Master menu ('&')
   at will, modify player attributes...
  
 Help Commands
-=============
+-------------
 
 Help ('?')
   Brings up the PWMAngband on-line help system. Note that the help files are
@@ -646,7 +658,7 @@ Identify monster ('/')
   that name.
 
 Extra Commands
-==============
+--------------
 
 Redraw Screen ('^R')
   This command adapts to various changes in global options, and redraws all
@@ -661,13 +673,6 @@ Save screen dump (|')'|)
   - html, suitable for viewing in a web browser.
   - forum embedded html for vBulletin, suitable for pasting in
     web forums like http://angband.oook.cz/forums.
-
-Steal ('J') or Steal ('S')
-  This command allows you to steal gold or items from other players. Stealing
-  is usually disabled on most of the servers. If allowed, a failed attempt at
-  stealing will make the offended player automatically hostile.
-  Playing a Rogue will also allow you to steal gold or items from sleeping
-  monsters with this command.
 
 Get a quest ('^Q')
   This command allows players to do some random quests. Each quest will be
@@ -689,7 +694,7 @@ Use an item ('U') or Use an item ('X')
   and can use a target. This command takes some energy.
 
 Special Keys
-============
+------------
  
 Certain special keys may be intercepted by the operating system or the host
 machine, causing unexpected results. In general, these special keys are
@@ -704,7 +709,7 @@ Pressing backslash ('\\') before a command will bypass all keymaps, and
 the next keypress will be interpreted as an "underlying command" key,
 unless it is a caret ('^'), in which case the keypress after that will be
 turned into a control-key and interpreted as a command in the underlying
-Angband keyset. For example, the sequence '\\' + '.' + '6' will always
+PWMAngband keyset. For example, the sequence '\\' + '.' + '6' will always
 mean "run east", even if the '.' key has been mapped to a different
 underlying command.
 
