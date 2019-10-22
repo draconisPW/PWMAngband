@@ -62,3 +62,6 @@ TMD(ZFARSIGHT, 0, PU_BONUS)
 TMD(REGEN, 0, 0)
 TMD(HARMONY, 0, 0)
 TMD(ANTISUMMON, 0, 0)
+
+/* At the end for now until 1.2.0 release */
+TMD(BLACKBREATH, 0, PU_BONUS)

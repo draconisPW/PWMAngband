@@ -58,6 +58,7 @@ typedef struct
     bool            console_listen;
     byte            console_channels[MAX_CHANNELS];
     u32b            account;
+    char            *quit_msg;
 } connection_t;
 
 /*** Player connection/index wrappers ***/
@@ -67,6 +68,7 @@ extern void set_player_index(connection_t *connp, long idx);
 
 /*** General utilities ***/
 extern int Setup_net_server(void);
+extern void Conn_set_state(connection_t *connp, int state, long timeout);
 extern void setup_contact_socket(void);
 extern bool Report_to_meta(int flag);
 extern void Destroy_connection(int ind, char *reason);

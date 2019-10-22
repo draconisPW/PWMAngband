@@ -1271,6 +1271,22 @@ static void melee_effect_handler_HALLU(melee_effect_handler_context_t *context)
 }
 
 
+/*
+ * Melee effect handler: Give the player Black Breath.
+ *
+ * Note that we don't use melee_effect_timed(), as this is unresistable.
+ */
+static void melee_effect_handler_BLACK_BREATH(melee_effect_handler_context_t *context)
+{
+    /* Take damage */
+	if (take_hit(context->p, context->damage, context->ddesc, false, context->flav)) return;
+
+    /* Increase Black Breath counter a *small* amount, maybe */
+    if (one_in_(5) && player_inc_timed(context->p, TMD_BLACKBREATH, context->damage / 10, true, false))
+        context->obvious = true;
+}
+
+
 static void melee_effect_handler_FORGET(melee_effect_handler_context_t *context)
 {
     /* PvX */
@@ -1652,6 +1668,7 @@ melee_effect_handler_f melee_handler_for_blow_effect(const char *name)
         {"EXP_40", melee_effect_handler_EXP_40},
         {"EXP_80", melee_effect_handler_EXP_80},
         {"HALLU", melee_effect_handler_HALLU},
+        {"BLACK_BREATH", melee_effect_handler_BLACK_BREATH},
         {"FORGET", melee_effect_handler_FORGET},
         {"DISEASE", melee_effect_handler_DISEASE},
         {"TIME", melee_effect_handler_TIME},

@@ -1889,6 +1889,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     byte cumber_shield = 0;
     struct element_info el_info[ELEM_MAX];
     struct object *tool = equipped_item_by_slot_name(p, "tool");
+    int eq_to_a = 0;
 
     create_obj_flag_mask(f2, false, OFT_ESP, OFT_MAX);
 
@@ -1949,7 +1950,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Handle polymorphed players */
     if (p->poly_race)
     {
-        state->to_a += p->poly_race->ac / 2;
         state->to_d += getAvgDam(p->poly_race);
         state->speed += (p->poly_race->speed - 110) / 2;
 
@@ -2053,7 +2053,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             s16b to_a;
 
             object_to_a(obj, &to_a);
-            state->to_a += to_a;
+            eq_to_a += to_a;
         }
 
         /* Do not apply weapon and bow bonuses until combat calculations */
@@ -2079,6 +2079,14 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             }
         }
     }
+
+    /* Handle polymorphed players */
+    if (p->poly_race && (p->poly_race->ac > eq_to_a))
+    {
+        state->to_a += (p->poly_race->ac + eq_to_a) / 2;
+    }
+    else
+        state->to_a += eq_to_a;
 
     /* Apply the collected flags */
     of_union(state->flags, collect_f);

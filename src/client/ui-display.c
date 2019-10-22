@@ -824,7 +824,7 @@ static void add_chat_message(char **msgs, const char *str, size_t *n, size_t *sz
  * a message is not truncated, it is split in multiple messages of length smaller than
  * NORMAL_WID - 5.
  */
-void display_chat_message(const char *msg, byte color, int h, int yoff, int *l, int *line)
+static void display_chat_message(const char *msg, byte color, int h, int yoff, int *l, int *line)
 {
     char words[MSG_LEN], *p;
     char buf[NORMAL_WID];

@@ -798,6 +798,28 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Player can be damaged by terrain */
     player_take_terrain_damage(p, c, p->py, p->px);
 
+    /* Effects of Black Breath */
+    if (p->timed[TMD_BLACKBREATH])
+    {
+        if (one_in_(2))
+        {
+            msg(p, "The Black Breath sickens you.");
+            player_stat_dec(p, STAT_CON, false);
+        }
+        if (one_in_(2))
+        {
+            msg(p, "The Black Breath saps your strength.");
+            player_stat_dec(p, STAT_STR, false);
+        }
+        if (one_in_(2))
+        {
+            int drain = 100 + (p->exp / 100) * z_info->life_drain_percent;
+
+            msg(p, "The Black Breath dims your life force.");
+            player_exp_lose(p, drain, false);
+        }
+    }
+
     /*** Check the Food, and Regenerate ***/
 
     /* Every 100 "scaled" turns */
@@ -1919,8 +1941,10 @@ static void post_turn_game_loop(void)
     {
         struct player *p = player_get(i);
         char buf[MSG_LEN];
+        connection_t *connp = get_connection(p->conn);
 
         if (!p->upkeep->funeral) continue;
+        if (connp->state == CONN_QUIT) continue;
 
         /* Format string */
         if (!p->alive)
@@ -1938,7 +1962,9 @@ static void post_turn_game_loop(void)
             strnfmt(buf, sizeof(buf), "Killed by %s", p->died_from);
 
         /* Get rid of him */
-        Destroy_connection(p->conn, buf);
+        /*Destroy_connection(p->conn, buf);*/
+        connp->quit_msg = string_make(buf);
+        Conn_set_state(connp, CONN_QUIT, 1);
     }
 
     /* Kick out starving players */

@@ -185,7 +185,7 @@ int Setup_net_server(void)
 }
 
 
-static void Conn_set_state(connection_t *connp, int state, long timeout)
+void Conn_set_state(connection_t *connp, int state, long timeout)
 {
     static int num_conn_busy;
     static int num_conn_playing;
@@ -248,6 +248,7 @@ static void do_quit(int ind)
     else
     {
         /* Otherwise wait for the timeout */
+        connp->quit_msg = string_make("Client quit");
         Conn_set_state(connp, CONN_QUIT, QUIT_TIMEOUT);
     }
 }
@@ -1082,6 +1083,7 @@ void Destroy_connection(int ind, char *reason)
     string_free(connp->addr);
     string_free(connp->host);
     string_free(connp->pass);
+    string_free(connp->quit_msg);
     Sockbuf_cleanup(&connp->w);
     Sockbuf_cleanup(&connp->r);
     Sockbuf_cleanup(&connp->c);
@@ -7347,7 +7349,7 @@ int Net_input(void)
         if (ht_diff(&turn, &connp->start) > (u32b)(connp->timeout * cfg_fps))
         {
             if (connp->state == CONN_QUIT)
-                Destroy_connection(i, "Client quit");
+                Destroy_connection(i, connp->quit_msg);
             else
             {
                 strnfmt(msg, sizeof(msg), "Timeout %02x", connp->state);

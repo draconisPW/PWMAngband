@@ -136,7 +136,7 @@ static enum parser_error parse_store(struct parser *p)
 
     if (idx >= MAX_STORES) return PARSE_ERROR_OUT_OF_BOUNDS;
 
-    s = store_new(parser_getuint(p, "index") - 1);
+    s = store_new(idx);
     s->name = string_make(parser_getstr(p, "name"));
     s->next = h;
     parser_setpriv(p, s);
@@ -174,6 +174,7 @@ static enum parser_error parse_normal(struct parser *p)
     struct object_kind *kind = lookup_kind(tval, sval);
 
     if (!kind) return PARSE_ERROR_UNRECOGNISED_SVAL;
+    if (store_black_market(s->sidx)) return PARSE_ERROR_INVALID_ENTRY;
 
     /* Expand if necessary */
     if (!s->normal_num)
@@ -187,7 +188,14 @@ static enum parser_error parse_normal(struct parser *p)
         s->normal_table = mem_realloc(s->normal_table, s->normal_size * sizeof(*s->normal_table));
     }
 
-    s->normal_table[s->normal_num++] = kind;
+    s->normal_table[s->normal_num].kind = kind;
+    s->normal_table[s->normal_num].rarity = 1;
+    if (parser_hasval(p, "rarity"))
+        s->normal_table[s->normal_num].rarity = parser_getint(p, "rarity");
+    s->normal_table[s->normal_num].factor = 100;
+    if (parser_hasval(p, "factor"))
+        s->normal_table[s->normal_num].factor = parser_getint(p, "factor");
+    s->normal_num++;
 
     return PARSE_ERROR_NONE;
 }
@@ -201,6 +209,7 @@ static enum parser_error parse_always(struct parser *p)
     struct object_kind *kind = lookup_kind(tval, sval);
 
     if (!kind) return PARSE_ERROR_UNRECOGNISED_SVAL;
+    if (store_black_market(s->sidx)) return PARSE_ERROR_INVALID_ENTRY;
 
     /* Expand if necessary */
     if (!s->always_num)
@@ -290,7 +299,7 @@ static struct parser *init_parse_stores(void)
     parser_reg(p, "owner uint purse str name", parse_owner);
     parser_reg(p, "slots uint min uint max", parse_slots);
     parser_reg(p, "turnover uint turnover", parse_turnover);
-    parser_reg(p, "normal sym tval sym sval", parse_normal);
+    parser_reg(p, "normal sym tval sym sval ?int rarity ?int factor", parse_normal);
     parser_reg(p, "always sym tval sym sval", parse_always);
     parser_reg(p, "buy str base", parse_buy);
     parser_reg(p, "buy-flag sym flag str base", parse_buy_flag);
@@ -417,7 +426,7 @@ static bool store_can_carry(struct store *s, struct object_kind *kind)
 
     for (i = 0; i < s->normal_num; i++)
     {
-        if (s->normal_table[i] == kind)
+        if (s->normal_table[i].kind == kind)
             return true;
     }
 
@@ -581,7 +590,8 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
 {
     int adjust = 100;
     double price;
-    struct owner *proprietor = store_at(p)->owner;
+    struct store *s = store_at(p);
+    struct owner *proprietor = s->owner;
     int factor;
 
     /* Hack -- expensive BM factor */
@@ -659,9 +669,21 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
     /* Shop is selling */
     else
     {
+        size_t i;
+
         /* Black markets suck */
         if (p->store_num == STORE_B_MARKET) price = price * 2;
         if (p->store_num == STORE_XBM) price = price * factor;
+
+        /* PWMAngband: apply price factor for normal items */
+        for (i = 0; i < s->normal_num; i++)
+        {
+            if (s->normal_table[i].kind == obj->kind)
+            {
+                price = price * s->normal_table[i].factor / 100;
+                break;
+            }
+        }
     }
 
     /* Compute the final price (with rounding) */
@@ -1184,12 +1206,21 @@ static bool black_market_ok(struct object *obj)
 
 
 /*
- * Get a choice from the store allocation table, in tables.c
+ * Get a choice from the store allocation table
  */
 static struct object_kind *store_get_choice(struct store *store)
 {
+    struct object_kind *kind = NULL;
+
     /* Choose a random entry from the store's table */
-    return store->normal_table[randint0(store->normal_num)];
+    while (!kind)
+    {
+        struct normal_entry entry = store->normal_table[randint0(store->normal_num)];
+
+        if (one_in_(entry.rarity)) kind = entry.kind;
+    }
+
+    return kind;
 }
 
 

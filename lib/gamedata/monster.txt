@@ -13601,7 +13601,7 @@ rarity:3
 weight:0
 experience:10000
 blow:HIT:HURT:6d6
-blow:HIT:HURT:6d6
+blow:HIT:BLACK_BREATH:6d6
 blow:HIT:EXP_80:4d6
 blow:HIT:EXP_80:4d6
 flags:UNIQUE | MALE | LEVITATE
@@ -14598,7 +14598,7 @@ rarity:3
 weight:0
 experience:13000
 blow:HIT:HURT:6d6
-blow:HIT:HURT:6d6
+blow:HIT:BLACK_BREATH:6d6
 blow:TOUCH:EXP_80:5d6
 blow:TOUCH:EXP_80:5d6
 flags:UNIQUE | FEMALE | INVISIBLE
@@ -15058,7 +15058,7 @@ rarity:3
 weight:0
 experience:15000
 blow:HIT:HURT:7d6
-blow:HIT:HURT:7d6
+blow:HIT:BLACK_BREATH:7d6
 blow:GAZE:EXP_80:6d6
 blow:WAIL:TERRIFY:6d6
 flags:UNIQUE | MALE | LEVITATE
@@ -15605,7 +15605,7 @@ rarity:3
 weight:0
 experience:18000
 blow:HIT:HURT:7d7
-blow:HIT:HURT:7d7
+blow:HIT:BLACK_BREATH:7d7
 blow:TOUCH:EXP_80:6d7
 blow:WAIL:TERRIFY:6d7
 flags:UNIQUE | MALE | INVISIBLE | LEVITATE
@@ -16144,7 +16144,7 @@ rarity:3
 weight:0
 experience:22000
 blow:HIT:HURT:8d7
-blow:HIT:HURT:8d7
+blow:HIT:BLACK_BREATH:8d7
 blow:TOUCH:EXP_40:6d7
 blow:TOUCH:EXP_40:6d7
 flags:UNIQUE | MALE | INVISIBLE | LEVITATE
@@ -16688,7 +16688,7 @@ rarity:3
 weight:0
 experience:25000
 blow:HIT:HURT:8d8
-blow:HIT:HURT:8d8
+blow:HIT:BLACK_BREATH:8d8
 blow:BITE:EXP_40:6d7
 blow:WAIL:TERRIFY:6d7
 flags:UNIQUE | MALE | SMART | LEVITATE
@@ -17374,7 +17374,7 @@ rarity:3
 weight:0
 experience:30000
 blow:HIT:HURT:9d9
-blow:HIT:HURT:9d9
+blow:HIT:BLACK_BREATH:9d9
 blow:TOUCH:EXP_80:6d7
 blow:WAIL:TERRIFY:6d7
 flags:UNIQUE | MALE | SMART | LEVITATE
@@ -18232,7 +18232,7 @@ rarity:3
 weight:0
 experience:40000
 blow:HIT:HURT:9d10
-blow:HIT:HURT:9d10
+blow:HIT:BLACK_BREATH:9d10
 blow:TOUCH:EXP_40:7d7
 blow:TOUCH:EXP_40:7d7
 flags:UNIQUE | MALE | SMART | LEVITATE
@@ -18913,7 +18913,7 @@ rarity:3
 weight:0
 experience:60000
 blow:HIT:HURT:10d10
-blow:HIT:HURT:10d10
+blow:HIT:BLACK_BREATH:10d10
 blow:HIT:EXP_80:7d7
 blow:HIT:EXP_80:7d7
 flags:UNIQUE | MALE | SMART | LEVITATE

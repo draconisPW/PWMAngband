@@ -92,7 +92,7 @@ static void display_scores_aux(ang_file *fff, const high_score scores[], int fro
         if (streq(score->how, "winner"))
             strnfmt(out_val, sizeof(out_val), "Retired after a legendary career");
         else if (!cdun)
-            strnfmt(out_val, sizeof(out_val), "Killed by %s in the town", score->how);
+            strnfmt(out_val, sizeof(out_val), "Killed by %s on the surface", score->how);
         else
             strnfmt(out_val, sizeof(out_val), "Killed by %s on dungeon level %d", score->how, cdun);
 
