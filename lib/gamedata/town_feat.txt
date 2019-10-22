@@ -46,5 +46,4 @@ feat:T:T:tree
 feat:^:^:mountain
 feat:>:>:down staircase
 feat:x:x:safe floor
-feat:=:=:drawbridge
 feat:T:D:dark tree

@@ -99,7 +99,7 @@ static int trap_order(int trap)
 {
     const struct trap_kind *t = &trap_info[trap];
 
-    if (trf_has(t->flags, TRF_GLYPH)) return 0;
+    if (trf_has(t->flags, TRF_RUNE)) return 0;
     if (trf_has(t->flags, TRF_LOCK)) return 1;
     if (trf_has(t->flags, TRF_TRAP)) return 2;
     return 3;
@@ -342,10 +342,13 @@ static const grouper object_text_order[] =
     {TV_CROP, "Crop"},
     {TV_MAGIC_BOOK, "Magic Book"},
     {TV_PRAYER_BOOK, "Prayer Book"},
-    {TV_NATURE_BOOK, "Nature Book"},
+    {TV_SORCERY_BOOK, "Sorcery Book"},
     {TV_SHADOW_BOOK, "Shadow Book"},
+    {TV_HUNT_BOOK, "Hunt Book"},
     {TV_PSI_BOOK, "Psi Book"},
+    {TV_DEATH_BOOK, "Death Book"},
     {TV_ELEM_BOOK, "Elemental Book"},
+    {TV_SUMMON_BOOK, "Summoning book"},
     {TV_LIGHT, "Light"},
     {TV_SWORD, "Sword"},
     {TV_POLEARM, "Polearm"},
@@ -435,8 +438,7 @@ static char highlight_unknown(struct player *p, int idx)
 static int collect_known_artifacts(struct player *p, struct cmp_art *artifacts)
 {
     int a_count = 0;
-    int i;
-    struct loc grid;
+    int i, wx, wy, y, x;
     struct object *obj;
     char *highlights = mem_zalloc(z_info->a_max * sizeof(char));
     char *owners = mem_zalloc(z_info->a_max * NORMAL_WID * sizeof(char));
@@ -464,52 +466,48 @@ static int collect_known_artifacts(struct player *p, struct cmp_art *artifacts)
     }
 
     /* Check the world */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (wy = radius_wild; wy >= 0 - radius_wild; wy--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (wx = 0 - radius_wild; wx <= radius_wild; wx++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(wy, wx);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
                 struct chunk *c = w_ptr->chunk_list[i];
-                struct loc begin, end;
-                struct loc_iterator iter;
 
                 if (!c) continue;
 
-                loc_init(&begin, 0, 0);
-                loc_init(&end, c->width, c->height);
-                loc_iterator_first(&iter, &begin, &end);
-
-                do
+                for (y = 0; y < c->height; y++)
                 {
-                    for (obj = square_object(c, &iter.cur); obj; obj = obj->next)
+                    for (x = 0; x < c->width; x++)
                     {
-                        /* Ignore non-artifacts */
-                        if (!true_artifact_p(obj)) continue;
-
-                        /* Note location */
-                        strnfmt(&owners[obj->artifact->aidx * NORMAL_WID], NORMAL_WID,
-                            " (%d ft)", c->wpos.depth * 50);
-
-                        /* Artifact is owned by the player */
-                        if (obj->owner == p->id)
-                            highlights[obj->artifact->aidx] = 'w';
-
-                        /* Artifact is not owned or owned by someone else */
-                        else if (object_is_known(p, obj))
-                            highlights[obj->artifact->aidx] = 'D';
-
-                        /* Artifact is unknown */
-                        else
+                        for (obj = square_object(c, y, x); obj; obj = obj->next)
                         {
-                            highlights[obj->artifact->aidx] = highlight_unknown(p,
-                                obj->artifact->aidx);
+                            /* Ignore non-artifacts */
+                            if (!true_artifact_p(obj)) continue;
+
+                            /* Note location */
+                            strnfmt(&owners[obj->artifact->aidx * NORMAL_WID], NORMAL_WID,
+                                " (%d ft)", c->wpos.depth * 50);
+
+                            /* Artifact is owned by the player */
+                            if (obj->owner == p->id)
+                                highlights[obj->artifact->aidx] = 'w';
+
+                            /* Artifact is not owned or owned by someone else */
+                            else if (object_is_known(p, obj))
+                                highlights[obj->artifact->aidx] = 'D';
+
+                            /* Artifact is unknown */
+                            else
+                            {
+                                highlights[obj->artifact->aidx] = highlight_unknown(p,
+                                    obj->artifact->aidx);
+                            }
                         }
                     }
                 }
-                while (loc_iterator_next_strict(&iter));
             }
         }
     }
@@ -821,10 +819,13 @@ static int o_cmp_tval(const void *a, const void *b)
         case TV_LIGHT:
         case TV_MAGIC_BOOK:
         case TV_PRAYER_BOOK:
-        case TV_NATURE_BOOK:
+        case TV_SORCERY_BOOK:
         case TV_SHADOW_BOOK:
+        case TV_HUNT_BOOK:
         case TV_PSI_BOOK:
+        case TV_DEATH_BOOK:
         case TV_ELEM_BOOK:
+        case TV_SUMMON_BOOK:
         {
             /* Leave sorted by sval */
             break;
@@ -1445,14 +1446,13 @@ static void do_cmd_knowledge_gear(struct player *p, int line)
         if (q->total_winner)
         {
             file_putf(fff, "G     %s the %s %s (%s, Level %d) at %d ft (%d, %d)\n", q->name,
-                q->race->name, q->clazz->name, get_title(q), q->lev, q->wpos.depth * 50,
-                q->wpos.grid.x, q->wpos.grid.y);
+                q->race->name, q->clazz->name, get_title(q), q->lev, q->wpos.depth * 50, q->wpos.wx,
+                q->wpos.wy);
         }
         else
         {
             file_putf(fff, "G     %s the %s %s (Level %d) at %d ft (%d, %d)\n", q->name,
-                q->race->name, q->clazz->name, q->lev, q->wpos.depth * 50,
-                q->wpos.grid.x, q->wpos.grid.y);
+                q->race->name, q->clazz->name, q->lev, q->wpos.depth * 50, q->wpos.wx, q->wpos.wy);
         }
 
         /* Display the equipment */
@@ -1714,7 +1714,7 @@ void do_cmd_drop_gold(struct player *p, s32b amt)
     p->au -= amt;
 
     /* Message */
-    msg(p, "You drop %ld gold piece%s.", amt, PLURAL(amt));
+    msg(p, "You drop %ld gold pieces.", amt);
 
     /* Redraw gold */
     p->upkeep->redraw |= (PR_GOLD);
@@ -1730,100 +1730,32 @@ void do_cmd_drop_gold(struct player *p, s32b amt)
     obj->owner = p->id;
 
     /* Drop it */
-    drop_near(p, chunk_get(&p->wpos), &obj, 0, &p->grid, false, DROP_FADE);
+    drop_near(p, chunk_get(&p->wpos), &obj, 0, p->py, p->px, false, DROP_FADE);
 }
 
 
 /*
- * Get a random object from a player's inventory
- */
-static struct object *get_random_player_object(struct player *p)
-{
-    int tries;
-
-    /* Find an item */
-    for (tries = 0; tries < 100; tries++)
-    {
-        /* Pick an item */
-        int index = randint0(z_info->pack_size);
-
-        /* Obtain the item */
-        struct object *obj = p->upkeep->inven[index];
-
-        /* Skip non-objects */
-        if (obj == NULL) continue;
-
-        /* Skip artifacts */
-        if (obj->artifact) continue;
-
-        /* Skip deeds of property */
-        if (tval_is_deed(obj)) continue;
-
-        return obj;
-    }
-
-    return NULL;
-}
-
-
-/*
- * Get a random object from a monster's inventory
- */
-static struct object *get_random_monster_object(struct monster *mon)
-{
-    struct object *obj = mon->held_obj;
-    int count = 0;
-
-    if (!obj) return NULL;
-
-    /* Count the objects */
-    while (obj)
-    {
-        count++;
-        obj = obj->next;
-    }
-
-    /* Now pick one... */
-    obj = mon->held_obj;
-    count -= randint1(count);
-    while (count)
-    {
-        obj = obj->next;
-        count--;
-    }
-
-    return obj;
-}
-
-
-/*
- * Attempt to steal from another player or monster
+ * Attempt to steal from another player
  */
 void do_cmd_steal(struct player *p, int dir)
 {
     struct chunk *c = chunk_get(&p->wpos);
+    int y, x;
     struct source who_body;
     struct source *who = &who_body;
-    char m_name[NORMAL_WID];
-    struct object *obj;
+    struct player *target;
+    int chance, notice;
     bool success = false;
-    int notice;
-    struct loc grid;
-
-    /* Attack or steal from players */
-    bool player_steal;
-
-    /* Attack or steal from monsters */
-    bool monster_steal;
 
     /* Paranoia */
-    if ((dir == DIR_TARGET) || !dir) return;
+    if ((dir == 5) || !dir) return;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(dir)) return;
 
-    next_grid(&grid, &p->grid, dir);
-    square_actor(c, &grid, who);
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
+    square_actor(c, y, x, who);
 
     /* Restrict ghosts */
     if (p->ghost && !(p->dm_flags & DM_GHOST_BODY))
@@ -1832,17 +1764,17 @@ void do_cmd_steal(struct player *p, int dir)
         return;
     }
 
-    /* Not when under some status conditions */
-    if (p->timed[TMD_BLIND] || p->timed[TMD_CONFUSED] || p->timed[TMD_IMAGE])
+    /* Not when confused */
+    if (p->timed[TMD_CONFUSED])
     {
-        msg(p, "Your current condition prevents you from stealing anything.");
+        msg(p, "You are too confused!");
         return;
     }
 
     /* Restricted by choice */
     if (cfg_no_stores || OPT(p, birth_no_stores))
     {
-        msg(p, "You cannot steal.");
+        msg(p, "You cannot steal from players.");
         return;
     }
 
@@ -1854,303 +1786,172 @@ void do_cmd_steal(struct player *p, int dir)
     }
 
     /* May only steal from visible players */
-    player_steal = (who->player && player_is_visible(p, who->idx));
-    if (player_steal)
+    if (!who->player || !player_is_visible(p, who->idx))
     {
-        /* May not steal if hostile */
-        if (pvp_check(p, who->player, PVP_CHECK_ONE, true, 0x00))
-        {
-            /* Message */
-            msg(p, "%s is on guard against you.", who->player->name);
-            return;
-        }
-
-        /* May not steal if the target cannot retaliate */
-        if ((cfg_pvp_hostility >= PVP_SAFE) || in_party(who->player, p->party) ||
-            square_issafefloor(c, &grid))
-        {
-            /* Message */
-            msg(p, "You cannot steal from that player.");
-            return;
-        }
-    }
-
-    /* May only steal from visible monsters */
-    monster_steal = (player_has(p, PF_STEAL) && who->monster && monster_is_visible(p, who->idx));
-    if (monster_steal)
-    {
-        /* May not steal if awake */
-        if (!who->monster->m_timed[MON_TMD_SLEEP])
-        {
-            /* Message */
-            monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_STANDARD);
-            msg(p, "%s is on guard against you.", m_name);
-            return;
-        }
-
-        /* May not steal if friendly */
-        if (!pvm_check(p, who->monster))
-        {
-            /* Message */
-            msg(p, "You cannot steal from that monster.");
-            return;
-        }
-    }
-
-    /* No valid target */
-    if (!player_steal && !monster_steal)
-    {
+        /* Message */
         msg(p, "You see nothing there to steal from.");
         return;
     }
 
-    /* Find an item */
-    if (player_steal)
+    /* Examine target */
+    target = who->player;
+
+    /* May not steal if hostile */
+    if (pvp_check(p, target, PVP_CHECK_ONE, true, 0x00))
+    {
+        /* Message */
+        msg(p, "%s is on guard against you.", target->name);
+        return;
+    }
+
+    /* May not steal if the target cannot retaliate */
+    if ((cfg_pvp_hostility >= PVP_SAFE) || in_party(target, p->party) ||
+        square_issafefloor(c, y, x))
+    {
+        /* Message */
+        msg(p, "You cannot steal from that player.");
+        return;
+    }
+
+    /* Compute chance of success */
+    chance = 3 * (adj_dex_safe[p->state.stat_ind[STAT_DEX]] -
+        adj_dex_safe[target->state.stat_ind[STAT_DEX]]);
+
+    /* Compute base chance of being noticed */
+    notice = 5 * (adj_mag_stat[target->state.stat_ind[STAT_INT]] -
+        p->state.skills[SKILL_STEALTH]);
+
+    /* Hack -- rogues get bonuses to chances */
+    if (player_has(p, PF_STEALING_IMPROV))
+    {
+        /* Increase chance by level */
+        chance += 3 * p->lev;
+        notice -= 3 * p->lev;
+    }
+
+    /* Hack -- always small chance to succeed */
+    if (chance < 2) chance = 2;
+
+    /* Check for success */
+    if (magik(chance))
     {
         /* Steal gold 25% of the time */
         if (magik(25))
         {
-            int amt = who->player->au / 10;
+            int amt = target->au / 10;
 
-            obj = NULL;
-
-            /* No gold... or too much gold */
-            if (!amt || ((p->au + amt) > PY_MAX_GOLD))
+            /* Transfer gold */
+            if (amt)
             {
-                msg(p, "You can find nothing to steal from %s.", who->player->name);
-                return;
-            }
-        }
-        else
-        {
-            obj = get_random_player_object(who->player);
-
-            /* No object with level requirement */
-            if (!obj || !has_level_req(p, obj))
-            {
-                msg(p, "You can find nothing to steal from %s.", who->player->name);
-                return;
-            }
-        }
-    }
-    else
-    {
-        obj = get_random_monster_object(who->monster);
-
-        /* No object */
-        if (!obj)
-        {
-            monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_TARG);
-            msg(p, "You can find nothing to steal from %s.", m_name);
-            return;
-        }
-
-        /* Too much gold */
-        if (tval_is_money(obj) && ((p->au + obj->pval) > PY_MAX_GOLD))
-        {
-            monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_TARG);
-            msg(p, "You can find nothing to steal from %s.", m_name);
-            return;
-        }
-    }
-
-    /* Can only steal items if they can be carried */
-    if (obj && !tval_is_money(obj))
-    {
-        struct object *test;
-        bool ok = true;
-        int amt;
-
-        /* Get a copy with the right "amt" */
-        if (player_steal) amt = 1;
-        else amt = obj->number;
-        test = object_new();
-        object_copy_amt(test, obj, amt);
-
-        /* Note that the pack is too full */
-        if (!inven_carry_okay(p, test)) ok = false;
-
-        /* Note that the pack is too heavy */
-        else if (!weight_okay(p, test)) ok = false;
-
-        object_delete(&test);
-        if (!ok)
-        {
-            msg(p, "You are too encumbered to steal anything");
-            return;
-        }
-    }
-
-    /* Compute chance of success */
-    if (player_steal)
-    {
-        int chance = 3 * (adj_dex_safe[p->state.stat_ind[STAT_DEX]] -
-            adj_dex_safe[who->player->state.stat_ind[STAT_DEX]]);
-
-        /* Compute base chance of being noticed */
-        notice = 5 * (adj_mag_stat[who->player->state.stat_ind[STAT_INT]] -
-            p->state.skills[SKILL_STEALTH]);
-
-        /* Hack -- rogues get bonuses to chances */
-        if (player_has(p, PF_STEALING_IMPROV))
-        {
-            /* Increase chance by level */
-            chance += 3 * p->lev;
-            notice -= 3 * p->lev;
-        }
-
-        /* Hack -- always small chance to succeed */
-        if (chance < 2) chance = 2;
-
-        /* Check for success */
-        if (magik(chance)) success = true;
-    }
-    else
-    {
-        /* Base monster protection and player stealing skill */
-        bool unique = rf_has(who->monster->race->flags, RF_UNIQUE);
-        int guard = (who->monster->race->level * (unique? 4: 3)) / 2 + who->monster->mspeed -
-            p->state.speed;
-        int steal_skill = p->state.skills[SKILL_STEALTH] + adj_dex_th[p->state.stat_ind[STAT_DEX]];
-        int monster_reaction;
-
-        /* Penalize some status conditions (PWMAngband: always) */
-        guard /= 2;
-
-        /* Monster base reaction, plus allowance for item weight */
-        monster_reaction = guard / 2 + randint1(MAX(guard / 2, 1));
-        if (obj && !tval_is_money(obj)) monster_reaction += obj->weight / 10;
-
-        /* Check for success */
-        if (monster_reaction < steal_skill) success = true;
-    }
-
-    /* Success! */
-    if (success)
-    {
-        if (player_steal)
-        {
-            /* Steal gold 25% of the time */
-            if (!obj)
-            {
-                int amt = who->player->au / 10;
-
                 /* Move from target to thief */
-                who->player->au -= amt;
+                target->au -= amt;
                 p->au += amt;
 
                 /* Redraw */
                 p->upkeep->redraw |= (PR_GOLD);
-                who->player->upkeep->redraw |= (PR_GOLD);
+                target->upkeep->redraw |= (PR_GOLD);
 
                 /* Tell thief */
-                msg(p, "You steal %d gold from %s.", amt, who->player->name);
+                msg(p, "You steal %d gold from %s.", amt, target->name);
 
                 /* Check for target noticing */
                 if (magik(notice))
                 {
                     /* Make target hostile */
-                    pvp_check(who->player, p, PVP_ADD, true, 0x00);
+                    pvp_check(target, p, PVP_ADD, true, 0x00);
 
                     /* Message */
-                    msg(who->player, "You notice %s stealing %d gold!", p->name, amt);
+                    msg(target, "You notice %s stealing %d gold!", p->name, amt);
                 }
-            }
 
-            /* Steal an item */
-            else
+                /* Done */
+                success = true;
+            }
+        }
+
+        /* Steal an item */
+        else
+        {
+            int tries;
+
+            /* Find an item */
+            for (tries = 0; tries < 100; tries++)
             {
-                struct object *stolen;
+                struct object *obj, *stolen, *test;
                 char o_name[NORMAL_WID], t_name[NORMAL_WID];
+                bool ok = true;
                 bool none_left = false;
 
+                /* Pick an item */
+                int index = randint0(z_info->pack_size);
+
+                /* Obtain the item */
+                obj = target->upkeep->inven[index];
+
+                /* Skip non-objects */
+                if (obj == NULL) continue;
+
+                /* Skip artifacts */
+                if (obj->artifact) continue;
+
+                /* Skip deeds of property */
+                if (tval_is_deed(obj)) continue;
+
+                /* Get a copy with the right "amt" */
+                test = object_new();
+                object_copy_amt(test, obj, 1);
+
+                /* Note that the pack is too full */
+                if (!inven_carry_okay(p, test)) ok = false;
+
+                /* Note that the pack is too heavy */
+                else if (!weight_okay(p, test)) ok = false;
+
+                /* Can only steal items if they can be carried */
+                object_delete(&test);
+                if (!ok) continue;
+
                 /* Steal and carry, easier to notice heavier objects */
-                stolen = gear_object_for_use(who->player, obj, 1, false, &none_left);
+                stolen = gear_object_for_use(target, obj, 1, false, &none_left);
                 object_desc(p, o_name, sizeof(o_name), stolen, ODESC_PREFIX | ODESC_FULL);
-                object_desc(who->player, t_name, sizeof(t_name), stolen, ODESC_PREFIX | ODESC_FULL);
+                object_desc(target, t_name, sizeof(t_name), stolen, ODESC_PREFIX | ODESC_FULL);
                 notice += stolen->weight;
                 inven_carry(p, stolen, true, false);
 
                 /* Tell thief what he got */
-                msg(p, "You steal %s from %s.", o_name, who->player->name);
+                msg(p, "You steal %s from %s.", o_name, target->name);
 
                 /* Check for target noticing */
                 if (magik(notice))
                 {
                     /* Make target hostile */
-                    pvp_check(who->player, p, PVP_ADD, true, 0x00);
+                    pvp_check(target, p, PVP_ADD, true, 0x00);
 
                     /* Message */
-                    msg(who->player, "You notice %s stealing %s!", p->name, t_name);
+                    msg(target, "You notice %s stealing %s!", p->name, t_name);
                 }
+
+                /* Done */
+                success = true;
+                break;
             }
-        }
-        else
-        {
-            /* Object no longer held */
-            obj->held_m_idx = 0;
-            pile_excise(&who->monster->held_obj, obj);
-
-            if (tval_is_money(obj))
-            {
-                monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_TARG);
-                msg(p, "You steal %d gold from %s.", obj->pval, m_name);
-                p->au += obj->pval;
-                p->upkeep->redraw |= (PR_GOLD);
-                object_delete(&obj);
-            }
-            else
-            {
-                char o_name[NORMAL_WID];
-
-                object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
-                msg(p, "You steal %s from %s.", o_name, m_name);
-                inven_carry(p, obj, true, false);
-            }
-
-            /* Monster wakes */
-            mon_clear_timed(p, who->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOTIFY);
-        }
-
-        /* Player hit and run */
-        if (p->timed[TMD_ATT_RUN])
-        {
-            struct source thief_body;
-            struct source *thief = &thief_body;
-
-            msg(p, "You vanish into the shadows!");
-            msg_misc(p, "There is a puff of smoke!");
-            source_player(thief, get_player_index(get_connection(p->conn)), p);
-            effect_simple(EF_TELEPORT, thief, "20", 0, 0, 0, 0, 0, NULL);
-            player_clear_timed(p, TMD_ATT_RUN, false);
         }
     }
     
     /* Failure */
-    else
+    if (!success)
     {
-        if (player_steal)
+        /* Message */
+        msg(p, "You fail to steal anything from %s.", target->name);
+
+        /* Easier to notice a failed attempt */
+        if (magik(notice + 50))
         {
+            /* Make target hostile */
+            pvp_check(target, p, PVP_ADD, true, 0x00);
+
             /* Message */
-            msg(p, "You fail to steal anything from %s.", who->player->name);
-
-            /* Easier to notice a failed attempt */
-            if (magik(notice + 50))
-            {
-                /* Make target hostile */
-                pvp_check(who->player, p, PVP_ADD, true, 0x00);
-
-                /* Message */
-                msg(who->player, "You notice %s trying to steal from you!", p->name);
-            }
-        }
-        else
-        {
-            monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_TARG);
-            msg(p, "You fail to steal anything from %s.", m_name);
-
-            /* Monster wakes */
-            mon_clear_timed(p, who->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOTIFY);
+            msg(target, "You notice %s trying to steal from you!", p->name);
         }
     }
 
@@ -2249,7 +2050,7 @@ void do_cmd_describe(struct player *p)
  */
 void do_cmd_locate(struct player *p, int dir)
 {
-    struct loc begin, end;
+    int y1, x1, y2, x2;
     char tmp_val[NORMAL_WID];
     char out_val[160];
     int panel_wid, panel_hgt;
@@ -2261,7 +2062,7 @@ void do_cmd_locate(struct player *p, int dir)
     if (!dir)
     {
         /* Forget current panel */
-        loc_init(&p->old_offset_grid, -1, -1);
+        p->offset_y_old = p->offset_x_old = -1;
 
         /* Recenter map around the player */
         verify_panel(p);
@@ -2273,14 +2074,16 @@ void do_cmd_locate(struct player *p, int dir)
     if (!VALID_DIR(dir)) return;
 
     /* Initialize */
-    if (dir == DIR_TARGET)
+    if (dir == 5)
     {
         /* Remember current panel */
-        loc_copy(&p->old_offset_grid, &p->offset_grid);
+        p->offset_y_old = p->offset_y;
+        p->offset_x_old = p->offset_x;
     }
 
     /* Start at current panel */
-    loc_copy(&begin, &p->old_offset_grid);
+    y1 = p->offset_y_old;
+    x1 = p->offset_x_old;
 
     /* Apply the motion */
     change_panel(p, dir);
@@ -2289,29 +2092,28 @@ void do_cmd_locate(struct player *p, int dir)
     handle_stuff(p);
 
     /* Get the current panel */
-    loc_copy(&end, &p->offset_grid);
+    y2 = p->offset_y;
+    x2 = p->offset_x;
 
     /* Describe the location */
-    if (loc_eq(&end, &begin))
+    if ((y2 == y1) && (x2 == x1))
         tmp_val[0] = '\0';
     else
     {
-        strnfmt(tmp_val, sizeof(tmp_val), "%s%s of", ((end.y < begin.y)? " north":
-            (end.y > begin.y)? " south": ""), ((end.x < begin.x)? " west":
-            (end.x > begin.x)? " east": ""));
+        strnfmt(tmp_val, sizeof(tmp_val), "%s%s of", ((y2 < y1)? " north": (y2 > y1)? " south": ""),
+            ((x2 < x1)? " west": (x2 > x1)? " east": ""));
     }
 
     /* Prepare to ask which way to look */
     strnfmt(out_val, sizeof(out_val), "Map sector [%d,%d], which is%s your sector.  Direction?",
-        (end.y / panel_hgt), (end.x / panel_wid), tmp_val);
+        (y2 / panel_hgt), (x2 / panel_wid), tmp_val);
 
     /* More detail */
     if (OPT(p, center_player))
     {
         strnfmt(out_val, sizeof(out_val),
             "Map sector [%d(%02d),%d(%02d)], which is%s your sector.  Direction?",
-            (end.y / panel_hgt), (end.y % panel_hgt), (end.x / panel_wid),
-            (end.x % panel_wid), tmp_val);
+            (y2 / panel_hgt), (y2 % panel_hgt), (x2 / panel_wid), (x2 % panel_wid), tmp_val);
     }
 
     msg(p, out_val);
@@ -2372,14 +2174,14 @@ void do_cmd_fountain(struct player *p, int item)
     }
 
     /* We must stand on a fountain */
-    if (!square_isfountain(c, &p->grid))
+    if (!square_isfountain(c, p->py, p->px))
     {
         msg(p, "There is no fountain here.");
         return;
     }
 
     /* Dried out */
-    if (square_isdryfountain(c, &p->grid))
+    if (square_isdryfountain(c, p->py, p->px))
     {
         msg(p, "The fountain is dried out.");
         return;
@@ -2432,7 +2234,7 @@ void do_cmd_fountain(struct player *p, int item)
         msg(p, "Something pops out of the water!");
         do {i = randint0(N_ELEMENTS(summon_chance));}
         while ((p->wpos.depth < summon_chance[i].minlev) || !magik(summon_chance[i].chance));
-        summon_specific_race(p, c, &p->grid, get_race(summon_chance[i].race), 1);
+        summon_specific_race(p, c, p->py, p->px, get_race(summon_chance[i].race), 1);
 
         /* Done */
         return;
@@ -2532,7 +2334,7 @@ void do_cmd_fountain(struct player *p, int item)
         apply_magic(p, c, obj, p->wpos.depth, false, false, false, false);
 
         /* Drop it in the dungeon */
-        drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE);
+        drop_near(p, c, &obj, 0, p->py, p->px, true, DROP_FADE);
     }
 
     /* Drink from a fountain */
@@ -2546,7 +2348,7 @@ void do_cmd_fountain(struct player *p, int item)
     if (one_in_(3))
     {
         msg(p, "The fountain suddenly dries up.");
-        square_dry_fountain(c, &p->grid);
+        square_dry_fountain(c, p->py, p->px);
     }
 }
 
@@ -2656,7 +2458,7 @@ void do_cmd_check_players(struct player *p, int line)
         /* Print extra info if these people are not 'red' aka hostile */
         /* Hack -- always show extra info to dungeon master */
         if ((attr != 'r') || (p->dm_flags & DM_SEE_PLAYERS))
-            file_putf(fff, " at %d ft (%d, %d)", q->wpos.depth * 50, q->wpos.grid.x, q->wpos.grid.y);
+            file_putf(fff, " at %d ft (%d, %d)", q->wpos.depth * 50, q->wpos.wx, q->wpos.wy);
 
         /* Newline */
         file_put(fff, "\n");
@@ -2744,46 +2546,6 @@ static int affinity(struct player *p, struct monster_race *race)
 }
 
 
-static bool mimic_druid(struct player *p, struct monster_race *race)
-{
-    if ((p->lev >= 5) && streq(race->name, "cave bear")) return true;
-    if ((p->lev >= 5) && streq(race->name, "panther")) return true;
-    if ((p->lev >= 10) && streq(race->name, "grizzly bear")) return true;
-    if ((p->lev >= 10) && streq(race->name, "yeti")) return true;
-    if ((p->lev >= 15) && streq(race->name, "griffon")) return true;
-    if ((p->lev >= 15) && streq(race->name, "sasquatch")) return true;
-    if ((p->lev >= 20) && streq(race->name, "werebear")) return true;
-    if ((p->lev >= 20) && streq(race->name, "great eagle")) return true;
-    if ((p->lev >= 20) && streq(race->name, "aranea")) return true;
-    if ((p->lev >= 25) && streq(race->name, "wyvern")) return true;
-    if ((p->lev >= 25) && streq(race->name, "multi-hued hound")) return true;
-    if ((p->lev >= 30) && streq(race->name, "5-headed hydra")) return true;
-    if ((p->lev >= 30) && streq(race->name, "minotaur")) return true;
-    if ((p->lev >= 35) && streq(race->name, "7-headed hydra")) return true;
-    if ((p->lev >= 35) && streq(race->name, "plasma hound")) return true;
-    if ((p->lev >= 35) && streq(race->name, "elder aranea")) return true;
-    if ((p->lev >= 40) && streq(race->name, "11-headed hydra")) return true;
-    if ((p->lev >= 40) && streq(race->name, "giant roc")) return true;
-    if ((p->lev >= 45) && streq(race->name, "maulotaur")) return true;
-    if ((p->lev >= 45) && streq(race->name, "winged horror")) return true;
-    if ((p->lev == 50) && streq(race->name, "jabberwock")) return true;
-    if ((p->lev == 50) && streq(race->name, "aether hound")) return true;
-    return false;
-}
-
-
-static bool mimic_necro(struct player *p, struct monster_race *race)
-{
-    if ((p->lev >= 5) && streq(race->name, "fruit bat")) return true;
-    if ((p->lev >= 15) && streq(race->name, "vampire bat")) return true;
-    if ((p->lev >= 25) && streq(race->name, "vampire")) return true;
-    if ((p->lev >= 35) && streq(race->name, "master vampire")) return true;
-    if ((p->lev >= 45) && streq(race->name, "vampire lord")) return true;
-    if ((p->lev >= 50) && streq(race->name, "elder vampire")) return true;
-    return false;
-}
-
-
 void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, bool domsg)
 {
     const char *prefix = "";
@@ -2859,25 +2621,13 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
     /* Check required kill count */
     if (check_kills)
     {
-        bool learnt;
+        struct monster_lore *lore = get_lore(p, race);
+        int rkills = 1;
 
-        /* Hack -- druid and necromancer */
-        if (player_has(p, PF_CHARM))
-            learnt = mimic_druid(p, race);
-        else if (player_has(p, PF_UNLIGHT))
-            learnt = mimic_necro(p, race);
-        else
-        {
-            struct monster_lore *lore = get_lore(p, race);
-            int rkills = 1;
+        /* Perfect affinity lowers the requirement to half of the required kills */
+        if (lore->pkills) rkills = ((race->level * (200 - affinity(p, race))) / 200);
 
-            /* Perfect affinity lowers the requirement to half of the required kills */
-            if (lore->pkills) rkills = ((race->level * (200 - affinity(p, race))) / 200);
-
-            learnt = (lore->pkills >= rkills);
-        }
-
-        if (!learnt)
+        if (lore->pkills < rkills)
         {
             if (domsg)
                 msg(p, "You have not learned that form yet.");
@@ -2906,7 +2656,7 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
         player_clear_timed(p, TMD_WRAITHFORM, true);
 
     /* Invisibility */
-    if (race_is_invisible(race))
+    if (monster_is_invisible(race))
     {
         p->timed[TMD_INVIS] = -1;
         p->upkeep->update |= PU_MONSTERS;
@@ -2998,12 +2748,16 @@ void do_cmd_check_poly(struct player *p, int line)
         bool ok;
 
         race = &r_info[k];
+        lore = get_lore(p, race);
 
         /* Skip non-entries */
         if (!race->name) continue;
 
         /* Only print non uniques */
         if (monster_is_unique(race)) continue;
+
+        /* Only display "known" races */
+        if (!lore->pkills) continue;
 
         /* Check if the input is a symbol */
         if (strlen(p->tempbuf) == 1)
@@ -3028,45 +2782,20 @@ void do_cmd_check_poly(struct player *p, int line)
 
         if (!ok) continue;
 
-        /* Hack -- druid and necromancer */
-        if (player_has(p, PF_CHARM))
-        {
-            if (mimic_druid(p, race))
-            {
-                file_putf(fff, "G[%d] %s (learnt)\n", k, race->name);
-                total++;
-            }
-        }
-        else if (player_has(p, PF_UNLIGHT))
-        {
-            if (mimic_necro(p, race))
-            {
-                file_putf(fff, "G[%d] %s (learnt)\n", k, race->name);
-                total++;
-            }
-        }
+        /* Perfect affinity lowers the requirement to half of the required kills */
+        aff = affinity(p, race);
+        rkills = ((race->level * (200 - aff)) / 200);
+
+        /* Check required kill count */
+        if (lore->pkills >= rkills)
+            file_putf(fff, "G[%d] %s: %d (learnt)\n", k, race->name, lore->pkills);
         else
         {
-            lore = get_lore(p, race);
-
-            /* Only display "known" races */
-            if (!lore->pkills) continue;
-
-            /* Perfect affinity lowers the requirement to half of the required kills */
-            aff = affinity(p, race);
-            rkills = ((race->level * (200 - aff)) / 200);
-
-            /* Check required kill count */
-            if (lore->pkills >= rkills)
-                file_putf(fff, "G[%d] %s: %d (learnt)\n", k, race->name, lore->pkills);
-            else
-            {
-                file_putf(fff, "w[%d] %s: %d (%d more to go, affinity = %d%%)\n", k, race->name,
-                    lore->pkills, rkills - lore->pkills, aff);
-            }
-
-            total++;
+            file_putf(fff, "w[%d] %s: %d (%d more to go, affinity = %d%%)\n", k, race->name,
+                lore->pkills, rkills - lore->pkills, aff);
         }
+
+        total++;
     }
 
     if (!total) file_put(fff, "wNothing so far.\n");
@@ -3075,7 +2804,7 @@ void do_cmd_check_poly(struct player *p, int line)
     file_close(fff);
 
     /* Display the file contents */
-    show_file(p, file_name, (player_has(p, PF_MONSTER_SPELLS)? "Killed List": "Forms"), line, 1);
+    show_file(p, file_name, "Killed List", line, 1);
 
     /* Remove the file */
     file_delete(file_name);

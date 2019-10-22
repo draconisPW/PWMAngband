@@ -50,7 +50,7 @@ int breakage_chance(const struct object *obj, bool hit_target)
  * Determine if the player "hits" a monster with a missile.
  */
 static int chance_of_missile_hit(struct player *p, struct object *missile,
-    struct object *launcher, struct loc *grid)
+    struct object *launcher, int y, int x)
 {
     int bonus = p->state.to_h + missile->to_h;
     int chance;
@@ -66,7 +66,7 @@ static int chance_of_missile_hit(struct player *p, struct object *missile,
     else
         chance = p->state.skills[SKILL_TO_HIT_THROW] + bonus * BTH_PLUS_ADJ;
 
-    return chance - distance(&p->grid, grid);
+    return chance - distance(p->py, p->px, y, x);
 }
 
 
@@ -304,7 +304,7 @@ static void blow_side_effects(struct player *p, struct source *target,
     }
 
     /* Apply Shadow Touch */
-    if (p->timed[TMD_ATT_VAMP] && target->monster && monster_is_living(target->monster))
+    if (p->timed[TMD_TOUCH] && target->monster && !monster_is_nonliving(target->monster->race))
     {
         int drain = ((d_dam > target->monster->hp)? target->monster->hp: d_dam);
 
@@ -312,9 +312,9 @@ static void blow_side_effects(struct player *p, struct source *target,
     }
 
     /* Confusion attack */
-    if (p->timed[TMD_ATT_CONF])
+    if (p->confusing)
     {
-        player_clear_timed(p, TMD_ATT_CONF, true);
+        p->confusing = false;
         msg(p, "Your hands stop glowing.");
         do_conf = true;
     }
@@ -503,152 +503,9 @@ static void blow_side_effects(struct player *p, struct source *target,
 
 
 /*
- * Apply knock back from powerful blows
- */
-static bool blow_knock_back(struct player *p, struct chunk *c, struct source *origin, int dmg,
-    bool *fear)
-{
-    int power = (p->state.num_blows - 100) / 100;
-    struct loc target, grid, offset;
-    char df[160];
-
-    /* Not enough power left */
-    if (!power) return false;
-
-    strnfmt(df, sizeof(df), "was brutally murdered by %s", p->name);
-
-    origin_get_loc(&target, origin);
-    loc_copy(&grid, &target);
-    loc_diff(&offset, &grid, &p->grid);
-
-    /* Forced backwards until power runs out */
-    while (power > 0)
-    {
-        /* Move back a square */
-        grid.y += offset.y;
-        grid.x += offset.x;
-
-        /* React differently depending on the terrain behind the target */
-        if (square_ispassable(c, &grid))
-        {
-            /* Target can't move, give it the remaining damage */
-            if (square_isoccupied(c, &grid))
-            {
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * power, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * power, p->name, false, df))
-                    return true;
-                break;
-            }
-
-            /* Push back a square */
-            monster_swap(c, &target, &grid);
-            power--;
-        }
-        else
-        {
-            bool moved = false;
-
-            /* Deal with impassable terrain */
-            if (!random_level(&p->wpos)) {}
-            else if (square_isdoor(c, &grid) && (power >= 1))
-            {
-                square_open_door(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_isrubble(c, &grid) && (power >= 1))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_ismagma(c, &grid) && (power >= 1))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (square_hasgoldvein(c, &grid))
-                    place_gold(p, c, &grid, object_level(&p->wpos), ORIGIN_FLOOR);
-                if (randint0(20) < power)
-                    effect_simple(EF_EARTHQUAKE, origin, "0", 0, 3, 0, 0, 0, NULL);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_isquartz(c, &grid) && (power >= 2))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (square_hasgoldvein(c, &grid))
-                    place_gold(p, c, &grid, object_level(&p->wpos), ORIGIN_FLOOR);
-                if (randint0(20) < power)
-                    effect_simple(EF_EARTHQUAKE, origin, "0", 0, 3, 0, 0, 0, NULL);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * 2, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * 2, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_isrock(c, &grid) && (power >= 3))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (randint0(20) < power)
-                    effect_simple(EF_EARTHQUAKE, origin, "0", 0, 3, 0, 0, 0, NULL);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * 3, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * 3, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_ismineral_other(c, &grid) && (power >= 1))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-
-            /* Target can't move, give it the remaining damage */
-            if (!moved)
-            {
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * power, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * power, p->name, false, df))
-                    return true;
-                break;
-            }
-        }
-    }
-
-    /* Player needs to stop hitting if the target has moved */
-    return (ABS(target.y - p->grid.y) > 1) || (ABS(target.x - p->grid.x) > 1);
-}
-
-
-/*
  * Apply blow after effects
  */
-static bool blow_after_effects(struct player *p, struct chunk *c, struct loc *grid, bool circle,
+static bool blow_after_effects(struct player *p, struct chunk *c, int y, int x, bool circle,
     int dmg, bool quake)
 {
     bool stop = false;
@@ -660,7 +517,7 @@ static bool blow_after_effects(struct player *p, struct chunk *c, struct loc *gr
         show_monster_messages(p);
 
         /* Target may be dead */
-        if (!square(c, grid)->mon) stop = true;
+        if (!c->squares[y][x].mon) stop = true;
     }
 
     /* Apply earthquake brand */
@@ -670,10 +527,10 @@ static bool blow_after_effects(struct player *p, struct chunk *c, struct loc *gr
         struct source *who = &who_body;
 
         source_player(who, get_player_index(get_connection(p->conn)), p);
-        effect_simple(EF_EARTHQUAKE, who, "0", 0, 10, 0, 0, 0, NULL);
+        effect_simple(EF_EARTHQUAKE, who, "0", 0, 10, 0, NULL);
 
         /* Target may be dead or moved */
-        if (!square(c, grid)->mon) stop = true;
+        if (!c->squares[y][x].mon) stop = true;
     }
 
     return stop;
@@ -717,7 +574,7 @@ int py_attack_hit_chance(struct player *p, const struct object *weapon)
 /* Barehanded attack */
 struct barehanded_attack
 {
-    const char *verb;       /* A verbose attack description */
+    const char *verb;   /* A verbose attack description */
     const char *hit_extra;
     int min_level;          /* Minimum level to use */
     int chance;             /* Chance of failure vs player level */
@@ -774,7 +631,7 @@ static struct barehanded_attack barehanded_attacks[MAX_MA] =
 /*
  * Attack the monster at the given location with a single blow.
  */
-static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
+static bool py_attack_real(struct player *p, struct chunk *c, int y, int x,
     struct delayed_effects *effects)
 {
     size_t i;
@@ -819,7 +676,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     if (obj) my_strcpy(verb, "hit", sizeof(verb));
 
     /* Information about the target of the attack */
-    square_actor(c, grid, target);
+    square_actor(c, y, x, target);
     if (target->monster)
     {
         visible = monster_is_visible(p, target->idx);
@@ -833,7 +690,10 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
 
     /* Extract target name */
     if (target->monster)
-        monster_desc(p, target_name, sizeof(target_name), target->monster, MDESC_TARG);
+    {
+        monster_desc(p, target_name, sizeof(target_name), target->monster,
+            MDESC_OBJE | MDESC_IND_HID | MDESC_PRO_HID);
+    }
     else
     {
         player_desc(p, target_name, sizeof(target_name), target->player, false);
@@ -876,14 +736,6 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         effects->stab_sleep = false;
         msgt(p, MSG_MISS, "You miss %s.", target_name);
         if (target->player) msg(target->player, "%s misses you.", killer_name);
-
-        /* Small chance of bloodlust side-effects */
-        if (p->timed[TMD_BLOODLUST] && one_in_(50))
-        {
-            msg(p, "You feel strange...");
-            player_over_exert(p, PY_EXERT_SCRAMBLE, 20, 20);
-        }
-
         return false;
     }
 
@@ -902,7 +754,10 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         /* Handle polymorphed players + temp branding */
         improve_attack_modifier(p, NULL, target, &best_mult, &seffects, verb, sizeof(verb), false);
 
-        /* Best attack from all slays or brands on all non-launcher equipment */
+        /*
+         * Get the best attack from all slays or
+         * brands on all non-launcher equipment
+         */
         for (i = 2; i < (size_t)p->body.count; i++)
         {
             struct object *equipped = slot_object(p, i);
@@ -1035,7 +890,6 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         else if (obj)
         {
             s16b to_h;
-            int weight = obj->weight * (p->timed[TMD_POWERBLOW]? 2: 1);
 
             /* Handle the weapon itself */
             improve_attack_modifier(p, obj, target, &best_mult, &seffects, verb, sizeof(verb),
@@ -1043,7 +897,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
 
             dmg = melee_damage(p, obj, dice, best_mult, target, effects, &d_dam);
             object_to_h(obj, &to_h);
-            dmg = critical_norm(p, target, weight, to_h, dmg, &msg_type);
+            dmg = critical_norm(p, target, obj->weight, to_h, dmg, &msg_type);
 
             /* Learn by use for the weapon */
             object_notice_attack_plusses(p, obj);
@@ -1119,7 +973,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     blow_side_effects(p, target, effects, &seffects, do_conf, obj, name, do_blind, do_para, do_fear,
         &do_quake, dmg, dice, d_dam, do_slow);
 
-    /* Damage, check for knockback, fear and death */
+    /* Damage, check for fear and death */
     if (target->monster)
         stop = mon_take_hit(p, c, target->monster, dmg, &effects->fear, -2);
     else
@@ -1145,114 +999,13 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         }
     }
 
-    /* Small chance of bloodlust side-effects */
-    if (p->timed[TMD_BLOODLUST] && one_in_(50))
-    {
-        msg(p, "You feel something give way!");
-        player_over_exert(p, PY_EXERT_CON, 20, 0);
-    }
-
-    if (p->timed[TMD_POWERBLOW] && !stop)
-    {
-        stop = blow_knock_back(p, c, target, dmg, &effects->fear);
-
-        /* Small chance of side-effects */
-        if (one_in_(50))
-        {
-            msg(p, "You swing around wildly!");
-            player_over_exert(p, PY_EXERT_CONF, 40, 10);
-        }
-
-        player_clear_timed(p, TMD_POWERBLOW, true);
-    }
-
     if (stop) memset(effects, 0, sizeof(struct delayed_effects));
 
     /* Post-damage effects */
-    if (blow_after_effects(p, c, grid, do_circle, dmg, do_quake))
+    if (blow_after_effects(p, c, y, x, do_circle, dmg, do_quake))
         stop = true;
 
     return stop;
-}
-
-
-/*
- * Attempt a shield bash; return true if the monster dies
- */
-static bool attempt_shield_bash(struct player *p, struct chunk *c, struct monster *mon, bool *fear,
-    int *blows, int num_blows)
-{
-    struct object *weapon = slot_object(p, slot_by_name(p, "weapon"));
-    struct object *shield = slot_object(p, slot_by_name(p, "arm"));
-    int bash_quality, bash_dam;
-
-    /* Bashing chance depends on melee skill, DEX, and a level bonus. */
-    int bash_chance = p->state.skills[SKILL_TO_HIT_MELEE] / 8 +
-        adj_dex_th[p->state.stat_ind[STAT_DEX]] / 2;
-
-    /* No shield, no bash */
-    if (!shield) return false;
-
-    /* Monster is too pathetic, don't bother */
-    if (mon->race->level < p->lev / 2) return false;
-
-    /* Players bash more often when they see a real need: */
-    if (!weapon)
-    {
-        /* Unarmed... */
-        bash_chance *= 4;
-    }
-    else if (weapon->dd * weapon->ds * num_blows < shield->dd * shield->ds * 3)
-    {
-        /* ... or armed with a puny weapon */
-        bash_chance *= 2;
-    }
-
-    /* Try to get in a shield bash. */
-    if (bash_chance > randint0(200 + mon->race->level))
-    {
-        msgt(p, MSG_HIT, "You get in a shield bash!");
-
-        /* Calculate attack quality, a mix of momentum and accuracy. */
-        bash_quality = p->state.skills[SKILL_TO_HIT_MELEE] / 4 + p->wt / 8 +
-            p->upkeep->total_weight / 80 + shield->weight / 2;
-
-        /* Calculate damage. Big shields are deadly. */
-        bash_dam = damroll(shield->dd, shield->ds);
-
-        /* Multiply by quality and experience factors */
-        bash_dam *= bash_quality / 40 + p->lev / 14;
-
-        /* Strength bonus. */
-        bash_dam += adj_str_td[p->state.stat_ind[STAT_STR]];
-
-        /* Paranoia. */
-        bash_dam = MIN(bash_dam, 125);
-
-        /* Encourage the player to keep wearing that heavy shield. */
-        if (randint1(bash_dam) > 30 + randint1(bash_dam / 2))
-            msgt(p, MSG_HIT_HI_SUPERB, "WHAMM!");
-
-        /* Damage, check for fear and death. */
-        if (mon_take_hit(p, c, mon, bash_dam, fear, -2)) return true;
-
-        /* Stunning. */
-        if (bash_quality + p->lev > randint1(200 + mon->race->level * 8))
-            mon_inc_timed(p, mon, MON_TMD_STUN, randint0(p->lev / 5) + 4, 0);
-
-        /* Confusion. */
-        if (bash_quality + p->lev > randint1(300 + mon->race->level * 12))
-            mon_inc_timed(p, mon, MON_TMD_CONF, randint0(p->lev / 5) + 4, 0);
-
-        /* The player will sometimes stumble. */
-        if (35 + adj_dex_th[p->state.stat_ind[STAT_DEX]] < randint1(60))
-        {
-            *blows += randint1(num_blows);
-            msgt(p, MSG_GENERIC, "You stumble!");
-        }
-    }
-
-    return false;
 }
 
 
@@ -1264,13 +1017,13 @@ static bool attempt_shield_bash(struct player *p, struct chunk *c, struct monste
  * We don't allow @ to spend more than 100 energy in one go, to avoid slower
  * monsters getting double moves.
  */
-void py_attack(struct player *p, struct chunk *c, struct loc *grid)
+void py_attack(struct player *p, struct chunk *c, int y, int x)
 {
     int num_blows;
     bool stop = false;
     int blows = 0;
     struct delayed_effects effects;
-    struct monster *mon = square_monster(c, grid);
+    struct monster *mon = square_monster(c, y, x);
     bool visible = (mon && monster_is_visible(p, mon->midx));
 
     memset(&effects, 0, sizeof(effects));
@@ -1297,20 +1050,12 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
     /* Calculate remainder */
     p->state.frac_blow += (p->state.num_blows - num_blows * 100);
 
-    /* Player attempts a shield bash if they can, and if monster is visible and not too pathetic */
-    if (visible && player_has(p, PF_SHIELD_BASH))
-        stop = attempt_shield_bash(p, c, mon, &effects.fear, &blows, num_blows);
-
     /* Take blows until energy runs out or monster dies */
     while ((blows < num_blows) && !stop)
     {
-        stop = py_attack_real(p, c, grid, &effects);
+        stop = py_attack_real(p, c, y, x, &effects);
         blows++;
     }
-
-    /* Player attempts a phantom blow if monster is visible */
-    if (visible && p->timed[TMD_HOLD_WEAPON] && !stop)
-        stop = mon_take_hit(p, c, mon, damroll(p->lev / 7 - 1, 6), &effects.fear, -2);
 
     /* Hack -- delay messages */
     if (visible && !stop)
@@ -1407,6 +1152,83 @@ void un_power(struct player *p, struct source *who, bool* obvious)
             /* Affect only a single inventory slot */
             break;
         }
+    }
+}
+
+
+void eat_item(struct player *p, struct source *who, bool* obvious, int* blinked)
+{
+    int tries;
+
+    /* Find an item */
+    for (tries = 0; tries < 10; tries++)
+    {
+        struct object *obj, *stolen;
+        char o_name[NORMAL_WID];
+        bool split = false;
+        bool none_left = false;
+
+        /* Pick an item */
+        int index = randint0(z_info->pack_size);
+
+        /* Obtain the item */
+        obj = p->upkeep->inven[index];
+
+        /* Skip non-objects */
+        if (obj == NULL) continue;
+
+        /* Skip artifacts */
+        if (obj->artifact) continue;
+
+        /* Skip deeds of property */
+        if (tval_is_deed(obj)) continue;
+
+        /* PvP: can only steal items if they can be carried */
+        if (who->player)
+        {
+            struct object *test = object_new();
+            bool ok = true;
+
+            /* Get a copy with the right "amt" */
+            object_copy_amt(test, obj, 1);
+
+            /* Note that the pack is too full */
+            if (!inven_carry_okay(who->player, test)) ok = false;
+
+            /* Note that the pack is too heavy */
+            else if (!weight_okay(who->player, test)) ok = false;
+
+            object_delete(&test);
+            if (!ok) continue;
+        }
+
+        /* Get a description */
+        object_desc(p, o_name, sizeof(o_name), obj, ODESC_FULL);
+
+        /* Is it one of a stack being stolen? */
+        if (obj->number > 1) split = true;
+
+        /* Message */
+        msg(p, "%s %s (%c) was stolen!", (split? "One of your": "Your"), o_name, I2A(index));
+
+        /* Steal and carry */
+        stolen = gear_object_for_use(p, obj, 1, false, &none_left);
+        if (who->monster)
+        {
+            if (!monster_carry(who->monster, stolen, false))
+                object_delete(&stolen);
+        }
+        else if (who->player)
+            inven_carry(who->player, stolen, true, false);
+
+        /* Obvious */
+        *obvious = true;
+
+        /* Blink away */
+        *blinked = 2;
+
+        /* Done */
+        break;
     }
 }
 
@@ -1546,9 +1368,6 @@ void drop_weapon(struct player *p, int damage)
         return;
     }
 
-    /* We are immune anyway */
-    if (p->timed[TMD_HOLD_WEAPON]) return;
-
     /* Artifacts are safe */
     if (obj->artifact && magik(90)) return;
 
@@ -1559,7 +1378,8 @@ void drop_weapon(struct player *p, int damage)
     if (kf_has(obj->kind->kind_flags, KF_TWO_HANDED) && magik(90)) return;
 
     /* Give an extra chance for comfortable weapons */
-    if (magik(50) && !(p->state.heavy_wield || p->state.cumber_shield)) return;
+    if (magik(50) && !(p->state.heavy_wield || p->state.icky_wield || p->state.cumber_shield))
+        return;
 
     /* Finally give an extra chance for weak blows */
     if (!magik(damage)) return;
@@ -1578,7 +1398,7 @@ void drop_weapon(struct player *p, int damage)
 /*
  * Check for hostility (player vs target).
  */
-static bool pvx_check(struct player *p, struct source *who, u16b feat)
+static bool pvx_check(struct player *p, struct source *who, byte feat)
 {
     /* Player here */
     if (who->player)
@@ -1679,19 +1499,19 @@ static void wipe_delayed_ranged_effects(ranged_effects **effects, struct monster
 /*
  * Find the attr/char pair to use for a missile.
  *
- * It is moving (or has moved) from start to end.
+ * It is moving (or has moved) from (x, y) to (nx, ny).
  */
-static void missile_pict(struct player *p, const struct object *obj, struct loc *start,
-    struct loc *end, byte *a, char *c)
+static void missile_pict(struct player *p, const struct object *obj, int y, int x,
+    int ny, int nx, byte *a, char *c)
 {
     int arrow_type = (kf_has(obj->kind->kind_flags, KF_AMMO_NORMAL)? PROJ_ARROW_2: PROJ_ARROW_X);
     int bolt_type = (kf_has(obj->kind->kind_flags, KF_AMMO_NORMAL)? PROJ_ARROW_3: PROJ_ARROW_4);
 
     /* Get a nice missile picture for arrows and bolts */
     if (tval_is_arrow(obj))
-        bolt_pict(p, start, end, arrow_type, a, c);
+        bolt_pict(p, y, x, ny, nx, arrow_type, a, c);
     else if (tval_is_bolt(obj))
-        bolt_pict(p, start, end, bolt_type, a, c);
+        bolt_pict(p, y, x, ny, nx, bolt_type, a, c);
     else
     {
         /* Default to object picture */
@@ -1719,7 +1539,7 @@ static const struct hit_types ranged_hit_types[] =
  * logic, while using the 'attack' parameter to do work particular to each
  * kind of attack.
  */
-static int ranged_helper(struct player *p, struct object *obj, int dir, int range, int num_shots,
+static bool ranged_helper(struct player *p, struct object *obj, int dir, int range, int shots,
     ranged_attack attack, const struct hit_types *hit_types, int num_types, bool magic, bool pierce,
     bool ranged_effect)
 {
@@ -1727,33 +1547,35 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
     char o_name[NORMAL_WID];
     int path_n;
     struct loc path_g[256];
-    struct loc grid, target;
+
+    /* Start at the player */
+    int x = p->px;
+    int y = p->py;
+
+    /* Predict the "target" location */
+    int ty = y + 99 * ddy[dir];
+    int tx = x + 99 * ddx[dir];
+
     bool hit_target = false;
     struct object *missile;
-    int shots = 0;
+    int num = 0;
     bool dead = false;
     ranged_effects *effects = NULL, *current;
     struct chunk *c = chunk_get(&p->wpos);
 
-    /* Start at the player */
-    loc_copy(&grid, &p->grid);
-
-    /* Predict the "target" location */
-    loc_init(&target, grid.x + 99 * ddx[dir], grid.y + 99 * ddy[dir]);
-
     /* Check for target validity */
-    if ((dir == DIR_TARGET) && target_okay(p))
+    if ((dir == 5) && target_okay(p))
     {
         int taim;
 
-        target_get(p, &target);
+        target_get(p, &tx, &ty);
 
         /* Check distance */
-        taim = distance(&grid, &target);
+        taim = distance(y, x, ty, tx);
         if (taim > range)
         {
             msg(p, "Target out of range by %d squares.", taim - range);
-            return 0;
+            return false;
         }
     }
 
@@ -1767,20 +1589,19 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
     use_energy(p);
 
     /* Attack once for each legal shot */
-    while (shots < num_shots)
+    while (num++ < shots)
     {
-        struct loc ball;
+        int by = -1, bx = -1;
         struct source who_body;
         struct source *who = &who_body;
         bool none_left = false;
 
-        loc_init(&ball, -1, -1);
-
         /* Start at the player */
-        loc_copy(&grid, &p->grid);
+        y = p->py;
+        x = p->px;
 
         /* Calculate the path */
-        path_n = project_path(NULL, path_g, range, c, &grid, &target, (pierce? PROJECT_THRU: 0));
+        path_n = project_path(NULL, path_g, range, c, y, x, ty, tx, (pierce? PROJECT_THRU: 0));
 
         /* Hack -- handle stuff */
         handle_stuff(p);
@@ -1788,22 +1609,24 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
         /* Project along the path */
         for (i = 0; i < path_n; ++i)
         {
+            int ny = path_g[i].y;
+            int nx = path_g[i].x;
             struct missile data;
 
             /* Hack -- disable throwing through open house door */
-            if (square_home_isopendoor(c, &path_g[i])) break;
+            if (square_home_isopendoor(c, ny, nx)) break;
 
             /* Hack -- stop before hitting walls */
-            if (!square_ispassable(c, &path_g[i]) && !square_isprojectable(c, &path_g[i]))
+            if (!square_ispassable(c, ny, nx) && !square_isprojectable(c, ny, nx))
             {
                 /* Special case: potion VS house door */
-                if (tval_is_potion(obj) && square_home_iscloseddoor(c, &path_g[i]))
+                if (tval_is_potion(obj) && square_home_iscloseddoor(c, ny, nx))
                 {
                     /* Break it */
                     hit_target = true;
 
                     /* Find suitable color */
-                    colorize_door(p, obj->kind, c, &path_g[i]);
+                    colorize_door(p, obj->kind, c, ny, nx);
                 }
 
                 /* Done */
@@ -1811,18 +1634,17 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
             }
 
             /* Get missile picture */
-            missile_pict(p, obj, &grid, &path_g[i], &data.mattr, &data.mchar);
+            missile_pict(p, obj, y, x, ny, nx, &data.mattr, &data.mchar);
 
             /* Advance */
-            loc_copy(&grid, &path_g[i]);
+            data.x = x = nx;
+            data.y = y = ny;
 
-            /* Tell the UI to display the missile */
-            loc_copy(&data.grid, &path_g[i]);
             display_missile(c, &data);
 
             /* Don't allow if not hostile */
-            square_actor(c, &grid, who);
-            if (!pvx_check(p, who, square(c, &grid)->feat))
+            square_actor(c, y, x, who);
+            if (!pvx_check(p, who, c->squares[y][x].feat))
                 memset(who, 0, sizeof(struct source));
 
             /* Try the attack on the target at (x, y) if any */
@@ -1832,7 +1654,7 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
                 bool fear = false;
                 char m_name[NORMAL_WID];
                 int note_dies = MON_MSG_DIE;
-                struct attack_result result = attack(p, obj, &grid);
+                struct attack_result result = attack(p, obj, y, x);
                 int dmg = result.dmg;
                 u32b msg_type = result.msg_type;
                 const char *verb = result.verb;
@@ -2012,7 +1834,10 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
 
                     /* Add a nice ball if needed */
                     if (ranged_effect && p->timed[TMD_BOWBRAND] && p->brand.blast)
-                        loc_copy(&ball, &grid);
+                    {
+                        bx = x;
+                        by = y;
+                    }
 
                     /* Take note */
                     if (!dead && fear)
@@ -2036,11 +1861,11 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
             }
 
             /* Stop if non-projectable but passable */
-            if (!square_isprojectable(c, &path_g[i])) break;
+            if (!square_isprojectable(c, ny, nx)) break;
         }
 
         /* Ball effect */
-        if ((ball.y >= 0) && (ball.x >= 0))
+        if ((by >= 0) && (bx >= 0))
         {
             int p_flag = PROJECT_JUMP | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL | PROJECT_PLAY;
             struct source act_body;
@@ -2049,7 +1874,7 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
             source_player(p_act, get_player_index(get_connection(p->conn)), p);
 
             p->current_sound = -2;
-            project(p_act, 2, c, &ball, p->brand.dam, p->brand.type, p_flag, 0, 0, "killed");
+            project(p_act, 2, c, by, bx, p->brand.dam, p->brand.type, p_flag, 0, 0, "killed");
             p->current_sound = -1;
         }
 
@@ -2069,10 +1894,8 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
             if (newbies_cannot_drop(p)) j = 100;
 
             /* Drop (or break) near that location */
-            drop_near(p, c, &missile, j, &grid, true, DROP_FADE);
+            drop_near(p, c, &missile, j, y, x, true, DROP_FADE);
         }
-
-        shots++;
 
         /* Stop if dead */
         if (dead && !pierce) break;
@@ -2098,18 +1921,18 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
         effects = current;
     }
 
-    return shots;
+    return true;
 }
 
 
 /*
  * Helper function used with ranged_helper by do_cmd_fire.
  */
-static struct attack_result make_ranged_shot(struct player *p, struct object *ammo, struct loc *grid)
+static struct attack_result make_ranged_shot(struct player *p, struct object *ammo, int y, int x)
 {
     struct attack_result result;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
-    int chance = chance_of_missile_hit(p, ammo, bow, grid);
+    int chance = chance_of_missile_hit(p, ammo, bow, y, x);
     int multiplier = p->state.ammo_mult;
     int best_mult = 1;
     struct chunk *c = chunk_get(&p->wpos);
@@ -2122,7 +1945,7 @@ static struct attack_result make_ranged_shot(struct player *p, struct object *am
     my_strcpy(result.verb, "hits", sizeof(result.verb));
 
     /* Target info */
-    square_actor(c, grid, target);
+    square_actor(c, y, x, target);
     if (target->monster)
     {
         visible = monster_is_visible(p, target->idx);
@@ -2161,10 +1984,10 @@ static struct attack_result make_ranged_shot(struct player *p, struct object *am
 /*
  * Helper function used with ranged_helper by do_cmd_throw.
  */
-static struct attack_result make_ranged_throw(struct player *p, struct object *obj, struct loc *grid)
+static struct attack_result make_ranged_throw(struct player *p, struct object *obj, int y, int x)
 {
     struct attack_result result;
-    int chance = chance_of_missile_hit(p, obj, NULL, grid);
+    int chance = chance_of_missile_hit(p, obj, NULL, y, x);
     int multiplier = 1;
     int best_mult = 1;
     struct chunk *c = chunk_get(&p->wpos);
@@ -2178,7 +2001,7 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
     my_strcpy(result.verb, "hits", sizeof(result.verb));
 
     /* Target info */
-    square_actor(c, grid, target);
+    square_actor(c, y, x, target);
     if (target->monster)
     {
         visible = monster_is_visible(p, target->idx);
@@ -2217,7 +2040,7 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
 bool do_cmd_fire(struct player *p, int dir, int item)
 {
     int range = MIN(6 + 2 * p->state.ammo_mult, z_info->max_range);
-    int num_shots, shots;
+    int shots = p->state.num_shots;
     ranged_attack attack = make_ranged_shot;
     struct object *obj = object_from_index(p, item, true, true);
     bool magic, pierce;
@@ -2253,13 +2076,6 @@ bool do_cmd_fire(struct player *p, int dir, int item)
         return false;
     }
 
-    /* Must meet level requirement */
-    if (!object_is_carried(p, obj) && !has_level_req(p, obj))
-    {
-        msg(p, "You don't have the required level!");
-        return false;
-    }
-
     /* Paranoia: requires a proper missile */
     if (obj->tval != p->state.ammo_tval) return false;
 
@@ -2278,7 +2094,7 @@ bool do_cmd_fire(struct player *p, int dir, int item)
     }
 
     /* Never in wrong house */
-    if (!check_store_drop(p))
+    if (!check_store_drop(p, obj))
     {
         msg(p, "You cannot fire this here.");
         return false;
@@ -2291,39 +2107,19 @@ bool do_cmd_fire(struct player *p, int dir, int item)
     player_confuse_dir(p, &dir);
 
     /* Only fire in direction 5 if we have a target */
-    if ((dir == DIR_TARGET) && !target_okay(p)) return false;
+    if ((dir == 5) && !target_okay(p)) return false;
 
     magic = of_has(obj->flags, OF_AMMO_MAGIC);
-    pierce = (has_bowbrand(p, PROJ_ARROW_X, false) ||
-        (p->timed[TMD_POWERSHOT] && tval_is_sharp_missile(obj)));
+    pierce = has_bowbrand(p, PROJ_ARROW_X, false);
 
     /* Temporary "Farsight" */
     if (p->timed[TMD_FARSIGHT]) range += (p->lev - 7) / 10;
 
-    /* Calculate number of shots */
-    num_shots = (p->state.num_shots + p->state.frac_shot) / 10;
-
     /* Check if we have enough missiles */
-    if (!magic && (num_shots > obj->number)) num_shots = obj->number;
+    if (!magic && (shots > obj->number)) shots = obj->number;
 
-    /* Calculate remainder */
-    p->state.frac_shot += (p->state.num_shots - num_shots * 10);
-
-    /* Take shots until energy runs out or monster dies */
-    shots = ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
+    return ranged_helper(p, obj, dir, range, shots, attack, ranged_hit_types,
         (int)N_ELEMENTS(ranged_hit_types), magic, pierce, true);
-
-    /* Terminate piercing */
-    if (p->timed[TMD_POWERSHOT]) player_clear_timed(p, TMD_POWERSHOT, true);
-
-    /* Carry over the remaining energy to the next turn */
-    p->state.frac_shot += (num_shots - shots) * 10;
-
-    /* Hack -- limit to ONE turn */
-    if (p->state.frac_shot > p->state.num_shots)
-        p->state.frac_shot = p->state.num_shots;
-
-    return ((shots > 0)? true: false);
 }
 
 
@@ -2332,7 +2128,7 @@ bool do_cmd_fire(struct player *p, int dir, int item)
  */
 void do_cmd_throw(struct player *p, int dir, int item)
 {
-    int num_shots = 1;
+    int shots = 1;
     int str = adj_str_blow[p->state.stat_ind[STAT_STR]];
     ranged_attack attack = make_ranged_throw;
     int weight;
@@ -2371,13 +2167,6 @@ void do_cmd_throw(struct player *p, int dir, int item)
         return;
     }
 
-    /* Must meet level requirement */
-    if (!object_is_carried(p, obj) && !has_level_req(p, obj))
-    {
-        msg(p, "You don't have the required level!");
-        return;
-    }
-
     /* Check preventive inscription '!v' */
     if (object_prevent_inscription(p, obj, INSCRIPTION_THROW, false))
     {
@@ -2402,7 +2191,7 @@ void do_cmd_throw(struct player *p, int dir, int item)
     }
 
     /* Never in wrong house */
-    if (!check_store_drop(p))
+    if (!check_store_drop(p, obj))
     {
         msg(p, "You cannot throw this here.");
         return;
@@ -2414,7 +2203,7 @@ void do_cmd_throw(struct player *p, int dir, int item)
     /* Apply confusion */
     player_confuse_dir(p, &dir);
 
-    ranged_helper(p, obj, dir, range, num_shots, attack, melee_hit_types,
+    ranged_helper(p, obj, dir, range, shots, attack, melee_hit_types,
         (int)N_ELEMENTS(melee_hit_types), magic, false, false);
 }
 
@@ -2425,7 +2214,7 @@ void do_cmd_throw(struct player *p, int dir, int item)
 bool do_cmd_fire_at_nearest(struct player *p)
 {
     /* The direction '5' means 'use the target' */
-    int i, dir = DIR_TARGET;
+    int i, dir = 5;
     struct object *ammo = NULL;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
 
@@ -2433,7 +2222,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     if (!p->firing_request) return true;
 
     /* Check energy */
-    if (!has_energy(p, true)) return false;
+    if (!has_energy(p)) return false;
 
     /* Require a usable launcher */
     if (!bow && (p->state.ammo_tval != TV_ROCK))

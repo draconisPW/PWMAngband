@@ -358,26 +358,13 @@ static bool describe_misc_magic(struct player *p, const bitflag flags[OF_SIZE])
 static bool describe_slays(struct player *p, const struct object *obj, bool fulldesc)
 {
     int i, count = 0;
-    bool *s = obj->known->slays, *known_slays = NULL;
-    bool weapon = (tval_is_melee_weapon(obj) || tval_is_mstaff(obj));
+    bool *s = obj->known->slays;
 
-    copy_slays(&known_slays, s);
-
-    /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->slay_max; i++)
-        {
-            if (!player_has_temporary_slay(p, i)) continue;
-            append_slay(&known_slays, i);
-        }
-    }
-
-    if (!known_slays) return false;
+    if (!s) return false;
 
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (known_slays[i]) count++;
+        if (s[i]) count++;
     }
 
     my_assert(count >= 1);
@@ -387,7 +374,7 @@ static bool describe_slays(struct player *p, const struct object *obj, bool full
 
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (!known_slays[i]) continue;
+        if (!s[i]) continue;
         text_out(p, slays[i].name);
         if (slays[i].multiplier > 3) text_out(p, " (powerfully)");
         if (count > 1) text_out(p, ", ");
@@ -395,7 +382,6 @@ static bool describe_slays(struct player *p, const struct object *obj, bool full
         count--;
     }
 
-    mem_free(known_slays);
     return true;
 }
 
@@ -424,14 +410,8 @@ static bool describe_brands(struct player *p, const struct object *obj, bool ful
         append_brand(&known_brands, get_bow_brand(&p->brand));
 
     /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->brand_max; i++)
-        {
-            if (!player_has_temporary_brand(p, i)) continue;
-            append_brand(&known_brands, i);
-        }
-    }
+    if (weapon && p->timed[TMD_SGRASP])
+        append_brand(&known_brands, get_brand("lightning", 3));
 
     if (!known_brands) return false;
 
@@ -838,7 +818,7 @@ static int calc_damage(struct player *p, struct player_state *state, const struc
 
     /* Apply number of blows/shots per round */
     if (weapon) dam = (dam * state->num_blows) / 100;
-    else dam = (dam * p->state.num_shots) / 10;
+    else dam *= p->state.num_shots;
 
     return dam;
 }
@@ -897,30 +877,14 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
         append_brand(&total_brands, get_bow_brand(&p->brand));
 
     /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->brand_max; i++)
-        {
-            if (!player_has_temporary_brand(p, i)) continue;
-            append_brand(&total_brands, i);
-        }
-    }
+    if (weapon && p->timed[TMD_SGRASP])
+        append_brand(&total_brands, get_brand("lightning", 3));
 
     /* Get the slays */
     total_slays = mem_zalloc(z_info->slay_max * sizeof(bool));
     copy_slays(&total_slays, obj->known->slays);
     if (ammo && known_bow)
         copy_slays(&total_slays, known_bow->slays);
-
-    /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->slay_max; i++)
-        {
-            if (!player_has_temporary_slay(p, i)) continue;
-            append_slay(&total_slays, i);
-        }
-    }
 
     /* Melee weapons may get slays and brands from other items */
     *nonweap_slay = false;
@@ -1145,8 +1109,8 @@ static bool describe_combat(struct player *p, const struct object *obj)
     /* Missile: shots/round and range */
     else
     {
-        text_out_c(p, COLOUR_L_GREEN, "%d.%d ", p->state.num_shots / 10, p->state.num_shots % 10);
-        text_out(p, "shot%s/round.\n", ((p->state.num_shots > 10)? "s": ""));
+        text_out_c(p, COLOUR_L_GREEN, "%d ", p->state.num_shots);
+        text_out(p, "shot%s/round.\n", PLURAL(p->state.num_shots));
         text_out(p, "Hits targets up to ");
         text_out_c(p, COLOUR_L_GREEN, "%d", range * 10);
         text_out(p, " feet away.\n");
@@ -1365,19 +1329,6 @@ static bool describe_light(struct player *p, const struct object *obj, int mode)
     }
 
     text_out(p, "\n");
-
-    return true;
-}
-
-
-/*
- * Describe readable books.
- */
-static bool describe_book(struct player *p, const struct object *obj)
-{
-    if (!obj_can_browse(p, obj)) return false;
-
-    text_out(p, "You can read this book.\n");
 
     return true;
 }
@@ -1613,6 +1564,10 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
 
                 /* Use dice string */
                 case EFINFO_CONST:
+                /* PWMAngband: just use dice string since it's only used for objects */
+                case EFINFO_TELE:
+                /* PWMAngband: using dice string as radius because it's not always a constant */
+                case EFINFO_QUAKE:
                 {
                     strnfmt(desc, sizeof(desc), effect_desc(effect), dice_string);
                     break;
@@ -1622,7 +1577,7 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 case EFINFO_CURE:
                 {
                     strnfmt(desc, sizeof(desc), effect_desc(effect),
-                        timed_effects[effect->subtype].desc);
+                        timed_effects[effect->params[0]].desc);
                     break;
                 }
 
@@ -1630,7 +1585,7 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 case EFINFO_TIMED:
                 {
                     strnfmt(desc, sizeof(desc), effect_desc(effect),
-                        timed_effects[effect->subtype].desc, dice_string);
+                        timed_effects[effect->params[0]].desc, dice_string);
                     break;
                 }
 
@@ -1638,48 +1593,21 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 case EFINFO_STAT:
                 {
                     strnfmt(desc, sizeof(desc), effect_desc(effect),
-                        lookup_obj_property(OBJ_PROPERTY_STAT, effect->subtype)->name);
-                    break;
-                }
-
-                /* PWMAngband: restore original description (spell effect description + dice string) */
-                case EFINFO_SEEN:
-                {
-                    const char *proj_desc = projections[effect->subtype].desc;
-
-                    /* Hack -- some effects have a duration */
-                    if (strstr(proj_desc, "%s"))
-                    {
-                        char tmp[100];
-
-                        strnfmt(tmp, sizeof(tmp), proj_desc, dice_string);
-                        strnfmt(desc, sizeof(desc), effect_desc(effect), tmp);
-                    }
-                    else
-                        strnfmt(desc, sizeof(desc), effect_desc(effect), proj_desc);
+                        lookup_obj_property(OBJ_PROPERTY_STAT, effect->params[0])->name);
                     break;
                 }
 
                 /* Summon effect description */
                 case EFINFO_SUMM:
                 {
-                    strnfmt(desc, sizeof(desc), effect_desc(effect), summon_desc(effect->subtype));
+                    strnfmt(desc, sizeof(desc), effect_desc(effect), summon_desc(effect->params[0]));
                     break;
                 }
 
-                /* PWMAngband: just use dice string since it's only used for objects */
-                case EFINFO_TELE:
+                /* PWMAngband: restore original description (reverse radius and dice string) */
+                case EFINFO_LIGHT:
                 {
-                    strnfmt(desc, sizeof(desc), effect_desc(effect), dice_string);
-                    break;
-                }
-
-                /* PWMAngband: using dice string or radius because it's not always a constant */
-                case EFINFO_QUAKE:
-                {
-                    if (effect->radius)
-                        strnfmt(dice_string, sizeof(dice_string), "{%d}", effect->radius);
-                    strnfmt(desc, sizeof(desc), effect_desc(effect), dice_string);
+                    strnfmt(desc, sizeof(desc), effect_desc(effect), effect->params[1], dice_string);
                     break;
                 }
 
@@ -1687,8 +1615,8 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 /* PWMAngband: restore original description (reverse radius and description) */
                 case EFINFO_BALL:
                 {
-                    strnfmt(desc, sizeof(desc), effect_desc(effect), effect->radius,
-                        projections[effect->subtype].desc, dice_string);
+                    strnfmt(desc, sizeof(desc), effect_desc(effect), effect->params[1],
+                        projections[effect->params[0]].desc, dice_string);
                     if (boost)
                     {
                         my_strcat(desc,
@@ -1703,14 +1631,17 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 case EFINFO_BREATH:
                 {
                     strnfmt(desc, sizeof(desc), effect_desc(effect),
-                        projections[effect->subtype].desc, dice_string);
+                        projections[effect->params[0]].desc, dice_string);
                     break;
                 }
 
                 /* Bolts that inflict status */
                 case EFINFO_BOLT:
+                /* PWMAngband: restore original description (spell effect description + dice string) */
+                case EFINFO_SEEN:
+                case EFINFO_TOUCH:
                 {
-                    const char *proj_desc = projections[effect->subtype].desc;
+                    const char *proj_desc = projections[effect->params[0]].desc;
 
                     /* Hack -- some effects have a duration */
                     if (strstr(proj_desc, "%s"))
@@ -1729,37 +1660,13 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 case EFINFO_BOLTD:
                 {
                     strnfmt(desc, sizeof(desc), effect_desc(effect),
-                        projections[effect->subtype].desc, dice_string);
+                        projections[effect->params[0]].desc, dice_string);
                     if (boost)
                     {
                         my_strcat(desc,
                             format(", which your device skill increases by {%d} percent", boost),
                             sizeof(desc));
                     }
-                    break;
-                }
-
-                /* PWMAngband: restore original description (spell effect description + dice string) */
-                case EFINFO_TOUCH:
-                {
-                    const char *proj_desc = projections[effect->subtype].desc;
-
-                    /* Hack -- some effects have a duration */
-                    if (strstr(proj_desc, "%s"))
-                    {
-                        char tmp[100];
-
-                        strnfmt(tmp, sizeof(tmp), proj_desc, dice_string);
-                        strnfmt(desc, sizeof(desc), effect_desc(effect), tmp);
-                    }
-                    else
-                        strnfmt(desc, sizeof(desc), effect_desc(effect), proj_desc);
-                    break;
-                }
-
-                case EFINFO_TAP:
-                {
-                    strnfmt(desc, sizeof(desc), effect_desc(effect), dice_string);
                     break;
                 }
 
@@ -1776,7 +1683,7 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 {
                     const char *what;
 
-                    switch (effect->radius)
+                    switch (effect->params[1])
                     {
                         case 1: what = "a weapon's to-hit bonus"; break;
                         case 2: what = "a weapon's to-dam bonus"; break;
@@ -2037,7 +1944,6 @@ static void object_info_out(struct player *p, const struct object *obj, int mode
     if (describe_sustains(p, flags)) something = true;
     if (describe_misc_magic(p, flags_misc)) something = true;
     if (describe_light(p, obj, mode)) something = true;
-    if (describe_book(p, obj)) something = true;
     if (describe_esp(p, flags)) something = true;
     if (something) text_out(p, "\n");
 
@@ -2072,20 +1978,6 @@ static void object_info_out(struct player *p, const struct object *obj, int mode
             text_out(p, "\n\nThis item does not seem to possess any special abilities.");
         else if (!origin_or_desc)
             text_out(p, "\n");
-    }
-
-    /* Ownership and level requirement */
-    if (obj->level_req && !terse)
-    {
-        text_out(p, "\n");
-        if (obj->owner > 0)
-        {
-            hash_entry *ptr = lookup_player(obj->owner);
-            const char *owner_name = ((ptr && ht_zero(&ptr->death_turn))? ptr->name: "(deceased)");
-
-            text_out(p, "Owner: %s\n", owner_name);
-        }
-        text_out_c(p, COLOUR_L_RED, "Level requirement: %d", obj->level_req);
     }
 }
 

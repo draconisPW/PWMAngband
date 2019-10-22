@@ -16,7 +16,7 @@
  *    and not for profit purposes provided that this copyright and statement
  *    are included in all such copies.  Other copyrights may also apply.
  */
-
+ 
 
 #include "s-angband.h"
 
@@ -46,7 +46,7 @@ void do_cmd_go_up(struct player *p)
     }
 
     /* Verify stairs */
-    if (!square_isupstairs(c, &p->grid) && !p->ghost && !p->timed[TMD_PROBTRAVEL])
+    if (!square_isupstairs(c, p->py, p->px) && !p->ghost && !p->timed[TMD_PROBTRAVEL])
     {
         msg(p, "I see no up staircase here.");
         return;
@@ -73,7 +73,7 @@ void do_cmd_go_up(struct player *p)
 
     ascend_to = dungeon_get_next_level(p, p->wpos.depth, -1);
 
-    wpos_init(&wpos, &p->wpos.grid, ascend_to);
+    COORDS_SET(&wpos, p->wpos.wy, p->wpos.wx, ascend_to);
 
     /* Hack -- DM redesigning the level */
     if (chunk_inhibit_players(&wpos))
@@ -86,7 +86,7 @@ void do_cmd_go_up(struct player *p)
     use_energy(p);
 
     /* Success */
-    if (square_isupstairs(c, &p->grid))
+    if (square_isupstairs(c, p->py, p->px))
     {
         msgt(p, MSG_STAIRS_UP, "You enter a maze of up staircases.");
         new_level_method = LEVEL_UP;
@@ -110,7 +110,7 @@ void do_cmd_go_down(struct player *p)
     int descend_to;
     byte new_level_method;
     struct chunk *c = chunk_get(&p->wpos);
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+    struct wild_type *w_ptr = get_wt_info_at(p->wpos.wy, p->wpos.wx);
     struct worldpos wpos;
 
     /* Can't go down if no dungeon */
@@ -135,7 +135,7 @@ void do_cmd_go_down(struct player *p)
     }
 
     /* Verify stairs */
-    if (!square_isdownstairs(c, &p->grid) && !p->ghost && !p->timed[TMD_PROBTRAVEL])
+    if (!square_isdownstairs(c, p->py, p->px) && !p->ghost && !p->timed[TMD_PROBTRAVEL])
     {
         msg(p, "I see no down staircase here.");
         return;
@@ -156,16 +156,9 @@ void do_cmd_go_down(struct player *p)
     }
 
     /* Winner-only dungeons */
-    if (forbid_entrance_weak(p))
+    if (forbid_entrance(p))
     {
         msg(p, "You're not powerful enough to enter!");
-        return;
-    }
-
-    /* Shallow dungeons */
-    if (forbid_entrance_strong(p))
-    {
-        msg(p, "You're too powerful to enter!");
         return;
     }
 
@@ -185,7 +178,7 @@ void do_cmd_go_down(struct player *p)
         }
     }
 
-    wpos_init(&wpos, &p->wpos.grid, descend_to);
+    COORDS_SET(&wpos, p->wpos.wy, p->wpos.wx, descend_to);
 
     /* Hack -- DM redesigning the level */
     if (chunk_inhibit_players(&wpos))
@@ -198,7 +191,7 @@ void do_cmd_go_down(struct player *p)
     use_energy(p);
 
     /* Success */
-    if (square_isdownstairs(c, &p->grid))
+    if (square_isdownstairs(c, p->py, p->px))
     {
         msgt(p, MSG_STAIRS_DOWN, "You enter a maze of down staircases.");
         new_level_method = LEVEL_DOWN;
@@ -240,7 +233,7 @@ void do_cmd_toggle_stealth(struct player *p)
 /*
  * Determine if a given grid may be "opened"
  */
-static bool do_cmd_open_test(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_open_test(struct player *p, struct chunk *c, int y, int x)
 {
     /* Ghosts cannot open things */
     if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
@@ -260,14 +253,14 @@ static bool do_cmd_open_test(struct player *p, struct chunk *c, struct loc *grid
     }
 
     /* Must have knowledge */
-    if (!square_isknown(p, grid))
+    if (!square_isknown(p, y, x))
     {
         msg(p, "You see nothing there.");
         return false;
     }
 
     /* Must be a closed door */
-    if (!square_iscloseddoor(c, grid))
+    if (!square_iscloseddoor(c, y, x))
     {
         msgt(p, MSG_NOTHING_TO_OPEN, "You see nothing there to open.");
         return false;
@@ -284,19 +277,19 @@ static bool do_cmd_open_test(struct player *p, struct chunk *c, struct loc *grid
  *
  * Returns true if repeated commands may continue
  */
-static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_open_aux(struct player *p, struct chunk *c, int y, int x)
 {
     int i, j, k;
     bool more = false;
     struct house_type *house;
 
     /* Verify legality */
-    if (!do_cmd_open_test(p, c, grid)) return false;
+    if (!do_cmd_open_test(p, c, y, x)) return false;
 
     /* Player Houses */
-    if (square_home_iscloseddoor(c, grid))
+    if (square_home_iscloseddoor(c, y, x))
     {
-        i = pick_house(&p->wpos, grid);
+        i = pick_house(&p->wpos, y, x);
         house = house_get(i);
 
         /* Tell the DM who owns the house */
@@ -320,24 +313,19 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
                 if (p == q) continue;
 
                 /* Eject any shopper */
-                if (q->player_store_num == i)
+                if ((q->player_store_num == i) && (q->store_num == STORE_PLAYER))
                 {
-                    struct store *s = store_at(q);
-
-                    if (s && (s->type == STORE_PLAYER))
-                    {
-                        msg(q, "The shopkeeper locks the doors.");
-                        Send_store_leave(q);
-                    }
+                    msg(q, "The shopkeeper locks the doors.");
+                    Send_store_leave(q);
                 }
             }
 
             /* Open the door */
-            square_open_homedoor(c, grid);
+            square_open_homedoor(c, y, x);
 
             /* Update the visuals */
-            square_memorize(p, c, grid);
-            square_light_spot_aux(p, c, grid);
+            square_memorize(p, c, y, x);
+            square_light_spot_aux(p, c, y, x);
             update_visuals(&p->wpos);
 
             /* Sound */
@@ -365,7 +353,7 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
     }
 
     /* Locked door */
-    else if (square_islockeddoor(c, grid))
+    else if (square_islockeddoor(c, y, x))
     {
         /* Disarm factor */
         i = p->state.skills[SKILL_DISARM_PHYS];
@@ -375,7 +363,7 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
             i = i / 10;
 
         /* Extract the door power */
-        j = square_door_power(c, grid);
+        j = square_door_power(c, y, x);
 
         /* Extract the difficulty XXX XXX XXX */
         j = i - (j * 4);
@@ -390,11 +378,11 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
             msgt(p, MSG_LOCKPICK, "You have picked the lock.");
 
             /* Open the door */
-            square_open_door(c, grid);
+            square_open_door(c, y, x);
 
             /* Update the visuals */
-            square_memorize(p, c, grid);
-            square_light_spot_aux(p, c, grid);
+            square_memorize(p, c, y, x);
+            square_light_spot_aux(p, c, y, x);
             update_visuals(&p->wpos);
         }
 
@@ -413,11 +401,11 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
     else
     {
         /* Open the door */
-        square_open_door(c, grid);
+        square_open_door(c, y, x);
 
         /* Update the visuals */
-        square_memorize(p, c, grid);
-        square_light_spot_aux(p, c, grid);
+        square_memorize(p, c, y, x);
+        square_light_spot_aux(p, c, y, x);
         update_visuals(&p->wpos);
 
         /* Sound */
@@ -432,10 +420,10 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
 /*
  * Monster or player in the way
  */
-static bool is_blocker(struct player *p, struct chunk *c, struct loc *grid, bool allow_5)
+static bool is_blocker(struct player *p, struct chunk *c, int y, int x, bool allow_5)
 {
-    if (!square(c, grid)->mon) return false;
-    if (!player_is_at(p, grid)) return true;
+    if (!c->squares[y][x].mon) return false;
+    if (!player_is_at(p, y, x)) return true;
     return !allow_5;
 }
 
@@ -443,12 +431,12 @@ static bool is_blocker(struct player *p, struct chunk *c, struct loc *grid, bool
 /*
  * Attack monster or player in the way
  */
-static void attack_blocker(struct player *p, struct chunk *c, struct loc *grid)
+static void attack_blocker(struct player *p, struct chunk *c, int y, int x)
 {
     struct source who_body;
     struct source *who = &who_body;
 
-    square_actor(c, grid, who);
+    square_actor(c, y, x, who);
 
     /* Monster in the way */
     if (who->monster)
@@ -468,7 +456,7 @@ static void attack_blocker(struct player *p, struct chunk *c, struct loc *grid)
             msg(p, "There is a monster in the way!");
 
             /* Attack */
-            if (pvm_check(p, who->monster)) py_attack(p, c, grid);
+            if (pvm_check(p, who->monster)) py_attack(p, c, y, x);
         }
     }
 
@@ -483,8 +471,8 @@ static void attack_blocker(struct player *p, struct chunk *c, struct loc *grid)
         msg(p, "There is a player in the way!");
 
         /* Attack */
-        if (pvp_check(p, who->player, PVP_DIRECT, true, square(c, grid)->feat))
-            py_attack(p, c, grid);
+        if (pvp_check(p, who->player, PVP_DIRECT, true, c->squares[y][x].feat))
+            py_attack(p, c, y, x);
     }
 }
 
@@ -497,7 +485,7 @@ static void attack_blocker(struct player *p, struct chunk *c, struct loc *grid)
  */
 void do_cmd_open(struct player *p, int dir, bool easy)
 {
-    struct loc grid;
+    int y, x;
     struct object *obj;
     bool more = false, allow_5 = false;
     struct chunk *c = chunk_get(&p->wpos);
@@ -508,14 +496,14 @@ void do_cmd_open(struct player *p, int dir, bool easy)
         int n_closed_doors, n_locked_chests;
 
         /* Count closed doors */
-        n_closed_doors = count_feats(p, c, &grid, square_iscloseddoor, false);
+        n_closed_doors = count_feats(p, c, &y, &x, square_iscloseddoor, false);
 
         /* Count chests (locked) */
-        n_locked_chests = count_chests(p, c, &grid, CHEST_OPENABLE);
+        n_locked_chests = count_chests(p, c, &y, &x, CHEST_OPENABLE);
 
         /* Use the last target found */
         if ((n_closed_doors + n_locked_chests) >= 1)
-            dir = motion_dir(&p->grid, &grid);
+            dir = coords_to_dir(p, y, x);
 
         /* If there are chests to open, allow 5 as a direction */
         if (n_locked_chests) allow_5 = true;
@@ -525,13 +513,14 @@ void do_cmd_open(struct player *p, int dir, bool easy)
     if (!dir || !VALID_DIR(dir)) return;
 
     /* Get location */
-    next_grid(&grid, &p->grid, dir);
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
 
     /* Check for chest */
-    obj = chest_check(p, c, &grid, CHEST_OPENABLE);
+    obj = chest_check(p, c, y, x, CHEST_OPENABLE);
 
     /* Check for door */
-    if (!obj && !do_cmd_open_test(p, c, &grid))
+    if (!obj && !do_cmd_open_test(p, c, y, x))
     {
         /* Cancel repeat */
         disturb(p, 0);
@@ -545,23 +534,24 @@ void do_cmd_open(struct player *p, int dir, bool easy)
     if (player_confuse_dir(p, &dir))
     {
         /* Get location */
-        next_grid(&grid, &p->grid, dir);
+        y = p->py + ddy[dir];
+        x = p->px + ddx[dir];
 
         /* Check for chests */
-        obj = chest_check(p, c, &grid, CHEST_OPENABLE);
+        obj = chest_check(p, c, y, x, CHEST_OPENABLE);
     }
 
     /* Something in the way */
-    if (is_blocker(p, c, &grid, allow_5))
-        attack_blocker(p, c, &grid);
+    if (is_blocker(p, c, y, x, allow_5))
+        attack_blocker(p, c, y, x);
 
     /* Chest */
     else if (obj)
-        more = do_cmd_open_chest(p, c, &grid, obj);
+        more = do_cmd_open_chest(p, c, y, x, obj);
 
     /* Door */
     else
-        more = do_cmd_open_aux(p, c, &grid);
+        more = do_cmd_open_aux(p, c, y, x);
 
     /* Cancel repeat unless we may continue */
     if (!more) disturb(p, 0);
@@ -571,7 +561,7 @@ void do_cmd_open(struct player *p, int dir, bool easy)
 /*
  * Determine if a given grid may be "closed"
  */
-static bool do_cmd_close_test(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_close_test(struct player *p, struct chunk *c, int y, int x)
 {
     /* Ghosts cannot close things */
     if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
@@ -604,7 +594,7 @@ static bool do_cmd_close_test(struct player *p, struct chunk *c, struct loc *gri
     }
 
     /* Must have knowledge */
-    if (!square_isknown(p, grid))
+    if (!square_isknown(p, y, x))
     {
         /* Message */
         msg(p, "You see nothing there.");
@@ -614,7 +604,7 @@ static bool do_cmd_close_test(struct player *p, struct chunk *c, struct loc *gri
     }
 
     /* Require open/broken door */
-    if (!square_isopendoor(c, grid) && !square_isbrokendoor(c, grid))
+    if (!square_isopendoor(c, y, x) && !square_isbrokendoor(c, y, x))
     {
         /* Message */
         msg(p, "You see nothing there to close.");
@@ -635,30 +625,30 @@ static bool do_cmd_close_test(struct player *p, struct chunk *c, struct loc *gri
  *
  * Returns true if repeated commands may continue
  */
-static bool do_cmd_close_aux(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_close_aux(struct player *p, struct chunk *c, int y, int x)
 {
     bool more = false;
     int i;
 
     /* Verify legality */
-    if (!do_cmd_close_test(p, c, grid)) return false;
+    if (!do_cmd_close_test(p, c, y, x)) return false;
 
     /* Broken door */
-    if (square_isbrokendoor(c, grid))
+    if (square_isbrokendoor(c, y, x))
         msg(p, "The door appears to be broken.");
 
     /* House door, close it */
-    else if (square_home_isopendoor(c, grid))
+    else if (square_home_isopendoor(c, y, x))
     {
         /* Find this house */
-        i = pick_house(&p->wpos, grid);
+        i = pick_house(&p->wpos, y, x);
 
         /* Close the door */
-        square_colorize_door(c, grid, house_get(i)->color);
+        square_colorize_door(c, y, x, house_get(i)->color);
 
         /* Update the visuals */
-        square_memorize(p, c, grid);
-        square_light_spot_aux(p, c, grid);
+        square_memorize(p, c, y, x);
+        square_light_spot_aux(p, c, y, x);
         update_visuals(&p->wpos);
 
         /* Sound */
@@ -669,11 +659,11 @@ static bool do_cmd_close_aux(struct player *p, struct chunk *c, struct loc *grid
     else
     {
         /* Close the door */
-        square_close_door(c, grid);
+        square_close_door(c, y, x);
 
         /* Update the visuals */
-        square_memorize(p, c, grid);
-        square_light_spot_aux(p, c, grid);
+        square_memorize(p, c, y, x);
+        square_light_spot_aux(p, c, y, x);
         update_visuals(&p->wpos);
 
         /* Sound */
@@ -690,26 +680,27 @@ static bool do_cmd_close_aux(struct player *p, struct chunk *c, struct loc *grid
  */
 void do_cmd_close(struct player *p, int dir, bool easy)
 {
+    int y, x;
     bool more = false;
     struct chunk *c = chunk_get(&p->wpos);
-    struct loc grid;
 
     /* Easy Close */
     if (easy)
     {
         /* Count open doors */
-        if (count_feats(p, c, &grid, square_isopendoor, false) >= 1)
-            dir = motion_dir(&p->grid, &grid);
+        if (count_feats(p, c, &y, &x, square_isopendoor, false) >= 1)
+            dir = coords_to_dir(p, y, x);
     }
 
     /* Get a direction (or abort) */
     if (!dir || !VALID_DIR(dir)) return;
 
     /* Get location */
-    next_grid(&grid, &p->grid, dir);
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
 
     /* Verify legality */
-    if (!do_cmd_close_test(p, c, &grid))
+    if (!do_cmd_close_test(p, c, y, x))
     {
         /* Cancel repeat */
         disturb(p, 0);
@@ -723,16 +714,17 @@ void do_cmd_close(struct player *p, int dir, bool easy)
     if (player_confuse_dir(p, &dir))
     {
         /* Get location */
-        next_grid(&grid, &p->grid, dir);
+        y = p->py + ddy[dir];
+        x = p->px + ddx[dir];
     }
 
     /* Something in the way */
-    if (square(c, &grid)->mon != 0)
-        attack_blocker(p, c, &grid);
+    if (c->squares[y][x].mon != 0)
+        attack_blocker(p, c, y, x);
 
     /* Door - close it */
     else
-        more = do_cmd_close_aux(p, c, &grid);
+        more = do_cmd_close_aux(p, c, y, x);
 
     /* Cancel repeat unless we may continue */
     if (!more) disturb(p, 0);
@@ -742,7 +734,7 @@ void do_cmd_close(struct player *p, int dir, bool easy)
 /*
  * Determine if a given grid may be "tunneled"
  */
-static bool do_cmd_tunnel_test(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_tunnel_test(struct player *p, struct chunk *c, int y, int x)
 {
     /* Ghosts cannot tunnel */
     if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
@@ -759,21 +751,21 @@ static bool do_cmd_tunnel_test(struct player *p, struct chunk *c, struct loc *gr
     }
 
     /* Must have knowledge */
-    if (!square_isknown(p, grid))
+    if (!square_isknown(p, y, x))
     {
         msg(p, "You see nothing there.");
         return false;
     }
 
     /* Must be a wall/door/etc */
-    if (!square_seemsdiggable(c, grid))
+    if (!square_seemsdiggable(c, y, x))
     {
         msg(p, "You see nothing there to tunnel.");
         return false;
     }
 
-    /* No tunneling on special levels and towns */
-    if (special_level(&p->wpos) || in_town(&p->wpos))
+    /* No tunneling on special levels and towns (except starting town) */
+    if (special_level(&p->wpos) || (in_town(&p->wpos) && !in_start_town(&p->wpos)))
     {
         msg(p, "Nothing happens.");
         return false;
@@ -794,16 +786,16 @@ static bool do_cmd_tunnel_test(struct player *p, struct chunk *c, struct loc *gr
  * of the room, and whose "illumination" status do not change with
  * the rest of the room.
  */
-static bool twall(struct player *p, struct chunk *c, struct loc *grid)
+static bool twall(struct player *p, struct chunk *c, int y, int x)
 {
     /* Paranoia -- require a wall or door or some such */
-    if (!square_seemsdiggable(c, grid)) return false;
+    if (!square_seemsdiggable(c, y, x)) return false;
 
     /* Sound */
     sound(p, MSG_DIG);
 
     /* Remove the feature */
-    square_tunnel_wall(c, grid);
+    square_tunnel_wall(c, y, x);
 
     /* Update the visuals */
     update_visuals(&p->wpos);
@@ -817,7 +809,7 @@ static bool twall(struct player *p, struct chunk *c, struct loc *grid)
 
 
 /* Forward declaration */
-static bool create_house_door(struct player *p, struct chunk *c, struct loc *grid);
+static bool create_house_door(struct player *p, struct chunk *c, int x, int y);
 
 
 /*
@@ -827,62 +819,62 @@ static bool create_house_door(struct player *p, struct chunk *c, struct loc *gri
  * Uses "twall" (above) to do all "terrain feature changing".
  * Returns true if repeated commands may continue.
  */
-static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, int y, int x)
 {
     bool more = false;
     int digging_chances[DIGGING_MAX];
     bool okay = false;
-    bool gold, rubble, tree, web;
+    bool gold = square_hasgoldvein(c, y, x);
+    bool rubble = square_isrubble(c, y, x);
+    bool tree = square_istree(c, y, x);
+    bool web = square_isweb(c, y, x);
     int digging;
 
-    gold = square_hasgoldvein(c, grid);
-    rubble = square_isrubble(c, grid);
-    tree = square_istree(c, grid);
-    web = square_isweb(c, grid);
-
     /* Verify legality */
-    if (!do_cmd_tunnel_test(p, c, grid)) return false;
+    if (!do_cmd_tunnel_test(p, c, y, x)) return false;
 
     calc_digging_chances(p, &p->state, digging_chances);
 
     /* Do we succeed? */
-    digging = square_digging(c, grid);
+    digging = square_digging(c, y, x);
     if (digging > 0) okay = CHANCE(digging_chances[digging - 1], 1600);
 
     /* Hack -- pit walls (to fool the player) */
-    if (square_ispermfake(c, grid))
+    if (square_ispermfake(c, y, x))
     {
         msg(p, "You tunnel into the granite wall.");
         more = true;
     }
 
     /* Hack -- house walls */
-    else if (square_ispermhouse(c, grid))
+    else if (square_ispermhouse(c, y, x))
     {
         /* Either the player has lost his mind or he is trying to create a door! */
-        create_house_door(p, c, grid);
+        create_house_door(p, c, x, y);
     }
 
     /* Permanent */
-    else if (square_isperm(c, grid))
+    else if (square_isperm(c, y, x))
     {
         /* Hack -- logs */
-        if (!feat_is_wall(square(c, grid)->feat))
+        if (!feat_is_wall(c->squares[y][x].feat))
             msg(p, "You cannot tunnel through that.");
         else
             msg(p, "This seems to be permanent rock.");
     }
 
     /* Mountain */
-    else if (square_ismountain(c, grid))
+    else if (square_ismountain(c, y, x))
         msg(p, "Digging a tunnel into that mountain would take forever!");
 
     /* Success */
-    else if (okay && twall(p, c, grid))
+    else if (okay && twall(p, c, y, x))
     {
         /* Mow down the vegetation */
         if (tree)
         {
+            if (in_start_town(&p->wpos)) trees_in_town--;
+
             /* Message */
             msg(p, "You hack your way through the vegetation.");
         }
@@ -901,10 +893,10 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
             if (magik(10))
             {
                 /* Create a simple object */
-                place_object(p, c, grid, object_level(&p->wpos), false, false, ORIGIN_RUBBLE, 0);
+                place_object(p, c, y, x, object_level(&p->wpos), false, false, ORIGIN_RUBBLE, 0);
 
                 /* Observe the new object */
-                if (!ignore_item_ok(p, square_object(c, grid)) && square_isseen(p, grid))
+                if (!ignore_item_ok(p, square_object(c, y, x)) && square_isseen(p, y, x))
                     msg(p, "You have found something!");
             }
         }
@@ -913,7 +905,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
         else if (gold)
         {
             /* Place some gold */
-            place_gold(p, c, grid, object_level(&p->wpos), ORIGIN_FLOOR);
+            place_gold(p, c, y, x, object_level(&p->wpos), ORIGIN_FLOOR);
 
             /* Message */
             msg(p, "You have found something!");
@@ -932,7 +924,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
         else if (rubble)
             msg(p, "You dig in the rubble.");
         else
-            msg(p, "You tunnel into the %s.", square_apparent_name(p, c, grid));
+            msg(p, "You tunnel into the %s.", square_apparent_name(p, c, y, x));
          more = true;
     }
 
@@ -949,16 +941,15 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
  */
 bool do_cmd_tunnel(struct player *p)
 {
-    int dir = (int)p->digging_dir;
+    int y, x, dir = (int)p->digging_dir;
     bool more = false;
     struct chunk *c = chunk_get(&p->wpos);
-    struct loc grid;
 
     /* Cancel repeat */
     if (!p->digging_request) return true;
 
     /* Check energy */
-    if (!has_energy(p, true)) return false;
+    if (!has_energy(p)) return false;
 
     /* Get a direction (or abort) */
     if (!dir || !VALID_DIR(dir))
@@ -969,10 +960,11 @@ bool do_cmd_tunnel(struct player *p)
     }
 
     /* Get location */
-    next_grid(&grid, &p->grid, dir);
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
 
     /* Oops */
-    if (!do_cmd_tunnel_test(p, c, &grid))
+    if (!do_cmd_tunnel_test(p, c, y, x))
     {
         /* Cancel repeat */
         disturb(p, 0);
@@ -986,16 +978,17 @@ bool do_cmd_tunnel(struct player *p)
     if (player_confuse_dir(p, &dir))
     {
         /* Get location */
-        next_grid(&grid, &p->grid, dir);
+        y = p->py + ddy[dir];
+        x = p->px + ddx[dir];
     }
 
     /* Attack anything we run into */
-    if (square(c, &grid)->mon != 0)
-        attack_blocker(p, c, &grid);
+    if (c->squares[y][x].mon != 0)
+        attack_blocker(p, c, y, x);
 
     /* Tunnel through walls */
     else
-        more = do_cmd_tunnel_aux(p, c, &grid);
+        more = do_cmd_tunnel_aux(p, c, y, x);
 
     /* Cancel repetition unless we can continue */
     if (!more) disturb(p, 0);
@@ -1010,7 +1003,7 @@ bool do_cmd_tunnel(struct player *p)
 /*
  * Determine if a given grid may be "disarmed"
  */
-static bool do_cmd_disarm_test(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_disarm_test(struct player *p, struct chunk *c, int y, int x)
 {
     /* Ghosts cannot disarm */
     if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
@@ -1027,18 +1020,18 @@ static bool do_cmd_disarm_test(struct player *p, struct chunk *c, struct loc *gr
     }
 
     /* Must have knowledge */
-    if (!square_isknown(p, grid))
+    if (!square_isknown(p, y, x))
     {
         msg(p, "You see nothing there.");
         return false;
     }
 
     /* Look for a closed, unlocked door to lock */
-    if (square_basic_iscloseddoor(c, grid) && !square_islockeddoor(c, grid))
+    if (square_basic_iscloseddoor(c, y, x) && !square_islockeddoor(c, y, x))
         return true;
 
     /* Look for a trap */
-    if (!square_isdisarmabletrap(c, grid))
+    if (!square_isdisarmabletrap(c, y, x))
     {
         msg(p, "You see nothing there to disarm.");
         return false;
@@ -1056,13 +1049,13 @@ static bool do_cmd_disarm_test(struct player *p, struct chunk *c, struct loc *gr
  *
  * Returns true if repeated commands may continue
  */
-static bool do_cmd_lock_door(struct player *p, struct chunk *c, struct loc *grid)
+static bool do_cmd_lock_door(struct player *p, struct chunk *c, int y, int x)
 {
     int i, j, power;
     bool more = false;
 
     /* Verify legality */
-    if (!do_cmd_disarm_test(p, c, grid)) return false;
+    if (!do_cmd_disarm_test(p, c, y, x)) return false;
 
     /* Get the "disarm" factor */
     i = p->state.skills[SKILL_DISARM_PHYS];
@@ -1084,7 +1077,7 @@ static bool do_cmd_lock_door(struct player *p, struct chunk *c, struct loc *grid
     if (magik(j))
     {
         msg(p, "You lock the door.");
-        square_set_door_lock(c, grid, power);
+        square_set_door_lock(c, y, x, power);
     }
 
     /* Failure -- keep trying */
@@ -1112,14 +1105,14 @@ static bool do_cmd_lock_door(struct player *p, struct chunk *c, struct loc *grid
  *
  * Returns true if repeated commands may continue
  */
-static bool do_cmd_disarm_aux(struct player *p, struct chunk *c, struct loc *grid, int dir)
+static bool do_cmd_disarm_aux(struct player *p, struct chunk *c, int y, int x, int dir)
 {
     int skill, power, chance;
-    struct trap *trap = square(c, grid)->trap;
+    struct trap *trap = c->squares[y][x].trap;
     bool more = false;
 
     /* Verify legality */
-    if (!do_cmd_disarm_test(p, c, grid)) return false;
+    if (!do_cmd_disarm_test(p, c, y, x)) return false;
 
     /* Choose first player trap */
     while (trap)
@@ -1155,7 +1148,7 @@ static bool do_cmd_disarm_aux(struct player *p, struct chunk *c, struct loc *gri
         player_exp_gain(p, 1 + power);
 
         /* Trap is gone */
-        square_destroy_trap(c, grid);
+        square_destroy_trap(c, y, x);
     }
     else if (magik(chance))
     {
@@ -1175,9 +1168,9 @@ static bool do_cmd_disarm_aux(struct player *p, struct chunk *c, struct loc *gri
 }
 
 
-static bool square_hack_iscloseddoor(struct chunk *c, struct loc *grid)
+static bool square_hack_iscloseddoor(struct chunk *c, int y, int x)
 {
-    return (square_basic_iscloseddoor(c, grid) && !square_islockeddoor(c, grid));
+    return (square_basic_iscloseddoor(c, y, x) && !square_islockeddoor(c, y, x));
 }
 
 
@@ -1188,10 +1181,10 @@ static bool square_hack_iscloseddoor(struct chunk *c, struct loc *grid)
  */
 void do_cmd_disarm(struct player *p, int dir, bool easy)
 {
+    int y, x;
     struct object *obj;
     bool more = false, allow_5 = false;
     struct chunk *c = chunk_get(&p->wpos);
-    struct loc grid;
 
     /* Easy Disarm */
     if (easy)
@@ -1199,17 +1192,17 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
         int num_doors, n_traps, n_chests;
 
         /* Hack -- count closed doors (for door locking) */
-        num_doors = count_feats(p, c, &grid, square_hack_iscloseddoor, false);
+        num_doors = count_feats(p, c, &y, &x, square_hack_iscloseddoor, false);
 
         /* Count visible traps */
-        n_traps = count_feats(p, c, &grid, square_isdisarmabletrap, true);
+        n_traps = count_feats(p, c, &y, &x, square_isdisarmabletrap, true);
 
         /* Count chests (trapped) */
-        n_chests = count_chests(p, c, &grid, CHEST_TRAPPED);
+        n_chests = count_chests(p, c, &y, &x, CHEST_TRAPPED);
 
         /* Use the last target found */
         if ((num_doors + n_traps + n_chests) >= 1)
-            dir = motion_dir(&p->grid, &grid);
+            dir = coords_to_dir(p, y, x);
 
         /* If there are trap or chests to open, allow 5 as a direction */
         if (n_traps || n_chests) allow_5 = true;
@@ -1219,13 +1212,14 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
     if (!dir || !VALID_DIR(dir)) return;
 
     /* Get location */
-    next_grid(&grid, &p->grid, dir);
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
 
     /* Check for chests */
-    obj = chest_check(p, c, &grid, CHEST_TRAPPED);
+    obj = chest_check(p, c, y, x, CHEST_TRAPPED);
 
     /* Verify legality */
-    if (!obj && !do_cmd_disarm_test(p, c, &grid))
+    if (!obj && !do_cmd_disarm_test(p, c, y, x))
     {
         /* Cancel repeat */
         disturb(p, 0);
@@ -1239,27 +1233,28 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
     if (player_confuse_dir(p, &dir))
     {
         /* Get location */
-        next_grid(&grid, &p->grid, dir);
+        y = p->py + ddy[dir];
+        x = p->px + ddx[dir];
 
         /* Check for chests */
-        obj = chest_check(p, c, &grid, CHEST_TRAPPED);
+        obj = chest_check(p, c, y, x, CHEST_TRAPPED);
     }
 
     /* Something in the way */
-    if (is_blocker(p, c, &grid, allow_5))
-        attack_blocker(p, c, &grid);
+    if (is_blocker(p, c, y, x, allow_5))
+        attack_blocker(p, c, y, x);
 
     /* Chest */
     else if (obj)
-        more = do_cmd_disarm_chest(p, c, &grid, obj);
+        more = do_cmd_disarm_chest(p, c, y, x, obj);
 
     /* Door to lock */
-    else if (square_basic_iscloseddoor(c, &grid))
-        more = do_cmd_lock_door(p, c, &grid);
+    else if (square_basic_iscloseddoor(c, y, x))
+        more = do_cmd_lock_door(p, c, y, x);
 
     /* Disarm trap */
     else
-        more = do_cmd_disarm_aux(p, c, &grid, dir);
+        more = do_cmd_disarm_aux(p, c, y, x, dir);
 
     /* Cancel repeat unless told not to */
     if (!more) disturb(p, 0);
@@ -1273,19 +1268,15 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
  *
  * This command must always take energy, to prevent free detection
  * of invisible monsters.
- * REVISED FOR MAngband-specific reasons: we don't care if someone
- * detects a monster by tunneling into it, and treat "tunnel air" as an
- * error, which DOES NOT spend player's energy.
  *
  * The "semantics" of this command must be chosen before the player
  * is confused, and it must be verified against the new grid.
  */
 void do_cmd_alter(struct player *p, int dir)
 {
+    int y, x;
     bool more = false;
-    bool spend = true;
     struct chunk *c = chunk_get(&p->wpos);
-    struct loc grid;
 
     /* Get a direction (or abort) */
     if (!dir || !VALID_DIR(dir)) return;
@@ -1298,49 +1289,46 @@ void do_cmd_alter(struct player *p, int dir)
     }
 
     /* Get location */
-    next_grid(&grid, &p->grid, dir);
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
+
+    /* Take a turn */
+    use_energy(p);
 
     /* Apply confusion */
     if (player_confuse_dir(p, &dir))
     {
         /* Get location */
-        next_grid(&grid, &p->grid, dir);
+        y = p->py + ddy[dir];
+        x = p->px + ddx[dir];
     }
 
     /* Something in the way */
-    if (square(c, &grid)->mon != 0)
+    if (c->squares[y][x].mon != 0)
     {
         /* Attack */
-        attack_blocker(p, c, &grid);
+        attack_blocker(p, c, y, x);
     }
 
     /* MAngband-specific: open house walls (House Creation) */
-    else if (square_ispermhouse(c, &grid))
-        more = do_cmd_tunnel_aux(p, c, &grid);
+    else if (square_ispermhouse(c, y, x))
+        more = do_cmd_tunnel_aux(p, c, y, x);
 
     /* Tunnel through walls, trees and rubble (allow pit walls to fool the player) */
-    else if (square_isdiggable(c, &grid) || square_ispermfake(c, &grid))
-        more = do_cmd_tunnel_aux(p, c, &grid);
+    else if (square_isdiggable(c, y, x) || square_ispermfake(c, y, x))
+        more = do_cmd_tunnel_aux(p, c, y, x);
 
     /* Open closed doors */
-    else if (square_iscloseddoor(c, &grid))
-        more = do_cmd_open_aux(p, c, &grid);
+    else if (square_iscloseddoor(c, y, x))
+        more = do_cmd_open_aux(p, c, y, x);
 
     /* Disarm traps */
-    else if (square_isdisarmabletrap(c, &grid))
-        more = do_cmd_disarm_aux(p, c, &grid, dir);
+    else if (square_isdisarmabletrap(c, y, x))
+        more = do_cmd_disarm_aux(p, c, y, x, dir);
 
     /* Oops */
     else
-    {
         msg(p, "You spin around.");
-
-        /* Do not spend energy. */
-        spend = false;
-    }
-
-    /* Take a turn */
-    if (spend) use_energy(p);
 
     /* Cancel repetition unless we can continue */
     if (!more) disturb(p, 0);
@@ -1360,34 +1348,32 @@ static const char *comment_ironman[] =
 /* Do a probability travel in a wall */
 static void do_prob_travel(struct player *p, struct chunk *c, int dir)
 {
+    int x = p->px, y = p->py;
     bool do_move = true;
-    struct loc grid, next;
-
-    loc_copy(&grid, &p->grid);
 
     /* Paranoia */
-    if ((dir == DIR_TARGET) || !dir) return;
+    if ((dir == 5) || !dir) return;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(dir)) return;
 
-    next_grid(&next, &grid, dir);
-    loc_copy(&grid, &next);
+    x += ddx[dir];
+    y += ddy[dir];
 
     while (true)
     {
         /* Do not get out of the level */
-        if (!square_in_bounds_fully(c, &grid))
+        if (!square_in_bounds_fully(c, y, x))
         {
             do_move = false;
             break;
         }
 
         /* Require a "naked" floor grid */
-        if (!square_isempty(c, &grid) || square_isvault(c, &grid))
+        if (!square_isempty(c, y, x) || square_isvault(c, y, x))
         {
-            next_grid(&next, &grid, dir);
-            loc_copy(&grid, &next);
+            y += ddy[dir];
+            x += ddx[dir];
             continue;
         }
 
@@ -1396,7 +1382,7 @@ static void do_prob_travel(struct player *p, struct chunk *c, int dir)
         break;
     }
 
-    if (do_move) monster_swap(c, &p->grid, &grid);
+    if (do_move) monster_swap(c, p->py, p->px, y, x);
 }
 
 
@@ -1411,19 +1397,21 @@ static void do_prob_travel(struct player *p, struct chunk *c, int dir)
 void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool check_pickup,
     bool force)
 {
+    int y, x;
     bool old_dtrap, new_dtrap, old_pit, new_pit;
     bool do_move = true;
     struct source who_body;
     struct source *who = &who_body;
-    bool trapsafe = player_is_trapsafe(p);
+    bool trapsafe = (p->timed[TMD_TRAPSAFE]? true: false);
     bool alterable;
-    struct loc grid;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(dir)) return;
 
-    next_grid(&grid, &p->grid, dir);
-    alterable = (square_isdisarmabletrap(c, &grid) || square_iscloseddoor(c, &grid));
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
+
+    alterable = (square_isdisarmabletrap(c, y, x) || square_iscloseddoor(c, y, x));
 
     /* Handle polymorphed players */
     if (p->poly_race)
@@ -1435,13 +1423,11 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* New player location on the world map */
-    if ((p->wpos.depth == 0) && !square_in_bounds_fully(c, &grid))
+    if ((p->wpos.depth == 0) && !square_in_bounds_fully(c, y, x))
     {
+        int new_world_x = p->wpos.wx, new_world_y = p->wpos.wy;
+        int new_x = p->px, new_y = p->py;
         struct wild_type *w_ptr;
-        struct loc new_world_grid, new_grid;
-
-        loc_copy(&new_world_grid, &p->wpos.grid);
-        loc_copy(&new_grid, &p->grid);
 
         /* Handle polymorphed players */
         if (!do_move)
@@ -1470,29 +1456,29 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         }
 
         /* Find his new location */
-        if (grid.y <= 0)
+        if (y <= 0)
         {
-            new_world_grid.y++;
-            new_grid.y = c->height - 2;
+            new_world_y++;
+            new_y = c->height - 2;
         }
-        if (grid.y >= c->height - 1)
+        if (y >= c->height - 1)
         {
-            new_world_grid.y--;
-            new_grid.y = 1;
+            new_world_y--;
+            new_y = 1;
         }
-        if (grid.x <= 0)
+        if (x <= 0)
         {
-            new_world_grid.x--;
-            new_grid.x = c->width - 2;
+            new_world_x--;
+            new_x = c->width - 2;
         }
-        if (grid.x >= c->width - 1)
+        if (x >= c->width - 1)
         {
-            new_world_grid.x++;
-            new_grid.x = 1;
+            new_world_x++;
+            new_x = 1;
         }
 
         /* New location */
-        w_ptr = get_wt_info_at(&new_world_grid);
+        w_ptr = get_wt_info_at(new_world_y, new_world_x);
 
         /* Check to make sure he hasn't hit the edge of the world */
         if (!w_ptr)
@@ -1518,8 +1504,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         dungeon_change_level(p, c, &w_ptr->wpos, LEVEL_OUTSIDE);
 
         /* Hack -- replace the player */
-        loc_copy(&p->old_grid, &new_grid);
-        loc_copy(&p->grid, &new_grid);
+        p->old_px = p->px = new_x;
+        p->old_py = p->py = new_y;
 
         /* Update the wilderness map */
         wild_set_explored(p, &w_ptr->wpos);
@@ -1533,7 +1519,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     /* Save "last direction moved" */
     p->last_dir = dir;
 
-    square_actor(c, &grid, who);
+    square_actor(c, y, x, who);
 
     /* Bump into other players */
     if (who->player)
@@ -1546,8 +1532,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 aware_player(p, who->player);
 
             /* Check for an attack */
-            if (pvp_check(p, who->player, PVP_DIRECT, true, square(c, &grid)->feat))
-                py_attack(p, c, &grid);
+            if (pvp_check(p, who->player, PVP_DIRECT, true, c->squares[y][x].feat))
+                py_attack(p, c, y, x);
 
             /* Handle polymorphed players */
             else if (!do_move)
@@ -1559,7 +1545,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 (ddx[who->player->last_dir] == (0 - ddx[dir]))) ||
                 (who->player->dm_flags & DM_SECRET_PRESENCE))
             {
-                monster_swap(c, &p->grid, &who->player->grid);
+                monster_swap(c, p->py, p->px, who->player->py, who->player->px);
 
                 /* Don't tell people they bumped into the Dungeon Master */
                 if (!(who->player->dm_flags & DM_SECRET_PRESENCE))
@@ -1621,7 +1607,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 mon_clear_timed(p, who->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
             }
             else
-                py_attack(p, c, &grid);
+                py_attack(p, c, y, x);
         }
 
         /* Handle polymorphed players */
@@ -1635,7 +1621,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         /* Switch places */
         else
         {
-            monster_swap(c, &p->grid, &who->monster->grid);
+            monster_swap(c, p->py, p->px, who->monster->fy, who->monster->fx);
             player_know_floor(p, c);
         }
 
@@ -1643,71 +1629,71 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* Arena */
-    if (square_ispermarena(c, &grid))
+    if (square_ispermarena(c, y, x))
     {
-        access_arena(p, &grid);
+        access_arena(p, y, x);
         return;
     }
 
     /* Prob travel */
-    if (p->timed[TMD_PROBTRAVEL] && !square_ispassable(c, &grid))
+    if (p->timed[TMD_PROBTRAVEL] && !square_ispassable(c, y, x))
     {
         do_prob_travel(p, c, dir);
         return;
     }
 
     /* Optionally alter traps/doors on movement */
-    if (alterable && disarm && square_isknown(p, &grid))
+    if (alterable && disarm && square_isknown(p, y, x))
     {
         do_cmd_alter(p, dir);
         return;
     }
 
     /* Stop running before known traps */
-    if (p->upkeep->running && square_isdisarmabletrap(c, &grid) && !trapsafe)
+    if (p->upkeep->running && square_isdisarmabletrap(c, y, x) && !trapsafe)
     {
         disturb(p, 0);
         return;
     }
 
     /* Normal players can not walk through "walls" */
-    if (!player_passwall(p) && !square_ispassable(c, &grid))
+    if (!player_passwall(p) && !square_ispassable(c, y, x))
     {
         disturb(p, 0);
 
         /* Notice unknown obstacles */
-        if (!square_isknown(p, &grid))
+        if (!square_isknown(p, y, x))
         {
             /* Rubble */
-            if (square_isrubble(c, &grid))
+            if (square_isrubble(c, y, x))
             {
                 msgt(p, MSG_HITWALL, "You feel a pile of rubble blocking your way.");
-                square_memorize(p, c, &grid);
-                square_light_spot_aux(p, c, &grid);
+                square_memorize(p, c, y, x);
+                square_light_spot_aux(p, c, y, x);
             }
 
             /* Closed door */
-            else if (square_iscloseddoor(c, &grid))
+            else if (square_iscloseddoor(c, y, x))
             {
                 msgt(p, MSG_HITWALL, "You feel a door blocking your way.");
-                square_memorize(p, c, &grid);
-                square_light_spot_aux(p, c, &grid);
+                square_memorize(p, c, y, x);
+                square_light_spot_aux(p, c, y, x);
             }
 
             /* Tree */
-            else if (square_istree(c, &grid))
+            else if (square_istree(c, y, x))
             {
                 msgt(p, MSG_HITWALL, "You feel a tree blocking your way.");
-                square_memorize(p, c, &grid);
-                square_light_spot_aux(p, c, &grid);
+                square_memorize(p, c, y, x);
+                square_light_spot_aux(p, c, y, x);
             }
 
             /* Wall (or secret door) */
             else
             {
                 msgt(p, MSG_HITWALL, "You feel a wall blocking your way.");
-                square_memorize(p, c, &grid);
-                square_light_spot_aux(p, c, &grid);
+                square_memorize(p, c, y, x);
+                square_light_spot_aux(p, c, y, x);
             }
         }
 
@@ -1715,15 +1701,15 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         else
         {
             /* Rubble */
-            if (square_isrubble(c, &grid))
+            if (square_isrubble(c, y, x))
                 msgt(p, MSG_HITWALL, "There is a pile of rubble blocking your way.");
 
             /* Closed doors */
-            else if (square_iscloseddoor(c, &grid))
+            else if (square_iscloseddoor(c, y, x))
                 msgt(p, MSG_HITWALL, "There is a door blocking your way.");
 
             /* Tree */
-            else if (square_istree(c, &grid))
+            else if (square_istree(c, y, x))
                 msgt(p, MSG_HITWALL, "There is a tree blocking your way.");
 
             /* Wall (or secret door) */
@@ -1735,10 +1721,11 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* Permanent walls */
-    if (player_passwall(p) && square_isperm(c, &grid))
+    if (player_passwall(p) && square_isperm(c, y, x))
     {
         /* Forbid in most cases */
-        if (p->timed[TMD_WRAITHFORM] || player_can_undead(p) || !square_in_bounds_fully(c, &grid))
+        if (p->timed[TMD_WRAITHFORM] || player_can_undead(p) ||
+            !square_in_bounds_fully(c, y, x))
         {
             /* Message */
             msg(p, "The wall blocks your movement.");
@@ -1749,7 +1736,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* Wraith trying to run inside a house */
-    if (p->timed[TMD_WRAITHFORM] && square_home_iscloseddoor(c, &grid))
+    if (p->timed[TMD_WRAITHFORM] && square_home_iscloseddoor(c, y, x))
     {
         do_cmd_open(p, dir, false);
         return;
@@ -1763,8 +1750,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* See if trap detection status will change */
-    old_dtrap = square_isdtrap(p, &p->grid);
-    new_dtrap = square_isdtrap(p, &grid);
+    old_dtrap = square_isdtrap(p, p->py, p->px);
+    new_dtrap = square_isdtrap(p, y, x);
 
     /* Note the change in the detect status */
     if (old_dtrap != new_dtrap) p->upkeep->redraw |= (PR_DTRAP);
@@ -1778,23 +1765,23 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* PWMAngband: display a message when entering a pit */
-    old_pit = square_ispitfloor(c, &p->grid);
-    new_pit = square_ispitfloor(c, &grid);
+    old_pit = square_ispitfloor(c, p->py, p->px);
+    new_pit = square_ispitfloor(c, y, x);
     if (new_pit && !old_pit)
         msgt(p, MSG_ENTER_PIT, "The floor is very dusty and the air feels very still!");
 
     /* Move player */
-    monster_swap(c, &p->grid, &grid);
+    monster_swap(c, p->py, p->px, y, x);
 
     /* Handle store doors, or notice objects */
-    if (!p->ghost && square_isshop(c, &grid))
+    if (!p->ghost && square_isshop(c, y, x))
     {
         disturb(p, 0);
 
         /* Hack -- enter store */
         do_cmd_store(p, -1);
     }
-    if (square(c, &grid)->obj)
+    if (c->squares[y][x].obj)
     {
         p->ignore = 1;
         player_know_floor(p, c);
@@ -1804,37 +1791,32 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* Handle resurrection */
-    else if (p->ghost && square_isshop(c, &grid))
+    else if (p->ghost && (square_shopnum(c, y, x) == STORE_TEMPLE))
     {
-        struct store *s = &stores[square_shopnum(c, &grid)];
+        /* Resurrect him */
+        resurrect_player(p, c);
 
-        if (s->type == STORE_TEMPLE)
-        {
-            /* Resurrect him */
-            resurrect_player(p, c);
-
-            /* Give him some gold */
-            if (!is_dm_p(p) && !player_can_undead(p) && (p->lev >= 5))
-                p->au = 100 * (p->lev - 4) / p->lives;
-        }
+        /* Give him some gold */
+        if (!is_dm_p(p) && !player_can_undead(p) && (p->lev >= 5))
+            p->au = 100 * (p->lev - 4) / p->lives;
     }
 
     /* Discover invisible traps */
-    else if (square_issecrettrap(c, &grid))
+    else if (square_issecrettrap(c, y, x))
     {
         disturb(p, 0);
         hit_trap(p);
     }
 
     /* Set off a visible trap */
-    else if (square_isdisarmabletrap(c, &grid) && !trapsafe)
+    else if (square_isdisarmabletrap(c, y, x) && !trapsafe)
     {
         disturb(p, 0);
         hit_trap(p);
     }
 
     /* Mention fountains */
-    else if (square_isfountain(c, &grid))
+    else if (square_isfountain(c, y, x))
     {
         disturb(p, 0);
         msg(p, "A fountain is located at this place.");
@@ -1925,9 +1907,9 @@ static bool erratic_dir(struct player *p, int *dp)
  */
 void do_cmd_walk(struct player *p, int dir)
 {
+    int x, y;
     struct chunk *c = chunk_get(&p->wpos);
-    bool trapsafe = player_is_trapsafe(p);
-    struct loc grid;
+    bool trapsafe = (p->timed[TMD_TRAPSAFE]? true: false);
 
     /* Get a direction (or abort) */
     if (!dir) return;
@@ -1945,10 +1927,11 @@ void do_cmd_walk(struct player *p, int dir)
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(dir)) return;
 
-    next_grid(&grid, &p->grid, dir);
+    y = p->py + ddy[dir];
+    x = p->px + ddx[dir];
 
     /* Attempt to disarm unless it's a trap and we're trapsafe */
-    move_player(p, c, dir, !(square_isdisarmabletrap(c, &grid) && trapsafe), true, false);
+    move_player(p, c, dir, !(square_isdisarmabletrap(c, y, x) && trapsafe), true, false);
 }
 
 
@@ -1978,7 +1961,7 @@ void do_cmd_jump(struct player *p, int dir)
 /*
  * Determine if a given grid may be "run"
  */
-static bool do_cmd_run_test(struct player *p, struct loc *grid)
+static bool do_cmd_run_test(struct player *p, int y, int x)
 {
     struct chunk *c = chunk_get(&p->wpos);
 
@@ -1993,27 +1976,27 @@ static bool do_cmd_run_test(struct player *p, struct loc *grid)
     if (player_passwall(p)) return true;
 
     /* Do wilderness hack, keep running from one outside level to another */
-    if (!square_in_bounds_fully(c, grid) && (p->wpos.depth == 0)) return true;
+    if (!square_in_bounds_fully(c, y, x) && (p->wpos.depth == 0)) return true;
 
     /* Illegal grids are not known walls XXX XXX XXX */
-    if (!square_in_bounds(c, grid)) return true;
+    if (!square_in_bounds(c, y, x)) return true;
 
     /* Hack -- walking obtains knowledge XXX XXX */
-    if (!square_isknown(p, grid)) return true;
+    if (!square_isknown(p, y, x)) return true;
 
     /* Require open space */
-    if (!square_ispassable(c, grid))
+    if (!square_ispassable(c, y, x))
     {
         /* Rubble */
-        if (square_isrubble(c, grid))
+        if (square_isrubble(c, y, x))
             msgt(p, MSG_HITWALL, "There is a pile of rubble in the way!");
 
         /* Door */
-        else if (square_iscloseddoor(c, grid))
+        else if (square_iscloseddoor(c, y, x))
             return true;
 
         /* Tree */
-        else if (square_istree(c, grid))
+        else if (square_istree(c, y, x))
             msgt(p, MSG_HITWALL, "There is a tree in the way!");
 
         /* Wall */
@@ -2039,7 +2022,7 @@ static bool do_cmd_run_test(struct player *p, struct loc *grid)
  */
 void do_cmd_run(struct player *p, int dir)
 {
-    struct loc grid;
+    int y, x;
 
     /* Not while confused */
     if (p->timed[TMD_CONFUSED])
@@ -2060,7 +2043,7 @@ void do_cmd_run(struct player *p, int dir)
     }
 
     /* Ignore invalid directions */
-    if ((dir == DIR_TARGET) || !VALID_DIR(dir)) return;
+    if ((dir == 5) || !VALID_DIR(dir)) return;
 
     /* Ignore non-direction if we are not running */
     if (!p->upkeep->running && !dir) return;
@@ -2071,10 +2054,11 @@ void do_cmd_run(struct player *p, int dir)
     /* Get location */
     if (dir)
     {
-        next_grid(&grid, &p->grid, dir);
+        y = p->py + ddy[dir];
+        x = p->px + ddx[dir];
 
         /* Verify legality */
-        if (!do_cmd_run_test(p, &grid)) return;
+        if (!do_cmd_run_test(p, y, x)) return;
     }
 
     /* Start run */
@@ -2095,7 +2079,7 @@ bool do_cmd_rest(struct player *p, s16b resting)
         return true;
 
     /* Check energy */
-    if (!has_energy(p, true)) return false;
+    if (!has_energy(p)) return false;
 
     /* Do some upkeep on the first turn of rest */
     if (!player_is_resting(p))
@@ -2135,7 +2119,7 @@ bool do_cmd_rest(struct player *p, s16b resting)
 void do_cmd_sleep(struct player *p)
 {
     /* Take a turn */
-    if (has_energy(p, true)) use_energy(p);
+    if (has_energy(p)) use_energy(p);
 }
 
 
@@ -2233,7 +2217,7 @@ void display_feeling(struct player *p, bool obj_only)
             struct player *q = player_get(i);
 
             if (q == p) continue;
-            if (!wpos_eq(&q->wpos, &p->wpos)) continue;
+            if (!COORDS_EQUAL(&q->wpos, &p->wpos)) continue;
             if (q->feeling < 0) continue;
 
             obj_f = q->feeling / 10;
@@ -2336,7 +2320,7 @@ static int can_buy_house(struct player *p, int price)
  */
 void do_cmd_purchase_house(struct player *p, int dir)
 {
-    int i, n, check;
+    int y, x, i, n, check;
     struct chunk *c = chunk_get(&p->wpos);
 
     /* Ghosts cannot buy houses */
@@ -2427,13 +2411,13 @@ void do_cmd_purchase_house(struct player *p, int dir)
     if (VALID_DIR(dir))
     {
         struct house_type *house;
-        struct loc grid;
 
         /* Get requested direction */
-        next_grid(&grid, &p->grid, dir);
+        y = p->py + ddy[dir];
+        x = p->px + ddx[dir];
 
         /* Check for a house */
-        if ((i = pick_house(&p->wpos, &grid)) == -1)
+        if ((i = pick_house(&p->wpos, y, x)) == -1)
         {
             /* No house, message */
             msg(p, "You see nothing to buy there.");
@@ -2441,7 +2425,7 @@ void do_cmd_purchase_house(struct player *p, int dir)
         }
 
         /* The door needs to be closed! */
-        if (square_home_isopendoor(c, &grid))
+        if (square_home_isopendoor(c, y, x))
         {
             /* Open door, message */
             msg(p, "You need to close the door first...");
@@ -2521,7 +2505,7 @@ void do_cmd_purchase_house(struct player *p, int dir)
         if (!check) return;
 
         /* Open the door */
-        square_open_homedoor(c, &grid);
+        square_open_homedoor(c, y, x);
 
         /* Take some of the player's money (if the house was bought) */
         if (check == 2) p->au -= house->price;
@@ -2586,13 +2570,13 @@ int wielding_cut(struct player *p)
  * player created houses as a *single* house and present all goods in all
  * attached houses.
  */
-static bool create_house_door(struct player *p, struct chunk *c, struct loc *grid)
+static bool create_house_door(struct player *p, struct chunk *c, int x, int y)
 {
     int house, lastmatch;
 
     /* Which house is the given location part of? */
     lastmatch = 0;
-    house = find_house(p, grid, lastmatch);
+    house = find_house(p, x, y, lastmatch);
     while (house >= 0)
     {
         struct house_type *h_ptr = house_get(house);
@@ -2607,11 +2591,12 @@ static bool create_house_door(struct player *p, struct chunk *c, struct loc *gri
         }
 
         /* Does it already have a door? */
-        if (loc_is_zero(&h_ptr->door))
+        if (!h_ptr->door_y && !h_ptr->door_x)
         {
             /* No door, so create one! */
-            loc_copy(&h_ptr->door, grid);
-            square_colorize_door(c, grid, 0);
+            h_ptr->door_y = y;
+            h_ptr->door_x = x;
+            square_colorize_door(c, y, x, 0);
             msg(p, "You create a door for your house!");
 
             return true;
@@ -2619,7 +2604,7 @@ static bool create_house_door(struct player *p, struct chunk *c, struct loc *gri
 
         /* Check next house */
         lastmatch = house + 1;
-        house = find_house(p, grid, lastmatch);
+        house = find_house(p, x, y, lastmatch);
     }
 
     /* We searched all matching houses and none needed a door */
@@ -2633,9 +2618,9 @@ static bool create_house_door(struct player *p, struct chunk *c, struct loc *gri
  * Determine if the given location is ok to use as part of the foundation
  * of a house.
  */
-static bool is_valid_foundation(struct player *p, struct chunk *c, struct loc *grid)
+static bool is_valid_foundation(struct player *p, struct chunk *c, int x, int y)
 {
-    struct object *obj = square_object(c, grid);
+    struct object *obj = square_object(c, y , x);
 
     /* Foundation stones are always valid */
     if (obj)
@@ -2648,12 +2633,12 @@ static bool is_valid_foundation(struct player *p, struct chunk *c, struct loc *g
      * Perma walls and doors are valid if they are part of a house owned
      * by this player
      */
-    if (square_ispermhouse(c, grid) || square_home_iscloseddoor(c, grid))
+    if (square_ispermhouse(c, y, x) || square_home_iscloseddoor(c, y, x))
     {
         int house;
 
         /* Looks like part of a house, which house? */
-        house = find_house(p, grid, 0);
+        house = find_house(p, x, y, 0);
         if (house >= 0)
         {
             /* Do we own this house? */
@@ -2697,37 +2682,36 @@ static bool is_valid_foundation(struct player *p, struct chunk *c, struct loc *g
  * either foundation stones or walls of houses the player owns.
  *
  */
-static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *grid1,
-    struct loc *grid2)
+static bool get_house_foundation(struct player *p, struct chunk *c, int *px1, int *py1, int *px2,
+    int *py2)
 {
-    int x, y;
+    int x, y, x1, y1, x2, y2;
     bool done = false;
     bool n, s, e, w, ne, nw, se, sw;
 
     /* We must be standing on a house foundation */
-    if (!is_valid_foundation(p, c, &p->grid))
+    if (!is_valid_foundation(p, c, p->px, p->py))
     {
         msg(p, "There is no house foundation here.");
         return false;
     }
 
     /* Start from the players position */
-    loc_copy(grid1, &p->grid);
-    loc_copy(grid2, &p->grid);
+    x1 = p->px;
+    x2 = p->px;
+    y1 = p->py;
+    y2 = p->py;
 
     while (!done)
     {
-        struct loc grid;
-
         n = s = e = w = ne = nw = se = sw = false;
 
         /* Could we expand north? */
         n = true;
-        for (x = grid1->x; x <= grid2->x; x++)
+        for (x = x1; x <= x2; x++)
         {
             /* Is this a valid location for part of our house? */
-            loc_init(&grid, x, grid1->y - 1);
-            if (!is_valid_foundation(p, c, &grid))
+            if (!is_valid_foundation(p, c, x, y1 - 1))
             {
                 /* Not a valid perimeter */
                 n = false;
@@ -2738,11 +2722,10 @@ static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *
 
         /* Could we expand east? */
         e = true;
-        for (y = grid1->y; y <= grid2->y; y++)
+        for (y = y1; y <= y2; y++)
         {
             /* Is this a valid location for part of our house? */
-            loc_init(&grid, grid2->x + 1, y);
-            if (!is_valid_foundation(p, c, &grid))
+            if (!is_valid_foundation(p, c, x2 + 1, y))
             {
                 /* Not a valid perimeter */
                 e = false;
@@ -2753,11 +2736,10 @@ static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *
 
         /* Could we expand south? */
         s = true;
-        for (x = grid1->x; x <= grid2->x; x++)
+        for (x = x1; x <= x2; x++)
         {
             /* Is this a valid location for part of our house? */
-            loc_init(&grid, x, grid2->y + 1);
-            if (!is_valid_foundation(p, c, &grid))
+            if (!is_valid_foundation(p, c, x, y2 + 1))
             {
                 /* Not a valid perimeter */
                 s = false;
@@ -2768,11 +2750,10 @@ static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *
 
         /* Could we expand west? */
         w = true;
-        for (y = grid1->y; y <= grid2->y; y++)
+        for (y = y1; y <= y2; y++)
         {
             /* Is this a valid location for part of our house? */
-            loc_init(&grid, grid1->x - 1, y);
-            if (!is_valid_foundation(p, c, &grid))
+            if (!is_valid_foundation(p, c, x1 - 1, y))
             {
                 /* Not a valid perimeter */
                 w = false;
@@ -2782,14 +2763,10 @@ static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *
         }
 
         /* Could we expand the corners? */
-        loc_init(&grid, grid2->x + 1, grid1->y - 1);
-        ne = is_valid_foundation(p, c, &grid);
-        loc_init(&grid, grid1->x - 1, grid1->y - 1);
-        nw = is_valid_foundation(p, c, &grid);
-        loc_init(&grid, grid2->x + 1, grid2->y + 1);
-        se = is_valid_foundation(p, c, &grid);
-        loc_init(&grid, grid1->x - 1, grid2->y + 1);
-        sw = is_valid_foundation(p, c, &grid);
+        ne = is_valid_foundation(p, c, x2 + 1, y1 - 1);
+        nw = is_valid_foundation(p, c, x1 - 1, y1 - 1);
+        se = is_valid_foundation(p, c, x2 + 1, y2 + 1);
+        sw = is_valid_foundation(p, c, x1 - 1, y2 + 1);
 
         /*
          * Only permit expansion in a way that maintains a rectangle, we don't
@@ -2801,18 +2778,18 @@ static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *
         if (w) w = (!n && !s) || (n && nw) || (s && sw);
 
         /* Actually expand the boundary */
-        if (n) grid1->y--;
-        if (s) grid2->y++;
-        if (w) grid1->x--;
-        if (e) grid2->x++;
+        if (n) y1--;
+        if (s) y2++;
+        if (w) x1--;
+        if (e) x2++;
 
         /* Stop if we couldn't expand */
         done = !(n || s || w || e);
     }
 
     /* Paranoia */
-    x = grid2->x - grid1->x - 1;
-    y = grid2->y - grid1->y - 1;
+    x = x2 - x1 - 1;
+    y = y2 - y1 - 1;
     if ((x <= 0) || (y <= 0))
     {
         msg(p, "The foundation should have positive dimensions!");
@@ -2827,6 +2804,11 @@ static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *
     }
 
     /* Return the area */
+    *px1 = x1;
+    *px2 = x2;
+    *py1 = y1;
+    *py2 = y2;
+
     return true;
 }
 
@@ -2837,11 +2819,9 @@ static bool get_house_foundation(struct player *p, struct chunk *c, struct loc *
  */
 bool create_house(struct player *p)
 {
-    int house;
+    int x1, x2, y1, y2, x, y, house;
     struct house_type h_local;
     struct chunk *c = chunk_get(&p->wpos);
-    struct loc begin, end;
-    struct loc_iterator iter;
 
     /* The DM cannot create houses! */
     if (p->dm_flags & DM_HOUSE_CONTROL)
@@ -2865,7 +2845,7 @@ bool create_house(struct player *p)
     }
 
     /* Determine the area of the house foundation */
-    if (!get_house_foundation(p, c, &begin, &end)) return false;
+    if (!get_house_foundation(p, c, &x1, &y1, &x2, &y2)) return false;
 
     /* Is the location allowed? */
     /* XXX We should check if too near other houses, roads, level edges, etc */
@@ -2881,9 +2861,12 @@ bool create_house(struct player *p)
     }
 
     /* Setup house info */
-    loc_init(&h_local.grid_1, begin.x + 1, begin.y + 1);
-    loc_init(&h_local.grid_2, end.x - 1, end.y - 1);
-    loc_init(&h_local.door, 0, 0);
+    h_local.x_1 = x1 + 1;
+    h_local.y_1 = y1 + 1;
+    h_local.x_2 = x2 - 1;
+    h_local.y_2 = y2 - 1;
+    h_local.door_y = 0;
+    h_local.door_x = 0;
     memcpy(&h_local.wpos, &p->wpos, sizeof(struct worldpos));
     h_local.price = 0;   /* XXX */
     set_house_owner(p, &h_local);
@@ -2892,34 +2875,34 @@ bool create_house(struct player *p)
     /* Add a house to our houses list */
     house_set(house, &h_local);
 
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Render into the terrain */
-    do
+    for (y = y1; y <= y2; y++)
     {
-        /* Delete any object */
-        square_excise_pile(c, &iter.cur);
+        for (x = x1; x <= x2; x++)
+        {
+            /* Delete any object */
+            square_excise_pile(c, y, x);
 
-        /* Build a wall, but don't destroy any existing door */
-        if (!square_home_iscloseddoor(c, &iter.cur))
-            square_build_permhouse(c, &iter.cur);
+            /* Build a wall, but don't destroy any existing door */
+            if (!square_home_iscloseddoor(c, y, x))
+                square_build_permhouse(c, y, x);
+        }
     }
-    while (loc_iterator_next(&iter));
-
-    begin.x++;
-    begin.y++;
-    loc_iterator_first(&iter, &begin, &end);
-
-    do
+    for (y = y1 + 1; y < y2; y++)
     {
-        /* Fill with safe floor */
-        square_add_safe(c, &iter.cur);
+        for (x = x1 + 1; x < x2; x++)
+        {
+            /* Fill with safe floor */
+            square_add_safe(c, y, x);
 
-        /* Declare this to be a room */
-        sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
-        sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
+            /* Make it "icky" */
+            sqinfo_on(c->squares[y][x].info, SQUARE_VAULT);
+
+            /* Make it glowing */
+            sqinfo_on(c->squares[y][x].info, SQUARE_ROOM);
+            sqinfo_on(c->squares[y][x].info, SQUARE_GLOW);
+        }
     }
-    while (loc_iterator_next_strict(&iter));
 
     return true;
 }
@@ -2940,14 +2923,14 @@ bool create_house(struct player *p)
 /*
  * Determine if the given location contains a house foundation stone.
  */
-static bool is_foundation(struct player *p, struct chunk *c, struct loc *grid)
+static bool is_foundation(struct player *p, struct chunk *c, int y, int x)
 {
     struct object *obj;
 
     /* Paranoia */
-    if (!square_in_bounds(c, grid)) return false;
+    if (!square_in_bounds(c, y, x)) return false;
 
-    obj = square_object(c, grid);
+    obj = square_object(c, y , x);
 
     if (obj && tval_is_stone(obj) && !obj->next) return true;
     return false;
@@ -2957,15 +2940,15 @@ static bool is_foundation(struct player *p, struct chunk *c, struct loc *grid)
 /*
  * Determine the area for a house foundation.
  */
-static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *begin,
-    struct loc *end)
+static bool get_foundation_area(struct player *p, struct chunk *c, int *px1, int *py1, int *px2,
+    int *py2)
 {
     int x, y, x1, x2, y1, y2, d;
     bool done = true;
     bool n, s, e, w, ne, nw, se, sw;
 
     /* We must NOT be standing on a house foundation stone */
-    if (is_foundation(p, c, &p->grid))
+    if (is_foundation(p, c, p->py, p->px))
     {
         msg(p, "You must stand outside the foundation perimeter.");
         return false;
@@ -2974,19 +2957,18 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
     /* Find a house foundation stone next to the player */
     for (d = 0; d < 8; d++)
     {
-        struct loc grid;
-
-        loc_sum(&grid, &p->grid, &ddgrid_ddd[d]);
+        y = p->py + ddy_ddd[d];
+        x = p->px + ddx_ddd[d];
 
         /* Oops */
-        if (!square_in_bounds(c, &grid)) continue;
+        if (!square_in_bounds(c, y, x)) continue;
 
-        if (is_foundation(p, c, &grid))
+        if (is_foundation(p, c, y, x))
         {
-            x1 = grid.x;
-            x2 = grid.x;
-            y1 = grid.y;
-            y2 = grid.y;
+            x1 = x;
+            x2 = x;
+            y1 = y;
+            y2 = y;
             done = false;
             break;
         }
@@ -3001,16 +2983,12 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
 
     do
     {
-        struct loc grid;
-
         /* Could we expand north? */
         n = true;
         for (x = x1; x <= x2; x++)
         {
-            loc_init(&grid, x, y1 - 1);
-
             /* Is this a valid location for part of our house? */
-            if (!is_foundation(p, c, &grid))
+            if (!is_foundation(p, c, y1 - 1, x))
             {
                 /* Not a valid perimeter */
                 n = false;
@@ -3023,10 +3001,8 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
         e = true;
         for (y = y1; y <= y2; y++)
         {
-            loc_init(&grid, x2 + 1, y);
-
             /* Is this a valid location for part of our house? */
-            if (!is_foundation(p, c, &grid))
+            if (!is_foundation(p, c, y, x2 + 1))
             {
                 /* Not a valid perimeter */
                 e = false;
@@ -3039,10 +3015,8 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
         s = true;
         for (x = x1; x <= x2; x++)
         {
-            loc_init(&grid, x, y2 + 1);
-
             /* Is this a valid location for part of our house? */
-            if (!is_foundation(p, c, &grid))
+            if (!is_foundation(p, c, y2 + 1, x))
             {
                 /* Not a valid perimeter */
                 s = false;
@@ -3055,10 +3029,8 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
         w = true;
         for (y = y1; y <= y2; y++)
         {
-            loc_init(&grid, x1 - 1, y);
-
             /* Is this a valid location for part of our house? */
-            if (!is_foundation(p, c, &grid))
+            if (!is_foundation(p, c, y, x1 - 1))
             {
                 /* Not a valid perimeter */
                 w = false;
@@ -3068,14 +3040,10 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
         }
 
         /* Could we expand the corners? */
-        loc_init(&grid, x2 + 1, y1 - 1);
-        ne = is_foundation(p, c, &grid);
-        loc_init(&grid, x1 - 1, y1 - 1);
-        nw = is_foundation(p, c, &grid);
-        loc_init(&grid, x2 + 1, y2 + 1);
-        se = is_foundation(p, c, &grid);
-        loc_init(&grid, x1 - 1, y2 + 1);
-        sw = is_foundation(p, c, &grid);
+        ne = is_foundation(p, c, y1 - 1, x2 + 1);
+        nw = is_foundation(p, c, y1 - 1, x1 - 1);
+        se = is_foundation(p, c, y2 + 1, x2 + 1);
+        sw = is_foundation(p, c, y2 + 1, x1 - 1);
 
         /*
          * Only permit expansion in a way that maintains a rectangle, we don't
@@ -3114,8 +3082,10 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
     }
 
     /* Return the area */
-    loc_init(begin, x1, y1);
-    loc_init(end, x2, y2);
+    *px1 = x1;
+    *px2 = x2;
+    *py1 = y1;
+    *py2 = y2;
 
     return true;
 }
@@ -3124,33 +3094,24 @@ static bool get_foundation_area(struct player *p, struct chunk *c, struct loc *b
 /*
  * Determine if the area for a house foundation is allowed.
  */
-static bool allowed_foundation_area(struct player *p, struct chunk *c, struct loc *begin,
-    struct loc *end)
+static bool allowed_foundation_area(struct player *p, struct chunk *c, int x1, int y1, int x2,
+    int y2)
 {
     int x, y;
-    struct loc grid1, grid2, grid3, grid4;
-
-    loc_init(&grid1, begin->x - 1, begin->y - 1);
-    loc_init(&grid2, end->x + 1, begin->y - 1);
-    loc_init(&grid3, begin->x - 1, end->y + 1);
-    loc_init(&grid4, end->x + 1, end->y + 1);
 
     /* Check bounds (fully) */
-    if (!square_in_bounds_fully(c, &grid1) || !square_in_bounds_fully(c, &grid2) ||
-        !square_in_bounds_fully(c, &grid3) || !square_in_bounds_fully(c, &grid4))
+    if (!square_in_bounds_fully(c, y1 - 1, x1 - 1) || !square_in_bounds_fully(c, y1 - 1, x2 + 1) ||
+        !square_in_bounds_fully(c, y2 + 1, x1 - 1) || !square_in_bounds_fully(c, y2 + 1, x2 + 1))
     {
         msg(p, "You cannot create or extend houses near the level border.");
         return false;
     }
 
     /* Check north and south */
-    for (x = begin->x; x <= end->x; x++)
+    for (x = x1; x <= x2; x++)
     {
-        loc_init(&grid1, x, begin->y - 1);
-        loc_init(&grid2, x, end->y + 1);
-
         /* Check for house doors */
-        if (square_home_iscloseddoor(c, &grid1) || square_home_iscloseddoor(c, &grid2))
+        if (square_home_iscloseddoor(c, y1 - 1, x) || square_home_iscloseddoor(c, y2 + 1, x))
         {
             msg(p, "You cannot create or extend houses near other house doors.");
             return false;
@@ -3158,13 +3119,10 @@ static bool allowed_foundation_area(struct player *p, struct chunk *c, struct lo
     }
 
     /* Check east and west */
-    for (y = begin->y; y <= end->y; y++)
+    for (y = y1; y <= y2; y++)
     {
-        loc_init(&grid1, begin->x - 1, y);
-        loc_init(&grid2, end->x + 1, y);
-
         /* Check for house doors */
-        if (square_home_iscloseddoor(c, &grid1) || square_home_iscloseddoor(c, &grid2))
+        if (square_home_iscloseddoor(c, y, x1 - 1) || square_home_iscloseddoor(c, y, x2 + 1))
         {
             msg(p, "You cannot create or extend houses near other house doors.");
             return false;
@@ -3180,11 +3138,9 @@ static bool allowed_foundation_area(struct player *p, struct chunk *c, struct lo
  */
 bool build_house(struct player *p)
 {
-    int x1, x2, y1, y2, house, area, price = 0, tax;
+    int x, y, x1, x2, y1, y2, house, area, price = 0, tax;
     struct house_type *h_ptr = NULL;
     struct chunk *c = chunk_get(&p->wpos);
-    struct loc begin, end;
-    struct loc_iterator iter;
 
     /* The DM cannot create or extend houses! */
     if (p->dm_flags & DM_HOUSE_CONTROL)
@@ -3215,13 +3171,13 @@ bool build_house(struct player *p)
     }
 
     /* Determine the area of the house foundation */
-    if (!get_foundation_area(p, c, &begin, &end)) return false;
+    if (!get_foundation_area(p, c, &x1, &y1, &x2, &y2)) return false;
 
     /* Is the location allowed? */
-    if (!allowed_foundation_area(p, c, &begin, &end)) return false;
+    if (!allowed_foundation_area(p, c, x1, y1, x2, y2)) return false;
 
     /* Is it near a house we own? */
-    house = house_near(p, &begin, &end);
+    house = house_near(p, x1, y1, x2, y2);
     switch (house)
     {
         /* Invalid dimensions */
@@ -3251,10 +3207,10 @@ bool build_house(struct player *p)
     /* New dimensions */
     if (h_ptr)
     {
-        x1 = MIN(x1, h_ptr->grid_1.x - 1);
-        x2 = MAX(x2, h_ptr->grid_2.x + 1);
-        y1 = MIN(y1, h_ptr->grid_1.y - 1);
-        y2 = MAX(y2, h_ptr->grid_2.y + 1);
+        x1 = MIN(x1, h_ptr->x_1 - 1);
+        x2 = MAX(x2, h_ptr->x_2 + 1);
+        y1 = MIN(y1, h_ptr->y_1 - 1);
+        y2 = MAX(y2, h_ptr->y_2 + 1);
     }
 
     /* Remember price */
@@ -3307,43 +3263,42 @@ bool build_house(struct player *p)
     /* Redraw */
     p->upkeep->redraw |= (PR_GOLD);
 
-    loc_init(&begin, x1, y1);
-    loc_init(&end, x2, y2);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Build a rectangular building */
-    do
+    for (y = y1; y <= y2; y++)
     {
-        /* Delete any object */
-        square_excise_pile(c, &iter.cur);
+        for (x = x1; x <= x2; x++)
+        {
+            /* Delete any object */
+            square_excise_pile(c, y, x);
 
-        /* Build a wall, but don't destroy any existing door */
-        if (!square_home_iscloseddoor(c, &iter.cur))
-            square_build_permhouse(c, &iter.cur);
+            /* Build a wall, but don't destroy any existing door */
+            if (!square_home_iscloseddoor(c, y, x))
+                square_build_permhouse(c, y, x);
+        }
     }
-    while (loc_iterator_next(&iter));
-
-    loc_init(&begin, x1 + 1, y1 + 1);
-    loc_iterator_first(&iter, &begin, &end);
 
     /* Make it hollow */
-    do
+    for (y = y1 + 1; y < y2; y++)
     {
-        /* Fill with safe floor */
-        square_add_safe(c, &iter.cur);
+        for (x = x1 + 1; x < x2; x++)
+        {
+            /* Fill with safe floor */
+            square_add_safe(c, y, x);
 
-        /* Declare this to be a room */
-        sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
-        sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
+            /* Make it "icky" */
+            sqinfo_on(c->squares[y][x].info, SQUARE_VAULT);
+
+            /* Make it glowing */
+            sqinfo_on(c->squares[y][x].info, SQUARE_ROOM);
+            sqinfo_on(c->squares[y][x].info, SQUARE_GLOW);
+        }
     }
-    while (loc_iterator_next_strict(&iter));
 
     /* Finish house creation */
     if (!h_ptr)
     {
         struct house_type h_local;
-        int tmp;
-        struct loc door;
+        int tmp, door_x, door_y;
 
         /* Pick a door direction (S,N,E,W) */
         tmp = randint0(4);
@@ -3354,43 +3309,46 @@ bool build_house(struct player *p)
             /* Bottom side */
             case DIR_SOUTH:
             {
-                door.y = y2;
-                door.x = rand_range(x1, x2);
+                door_y = y2;
+                door_x = rand_range(x1, x2);
                 break;
             }
 
             /* Top side */
             case DIR_NORTH:
             {
-                door.y = y1;
-                door.x = rand_range(x1, x2);
+                door_y = y1;
+                door_x = rand_range(x1, x2);
                 break;
             }
 
             /* Right side */
             case DIR_EAST:
             {
-                door.y = rand_range(y1, y2);
-                door.x = x2;
+                door_y = rand_range(y1, y2);
+                door_x = x2;
                 break;
             }
 
             /* Left side */
             default:
             {
-                door.y = rand_range(y1, y2);
-                door.x = x1;
+                door_y = rand_range(y1, y2);
+                door_x = x1;
                 break;
             }
         }
 
         /* Add the door */
-        square_colorize_door(c, &door, 0);
+        square_colorize_door(c, door_y, door_x, 0);
 
         /* Setup house info */
-        loc_init(&h_local.grid_1, x1 + 1, y1 + 1);
-        loc_init(&h_local.grid_2, x2 - 1, y2 - 1);
-        loc_copy(&h_local.door, &door);
+        h_local.x_1 = x1 + 1;
+        h_local.y_1 = y1 + 1;
+        h_local.x_2 = x2 - 1;
+        h_local.y_2 = y2 - 1;
+        h_local.door_y = door_y;
+        h_local.door_x = door_x;
         memcpy(&h_local.wpos, &p->wpos, sizeof(struct worldpos));
         h_local.price = price;
         set_house_owner(p, &h_local);
@@ -3406,8 +3364,10 @@ bool build_house(struct player *p)
     }
 
     /* Adjust some house info */
-    loc_init(&h_ptr->grid_1, x1 + 1, y1 + 1);
-    loc_init(&h_ptr->grid_2, x2 - 1, y2 - 1);
+    h_ptr->x_1 = x1 + 1;
+    h_ptr->y_1 = y1 + 1;
+    h_ptr->x_2 = x2 - 1;
+    h_ptr->y_2 = y2 - 1;
     h_ptr->price = price;
     h_ptr->state = HOUSE_EXTENDED;
 

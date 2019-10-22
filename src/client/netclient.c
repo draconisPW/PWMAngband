@@ -384,8 +384,8 @@ static int Receive_struct_info(void)
         /* Player Races */
         case STRUCT_INFO_RACE:
         {
-            s16b r_adj, r_skills, r_exp, res_level;
-            byte ridx, r_mhp, infra, flag;
+            s16b r_adj, r_skills, r_exp;
+            byte ridx, r_mhp, infra, flag, res_level;
 
             races = NULL;
 
@@ -486,7 +486,7 @@ static int Receive_struct_info(void)
                 }
                 for (j = 0; j < ELEM_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd", &res_level)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &res_level)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -496,7 +496,7 @@ static int Receive_struct_info(void)
                         mem_free(r);
                         return n;
                     }
-                    bytes_read += 2;
+                    bytes_read += 1;
 
                     r->el_info[j].res_level = res_level;
                 }
@@ -514,8 +514,8 @@ static int Receive_struct_info(void)
         /* Player Classes */
         case STRUCT_INFO_CLASS:
         {
-            s16b c_adj, c_skills;
-            byte cidx, c_mhp, total_spells, tval, sval;
+            s16b c_adj, c_skills, c_exp;
+            byte cidx, c_mhp, total_spells, tval;
             char num_books;
             char realm[NORMAL_WID];
 
@@ -573,7 +573,7 @@ static int Receive_struct_info(void)
 
                     c->c_skills[j] = c_skills;
                 }
-                if ((n = Packet_scanf(&rbuf, "%b", &c_mhp)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%hd", &c_mhp, &c_exp)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -583,7 +583,7 @@ static int Receive_struct_info(void)
                     mem_free(c);
                     return n;
                 }
-                bytes_read += 1;
+                bytes_read += 3;
                 for (j = 0; j < PF_SIZE; j++)
                 {
                     if ((n = Packet_scanf(&rbuf, "%b", &pflag)) <= 0)
@@ -613,6 +613,7 @@ static int Receive_struct_info(void)
                 bytes_read += 3;
 
                 c->c_mhp = c_mhp;
+                c->c_exp = c_exp;
                 c->magic.total_spells = total_spells;
                 c->magic.num_books = num_books;
                 c->magic.books = mem_zalloc(num_books * sizeof(struct class_book));
@@ -624,7 +625,7 @@ static int Receive_struct_info(void)
                 {
                     struct class_book *book = &c->magic.books[j];
 
-                    if ((n = Packet_scanf(&rbuf, "%b%b%s", &tval, &sval, realm)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%s", realm)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -634,10 +635,8 @@ static int Receive_struct_info(void)
                         mem_free(c);
                         return n;
                     }
-                    bytes_read += 2 + strlen(realm);
+                    bytes_read += 1 + strlen(realm);
 
-                    book->tval = tval;
-                    book->sval = sval;
                     if (strlen(realm)) book->realm = lookup_realm(realm);
                 }
 
@@ -1113,48 +1112,6 @@ static int Receive_struct_info(void)
 
             break;
         }
-
-        /* Player timed effects */
-        case STRUCT_INFO_TIMED:
-        {
-            byte grade_color, dummy;
-            s16b grade_max;
-            struct timed_grade *current, *l;
-
-            i = -1;
-            while (true)
-            {
-                if ((n = Packet_scanf(&rbuf, "%b%b%hd%s", &dummy, &grade_color, &grade_max,
-                    name)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(name) + 4;
-
-                if (strlen(name))
-                {
-                    l = mem_zalloc(sizeof(*l));
-                    current->next = l;
-                    l->color = grade_color;
-                    l->max = grade_max;
-                    l->name = string_make(name);
-                    current = current->next;
-                }
-                else
-                {
-                    i++;
-                    if (i == max) break;
-                    timed_grades[i] = mem_zalloc(sizeof(struct timed_grade));
-                    current = timed_grades[i];
-                }
-            }
-
-            break;
-        }
     }
 
     return 1;
@@ -1168,9 +1125,8 @@ static int Receive_death_cause(void)
 
     if ((n = Packet_scanf(&rbuf, "%b%s%hd%ld%ld%hd%hd%hd%s%s", &ch, player->death_info.title,
         &player->death_info.lev, &player->death_info.exp, &player->death_info.au,
-        &player->death_info.wpos.grid.y, &player->death_info.wpos.grid.x,
-        &player->death_info.wpos.depth, player->death_info.died_from,
-        player->death_info.ctime)) <= 0)
+        &player->death_info.wpos.wy, &player->death_info.wpos.wx, &player->death_info.wpos.depth,
+        player->death_info.died_from, player->death_info.ctime)) <= 0)
     {
         return n;
     }
@@ -1518,27 +1474,6 @@ static bool item_tester_hook_uncurse(struct player *p, const struct object *obj)
 }
 
 
-/*
- * Hook to specify drainable items
- */
-static bool item_tester_hook_drain(struct player *p, const struct object *obj)
-{
-    /* Drain staves and wands */
-    if (tval_can_have_charges(obj)) return true;
-
-    return false;
-}
-
-
-/*
- * Hook to specify a staff
- */
-static bool item_tester_hook_staff(struct player *p, const struct object *obj)
-{
-    return tval_is_staff(obj);
-}
-
-
 struct tester_hook
 {
     const char *prompt;
@@ -1561,7 +1496,7 @@ static struct tester_hook tester_hook_item[N_HOOKS] =
     {"Identify which item? ", "You have nothing to identify.", CMD_NULL,
         USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR, item_tester_hook_identify},
     {"Recharge which item? ", "You have nothing to recharge.", CMD_NULL,
-        USE_INVEN | USE_FLOOR | SHOW_RECHARGE, item_tester_hook_recharge},
+        USE_INVEN | USE_FLOOR, item_tester_hook_recharge},
     {"Brand which kind of ammunition? ", "You have nothing to brand.", CMD_NULL,
         USE_INVEN | USE_QUIVER | USE_FLOOR, item_tester_hook_ammo},
     {"Send which item? ", "You have nothing to send.", CMD_NULL,
@@ -1569,11 +1504,7 @@ static struct tester_hook tester_hook_item[N_HOOKS] =
     {"Transform which potion? ", "You have nothing to transform.", CMD_NULL,
         USE_INVEN | USE_FLOOR, item_tester_hook_potion},
     {"Uncurse which item? ", "You have nothing to uncurse.", CMD_NULL,
-        USE_EQUIP | USE_INVEN | USE_FLOOR, item_tester_hook_uncurse},
-    {"Drain charges from which item? ", "You have nothing to drain charges from.", CMD_NULL,
-        USE_INVEN | USE_FLOOR, item_tester_hook_drain},
-    {"Make arrows from which staff? ", "You have no staff to use.", CMD_NULL,
-        USE_INVEN | USE_FLOOR, item_tester_hook_staff}
+        USE_EQUIP | USE_INVEN | USE_FLOOR, item_tester_hook_uncurse}
 };
 
 
@@ -1606,9 +1537,6 @@ static int Receive_item_request(void)
             default:
             {
                 struct object *obj;
-
-                /* Hack -- recharge strength */
-                player->upkeep->recharge_pow = atoi(dice_string);
 
                 result = get_item(&obj, tester_hook_item[tester_hook].prompt,
                     tester_hook_item[tester_hook].reject, tester_hook_item[tester_hook].code,
@@ -1813,14 +1741,14 @@ static int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
         }
         *bytes_read += 3;
 
-        /* RLE_LARGE */
-        if ((mode == RLE_LARGE) && (a & 0x8000))
+        /* RLE-II */
+        if ((mode == RLE_LARGE) && (c == -1))
         {
-            /* First, clear the bit */
-            a &= ~(0x8000);
+            /* Get the number of repetitions */
+            n = a;
 
-            /* Read the number of repetitions */
-            nread = Packet_scanf(buf, "%hu", &n);
+            /* Read the attr/char pair */
+            nread = Packet_scanf(buf, "%c%hu", &c, &a);
             if (nread <= 0)
             {
                 /* Rollback the socket buffer */
@@ -1829,10 +1757,10 @@ static int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
                 /* Packet isn't complete, graceful failure */
                 return nread;
             }
-            *bytes_read += 2;
+            *bytes_read += 3;
         }
 
-        /* RLE_CLASSIC */
+        /* RLE-I */
         else if ((mode == RLE_CLASSIC) && (a & 0x40))
         {
             /* First, clear the bit */
@@ -1850,10 +1778,11 @@ static int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
             }
             *bytes_read += 2;
         }
-
-        /* No RLE, just one instance */
         else
+        {
+            /* No RLE, just one instance */
             n = 1;
+        }
 
         /* Draw a character n times */
         if (lineref)
@@ -2312,8 +2241,8 @@ static int Receive_book_info(void)
 static int Receive_floor(void)
 {
     int n, bytes_read;
-    byte ch, num, tval, sval, notice, attr, act, aim, fuel, fail, known, known_effect, carry,
-        quality_ignore, ignored, magic;
+    byte ch, num, tval, sval, notice, attr, act, aim, fuel, fail, known, carry, quality_ignore,
+        ignored, magic;
     s16b amt, slot, oidx, eidx, bidx;
     s32b pval;
     quark_t note;
@@ -2339,8 +2268,8 @@ static int Receive_floor(void)
     }
     bytes_read += 15;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel, &fail,
-        &slot, &known, &known_effect, &carry, &quality_ignore, &ignored, &eidx, &magic, &bidx)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel, &fail,
+        &slot, &known, &carry, &quality_ignore, &ignored, &eidx, &magic, &bidx)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -2397,7 +2326,6 @@ static int Receive_floor(void)
         obj->info_xtra.fail = fail;
         obj->info_xtra.slot = slot;
         obj->info_xtra.known = known;
-        obj->info_xtra.known_effect = known_effect;
         obj->info_xtra.carry = carry;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;
@@ -2488,9 +2416,9 @@ static int Receive_store_info(void)
     char store_owner_name[NORMAL_WID];
     s16b num_items;
     s32b max_cost;
-    s16b type;
+    s16b sidx;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%s%s%hd%ld", &ch, &type, store_name, store_owner_name,
+    if ((n = Packet_scanf(&rbuf, "%b%hd%s%s%hd%ld", &ch, &sidx, store_name, store_owner_name,
         &num_items, &max_cost)) <= 0)
     {
         return n;
@@ -2502,7 +2430,7 @@ static int Receive_store_info(void)
     current_store.name = string_make(store_name);
     string_free(current_store.owner->name);
     current_store.owner->name = string_make(store_owner_name);
-    current_store.type = type;
+    current_store.sidx = ((sidx == -1)? MAX_STORES: sidx);
 
     /* Only display store if we're not already shopping */
     if (!store_ctx) store_enter();
@@ -2980,8 +2908,8 @@ static int Receive_player_pos(void)
     int n;
     byte ch;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd", &ch, &player->grid.x, &player->offset_grid.x,
-        &player->grid.y, &player->offset_grid.y)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd", &ch, &player->px, &player->offset_x,
+        &player->py, &player->offset_y)) <= 0)
     {
         return n;
     }
@@ -3043,36 +2971,6 @@ static int Receive_quit(void)
         quit_fmt("Quitting: %s", reason);
     }
     return -1;
-}
-
-
-static int Receive_features(void)
-{
-    int n;
-    byte ch;
-    s16b lighting, off;
-
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd", &ch, &lighting, &off)) <= 0)
-        return n;
-
-    if (off == z_info->f_max)
-    {
-        off = 0;
-        lighting++;
-    }
-
-    /* Send request for splash screen (MOTD) to read */
-    if (lighting == LIGHTING_MAX)
-    {
-        Setup.initialized = true;
-        Send_text_screen(TEXTFILE_MOTD, 0);
-    }
-
-    /* Request continuation */
-    else
-        Send_features(lighting, off);
-
-    return 1;
 }
 
 
@@ -3414,8 +3312,8 @@ static int Receive_message(void)
 static int Receive_item(void)
 {
     int n, bytes_read;
-    byte ch, tval, equipped, sval, notice, attr, act, aim, fuel, fail, stuck, known, known_effect,
-        sellable, quality_ignore, ignored, magic;
+    byte ch, tval, equipped, sval, notice, attr, act, aim, fuel, fail, stuck, known, sellable,
+        quality_ignore, ignored, magic;
     s16b wgt, amt, oidx, slot, eidx, bidx;
     s32b price, pval;
     quark_t note;
@@ -3443,9 +3341,8 @@ static int Receive_item(void)
     bytes_read += 20;
 
     /* Extra info */
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel,
-        &fail, &slot, &stuck, &known, &known_effect, &sellable, &quality_ignore, &ignored, &eidx,
-        &magic, &bidx)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel, &fail,
+        &slot, &stuck, &known, &sellable, &quality_ignore, &ignored, &eidx, &magic, &bidx)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -3509,7 +3406,6 @@ static int Receive_item(void)
         obj->info_xtra.slot = slot;
         obj->info_xtra.stuck = stuck;
         obj->info_xtra.known = known;
-        obj->info_xtra.known_effect = known_effect;
         obj->info_xtra.sellable = sellable;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;
@@ -4040,41 +3936,6 @@ static int Receive_autoinscriptions(void)
 /*** Sending ***/
 
 
-#define MAX_FEATURE_CHUNK   512
-
-int Send_features(int lighting, int off)
-{
-    int n, i, size, max, offset = off;
-    byte a;
-    char c;
-
-    /* Paranoia */
-    if ((lighting < 0) || (lighting >= LIGHTING_MAX)) return 0;
-
-    /* Size */
-    size = z_info->f_max;
-
-    max = MAX_FEATURE_CHUNK;
-    if (offset + max > size) max = size - offset;
-    if (offset > size) offset = size;
-
-    if ((n = Packet_printf(&wbuf, "%b%c%hd%hd", (unsigned)PKT_FEATURES, lighting, max, offset)) <= 0)
-        return n;
-
-    /* Send attr/char stream */
-    for (i = offset; i < offset + max; i++)
-    {
-        a = Client_setup.f_attr[i][lighting];
-        c = Client_setup.f_char[i][lighting];
-
-        if ((n = Packet_printf(&wbuf, "%b%c", (unsigned)a, (int)c)) <= 0)
-            return n;
-    }
-
-    return 1;
-}
-
-
 int Send_verify(int type)
 {
     int n, i, size;
@@ -4085,10 +3946,11 @@ int Send_verify(int type)
     switch (type)
     {
         case 0: size = flavor_max; break;
-        case 1: size = z_info->k_max; break;
-        case 2: size = z_info->r_max; break;
-        case 3: size = PROJ_MAX * BOLT_MAX; break;
-        case 4: size = z_info->trap_max * LIGHTING_MAX; break;
+        case 1: size = z_info->f_max * LIGHTING_MAX; break;
+        case 2: size = z_info->k_max; break;
+        case 3: size = z_info->r_max; break;
+        case 4: size = PROJ_MAX * BOLT_MAX; break;
+        case 5: size = z_info->trap_max * LIGHTING_MAX; break;
         default: return 0;
     }
 
@@ -4105,18 +3967,22 @@ int Send_verify(int type)
                 c = Client_setup.flvr_x_char[i];
                 break;
             case 1:
+                a = Client_setup.f_attr[i / LIGHTING_MAX][i % LIGHTING_MAX];
+                c = Client_setup.f_char[i / LIGHTING_MAX][i % LIGHTING_MAX];
+                break;
+            case 2:
                 a = Client_setup.k_attr[i];
                 c = Client_setup.k_char[i];
                 break;
-            case 2:
+            case 3:
                 a = Client_setup.r_attr[i];
                 c = Client_setup.r_char[i];
                 break;
-            case 3:
+            case 4:
                 a = Client_setup.proj_attr[i / BOLT_MAX][i % BOLT_MAX];
                 c = Client_setup.proj_char[i / BOLT_MAX][i % BOLT_MAX];
                 break;
-            case 4:
+            case 5:
                 a = Client_setup.t_attr[i / LIGHTING_MAX][i % LIGHTING_MAX];
                 c = Client_setup.t_char[i / LIGHTING_MAX][i % LIGHTING_MAX];
                 break;
@@ -5755,7 +5621,7 @@ int Net_packet(void)
         cur_type = (*rbuf.ptr & 0xFF);
 
         /* Paranoia */
-        if ((cur_type <= PKT_UNDEFINED) || (cur_type >= PKT_MAX)) cur_type = PKT_UNDEFINED;
+        if ((cur_type < PKT_UNDEFINED) || (cur_type >= PKT_MAX)) cur_type = PKT_UNDEFINED;
 
         old_ptr = rbuf.ptr;
         if ((result = (*receive_tbl[cur_type])()) <= 0)
@@ -5789,6 +5655,21 @@ int Net_packet(void)
         }
         prev_type = cur_type;
     }
+    return 0;
+}
+
+
+/*
+ * Send the first packet to the server with our name,
+ * nick and display contained in it.
+ */
+int Net_verify()
+{
+    int i;
+
+    /* There are 6 char/attr streams, go through all of them */
+    for (i = 0; i < 6; i++) Send_verify(i);
+
     return 0;
 }
 

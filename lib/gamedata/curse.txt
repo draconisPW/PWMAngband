@@ -6,7 +6,8 @@
 # name: effect name
 # type: valid object base
 # combat: to_hit : to_dam : to_ac
-# effect: random effect : parameter : parameter : parameter
+# effect: random effect : parameter (maybe) : parameter (maybe)
+# param: parameter : parameter (if needed)
 # dice: dice string
 # expr: dice expression
 # msg: message
@@ -187,7 +188,8 @@ desc:paralyses you every now and then
 
 name:dragon summon
 type:dragon armour
-effect:SUMMON:DRAGON:0:-2
+effect:SUMMON:DRAGON
+param:0:-2
 dice:1
 time:1d500
 msg:Your armour lets out a cry...
@@ -198,7 +200,8 @@ type:hafted
 type:polearm
 type:sword
 type:mage staff
-effect:SUMMON:DEMON:0:-2
+effect:SUMMON:DEMON
+param:0:-2
 dice:1
 time:1d500
 msg:Your weapon gives out a demonic shriek!
@@ -209,7 +212,8 @@ type:hafted
 type:polearm
 type:sword
 type:mage staff
-effect:SUMMON:UNDEAD:0:-2
+effect:SUMMON:UNDEAD
+param:0:-2
 dice:1
 time:1d500
 msg:Your weapon calls beyond the grave!

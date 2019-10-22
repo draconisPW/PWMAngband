@@ -38,7 +38,7 @@ struct timed_effect_data
 
     int index;
     char *desc;
-    struct timed_grade *grade;
+    char *on_begin;
     char *on_end;
     char *on_increase;
     char *on_decrease;

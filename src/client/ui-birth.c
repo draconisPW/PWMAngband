@@ -225,7 +225,7 @@ static struct menu sex_menu, race_menu, class_menu, roller_menu;
 /* Upper left column and row, width, and lower column */
 static region gender_region = {SEX_COL, TABLE_ROW, 12, MENU_ROWS};
 static region race_region = {RACE_COL, TABLE_ROW, 15, MENU_ROWS};
-static region class_region = {CLASS_COL, TABLE_ROW, 16, 0};
+static region class_region = {CLASS_COL, TABLE_ROW, 16, MENU_ROWS};
 static region roller_region = {ROLLER_COL, TABLE_ROW, 30, MENU_ROWS};
 
 
@@ -321,9 +321,16 @@ static const char *get_flag_desc(bitflag flag)
 {
     switch (flag)
     {
-        #define OF(a, b) case OF_##a: return b;
-        #include "../common/list-object-flags.h"
-        #undef OF
+        case OF_SUST_STR: return "Sustains strength";
+        case OF_SUST_DEX: return "Sustains dexterity";
+        case OF_SUST_CON: return "Sustains constitution";
+        case OF_PROT_BLIND: return "Resists blindness";
+        case OF_HOLD_LIFE: return "Sustains experience";
+        case OF_FREE_ACT: return "Resists paralysis";
+        case OF_REGEN: return "Regenerates quickly";
+        case OF_SEE_INVIS: return "Sees invisible creatures";
+        case OF_FEATHER: return "Floats just above the floor";
+        case OF_SLOW_DIGEST: return "Digests food slowly";
 
         default: return "Undocumented flag";
     }
@@ -334,35 +341,21 @@ static const char *get_resist_desc(int element)
 {
     switch (element)
     {
-        #define ELEM(a, b, c, d) case ELEM_##a: return b;
-        #include "../common/list-elements.h"
-        #undef ELEM
+        case ELEM_POIS: return "Resists poison";
+        case ELEM_LIGHT: return "Resists light damage";
+        case ELEM_DARK: return "Resists darkness damage";
+        case ELEM_NEXUS: return "Resists nexus";
 
         default: return "Undocumented element";
     }
 }
 
 
-static const char *get_immune_desc(int element)
+static const char *get_elem_desc_other(int element)
 {
     switch (element)
     {
-        #define ELEM(a, b, c, d) case ELEM_##a: return c;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_vuln_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return d;
-        #include "../common/list-elements.h"
-        #undef ELEM
+        case ELEM_FIRE: return "Vulnerable to fire";
 
         default: return "Undocumented element";
     }
@@ -417,49 +410,25 @@ static void race_help(int i, void *db, const region *l)
 
     for (k = 1; k < OF_MAX; k++)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
         if (!of_has(r->flags, k)) continue;
-        s = get_flag_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        format_help(RACE_AUX_COL, j++, "%-30s", get_flag_desc(k));
         n_flags++;
     }
 
     for (k = 0; k < ELEM_MAX; k++)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
         if (r->el_info[k].res_level != 1) continue;
-        s = get_resist_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        format_help(RACE_AUX_COL, j++, "%-30s", get_resist_desc(k));
         n_flags++;
     }
 
     for (k = 0; k < ELEM_MAX; k++)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != 3) continue;
-        s = get_immune_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != -1) continue;
-        s = get_vuln_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        if ((r->el_info[k].res_level == 0) || (r->el_info[k].res_level == 1)) continue;
+        format_help(RACE_AUX_COL, j++, "%-30s", get_elem_desc_other(k));
         n_flags++;
     }
 
@@ -515,7 +484,8 @@ static void class_help(int i, void *db, const region *l)
             format_help(CLASS_AUX_COL, j, "%s%+3d", name, adj);
     }
 
-    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp, r->r_exp, -1);
+    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp,
+        r->r_exp + c->c_exp, -1);
 
     if (c->magic.total_spells)
     {
@@ -549,7 +519,7 @@ static void class_help(int i, void *db, const region *l)
         if (!pf_has(c->pflags, k)) continue;
         s = get_pflag_desc(k);
         if (!s) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        format_help(CLASS_AUX_COL, j++, "%-30s", s);
         n_flags++;
     }
 
@@ -574,10 +544,10 @@ static void init_birth_menu(struct menu *menu, int n_choices, int initial_choice
     menu_init(menu, MN_SKIN_SCROLL, &birth_iter);
 
     /*
-     * A couple of behavioural flags - we want all selection letters (in case we have more than 26
-     * races or classes) and a double tap to act as a selection.
+     * A couple of behavioural flags - we want selections letters in
+     * lower case and a double tap to act as a selection.
      */
-    menu->selections = all_letters;
+    menu->selections = lower_case;
     menu->flags = MN_DBL_TAP;
 
     /* Copy across the game's suggested initial selection, etc. */
@@ -787,6 +757,9 @@ static enum birth_stage roller_command(enum birth_stage current_stage)
 
         /* Hack -- remove the fake "ghost" class */
         n--;
+
+        /* Restrict choices for Dragon race */
+        if (pf_has(player->race->pflags, PF_DRAGON)) n -= 2;
 
         /* Class menu similar to race. */
         init_birth_menu(menu, n, (player->clazz? player->clazz->cidx: 0), &class_region,

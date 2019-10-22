@@ -8,17 +8,24 @@
 
 /*** Constants ***/
 
-/* List of store types */
+/* List of store indexes */
 enum
 {
-    STORE_OTHER = 0,
-    STORE_GENERAL,
-    STORE_TEMPLE,
-    STORE_B_MARKET,
-    STORE_XBM,
-    STORE_TAVERN,
-    STORE_HOME,
-    STORE_PLAYER
+    STORE_NONE = -1,
+    STORE_GENERAL = 0,
+    STORE_ARMOR = 1,
+    STORE_WEAPON = 2,
+    STORE_TEMPLE = 3,
+    STORE_ALCHEMY = 4,
+    STORE_MAGIC = 5,
+    STORE_LIBRARY = 6,
+    STORE_B_MARKET = 7,
+    STORE_XBM = 8,
+    STORE_TAVERN = 9,
+    STORE_HOME = 10,
+    STORE_PLAYER = 11,
+
+    MAX_STORES = 12
 };
 
 /*** Types ***/
@@ -56,8 +63,7 @@ struct store
 {
     struct owner *owners;       /* Owners */
     struct owner *owner;        /* Current owner */
-    int sidx;                   /* Index */
-    int type;                   /* Type */
+    unsigned int sidx;          /* Index */
     char *name;
     struct store *next;
     s16b stock_num;             /* Stock -- number of entries */

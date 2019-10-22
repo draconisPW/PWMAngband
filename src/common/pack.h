@@ -60,7 +60,6 @@ enum
 #define STRUCT_INFO_REALM   12
 #define STRUCT_INFO_FEAT    13
 #define STRUCT_INFO_TRAP    14
-#define STRUCT_INFO_TIMED   15
 
 /*
  * PKT_TERM helpers

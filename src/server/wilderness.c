@@ -395,27 +395,14 @@ static enum parser_error parse_location_info_name(struct parser *p)
 }
 
 
-static enum parser_error parse_location_info_short(struct parser *p)
-{
-    struct location *t = parser_priv(p);
-    const char *name = parser_getstr(p, "name");
-
-    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    t->shortname = string_make(name);
-
-    return PARSE_ERROR_NONE;
-}
-
-
 static enum parser_error parse_location_info_wpos(struct parser *p)
 {
     struct location *t = parser_priv(p);
-    struct loc grid;
-
-    loc_init(&grid, parser_getint(p, "wx"), parser_getint(p, "wy"));
+    int wx = parser_getint(p, "wx");
+    int wy = parser_getint(p, "wy");
 
     if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    wpos_init(&t->wpos, &grid, 0);
+    COORDS_SET(&t->wpos, wy, wx, 0);
 
     return PARSE_ERROR_NONE;
 }
@@ -440,30 +427,6 @@ static enum parser_error parse_location_info_max_depth(struct parser *p)
 
     if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
     t->max_depth = depth;
-
-    return PARSE_ERROR_NONE;
-}
-
-
-static enum parser_error parse_location_info_max_level(struct parser *p)
-{
-    struct location *t = parser_priv(p);
-    int level = parser_getint(p, "level");
-
-    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    t->max_level = level;
-
-    return PARSE_ERROR_NONE;
-}
-
-
-static enum parser_error parse_location_info_max_townies(struct parser *p)
-{
-    struct location *t = parser_priv(p);
-    int townies = parser_getint(p, "townies");
-
-    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    t->max_townies = townies;
 
     return PARSE_ERROR_NONE;
 }
@@ -670,12 +633,9 @@ static struct parser *init_parse_location_info(void)
 
     parser_setpriv(p, NULL);
     parser_reg(p, "name str name", parse_location_info_name);
-    parser_reg(p, "short str name", parse_location_info_short);
     parser_reg(p, "wpos int wx int wy", parse_location_info_wpos);
     parser_reg(p, "min-depth int depth", parse_location_info_min_depth);
     parser_reg(p, "max-depth int depth", parse_location_info_max_depth);
-    parser_reg(p, "max-level int level", parse_location_info_max_level);
-    parser_reg(p, "max-townies int townies", parse_location_info_max_townies);
     parser_reg(p, "flags ?str flags", parse_location_info_flags);
     parser_reg(p, "floor sym feat int percent", parse_location_info_floor);
     parser_reg(p, "wall sym feat int percent", parse_location_info_wall);
@@ -760,10 +720,7 @@ static void cleanup_town_info(void)
     if (!towns) return;
 
     for (i = 0; i < z_info->town_max; i++)
-    {
         string_free(towns[i].name);
-        string_free(towns[i].shortname);
-    }
     mem_free(towns);
 }
 
@@ -890,15 +847,15 @@ struct file_parser dungeon_info_parser =
 
 
 /*
- * Get wilderness level given by grid coordinates
+ * Get wilderness level given by (y, x) coordinates
  */
-struct wild_type *get_wt_info_at(struct loc *grid)
+struct wild_type *get_wt_info_at(int world_y, int world_x)
 {
     /* Check bounds */
-    if ((radius_wild - grid->y < 0) || (radius_wild - grid->y > 2 * radius_wild)) return NULL;
-    if ((radius_wild + grid->x < 0) || (radius_wild + grid->x > 2 * radius_wild)) return NULL;
+    if ((radius_wild - world_y < 0) || (radius_wild - world_y > 2 * radius_wild)) return NULL;
+    if ((radius_wild + world_x < 0) || (radius_wild + world_x > 2 * radius_wild)) return NULL;
 
-    return &wt_info[radius_wild - grid->y][radius_wild + grid->x];
+    return &wt_info[radius_wild - world_y][radius_wild + world_x];
 }
 
 
@@ -914,7 +871,7 @@ int monster_level(struct worldpos *wpos)
     /* Tougher at night */
     if (!is_daytime() && !town_area(wpos)) return 100;
 
-    w_ptr = get_wt_info_at(&wpos->grid);
+    w_ptr = get_wt_info_at(wpos->wy, wpos->wx);
     return MIN(wf_info[w_ptr->type].feat_lvl, 2 * w_ptr->distance);
 }
 
@@ -928,7 +885,7 @@ int object_level(struct worldpos *wpos)
 
     if (wpos->depth > 0) return wpos->depth;
 
-    w_ptr = get_wt_info_at(&wpos->grid);
+    w_ptr = get_wt_info_at(wpos->wy, wpos->wx);
     return MIN(wf_info[w_ptr->type].feat_lvl, 2 * w_ptr->distance);
 }
 
@@ -939,7 +896,7 @@ int object_level(struct worldpos *wpos)
 bool surface_of_dungeon(struct worldpos *wpos)
 {
     if (wpos->depth > 0) return false;
-    return (get_wt_info_at(&wpos->grid)->max_depth > 1);
+    return (get_wt_info_at(wpos->wy, wpos->wx)->max_depth > 1);
 }
 
 
@@ -958,7 +915,7 @@ struct worldpos *start_wpos(void)
  */
 bool in_start_town(struct worldpos *wpos)
 {
-    return (wpos_eq(wpos, start_wpos()));
+    return (COORDS_EQUAL(wpos, start_wpos()));
 }
 
 
@@ -977,7 +934,7 @@ struct worldpos *base_wpos(void)
  */
 bool in_base_town(struct worldpos *wpos)
 {
-    return (wpos_eq(wpos, base_wpos()));
+    return (COORDS_EQUAL(wpos, base_wpos()));
 }
 
 
@@ -990,7 +947,7 @@ struct location *get_town(struct worldpos *wpos)
 
     for (i = 0; i < z_info->town_max; i++)
     {
-        if (wpos_eq(wpos, &towns[i].wpos)) return &towns[i];
+        if (COORDS_EQUAL(wpos, &towns[i].wpos)) return &towns[i];
     }
 
     return NULL;
@@ -1006,7 +963,7 @@ bool in_town(struct worldpos *wpos)
 
     for (i = 0; i < z_info->town_max; i++)
     {
-        if (wpos_eq(wpos, &towns[i].wpos)) return true;
+        if (COORDS_EQUAL(wpos, &towns[i].wpos)) return true;
     }
 
     return false;
@@ -1028,7 +985,7 @@ bool in_wild(struct worldpos *wpos)
 bool town_suburb(struct worldpos *wpos)
 {
     if (wpos->depth > 0) return false;
-    return (get_wt_info_at(&wpos->grid)->distance <= 1);
+    return (get_wt_info_at(wpos->wy, wpos->wx)->distance <= 1);
 }
 
 
@@ -1038,7 +995,7 @@ bool town_suburb(struct worldpos *wpos)
 bool town_area(struct worldpos *wpos)
 {
     if (wpos->depth > 0) return false;
-    return (get_wt_info_at(&wpos->grid)->distance <= 2);
+    return (get_wt_info_at(wpos->wy, wpos->wx)->distance <= 2);
 }
 
 
@@ -1048,8 +1005,7 @@ bool town_area(struct worldpos *wpos)
  */
 struct worldpos *restrict_location(const char *location)
 {
-    int i;
-    struct loc grid;
+    int i, x, y;
 
     /* Browse the towns */
     for (i = 0; i < z_info->town_max; i++)
@@ -1076,11 +1032,11 @@ struct worldpos *restrict_location(const char *location)
     }
 
     /* Simply use the given coordinates */
-    if (2 == sscanf(location, "%d,%d", &grid.x, &grid.y))
+    if (2 == sscanf(location, "%d,%d", &x, &y))
     {
         struct worldpos* wpos = mem_zalloc(sizeof(struct worldpos));
 
-        wpos_init(wpos, &grid, 0);
+        COORDS_SET(wpos, y, x, 0);
         return wpos;
     }
 
@@ -1097,7 +1053,7 @@ struct location *get_dungeon(struct worldpos *wpos)
 
     for (i = 0; i < z_info->dungeon_max; i++)
     {
-        if (wpos_eq(wpos, &dungeons[i].wpos)) return &dungeons[i];
+        if (COORDS_EQUAL(wpos, &dungeons[i].wpos)) return &dungeons[i];
     }
 
     return NULL;
@@ -1117,8 +1073,8 @@ void dungeon_list(struct player *p, ang_file *fff)
     {
         if (wild_is_explored(p, &towns[i].wpos))
         {
-            strnfmt(buf, sizeof(buf), "%s: (%d, %d)\n", towns[i].name, towns[i].wpos.grid.x,
-                towns[i].wpos.grid.y);
+            strnfmt(buf, sizeof(buf), "%s: (%d, %d)\n", towns[i].name, towns[i].wpos.wx,
+                towns[i].wpos.wy);
             file_put(fff, buf);
         }
     }
@@ -1130,8 +1086,8 @@ void dungeon_list(struct player *p, ang_file *fff)
     {
         if (wild_is_explored(p, &dungeons[i].wpos))
         {
-            strnfmt(buf, sizeof(buf), "%s: (%d, %d)\n", dungeons[i].name, dungeons[i].wpos.grid.x,
-                dungeons[i].wpos.grid.y);
+            strnfmt(buf, sizeof(buf), "%s: (%d, %d)\n", dungeons[i].name, dungeons[i].wpos.wx,
+                dungeons[i].wpos.wy);
             file_put(fff, buf);
         }
     }
@@ -1144,8 +1100,7 @@ static int distance_from_towns(struct worldpos *wpos)
 
     for (i = 0; i < z_info->town_max; i++)
     {
-        int dist = MAX(abs(wpos->grid.x - towns[i].wpos.grid.x),
-            abs(wpos->grid.y - towns[i].wpos.grid.y));
+        int dist = MAX(abs(wpos->wx - towns[i].wpos.wx), abs(wpos->wy - towns[i].wpos.wy));
 
         if ((dist_min == -1) || (dist < dist_min)) dist_min = dist;
     }
@@ -1160,8 +1115,7 @@ static int distance_from_towns(struct worldpos *wpos)
  */
 void init_wild_info(void)
 {
-    int i;
-    struct loc grid;
+    int i, x, y;
     const char *data = wild_info->text;
     const char *t;
 
@@ -1171,16 +1125,16 @@ void init_wild_info(void)
         wt_info[i] = mem_zalloc((2 * radius_wild + 1) * sizeof(struct wild_type));
 
     /* Initialize */
-    for (t = data, grid.y = radius_wild; (grid.y >= 0 - radius_wild) && *t; grid.y--)
+    for (t = data, y = radius_wild; (y >= 0 - radius_wild) && *t; y--)
     {
-        for (grid.x = 0 - radius_wild; (grid.x <= radius_wild) && *t; grid.x++, t++)
+        for (x = 0 - radius_wild; (x <= radius_wild) && *t; x++, t++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
             struct location *dungeon;
             int size;
 
             /* Coordinates */
-            wpos_init(&w_ptr->wpos, &grid, 0);
+            COORDS_SET(&w_ptr->wpos, y, x, 0);
 
             /* Min/max depth */
             dungeon = get_dungeon(&w_ptr->wpos);
@@ -1223,14 +1177,13 @@ void init_wild_info(void)
  */
 void free_wild_info(void)
 {
-    int i;
-    struct loc grid;
+    int i, x, y;
 
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             /* Caves */
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
@@ -1266,11 +1219,11 @@ void wild_cat_depth(struct worldpos *wpos, char *buf, int len)
     else
     {
         my_strcat(buf, "[", len);
-        if (wpos->grid.y)
-            my_strcat(buf, format("%d%c", abs(wpos->grid.y), ((wpos->grid.y > 0)? 'N': 'S')), len);
-        if (wpos->grid.y && wpos->grid.x) my_strcat(buf, ", ", len);
-        if (wpos->grid.x)
-            my_strcat(buf, format("%d%c", abs(wpos->grid.x), ((wpos->grid.x > 0)? 'E': 'W')), len);
+        if (wpos->wy)
+            my_strcat(buf, format("%d%c", abs(wpos->wy), ((wpos->wy > 0)? 'N': 'S')), len);
+        if (wpos->wy && wpos->wx) my_strcat(buf, ", ", len);
+        if (wpos->wx)
+            my_strcat(buf, format("%d%c", abs(wpos->wx), ((wpos->wx > 0)? 'E': 'W')), len);
         my_strcat(buf, "]", len);
     }
 }
@@ -1281,13 +1234,13 @@ bool wild_is_explored(struct player *p, struct worldpos *wpos)
     /* Hack -- DM has knowledge of the full world */
     if (p->dm_flags & DM_SEE_LEVEL) return true;
 
-    return (p->wild_map[radius_wild - wpos->grid.y][radius_wild + wpos->grid.x]? true: false);
+    return (p->wild_map[radius_wild - wpos->wy][radius_wild + wpos->wx]? true: false);
 }
 
 
 void wild_set_explored(struct player *p, struct worldpos *wpos)
 {
-    p->wild_map[radius_wild - wpos->grid.y][radius_wild + wpos->grid.x] = 1;
+    p->wild_map[radius_wild - wpos->wy][radius_wild + wpos->wx] = 1;
 }
 
 
@@ -1306,7 +1259,7 @@ void wild_deserted_message(struct player *p)
     if (level_has_owned_houses(&p->wpos)) return;
 
     /* Add message */
-    if (get_wt_info_at(&p->wpos.grid)->generated == WILD_DESERTED)
+    if (get_wt_info_at(p->wpos.wy, p->wpos.wx)->generated == WILD_DESERTED)
         msg(p, "This seems to be a deserted area...");
 }
 
@@ -1424,10 +1377,10 @@ static bool wild_monst_aux_hill(struct monster_race *race)
  */
 void wild_add_monster(struct player *p, struct chunk *c)
 {
-    struct loc grid;
+    int monst_x, monst_y;
     int tries = 50;
     struct monster_race *race;
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+    struct wild_type *w_ptr = get_wt_info_at(p->wpos.wy, p->wpos.wx);
 
     /* Prepare allocation table */
     switch (w_ptr->type)
@@ -1454,12 +1407,13 @@ void wild_add_monster(struct player *p, struct chunk *c)
         /* Handle failure */
         if (!tries) return;
 
-        loc_init(&grid, randint0(c->width), randint0(c->height));
+        monst_x = randint0(c->width);
+        monst_y = randint0(c->height);
 
         /* Hack -- don't place monster in an arena */
-        if (pick_arena(&c->wpos, &grid) != -1) continue;
+        if (pick_arena(&c->wpos, monst_y, monst_x) != -1) continue;
 
-        if (square_isempty(c, &grid)) break;
+        if (square_isempty(c, monst_y, monst_x)) break;
     }
 
     /* Get the monster */
@@ -1472,14 +1426,14 @@ void wild_add_monster(struct player *p, struct chunk *c)
     if (!race) return;
 
     /* Place the monster */
-    place_new_monster(p, c, &grid, race, MON_GROUP, ORIGIN_DROP);
+    place_new_monster(p, c, monst_y, monst_x, race, MON_GROUP, ORIGIN_DROP);
 }
 
 
 /*
  * Adds crop to a given location.
  */
-void wild_add_crop(struct chunk *c, struct loc *grid, int type)
+void wild_add_crop(struct chunk *c, int x, int y, int type)
 {
     struct object *food = object_new();
 
@@ -1545,14 +1499,14 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
 
     /* Drop food */
     set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
-    drop_near(NULL, c, &food, 0, grid, false, DROP_FADE);
+    drop_near(NULL, c, &food, 0, y, x, false, DROP_FADE);
 }
 
 
 /*
  * Returns a random terrain feature on a given wilderness sector
  */
-static int terrain_spot(int type)
+static byte terrain_spot(int type)
 {
     int idx;
 
@@ -1572,26 +1526,13 @@ static int terrain_spot(int type)
 struct wild_type *get_neighbor(struct wild_type *origin, char dir)
 {
     struct wild_type *neighbor = NULL;
-    struct loc grid;
 
     switch (dir)
     {
-        case DIR_NORTH:
-            loc_init(&grid, origin->wpos.grid.x, origin->wpos.grid.y + 1);
-            neighbor = get_wt_info_at(&grid);
-            break;
-        case DIR_EAST:
-            loc_init(&grid, origin->wpos.grid.x + 1, origin->wpos.grid.y);
-            neighbor = get_wt_info_at(&grid);
-            break;
-        case DIR_SOUTH:
-            loc_init(&grid, origin->wpos.grid.x, origin->wpos.grid.y - 1);
-            neighbor = get_wt_info_at(&grid);
-            break;
-        case DIR_WEST:
-            loc_init(&grid, origin->wpos.grid.x - 1, origin->wpos.grid.y);
-            neighbor = get_wt_info_at(&grid);
-            break;
+        case DIR_NORTH: neighbor = get_wt_info_at(origin->wpos.wy + 1, origin->wpos.wx); break;
+        case DIR_EAST:  neighbor = get_wt_info_at(origin->wpos.wy, origin->wpos.wx + 1); break;
+        case DIR_SOUTH: neighbor = get_wt_info_at(origin->wpos.wy - 1, origin->wpos.wx); break;
+        case DIR_WEST:  neighbor = get_wt_info_at(origin->wpos.wy, origin->wpos.wx - 1); break;
     }
 
     /* Hack -- skip the towns */
@@ -1622,15 +1563,15 @@ int world_index(struct worldpos *wpos)
     int ring, base, offset, idx;
 
     /* Calculate which "ring" the level is in */
-    ring = abs(wpos->grid.x) + abs(wpos->grid.y);
+    ring = abs(wpos->wx) + abs(wpos->wy);
     if (!ring) return 0;
 
     /* Calculate the base offset of this ring */
     base = 2 * ring * (ring - 1) + 1;
 
     /* Calculate the offset within this ring */
-    if (wpos->grid.x >= 0) offset = ring - wpos->grid.y;
-    else offset = (3 * ring) + wpos->grid.y;
+    if (wpos->wx >= 0) offset = ring - wpos->wy;
+    else offset = (3 * ring) + wpos->wy;
 
     idx = 0 - (base + offset);
 
@@ -1794,7 +1735,6 @@ static void wild_bleed_level(struct chunk *c, struct wild_type *bleed_from, stru
 {
     int x, y;
     int bleedmap[257], *bleed_begin, *bleed_end;
-    struct loc grid;
 
     /* Hack -- bleed hills for mountain type */
     int type = ((bleed_from->type == WILD_MOUNTAIN)? WILD_HILL: bleed_from->type);
@@ -1854,15 +1794,15 @@ static void wild_bleed_level(struct chunk *c, struct wild_type *bleed_from, stru
 
     if ((dir == DIR_EAST) || (dir == DIR_WEST))
     {
-        for (grid.y = 1; grid.y < c->height - 1; grid.y++)
-            for (grid.x = bleed_begin[grid.y]; grid.x < bleed_end[grid.y]; grid.x++)
-                square_set_feat(c, &grid, terrain_spot(type));
+        for (y = 1; y < c->height - 1; y++)
+            for (x = bleed_begin[y]; x < bleed_end[y]; x++)
+                square_set_feat(c, y, x, terrain_spot(type));
     }
     else if ((dir == DIR_NORTH) || (dir == DIR_SOUTH))
     {
-        for (grid.x = 1; grid.x < c->width - 1; grid.x++)
-            for (grid.y = bleed_begin[grid.x]; grid.y < bleed_end[grid.x]; grid.y++)
-                square_set_feat(c, &grid, terrain_spot(type));
+        for (x = 1; x < c->width - 1; x++)
+            for (y = bleed_begin[x]; y < bleed_end[x]; y++)
+                square_set_feat(c, y, x, terrain_spot(type));
     }
 
     mem_free(bleed_begin);
@@ -1882,7 +1822,7 @@ static void wild_bleed_level(struct chunk *c, struct wild_type *bleed_from, stru
  */
 static void bleed_with_neighbors(struct chunk *c)
 {
-    struct wild_type *w_ptr = get_wt_info_at(&c->wpos.grid);
+    struct wild_type *w_ptr = get_wt_info_at(c->wpos.wy, c->wpos.wx);
     struct wild_type *neighbor[4];
     int dir, d, tmp, side[2], start, end, opposite;
     bool do_bleed[4], bleed_zero[4];
@@ -2026,28 +1966,28 @@ static void wild_add_grass_hotspot(int magnitude, int *type, bool *add_dwelling)
 }
 
 
-static bool plot_clear(struct chunk *c, bool **plot, struct loc *grid1, struct loc *grid2)
+static bool plot_clear(struct chunk *c, byte **plot, int *x1, int *y1, int *x2, int *y2)
 {
-    struct loc_iterator iter;
-
-    loc_iterator_first(&iter, grid1, grid2);
+    int x, y;
 
     /* Check if its clear */
-    do
+    for (y = *y1; y <= *y2; y++)
     {
-        /* Don't build on other buildings or farms */
-        if (square_isplot(c, &iter.cur)) return false;
+        for (x = *x1; x <= *x2; x++)
+        {
+            /* Don't build on other buildings or farms */
+            if (square_isplot(c, y, x)) return false;
 
-        /* Any ickiness on the plot is NOT allowed */
-        if (square_isvault(c, &iter.cur)) return false;
+            /* Any ickiness on the plot is NOT allowed */
+            if (square_isvault(c, y, x)) return false;
 
-        /* Spaces that have already been reserved are NOT allowed */
-        if (plot[iter.cur.y][iter.cur.x]) return false;
+            /* Spaces that have already been reserved are NOT allowed */
+            if (plot[y][x] == 1) return false;
+        }
     }
-    while (loc_iterator_next(&iter));
 
     /* Buildings and farms can partially, but not completely, be built on water. */
-    if (square_iswater(c, grid1) && square_iswater(c, grid2))
+    if (square_iswater(c, *y1, *x1) && square_iswater(c, *y2, *x2))
         return false;
 
     return true;
@@ -2055,54 +1995,52 @@ static bool plot_clear(struct chunk *c, bool **plot, struct loc *grid1, struct l
 
 
 /*
- * Choose a clear building location, possibly specified by gridcen,
+ * Choose a clear building location, possibly specified by (xcen, ycen),
  * and "reserves" it so nothing else can choose any of its squares for building again.
  */
-static void reserve_building_plot(struct chunk *c, bool **plot, struct loc *grid1,
-    struct loc *grid2, struct loc *gridlen, struct loc *gridcen)
+static void reserve_building_plot(struct chunk *c, byte **plot, int *x1, int *y1, int *x2, int *y2,
+    int xlen, int ylen, int xcen, int ycen)
 {
-    int attempts = 0;
+    int x, y, attempts = 0;
 
     while (attempts < 20)
     {
-        /* The upper left corner */
-        if (!square_in_bounds_fully(c, gridcen))
+        /* If xcen, ycen have not been specified */
+        if (!square_in_bounds_fully(c, ycen, xcen))
         {
-            /* If gridcen has not been specified */
-            loc_init(grid1, randint0(c->width - gridlen->x - 4) + 2,
-                randint0(c->height - gridlen->y - 4) + 2);
+            /* The upper left corner */
+            *x1 = randint0(c->width - xlen - 4) + 2;
+            *y1 = randint0(c->height - ylen - 4) + 2;
+
+            /* The lower right corner */
+            *x2 = *x1 + xlen - 1;
+            *y2 = *y1 + ylen - 1;
         }
         else
-            loc_init(grid1, gridcen->x - gridlen->x / 2, gridcen->y - gridlen->y / 2);
-
-        /* The lower right corner */
-        loc_init(grid2, grid1->x + gridlen->x - 1, grid1->y + gridlen->y - 1);
+        {
+            *x1 = xcen - xlen / 2;
+            *y1 = ycen - ylen / 2;
+            *x2 = *x1 + xlen - 1;
+            *y2 = *y1 + ylen - 1;
+        }
 
         /* Add a 'border' (reserve 1 tile more than needed) */
-        --grid1->x; --grid1->y; ++grid2->x; ++grid2->y;
+        --*x1; --*y1; ++*x2; ++*y2;
 
-        /* Check acquired grid1, grid2 */
-        if (!square_in_bounds_fully(c, grid1) || !square_in_bounds_fully(c, grid2))
+        /* Check acquired x1, y1, x2, y2 */
+        if (!square_in_bounds_fully(c, *y1, *x1) || !square_in_bounds_fully(c, *y2, *x2))
         {
-            loc_init(grid1, -1, -1);
-            loc_init(grid2, -1, -1);
+            *x1 = *y1 = *x2 = *y2 = -1;
             return;
         }
 
         /* If we have a clear plot, reserve it and return */
-        if (plot_clear(c, plot, grid1, grid2))
+        if (plot_clear(c, plot, x1, y1, x2, y2))
         {
-            struct loc_iterator iter;
-
-            loc_iterator_first(&iter, grid1, grid2);
-
-            do
-            {
-                plot[iter.cur.y][iter.cur.x] = true;
-            }
-            while (loc_iterator_next(&iter));
-
-            ++grid1->x; ++grid1->y; --grid2->x; --grid2->y;
+            for (y = *y1; y <= *y2; y++)
+                for (x = *x1; x <= *x2; x++)
+                    plot[y][x] = 1;
+            ++*x1; ++*y1; --*x2; --*y2;
             return;
         }
 
@@ -2110,40 +2048,36 @@ static void reserve_building_plot(struct chunk *c, bool **plot, struct loc *grid
     }
 
     /* Plot allocation failed */
-    loc_init(grid1, -1, -1);
-    loc_init(grid2, -1, -1);
+    *x1 = *y1 = *x2 = *y2 = -1;
 }
 
 
 /*
  * Adds a garden at a reasonable distance from a building.
  */
-static void wild_add_garden(struct chunk *c, bool **plot, struct loc *gridmin, struct loc *gridmax,
-    struct loc *grid1, struct loc *grid2, int *type)
+static void wild_add_garden(struct chunk *c, byte **plot, int xmin, int ymin, int xmax, int ymax,
+    int *x1, int *y1, int *x2, int *y2, int *type)
 {
-    struct loc gridlen, gridcen, crop1, crop2;
-    int orientation;
+    int xlen, ylen, xcen, ycen, orientation;
 
     /* Choose a 'good' size for the garden */
-    loc_init(&gridlen, randint0(15) + 15, randint0(7) + 7);
+    xlen = randint0(15) + 15;
+    ylen = randint0(7) + 7;
 
     /* Choose a 'good' location for the garden */
     while (true)
     {
-        loc_init(&gridcen, rand_range(gridmin->x - gridlen.x, gridmax->x + gridlen.x),
-            rand_range(gridmin->y - gridlen.y, gridmax->y + gridlen.y));
-        if (square_in_bounds_fully(c, &gridcen) &&
-            ((gridcen.x < gridmin->x - gridlen.x / 2) || (gridcen.x > gridmax->x + gridlen.x / 2) ||
-            (gridcen.y < gridmin->y - gridlen.y / 2) || (gridcen.y > gridmax->y + gridlen.y / 2)))
-        {
-            break;
-        }
+        xcen = rand_range(xmin - xlen, xmax + xlen);
+        ycen = rand_range(ymin - ylen, ymax + ylen);
+        if (square_in_bounds_fully(c, ycen, xcen) &&
+            ((xcen < xmin - xlen / 2) || (xcen > xmax + xlen / 2) ||
+            (ycen < ymin - ylen / 2) || (ycen > ymax + ylen / 2))) break;
     }
 
-    reserve_building_plot(c, plot, grid1, grid2, &gridlen, &gridcen);
+    reserve_building_plot(c, plot, x1, y1, x2, y2, xlen, ylen, xcen, ycen);
 
     /* If we failed to obtain a valid plot */
-    if (grid1->x < 0) return;
+    if (*x1 < 0) return;
 
     /* Choose which type of garden it is */
     *type = randint0(7);
@@ -2152,12 +2086,10 @@ static void wild_add_garden(struct chunk *c, bool **plot, struct loc *gridmin, s
     orientation = randint0(2);
 
     /* Initially fill with a layer of dirt */
-    fill_dirt(c, grid1, grid2);
+    fill_dirt(c, *y1, *x1, *y2, *x2);
 
     /* Alternating rows of crops */
-    loc_init(&crop1, grid1->x + 1, grid1->y + 1);
-    loc_init(&crop2, grid2->x - 1, grid2->y - 1);
-    add_crop(c, &crop1, &crop2, orientation);
+    add_crop(c, *y1 + 1, *x1 + 1, *y2 - 1, *x2 - 1, orientation);
 }
 
 
@@ -2189,43 +2121,39 @@ static bool wild_monst_aux_invaders(struct monster_race *race)
 /*
  * Adds crops to a given garden.
  */
-static void wild_add_crops(struct chunk *c, struct loc *grid1, struct loc *grid2, int type)
+static void wild_add_crops(struct chunk *c, int x1, int y1, int x2, int y2, int type)
 {
-    struct loc begin, end;
-    struct loc_iterator iter;
-
-    loc_init(&begin, grid1->x + 1, grid1->y + 1);
-    loc_init(&end, grid2->x - 1, grid2->y - 1);
-    loc_iterator_first(&iter, &begin, &end);
+    int x, y;
 
     /* Alternating rows of crops */
-    do
+    for (y = y1 + 1; y <= y2 - 1; y++)
     {
-        /* Different orientations */
-        if (!square_iscrop(c, &iter.cur)) continue;
+        for (x = x1 + 1; x <= x2 - 1; x++)
+        {
+            /* Different orientations */
+            if (!square_iscrop(c, y, x)) continue;
 
-        /* Random chance of food */
-        if (magik(60)) continue;
+            /* Random chance of food */
+            if (magik(60)) continue;
 
-        wild_add_crop(c, &iter.cur, type);
+            wild_add_crop(c, x, y, type);
+        }
     }
-    while (loc_iterator_next(&iter));
 }
 
 
 /*
  * Make a dwelling 'interesting'
  */
-static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot, struct loc *grid1,
-    struct loc *grid2)
+static void wild_furnish_dwelling(struct player *p, struct chunk *c, byte **plot, int x1, int y1,
+    int x2, int y2)
 {
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+    struct wild_type *w_ptr = get_wt_info_at(p->wpos.wy, p->wpos.wx);
     bool at_home = false, taken_over = false;
     int num_food = 0, cash = 0, num_objects = 0;
-    int trys;
-    int size = (grid2->x - grid1->x) * (grid2->y - grid1->y);
-    int type;
-    struct loc gridmin, gridmax;
+    int x, y, trys;
+    int size = (x2 - x1) * (y2 - y1);
+    int xmin = -1, ymin, xmax, ymax, type;
     u32b old_seed;
     struct object_kind *kind;
     struct monster_race *race;
@@ -2235,7 +2163,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
     /* Possibly add a farm */
     if (magik(50))
-        wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax, &type);
+        wild_add_garden(c, plot, x1, y1, x2, y2, &xmin, &ymin, &xmax, &ymax, &type);
 
     /* Hack -- if we have created this level before, do not add anything more to it. */
     if (w_ptr->generated != WILD_NONE) return;
@@ -2267,13 +2195,12 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
         /* Try to place the cash */
         while (trys < 50)
         {
-            struct loc grid;
+            x = rand_range(x1, x2);
+            y = rand_range(y1, y2);
 
-            loc_init(&grid, rand_range(grid1->x, grid2->x), rand_range(grid1->y, grid2->y));
-
-            if (square_canputitem(c, &grid))
+            if (square_canputitem(c, y, x))
             {
-                place_gold(p, c, &grid, cash, ORIGIN_FLOOR);
+                place_gold(p, c, y, x, cash, ORIGIN_FLOOR);
                 break;
             }
             trys++;
@@ -2284,13 +2211,12 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     trys = 0;
     while (num_objects && (trys < 300))
     {
-        struct loc grid;
+        x = rand_range(x1, x2);
+        y = rand_range(y1, y2);
 
-        loc_init(&grid, rand_range(grid1->x, grid2->x), rand_range(grid1->y, grid2->y));
-
-        if (square_canputitem(c, &grid))
+        if (square_canputitem(c, y, x))
         {
-            place_object(p, c, &grid, object_level(&p->wpos), false, false, ORIGIN_FLOOR, 0);
+            place_object(p, c, y, x, object_level(&p->wpos), false, false, ORIGIN_FLOOR, 0);
             num_objects--;
         }
         trys++;
@@ -2300,11 +2226,10 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     trys = 0;
     while (num_food && (trys < 100))
     {
-        struct loc grid;
+        x = rand_range(x1, x2);
+        y = rand_range(y1, y2);
 
-        loc_init(&grid, rand_range(grid1->x, grid2->x), rand_range(grid1->y, grid2->y));
-
-        if (square_canputitem(c, &grid))
+        if (square_canputitem(c, y, x))
         {
             struct object *food = object_new();
 
@@ -2316,7 +2241,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
             set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
 
-            drop_near(NULL, c, &food, 0, &grid, false, DROP_FADE);
+            drop_near(NULL, c, &food, 0, y, x, false, DROP_FADE);
 
             num_food--;
         }
@@ -2340,28 +2265,23 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
         /* Handle failure */
         if (race)
         {
-            struct loc grid;
-
             /* Get the owner's location */
             while (true)
             {
-                loc_init(&grid, rand_range(grid1->x - 5, grid2->x + 5),
-                    rand_range(grid1->y - 5, grid2->y + 5));
+                x = rand_range(x1 - 5, x2 + 5);
+                y = rand_range(y1 - 5, y2 + 5);
 
-                if (!square_in_bounds_fully(c, &grid)) continue;
+                if (!square_in_bounds_fully(c, y, x)) continue;
 
                 /* Hack -- don't place monster in an arena */
-                if (pick_arena(&c->wpos, &grid) != -1) continue;
+                if (pick_arena(&c->wpos, y, x) != -1) continue;
 
-                if ((grid.x < grid1->x - 1) || (grid.x > grid2->x + 1) || (grid.y < grid1->y - 1) ||
-                    (grid.y > grid2->y + 1))
-                {
+                if ((x < x1 - 1) || (x > x2 + 1) || (y < y1 - 1) || (y > y2 + 1))
                     break;
-                }
             }
 
             /* Place the owner */
-            place_new_monster(p, c, &grid, race, 0, ORIGIN_DROP);
+            place_new_monster(p, c, y, x, race, 0, ORIGIN_DROP);
         }
     }
 
@@ -2380,17 +2300,15 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
         /* Handle failure */
         if (race)
         {
-            struct loc_iterator iter;
-
-            loc_iterator_first(&iter, grid1, grid2);
-
             /* Add the monsters */
-            do
+            for (y = y1; y <= y2; y++)
             {
-                if (magik(50)) continue;
-                place_new_monster(p, c, &iter.cur, race, 0, ORIGIN_DROP);
+                for (x = x1; x <= x2; x++)
+                {
+                    if (magik(50)) continue;
+                    place_new_monster(p, c, y, x, race, 0, ORIGIN_DROP);
+                }
             }
-            while (loc_iterator_next(&iter));
         }
     }
 
@@ -2398,13 +2316,13 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     Rand_value = old_seed;
 
     /* No farm has been added */
-    if (gridmin.x < 0) return;
+    if (xmin < 0) return;
 
     /* Save the RNG (state should not be affected by farm generation) */
     old_seed = Rand_value;
 
     /* Add crops to the farm */
-    wild_add_crops(c, &gridmin, &gridmax, type);
+    wild_add_crops(c, xmin, ymin, xmax, ymax, type);
 
     /* Restore the RNG */
     Rand_value = old_seed;
@@ -2414,13 +2332,14 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 /*
  * Adds a building to the wilderness. If the coordinate is not given, find it randomly.
  */
-static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, struct loc *grid)
+static void wild_add_dwelling(struct player *p, struct chunk *c, byte **plot, int x, int y)
 {
-    int tmp, type, area, price, num_door_attempts, i, door_feature;
-    bool has_moat = false;
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+    int h_x1, h_y1, h_x2, h_y2, p_x1, p_y1, p_x2, p_y2, plot_xlen, plot_ylen;
+    int house_xlen, house_ylen, door_x, door_y, drawbridge_x[3], drawbridge_y[3];
+    int tmp, type, area, price, num_door_attempts, i;
+    byte door_feature, has_moat = 0;
+    struct wild_type *w_ptr = get_wt_info_at(p->wpos.wy, p->wpos.wx);
     bool rand_old = Rand_quick;
-    struct loc house1, house2, door, house_len, drawbridge[3], p_1, p_2, plot_len;
 
     /* Hack -- use the "simple" RNG */
     Rand_quick = true;
@@ -2432,11 +2351,17 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
     {
         /* Chance of being a "small" house */
         if (one_in_(2))
-            loc_init(&house_len, randint0(4) + 3, randint0(2) + 3);
+        {
+            house_xlen = randint0(4) + 3;
+            house_ylen = randint0(2) + 3;
+        }
 
         /* A "normal" house */
         else
-            loc_init(&house_len, randint0(10) + 6, randint0(5) + 4);
+        {
+            house_xlen = randint0(10) + 6;
+            house_ylen = randint0(5) + 4;
+        }
     }
 
     /* PWMAngband: 50% "large" and 50% "medium" houses/buildings elsewhere */
@@ -2445,66 +2370,80 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
         /* Chance of being a "large" house */
         if (one_in_(2))
         {
-            loc_init(&house_len, randint0(10) + randint0(randint0(10)) + 9,
-                randint0(5) + randint0(randint0(5)) + 6);
+            house_xlen = randint0(10) + randint0(randint0(10)) + 9;
+            house_ylen = randint0(5) + randint0(randint0(5)) + 6;
         }
 
         /* A "normal" house */
         else
-            loc_init(&house_len, randint0(10) + 6, randint0(5) + 4);
+        {
+            house_xlen = randint0(10) + 6;
+            house_ylen = randint0(5) + 4;
+        }
     }
 
     /* Houses are at least 2x2 */
-    if (house_len.x == 3) house_len.x++;
-    if (house_len.y == 3) house_len.y++;
+    if (house_xlen == 3) house_xlen++;
+    if (house_ylen == 3) house_ylen++;
 
-    area = (house_len.x - 2) * (house_len.y - 2);
+    area = (house_xlen - 2) * (house_ylen - 2);
 
     /* Find the dimensions of the "lawn" the house is built on */
     if (area < 30)
-        loc_copy(&plot_len, &house_len);
+    {
+        plot_xlen = house_xlen;
+        plot_ylen = house_ylen;
+    }
     else if (area < 60)
-        loc_init(&plot_len, house_len.x + (area / 15) * 2, house_len.y + (area / 25) * 2);
+    {
+        plot_xlen = house_xlen + (area / 15) * 2;
+        plot_ylen = house_ylen + (area / 25) * 2;
+    }
     else
-        loc_init(&plot_len, house_len.x + (area / 8) * 2, house_len.y + (area / 14) * 2);
+    {
+        plot_xlen = house_xlen + (area / 8) * 2;
+        plot_ylen = house_ylen + (area / 14) * 2;
+    }
 
     /* Hack -- sometimes large buildings get moats */
-    if ((area >= 70) && one_in_(16)) has_moat = true;
-    if ((area >= 80) && one_in_(6)) has_moat = true;
-    if ((area >= 100) && one_in_(2)) has_moat = true;
-    if ((area >= 130) && CHANCE(3, 4)) has_moat = true;
-    if (has_moat) plot_len.x += 8;
-    if (has_moat) plot_len.y += 8;
+    if ((area >= 70) && one_in_(16)) has_moat = 1;
+    if ((area >= 80) && one_in_(6)) has_moat = 1;
+    if ((area >= 100) && one_in_(2)) has_moat = 1;
+    if ((area >= 130) && CHANCE(3, 4)) has_moat = 1;
+    if (has_moat) plot_xlen += 8;
+    if (has_moat) plot_ylen += 8;
 
     /* Hack -- one chance at an arena in desert */
     if (w_ptr->type == WILD_DESERT)
     {
         /* Ensure standard dimensions */
-        loc_init(&house_len, randint0(7) + 12, randint0(5) + 8);
-        area = (house_len.x - 2) * (house_len.y - 2);
-        loc_init(&plot_len, house_len.x + (area / 8) * 2, house_len.y + (area / 14) * 2);
-        has_moat = false;
+        house_xlen = randint0(7) + 12;
+        house_ylen = randint0(5) + 8;
+        area = (house_xlen - 2) * (house_ylen - 2);
+        plot_xlen = house_xlen + (area / 8) * 2;
+        plot_ylen = house_ylen + (area / 14) * 2;
+        has_moat = 0;
     }
 
     /* Determine the plot's boundaries */
-    reserve_building_plot(c, plot, &p_1, &p_2, &plot_len, grid);
+    reserve_building_plot(c, plot, &p_x1, &p_y1, &p_x2, &p_y2, plot_xlen, plot_ylen, x, y);
 
     /* Determine the building's boundaries */
-    loc_init(&house1, p_1.x + ((plot_len.x - house_len.x) / 2),
-        p_1.y + ((plot_len.y - house_len.y) / 2));
-    loc_init(&house2, p_2.x - ((plot_len.x - house_len.x) / 2),
-        p_2.y - ((plot_len.y - house_len.y) / 2));
+    h_x1 = p_x1 + ((plot_xlen - house_xlen) / 2);
+    h_y1 = p_y1 + ((plot_ylen - house_ylen) / 2);
+    h_x2 = p_x2 - ((plot_xlen - house_xlen) / 2);
+    h_y2 = p_y2 - ((plot_ylen - house_ylen) / 2);
 
     /* Return if we didn't get a plot */
-    if (p_1.x < 0)
+    if (p_x1 < 0)
     {
         Rand_quick = rand_old;
         return;
     }
 
     /* Initialize x and y, which may not be specified at this point */
-    grid->x = (house1.x + house2.x) / 2;
-    grid->y = (house1.y + house2.y) / 2;
+    x = (h_x1 + h_x2) / 2;
+    y = (h_y1 + h_y2) / 2;
 
     /* Create log cabins by default */
     type = WILD_LOG_CABIN;
@@ -2529,12 +2468,14 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
             /* Bottom side */
             case DIR_SOUTH:
             {
-                loc_init(&door, rand_range(house1.x, house2.x), house2.y);
+                door_y = h_y2;
+                door_x = rand_range(h_x1, h_x2);
                 if (has_moat)
                 {
-                    loc_init(&drawbridge[0], door.x, house2.y + 1);
-                    loc_init(&drawbridge[1], door.x, house2.y + 2);
-                    loc_init(&drawbridge[2], door.x, house2.y + 3);
+                    drawbridge_y[0] = h_y2 + 1; drawbridge_y[1] = h_y2 + 2;
+                    drawbridge_y[2] = h_y2 + 3;
+                    drawbridge_x[0] = door_x; drawbridge_x[1] = door_x;
+                    drawbridge_x[2] = door_x;
                 }
                 break;
             }
@@ -2542,12 +2483,14 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
             /* Top side */
             case DIR_NORTH:
             {
-                loc_init(&door, rand_range(house1.x, house2.x), house1.y);
+                door_y = h_y1;
+                door_x = rand_range(h_x1, h_x2);
                 if (has_moat)
                 {
-                    loc_init(&drawbridge[0], door.x, house1.y - 1);
-                    loc_init(&drawbridge[1], door.x, house1.y - 2);
-                    loc_init(&drawbridge[2], door.x, house1.y - 3);
+                    drawbridge_y[0] = h_y1 - 1; drawbridge_y[1] = h_y1 - 2;
+                    drawbridge_y[2] = h_y1 - 3;
+                    drawbridge_x[0] = door_x; drawbridge_x[1] = door_x;
+                    drawbridge_x[2] = door_x;
                 }
                 break;
             }
@@ -2555,12 +2498,14 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
             /* Right side */
             case DIR_EAST:
             {
-                loc_init(&door, house2.x, rand_range(house1.y, house2.y));
+                door_y = rand_range(h_y1, h_y2);
+                door_x = h_x2;
                 if (has_moat)
                 {
-                    loc_init(&drawbridge[0], house2.x + 1, door.y);
-                    loc_init(&drawbridge[1], house2.x + 2, door.y);
-                    loc_init(&drawbridge[2], house2.x + 3, door.y);
+                    drawbridge_y[0] = door_y; drawbridge_y[1] = door_y;
+                    drawbridge_y[2] = door_y;
+                    drawbridge_x[0] = h_x2 + 1; drawbridge_x[1] = h_x2 + 2;
+                    drawbridge_x[2] = h_x2 + 3;
                 }
                 break;
             }
@@ -2568,12 +2513,14 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
             /* Left side */
             default:
             {
-                loc_init(&door, house1.x, rand_range(house1.y, house2.y));
+                door_y = rand_range(h_y1, h_y2);
+                door_x = h_x1;
                 if (has_moat)
                 {
-                    loc_init(&drawbridge[0], house1.x - 1, door.y);
-                    loc_init(&drawbridge[1], house1.x - 2, door.y);
-                    loc_init(&drawbridge[2], house1.x - 3, door.y);
+                    drawbridge_y[0] = door_y; drawbridge_y[1] = door_y;
+                    drawbridge_y[2] = door_y;
+                    drawbridge_x[0] = h_x1 - 1; drawbridge_x[1] = h_x1 - 2;
+                    drawbridge_x[2] = h_x1 - 3;
                 }
                 break;
             }
@@ -2582,30 +2529,25 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
         /* Access the grid */
         num_door_attempts++;
     }
-    while (square_iswater(c, &door) && (num_door_attempts < 30));
+    while (square_iswater(c, door_y, door_x) && (num_door_attempts < 30));
 
     /* Build a rectangular building and make it hollow */
-    door_feature = add_building(c, &house1, &house2, type);
+    door_feature = add_building(c, h_y1, h_x1, h_y2, h_x2, type);
 
     /* Add the door */
-    square_set_feat(c, &door, door_feature);
+    square_set_feat(c, door_y, door_x, door_feature);
 
     /* Build the moat */
     if (has_moat)
-        add_moat(c, &house1, &house2, drawbridge);
+        add_moat(c, h_y1, h_x1, h_y2, h_x2, drawbridge_y, drawbridge_x);
 
     /* Finish making the building */
     switch (type)
     {
         case WILD_LOG_CABIN:
         {
-            struct loc prev, next;
-
-            loc_init(&prev, house1.x + 1, house1.y + 1);
-            loc_init(&next, house2.x - 1, house2.y - 1);
-
             /* Make the building interesting */
-            wild_furnish_dwelling(p, c, plot, &prev, &next);
+            wild_furnish_dwelling(p, c, plot, h_x1 + 1, h_y1 + 1, h_x2 - 1, h_y2 - 1);
 
             break;
         }
@@ -2623,20 +2565,23 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
             price += area * (900 + randint0(200));
 
             /* Hack -- only add a house if it is not already in memory */
-            i = pick_house(&p->wpos, &door);
+            i = pick_house(&p->wpos, door_y, door_x);
             if (i == -1)
             {
                 struct house_type h_local;
 
-                square_set_feat(c, &door, door_feature);
+                square_set_feat(c, door_y, door_x, door_feature);
 
                 /* Get an empty house slot */
                 i = house_add(false);
 
                 /* Setup house info */
-                loc_init(&h_local.grid_1, house1.x + 1, house1.y + 1);
-                loc_init(&h_local.grid_2, house2.x - 1, house2.y - 1);
-                loc_copy(&h_local.door, &door);
+                h_local.x_1 = h_x1 + 1;
+                h_local.y_1 = h_y1 + 1;
+                h_local.x_2 = h_x2 - 1;
+                h_local.y_2 = h_y2 - 1;
+                h_local.door_y = door_y;
+                h_local.door_x = door_x;
                 memcpy(&h_local.wpos, &p->wpos, sizeof(struct worldpos));
                 h_local.price = price;
                 h_local.ownerid = 0;
@@ -2651,7 +2596,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
             else
             {
                 /* Tag owned house door */
-                square_set_feat(c, &door, door_feature + house_get(i)->color);
+                square_set_feat(c, door_y, door_x, door_feature + house_get(i)->color);
             }
 
             break;
@@ -2660,11 +2605,13 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
         case WILD_ARENA:
         {
             /* Hack -- only add arena if it is not already in memory */
-            i = pick_arena(&c->wpos, &door);
+            i = pick_arena(&c->wpos, door_y, door_x);
             if (i == -1)
             {
-                loc_copy(&arenas[num_arenas].grid_1, &house1);
-                loc_copy(&arenas[num_arenas].grid_2, &house2);
+                arenas[num_arenas].x_1 = h_x1;
+                arenas[num_arenas].y_1 = h_y1;
+                arenas[num_arenas].x_2 = h_x2;
+                arenas[num_arenas].y_2 = h_y2;
                 memcpy(&arenas[num_arenas].wpos, &c->wpos, sizeof(struct worldpos));
                 num_arenas++;
             }
@@ -2684,28 +2631,27 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
  *
  * Chopiness defines the randomness of the circular shape.
  */
-static void wild_add_hotspot(struct player *p, struct chunk *c, bool **plot)
+static void wild_add_hotspot(struct player *p, struct chunk *c, byte **plot)
 {
-    int max_mag, magnitude = 0, magsqr, chopiness;
+    int x_cen, y_cen, max_mag, magnitude = 0, magsqr, chopiness, x, y;
     bool add_dwelling = false;
-    int type = get_wt_info_at(&p->wpos.grid)->type;
-    struct loc begin, end, gridcen;
-    struct loc_iterator iter;
+    int type = get_wt_info_at(p->wpos.wy, p->wpos.wx)->type;
 
     /* Hack -- minimum hotspot radius of 3 */
     while (magnitude < 3)
     {
         /* Determine the rough "coordinates" of the feature */
-        loc_init(&gridcen, randint0(c->width - 11) + 5, randint0(c->height - 11) + 5);
+        x_cen = randint0(c->width - 11) + 5;
+        y_cen = randint0(c->height - 11) + 5;
 
         /*
          * Determine the maximum size of the feature, which is its distance to
          * its closest edge.
          */
-        max_mag = gridcen.y;
-        if (gridcen.x < max_mag) max_mag = gridcen.x;
-        if ((c->height - gridcen.y) < max_mag) max_mag = c->height - gridcen.y;
-        if ((c->width - gridcen.x) < max_mag) max_mag = c->width - gridcen.x;
+        max_mag = y_cen;
+        if (x_cen < max_mag) max_mag = x_cen;
+        if ((c->height - y_cen) < max_mag) max_mag = c->height - y_cen;
+        if ((c->width - x_cen) < max_mag) max_mag = c->width - x_cen;
 
         /*
          * Determine the magnitude of the feature.  the triple rand is done to
@@ -2840,53 +2786,46 @@ static void wild_add_hotspot(struct player *p, struct chunk *c, bool **plot)
         }
     }
 
-    loc_init(&begin, gridcen.x - magnitude, gridcen.y - magnitude);
-    loc_init(&end, gridcen.x + magnitude, gridcen.y + magnitude);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Create the hotspot */
-    do
+    for (y = y_cen - magnitude; y <= y_cen + magnitude; y++)
     {
-        /* a^2 + b^2 = c^2... the rand makes the edge less defined */
-        /* Hack -- multiply the y's by 4 to "squash" the shape */
-        if (((iter.cur.x - gridcen.x) * (iter.cur.x - gridcen.x) +
-            (iter.cur.y - gridcen.y) * (iter.cur.y - gridcen.y) * 4) <
-            (magsqr + randint0(chopiness)))
+        for (x = x_cen - magnitude; x <= x_cen + magnitude; x++)
         {
-            square_set_feat(c, &iter.cur, terrain_spot(type));
+            /* a^2 + b^2 = c^2... the rand makes the edge less defined */
+            /* Hack -- multiply the y's by 4 to "squash" the shape */
+            if (((x - x_cen) * (x - x_cen) + (y - y_cen) * (y - y_cen) * 4) <
+                (magsqr + randint0(chopiness)))
+            {
+                square_set_feat(c, y, x, terrain_spot(type));
+            }
         }
     }
-    while (loc_iterator_next(&iter));
 
     /* Add inhabitants */
-    if (add_dwelling) wild_add_dwelling(p, c, plot, &gridcen);
+    if (add_dwelling) wild_add_dwelling(p, c, plot, x_cen, y_cen);
 }
 
 
 static void wilderness_gen_basic(struct chunk *c)
 {
-    struct wild_type *w_ptr = get_wt_info_at(&c->wpos.grid);
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x;
+    struct wild_type *w_ptr = get_wt_info_at(c->wpos.wy, c->wpos.wx);
 
-    loc_init(&begin, 1, 1);
-    loc_init(&end, c->width - 1, c->height - 1);
-    loc_iterator_first(&iter, &begin, &end);
-
-    do
+    for (y = 1; y < c->height - 1; y++)
     {
-        int type = w_ptr->type;
-
-        /* Hack -- surround mountain type with hills to keep a passable border */
-        if ((iter.cur.y == 1) || (iter.cur.y == c->height - 2) ||
-            (iter.cur.x == 1) || (iter.cur.x == c->width - 2))
+        for (x = 1; x < c->width - 1; x++)
         {
-            if (type == WILD_MOUNTAIN) type = WILD_HILL;
-        }
+            int type = w_ptr->type;
 
-        square_set_feat(c, &iter.cur, terrain_spot(type));
+            /* Hack -- surround mountain type with hills to keep a passable border */
+            if ((y == 1) || (y == c->height - 2) || (x == 1) || (x == c->width - 2))
+            {
+                if (type == WILD_MOUNTAIN) type = WILD_HILL;
+            }
+
+            square_set_feat(c, y, x, terrain_spot(type));
+        }
     }
-    while (loc_iterator_next_strict(&iter));
 }
 
 
@@ -2898,17 +2837,17 @@ static void wilderness_gen_basic(struct chunk *c)
  */
 static void wilderness_gen_layout(struct player *p, struct chunk *c)
 {
-    int y;
+    int y, x1, x2, y1, y2;
     u32b tmp_seed = Rand_value;
     bool rand_old = Rand_quick;
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+    struct wild_type *w_ptr = get_wt_info_at(p->wpos.wy, p->wpos.wx);
     int dwelling = 0;
-    bool **plot;
+    byte **plot;
     bool add_park = false;
 
-    plot = mem_zalloc(c->height * sizeof(bool *));
+    plot = mem_zalloc(c->height * sizeof(byte *));
     for (y = 0; y < c->height; y++)
-        plot[y] = mem_zalloc(c->width * sizeof(bool));
+        plot[y] = mem_zalloc(c->width * sizeof(byte));
 
     /* Hack -- use the "simple" RNG */
     Rand_quick = true;
@@ -2985,23 +2924,15 @@ static void wilderness_gen_layout(struct player *p, struct chunk *c)
      */
     if (add_park && one_in_(2))
     {
-        struct loc grid1, grid2, gridlen, gridcen;
-
-        loc_init(&gridlen, randint0(30) + 15, randint0(20) + 10);
-        loc_init(&gridcen, -1, -1);
-
-        reserve_building_plot(c, plot, &grid1, &grid2, &gridlen, &gridcen);
+        reserve_building_plot(c, plot, &x1, &y1, &x2, &y2, randint0(30) + 15, randint0(20) + 10,
+            -1, -1);
     }
 
     /* Add wilderness dwellings */
     while (dwelling > 0)
     {
-        struct loc grid;
-
-        loc_init(&grid, -1, -1);
-
         /* Hack -- the number of dwellings is proportional to their chance of existing */
-        if (CHANCE(dwelling, 1000)) wild_add_dwelling(p, c, plot, &grid);
+        if (CHANCE(dwelling, 1000)) wild_add_dwelling(p, c, plot, -1, -1);
         dwelling -= 50;
     }
 
@@ -3103,8 +3034,7 @@ static void wild_town_gen_layout(struct chunk *c)
     char town_file[20];
     struct parse_town *helper;
     const char *sym, *spec;
-    int i;
-    struct loc grid;
+    int i, x, y;
 
     u32b tmp_seed = Rand_value;
     bool rand_old = Rand_quick;
@@ -3114,7 +3044,7 @@ static void wild_town_gen_layout(struct chunk *c)
     parser_reg(p, "map str text", parse_town_map);
     parser_reg(p, "mask str text", parse_town_mask);
     if (!p) quit_fmt("Cannot initialize town of %s.", town->name);
-    get_town_file(town_file, sizeof(town_file), town->shortname);
+    get_town_file(town_file, sizeof(town_file), town->name);
     r = parse_file_quit_not_found(p, town_file);
     if (r) quit_fmt("Cannot initialize town of %s.", town->name);
     helper = parser_priv(p);
@@ -3129,9 +3059,9 @@ static void wild_town_gen_layout(struct chunk *c)
     /* Initialize */
     sym = helper->map;
     spec = helper->mask;
-    for (grid.y = 0; (grid.y < z_info->dungeon_hgt) && *sym && *spec; grid.y++)
+    for (y = 0; (y < z_info->dungeon_hgt) && *sym && *spec; y++)
     {
-        for (grid.x = 0; (grid.x < z_info->dungeon_wid) && *sym && *spec; grid.x++, sym++, spec++)
+        for (x = 0; (x < z_info->dungeon_wid) && *sym && *spec; x++, sym++, spec++)
         {
             int feat = 0;
 
@@ -3148,8 +3078,8 @@ static void wild_town_gen_layout(struct chunk *c)
             if (feat == 0)
             {
                 feat = helper->special_feat[0];
-                if ((grid.y > 1) && (grid.y < z_info->dungeon_hgt - 2) &&
-                    (grid.x > 1) && (grid.x < z_info->dungeon_wid - 2) && magik(helper->chance))
+                if ((y > 1) && (y < z_info->dungeon_hgt - 2) &&
+                    (x > 1) && (x < z_info->dungeon_wid - 2) && magik(helper->chance))
                 {
                     feat = helper->special_feat[1];
                 }
@@ -3159,28 +3089,29 @@ static void wild_town_gen_layout(struct chunk *c)
             if (feat == FEAT_MORE)
             {
                 /* Place a staircase */
-                square_set_downstairs(c, &grid);
+                square_set_downstairs(c, y, x);
 
                 /* Hack -- the players start on the stairs while recalling */
-                square_set_join_rand(c, &grid);
+                square_set_join_rand(c, y, x);
             }
 
             /* Hack -- safe floor */
             else if (feat == FEAT_FLOOR_SAFE)
             {
                 /* Create the tavern, make it PvP-safe */
-                square_add_safe(c, &grid);
+                square_add_safe(c, y, x);
 
                 /* Declare this to be a room */
-                sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
-                sqinfo_on(square(c, &grid)->info, SQUARE_ROOM);
+                sqinfo_on(c->squares[y][x].info, SQUARE_GLOW);
+                sqinfo_on(c->squares[y][x].info, SQUARE_VAULT);
+                sqinfo_on(c->squares[y][x].info, SQUARE_ROOM);
 
                 /* Hack -- have everyone start in the tavern */
-                if (*sym == 'x') square_set_join_down(c, &grid);
+                if (*sym == 'x') square_set_join_down(c, y, x);
             }
 
             else
-                square_set_feat(c, &grid, feat);
+                square_set_feat(c, y, x, feat);
         }
     }
 
@@ -3243,7 +3174,7 @@ struct chunk *wilderness_gen(struct player *p, struct worldpos *wpos, int min_he
     /* Wilderness levels */
     else
     {
-        struct wild_type *w_ptr = get_wt_info_at(&wpos->grid);
+        struct wild_type *w_ptr = get_wt_info_at(wpos->wy, wpos->wx);
         enum wild_gen state = w_ptr->generated;
 
         residents = object_level(wpos);

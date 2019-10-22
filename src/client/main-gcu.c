@@ -791,7 +791,7 @@ static errr Term_text_gcu(int x, int y, int n, u16b a, const char *s)
     {
         for (i = 0; i <= n; i++)
         {
-            int px = x + i + player->offset_grid.x - COL_MAP, py = y + player->offset_grid.y - ROW_MAP;
+            int px = x + i + player->offset_x - COL_MAP, py = y + player->offset_y - ROW_MAP;
 
             /*
              * Hack -- for the minimap, the @ may not be displayed with this function so check the
@@ -799,7 +799,7 @@ static errr Term_text_gcu(int x, int y, int n, u16b a, const char *s)
              */
             if (i == n)
             {
-                if (Term->minimap_active && (px == player->grid.x) && (py == player->grid.y))
+                if (Term->minimap_active && (px == player->px) && (py == player->py))
                     buf[n++] = 0x263A;
             }
 
@@ -810,7 +810,7 @@ static errr Term_text_gcu(int x, int y, int n, u16b a, const char *s)
             }
 
             /* Hack -- always display the player as a @ except when looking/targeting */
-            else if ((px == player->grid.x) && (py == player->grid.y) && !target_icky_screen)
+            else if ((px == player->px) && (py == player->py) && !target_icky_screen)
                 buf[i] = '@';
         }
     }

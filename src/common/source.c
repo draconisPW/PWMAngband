@@ -21,24 +21,12 @@
 #include "angband.h"
 
 
-void source_obj(struct source *source, struct object *obj)
-{
-    source->idx = 0;
-    source->player = NULL;
-    source->monster = NULL;
-    source->trap = NULL;
-    source->obj = obj;
-    source->target = NULL;
-}
-
-
 void source_trap(struct source *source, struct trap *trap)
 {
     source->idx = 0;
     source->player = NULL;
     source->monster = NULL;
     source->trap = trap;
-    source->obj = NULL;
     source->target = NULL;
 }
 
@@ -49,7 +37,6 @@ void source_monster(struct source *source, struct monster *monster)
     source->player = NULL;
     source->monster = monster;
     source->trap = NULL;
-    source->obj = NULL;
     source->target = NULL;
 }
 
@@ -60,7 +47,6 @@ void source_player(struct source *source, int idx, struct player *player)
     source->player = player;
     source->monster = NULL;
     source->trap = NULL;
-    source->obj = NULL;
     source->target = NULL;
 }
 
@@ -71,7 +57,6 @@ void source_both(struct source *source, struct player *player, struct monster *m
     source->player = player;
     source->monster = monster;
     source->trap = NULL;
-    source->obj = NULL;
     source->target = NULL;
 }
 
@@ -80,7 +65,7 @@ bool source_null(struct source *source)
 {
     return ((source == NULL) ||
         ((source->player == NULL) && (source->monster == NULL) && (source->trap == NULL) &&
-        (source->obj == NULL) && (source->target == NULL)));
+        (source->target == NULL)));
 }
 
 
@@ -90,8 +75,7 @@ bool source_null(struct source *source)
 bool source_equal(struct source *source1, struct source *source2)
 {
     return ((source1->player == source2->player) && (source1->monster == source2->monster) &&
-        (source1->trap == source2->trap) && (source1->obj == source2->obj) &&
-        (source1->target == source2->target));
+        (source1->trap == source2->trap) && (source1->target == source2->target));
 }
 
 

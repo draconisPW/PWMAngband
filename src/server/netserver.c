@@ -873,10 +873,10 @@ static void Delete_player(int id)
     if (c)
     {
         /* Remove the player */
-        square_set_mon(c, &p->grid, 0);
+        c->squares[p->py][p->px].mon = 0;
 
         /* Redraw */
-        square_light_spot(c, &p->grid);
+        square_light_spot(c, p->py, p->px);
 
         /* Free monsters from slavery */
         for (i = 1; i < cave_monster_max(c); i++)
@@ -950,7 +950,7 @@ static void Delete_player(int id)
         struct player *q = player_get(NumPlayers);
 
         c_last = chunk_get(&q->wpos);
-        if (c_last) square_set_mon(c_last, &q->grid, 0 - id);
+        if (c_last) c_last->squares[q->py][q->px].mon = 0 - id;
         player_set(NumPlayers, player_get(id));
         player_set(id, q);
         set_player_index(get_connection(player_get(id)->conn), id);
@@ -1451,7 +1451,7 @@ int Send_race_struct_info(int ind)
         }
         for (j = 0; j < ELEM_MAX; j++)
         {
-            if (Packet_printf(&connp->c, "%hd", r->el_info[j].res_level) <= 0)
+            if (Packet_printf(&connp->c, "%b", (unsigned)r->el_info[j].res_level) <= 0)
             {
                 Destroy_connection(ind, "Send_race_struct_info write error");
                 return -1;
@@ -1513,7 +1513,7 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
-        if (Packet_printf(&connp->c, "%b", (unsigned)c->c_mhp) <= 0)
+        if (Packet_printf(&connp->c, "%b%hd", (unsigned)c->c_mhp, (int)c->c_exp) <= 0)
         {
             Destroy_connection(ind, "Send_class_struct_info write error");
             return -1;
@@ -1536,8 +1536,7 @@ int Send_class_struct_info(int ind)
         {
             struct class_book *book = &c->magic.books[j];
 
-            if (Packet_printf(&connp->c, "%b%b%s", (unsigned)book->tval, (unsigned)book->sval,
-                book->realm->name) <= 0)
+            if (Packet_printf(&connp->c, "%s", book->realm->name) <= 0)
             {
                 Destroy_connection(ind, "Send_class_struct_info write error");
                 return -1;
@@ -2016,56 +2015,6 @@ int Send_trap_struct_info(int ind)
 }
 
 
-int Send_timed_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    size_t i;
-    byte dummy = 1;
-    byte dummy1 = 0;
-    int dummy2 = 0;
-    const char *dummy3 = "";
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for timed info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_TIMED,
-        (unsigned)TMD_MAX) <= 0)
-    {
-        Destroy_connection(ind, "Send_timed_struct_info write error");
-        return -1;
-    }
-
-    for (i = 0; i < TMD_MAX; i++)
-    {
-        struct timed_effect_data *effect = &timed_effects[i];
-        struct timed_grade *grade = effect->grade;
-
-        while (grade)
-        {
-            if (Packet_printf(&connp->c, "%b%b%hd%s", (unsigned)dummy, (unsigned)grade->color,
-                grade->max, (grade->name? grade->name: "")) <= 0)
-            {
-                Destroy_connection(ind, "Send_timed_struct_info write error");
-                return -1;
-            }
-            grade = grade->next;
-        }
-    }
-
-    if (Packet_printf(&connp->c, "%b%b%hd%s", (unsigned)dummy, (unsigned)dummy1, dummy2, dummy3) <= 0)
-    {
-        Destroy_connection(ind, "Send_timed_struct_info write error");
-        return -1;
-    }
-
-    return 1;
-}
-
-
 static connection_t *get_connp(struct player *p, const char *errmsg)
 {
     connection_t *connp;
@@ -2096,7 +2045,7 @@ int Send_death_cause(struct player *p)
 
     return Packet_printf(&connp->c, "%b%s%hd%ld%ld%hd%hd%hd%s%s", (unsigned)PKT_DEATH_CAUSE,
         p->death_info.title, (int)p->death_info.lev, p->death_info.exp,
-        p->death_info.au, (int)p->death_info.wpos.grid.y, (int)p->death_info.wpos.grid.x,
+        p->death_info.au, (int)p->death_info.wpos.wy, (int)p->death_info.wpos.wx,
         (int)p->death_info.wpos.depth, p->death_info.died_from, p->death_info.ctime);
 }
 
@@ -2321,9 +2270,12 @@ int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring)
 /*
  * Encodes and sends an attr/char pairs stream using one of the following "mode"s:
  *
- * RLE_NONE - no encoding is performed, the stream is sent as is (3 bytes per grid).
- * RLE_CLASSIC - classic mangband encoding, the attr is ORed with 0x40, uses 5 bytes per repetition
- * RLE_LARGE - same as RLE_CLASSIC, but the attr is ORed with 0x8000 to transfer high-bit attr/chars
+ * RLE_NONE - no encoding is performed, the stream is sent as is.
+ * RLE_CLASSIC - classic mangband encoding, the attr is ORed with 0x40,
+ *               uses 3 bytes per repetition
+ * RLE_LARGE - a more traffic-consuming routine, which is using a separate
+ *             byte to mark the repetition spot (making it 4 bytes per rep.),
+ *             but it can be used to transfer high-bit attr/chars
  *
  * "lineref" is a pointer to an attr/char array, and "max_col" is specifying its size
  *
@@ -2334,6 +2286,7 @@ static int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
     int x1, i;
     char c;
     u16b a, n;
+    int dummy = -1;
 
     /* Count bytes */
     int b = 0;
@@ -2359,23 +2312,20 @@ static int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
             x1++;
         }
 
-        /* RLE_LARGE if there are at least 2 similar grids in a row */
-        if ((mode == RLE_LARGE) && (n >= 2))
+        /* RLE-II if there are at least 3 similar grids in a row */
+        if ((mode == RLE_LARGE) && (n >= 3))
         {
-            /* Set bit 0x8000 of a */
-            a |= 0x8000;
-
             /* Output the info */
-            Packet_printf(buf, "%c%hu%hu", (int)c, (unsigned)a, (unsigned)n);
+            Packet_printf(buf, "%c%hu%c%hu", dummy, (unsigned)n, (int)c, (unsigned)a);
 
             /* Start again after the run */
             i = x1 - 1;
 
             /* Count bytes */
-            b += 5;
+            b += 6;
         }
 
-        /* RLE_CLASSIC if there are at least 2 similar grids in a row */
+        /* RLE-I if there are at least 2 similar grids in a row */
         else if ((mode == RLE_CLASSIC) && (n >= 2))
         {
             /* Set bit 0x40 of a */
@@ -2390,11 +2340,9 @@ static int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
             /* Count bytes */
             b += 5;
         }
-
-        /* Normal, single grid */
         else
         {
-            /* Output the info */
+            /* Normal, single grid */
             Packet_printf(buf, "%c%hu", (int)c, (unsigned)a);
 
             /* Count bytes */
@@ -2562,7 +2510,7 @@ int Send_show_floor(struct player *p, byte mode)
 }
 
 
-int Send_char(struct player *p, struct loc *grid, u16b a, char c, u16b ta, char tc)
+int Send_char(struct player *p, int x, int y, u16b a, char c, u16b ta, char tc)
 {
     connection_t *connp, *connp2;
 
@@ -2590,23 +2538,23 @@ int Send_char(struct player *p, struct loc *grid, u16b a, char c, u16b ta, char 
 
         if (p_ptr2->use_graphics && (p_ptr2->remote_term == NTERM_WIN_OVERHEAD))
         {
-            Packet_printf(&connp2->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-                (unsigned)grid->y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
+            Packet_printf(&connp2->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)x,
+                (unsigned)y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
         }
         else
         {
-            Packet_printf(&connp2->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-                (unsigned)grid->y, (unsigned)a, (int)c);
+            Packet_printf(&connp2->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)x, (unsigned)y,
+                (unsigned)a, (int)c);
         }
     }
 
     if (p->use_graphics && (p->remote_term == NTERM_WIN_OVERHEAD))
     {
-        return Packet_printf(&connp->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-            (unsigned)grid->y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
+        return Packet_printf(&connp->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)x,
+            (unsigned)y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
     }
-    return Packet_printf(&connp->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-        (unsigned)grid->y, (unsigned)a, (int)c);
+    return Packet_printf(&connp->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)x, (unsigned)y,
+        (unsigned)a, (int)c);
 }
 
 
@@ -2640,12 +2588,11 @@ int Send_floor(struct player *p, byte num, const struct object *obj, struct obje
     Packet_printf(&connp->c, "%b%b", (unsigned)PKT_FLOOR, (unsigned)num);
     Packet_printf(&connp->c, "%b%b%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->known,
-        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->carry,
-        (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
-        (unsigned)info_xtra->magic, info_xtra->bidx);
+        (unsigned)info_xtra->carry, (unsigned)info_xtra->quality_ignore,
+        (unsigned)info_xtra->ignored, info_xtra->eidx, (unsigned)info_xtra->magic, info_xtra->bidx);
     Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,
         info_xtra->name_base, info_xtra->name_curse, info_xtra->name_power);
 
@@ -2916,8 +2863,8 @@ int Send_player_pos(struct player *p)
     connection_t *connp = get_connp(p, "player pos");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd", (unsigned)PKT_PLAYER, (int)p->grid.x,
-        (int)p->offset_grid.x, (int)p->grid.y, (int)p->offset_grid.y);
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd", (unsigned)PKT_PLAYER, (int)p->px,
+        (int)p->offset_x, (int)p->py, (int)p->offset_y);
 }
 
 
@@ -2933,20 +2880,6 @@ int Send_play(int ind)
     }
 
     return Packet_printf(&connp->c, "%b", (unsigned)PKT_PLAY);
-}
-
-
-int Send_features(int ind, int lighting, int off)
-{
-    connection_t *connp = get_connection(ind);
-
-    if (Packet_printf(&connp->c, "%b%hd%hd", (unsigned)PKT_FEATURES, lighting, off) <= 0)
-    {
-        Destroy_connection(ind, "Send_features write error");
-        return -1;
-    }
-
-    return 1;
 }
 
 
@@ -3118,10 +3051,10 @@ int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
         price, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
 
     /* Extra info */
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->stuck,
-        (unsigned)info_xtra->known, (unsigned)info_xtra->known_effect, (unsigned)info_xtra->sellable,
+        (unsigned)info_xtra->known, (unsigned)info_xtra->sellable,
         (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
         (unsigned)info_xtra->magic, info_xtra->bidx);
 
@@ -3363,53 +3296,6 @@ static int Receive_undefined(int ind)
 }
 
 
-static int Receive_features(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    int n, local_size, i;
-    byte ch;
-    char lighting;
-    s16b len, off;
-    bool discard = false;
-    byte a;
-    char c;
-
-    if ((n = Packet_scanf(&connp->r, "%b%c%hd%hd", &ch, &lighting, &len, &off)) <= 0)
-    {
-        if (n == -1) Destroy_connection(ind, "Receive_features read error");
-        return n;
-    }
-
-    /* Paranoia */
-    if ((lighting < 0) || (lighting >= LIGHTING_MAX)) discard = true;
-
-    /* Size */
-    local_size = z_info->f_max;
-
-    /* Finally read the data */
-    for (i = off; i < off + len; i++)
-    {
-        if ((n = Packet_scanf(&connp->r, "%b%c", &a, &c)) <= 0)
-        {
-            if (n == -1) Destroy_connection(ind, "Receive_features read error");
-            return n;
-        }
-
-        /* Check size */
-        if (i >= local_size) discard = true;
-
-        if (discard) continue;
-
-        connp->Client_setup.f_attr[i][lighting] = a;
-        connp->Client_setup.f_char[i][lighting] = c;
-    }
-
-    Send_features(ind, lighting, off + len);
-
-    return 2;
-}
-
-
 static int Receive_verify(int ind)
 {
     connection_t *connp = get_connection(ind);
@@ -3425,7 +3311,7 @@ static int Receive_verify(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &type, &size)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_verify read error");
+        if (n == -1) Destroy_connection(ind, "verify read error");
         return n;
     }
 
@@ -3433,10 +3319,11 @@ static int Receive_verify(int ind)
     switch (type)
     {
         case 0: local_size = get_flavor_max(); break;
-        case 1: local_size = z_info->k_max; break;
-        case 2: local_size = z_info->r_max; break;
-        case 3: local_size = PROJ_MAX * BOLT_MAX; break;
-        case 4: local_size = z_info->trap_max * LIGHTING_MAX; break;
+        case 1: local_size = z_info->f_max * LIGHTING_MAX; break;
+        case 2: local_size = z_info->k_max; break;
+        case 3: local_size = z_info->r_max; break;
+        case 4: local_size = PROJ_MAX * BOLT_MAX; break;
+        case 5: local_size = z_info->trap_max * LIGHTING_MAX; break;
         default: discard = true;
     }
     if (local_size != size) discard = true;
@@ -3446,7 +3333,7 @@ static int Receive_verify(int ind)
     {
         if ((n = Packet_scanf(&connp->r, "%b%c", &a, &c)) <= 0)
         {
-            if (n == -1) Destroy_connection(ind, "Receive_verify read error");
+            if (n == -1) Destroy_connection(ind, "verify_visual read error");
             return n;
         }
 
@@ -3459,18 +3346,22 @@ static int Receive_verify(int ind)
                 connp->Client_setup.flvr_x_char[i] = c;
                 break;
             case 1:
+                connp->Client_setup.f_attr[i / LIGHTING_MAX][i % LIGHTING_MAX] = a;
+                connp->Client_setup.f_char[i / LIGHTING_MAX][i % LIGHTING_MAX] = c;
+                break;
+            case 2:
                 connp->Client_setup.k_attr[i] = a;
                 connp->Client_setup.k_char[i] = c;
                 break;
-            case 2:
+            case 3:
                 connp->Client_setup.r_attr[i] = a;
                 connp->Client_setup.r_char[i] = c;
                 break;
-            case 3:
+            case 4:
                 connp->Client_setup.proj_attr[i / BOLT_MAX][i % BOLT_MAX] = a;
                 connp->Client_setup.proj_char[i / BOLT_MAX][i % BOLT_MAX] = c;
                 break;
-            case 4:
+            case 5:
                 connp->Client_setup.t_attr[i / LIGHTING_MAX][i % LIGHTING_MAX] = a;
                 connp->Client_setup.t_char[i / LIGHTING_MAX][i % LIGHTING_MAX] = c;
                 break;
@@ -3578,7 +3469,7 @@ static int Receive_breath(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_breath(p, dir);
             return 2;
@@ -3620,7 +3511,7 @@ static int Receive_walk(int ind)
             return 1;
         }
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_walk(p, dir);
             return 2;
@@ -3673,7 +3564,7 @@ static int Receive_run(int ind)
         break_mind_link(p);
 
         /* Start running */
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_run(p, dir);
             return 2;
@@ -3766,7 +3657,7 @@ static int Receive_aim_wand(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_aim_wand(p, item, dir);
             return 2;
@@ -3801,7 +3692,7 @@ static int Receive_drop(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_drop(p, item, amt);
             return 2;
@@ -3835,7 +3726,7 @@ static int Receive_ignore_drop(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             ignore_drop(p);
             return 2;
@@ -3871,7 +3762,7 @@ static int Receive_fire(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_fire(p, dir, item);
             return 2;
@@ -3912,7 +3803,7 @@ static int Receive_pickup(int ind)
             case 0:
             {
                 /* Stand still */
-                if (has_energy(p, true))
+                if (has_energy(p))
                 {
                     p->ignore = 0;
                     do_cmd_hold(p, item);
@@ -4040,7 +3931,7 @@ static int Receive_cast(int ind, char *errmsg)
         /* Repeat casting 99 times if fire-till-kill mode is active */
         if (starting)
         {
-            if (OPT(p, fire_till_kill) && (dir == DIR_TARGET)) p->firing_request = 99;
+            if (OPT(p, fire_till_kill) && (dir == 5)) p->firing_request = 99;
             else p->firing_request = 1;
             starting = 0;
         }
@@ -4084,7 +3975,7 @@ static int Receive_open(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_open(p, dir, true);
             return 2;
@@ -4120,7 +4011,7 @@ static int Receive_quaff(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_quaff_potion(p, item, dir);
             return 2;
@@ -4155,7 +4046,7 @@ static int Receive_read(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_read_scroll(p, item);
             return 2;
@@ -4190,7 +4081,7 @@ static int Receive_take_off(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_takeoff(p, item);
             return 2;
@@ -4225,7 +4116,7 @@ static int Receive_use(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_use_staff(p, item);
             return 2;
@@ -4261,7 +4152,7 @@ static int Receive_throw(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_throw(p, dir, item);
             return 2;
@@ -4296,7 +4187,7 @@ static int Receive_wield(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_wield(p, item, slot);
             return 2;
@@ -4332,7 +4223,7 @@ static int Receive_zap(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_zap_rod(p, item, dir);
             return 2;
@@ -4453,7 +4344,7 @@ static int Receive_activate(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_activate(p, item, dir);
             return 2;
@@ -4488,7 +4379,7 @@ static int Receive_disarm(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_disarm(p, dir, true);
             return 2;
@@ -4523,7 +4414,7 @@ static int Receive_eat(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_eat_food(p, item);
             return 2;
@@ -4558,7 +4449,7 @@ static int Receive_fill(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_refill(p, item);
             return 2;
@@ -4704,7 +4595,7 @@ static int Receive_close(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_close(p, dir, true);
             return 2;
@@ -4739,7 +4630,7 @@ static int Receive_gain(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_study(p, book, spell);
             return 2;
@@ -4773,7 +4664,7 @@ static int Receive_go_up(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_go_up(p);
             return 2;
@@ -4807,7 +4698,7 @@ static int Receive_go_down(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             current_clear(p);
             do_cmd_go_down(p);
@@ -4843,7 +4734,7 @@ static int Receive_drop_gold(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_drop_gold(p, amt);
             return 2;
@@ -4940,7 +4831,7 @@ static int Receive_ghost(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_ghost(p, ability, dir);
             return 2;
@@ -5014,7 +4905,7 @@ static int Receive_steal(int ind)
 
         if (!cfg_no_steal)
         {
-            if (has_energy(p, true))
+            if (has_energy(p))
             {
                 do_cmd_steal(p, dir);
                 return 2;
@@ -5024,7 +4915,7 @@ static int Receive_steal(int ind)
             return 0;
         }
         else
-            /* Handle the option to disable stealing */
+            /* Handle the option to disable player/player stealing */
             msg(p, "Your pathetic attempts at stealing fail.");
     }
 
@@ -5086,7 +4977,7 @@ static int Receive_mimic(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_mimic(p, page, spell, dir);
             return 2;
@@ -5142,7 +5033,7 @@ static int Receive_observe(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_observe(p, item);
             return 2;
@@ -5205,7 +5096,7 @@ static int Receive_alter(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_alter(p, dir);
             return 2;
@@ -5286,7 +5177,7 @@ static int Receive_jump(int ind)
             return 1;
         }
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_jump(p, dir);
             return 2;
@@ -5431,7 +5322,7 @@ static int Receive_fountain(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_fountain(p, item);
             return 2;
@@ -5575,7 +5466,7 @@ static int Receive_use_any(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_use_any(p, item, dir);
             return 2;
@@ -5714,15 +5605,22 @@ static void update_birth_options(struct player *p, struct birth_options *options
     if (cfg_no_stores) OPT(p, birth_no_stores) = true;
     if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
 
-    /* Fruit bat mode: not when a Dragon */
-    if (pf_has(p->race->pflags, PF_DRAGON)) OPT(p, birth_fruit_bat) = false;
+    /* Fruit bat mode: not when a Dragon, a Shapechanger or a Necromancer */
+    if (pf_has(p->race->pflags, PF_DRAGON) || pf_has(p->clazz->pflags, PF_MONSTER_SPELLS) ||
+        pf_has(p->clazz->pflags, PF_UNDEAD_POWERS))
+    {
+        OPT(p, birth_fruit_bat) = false;
+    }
 
     /* Fruit bat mode supercedes no-ghost mode */
     if (OPT(p, birth_fruit_bat)) OPT(p, birth_no_ghost) = true;
 
     /* Update form */
     if (OPT(p, birth_fruit_bat) != options->fruit_bat)
-        do_cmd_poly(p, (OPT(p, birth_fruit_bat)? get_race("fruit bat"): NULL), false, domsg);
+    {
+        do_cmd_poly(p, (OPT(p, birth_fruit_bat)? get_race("fruit bat"): NULL), false,
+            domsg);
+    }
 }
 
 
@@ -5943,8 +5841,8 @@ static int Enter_player(int ind)
         byte cidx = p->clazz->cidx;
         byte ridx = p->race->ridx;
 
-        p->r_attr[0] = presets[p->use_graphics - 1].player_presets[p->psex][cidx][ridx].a;
-        p->r_char[0] = presets[p->use_graphics - 1].player_presets[p->psex][cidx][ridx].c;
+        p->r_attr[0] = player_presets[p->use_graphics - 1][cidx][ridx][p->psex].a;
+        p->r_char[0] = player_presets[p->use_graphics - 1][cidx][ridx][p->psex].c;
     }
 
     verify_panel(p);
@@ -6292,7 +6190,6 @@ static int Receive_play(int ind)
         Send_curse_struct_info(ind);
         Send_feat_struct_info(ind);
         Send_trap_struct_info(ind);
-        Send_timed_struct_info(ind);
         Send_char_info_conn(ind);
     }
     else
@@ -6571,6 +6468,7 @@ static void Handle_item(struct player *p, int item, int curse)
         /* Cast current normal spell */
         if (p->current_item >= 0)
         {
+            int old_num = get_player_num(p);
             const struct player_class *c = p->clazz;
             quark_t note = (quark_t)p->current_item;
             const struct class_spell *spell;
@@ -6582,7 +6480,7 @@ static void Handle_item(struct player *p, int item, int curse)
             /* Hack -- select a single curse for uncursing */
             p->current_action = curse;
 
-            if (p->ghost && !player_can_undead(p)) c = lookup_player_class("Ghost");
+            if (p->ghost && !player_can_undead(p)) c = player_id2class(CLASS_GHOST);
 
             spell = spell_by_index(&c->magic, p->current_spell);
             fill_beam_info(p, p->current_spell, &beam);
@@ -6597,7 +6495,13 @@ static void Handle_item(struct player *p, int item, int curse)
             use_energy(p);
 
             /* Use some mana */
-            use_mana(p);
+            p->csp -= p->spell_cost;
+
+            /* Hack -- redraw picture */
+            redraw_picture(p, old_num);
+
+            /* Redraw mana */
+            p->upkeep->redraw |= (PR_MANA);
         }
 
         /* Cast current projected spell */
@@ -6714,7 +6618,7 @@ static int Receive_sell(int ind)
             struct store *store = store_at(p);
 
             /* Real store */
-            if (store->type != STORE_HOME)
+            if (store->sidx != STORE_HOME)
                 do_cmd_sell(p, item, amt);
 
             /* Player is at home */
@@ -6853,28 +6757,18 @@ static int Receive_poly(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        /* Non mimics */
-        if (!player_has(p, PF_SHAPECHANGE))
+        /* Restrict to shapechangers in non-fruitbat mode */
+        if (player_has(p, PF_MONSTER_SPELLS) && !OPT(p, birth_fruit_bat))
         {
-            msg(p, "You are too solid.");
-            return 1;
-        }
+            /* Check boundaries */
+            if ((number < 0) || (number > z_info->r_max - 1))
+            {
+                msg(p, "This monster race doesn't exist.");
+                return 1;
+            }
 
-        /* Not if a Dragon or in fruit bat mode */
-        if (player_has(p, PF_DRAGON) || OPT(p, birth_fruit_bat))
-        {
-            msg(p, "You are already polymorphed permanently.");
-            return 1;
+            do_cmd_poly(p, (number? &r_info[number]: NULL), true, true);
         }
-
-        /* Check boundaries */
-        if ((number < 0) || (number > z_info->r_max - 1))
-        {
-            msg(p, "This monster race doesn't exist.");
-            return 1;
-        }
-
-        do_cmd_poly(p, (number? &r_info[number]: NULL), true, true);
     }
 
     return 1;
@@ -6907,7 +6801,7 @@ static int Receive_purchase(int ind)
             struct store *store = store_at(p);
 
             /* Attempt to buy it */
-            if (store->type != STORE_HOME)
+            if (store->sidx != STORE_HOME)
                 do_cmd_buy(p, item, amt);
 
             /* Home is much easier */
@@ -6959,18 +6853,13 @@ static int Receive_store_leave(int ind)
         store_num = p->store_num;
         if (store_num != -1)
         {
-            struct store *s = &stores[store_num];
-
             p->store_num = -1;
 
             /* Hack -- don't stand in the way */
-            if (s->type != STORE_PLAYER)
+            if (store_num != STORE_PLAYER)
             {
                 bool look = true;
-                int d, i, dis = 1;
-                struct loc grid;
-
-                loc_copy(&grid, &p->grid);
+                int d, i, dis = 1, x = p->py, y = p->px;
 
                 while (look)
                 {
@@ -6979,19 +6868,20 @@ static int Receive_store_leave(int ind)
                     {
                         while (1)
                         {
-                            rand_loc(&grid, &p->grid, dis, dis);
-                            d = distance(&p->grid, &grid);
+                            y = rand_spread(p->py, dis);
+                            x = rand_spread(p->px, dis);
+                            d = distance(p->py, p->px, y, x);
                             if (d <= dis) break;
                         }
-                        if (!square_in_bounds_fully(c, &grid)) continue;
-                        if (!square_isempty(c, &grid)) continue;
-                        if (square_isvault(c, &grid)) continue;
+                        if (!square_in_bounds_fully(c, y, x)) continue;
+                        if (!square_isempty(c, y, x)) continue;
+                        if (square_isvault(c, y, x)) continue;
                         look = false;
                         break;
                     }
                     dis = dis * 2;
                 }
-                monster_swap(c, &p->grid, &grid);
+                monster_swap(c, p->py, p->px, y, x);
                 handle_stuff(p);
             }
 
@@ -7366,7 +7256,7 @@ bool process_pending_commands(int ind)
 
             /* Paranoia */
             if ((type < PKT_UNDEFINED) || (type >= PKT_MAX)) type = PKT_UNDEFINED;
-            
+
             result = (*receive_tbl[type])(ind);
             data_advance += ((int)connp->r.ptr - last_pos);
             ht_copy(&connp->start, &turn);
@@ -7553,11 +7443,10 @@ bool process_turn_based(void)
     if (connp->state != CONN_PLAYING) return false;
 
     /* Only at the end of each turn */
-    if (!has_energy(p, false)) return false;
+    if (!has_energy(p)) return false;
 
     /* Not while resting */
     if (p->upkeep->resting) return false;
 
     return true;
 }
-

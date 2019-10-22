@@ -487,31 +487,6 @@ static void equip_notice_flags(struct player *p, int index)
 
 
 /*
- * Player has a temporary brand
- */
-bool player_has_temporary_brand(struct player *p, int idx)
-{
-    if (p->timed[TMD_ATT_ACID] && streq(brands[idx].code, "ACID_3")) return true;
-    if (p->timed[TMD_ATT_ELEC] && streq(brands[idx].code, "ELEC_3")) return true;
-    if (p->timed[TMD_ATT_FIRE] && streq(brands[idx].code, "FIRE_3")) return true;
-    if (p->timed[TMD_ATT_COLD] && streq(brands[idx].code, "COLD_3")) return true;
-    if (p->timed[TMD_ATT_POIS] && streq(brands[idx].code, "POIS_3")) return true;
-    return false;
-}
-
-
-/*
- * Player has a temporary slay
- */
-bool player_has_temporary_slay(struct player *p, int idx)
-{
-    if (p->timed[TMD_ATT_EVIL] && streq(slays[idx].code, "EVIL_2")) return true;
-    if (p->timed[TMD_ATT_DEMON] && streq(slays[idx].code, "DEMON_5")) return true;
-    return false;
-}
-
-
-/*
  * Extract the multiplier from a given object hitting a given target.
  *
  * p is the current player
@@ -548,28 +523,8 @@ void improve_attack_modifier(struct player *p, struct object *obj, struct source
 
     if (obj) return;
 
-    /* Temporary branding (ranged) */
-    if (range)
-    {
-        if (p->timed[TMD_BOWBRAND])
-        {
-            int index = get_bow_brand(&p->brand);
-
-            if (index != -1)
-            {
-                /* Notice flags for players */
-                if (who->player) equip_notice_flags(who->player, index);
-
-                improve_attack_modifier_brand(p, NULL, who, index, best_mult, effects, verb, len,
-                    range);
-            }
-        }
-
-        return;
-    }
-
     /* Handle polymorphed players */
-    if (p->poly_race)
+    if (!range && p->poly_race)
     {
         int index = get_poly_brand(p->poly_race, randint0(z_info->mon_blows_max));
 
@@ -583,22 +538,30 @@ void improve_attack_modifier(struct player *p, struct object *obj, struct source
         }
     }
 
-    /* Temporary slays */
-    for (i = 0; i < z_info->slay_max; i++)
+    /* Hack -- extract temp branding */
+    else if (range && p->timed[TMD_BOWBRAND])
     {
-        if (!player_has_temporary_slay(p, i)) continue;
-        improve_attack_modifier_slay(p, NULL, who, i, best_mult, verb, len, range);
+        int index = get_bow_brand(&p->brand);
+
+        if (index != -1)
+        {
+            /* Notice flags for players */
+            if (who->player) equip_notice_flags(who->player, index);
+
+            improve_attack_modifier_brand(p, NULL, who, index, best_mult, effects, verb, len,
+                range);
+        }
     }
 
-    /* Temporary brands */
-    for (i = 0; i < z_info->brand_max; i++)
+    /* Hack -- extract temp branding */
+    else if (!range && p->timed[TMD_SGRASP])
     {
-        if (!player_has_temporary_brand(p, i)) continue;
+        int index = get_brand("lightning", 3);
 
         /* Notice flags for players */
-        if (who->player) equip_notice_flags(who->player, i);
+        if (who->player) equip_notice_flags(who->player, index);
 
-        improve_attack_modifier_brand(p, NULL, who, i, best_mult, effects, verb, len, range);
+        improve_attack_modifier_brand(p, NULL, who, index, best_mult, effects, verb, len, range);
     }
 }
 
