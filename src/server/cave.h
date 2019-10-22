@@ -21,20 +21,19 @@ enum
 
 #define tf_has(f, flag) flag_has_dbg(f, TF_SIZE, flag, #f, #flag)
 
-/* Number of entries in presets.prf */
-#define MAX_PRESETS 3
-
-/* Number of class entries in xtra.prf */
-#define MAX_XTRA_CLASSES 16
-
-/* Number of race entries in xtra.prf */
-#define MAX_XTRA_RACES 15
-
 /* Number of basic grids per panel, vertically and horizontally */
 #define PANEL_SIZE 11
 
 /* Maximum number of objects on the level (198x66) */
 #define MAX_OBJECTS 13068
+
+struct preset
+{
+    cave_view_type **player_presets[MAX_SEXES];
+    cave_view_type player_numbers[8];
+    struct preset *next;
+    int cidx, ridx;
+};
 
 /*
  * Information about terrain features.
@@ -250,8 +249,8 @@ extern void add_crop(struct chunk *c, struct loc *grid1, struct loc *grid2, int 
 extern int add_building(struct chunk *c, struct loc *grid1, struct loc *grid2, int type);
 extern void add_moat(struct chunk *c, struct loc *grid1, struct loc *grid2, struct loc drawbridge[3]);
 
-extern cave_view_type player_presets[MAX_PRESETS][MAX_XTRA_CLASSES][MAX_XTRA_RACES][MAX_SEXES];
-extern cave_view_type player_numbers[MAX_PRESETS][8];
+extern struct preset *presets;
+extern int presets_count;
 
 /* cave-map.c */
 extern void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_data *g);

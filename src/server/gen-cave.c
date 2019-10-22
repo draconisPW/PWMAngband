@@ -2158,7 +2158,6 @@ static void build_store(struct chunk *c, int n, struct loc *grid)
             square_add_safe(c, &iter.cur);
 
             /* Declare this to be a room */
-            sqinfo_on(square(c, &iter.cur)->info, SQUARE_GLOW);
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
         }
@@ -3105,7 +3104,6 @@ static void build_feature(struct chunk *c, int n, int yy, int xx)
             square_add_safe(c, &iter.cur);
 
             /* Declare this to be a room */
-            sqinfo_on(square(c, &iter.cur)->info, SQUARE_GLOW);
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
         }
@@ -3190,12 +3188,9 @@ static void build_feature(struct chunk *c, int n, int yy, int xx)
             /* Fill with safe floor */
             square_add_safe(c, &iter.cur);
 
-            /* Make it "icky" */
+            /* Declare this to be a room */
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
-
-            /* Make it glowing */
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
-            sqinfo_on(square(c, &iter.cur)->info, SQUARE_GLOW);
         }
         while (loc_iterator_next_strict(&iter));
 

@@ -3485,10 +3485,6 @@ void init_angband(void)
 {
     int i;
 
-    /* Initialize player presets */
-    plog("Initializing player presets...");
-    process_pref_file_xtra("presets.prf");
-
     init_game_constants();
 
     /* Initialize modules */
@@ -3496,6 +3492,10 @@ void init_angband(void)
     {
         if (modules[i]->init) modules[i]->init();
     }
+
+    /* Initialize player presets */
+    plog("Initializing player presets...");
+    process_pref_file_xtra("presets.prf");
 
     /* Initialize some other things */
     plog("Initializing other stuff...");
@@ -3591,6 +3591,20 @@ void cleanup_angband(void)
 
     /* Misc */
     wipe_player_names();
+
+    /* Free the player presets */
+    for (i = 0; i < presets_count; i++)
+    {
+        int sidx, cidx;
+
+        for (sidx = 0; sidx < MAX_SEXES; sidx++)
+        {
+            for (cidx = 0; cidx < player_cmax(); cidx++)
+                mem_free(presets[i].player_presets[sidx][cidx]);
+            mem_free(presets[i].player_presets[sidx]);
+        }
+    }
+    mem_free(presets);
 
     /* Free the allocation tables */
     for (i = 0; modules[i]; i++)

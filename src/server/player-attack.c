@@ -2072,10 +2072,10 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
             drop_near(p, c, &missile, j, &grid, true, DROP_FADE);
         }
 
+        shots++;
+
         /* Stop if dead */
         if (dead && !pierce) break;
-
-        shots++;
     }
 
     /* Hack -- delay messages */

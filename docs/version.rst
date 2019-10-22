@@ -2,7 +2,7 @@ Version Information
 ===================
 
 PWMAngband 1.3.0 is based on Angband 4.1.3 and MAngband 1.x. The latest
-build for PWMAngband 1.3.0 is build 2.
+build for PWMAngband 1.3.0 is build 3.
 
 Angband information was last updated for Angband 4.1.3.
 MAngband information was last updated for MAngband 1.x.
@@ -11,11 +11,12 @@ PWMAngband information was last updated for PWMAngband 1.3.0.
 Angband Version Information
 ---------------------------
 
-This part remains here mainly for historical purposes.
-
-Detailed information about current and past versions can be found at
+Detailed information about current and previous versions can be found at
 http://rephial.org. Also additional information can be found at the Angband
-forums (http://angband.oook.cz) or the newsgroup (rec.games.roguelike.angband).
+forums (http://angband.oook.cz).
+
+This file was last updated for Angband 3.1.2 and remains here mainly
+for historical purposes.
 
 Angband has an incredibly complex history, and is the result of a lot
 of work by a lot of people, all of whom have contributed their time and
@@ -27,8 +28,7 @@ time, and more than six different primary developers. Without such files,
 we must rely on simpler methods, such as change logs, source file diffs,
 and word of mouth. Some of this information is summarised in this file.
 
-Please be sure to read the copyright information contained in the file
-'copying.txt'.
+Please be sure to read the 'Copying and licence information'.
 
 Brief Version History
 ---------------------
@@ -341,10 +341,10 @@ A Posting from the Original Author
   source was lost...
 
   I gave permission to anyone who asked to work on the game. Several people
-  asked if they could convert it to 'C', and I said fine as long as a
+  asked if they could convert it to C, and I said fine as long as a
   complete credit history was maintained, and that it could NEVER be sold,
   only given. So I guess one or more of them succeeded in their efforts to
-  rewrite it in 'C'.
+  rewrite it in C.
 
   I have since received thousands of letters from all over the world from
   players telling about their exploits, and from administrators cursing the
@@ -473,7 +473,7 @@ the most up to date information about MAngband.
 
 Lists of changes made between versions, newbie and strategy guides,
 documentation references, live information, forums and much more about the
-MAngband community available here: http://www.mangband.org/Main/Documentation
+MAngband community available here: https://mangband.org/docs
 
 Previous Versions (outdated)
 ----------------------------

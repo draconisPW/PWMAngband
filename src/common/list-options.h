@@ -20,7 +20,7 @@ OP(hp_changes_color, "Color: Player color indicates % hit points", INTERFACE, tr
 OP(purple_uniques, "Color: Show unique monsters in purple", INTERFACE, false, true)
 OP(solid_walls, "Show walls as solid blocks", INTERFACE, false, true)
 OP(hybrid_walls, "Show walls with shaded background", INTERFACE, false, true)
-OP(use_sound, "Use sound", INTERFACE, false, false)
+OP(use_sound, "Use sound", INTERFACE, true, false)
 OP(effective_speed, "Show effective speed as multiplier", INTERFACE, false, true)
 OP(view_orange_light, "Color: Illuminate torchlight in orange", MANGBAND, true, true)
 OP(highlight_leader, "Use special color for party leader", MANGBAND, false, true)

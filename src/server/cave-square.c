@@ -1978,9 +1978,6 @@ void square_unmark(struct player *p, struct loc *grid)
 
 void square_unglow(struct chunk *c, struct loc *grid)
 {
-    /* Safe floors are always lit */
-    if (square_issafefloor(c, grid)) return;
-
     /* Bright tiles are always lit */
     if (square_isbright(c, grid)) return;
 

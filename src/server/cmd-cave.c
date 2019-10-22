@@ -2915,12 +2915,9 @@ bool create_house(struct player *p)
         /* Fill with safe floor */
         square_add_safe(c, &iter.cur);
 
-        /* Make it "icky" */
+        /* Declare this to be a room */
         sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
-
-        /* Make it glowing */
         sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
-        sqinfo_on(square(c, &iter.cur)->info, SQUARE_GLOW);
     }
     while (loc_iterator_next_strict(&iter));
 
@@ -3335,12 +3332,9 @@ bool build_house(struct player *p)
         /* Fill with safe floor */
         square_add_safe(c, &iter.cur);
 
-        /* Make it "icky" */
+        /* Declare this to be a room */
         sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
-
-        /* Make it glowing */
         sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
-        sqinfo_on(square(c, &iter.cur)->info, SQUARE_GLOW);
     }
     while (loc_iterator_next_strict(&iter));
 

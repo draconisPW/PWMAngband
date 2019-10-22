@@ -3172,7 +3172,6 @@ static void wild_town_gen_layout(struct chunk *c)
                 square_add_safe(c, &grid);
 
                 /* Declare this to be a room */
-                sqinfo_on(square(c, &grid)->info, SQUARE_GLOW);
                 sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
                 sqinfo_on(square(c, &grid)->info, SQUARE_ROOM);
 

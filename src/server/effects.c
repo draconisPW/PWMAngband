@@ -5279,7 +5279,7 @@ static bool effect_handler_READ_MINDS(effect_handler_context_t *context)
         /* Detect all appropriate monsters */
         if (context->origin->player->mon_det[i])
         {
-            source_monster(who, mon);
+            source_both(who, context->origin->player, mon);
             effect_simple(EF_MAP_AREA, who, "0", 0, 0, 0, dist_y, dist_x, NULL);
             found = true;
         }

@@ -1,5 +1,8 @@
 call clean.bat
 del /Q ..\setup\docs\*.*
+del /Q ..\setup\docs\_static\*.*
+del /Q ..\setup\docs\_templates\*.*
+del /Q ..\setup\docs\hacking\*.*
 del /Q ..\setup\lib\readme.txt
 del /Q ..\setup\lib\customize\*.*
 del /Q ..\setup\lib\fonts\*.*

@@ -1,5 +1,7 @@
 call cleansetup.bat
 copy ..\docs\*.* ..\setup\docs
+copy ..\docs\_static\*.* ..\setup\docs\_static
+copy ..\docs\_templates\*.* ..\setup\docs\_templates
 copy ..\docs\hacking\*.* ..\setup\docs\hacking
 copy ..\lib\readme.txt ..\setup\lib
 copy ..\lib\customize\*.* ..\setup\lib\customize

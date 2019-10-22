@@ -40,13 +40,13 @@ Inline help parser syntax
 As to the time when this documentation was last updated, the online help
 parser programmed into PWMAngband does the following:
 
-- ignore colons ("|")
-- ignore paragraphs starting with ".." (including their trailing blank
+- ignore colons (``|``)
+- ignore paragraphs starting with ``..`` (including their trailing blank
   line)
-- recognize link targets (".. _something") and be
+- recognize link targets (``.. _something``) and be
   able to open a file to the right position using them.
 - recognize "menu" links for the online help navigation. Links are given 
-  with the following format ("g" is the hotkey here):
+  with the following format (``g`` is the hotkey here):
 
 :: 
 
@@ -65,7 +65,7 @@ several places we need to use in RST a syntax such as
 ``D``\isarm
 
 If this appeared directly in the help file, then the online help parser
-would display a spurious backslash character "\" before the "i" letter.
+would display a spurious backslash character ``\`` before the ``i`` letter.
 It would be quite complicated to instruct it to parse backslashes using the
 full RST syntax. Instead, we adopt the following workaround: we write
 

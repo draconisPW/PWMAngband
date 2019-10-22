@@ -379,7 +379,7 @@ static void cave_unlight(struct chunk *c, struct point_set *ps)
             struct loc grid = ps->pts[i].grid;
 
             /* Darken the grid */
-            if (!square_issafefloor(c, &grid) && !square_isbright(c, &grid))
+            if (!square_isbright(c, &grid))
             {
                 sqinfo_off(square(c, &grid)->info, SQUARE_GLOW);
 

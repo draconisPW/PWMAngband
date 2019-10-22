@@ -4,7 +4,7 @@ help file.
 
 Please choose one of the following help files:
     
-	(a) Available commands
+    (a) Available commands
     (b) Available symbols
 
 .. menu:: [a] commands.txt

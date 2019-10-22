@@ -290,7 +290,7 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
         /* Handle other */
         *a = player_color(q);
         if (p->use_graphics && !server)
-            *a = player_presets[mode][q->clazz->cidx][q->race->ridx][q->psex].a;
+            *a = presets[mode].player_presets[q->psex][q->clazz->cidx][q->race->ridx].a;
 
         /* Hack -- elementalists */
         if (!p->use_graphics && (*a == COLOUR_MULTI))
@@ -326,7 +326,7 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
         if (server) *c = monster_x_char[0];
         else *c = p->r_char[0];
         if (p->use_graphics && !server)
-            *c = player_presets[mode][q->clazz->cidx][q->race->ridx][q->psex].c;
+            *c = presets[mode].player_presets[q->psex][q->clazz->cidx][q->race->ridx].c;
     }
 
     /* Handle ghosts in graphical mode */
@@ -470,8 +470,8 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
             /* Use presets in gfx mode */
             if (p->use_graphics && !server)
             {
-                *a = player_numbers[mode][life].a;
-                *c = player_numbers[mode][life].c;
+                *a = presets[mode].player_numbers[life].a;
+                *c = presets[mode].player_numbers[life].c;
             }
         }
     }

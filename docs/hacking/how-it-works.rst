@@ -59,22 +59,22 @@ The lowest-level code in PWMAngband is the "Z" layer, which provides
 platform-independent abstractions and generic data structures. Currently, the Z
 layer provides:
 
-===============   ========================================
-"z-bitflag"       Densely-packed bit flag arrays
-"z-color"         Colors
-"z-dice"          Dice expressions
-"z-expression"    Mathematical expressions
-"z-file"          File I/O
-"z-form"          String formatting
-"z-quark"         String interning
-"z-queue"         Queues
-"z-rand"          Randomness
-"z-set"           Sets
-"z-textblock"     Wrapped text
-"z-type"          Basic types
-"z-util"          Random utility macros
-"z-virt"          malloc() wrappers
-===============   ========================================
+=================   ========================================
+``z-bitflag``       Densely-packed bit flag arrays
+``z-color``         Colors
+``z-dice``          Dice expressions
+``z-expression``    Mathematical expressions
+``z-file``          File I/O
+``z-form``          String formatting
+``z-quark``         String interning
+``z-queue``         Queues
+``z-rand``          Randomness
+``z-set``           Sets
+``z-textblock``     Wrapped text
+``z-type``          Basic types
+``z-util``          Random utility macros
+``z-virt``          malloc() wrappers
+=================   ========================================
 
 Code in the Z layer may not depend on files outside the Z layer.
 
@@ -102,7 +102,7 @@ Gamedata Files
 **************
 
 Gamedata files use a line-oriented format where fields are separated by colons.
-The parser for this format is in "parser.h". These files are mostly loaded at
+The parser for this format is in ``parser.h``. These files are mostly loaded at
 initialization time (see `init.c - init_angband`_) and used to fill in the
 static data arrays (see `The Static Data`_).
 
@@ -132,23 +132,23 @@ Startup
 *******
 
 Execution begins in main.c, which runs frontend-independent initialization code,
-then continues in the appropriate "main-xxx.c" file for the current frontend.
+then continues in the appropriate ``main-xxx.c`` file for the current frontend.
 After the game engine is initialized, the player is loaded (or generated) and
 gameplay begins.
 
-"main.c" and "main-xxx.c"
-*************************
+``main.c`` and ``main-*.c``
+***************************
 
-main.c's "main()" is the entry point for PWMAngband execution except on
-Windows, where main-win.c's "WinMain()" is used, and on Nintendo DS, where a
-special "main()" in main-nds.c is used. The "main()" function is responsible
+main.c's ``main()`` is the entry point for PWMAngband execution except on
+Windows, where main-win.c's ``WinMain()`` is used, and on Nintendo DS, where a
+special ``main()`` in main-nds.c is used. The ``main()`` function is responsible
 for dropping permissions if PWMAngband is running setuid, parsing command line
-arguments, then finding a frontend to use and initializing it. Once "main()"
+arguments, then finding a frontend to use and initializing it. Once ``main()``
 finds a frontend, it sets up signal handlers, sets up the display, then calls
-"play_game()".
+``play_game()``.
 
-dungeon.c - play_game
-*********************
+dungeon.c - ``play_game``
+*************************
 
 This function is responsible for driving the remaining initialization. It first
 calls `init.c - init_angband`_, which loads all the `gamedata files`_ and
@@ -157,8 +157,8 @@ loads a saved game if there is a valid save (see `savefiles`_), sets up the RNG,
 loads pref files (see `prefs.c - process_pref_file`_), and enters the game main
 loop (see `dungeon.c - the game main loop`_).
 
-init.c - init_angband
-*********************
+init.c - ``init_angband``
+*************************
 
 The init_angband() function in init.c is responsible for loading and setting up
 static data needed by the game engine. Inside init.c, there is a list of 'init
@@ -171,8 +171,8 @@ either QUIT, NEWGAME, or LOADFILE. This function returns true if the player
 wants to roll a new character, and false if they want to load an existing
 character.
 
-prefs.c - process_pref_file
-***************************
+prefs.c - ``process_pref_file``
+*******************************
 
 The process_pref_file() function in prefs.c is responsible for loading user pref
 files, which can live at multiple paths. User preference files override default
@@ -239,15 +239,15 @@ Keeping the UI up to date
 Four related horribly-named functions in player-calcs.h are responsible for
 keeping the UI in sync with the simulated character's state:
 
-==================  ===========================================================
-"notice_stuff()"    which deals with pack combining and dropping ignored items;
-"update_stuff()"    which recalculates derived bonuses, AI data, vision, seen
-                      monsters, and other things based on the flags in
-                      "player->upkeep->update";
-"redraw_stuff()"    which signals the UI to redraw changed sections of the
-                      game state;
-"handle_stuff()"    which calls update_stuff() and redraw_stuff() if needed.
-==================  ===========================================================
+==================  ============================================================
+``notice_stuff()``  which deals with pack combining and dropping ignored items;
+``update_stuff()``  which recalculates derived bonuses, AI data, vision, seen
+                    monsters, and other things based on the flags in
+                    ``player->upkeep->update``;
+``redraw_stuff()``  which signals the UI to redraw changed sections of the
+                    game state;
+``handle_stuff()``  which calls update_stuff() and redraw_stuff() if needed.
+==================  ============================================================
 
 These functions are called during every game loop, after the player and all
 monsters have acted.

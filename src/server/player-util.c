@@ -1575,12 +1575,14 @@ void use_energy(struct player *p)
 bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
 {
     int i, n = 0;
-    bool found = false;
+    bool found = false, done = false;
     struct source *health_who = &p->upkeep->health_who;
     struct source who_body;
     struct source *who = &who_body;
     struct loc target, targets[8];
+    s16b target_dir, targets_dir[8];
     struct object *weapon = equipped_item_by_slot_name(p, "weapon");
+    struct object *launcher = (bypass_inscription? NULL: equipped_item_by_slot_name(p, "shooting"));
 
     /* Hack -- shoppers don't auto-retaliate */
     if (in_store(p)) return false;
@@ -1611,6 +1613,7 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
 
         /* Current location */
         loc_sum(&target, &p->grid, &ddgrid_ddd[i]);
+        target_dir = ddd[i];
 
         /* Paranoia */
         if (!square_in_bounds_fully(c, &target)) continue;
@@ -1638,6 +1641,7 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
         if (hostile && visible && !mimicking)
         {
             loc_copy(&targets[n], &target);
+            targets_dir[n] = target_dir;
             n++;
         }
     }
@@ -1652,6 +1656,7 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
         {
             /* Current location */
             loc_copy(&target, &targets[i]);
+            target_dir = targets_dir[i];
 
             /* Not the current target */
             square_actor(c, &target, who);
@@ -1669,6 +1674,7 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
         /* Choose randomly */
         i = randint0(n);
         loc_copy(&target, &targets[i]);
+        target_dir = targets_dir[i];
         square_actor(c, &target, who);
         found = true;
     }
@@ -1676,11 +1682,35 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     /* No current target */
     if (!found) return false;
 
-    /* Attack the current target */
-    py_attack(p, c, &target);
+    /* Check if we can retaliate with launcher */
+    if (launcher && object_match_inscription(p, launcher, INSCRIPTION_RETALIATE))
+    {
+        struct object *ammo = NULL;
 
-    /* Take a turn */
-    use_energy(p);
+        /* Find first eligible ammo in the quiver */
+        for (i = 0; i < z_info->quiver_size; i++)
+        {
+            if (!p->upkeep->quiver[i]) continue;
+            if (p->upkeep->quiver[i]->tval != p->state.ammo_tval) continue;
+            ammo = p->upkeep->quiver[i];
+            break;
+        }
+
+        /* Require usable ammo */
+        if (ammo)
+            done = do_cmd_fire(p, target_dir, ammo->oidx);
+        else
+            msg(p, "You have no ammunition in the quiver to fire.");
+    }
+
+    /* Attack the current target */
+    if (!done)
+    {
+        py_attack(p, c, &target);
+
+        /* Take a turn */
+        use_energy(p);
+    }
 
     return true;
 }
@@ -1757,7 +1787,7 @@ bool forbid_entrance_strong(struct player *p)
 {
     struct location *dungeon = get_dungeon(&p->wpos);
 
-    return (dungeon && (p->lev > dungeon->max_level) && !is_dm_p(p));
+    return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
 }
 
 

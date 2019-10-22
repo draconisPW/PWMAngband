@@ -1106,5 +1106,5 @@ void add_moat(struct chunk *c, struct loc *grid1, struct loc *grid2, struct loc 
 
 
 /* Player images for graphic mode */
-cave_view_type player_presets[MAX_PRESETS][MAX_XTRA_CLASSES][MAX_XTRA_RACES][MAX_SEXES];
-cave_view_type player_numbers[MAX_PRESETS][8];
+struct preset *presets;
+int presets_count;

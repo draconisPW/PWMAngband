@@ -6,4 +6,6 @@ Getting Started
 
 .. include:: guide.rst
 
+.. include:: faq.rst
+
 .. include:: mangband.rst

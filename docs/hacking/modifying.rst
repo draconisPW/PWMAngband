@@ -19,9 +19,13 @@ brief discussion of where to start on such an endeavour.
 The data files
 --------------
 
+..
+
 constants.txt
   This file contains game values such as carried item capacity, visual range
-  and dungeon level and town dimensions. 
+  and dungeon level and town dimensions.
+
+..
 
 object_base.txt
   This file contains the names and common properties of the basic object
@@ -29,6 +33,8 @@ object_base.txt
   Each object base is assigned a 'tval' - a numeric index. The tvals are
   defined in list-tvals.h. While adding new object bases is possible,
   it is unlikely to do much without deeper changes to the game.
+
+..
 
 object.txt
   This file contains the names, properties and description of all the object
@@ -39,11 +45,15 @@ object.txt
   are saved to savefiles, removing or adding objects is likely to render
   existing save files unusable.
 
+..
+
 ego_item.txt
   This file contains the names, properties and description of ego items, which
   are magically enhanced weapons and armour. New ego items can be added or
   removed at will, although removing or changing one with an instance currently
   in the game might cause problems.
+
+..
 
 artifact.txt
   This file contains the names, properties and description of artifacts, which
@@ -51,10 +61,14 @@ artifact.txt
   considering major changes, new artifacts are one of the most visible signs of
   a change of theme. Regardless, new artifacts are easy and fun to design.
 
+..
+
 names.txt
   This file contains lists of words which are used to generate names for
   random character names, random artifacts and scrolls. Again, in the case
   of a change of theme, this is a good way of displaying the new theme.
+
+..
 
 activation.txt
   Activations are used for artifacts and some regular objects, and could be
@@ -63,34 +77,48 @@ activation.txt
   activation from this file chosen for them. Activations can be made up of
   any effects (see effects.c and list-effects.h).
 
+..
+
 flavor.txt
   Items such as potions and wands are assigned a flavor per object kind,
   different in each game. There need to be at least as many flavors for each
   flavored object base as objects with that base.
+
+..
 
 monster_base.txt
   Monster bases are the monster equivalent of object bases - classes of monster
   like orc, troll or vampire. This file contains the properties common across
   all monsters in each of these classes.
 
+..
+
 monster.txt
   This contains the detail of all monster races, each of which will have its
   monster base properties plus additional ones. Some monsters are unique, and
   once killed will never reappear.
+
+..
 
 monster_spell.txt
   All the spells that can be cast by monsters (and are referred to in the
   'spells:' lines in monster.txt) are defined in this file. As with
   activations, monster spells are built up from effects.
 
+..
+
 pain.txt
   This file contains the various messages that are given to describe how a
   monster responds to attack.
+
+..
 
 pit.txt
   Dungeon levels can contain pits - rooms full of a particular selection of
   monsters. This file defines these selections. They can also be used, for
   example, to generate partial or complete dungeon levels with themed monsters.
+
+..
 
 class.txt
   This file completely defines how player classes work, including all details
@@ -98,28 +126,40 @@ class.txt
   which are referred to via the 'flags:' lines, and appear in
   list-player-flags.h.
 
+..
+
 p_race.txt
   This file defines all player race characteristics. Race-specific code is
   handled as for classes.
+
+..
 
 body.txt
   Every player race has a body, which defines what equipment they can use.
   Currently there is only one body, which all races use, but this is easily
   changeable for significant effect.
 
+..
+
 history.txt
   This file is for creating the player background found on the character
   screen. If a new race is introduced, a selection of background information
   for it will need to be added.
 
+..
+
 hints.txt
   This is simply a list of general pieces of advice that shopkeepers will give
   to their customers.
+
+..
 
 quest.txt
   This file defines the quest monsters (Sauron and Morgoth) and where they
   appear. This currently can't easily be changed, as there are still
   hard-coded aspects of the quests.
+
+..
 
 terrain.txt
   This file defines the kind of terrain which can appear in PWMAngband, and its
@@ -128,17 +168,25 @@ terrain.txt
   new terrain will have no effect by itself, because there is no mechanism
   for it to appear.
 
+..
+
 trap.txt
   This defines all traps, door locks and runes. Actual trap effects appear in
   effects.c and list-effects.h.
+
+..
 
 room_template.txt
   This is a list of templates for interesting-shaped rooms which appear in the
   dungeon. These can easily be changed and new ones added.
 
+..
+
 vault.txt
   Similar to room_template.txt, this handles vaults, which are very dangerous
   and lucrative rooms.
+
+..
 
 dungeon_profile.txt
   This file contains fairly technical details about the different types of
@@ -146,29 +194,43 @@ dungeon_profile.txt
   gen-cave.c; the information here consists of parameters for generating
   individual levels, and for how often given level types appear.
 
+..
+
 store.txt
   This details the shop owners and their relative generosity.
+
+..
   
 blow_effects.txt
   This defines effects to the player caused by monster attacks. The simplest
   monster attacks just deal damage, but others can affect the player's status,
   stats or inventory.
 
+..
+
 blow_methods.txt
   This details the different ways monsters can attack (hit, claw, etc.). It
   affects the messages the player gets, and also whether the blow can stun
   or cut the player.
 
+..
+
 brand.txt
   This details how weapon brands work.
 
+..
+
 slay.txt
   This details how weapons can be more effective against certain monsters.
+
+..
 
 curse.txt
   This file contains all the different curses that can be applied to objects.
   It includes what type of object they can be applied to, random effects they
   can cause, and how they change an object's properties.
+
+..
 
 object_property.txt
   This file gives details about what properties an object can have (apart from
@@ -177,19 +239,24 @@ object_property.txt
   possible to add new properties to this file and expect to have any effect,
   but it is possible to change how existing properties work.
 
+..
+
 object_power.txt
   This file contains formulas for calculating power of objects (used in
   determining prices and generating random artifacts). You should only change
-  this file if you understand the way they are used (defined in
-  src/obj-power.c).
+  this file if you understand the way they are used (defined in obj-power.c).
+
+..
 
 player_timed.txt
   This file defines some of the properties of timed effects (such as haste and
   confusion) that can apply to the player. It chiefly contains the messages
   on changes in these effects, and player attributes which prevent the effects.
   To add new timed effects or change the way existing ones operate, you will
-  have to alter src/list-player-timed.h and probably other files, and
+  have to alter list-player-timed.h and probably other files, and
   re-compile the game.
+
+..
 
 projection.txt
   This file contains a lot of the defining information about projections -
@@ -197,52 +264,80 @@ projection.txt
   affecting player, monsters, objects, and/or terrain. In particular, this
   file defines details of the effects of elemental attacks (such as fire or
   shards) and the effectiveness of corresponding player resistance. New
-  projections have to be included in src/list-projections.h, and the code to
-  implement their effects put in other source files - src/project-obj.c for
+  projections have to be included in list-projections.h, and the code to
+  implement their effects put in other source files - project-obj.c for
   effects on objects, and other similarly-named files.
+
+..
 
 realm.txt
   This contains a small amount of information about the current magic realms.
 
+..
+
 summon.txt
   This contains definitions for the types of monsters that can be summoned.
   Adding a new summon type is not yet possible, because the summon spells are
-  hard-coded in src/list-mon-spells.h
+  hard-coded in list-mon-spells.h
+
+..
 
 dungeon.txt
   This file contains the list of dungeons.
 
+..
+
 socials.txt
   This file contains the list of simple role-playing messages.
+
+..
 
 town.txt
   This file contains the list of towns and their coordinates on the metamap.
 
+..
+
 town_bree.txt
   This file contains the layout for the town of Bree.
+
+..
 
 town_gondolin.txt
   This file contains the layout for the town of Gondolin.
 
+..
+
 town_lothlorien.txt
   This file contains the layout for the town of Lothlorien.
+
+..
 
 town_minas_anor.txt
   This file contains the layout for the town of Minas Anor.
 
+..
+
 town_umbar.txt
   This file contains the layout for the town of Umbar.
+
+..
 
 town_feat.txt
   This file contains the symbols used to describe the layout for the above
   towns.
 
+..
+
 wild_feat.txt
   This file contains the list of available terrain types in the wilderness.
   Order must match entries in list-wild-feats.h.
 
+..
+
 wild_info.txt
   This file contains the layout for the metamap.
+
+..
 
 dragon_breed.txt
   This file contains information about dragon breeds.
@@ -255,11 +350,12 @@ In this section we'll dive into how tilesets are defined and describe how to set
 one up from scratch. First, we'll enumerate the steps required and then we'll
 break down each step in detail.
 
-1. Create a directory to contain the tileset's files: (ex. "lib/tiles/foo")
-2. Register the tileset in "lib/tiles/list.txt"
+1. Create a directory to contain the tileset's files: (ex. ``lib/tiles/foo``)
+2. Register the tileset in ``lib/tiles/list.txt``
 3. Create an empty bitmap image large enough to hold your tileset
 4. Store the empty bitmap image in your tileset folder
-5. Author ".prf" files to inform PWMAngband how to use your tileset
+5. Author one or more ``.prf`` files to inform Angband how to use your tileset
+6. Create a Makefile in your tileset folder
 
 First you need to create a directory to contain your tileset's files. Put the
 directory in lib/tiles and choose a name for the directory that is lower-case
@@ -309,12 +405,12 @@ them.
 ============= ================== ====================
 Type          Data File          Example
 ============= ================== ====================
-Terrain       terrain.txt        "feat:open floor"
-Trap          trap.txt           "trap:pit"
-Object        object.txt         "object:light"
-Monster       monster.txt        "monster:Kobold"
-Spell Effect  monster_spell.txt  "GF:METEOR"
-Player        <see below>        "monster:<player>"
+Terrain       terrain.txt        ``feat:open floor``
+Trap          trap.txt           ``trap:pit``
+Object        object.txt         ``object:light``
+Monster       monster.txt        ``monster:Kobold``
+Spell Effect  monster_spell.txt  ``GF:METEOR``
+Player        <see below>        ``monster:<player>``
 ============= ================== ====================
 
 Player pictures are referenced differently than other types of objects. They
@@ -372,7 +468,7 @@ It's possible to have more than one preference file by using a sort of include
 syntax that causes other preference files referenced from your main preference
 file to also be read. It is also possible to place comments in your preference
 files to help you keep track of where different kinds of objects are
-mapped. Any text on a line after a '#' symbol is ignored. Shockbolt's tiles
+mapped. Any text on a line after a ``#`` symbol is ignored. Shockbolt's tiles
 make great use of this and define a well organized set of mappings using three
 files with comments for each logical section of objects to be mapped::
 

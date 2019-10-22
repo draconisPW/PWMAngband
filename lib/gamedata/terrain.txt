@@ -386,7 +386,7 @@ name:safe floor
 graphics:.:w
 mimic:open floor
 priority:16
-flags:LOS | PROJECT | PASSABLE | FLOOR_SAFE | BORING | OBJECT | EASY | TORCH
+flags:LOS | PROJECT | PASSABLE | FLOOR_SAFE | BORING | OBJECT | EASY | BRIGHT
 desc:An open floor or bare ground that prevents any hostile action from
 desc: monsters or other players.
 

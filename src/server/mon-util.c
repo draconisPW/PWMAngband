@@ -1104,17 +1104,16 @@ void monster_death(struct player *p, struct chunk *c, struct monster *mon)
 /*
  * Handle the consequences of the killing of a monster by the player
  */
-static void player_kill_monster(struct player *p, struct chunk *c, struct monster *mon, int note)
+static void player_kill_monster(struct player *p, struct chunk *c, struct source *who, int note)
 {
+    struct monster *mon = who->monster;
     struct monster_lore *lore = get_lore(p, mon->race);
-    char m_name[NORMAL_WID];
     char buf[MSG_LEN];
     char logbuf[MSG_LEN];
-    const char *title = get_title(p);
     int i;
+    const char *title = get_title(p);
     bool cheeze;
-    struct source who_body;
-    struct source *who = &who_body;
+    char m_name[NORMAL_WID];
 
     /* Assume normal death sound */
     int soundfx = MSG_KILL;
@@ -1219,6 +1218,10 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct monste
         }
     }
 
+    /* Killing an unique multiple times is cheezy! */
+    /* Adding clones here to avoid cloning/breeding abuse */
+    cheeze = ((monster_is_unique(mon->race) && lore->pkills) || mon->clone);
+
     /* Take note of the kill */
     if (lore->pkills < SHRT_MAX)
     {
@@ -1231,7 +1234,6 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct monste
 
     /* Update lore and tracking */
     lore_update(mon->race, lore);
-    source_monster(who, mon);
     monster_race_track(p->upkeep, who);
 
     /* Should we absorb its soul? */
@@ -1242,10 +1244,6 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct monste
         msg(p, "You absorb the life of the dying soul.");
         hp_player_safe(p, 1 + drain / 2);
     }
-
-    /* Killing an unique multiple times is cheezy! */
-    /* Adding clones here to avoid cloning/breeding abuse */
-    cheeze = ((monster_is_unique(mon->race) && lore->pkills) || mon->clone);
 
     /* Cheezy kills give neither xp nor loot! */
     if (!cheeze) monster_death(p, c, mon);
@@ -1358,7 +1356,7 @@ bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int da
     /* It is dead now */
     if (mon->hp < 0)
     {
-        player_kill_monster(p, c, mon, note);
+        player_kill_monster(p, c, who, note);
 
         /* Not afraid */
         (*fear) = false;

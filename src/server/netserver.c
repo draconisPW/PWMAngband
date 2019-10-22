@@ -5943,8 +5943,8 @@ static int Enter_player(int ind)
         byte cidx = p->clazz->cidx;
         byte ridx = p->race->ridx;
 
-        p->r_attr[0] = player_presets[p->use_graphics - 1][cidx][ridx][p->psex].a;
-        p->r_char[0] = player_presets[p->use_graphics - 1][cidx][ridx][p->psex].c;
+        p->r_attr[0] = presets[p->use_graphics - 1].player_presets[p->psex][cidx][ridx].a;
+        p->r_char[0] = presets[p->use_graphics - 1].player_presets[p->psex][cidx][ridx].c;
     }
 
     verify_panel(p);

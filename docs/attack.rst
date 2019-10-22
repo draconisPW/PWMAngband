@@ -21,7 +21,7 @@ wall is no longer there, and the creature can be targeted normally.
 If you are wielding a weapon, the damage for the weapon is used when you
 hit a creature. Otherwise you get a single punch which does minimal damage.
 
-You may |'w'ield| one weapon for melee combat, and also one missile
+You may ``w``\ield one weapon for melee combat, and also one missile
 launcher (bow, crossbow or sling). You may also wear one amulet (around the
 one and only neck of the character), two rings (on the two "ring" fingers,
 i.e. the third finger of each hand: a magic ring does not function when
@@ -30,8 +30,6 @@ light source, and a full set of armor - body armor, shield, helmet, gloves,
 boots and a cloak. Digging tools can be used from the tool slot. Any or all
 of these items may provide powers to the character in terms of bonuses to-hit,
 to-damage, to-armor class, or to other stats.
-
-.. |'w'ield| replace:: 'w'\ield
 
 Firing a missile (while wielding the appropriate launcher) is the only way
 to get the "full" power out of the missile. You may of course throw an
@@ -46,18 +44,16 @@ receive a damage reduction. This is not true for monsters, whose AC only
 affects the character's difficulty to hit them.
 
 If you wish to see how much damage your weapon will do, you can
-|'I'nspect| it. You will find the number of blows and how much damage you
+``I``\nspect it. You will find the number of blows and how much damage you
 would do per round, including information on whether your weapon damages
 other types of monsters differently.
-
-.. |'I'nspect| replace:: 'I'\nspect
 
 Monster Memories
 ----------------
 
 There are hundreds of different creatures in the pits of Angband, many of
 which have the same letter symbol and color on the screen. The exact
-species of a creature can be discovered by |'l'ooking| at it. It is also
+species of a creature can be discovered by |``l``ooking| at it. It is also
 very difficult to keep track of the capabilities of various creatures.
 Luckily, PWMAngband automatically keeps track of your experiences with a
 particular creature. This feature is called the monster memory. Your
@@ -67,7 +63,7 @@ you have observed them to multiply or move erratically, or drop treasure,
 etc. Otherwise you would simply have to take notes, which is an unnecessary
 bother.
 
-.. |'l'ooking| replace:: 'l'\ooking
+.. |``l``ooking| replace:: ``l``\ooking
 
 If you have killed enough of a particular creature, or suffered enough
 attacks, recalling the monster memory may also provide you with information
@@ -87,8 +83,8 @@ Your Weapon
 Carrying a weapon in your backpack does you no good. You must wield a 
 weapon before it can be used in a fight. A secondary weapon can be kept by
 keeping it in the backpack, and switching it with the primary weapon when
-needed. This is most often used when carrying two weapons, each of which
-provides a rare power that the character needs at two separate times.
+needed. This is most often used when switching between two weapons, each of
+which provides a rare power that the character needs at two separate times.
 
 Weapons have two main magical characteristics, their enchanted ability to
 hit and their enchanted ability to do damage, expressed as '(+#,+#)'. A
@@ -99,15 +95,15 @@ PWMAngband assumes that your youth in the rough environment near the dungeons
 has taught you the relative merits of different weapons, and displays as
 part of their description the damage dice which define their capabilities.
 Any damage enchantment is added to the dice roll for that weapon. The dice
-used for a given weapon is displayed as 'XdY'. The number 'X' indicates
-how many dice to roll, and number 'Y' indicates how many sides they have.
+used for a given weapon is displayed as 'XdY'. The number ``X`` indicates
+how many dice to roll, and number ``Y`` indicates how many sides they have.
 A '2d6' weapon will thus give damage from 2 to 12, plus any damage bonus.
 The weight of a weapon is also a consideration. Heavy weapons may hit
 harder, but they are also harder to use. Depending on your strength,
 dexterity, character class, and weapon weight, you may get attacks more
 quickly: high dexterity and strength and low weapon weight are the main
-factors. Warriors may get up to a maximum of 6 attacks per round; mages and
-priests are limited to only 4; other classes may get up to 5. Your attacks
+factors. Warriors may get up to a maximum of 6 attacks per round; pure
+spellcasters are limited to only 4; other classes may get up to 5. Your attacks
 per round with a weapon are displayed as a decimal, e.g. 2.3 or 3.4 etc.
 The fractions take the form of unused energy which is carried over to your
 next turn.
@@ -116,10 +112,10 @@ Missile weapons, such as bows, have their characteristics added to those of
 the missile used, if the proper weapon/missile combination is used, and
 then the launcher multiplier is applied to the total damage, making missile
 weapons very powerful given the proper missiles, especially if they are
-enchanted. Like weapons, |'I'nspecting| ammunition will tell you how much
+enchanted. Like weapons, |``I``nspecting| ammunition will tell you how much
 damage you will do with your current missile launcher.
 
-.. |'I'nspecting| replace:: 'I'\nspecting
+.. |``I``nspecting| replace:: ``I``\nspecting
 
 Finally, some rare weapons have special abilities. These are called ego
 weapons, and are feared by great and meek. An ego weapon must be wielded to
@@ -171,16 +167,22 @@ They are listed with their effects below. These status effects will either
 work on a monster type or they won't; some monsters resist particular effects
 but not all do.
 
+..
+
 Hold Monster:
   Paralyses a monster until you hit them
   Increased chance of player getting a critical hit
   Normal duration 3-8 turns
+  
+..
 
 Stun Monster:
   Reduces the monster's melee accuracy and damage by 25%
   1 in 10 chance that the monster will miss the turn
   Increased chance of player getting a critical hit
   Normal duration 5-10 turns
+
+..
 
 Confuse Monster:
   Monster spells fail 50% more often
@@ -190,26 +192,38 @@ Confuse Monster:
   Increased chance of critical hit
   Normal duration 5-10 turns
 
+..
+
 Slow Monster:
   -2 speed
   Normal duration 10 or more turns
 
+..
+
 Sleep Monster:
   Puts monsters to sleep, but they can wake up again quite easily
+
+..
 
 Scare Monster:
   Makes monsters run away
   Monster spells fail 20% more often
   Normal duration 10 or more turns
 
+..
+
 Haste Monster (bad effect):
   +10 speed
+
+..
 
 Blind Monster:
   Monsters cannot cast spells
   Monsters move erratically
   Increased chance of critical hit
   Normal duration 5-10 turns
+
+..
 
 Monsters can also suffer from two status ailments, poison and bleeding:
   Prevents regeneration
@@ -253,8 +267,8 @@ no saving throw, except to those that would actually teleport him up or
 down one dungeon level. Having resistance to nexus will also prevent being
 level-teleported, but will not help against normal teleportation spell
 attacks. The player may teleport monsters in the same way, with a spell, 
-wand or rod. No monsters, even Morgoth himself, can resist this teleportation.
-Yet...
+wand or rod. No monsters, even Morgoth himself, can resist this 
+teleportation.  Yet...
 
 Other attacks are usually element-based, including the aforementioned
 example of dragon breath. Many monsters can breathe various attacks or cast
@@ -264,7 +278,7 @@ and the monsters, may be resistant to these forms of attack: resistance is
 handled in different ways for the player and the monster, and for different
 attack forms.
 
-Bolt spells will hit the first monster (or the player) in the line of fire:
+Bolt spells will hit the first monster (or the player) in the line of fire;
 ball spells and breaths may centre on a target which may be hiding behind
 other targets. Ball spells and breath weapons affect an area: other
 monsters caught in the blast take reduced damage depending on their distance
@@ -424,6 +438,8 @@ to continue. Ego weapons are denoted by the following "names":
 Ego Melee Weapons (and Diggers):
 ********************************
 
+..
+
 (Defender)
   A magical weapon that actually helps the wielder defend himself, thus
   increasing his/her armor class, and protecting him/her against damage
@@ -435,9 +451,11 @@ Ego Melee Weapons (and Diggers):
   powerful weapons also will sustain one stat, though this stat will vary
   from weapon to weapon.
 
+..
+
 (Holy Avenger)
   A Holy Avenger is often one of the most powerful weapons. A Holy Avenger
-  will increase your wisdom and your armor class. This weapon will do
+  will increase your wisdom and your armour class. This weapon will do
   extra damage when used against evil, demonic and undead creatures, and
   will also give you the ability to see invisible creatures. These weapons
   are basically extremely powerful versions of Blessed Blades and can be
@@ -446,12 +464,16 @@ Ego Melee Weapons (and Diggers):
   to fear no monster, and be aware of the presence of undead and demonic
   creatures.
 
+..
+
 (Blessed)
   A blessed blade will increase your wisdom. If you are a priest, wielding
   a non-blessed sword or polearm causes a small penalty while attacking and
   may infuriate your god, decreasing the chances that she will accept your
   prayers: a blessed blade may be wielded without this penalty. Blessed
   blades also have one extra, random, power.
+
+..
 
 Weapon of Westernesse
   A Weapon of Westernesse is one of the more powerful weapons. It does
@@ -461,9 +483,13 @@ Weapon of Westernesse
   paralyzation and some slowing attacks. These blades were made by the
   Dunedain.
 
+..
+
 Weapon of Extra Attacks
   A weapon of extra attacks will allow the wielder to deliver extra attacks
   during each round.
+
+..
 
 Elemental Branded Weapons
   Each of the five elemental attacks has a corresponding weapon which will
@@ -473,6 +499,8 @@ Elemental Branded Weapons
   against creatures which are not fire-resistant.) There are weapons of
   Flame, Frost, Lightning, Acid and Poison brands.
 
+..
+
 Weapons of Slaying enemies
   These weapons do extra damage against creatures of a vulnerable type.
   Weapons of Slay Evil and Slay Animal do double the base damage, while
@@ -480,12 +508,16 @@ Weapons of Slaying enemies
   base damage. As with elemental branded weapons, the magical damage bonus
   is not affected.
 
+..
+
 Weapons of |*Slay*ing| enemies
   These weapons, in addition to doing extra damage to your enemies, have
   extra powers as well. In each case, one stat is increased. Weapons of
   |*Slay*| Dragon, Demon or Undead are also more powerful against their
   opponents, doing five times their base damage rather than the normal
   three.
+
+..
 
 Shovels and Picks of Digging
   These powerful diggers will dig through granite as if it were mere wood,
@@ -495,17 +527,25 @@ Shovels and Picks of Digging
 Ego Missile Launchers and Ammo:
 *******************************
 
+..
+
 Launchers of Accuracy
   These launchers have an unnaturally high to-hit number, making them
   extremely accurate.
+
+..
 
 Launchers of Power
   These launchers do an unnaturally high amount of damage due to their high
   to-dam number.
 
+..
+
 Launchers of Extra Shots
   These launchers allow the wielder to shoot more times per round than
   normal.
+
+..
 
 Launchers of Extra Might
   These launchers have a higher base damage than normally made launchers of
@@ -516,9 +556,13 @@ Launchers of Extra Might
   the bow and the arrow, and any bonuses for slaying or elemental-branded
   arrows - this makes it a powerful weapon.
 
+..
+
 Ammo of Wounding
   This ammunition - whether it be pebbles, iron shots, arrows, bolts,
   seeker arrows or seeker bolts - has big bonuses to-hit and to-damage.
+
+..
 
 Ammo of Elemental Brands, and Ammo of Slaying enemies
   This works in the same way as melee weapons of the same type: double
@@ -541,6 +585,8 @@ names:
 Ego Armors and Shields:
 ***********************
 
+..
+
 of Resist Acid, Lightning, Fire or Cold
   A character wearing armor or a shield with one such resistance will take
   only 1/3 of normal damage from attacks involving the relevant element of
@@ -549,16 +595,22 @@ of Resist Acid, Lightning, Fire or Cold
   However, armor which provides resistance to acid cannot itself be damaged
   by acid, and this is a good reason to wear more than one such piece of
   armor.
+
+..
  
 of Resistance
-  A character wearing armor or a shield with this ability will have resistance
-  to Acid, Cold, Fire, and Lightning as explained in each part above.
+  A character wearing armor with this ability will have resistance to Acid,
+  Cold, Fire, and Lightning as explained in each part above.
+
+..
 
 of Elvenkind
   This is the same as "of Resistance", only generally better enchanted. It
   will make you more stealthy. It also possesses an extra resistance,
   chosen at random from the following list: poison, light, dark,
   nexus, nether, chaos, disenchantment, sound, and shards.
+
+..
  
 Robes of Permanence
   These robes are designed especially for wizards. Just like Elvenkind
@@ -567,8 +619,10 @@ Robes of Permanence
   from a good deal of all experience draining. Also like Elvenkind armor,
   they have one random resistance.
 
+..
+
 Dragon Scale Mails
-  These extremely rare pieces of armor come in many different colors, each
+  These extremely rare pieces of armour come in many different colors, each
   protecting you against the relevant dragons. Naturally they are all
   resistant to acid damage. They also occasionally allow you to breathe as
   a dragon would. Dragon Scale Mails can also have egos as well.
@@ -576,10 +630,14 @@ Dragon Scale Mails
 Ego Helms:
 **********
 
+..
+
 Stat Boosting Helms
   There are magical helms found in the dungeon that have the ability to
-  boost the wearer's intelligence, or wisdom. In addition to boosting the
+  boost the wearer's intelligence or wisdom. In addition to boosting the
   relevant stat these helms will also prevent that stat from being drained.
+
+..
 
 Crown of the Magi
   This is the great crown of the wizards. The wearer will have an increased
@@ -587,21 +645,29 @@ Crown of the Magi
   fire, frost, acid, and lightning. These valuable helms also have an
   additional random power.
 
+..
+
 Crown of Might
   This is the crown of the warriors. The wearer will have an increased and
   sustained strength, dexterity, and constitution, and will also be immune
   to any foe's attempt to slow or paralyze him or her.
+
+..
 
 Crown of Lordliness
   This is the great crown of the priests. The wearer will have an increased
   and sustained wisdom, and won't fear any creature. These valuable helms also
   have an additional random power.
 
+..
+
 Helm of Seeing
   This is the great helmet or crown of the rogues. The wearer will be able
   to see invisible creatures, and will have an increased ability to locate
   traps. It is also rumored that the wearer of such a helm will not be able
   to be blinded.
+
+..
 
 Helm of Infravision
   This helmet allows the character to see monsters even in total darkness,
@@ -610,13 +676,19 @@ Helm of Infravision
   light is present. (Some monsters which are invisible to normal vision can
   be seen under infravision.)
 
+..
+
 Helm of Light
   In addition to providing a permanent light source for the wearer, this
   helm also provides resistance against light-based attacks.
 
+..
+
 Helm of Telepathic Awareness
   This helm or crown grants the wearer the ability to sense the presence of
   different types of creatures.
+
+..
 
 Helm of Regeneration
   This helm will help you regenerate hit points and mana more quickly than
@@ -627,14 +699,20 @@ Helm of Regeneration
 Ego Cloaks:
 ***********
 
+..
+
 Cloak of Protection
   This finely made cloak will come with an unnaturally high enchantment and
   is not affected by elemental based attacks. It will also provide
   resistance to shards.
 
+..
+
 Cloak of Stealth
   This cloak will increase the wearer's stealth, making the wearer less
   likely to wake up sleeping monsters.
+
+..
 
 Cloak of Aman
   These exceptionally rare cloaks provide great stealth, have a very high
@@ -643,20 +721,28 @@ Cloak of Aman
 Ego Gloves:
 ***********
 
+..
+
 Gloves of Free Action
   The wearer of these gloves will find himself resistant to paralyzing
   attacks as well as some slowing attacks. Because of the special nature of
   these gloves, magic users may wear these gloves without incurring a mana
   penalty.
 
+..
+
 Gloves of Slaying
   These gloves will increase the wearer's fighting ability by boosting the
   wearer's to-hit and to-dam values.
+
+..
 
 Gloves of Agility
   These gloves will increase the wearer's dexterity. Because of the special
   nature of these gloves, magic users may wear these gloves without
   incurring a mana penalty.
+
+..
 
 Gauntlets of Power
   These spiked gauntlets will boost the wearer's strength as well as the
@@ -665,15 +751,23 @@ Gauntlets of Power
 Ego Boots:
 **********
 
+..
+
 Boots of Slow Descent
   These boots protect the wearer from the effects of small falls.
+
+..
 
 Boots of Stealth
   These boots increase the wearer's stealth, like a Cloak of Stealth.
 
+..
+
 Boots of Free Action
   The wearer of these boots will find himself resistant to paralyzing
   attacks as well as some slowing attacks.
+
+..
 
 Boots of Speed
   The wearer of these boots will become unnaturally fast.
@@ -690,19 +784,27 @@ the quality metals they contain.
 Some rare armours may even possess special abilities, while not being ego items
 in themselves. They are denoted by the following names:
 
+..
+
 Orcish Shield
   This shield increases strength and constitution. It may have a higher than
   average enchantment.
 
+..
+
 Kolla
   This cloak increases strength, dexterity, constitution, and sustains these
   three stats. It may have a higher than average enchantment.
+
+..
 
 Witan Boots
   These heavy metallic boots have a high base armor class and a higher than
   average enchantment. However, the wearer of such boots will make a lot of
   noise while wearing them, and therefore will wake up sleeping monsters
   more often.
+
+..
 
 Elven Gloves
   These gloves help the wearer regenerate hit points and mana more quickly

@@ -1,8 +1,8 @@
 Creating a Character
 ====================
 
-PWMAngband is a roleplaying game, in which you, the player, control a 
-character in the world of Angband. Perhaps the most important thing you 
+PWMAngband is a roleplaying game, in which you, the player, control a
+character in the world of Angband. Perhaps the most important thing you
 control is the birth of your character, in which you choose or allow to be
 chosen various attributes that will affect the future life of your
 character.
@@ -41,7 +41,7 @@ tend to die a lot. Or you may want to start completely anew.
 You may start the entire process over at any time.
 
 Character Characteristics
-=========================
+-------------------------
 
 Each character has three primary attributes: sex, race, and class. These 
 are chosen at the beginning and which will stay fixed for the entire life
@@ -159,39 +159,42 @@ Human
 Half-Elf
   Half-elves tend to be smarter and faster than a human, but not as wise or
   strong. Half-elves are slightly better at magic, disarming, saving
-  throws, stealth and archery, but they are not as good at hand-to-hand combat.
-  Half-elves are immune to dexterity draining, and have weak infravision.
+  throws, stealth, archery and searching, but they are not as good at
+  hand-to-hand combat. Half-elves are immune to dexterity draining, and
+  have weak infravision.
 
 .. _Elf:
 
 Elf
   Elves are better magicians than humans, but not as good at fighting. They
   tend to be smarter and faster than humans, though not as wise or strong.
-  Elves are better at disarming, stealth, archery and magic, but they are not
-  as good at hand-to-hand combat. They are resistant to attacks involving
-  bright light, are immune to dexterity draining, and have fair infravision.
+  Elves are better at searching, disarming, perception, stealth, archery
+  and magic, but they are not as good at hand-to-hand combat. They are
+  resistant to attacks involving bright light, are immune to dexterity
+  draining, and have fair infravision.
 
 .. _Hobbit:
 
 Hobbit
   Hobbits, or Halflings, are very good at shooting, throwing, and have good
-  saving throws. They also are very good at disarming and stealth; so they make
-  excellent rogues, but prefer to be called burglars. They will be much weaker
-  than humans, and not good at melee fighting. Halflings have fair infravision.
-  They have a strong hold on their life force, and are thus resistant to life
-  draining. Hobbits are very partial to mushrooms and can identify them when
-  found.
+  saving throws. They also are very good at searching, disarming,
+  perception, and stealth; so they make excellent rogues, but prefer to
+  be called burglars. They will be much weaker than humans, and not good at
+  melee fighting. Halflings have fair infravision. They have a strong hold
+  on their life force, and are thus resistant to life draining. Hobbits are
+  very partial to mushrooms and can identify them when found.
 
 .. _Gnome:
 
 Gnome
   Gnomes are smaller than dwarves but larger than halflings. They, like the
   halflings, live in the earth in burrow-like homes. Gnomes make excellent
-  mages, and have very good saving throws. They are good at disarming and
-  stealth. They have lower strength than humans so they are not very good at
-  fighting with hand weapons. Gnomes have good infravision. Gnomes are
-  intrinsically protected against paralysis and some slowing effects. Gnomes
-  are excellent at using wands and staves and can identify them when found.
+  mages, and have very good saving throws. They are good at searching,
+  disarming, perception, and stealth. They have lower strength than humans
+  so they are not very good at fighting with hand weapons. Gnomes have good
+  infravision.  Gnomes are intrinsically protected against paralysis and 
+  some slowing effects. Gnomes are excellent at using wands and staves
+  and can identify them when found.
 
 .. _Dwarf:
 
@@ -212,23 +215,25 @@ Dwarf
 
 Half-Orc
   Half-Orcs make excellent warriors and decent priests, but are terrible at
-  magic. They are as bad as dwarves at stealth, and horrible at disarming.
-  Half-Orcs are, let's face it, ugly. They tend to pay more for goods in town.
-  Half-Orcs do make good warriors and rogues, for the simple reason that
-  Half-Orcs tend to have great constitution and lots of hit points. Because of
-  their preference to living underground to on the surface, half-orcs resist
-  darkness attacks. They have fair infravision.
+  magic. They are as bad as dwarves at stealth, and horrible at searching,
+  disarming, and perception. Half-Orcs are, let's face it, ugly. They tend
+  to pay more for goods in town. Half-Orcs do make good warriors and
+  rogues, for the simple reason that Half-Orcs tend to have great
+  constitution and lots of hit points. Because of their preference to
+  living underground to on the surface, half-orcs resist darkness attacks.
+  They have fair infravision.
 
 .. _Half-Troll:
 
 Half-Troll
   Half-Trolls are incredibly strong, and have more hit points than most
   other character race. They are also very stupid and slow. They will make
-  great warriors and iffy priests. They are bad at disarming and stealth. They
-  are so ugly that a Half-Orc grimaces in their presence. Half-trolls always
-  have their strength sustained, and they regenerate quickly like other trolls.
-  Unfortunately, this regeneration also requires them to eat more food than
-  other races. They have fair infravision.
+  great warriors and iffy priests. They are bad at searching, disarming,
+  perception, and stealth. They are so ugly that a Half-Orc grimaces in
+  their presence. Half-trolls always have their strength sustained, and
+  they regenerate quickly like other trolls. Unfortunately, this
+  regeneration also requires them to eat more food than other races. They
+  have fair infravision.
 
 .. _Dunadan:
 
@@ -329,7 +334,7 @@ hit dice, and what spells (if any) the character can learn.
 .. _Warrior:
 
 Warrior
-  A Warrior is a hack-and-slash character, who solves most of his problems
+  A Warrior is a hack-and-slash character, who solves most problems
   by cutting them to pieces, but will occasionally fall back on the help of
   a magical device. Their prime stats are strength, constitution, and
   dexterity, and they will strike more blows with melee weapons than any
@@ -340,7 +345,7 @@ Warrior
 .. _Mage:
 
 Mage
-  A Mage must live by his wits. They cannot hope to simply hack his way
+  A Mage must live by their wits. They cannot hope to simply hack their way
   through the dungeon, and so must therefore use his magic to defeat,
   deceive, confuse, and escape. A mage is not really complete without an
   assortment of magical devices to use in addition to his spells. They can
@@ -537,6 +542,8 @@ default setting for these statistics. Statistics can be permanently
 raised by various potions in the dungeon up to 18/100. They can also be 
 temporarily drained by some monster attacks.
 
+..
+
 Strength
   Strength is important in fighting with weapons and in melee combat. A
   high strength can improve your chances of hitting as well as the amount
@@ -544,34 +551,43 @@ Strength
   penalties. Strength raises the amount of weight you can carry before
   being slowed. It also allows you to get extra blows with heavier weapons.
   Strength is one of the most important stats in the beginning of the game.
+
+..
  
 Intelligence
-  Intelligence affects the spellcasting abilities of mage-like spellcasters:
-  mages, rangers, and rogues. Intelligence will affect the number of spells
-  you may learn each level as well as the number of spell points you
-  receive. Intelligence is the most important stat for mages. A high
-  intelligence may also improve your chances of successfully casting a
-  spell. You cannot learn spells if your intelligence is 7 or lower. A good
-  intelligence can also help with using magic devices, picking locks, and
-  disarming traps.
+  Intelligence affects the spellcasting abilities of spellcasters from the
+  arcane and shadow realms: mages, rogues, necromancers and blackguards.
+  Intelligence will affect the number of spells you may learn each level as
+  well as the number of spell points you receive. Intelligence is the most
+  important stat for mages and necromancers. A high intelligence may also
+  improve your chances of successfully casting a spell. You cannot learn
+  spells if your intelligence is 7 or lower. A good intelligence can also
+  help with using magic devices, picking locks, and disarming traps.
+
+..
  
 Wisdom
   The primary function of wisdom is to determine the ability of a priest or
-  paladin to use prayers, just like intelligence affects spellcasting.
-  Again, high wisdom will increase the number of mana points you have and
-  increase the number of prayers you can learn each level, while improving
-  the chance that a prayer will be successful. A good wisdom increases your
-  saving throw, thereby improving your chances of resisting magical spells
-  cast upon you by monsters.
+  paladin to use prayers, and druids and rangers to use verses, just like
+  intelligence affects spellcasting. Again, high wisdom will increase the
+  number of mana points you have and increase the number of prayers or verses
+  you can learn each level, while improving your chance of success. A good
+  wisdom increases your saving throw, thereby improving your chances of
+  resisting magical spells cast upon you by monsters.
+
+..
  
 Dexterity
   Dexterity is a combination of agility and quickness. A high dexterity may
   allow a character to get multiple blows with lighter weapons. Dexterity
   also increases a character's chances of hitting with any weapon and of
   dodging blows from enemies. Dexterity is also useful in picking locks,
-  disarming traps, and protecting yourself from some of the thieves that
-  inhabit the dungeons. Indeed, if the character has a high enough
-  dexterity, thieves will never be successful in stealing from him.
+  disarming traps, protecting yourself from some of the thieves that
+  inhabit the dungeons, and (for rogues) stealing successfully from others.
+  If the character has a high enough dexterity, thieves will never
+  be successful in stealing from them.
+
+..
  
 Constitution
   Constitution is a character's ability to resist damage to his body, and
@@ -588,6 +604,8 @@ The starting skill levels of a character are based upon race and class.
 Skill levels may be adjusted by high or low stats, and may increase with 
 the level of the character.
 
+..
+
 Infravision
   Infravision is the ability to see heat sources. Since most of the dungeon
   is cool or cold, infravision will not allow the player to see walls and
@@ -599,6 +617,8 @@ Infravision
   cannot gain infravision unless it is magically enhanced. Infravision does
   not increase with character level, and is purely dependent on race and on
   magical equipment.
+
+..
  
 Fighting
   Fighting is the ability to hit and do damage with weapons or fists.
@@ -607,6 +627,8 @@ Fighting
   lighter weapons. Strength and dexterity both modify the ability to hit an
   opponent. This skill increases with the level of the character. Inspecting
   a weapon will show you how quickly you can attack with it.
+
+..
  
 Shooting Ability
   Using ranged missile weapons (and throwing objects) is included in this
@@ -614,6 +636,8 @@ Shooting Ability
   modify the distance an object is thrown/fired, the amount of damage done,
   and the ability to hit a creature. This skill increases with the level of
   the character.
+
+..
  
 Saving Throws
   A Saving Throw is the ability of a character to resist the effects of a
@@ -623,6 +647,8 @@ Saving Throws
   most high level creatures are better at casting spells, so it tends to
   even out. A high wisdom also increases this ability. It is possible to
   get 100% saving throw, making you immune to many attacks.
+
+..
  
 Stealth
   The ability to move silently about is very useful. Characters with good
@@ -630,6 +656,8 @@ Stealth
   Also, creatures may fail to notice a stealthy character entirely,
   allowing a player to avoid certain fights. This skill is based upon race
   and class, but can be magically enhanced.
+
+..
  
 Disarming
   Disarming is the ability to remove traps safely, and also includes
@@ -639,12 +667,16 @@ Disarming
   character has two disarming skills. Dexterity modifies disarming of
   physical traps, and intelligence modifies disarming of magical traps.
   Both these abilities increase with the level of the character.
+
+..
  
 Magical Devices
   Using a magical device such as a wand or staff requires experience and
   knowledge. Spell users such as mages and priests are therefore much
   better at using a magical device than say a warrior. This skill is
   modified by intelligence, and increases with the level of the character.
+
+..
 
 Searching (Perception)
   Perception is the ability to notice traps without actively seeking them
@@ -663,22 +695,24 @@ adjusted for constitution).
 ================ ===  ===  ===  ===  ===  =========  ========  ====== 
     Race         STR  INT  WIS  DEX  CON  HD (base)  XP/level  Infra
 ================ ===  ===  ===  ===  ===  =========  ========  ======
-    Human          0    0    0    0    0      10         +0%   None
-    Half-Elf       0   +1   -1   +1   -1      10        +10%   20'
-    Elf           -1   +2   -1   +1   -1       9        +20%   30'
-    Hobbit        -2   +2   +1   +3   +2       7        +10%   40'
-    Gnome         -1   +2    0   +2   +1       8        +25%   40'
-    Dwarf         +2   -3   +2   -2   +2      11        +20%   50'
-    Half-Orc      +2   -1    0    0   +1      10        +10%   30'
-    Half-Troll    +4   -4   -2   -4   +3      12        +20%   30'
-    Dunadan       +1   +2   +2   +2   +3      10        +80%   None
-    High-Elf      +1   +3   -1   +3   +1      10       +100%   40'
-    Kobold        -1   -1    0   +2   +2       8        +15%   50'
-    Yeek          -5   -5   -5   -5   -5       6        -50%   None
-    Ent           +8   -4   +2   -4   +8      14       +175%   50'
-    Thunderlord   +6   +2   +1   +1   +3      12       +250%   None
-    Dragon         0    0    0    0    0      13       +350%   10'
+    Human          0    0    0    0    0      10        100%   None
+    Half-Elf       0   +1   -1   +1   -1      10        110%   20'
+    Elf           -1   +2   -1   +1   -1       9        120%   30'
+    Hobbit        -2   +2   +1   +3   +2       7        110%   40'
+    Gnome         -1   +2    0   +2   +1       8        125%   40'
+    Dwarf         +2   -3   +2   -2   +2      11        120%   50'
+    Half-Orc      +2   -1    0    0   +1      10        110%   30'
+    Half-Troll    +4   -4   -2   -4   +3      12        120%   30'
+    Dunadan       +1   +2   +2   +2   +3      10        180%   None
+    High-Elf      +1   +3   -1   +3   +1      10        200%   40'
+    Kobold        -1   -1    0   +2   +2       8        115%   50'
+    Yeek          -5   -5   -5   -5   -5       6         50%   None
+    Ent           +8   -4   +2   -4   +8      14        275%   50'
+    Thunderlord   +6   +2   +1   +1   +3      12        350%   None
+    Dragon         0    0    0    0    0      13        450%   10'
 ================ ===  ===  ===  ===  ===  =========  ========  ======
+
+~~~
 
 ================ ===  ===  ===  ===  ===  ==========
     Class        STR  INT  WIS  DEX  CON  HD (bonus)
@@ -725,6 +759,8 @@ Ability Tables
  Dragon         6       0      10     -16      10      15       5
 ============ ======  ======  =====  =======  ======  ======  =====
 
+~~~
+
 =========== ======= ======= ======= ======= ======= ======= ======= =======
  Class      DisarmP DisarmM Device   Save   Stealth Search   Fight   Bows 
 =========== ======= ======= ======= ======= ======= ======= ======= =======
@@ -765,13 +801,15 @@ Stat rollers
 There are currently two different ways to determine the starting stats of
 your character - you can choose which one to use from the birth screen.
 
+..
+
 Point-based
   The point-based method allows you to "buy" improvements to your basic
   stats by "spending" points on them. You have a fixed number of points to
   spend, and making small changes to a stat costs proportionally less than
-  making large changes.
+  making large changes. This is the recommended birth method.
 
-  This is the recommended birth method.
+..
 
 Standard roller
   The standard roller is the traditional PWMAngband method of determining the
@@ -792,4 +830,4 @@ score list.
 
 You can play a dynasty of characters. If you use a Roman numeral at the end
 of your character name (like "Fred I" or "Pimplesnarg XVI"), the game will
-automatically increment the numeral each time you die.
+automatically increment the numeral each time you die (or win!).

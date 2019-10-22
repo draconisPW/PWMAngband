@@ -27,81 +27,81 @@ Features that do not block line of sight
 ****************************************
 
 ===== =========================  =====  ================================== 
-'.'   A floor space              '1'    Entrance to General Store
-'.'   A trap (hidden)            '2'    Entrance to Armoury
-'^'   A trap (known)             '3'    Entrance to Weapon Smith
-';'   A glyph of warding         '4'    Entrance to Temple
-'''   An open door               '5'    Entrance to Alchemy Shop
-'''   A broken door              '6'    Entrance to Magic Shop
-'<'   A staircase up             '7'    Entrance to the (Exp.) Black Market
-'>'   A staircase down           '8'    Entrance to the Tavern
-'#'   A pool of lava             '9'    Entrance to the Bookseller
-'~'   Water, mud                 '.'    Grass, packed dirt, lava stream
-'='   A drawbridge               '_'    A fountain
-'%'   Crops, loose dirt
+``.``   A floor space            ``1``    Entrance to the General Store
+``.``   A trap (hidden)          ``2``    Entrance to the Armoury
+``^``   A trap (known)           ``3``    Entrance to the Weapon Smith
+``;``   A glyph of warding       ``4``    Entrance to the Temple
+``'``   An open door             ``5``    Entrance to the Alchemy Shop
+``'``   A broken door            ``6``    Entrance to the Magic Shop
+``<``   A staircase up           ``7``    Entrance to the (Exp.) Black Market
+``>``   A staircase down         ``8``    Entrance to the Tavern
+``#``   A pool of lava           ``9``    Entrance to the Bookseller
+``~``   Water, mud               ``.``    Grass, packed dirt, lava stream
+``=``   A drawbridge             ``_``    A fountain
+``%``   Crops, loose dirt
 ===== =========================  =====  ================================== 
 
 Features that block line of sight
 *********************************
 
 ===== =========================  =====  ==================================
-'#'   A secret door              '#'    A wall
-'+'   A closed door              '%'    A mineral vein
-'+'   A locked door              '*'    A mineral vein with treasure
-':'   A pile of rubble           ':'    A pile of passable rubble
-'='   A log                      '*'    A tree, a dark tree
-'^'   A mountain
+``#``   A secret door            ``#``    A wall
+``+``   A closed door            ``%``    A mineral vein
+``+``   A locked door            ``*``    A mineral vein with treasure
+``:``   A pile of rubble         ``:``    A pile of passable rubble
+``=``   A log                    ``*``    A tree, a dark tree
+``^``   A mountain
 ===== =========================  =====  ==================================
 
 Objects
 *******
  
-=====  =============================  =====  =============================
-'!'    Potion, flask, empty bottle    '/'    A pole-arm, or a horn
-'?'    A scroll (or book)             '|'    An edged weapon, or a mage staff
-','    A mushroom (or food)           '\\'    A hafted weapon
-'-'    A wand or rod                  '}'    A sling, bow, or x-bow
-'_'    A staff                        '{'    A shot, arrow, or bolt
-'='    A ring                         '('    Soft armour
-'"'    An amulet                      '['    Hard armour
-'$'    Gold or gems                   ']'    Misc. armour
-'~'    Lights, Tools, Chests, etc     ')'    A shield
-'~'    Corpses, Skeletons, etc        '&'    A pile of items
-'*'    Rocks, shurikens, boomerangs
-=====  =============================  =====  =============================
+=====  ==============================  =====  =============================
+``!``    Potion, flask, empty bottle   ``/``    A pole-arm, or a horn
+``?``    A scroll (or book)            ``|``    An edged weapon, or a mage staff
+``,``    A mushroom (or food)          ``\``    A hafted weapon
+``-``    A wand or rod                 ``}``    A sling, bow, or x-bow
+``_``    A staff                       ``{``    A shot, arrow, or bolt
+``=``    A ring                        ``(``    Soft armour
+``"``    An amulet                     ``[``    Hard armour
+``$``    Gold or gems                  ``]``    Misc. armour
+``~``    Lights, Tools, Chests, etc    ``)``    A shield
+``~``    Corpses, Skeletons, etc       ``&``    A pile of items
+``*``    Rocks, shurikens, boomerangs
+=====  ==============================  =====  =============================
  
 Monsters
 ********
 
-=====   =================== =====  ==================================== 
-'$'     Creeping Coins      ','    Mushroom Patch
-'a'     Giant Ant           'A'    Ainu
-'b'     Giant Bat           'B'    Bird
-'c'     Giant Centipede     'C'    Canine (Dog)
-'d'     Dragon              'D'    Ancient Dragon
-'e'     Floating Eye        'E'    Elemental
-'f'     Feline (Cat)        'F'    Dragon Fly
-'g'     Golem               'G'    Ghost
-'h'     Humanoids           'H'    Hybrid
-'i'     Icky-Thing          'I'    Insect
-'j'     Jelly               'J'    Snake
-'k'     Kobold              'K'    Killer Beetle
-'l'     Giant Louse         'L'    Lich
-'m'     Mold                'M'    Multi-Headed Hydra
-'n'     Naga                'N'    (unused)
-'o'     Orc                 'O'    Ogre
-'p'     Human "person"      'P'    Giant "person"
-'q'     Quadruped           'Q'    Quylthulg (Pulsing Flesh Mound)
-'r'     Rodent              'R'    Reptile/Amphibian
-'s'     Skeleton            'S'    Spider/Scorpion/Tick
-'t'     Townsperson         'T'    Troll
-'u'     Minor Demon         'U'    Major Demon
-'v'     Vortex              'V'    Vampire
-'w'     Worm or Worm Mass   'W'    Wight/Wraith
-'x'     Mimic               'X'    Xorn/Xaren
-'y'     Yeek                'Y'    Yeti
-'z'     Zombie/Mummy        'Z'    Zephyr Hound
-=====   =================== =====  ====================================
+=====   ====================  =====  ==================================== 
+``$``     Creeping Coins      ``,``    Mushroom Patch
+``a``     Giant Ant           ``A``    Ainu
+``b``     Giant Bat           ``B``    Bird
+``c``     Giant Centipede     ``C``    Canine (Dog)
+``d``     Dragon              ``D``    Ancient Dragon
+``e``     Floating Eye        ``E``    Elemental
+``f``     Feline (Cat)        ``F``    Dragon Fly
+``g``     Golem               ``G``    Ghost
+``h``     Humanoid            ``H``    Hybrid
+``i``     Icky-Thing          ``I``    Insect
+``j``     Jelly               ``J``    Snake
+``k``     Kobold              ``K``    Killer Beetle
+``l``     Giant Louse         ``L``    Lich
+``m``     Mold                ``M``    Multi-Headed Hydra
+``n``     Naga                ``N``    (unused)
+``o``     Orc                 ``O``    Ogre
+``p``     Human "person"      ``P``    Giant "person"
+``q``     Quadruped           ``Q``    Quylthulg (Pulsing Flesh Mound)
+``r``     Rodent              ``R``    Reptile/Amphibian
+``s``     Skeleton            ``S``    Spider/Scorpion/Tick
+``t``     Townsperson         ``T``    Troll
+``u``     Minor Demon         ``U``    Major Demon
+``v``     Vortex              ``V``    Vampire
+``w``     Worm or Worm Mass   ``W``    Wight/Wraith
+``x``     Mimic               ``X``    Xorn/Xaren
+``y``     Yeek                ``Y``    Yeti
+``z``     Zombie/Mummy        ``Z``    Zephyr Hound
+=====   ====================  =====  ====================================
 
 The Town Level
 --------------
@@ -140,7 +140,7 @@ Your character will begin their adventure with some basic supplies, and some
 extra gold with which to purchase more supplies at the town stores.
 
 You may enter any open store to buy items of the appropriate type.
-The price that the shopkeeper requests is dependent on the price of the item.
+The price the shopkeeper requests is dependent on the price of the item.
 By default stores will not buy items from the player. If you choose to play
 with selling enabled, stores have a maximum value; they will not pay more
 than that for any item, regardless of how much it is actually worth.
@@ -167,51 +167,71 @@ If it is a good object, they will add it to their inventory. If it was a bad
 bargain, they simply throw the item away. You can use this feature to learn
 item flavors.
 
-The General Store ('1')
+..
+
+The General Store (``1``)
   The General Store sells foods, some clothing, torches, oil, shovels, picks
   and basic ammo for launchers. All of these items and some others can be sold
   back to the general store for money. The general store restocks like every
   store, but the inventory types never change.
 
-The Armoury ('2')
+..
+
+The Armoury (``2``)
   The Armoury is where the town's armour is fashioned. All sorts of
   protective gear may be bought and sold here. The deeper into the dungeon
   you progress the more exotic the equipment you will find stocked in the
   armoury. However, some armour types will never appear here unless you
   sell them.
 
-The Weaponsmith's Shop ('3')
+..
+
+The Weaponsmith's Shop (``3``)
   The Weaponsmith's Shop is where the town's weapons are fashioned. Hand
   and missile weapons may be purchased and sold here, along with arrows,
   bolts, and shots. As with the armoury, not all weapon types will be
   stocked here, unless they are sold to the shop by the player first.
 
-The Temple ('4')
+..
+
+The Temple (``4``)
   The Temple deals in basic potions and scrolls, some approved priestly
   weapons, as well as prayer books.
 
-The Alchemy shop ('5')
+..
+
+The Alchemy shop (``5``)
   The Alchemy Shop deals in all types of potions and scrolls.
 
-The Magic User's Shop ('6')
+..
+
+The Magic User's Shop (``6``)
   The Magic User's Shop deals in all sorts of rings, wands, amulets, staves, as
   well as magic books.
 
-The (Expensive) Black Market ('7')
+..
+
+The (Expensive) Black Market (``7``)
   The Black Market will sell and buy anything at extortionate prices.
   However it occasionally has **very** good items in it. With the exception
   of artifacts, every item found in the dungeon may appear in the black
   market.
 
-The Tavern ('8')
+..
+
+The Tavern (``8``)
   This is a place to stay safely. No monster will ever be able to enter
   the Tavern, and fights between players are prohibited in it.
 
-The Bookseller ('9')
+..
+
+The Bookseller (``9``)
   The Bookseller holds supplies of the simpler books needed by magic users,
   and will buy the more advanced books which can be found in the dungeon.
 
-Your Home ('0')
+..
+
+Your Home (``0``)
   This is your house where you can store objects that you cannot carry on
   your travels, or will need at a later date. Only available on no-wilderness
   servers.
@@ -227,8 +247,8 @@ Within The Dungeon
 ------------------
 
 Once your character is adequately supplied with food, light, armor, and
-weapons, he is ready to enter the dungeon. Move on top of the '>' symbol
-and use the "Down" command ('>').
+weapons, they are ready to enter the dungeon. Move on top of the ``>`` symbol
+and use the "Down" command (``>``).
 
 Your character will enter a maze of interconnecting staircases and finally
 arrive somewhere on the first level of the dungeon. Each level of the
@@ -255,7 +275,7 @@ out of light!
 A character must wield a torch or lamp in order to supply his own light. A
 torch or lamp burns fuel as it is used, and once it is out of fuel, it
 stops supplying light. You will be warned as the light approaches this
-point. You may use the "Fuel" command ('F') to refuel your lamp (with
+point. You may use the "Fuel" command (``F``) to refuel your lamp (with
 flasks of oil), and it is a good idea to carry extra torches or flasks of
 oil, as appropriate. There are rumours of objects of exceptional power
 which glow with their own never-ending light.
@@ -278,13 +298,13 @@ may be able to "stack" several items in the same grid.
 You pick up objects by moving on top of them. You can carry up to 23
 different items in your backpack while wearing and wielding up to 13
 others. Although you are limited to 23 different items, each item may
-actually be a "pile" of up to 40 similar items. If you |'t'ake| off an
+actually be a "pile" of up to 40 similar items. If you |``t``ake| off an
 item, it will go into your backpack if there is room: if there is no room
 in your backpack, it will drop onto the floor, so be careful when swapping
 one wielded weapon or worn piece of armor for another when your pack is
 full.
 
-.. |'t'ake| replace:: 't'\ake
+.. |``t``ake| replace:: ``t``\ake
 
 You are, however, limited in the total amount of weight that you can carry.
 As you approach this value, you become slower, making it easier for monsters
@@ -398,13 +418,13 @@ Traps
 
 There are many traps located in the dungeon of varying danger. These traps
 are hidden from sight and are triggered only when your character walks over
-them. If you have found a trap you can attempt to |'D'isarm| it, but
+them. If you have found a trap you can attempt to |``D``isarm| it, but
 failure may mean activating it. Traps can be physical dangers such as pits,
 or magical runes or inscriptions which will cause an effect when triggered.
 Your character may be better at disarming one of these types of traps than
 the other.
 
-.. |'D'isarm| replace:: 'D'\isarm
+.. |``D``isarm| replace:: ``D``\isarm
 
 All characters have a chance to notice traps when they first come into view
 (dependent on searching skill). Some players will also get access to magical
@@ -422,7 +442,7 @@ Staircases, Secret Doors, Passages, and Rooms
 
 Staircases are the manner in which you get deeper or climb out of the
 dungeon. The symbols for the up and down staircases are the same as the
-commands to use them. A '<' represents an up staircase and a '>'
+commands to use them. A ``<`` represents an up staircase and a ``>``
 represents a down staircase. You must move your character over the
 staircase before you can use it.
 
@@ -448,22 +468,24 @@ through.
 Level and object feelings
 -------------------------
 
-Unless you have disabled the option to get feelings you will get a message 
-upon entering a dungeon giving you a general feel of how dangerous that 
+Unless you have disabled the option to get feelings you will get a message
+upon entering a dungeon giving you a general feel of how dangerous that
 level is.
 
-The possible messages are :
-1 - "This seems a quiet, peaceful place" 
-2 - "This seems a tame, sheltered place", 
-3 - "This place seems reasonably safe",   
-4 - "This place does not seem too risky", 
-5 - "You feel nervous about this place",  
-6 - "You feel anxious about this place",  
-7 - "This place seems terribly dangerous",
-8 - "This place seems murderous",
-9 - "Omens of death haunt this place",
+The possible messages are:
+
+  * 1 - "This seems a quiet, peaceful place"
+  * 2 - "This seems a tame, sheltered place"
+  * 3 - "This place seems reasonably safe"
+  * 4 - "This place does not seem too risky"
+  * 5 - "You feel nervous about this place"
+  * 6 - "You feel anxious about this place"
+  * 7 - "This place seems terribly dangerous"
+  * 8 - "This place seems murderous"
+  * 9 - "Omens of death haunt this place"
+
 This feeling depends only on the monsters present in the dungeon when you
-first enter it. It will not get reduced to safer feeling as you kill 
+first enter it. It will not get reduced to safer feeling as you kill
 monsters neither will it increase if new ones are summoned.
 This feeling also depends on your current dungeon depth. A dungeon you
 feel nervous about at 2000' is way more dangerous than a murderous one
@@ -473,17 +495,19 @@ Once you have explored a certain amount of the dungeon you will also
 get a feeling about how good are the objects lying on the floor of the
 dungeon.
 
-The possible messages are :
-1 - "there are naught but cobwebs here."
-2 - "there are only scraps of junk here.",
-3 - "there aren't many treasures here.",  
-4 - "there may not be much interesting here.",
-5 - "there may be something worthwhile here.",
-6 - "there are good treasures here.",
-7 - "there are very good treasures here.",
-8 - "there are excellent treasures here.",
-9 - "there are superb treasures here.",   
-$ - "you sense an item of wondrous power!",
+The possible messages are:
+
+  * 1 - "there are naught but cobwebs here."
+  * 2 - "there are only scraps of junk here."
+  * 3 - "there aren't many treasures here."
+  * 4 - "there may not be much interesting here."
+  * 5 - "there may be something worthwhile here."
+  * 6 - "there are good treasures here."
+  * 7 - "there are very good treasures here."
+  * 8 - "there are excellent treasures here."
+  * 9 - "there are superb treasures here."
+  * $ - "you sense an item of wondrous power!"
+
 The last message indicates an artifact is present and is only possible
 if the preserve option is disabled.
 
@@ -514,7 +538,7 @@ of dragon scale mail that resists everything... There are even rumors of
 creatures of pure evil lurking in the deepest levels of the fortress of
 Angband...
 
-When you are ready to retire, simply kill your character (using the 'Q' key)
+When you are ready to retire, simply kill your character (using the ``Q`` key)
 to have your character entered into the high score list as a winner. Note
 that until you retire, you can still be killed, so you may want to retire
 before wandering into yet another horde of greater demons.

@@ -137,30 +137,32 @@ representative.)
 
 To survive deep(er) you will want:
 
-a. Escapes:
+1. Escapes
 
   * 3+ ?Phase Door
   * 1 ?Recall
 
-b. Protection from secondary effects (confusion, blindness, poison)
+2. Protection from secondary effects (confusion, blindness, poison)
 
   * 1 !CLW (for identification and blindness)
-  * 1+ !CSW (for identification confusion)
+  * 1+ !CSW (for identification and confusion)
 
-c. Buffing
+3. Buffing
 
-  * 1 !Hero (for protection from fear.)
+  * 1 !Hero (for protection from fear)
 
-d. Ranged attack to soften up a (single) unique
+4. Ranged attack to soften up a (single) unique
 
   * ~5 Flasks of Oil to kill dangerous and/or valuable monsters (throw oil
-    for damage with the 'v' throw command)
+    for damage with the ``v`` command)
   * ~10-20 Iron shots (or arrows for Rangers) to throw at non-dangerous
-    monsters with annoying side effects. (Stat drainers and acid damagers
-    that are between you and the stairs down.) extra arrows for a ranger
-    (shoot arrows with the 'f' fire command.) Shots can be reused; oil can't.
+    monsters with annoying side effects (stat drainers and acid damagers
+    that are between you and the stairs down). Shots can be reused; oil can't.
+  * Extra arrows for a Ranger, extra missiles for an Archer (shoot with the
+    ``f`` command). Note that missiles will always break when your character is
+    still level 1, so don't hesitate to buy a lot at start.
 
-e. Armor
+5. Armor
 
 Don't bother buying armor - it's very expensive in comparison to AC. You will
 find it in the dungeon soon enough.
@@ -193,7 +195,7 @@ What to ignore
 **************
 
 * Monsters that will damage or destroy gear. (jellies, water hounds, etc)
-* Non-valuable monsters that are likely to use up consumables (baby bronze
+* Non-valuable monsters that are likely to use up consumables (baby gold
   dragons, groups of spell-casters in line-of-sight, etc)
 * Mobs that you can't dominate.
 * Uniques with escorts you can't dominate
