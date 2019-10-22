@@ -5,7 +5,7 @@
  * Copyright (c) 2003 Takeshi Mogami, Robert Ruehlmann
  * Copyright (c) 2007 Pete Mack
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -679,6 +679,26 @@ static enum parser_error parse_prefs_feat(struct parser *p)
 }
 
 
+static enum parser_error parse_prefs_glyph(struct parser *p)
+{
+    int idx, light_idx;
+    struct prefs_data *d = parser_priv(p);
+
+    assert(d != NULL);
+    if (d->bypass) return PARSE_ERROR_NONE;
+
+    idx = lookup_feat(parser_getsym(p, "idx"));
+
+    for (light_idx = 0; light_idx < LIGHTING_MAX; light_idx++)
+    {
+        Client_setup.f_attr[idx][light_idx] = 0xFF;
+        Client_setup.f_char[idx][light_idx] = (char)parser_getint(p, "char");
+    }
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static void set_trap_graphic(int trap_idx, int light_idx, byte attr, char ch)
 {
     if (light_idx < LIGHTING_MAX)
@@ -1090,6 +1110,7 @@ static struct parser *init_parse_prefs(bool user)
     parser_reg(p, "monster sym name int attr int char", parse_prefs_monster);
     parser_reg(p, "monster-base sym name int attr int char", parse_prefs_monster_base);
     parser_reg(p, "feat sym idx sym lighting int attr int char", parse_prefs_feat);
+    parser_reg(p, "glyph sym idx int char", parse_prefs_glyph);
     parser_reg(p, "trap sym idx sym lighting int attr int char", parse_prefs_trap);
     parser_reg(p, "GF sym type sym direction uint attr uint char", parse_prefs_gf);
     parser_reg(p, "flavor uint idx int attr int char", parse_prefs_flavor);

@@ -3,7 +3,7 @@
  * Purpose: Various game initialisation routines
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -42,6 +42,7 @@ char *cfg_report_address = NULL;
 char *cfg_console_password = NULL;
 char *cfg_dungeon_master = NULL;
 bool cfg_secret_dungeon_master = true;
+u32b cfg_max_account_chars = 12;
 bool cfg_no_steal = true;
 bool cfg_newbies_cannot_drop = true;
 s32b cfg_level_unstatic_chance = 60;
@@ -57,6 +58,7 @@ s16b cfg_max_townies = -1;
 s16b cfg_max_trees = -1;
 s32b cfg_tcp_port = 18346;
 bool cfg_chardump_color = false;
+bool cfg_auto_dump = false;
 s16b cfg_pvp_hostility = PVP_SAFE;
 bool cfg_base_monsters = true;
 bool cfg_extra_monsters = false;
@@ -3368,6 +3370,12 @@ static void set_server_option(char *option, char *value)
         /* Hack -- reinstall the timer handler to match the new FPS */
         install_timer_tick(run_game_loop, cfg_fps);
     }
+    else if (!strcmp(option, "MAX_ACCOUNT_CHARS"))
+    {
+        cfg_max_account_chars = atoi(value);
+        if ((cfg_max_account_chars < 1) || (cfg_max_account_chars > 12))
+            cfg_max_account_chars = 12;
+    }
     else if (!strcmp(option, "NO_STEAL"))
         cfg_no_steal = str_to_boolean(value);
     else if (!strcmp(option, "NEWBIES_CANNOT_DROP"))
@@ -3418,6 +3426,8 @@ static void set_server_option(char *option, char *value)
     }
     else if (!strcmp(option, "CHARACTER_DUMP_COLOR"))
         cfg_chardump_color = str_to_boolean(value);
+    else if (!strcmp(option, "AUTO_DUMP"))
+        cfg_auto_dump = str_to_boolean(value);
     else if (!strcmp(option, "PVP_HOSTILITY"))
     {
         cfg_pvp_hostility = atoi(value);

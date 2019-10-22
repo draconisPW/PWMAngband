@@ -2,7 +2,7 @@
  * File: netclient.c
  * Purpose: The client side of the networking stuff
  *
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -170,9 +170,9 @@ void check_term_resize(bool main_win, int *cols, int *rows)
     }
     else
     {
-        /* Minimum window size is 40x12 */
-        if (*cols < NORMAL_WID / 2) *cols = NORMAL_WID / 2;
-        if (*rows < NORMAL_HGT / 2) *rows = NORMAL_HGT / 2;
+        /* Minimum window size is 16x4 */
+        if (*cols < NORMAL_WID / 5) *cols = NORMAL_WID / 5;
+        if (*rows < NORMAL_HGT / 5) *rows = NORMAL_HGT / 5;
 
         /* Maximum window size is 80x24 */
         if (*cols > NORMAL_WID) *cols = NORMAL_WID;
@@ -3154,9 +3154,10 @@ static int Receive_char_dump(void)
         return n;
 
     /* Begin receiving */
-    if (streq(buf, "BEGIN") || streq(buf, "BEGIN_DUMP_ONLY"))
+    if (streq(buf, "BEGIN_NORMAL_DUMP") || streq(buf, "BEGIN_MANUAL_DUMP") ||
+        streq(buf, "BEGIN_AUTO_DUMP"))
     {
-        if (streq(buf, "BEGIN_DUMP_ONLY")) dump_only = true;
+        if (streq(buf, "BEGIN_MANUAL_DUMP")) dump_only = true;
 
         /* Open a temporary file */
         path_build(buf, sizeof(buf), ANGBAND_DIR_USER, "@@tmp@@.txt");
@@ -3164,9 +3165,11 @@ static int Receive_char_dump(void)
     }
 
     /* End receiving */
-    else if (streq(buf, "END"))
+    else if (streq(buf, "END_NORMAL_DUMP") || streq(buf, "END_MANUAL_DUMP") ||
+        streq(buf, "END_AUTO_DUMP"))
     {
         char tmp[MSG_LEN];
+        bool ok = true;
         char fname[NORMAL_WID];
 
         /* Access the temporary file */
@@ -3175,7 +3178,12 @@ static int Receive_char_dump(void)
         file_close(fp);
         strnfmt(fname, sizeof(fname), "%s.txt", nick);
 
-        if (get_file(fname, buf, sizeof(buf)))
+        if (streq(buf, "END_AUTO_DUMP"))
+            path_build(buf, sizeof(buf), ANGBAND_DIR_USER, fname);
+        else
+            ok = get_file(fname, buf, sizeof(buf));
+
+        if (ok)
         {
             c_msg_print(NULL);
 
@@ -4902,20 +4910,6 @@ int Send_store_examine(int item, bool describe)
         (unsigned)describe)) <= 0)
     {
         return n;
-    }
-
-    return 1;
-}
-
-
-int Send_pass(const char *newpass)
-{
-    int n;
-
-    if (newpass && strlen(newpass))
-    {
-        if ((n = Packet_printf(&wbuf, "%b%s", (unsigned)PKT_CHANGEPASS, newpass)) <= 0)
-            return n;
     }
 
     return 1;

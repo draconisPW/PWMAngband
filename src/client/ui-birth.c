@@ -3,7 +3,7 @@
  * Purpose: Text-based user interface for character creation
  *
  * Copyright (c) 1987 - 2015 Angband contributors
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -138,12 +138,20 @@ static void choose_name(void)
 }
 
 
+static void display_password(void)
+{
+    size_t i;
+
+    for (i = 0; i < strlen(pass); i++)
+        Term_putch(15 + i, 3, COLOUR_L_BLUE, 'x');
+}
+
+
 /*
  * Choose a password
  */
 static void enter_password(void)
 {
-    size_t c;
     char tmp[NORMAL_WID];
 
     /* Prompt and ask */
@@ -178,8 +186,7 @@ static void enter_password(void)
 
     /* Redraw the password (in light blue) */
     Term_erase(15, 3, 9);
-    for (c = 0; c < strlen(pass); c++)
-        Term_putch(15 + c, 3, COLOUR_L_BLUE, 'x');
+    display_password();
 
     /* Now hash that sucker! */
     my_strcpy(stored_pass, pass, sizeof(stored_pass));
@@ -1625,8 +1632,7 @@ void get_char_name(void)
     c_put_str(COLOUR_L_BLUE, nick, 2, 15);
 
     /* Redraw the password (in light blue) */
-    for (i = 0; i < strlen(pass); i++)
-        Term_putch(15 + i, 3, COLOUR_L_BLUE, 'x');
+    display_password();
 
     /* Display some helpful information */
     c_put_str(COLOUR_L_BLUE, "Please select your character from the list below:", 6, 1);
@@ -1658,7 +1664,7 @@ void get_char_name(void)
     }
 
     /* Check number of characters */
-    if (char_num == MAX_ACCOUNT_CHARS)
+    if (char_num >= max_account_chars)
     {
         c_put_str(COLOUR_YELLOW, "Your account is full.", 9 + char_num, 5);
         c_put_str(COLOUR_YELLOW, "You cannot create any new character with this account.",
@@ -1687,7 +1693,7 @@ void get_char_name(void)
         i = A2I(c.code);
 
         /* Check for legality */
-        if ((i > (size_t)char_num) || (i >= MAX_ACCOUNT_CHARS)) continue;
+        if ((i > (size_t)char_num) || (i >= max_account_chars)) continue;
 
         /* Paranoia */
         if ((i == (size_t)char_num) || (char_expiry[i] > 0) || (char_expiry[i] == -1))
@@ -1715,8 +1721,8 @@ void get_char_name(void)
         /* Dump the player name */
         c_put_str(COLOUR_L_BLUE, nick, 2, 15);
 
-        /* Enter password */
-        enter_password();
+        /* Redraw the password (in light blue) */
+        display_password();
 
         /* Display actions */
         if (char_expiry[i] > 0)
@@ -1776,7 +1782,7 @@ void get_char_name(void)
         /* Choose a name */
         choose_name();
 
-        /* Enter password */
-        enter_password();
+        /* Redraw the password (in light blue) */
+        display_password();
     }
 }

@@ -154,7 +154,7 @@ extern int Send_text_screen(int ind, int type, s32b offset);
 extern int Send_char_info_conn(int ind);
 extern int Send_char_info(struct player *p, byte ridx, byte cidx, byte psex);
 extern int Send_birth_options(int ind, struct birth_options *options);
-extern bool Send_dump_character(connection_t *connp, const char *dumpname, bool dump_only);
+extern bool Send_dump_character(connection_t *connp, const char *dumpname, int mode);
 extern int Send_message(struct player *p, const char *msg, u16b typ);
 extern int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
     struct object_xtra *info_xtra);

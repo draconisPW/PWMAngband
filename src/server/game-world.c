@@ -3,7 +3,7 @@
  * Purpose: Game core management of the game world
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -386,6 +386,13 @@ static void process_world(struct player *p, struct chunk *c)
 
     /*** Check the Time ***/
 
+    /* Send time indicator */
+    if (!(turn.turn % ((10L * z_info->day_length) / 24)))
+    {
+        /* TODO */
+        /* send hour = 1 + (turn.turn % (5 * z_info->day_length)) * 12 / (5 * z_info->day_length) + is_daytime() */
+    }
+
     /* Play an ambient sound at regular intervals. */
     if (!(turn.turn % ((10L * z_info->day_length) / 4))) play_ambient_sound(p);
 
@@ -471,8 +478,8 @@ static void auto_retaliate(struct player *p, struct chunk *c)
     /* The dungeon master does not auto-retaliate */
     if (p->dm_flags & DM_MONSTER_FRIEND) return;
 
-    /* Not while confused */
-    if (p->timed[TMD_CONFUSED]) return;
+    /* Not while confused or afraid */
+    if (p->timed[TMD_CONFUSED] || player_of_has(p, OF_AFRAID)) return;
 
     /* Check preventive inscription '^O' */
     if (check_prevent_inscription(p, INSCRIPTION_RETALIATE)) return;
@@ -552,28 +559,6 @@ static void auto_retaliate(struct player *p, struct chunk *c)
 
     /* No current target */
     if (!found) return;
-
-    /* Handle player fear */
-    if (player_of_has(p, OF_AFRAID))
-    {
-        char target_name[NORMAL_WID];
-
-        if (who->monster)
-            monster_desc(p, target_name, sizeof(target_name), who->monster, MDESC_DEFAULT);
-        else
-            my_strcpy(target_name, who->player->name, sizeof(target_name));
-
-        /* Message (only once per player turn) */
-        if (!p->is_afraid)
-        {
-            equip_learn_flag(p, OF_AFRAID);
-            msgt(p, MSG_AFRAID, "You are too afraid to attack %s!", target_name);
-        }
-        p->is_afraid = true;
-
-        /* Done */
-        return;
-    }
 
     /* Attack the current target */
     py_attack(p, c, ty, tx);
@@ -1117,16 +1102,6 @@ static void on_new_level(void)
      * the energy given per game turn given the current player speed.
      */
 
-    /* Hack -- reset "afraid" status every player turn */
-    for (i = 1; i <= NumPlayers; i++)
-    {
-        struct player *p = player_get(i);
-        int player_turn = move_energy(p->wpos.depth) / frame_energy(p->state.speed);
-
-        /* Reset "afraid" status */
-        if (!(turn.turn % player_turn)) p->is_afraid = false;
-    }
-
     /* Hack -- reset projection indicator every player turn */
     for (i = 1; i <= NumPlayers; i++)
     {
@@ -1457,12 +1432,19 @@ static void place_player(struct player *p, struct chunk *c, int starty, int star
 
 static void generate_new_level(struct player *p)
 {
-    int startx, starty, id = get_player_index(get_connection(p->conn));
+    int startx, starty, id;
     bool new_level = false;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c;
+
+    plog("BEGIN generate_new_level()");
+
+    id = get_player_index(get_connection(p->conn));
+    c = chunk_get(&p->wpos);
 
     /* Paranoia */
     if (!chunk_has_players(&p->wpos)) return;
+
+    plog_fmt("  depth=%d", p->wpos.depth);
 
     /* Play ambient sound on change of level. */
     play_ambient_sound(p);
@@ -1478,6 +1460,8 @@ static void generate_new_level(struct player *p)
     {
         new_level = true;
 
+        plog("  new level");
+
         /* Generate a dungeon level there */
         c = prepare_next_level(p, &p->wpos);
 
@@ -1487,6 +1471,8 @@ static void generate_new_level(struct player *p)
     /* Apply illumination */
     else
     {
+        plog("  existing level");
+
         /* Clear the flags for each cave grid (cave dimensions may have changed) */
         player_cave_new(p, c->height, c->width);
         player_cave_clear(p, true);
@@ -1632,6 +1618,8 @@ static void generate_new_level(struct player *p)
 
     /* Detect secret doors and traps */
     search(p, c);
+
+    plog("END generate_new_level()");
 }
 
 
@@ -1760,9 +1748,25 @@ static void pre_turn_game_loop(void)
 static void post_turn_game_loop(void)
 {
     int i, x, y;
+    bool debug_mode = false;
+
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *p = player_get(i);
+
+        if (p->upkeep->new_level_method)
+        {
+            debug_mode = true;
+            break;
+        }
+    }
+
+    if (debug_mode) plog("BEGIN post_turn_game_loop()");
 
     /* Check for death */
     process_death();
+
+    if (debug_mode) plog("Process the rest of the monsters");
 
     /* Process the rest of the monsters */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1789,6 +1793,8 @@ static void post_turn_game_loop(void)
     /* Check for death */
     process_death();
 
+    if (debug_mode) plog("Process the objects");
+
     /* Process the objects */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
@@ -1804,6 +1810,8 @@ static void post_turn_game_loop(void)
             }
         }
     }
+
+    if (debug_mode) plog("Process the world (global)");
 
     /* Process the world */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1822,6 +1830,8 @@ static void post_turn_game_loop(void)
         }
     }
 
+    if (debug_mode) plog("Process the world (players)");
+
     /* Process the world */
     for (i = 1; i <= NumPlayers; i++)
     {
@@ -1832,8 +1842,12 @@ static void post_turn_game_loop(void)
             process_world(p, chunk_get(&p->wpos));
     }
 
+    if (debug_mode) plog("Process everything else");
+
     /* Process everything else */
     process_various();
+
+    if (debug_mode) plog("Give energy to all players");
 
     /* Give energy to all players */
     for (i = 1; i <= NumPlayers; i++)
@@ -1843,6 +1857,8 @@ static void post_turn_game_loop(void)
         /* Give the player some energy */
         if (!p->upkeep->new_level_method && !p->upkeep->funeral) energize_player(p);
     }
+
+    if (debug_mode) plog("Give energy to all monsters");
 
     /* Give energy to all monsters */
     for (y = radius_wild; y >= 0 - radius_wild; y--)
@@ -1859,6 +1875,8 @@ static void post_turn_game_loop(void)
             }
         }
     }
+
+    if (debug_mode) plog("Count game turns");
 
     /* Count game turns */
     ht_add(&turn, 1);
@@ -1892,6 +1910,8 @@ static void post_turn_game_loop(void)
         }
     }
 
+    if (debug_mode) plog("Refresh everybody's displays");
+
     /* Refresh everybody's displays */
     for (i = 1; i <= NumPlayers; i++)
     {
@@ -1907,8 +1927,12 @@ static void post_turn_game_loop(void)
         p->full_refresh = false;
     }
 
+    if (debug_mode) plog("Send any information over the network");
+
     /* Send any information over the network */
     Net_output();
+
+    if (debug_mode) plog("Get rid of dead players");
 
     /* Get rid of dead players */
     for (i = NumPlayers; i > 0; i--)
@@ -1948,7 +1972,11 @@ static void post_turn_game_loop(void)
         Destroy_connection(p->conn, "Starving to death!");
     }
 
+    if (debug_mode) plog("Housekeeping on leaving a level");
+
     on_leave_level();
+
+    if (debug_mode) plog("Make a new level if requested");
 
     /* Make a new level if requested */
     for (i = 1; i <= NumPlayers; i++)
@@ -1957,6 +1985,8 @@ static void post_turn_game_loop(void)
 
         if (p->upkeep->new_level_method) generate_new_level(p);
     }
+
+    if (debug_mode) plog("END post_turn_game_loop()");
 }
 
 

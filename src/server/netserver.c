@@ -2,7 +2,7 @@
  * File: netserver.c
  * Purpose: The server side of the network stuff
  *
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -775,6 +775,7 @@ static void Contact(int fd, int arg)
     /* Send reply */
     Packet_printf(&ibuf, "%c", (int)status);
     Packet_printf(&ibuf, "%hu", (unsigned)num);
+    Packet_printf(&ibuf, "%hu", (unsigned)cfg_max_account_chars);
 
     /* Some error */
     if (status)
@@ -2942,11 +2943,17 @@ int Send_birth_options(int ind, struct birth_options *options)
 }
 
 
-bool Send_dump_character(connection_t *connp, const char *dumpname, bool dump_only)
+/*
+ * Send a character dump to the client
+ *
+ * mode: 1 = normal dump, 2 = manual death dump, 3 = automatic death dump
+ */
+bool Send_dump_character(connection_t *connp, const char *dumpname, int mode)
 {
     char pathname[MSG_LEN];
     char buf[MSG_LEN];
     ang_file *fp;
+    const char *tok;
 
     /* Build the filename */
     path_build(pathname, sizeof(pathname), ANGBAND_DIR_SCORES, dumpname);
@@ -2956,14 +2963,26 @@ bool Send_dump_character(connection_t *connp, const char *dumpname, bool dump_on
     if (!fp) return false;
 
     /* Begin sending */
-    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, (dump_only? "BEGIN_DUMP_ONLY": "BEGIN"));
+    switch (mode)
+    {
+        case 1: tok = "BEGIN_NORMAL_DUMP"; break;
+        case 2: tok = "BEGIN_MANUAL_DUMP"; break;
+        case 3: tok = "BEGIN_AUTO_DUMP"; break;
+    }
+    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, tok);
 
     /* Process the file */
     while (file_getl(fp, buf, sizeof(buf)))
         Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, buf);
 
     /* End sending */
-    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, "END");
+    switch (mode)
+    {
+        case 1: tok = "END_NORMAL_DUMP"; break;
+        case 2: tok = "END_MANUAL_DUMP"; break;
+        case 3: tok = "END_AUTO_DUMP"; break;
+    }
+    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, tok);
 
     /* Close the file */
     file_close(fp);
@@ -5054,32 +5073,6 @@ static int Receive_store_examine(int ind)
 }
 
 
-static int Receive_pass(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    struct player *p;
-    char buf[NORMAL_WID];
-    int n;
-    byte ch;
-
-    if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
-    {
-        if (n == -1)
-            Destroy_connection(ind, "Receive_pass read error");
-        return n;
-    }
-
-    if (connp->id != -1)
-    {
-        p = player_get(get_player_index(connp));
-
-        my_strcpy(p->pass, buf, MAX_PASS_LEN + 1);
-    }
-
-    return 1;
-}
-
-
 static int Receive_alter(int ind)
 {
     connection_t *connp = get_connection(ind);
@@ -5659,6 +5652,9 @@ static void update_graphics(struct player *p, connection_t *connp)
                 p->f_char[i][j] = connp->Client_setup.f_char[i][j];
             }
 
+            /* Default attribute value */
+            if (p->f_attr[i][j] == 0xFF) p->f_attr[i][j] = feat_x_attr[i][j];
+
             if (!(p->f_attr[i][j] && p->f_char[i][j]))
             {
                 p->f_attr[i][j] = feat_x_attr[i][j];
@@ -6062,7 +6058,7 @@ static int Receive_play(int ind)
             strnfmt(dumpname, sizeof(dumpname), "%s.txt", nick);
 
             /* Dump the character */
-            if (!Send_dump_character(connp, dumpname, true))
+            if (!Send_dump_character(connp, dumpname, 2))
             {
                 Destroy_connection(ind, "Character dump failed");
                 return -1;
@@ -6103,7 +6099,7 @@ static int Receive_play(int ind)
             need_info = true;
 
             /* Check number of characters */
-            if (player_id_count(connp->account) == MAX_ACCOUNT_CHARS)
+            if (player_id_count(connp->account) >= cfg_max_account_chars)
             {
                 plog("Account is full");
                 Destroy_connection(ind, "Account is full");
@@ -6428,9 +6424,8 @@ static int Receive_char_dump(int ind)
 
         /* In-game dump */
         player_dump(p, false);
-
         strnfmt(dumpname, sizeof(dumpname), "%s.txt", p->name);
-        Send_dump_character(connp, dumpname, false);
+        Send_dump_character(connp, dumpname, 1);
     }
 
     return 1;

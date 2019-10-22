@@ -3,7 +3,7 @@
  * Purpose: Various game initialisation routines
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -42,6 +42,7 @@ int server_port;
 
 
 /* Character list */
+u16b max_account_chars;
 u16b char_num;
 char **char_name;
 char *char_expiry;
@@ -374,7 +375,7 @@ void client_init(void)
     char buffer[NORMAL_WID];
     DWORD nSize = NORMAL_WID;
     bool done = false;
-    u16b num;
+    u16b num, max;
     u32b num_name;
     size_t i, j;
     struct keypress c;
@@ -502,6 +503,7 @@ void client_init(void)
     /* Read what he sent */
     Packet_scanf(&ibuf, "%c", &status);
     Packet_scanf(&ibuf, "%hu", &num);
+    Packet_scanf(&ibuf, "%hu", &max);
 
     /* Check for error */
     switch (status)
@@ -525,6 +527,7 @@ void client_init(void)
             quit("Your client will not work on that server (not a PWMAngband server).");
     }
 
+    max_account_chars = max;
     char_num = num;
     char_name = NULL;
     char_expiry = NULL;

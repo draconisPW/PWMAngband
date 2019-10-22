@@ -108,11 +108,6 @@ enum birth_rollers
     MAX_BIRTH_ROLLERS
 };
 
-/*
- * Maximum number of characters per account
- */
-#define MAX_ACCOUNT_CHARS 12
-
 /* Necromancers can turn into an undead being */
 #define player_can_undead(P) \
     (player_has((P), PF_UNDEAD_POWERS) && ((P)->state.stat_use[STAT_INT] >= 18+70))
@@ -772,7 +767,6 @@ struct player
     bool shimmer;                   /* Hack -- optimize multi-hued code (players) */
     bool delayed_display;           /* Hack -- delay messages after character creation */
     bool did_visuals;               /* Hack -- projection indicator (visuals) */
-    bool is_afraid;                 /* Player is afraid */
     s16b old_py;                    /* Previous player location */
     s16b old_px;
     bool path_drawn;                /* NPP's visible targeting */

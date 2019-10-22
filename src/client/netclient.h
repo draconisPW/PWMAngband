@@ -69,7 +69,6 @@ extern int Send_mimic(int page, int spell, int dir);
 extern int Send_clear(void);
 extern int Send_observe(struct command *cmd);
 extern int Send_store_examine(int item, bool describe);
-extern int Send_pass(const char *newpass);
 extern int Send_alter(struct command *cmd);
 extern int Send_fire_at_nearest(void);
 extern int Send_jump(struct command *cmd);

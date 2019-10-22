@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Antony Sidwell
- * Copyright (c) 2018 MAngband and PWMAngband Developers
+ * Copyright (c) 2019 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1577,7 +1577,7 @@ static int cmp_value(const void *a, const void *b)
 }
 
 
-static void player_strip(struct player *p)
+static void player_strip(struct player *p, bool perma_death)
 {
     size_t i, count = 0;
     struct object *obj;
@@ -1601,8 +1601,8 @@ static void player_strip(struct player *p)
     {
         obj = gear[i].obj;
 
-        /* If we killed the character, drop nothing */
-        if (!p->alive)
+        /* If we will permanently die, drop nothing */
+        if (perma_death)
         {
             gear_excise_object(p, obj);
 
@@ -1787,7 +1787,8 @@ void player_death(struct player *p)
         else
             my_strcpy(brave, "The unfortunate", sizeof(brave));
 
-        strnfmt(buf, sizeof(buf), "%s %s %s %s.", brave, prompt, p->name, p->died_flavor);
+        strnfmt(buf, sizeof(buf), "%s %s %s the level %i %s %s %s.", brave, prompt, p->name, p->lev,
+            p->race->name, p->clazz->name, p->died_flavor);
     }
     else if (!strcmp(p->died_from, "divine wrath"))
         strnfmt(buf, sizeof(buf), "%s was killed by divine wrath.", p->name);
@@ -1828,15 +1829,24 @@ void player_death(struct player *p)
 
     /* Death dump (except ghosts and retiring winners) */
     if ((p->ghost != 1) && !(p->total_winner && !p->alive))
+    {
         player_dump(p, p->alive);
+        if (cfg_auto_dump)
+        {
+            char dumpname[42];
+
+            strnfmt(dumpname, sizeof(dumpname), "%s.txt", p->name);
+            Send_dump_character(get_connection(p->conn), dumpname, 3);
+        }
+    }
 
     /*
-     * Drop every item (including gold) for:
-     * - all characters that will permanently die
-     * - all other characters except Necromancers that can turn into an undead being
-     * Note that items from suiciding characters never drop, they vanish instead...
+     * Handle every item (including gold):
+     * - delete them for all characters that will permanently die
+     * - keep them for Necromancers that can turn into an undead being
+     * - drop them on the floor for all other characters
      */
-    if (perma_death || !player_can_undead(p)) player_strip(p);
+    if (perma_death || !player_can_undead(p)) player_strip(p, perma_death);
 
     /* Tell him */
     if ((p->ghost != 1) && p->alive)
