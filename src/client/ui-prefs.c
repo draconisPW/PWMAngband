@@ -808,7 +808,7 @@ static enum parser_error parse_prefs_trap(struct parser *p)
  */
 static const char *proj_name_list[] =
 {
-    #define ELEM(a) #a,
+    #define ELEM(a, b, c, d) #a,
     #include "../common/list-elements.h"
     #undef ELEM
     #define PROJ(a) #a,

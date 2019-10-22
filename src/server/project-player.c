@@ -1250,7 +1250,7 @@ static void project_player_handler_AWAY_ANIMAL(project_player_handler_context_t 
 
 static const project_player_handler_f player_handlers[] =
 {
-    #define ELEM(a) project_player_handler_##a,
+    #define ELEM(a, b, c, d) project_player_handler_##a,
     #include "../common/list-elements.h"
     #undef ELEM
     #define PROJ(a) project_player_handler_##a,

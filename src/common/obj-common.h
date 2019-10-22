@@ -13,7 +13,7 @@
  */
 enum
 {
-    #define ELEM(a) ELEM_##a,
+    #define ELEM(a, b, c, d) ELEM_##a,
     #include "list-elements.h"
     #undef ELEM
     ELEM_MAX
@@ -28,7 +28,7 @@ enum
 /* The object flags */
 enum
 {
-    #define OF(a) OF_##a,
+    #define OF(a, b) OF_##a,
     #include "list-object-flags.h"
     #undef OF
     OF_MAX

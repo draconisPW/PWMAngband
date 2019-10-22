@@ -1451,7 +1451,7 @@ int Send_race_struct_info(int ind)
         }
         for (j = 0; j < ELEM_MAX; j++)
         {
-            if (Packet_printf(&connp->c, "%b", (unsigned)r->el_info[j].res_level) <= 0)
+            if (Packet_printf(&connp->c, "%hd", r->el_info[j].res_level) <= 0)
             {
                 Destroy_connection(ind, "Send_race_struct_info write error");
                 return -1;

@@ -87,7 +87,7 @@ static const char *slots[] =
 
 const char *list_obj_flag_names[] =
 {
-    #define OF(a) #a,
+    #define OF(a, b) #a,
     #include "../common/list-object-flags.h"
     #undef OF
     NULL
@@ -96,7 +96,7 @@ const char *list_obj_flag_names[] =
 
 const char *list_element_names[] =
 {
-    #define ELEM(a) #a,
+    #define ELEM(a, b, c, d) #a,
     #include "../common/list-elements.h"
     #undef ELEM
     NULL

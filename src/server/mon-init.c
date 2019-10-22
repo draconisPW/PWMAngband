@@ -49,7 +49,7 @@ const char *r_info_spell_flags[] =
 
 static const char *obj_flags[] =
 {
-    #define OF(a) #a,
+    #define OF(a, b) #a,
     #include "../common/list-object-flags.h"
     #undef OF
     ""
