@@ -3,7 +3,7 @@
  * Purpose: Savefile loading and saving main routines
  *
  * Copyright (c) 2009 Andi Sidwell <andi@takkaria.org>
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -66,7 +66,7 @@
 /*
  * Magic bits at beginning of savefile
  */
-static const byte savefile_magic[4] = {1, 3, 0, 1};
+static const byte savefile_magic[4] = {1, 1, 11, 2};
 static const byte savefile_name[4] = "PWMG";
 
 
@@ -111,22 +111,21 @@ static const savefile_saver player_savers[] =
 
     {"description", wr_description, 1},
     {"monster memory", wr_monster_memory, 1},
-    {"object memory", wr_object_memory, 1},
-    {"player", wr_player, 1},
-    {"ignore", wr_ignore, 1},
-    {"misc", wr_player_misc, 1},
+    {"object memory", wr_object_memory, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"artifacts", wr_player_artifacts, 1},
+    {"player", wr_player, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"ignore", wr_ignore, 1},
+    {"misc", wr_player_misc, 2},  /* TODO: reset to 1 for the next 1.1.12 version */
     {"player hp", wr_player_hp, 1},
     {"player spells", wr_player_spells, 1},
-    {"gear", wr_gear, 1},
-    {"dungeon", wr_player_dungeon, 1},
-    {"objects", wr_player_objects, 1},
-    {"traps", wr_player_traps, 1},
+    {"gear", wr_gear, 3}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"dungeon", wr_player_dungeon, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"objects", wr_player_objects, 4}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"traps", wr_player_traps, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"history", wr_history, 1},
 
     /* PWMAngband */
-    {"wild map", wr_wild_map, 1},
-    {"home", wr_home, 1}
+    {"wild map", wr_wild_map, 1}
 };
 
 
@@ -136,13 +135,13 @@ static const savefile_saver player_savers[] =
 static const savefile_saver server_savers[] =
 {
     {"monster memory", wr_monster_memory, 1},
-    {"object memory", wr_object_memory, 1},
-    {"misc", wr_misc, 1},
+    {"object memory", wr_object_memory, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"artifacts", wr_artifacts, 1},
-    {"stores", wr_stores, 1},
+    {"misc", wr_misc, 1},
+    {"stores", wr_stores, 2},
     {"dungeons", wr_dungeon, 1},
-    {"objects", wr_objects, 1},
-    {"monsters", wr_monsters, 1},
+    {"objects", wr_objects, 3}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"monsters", wr_monsters, 4}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"traps", wr_traps, 1},
 
     /* PWMAngband */
@@ -157,7 +156,7 @@ static const savefile_saver server_savers[] =
 /* Hack */
 static const savefile_saver special_savers[] =
 {
-    {"dungeon", wr_level, 1}
+    {"dungeon", wr_depth_dungeon, 1}
 };
 
 
@@ -171,22 +170,31 @@ static const struct blockinfo player_loaders[] =
 
     {"description", rd_null, 1},
     {"monster memory", rd_monster_memory, 1},
-    {"object memory", rd_object_memory, 1},
-    {"player", rd_player, 1},
-    {"ignore", rd_ignore, 1},
-    {"misc", rd_player_misc, 1},
+    {"object memory", rd_object_memory_old, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"object memory", rd_object_memory, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"artifacts", rd_player_artifacts, 1},
+    {"player", rd_player_old, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"player", rd_player, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"ignore", rd_ignore, 1},
+    {"misc", rd_player_misc_old, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"misc", rd_player_misc, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"player hp", rd_player_hp, 1},
     {"player spells", rd_player_spells, 1},
-    {"gear", rd_gear, 1},
-    {"dungeon", rd_player_dungeon, 1},
-    {"objects", rd_player_objects, 1},
-    {"traps", rd_player_traps, 1},
+    {"gear", rd_gear_1, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"gear", rd_gear_2, 2}, /* TODO: remove for the next 1.1.12 version */
+    {"gear", rd_gear, 3}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"dungeon", rd_player_dungeon_old, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"dungeon", rd_player_dungeon, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"objects", rd_player_objects_1, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"objects", rd_player_objects_2, 2}, /* TODO: remove for the next 1.1.12 version */
+    {"objects", rd_player_objects_3, 3}, /* TODO: remove for the next 1.1.12 version */
+    {"objects", rd_player_objects, 4}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"traps", rd_player_traps_old, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"traps", rd_player_traps, 2},
     {"history", rd_history, 1},
 
     /* PWMAngband */
-    {"wild map", rd_wild_map, 1},
-    {"home", rd_home, 1}
+    {"wild map", rd_wild_map, 1}
 };
 
 
@@ -196,13 +204,20 @@ static const struct blockinfo player_loaders[] =
 static const struct blockinfo server_loaders[] =
 {
     {"monster memory", rd_monster_memory, 1},
-    {"object memory", rd_object_memory, 1},
-    {"misc", rd_misc, 1},
+    {"object memory", rd_object_memory_old, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"object memory", rd_object_memory, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"artifacts", rd_artifacts, 1},
-    {"stores", rd_stores, 1},
+    {"misc", rd_misc, 1},
+    {"stores", rd_stores_old, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"stores", rd_stores, 2}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"dungeons", rd_dungeon, 1},
-    {"objects", rd_objects, 1},
-    {"monsters", rd_monsters, 1},
+    {"objects", rd_objects_1, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"objects", rd_objects_2, 2}, /* TODO: remove for the next 1.1.12 version */
+    {"objects", rd_objects, 3}, /* TODO: reset to 1 for the next 1.1.12 version */
+    {"monsters", rd_monsters_1, 1}, /* TODO: remove for the next 1.1.12 version */
+    {"monsters", rd_monsters_2, 2}, /* TODO: remove for the next 1.1.12 version */
+    {"monsters", rd_monsters_3, 3}, /* TODO: remove for the next 1.1.12 version */
+    {"monsters", rd_monsters, 4}, /* TODO: reset to 1 for the next 1.1.12 version */
     {"traps", rd_traps, 1},
 
     /* PWMAngband */
@@ -217,7 +232,7 @@ static const struct blockinfo server_loaders[] =
 /* Hack */
 static const struct blockinfo special_loaders[] =
 {
-    {"dungeon", rd_level, 1}
+    {"dungeon", rd_depth_dungeon, 1}
 };
 static bool load_dungeon_special(void);
 
@@ -311,13 +326,6 @@ void wr_hturn(hturn* pv)
 }
 
 
-void wr_loc(struct loc *l)
-{
-    wr_byte((byte)l->y);
-    wr_byte((byte)l->x);
-}
-
-
 void wr_string(const char *str)
 {
     while (*str)
@@ -385,17 +393,6 @@ void rd_hturn(hturn *ip)
     ht_reset(ip);
     ip->era = scan_era;
     ht_add(ip, scan_turn);
-}
-
-
-void rd_loc(struct loc *l)
-{
-    byte tmp8u;
-
-    rd_byte(&tmp8u);
-    l->y = tmp8u;
-    rd_byte(&tmp8u);
-    l->x = tmp8u;
 }
 
 
@@ -553,32 +550,28 @@ bool save_player(struct player *p)
 /*
  * Save special manually-designed dungeon levels
  */
-void save_dungeon_special(struct worldpos *wpos, bool town)
+void save_dungeon_special(int depth, bool town)
 {
     char filename[MSG_LEN];
-    char lvlname[32];
+    char levelname[32];
     ang_file *file;
+    int j = 0, k = 0;
 
     /* Build a file name */
     if (town)
-    {
-        strnfmt(lvlname, sizeof(lvlname), "server.town.%d.%d.%d", wpos->grid.x, wpos->grid.y,
-            wpos->depth);
-    }
+        strnfmt(levelname, sizeof(levelname), "server.town.%d.%d.%d", k, j, depth);
     else
-    {
-        strnfmt(lvlname, sizeof(lvlname), "server.level.%d.%d.%d", wpos->grid.x, wpos->grid.y,
-            wpos->depth);
-    }
-    path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, lvlname);
+        strnfmt(levelname, sizeof(levelname), "server.level.%d.%d.%d", k, j, depth);
+    path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, levelname);
 
     /* Open the savefile */
     file = file_open(filename, MODE_WRITE, FTYPE_RAW);
     if (file)
     {
         /* Save the level */
-        plog_fmt("Saving special file: %s", lvlname);
-        try_save((void *)wpos, file, (savefile_saver *)special_savers, N_ELEMENTS(special_savers));
+        if (town) plog_fmt("Saving special town for level %d...", depth);
+        else plog_fmt("Saving special level for level %d...", depth);
+        try_save((void *)depth, file, (savefile_saver *)special_savers, N_ELEMENTS(special_savers));
         file_close(file);
     }
 }
@@ -877,9 +870,6 @@ static int try_scoop(ang_file *f, char *pass_word, byte *pridx, byte *pcidx, byt
     char pass[NORMAL_WID];
     char stored_pass[NORMAL_WID];
     char client_pass[NORMAL_WID];
-    char buf[NORMAL_WID];
-    struct player_race *r;
-    struct player_class *c;
 
     if (!check_header(f))
     {
@@ -918,24 +908,8 @@ static int try_scoop(ang_file *f, char *pass_word, byte *pridx, byte *pcidx, byt
     /* Try to fetch the data */
     strip_string(NORMAL_WID);
     rd_string(pass, NORMAL_WID);
-    rd_string(buf, sizeof(buf));
-    r = lookup_player_race(buf);
-    if (!r)
-    {
-        plog("Savefile is corrupted or too old -- invalid player race.");
-        mem_free(buffer);
-        return -1;
-    }
-    *pridx = r->ridx;
-    rd_string(buf, sizeof(buf));
-    c = lookup_player_class(buf);
-    if (!c)
-    {
-        plog("Savefile is corrupted or too old -- invalid player class.");
-        mem_free(buffer);
-        return -1;
-    }
-    *pcidx = c->cidx;
+    rd_byte(pridx);
+    rd_byte(pcidx);
     rd_byte(psex);
 
     /* Here's where we do our password encryption handling */
@@ -1035,7 +1009,7 @@ int scoop_player(char *nick, char *pass, byte *pridx, byte *pcidx, byte *psex)
 
     my_strcpy(tmp, nick, sizeof(tmp));
 
-    if (!savefile_set_name(NULL, tmp, nick))
+    if (!savefile_set_name(NULL, tmp, player_safe_name(nick)))
     {
         /* Error already! */
         plog_fmt("Incorrect player name %s.", nick);
@@ -1073,12 +1047,12 @@ int scoop_player(char *nick, char *pass, byte *pridx, byte *pcidx, byte *psex)
 #define MAX_SPECIAL_LEVELS 10
 
 
-/* List of coordinates which are special static levels */
-static struct worldpos special_levels[MAX_SPECIAL_LEVELS];
+/* List of depths which are special static levels */
+static s16b special_levels[MAX_SPECIAL_LEVELS];
 
 
-/* List of coordinates which are special static towns */
-static struct worldpos special_towns[MAX_SPECIAL_LEVELS];
+/* List of depths which are special static towns */
+static s16b special_towns[MAX_SPECIAL_LEVELS];
 
 
 /*
@@ -1102,95 +1076,76 @@ static bool load_dungeon_special(void)
     char levelname[32];
     ang_file *fhandle;
     int i, num_levels = 0, num_towns = 0;
-    struct loc grid;
-
-    loc_init(&grid, 0, 0);
+    int j = 0, k = 0;
 
     /* Clear all the special levels and towns */
     for (i = 0; i < MAX_SPECIAL_LEVELS; i++)
     {
-        wpos_init(&special_levels[i], &grid, -1);
-        wpos_init(&special_towns[i], &grid, -1);
+        special_levels[i] = -999;
+        special_towns[i] = -999;
     }
 
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    /* k = E/W, j = N/S for wilderness levels */
+    for (i = 0; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        bool ok, town = false;
+
+        /* No special "quest" levels */
+        if (is_quest(i)) continue;
+
+        /* Special static pre-designed towns are only used on no_recall or more_towns servers */
+        if (cfg_no_recall || cfg_more_towns)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            /* Build a file name */
+            strnfmt(levelname, sizeof(levelname), "server.town.%d.%d.%d", k, j, i);
+            path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, levelname);
 
-            /* Don't load special wilderness levels if no wilderness */
-            if ((cfg_diving_mode > 1) && !loc_eq(&grid, &base_wpos()->grid))
-                continue;
-
-            for (i = 0; i < w_ptr->max_depth; i++)
+            if (file_exists(filename))
+                town = true;
+            else
             {
-                bool ok, town = false;
+                /* If no special town is found, check for special level */
+                strnfmt(levelname, sizeof(levelname), "server.level.%d.%d.%d", k, j, i);
+                path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, levelname);
+            }
+        }
 
-                /* Paranoia */
-                if ((i > 0) && (i < w_ptr->min_depth)) continue;
+        /* Special static pre-designed levels can be used on other servers */
+        else
+        {
+            /* Build a file name */
+            strnfmt(levelname, sizeof(levelname), "server.level.%d.%d.%d", k, j, i);
+            path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, levelname);
+        }
 
-                /* No special "quest" levels */
-                if (is_quest(i)) continue;
+        /* Open the file if it exists */
+        fhandle = file_open(filename, MODE_READ, FTYPE_RAW);
+        if (fhandle)
+        {
+            /* Load the level */
+            plog_fmt("Loading special %s for level %d...", (town? "town": "level"), i);
+            ok = try_load(NULL, fhandle, special_loaders, N_ELEMENTS(special_loaders), false);
 
-                /* Special static pre-designed towns are only used on no_recall or more_towns servers */
-                if ((cfg_diving_mode == 3) || cfg_more_towns)
-                {
-                    /* Build a file name */
-                    strnfmt(levelname, sizeof(levelname), "server.town.%d.%d.%d", grid.x, grid.y, i);
-                    path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, levelname);
+            /* Close the level file */
+            file_close(fhandle);
 
-                    if (file_exists(filename))
-                        town = true;
-                    else
-                    {
-                        /* If no special town is found, check for special level */
-                        strnfmt(levelname, sizeof(levelname), "server.level.%d.%d.%d", grid.x,
-                            grid.y, i);
-                        path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, levelname);
-                    }
-                }
+            if (!ok) return false;
 
-                /* Special static pre-designed levels can be used on other servers */
-                else
-                {
-                    /* Build a file name */
-                    strnfmt(levelname, sizeof(levelname), "server.level.%d.%d.%d", grid.x, grid.y, i);
-                    path_build(filename, sizeof(filename), ANGBAND_DIR_SAVE, levelname);
-                }
+            if (town)
+            {
+                /* We have an arbitrary max number of towns */
+                if (num_towns + 1 > MAX_SPECIAL_LEVELS) break;
 
-                /* Open the file if it exists */
-                fhandle = file_open(filename, MODE_READ, FTYPE_RAW);
-                if (fhandle)
-                {
-                    /* Load the level */
-                    plog_fmt("Loading special file: %s", levelname);
-                    ok = try_load(NULL, fhandle, special_loaders, N_ELEMENTS(special_loaders), false);
+                /* Add this depth to the special town list */
+                special_towns[num_towns++] = i;
+            }
+            else
+            {
+                /* We have an arbitrary max number of levels */
+                if (num_levels + 1 > MAX_SPECIAL_LEVELS) break;
 
-                    /* Close the level file */
-                    file_close(fhandle);
-
-                    if (!ok) return false;
-
-                    if (town)
-                    {
-                        /* We have an arbitrary max number of towns */
-                        if (num_towns + 1 > MAX_SPECIAL_LEVELS) break;
-
-                        /* Add this depth to the special town list */
-                        wpos_init(&special_towns[num_towns], &grid, i);
-                        num_towns++;
-                    }
-                    else
-                    {
-                        /* We have an arbitrary max number of levels */
-                        if (num_levels + 1 > MAX_SPECIAL_LEVELS) break;
-
-                        /* Add this depth to the special level list */
-                        wpos_init(&special_levels[num_levels], &grid, i);
-                        num_levels++;
-                    }
-                }
+                /* Add this depth to the special level list */
+                special_levels[num_levels++] = i;
             }
         }
     }
@@ -1257,16 +1212,15 @@ bool load_server_info(void)
 
 
 /*
- * Return true if the given level is a special static level, i.e. a hand designed level.
+ * Return true if the given depth is a special static level, i.e. a hand designed level.
  */
-bool special_level(struct worldpos *wpos)
+bool special_level(s16b depth)
 {
     int i;
 
     for (i = 0; i < MAX_SPECIAL_LEVELS; i++)
     {
-        if (wpos_eq(wpos, &special_levels[i]) || wpos_eq(wpos, &special_towns[i]))
-            return true;
+        if ((depth == special_levels[i]) || (depth == special_towns[i])) return true;
     }
 
     return false;
@@ -1276,13 +1230,13 @@ bool special_level(struct worldpos *wpos)
 /*
  * Return true if the given depth is a special static town.
  */
-bool special_town(struct worldpos *wpos)
+bool special_town(s16b depth)
 {
     int i;
 
     for (i = 0; i < MAX_SPECIAL_LEVELS; i++)
     {
-        if (wpos_eq(wpos, &special_towns[i])) return true;
+        if (depth == special_towns[i]) return true;
     }
 
     return false;
@@ -1290,48 +1244,27 @@ bool special_town(struct worldpos *wpos)
 
 
 /*
- * Forbid in the towns or on special levels.
+ * Forbid in the town or on special levels.
  */
-bool forbid_special(struct worldpos *wpos)
+bool forbid_special(s16b depth)
 {
-    if (special_level(wpos)) return true;
-    if (in_town(wpos)) return true;
-    return false;
+    return (special_level(depth) || !depth);
 }
 
 
 /*
  * Forbid in the towns.
  */
-bool forbid_town(struct worldpos *wpos)
+bool forbid_town(s16b depth)
 {
-    if (special_town(wpos)) return true;
-    if (in_town(wpos)) return true;
-    return false;
+    return (special_town(depth) || !depth);
 }
 
 
 /*
- * Returns whether "wpos" corresponds to a randomly generated level.
+ * Returns whether "depth" corresponds to a randomly generated level.
  */
-bool random_level(struct worldpos *wpos)
+bool random_level(s16b depth)
 {
-    return ((wpos->depth > 0) && !special_level(wpos));
-}
-
-
-/*
- * Return true if the given level is a dynamically generated town.
- */
-bool dynamic_town(struct worldpos *wpos)
-{
-    /* Only on no_recall servers if there is no static pre-designed dungeon town loaded */
-    if (special_town(wpos) || (cfg_diving_mode < 3)) return false;
-
-    /* Not in wilderness dungeons */
-    if (!loc_eq(&wpos->grid, &base_wpos()->grid)) return false;
-
-    /* Every 1000ft */
-    return ((wpos->depth == 20) || (wpos->depth == 40) || (wpos->depth == 60) ||
-        (wpos->depth == 80));
+    return ((depth > 0) && !special_level(depth));
 }

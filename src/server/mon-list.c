@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Ben Semmler
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -29,7 +29,7 @@
 monster_list_t *monster_list_new(struct player *p)
 {
 	monster_list_t *list = mem_zalloc(sizeof(monster_list_t));
-	size_t size = cave_monster_max(chunk_get(&p->wpos));
+	size_t size = cave_monster_max(chunk_get(p->depth));
 
 	if (list == NULL) return NULL;
 
@@ -113,7 +113,7 @@ static bool monster_list_can_update(monster_list_t *list, struct chunk *c)
  */
 void monster_list_reset(struct player *p, monster_list_t *list)
 {
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     if ((list == NULL) || (list->entries == NULL)) return;
 
@@ -137,7 +137,7 @@ void monster_list_reset(struct player *p, monster_list_t *list)
 void monster_list_collect(struct player *p, monster_list_t *list)
 {
 	int i;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
 	if (!monster_list_can_update(list, c)) return;
 
@@ -153,7 +153,7 @@ void monster_list_collect(struct player *p, monster_list_t *list)
         if (!mon->race) continue;
 
 		/* Only consider visible, known monsters */
-        if (!monster_is_obvious(p, i, mon)) continue;
+        if (!mflag_has(p->mflag[i], MFLAG_VISIBLE) || mon->unaware) continue;
 
 		/* Find or add a list entry. */
 		for (j = 0; j < (int)list->entries_size; j++)
@@ -185,8 +185,8 @@ void monster_list_collect(struct player *p, monster_list_t *list)
             entry->attr = p->r_attr[mon->race->ridx];
 
 		/* Check for LOS using projectable() */
-		los = (projectable(c, &p->grid, &mon->grid, PROJECT_NONE, true) &&
-            monster_is_in_view(p, i));
+		los = (projectable(c, p->py, p->px, mon->fy, mon->fx, PROJECT_NONE) &&
+            mflag_has(p->mflag[i], MFLAG_VIEW));
 		field = (los? MONSTER_LIST_SECTION_LOS: MONSTER_LIST_SECTION_ESP);
 		entry->count[field]++;
 
@@ -194,8 +194,8 @@ void monster_list_collect(struct player *p, monster_list_t *list)
 			entry->asleep[field]++;
 
 		/* Store the location offset from the player; this is only used for monster counts of 1 */
-		entry->dx[field] = mon->grid.x - p->grid.x;
-		entry->dy[field] = mon->grid.y - p->grid.y;
+		entry->dx = mon->fx - p->px;
+		entry->dy = mon->fy - p->py;
 	}
 
 	/* Collect totals for easier calculations of the list. */
@@ -222,7 +222,7 @@ void monster_list_collect(struct player *p, monster_list_t *list)
 
 /*
  * Standard comparison function for the monster list: sort by depth and then
- * uniqueness.
+ * power.
  */
 int monster_list_standard_compare(const void *a, const void *b)
 {
@@ -232,13 +232,15 @@ int monster_list_standard_compare(const void *a, const void *b)
 	/* If this happens, something might be wrong in the collect function. */
 	if ((ar == NULL) || (br == NULL)) return 1;
 
-	/* Check depth first. */
+	/* Check depth first.*/
 	if (ar->level > br->level) return -1;
+
 	if (ar->level < br->level) return 1;
 
-	/* Depths are equal, check uniqueness. */
-	if (monster_is_unique(ar) && !monster_is_unique(br)) return -1;
-	if (!monster_is_unique(ar) && monster_is_unique(br)) return 1;
+	/* Depths are equal, check power. */
+	if (ar->power > br->power) return -1;
+
+	if (ar->power < br->power) return 1;
 
 	return 0;
 }
@@ -272,9 +274,10 @@ void monster_list_sort(monster_list_t *list, int (*compare)(const void *, const 
 byte monster_list_entry_line_color(struct player *p, const monster_list_entry_t *entry)
 {
 	/* Display uniques in a special colour */
-	if (monster_is_unique(entry->race))
+	if (rf_has(entry->race->flags, RF_UNIQUE))
 		return COLOUR_VIOLET;
-	if (entry->race->level > monster_level(&p->wpos))
+	else if (entry->race->level > monster_level(p->depth))
 		return COLOUR_RED;
-	return COLOUR_WHITE;
+	else
+		return COLOUR_WHITE;
 }

@@ -2,7 +2,7 @@
  * File: display.c
  * Purpose: Display the character on the screen or in a file
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -195,7 +195,7 @@ char *buffer_line(int row)
 /*
  * List of resistances and abilities to display
  */
-static const char *player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
+static const char *player_flag_table[RES_PANELS * RES_ROWS] =
 {
     "Ac :", /* ELEM_ACID */
     "El :", /* ELEM_ELEC */
@@ -206,17 +206,15 @@ static const char *player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
     "Dk :", /* ELEM_DARK */
     "Snd:", /* ELEM_SOUND */
     "Shr:", /* ELEM_SHARD */
-
     "Nxs:", /* ELEM_NEXUS */
     "Ntr:", /* ELEM_NETHER */
     "Chs:", /* ELEM_CHAOS */
     "Dsn:", /* ELEM_DISEN */
-    "Lev:", /* OF_FEATHER */
+    "FF :", /* OF_FEATHER */
     "Fe :", /* OF_PROT_FEAR */
     "Bld:", /* OF_PROT_BLIND */
     "Cnf:", /* OF_PROT_CONF */
     "Stn:", /* OF_PROT_STUN */
-
     "Lit:", /* OBJ_MOD_LIGHT */
     "Rgn:", /* OF_REGEN */
     "ESP:", /* OF_ESP_XXX */
@@ -226,7 +224,6 @@ static const char *player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
     "Stl:", /* OBJ_MOD_STEALTH */
     "Src:", /* OBJ_MOD_SEARCH */
     "Inf:", /* OBJ_MOD_INFRA */
-
     "Tun:", /* OBJ_MOD_TUNNEL */
     "Spd:", /* OBJ_MOD_SPEED */
     "EA :", /* OBJ_MOD_BLOWS */
@@ -235,17 +232,7 @@ static const char *player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
     "Dig:", /* OF_SLOW_DIGEST */
     "-HP:", /* OF_IMPAIR_HP */
     "Afr:", /* OF_AFRAID */
-    "Agg:", /* OF_AGGRAVATE */
-
-    "Rad:", /* OF_ESP_RADIUS */
-    "Evi:", /* OF_ESP_EVIL */
-    "Ani:", /* OF_ESP_ANIMAL */
-    "Und:", /* OF_ESP_UNDEAD */
-    "Dem:", /* OF_ESP_DEMON */
-    "Orc:", /* OF_ESP_ORC */
-    "Tro:", /* OF_ESP_TROLL */
-    "Gia:", /* OF_ESP_GIANT */
-    "Dra:"  /* OF_ESP_DRAGON */
+    "Agg:"  /* OF_AGGRAVATE */
 };
 
 
@@ -276,14 +263,10 @@ static void display_equippy(struct player *p, int row, int col)
 
 static void display_resistance_panel(struct player *p, const char **rec, const region *bounds)
 {
-    size_t i;
-    int j;
     int col = bounds->col;
     int row = bounds->row;
+    size_t i, j;
     int off = 1 + STAT_MAX + RES_ROWS * col / (p->body.count + 6);
-
-    /* Special case: ESP flags */
-    if (col == RES_PANELS * (p->body.count + 6)) col = 0;
 
     /* Header */
     put_str_hook(col, row++, -1, COLOUR_WHITE, "    abcdefghijklm@");
@@ -294,42 +277,18 @@ static void display_resistance_panel(struct player *p, const char **rec, const r
         byte name_attr = COLOUR_WHITE;
 
         /* Draw dots */
-        for (j = 0; j <= p->body.count; j++)
+        for (j = 0; j <= (size_t)p->body.count; j++)
         {
             byte attr = p->hist_flags[off + i][j].a;
             char sym = p->hist_flags[off + i][j].c;
-            bool rune = false;
-
-            /* Hack -- rune is known */
-            if (attr >= BASIC_COLORS)
-            {
-                attr -= BASIC_COLORS;
-                rune = true;
-            }
 
             /* Dump proper character */
             put_ch_hook(col + 4 + j, row, attr, sym);
 
             /* Name color */
-
-            /* Unknown rune */
-            if (!rune) name_attr = COLOUR_SLATE;
-            if (name_attr == COLOUR_SLATE) continue;
-
-            /* Immunity */
-            if (sym == '*') name_attr = COLOUR_GREEN;
-            if (name_attr == COLOUR_GREEN) continue;
-
-            /* Vulnerability */
-            if (sym == '-') name_attr = COLOUR_L_RED;
-            if (name_attr == COLOUR_L_RED) continue;
-
-            /* Resistance */
-            if (sym == '+') name_attr = COLOUR_L_BLUE;
-            if (name_attr == COLOUR_L_BLUE) continue;
-
-            /* Other known properties */
-            if ((sym != '.') && (sym != '?') && (sym != '!'))
+            if ((sym == '*') || (sym == '!'))
+                name_attr = COLOUR_GREEN;
+            else if ((sym != '.') && (sym != '-') && (sym != '?') && (name_attr == COLOUR_WHITE))
                 name_attr = COLOUR_L_BLUE;
         }
 
@@ -365,20 +324,6 @@ static void display_player_flag_info(struct player *p)
 
     for (i = 0; i < RES_PANELS; i++)
         display_resistance_panel(p, player_flag_table + i * RES_ROWS, &resist_region[i]);
-}
-
-
-static void display_player_esp_info(struct player *p)
-{
-    int res_cols = p->body.count + 5;
-    region resist_region;
-
-    resist_region.col = RES_PANELS * (res_cols + 1);
-    resist_region.row = 10;
-    resist_region.width = res_cols;
-    resist_region.page_rows = RES_ROWS + 2;
-
-    display_resistance_panel(p, player_flag_table + RES_PANELS * RES_ROWS, &resist_region);
 }
 
 
@@ -563,7 +508,7 @@ static const char *show_depth(struct player *p)
 {
     static char buffer[13];
 
-    if (p->max_depth == 0) return "Surface";
+    if (p->max_depth == 0) return "Town";
 
     strnfmt(buffer, sizeof(buffer), "%d' (L%d)", p->max_depth * 50, p->max_depth);
     return buffer;
@@ -672,8 +617,7 @@ static struct panel *get_panel_combat(struct player *pplayer)
     panel_space(p);
     panel_line(p, COLOUR_L_BLUE, "Shoot to-dam", "%+d", dam);
     panel_line(p, COLOUR_L_BLUE, "To-hit", "%d,%+d", bth / 10, hit);
-    panel_line(p, COLOUR_L_BLUE, "Shots", "%d.%d/turn", pplayer->state.num_shots / 10,
-        pplayer->state.num_shots % 10);
+    panel_line(p, COLOUR_L_BLUE, "Shots", "%d/turn", pplayer->state.num_shots);
 
     return p;
 }
@@ -685,7 +629,6 @@ static struct panel *get_panel_skills(struct player *pplayer)
     int skill;
     byte attr;
     const char *desc;
-    int depth = pplayer->wpos.depth;
 
     #define BOUND(x, min, max) MIN(max, MAX(min, x))
 
@@ -697,17 +640,24 @@ static struct panel *get_panel_skills(struct player *pplayer)
     desc = likert(pplayer->state.skills[SKILL_STEALTH], 1, &attr);
     panel_line(p, attr, "Stealth", "%s", desc);
 
-    /* Physical disarming: assume we're disarming a dungeon trap */
-    skill = BOUND(pplayer->state.skills[SKILL_DISARM_PHYS] - depth / 5, 2, 100);
-    panel_line(p, colour_table[skill / 10], "Disarm - phys.", "%d%%", skill);
-
-    /* Magical disarming */
-    skill = BOUND(pplayer->state.skills[SKILL_DISARM_MAGIC] - depth / 5, 2, 100);
-    panel_line(p, colour_table[skill / 10], "Disarm - magic", "%d%%", skill);
+    /* Disarming: -5 because we assume we're disarming a dungeon trap */
+    skill = BOUND(pplayer->state.skills[SKILL_DISARM] - 5, 2, 100);
+    panel_line(p, colour_table[skill / 10], "Disarming", "%d%%", skill);
 
     /* Magic devices */
-    skill = pplayer->state.skills[SKILL_DEVICE];
-    panel_line(p, colour_table[MIN(skill, 130) / 13], "Magic Devices", "%d", skill);
+    skill = MIN(pplayer->state.skills[SKILL_DEVICE], 130);
+    panel_line(p, colour_table[skill / 13], "Magic Devices", "%d", skill);
+
+    /* Search frequency */
+    skill = MAX(pplayer->state.skills[SKILL_SEARCH_FREQUENCY], 1);
+    if (skill >= 50)
+        panel_line(p, colour_table[10], "Perception", "1 in 1");
+    else
+    {
+        /* Convert to % chance of searching */
+        skill = 50 - skill;
+        panel_line(p, colour_table[(100 - skill * 2) / 10], "Perception", "1 in %d", skill);
+    }
 
     /* Searching ability */
     skill = BOUND(pplayer->state.skills[SKILL_SEARCH], 0, 100);
@@ -791,15 +741,14 @@ static void display_player_xtra_info(struct player *pplayer)
 
 
 /*
- * Display the character on the screen or in a file (three different modes)
+ * Display the character on the screen or in a file (two different modes)
  *
  * The top two lines, and the bottom line (or two) are left blank.
  *
- * Mode 0 = standard display with skills/history
- * Mode 1 = special display with equipment flags
- * Mode 2 = special display with equipment flags (ESP flags)
+ * Mode false = standard display with skills/history
+ * Mode true = special display with equipment flags
  */
-void display_player(struct player *pplayer, byte mode)
+void display_player(struct player *pplayer, bool mode)
 {
     /* Clear */
     clear_hook();
@@ -808,20 +757,7 @@ void display_player(struct player *pplayer, byte mode)
     display_player_stat_info(pplayer);
 
     /* Special display */
-    if (mode == 2)
-    {
-        struct panel *p = panels[0].panel(pplayer);
-
-        display_panel(p, panels[0].align_left, &panels[0].bounds);
-        panel_free(p);
-
-        /* Stat/Sustain flags */
-        display_player_sust_info(pplayer);
-
-        /* Other flags */
-        display_player_esp_info(pplayer);
-    }
-    else if (mode == 1)
+    if (mode)
     {
         struct panel *p = panels[0].panel(pplayer);
 
@@ -847,10 +783,18 @@ void display_player(struct player *pplayer, byte mode)
 
 size_t display_depth(struct player *p, int row, int col)
 {
+    char depths[13];
     char *text;
 
+    if (!p->depth)
+        my_strcpy(depths, "Town", sizeof(depths));
+    else if (p->depth < 0)
+        strnfmt(depths, sizeof(depths), "WLev %d", 0 - p->depth);
+    else
+        strnfmt(depths, sizeof(depths), "%d' (L%d)", p->depth * 50, p->depth);
+
     /* Display the depth */
-    text = format("%-12s", p->depths);
+    text = format("%-12s", depths);
     put_str_hook(col, row, -1, COLOUR_WHITE, text);
 
     return (strlen(text) + 1);
@@ -869,10 +813,75 @@ struct state_info
 };
 
 
+#define PRINT_STATE(sym, data, index, row, col) \
+{ \
+    size_t i; \
+    \
+    for (i = 0; i < N_ELEMENTS(data); i++) \
+    { \
+        if (index sym data[i].value) \
+        { \
+            if (data[i].str[0]) \
+            { \
+                put_str_hook(col, row, -1, data[i].attr, data[i].str); \
+                return data[i].len; \
+            } \
+            return 0; \
+        } \
+    } \
+}
+
+
 /*
  * Simple macro to initialize structs
  */
 #define S(s) s, sizeof(s)
+
+
+/*
+ * TMD_CUT descriptions
+ */
+static const struct state_info cut_data[] =
+{
+    { 1000, S("Mortal wound"), COLOUR_L_RED },
+    {  200, S("Deep gash"),    COLOUR_RED },
+    {  100, S("Severe cut"),   COLOUR_RED },
+    {   50, S("Nasty cut"),    COLOUR_ORANGE },
+    {   25, S("Bad cut"),      COLOUR_ORANGE },
+    {   10, S("Light cut"),    COLOUR_YELLOW },
+    {    0, S("Graze"),        COLOUR_YELLOW }
+};
+
+
+/*
+ * Print cut indicator.
+ */
+static size_t prt_cut(struct player *p, int row, int col)
+{
+    PRINT_STATE(>, cut_data, p->timed[TMD_CUT], row, col);
+    return 0;
+}
+
+
+/*
+ * TMD_STUN descriptions
+ */
+static const struct state_info stun_data[] =
+{
+    {   100, S("Knocked out"), COLOUR_RED },
+    {    50, S("Heavy stun"),  COLOUR_ORANGE },
+    {     0, S("Stun"),        COLOUR_ORANGE }
+};
+
+
+/*
+ * Print stun indicator.
+ */
+static size_t prt_stun(struct player *p, int row, int col)
+{
+    PRINT_STATE(>, stun_data, p->timed[TMD_STUN], row, col);
+    return 0;
+}
 
 
 /*
@@ -893,23 +902,65 @@ static const struct state_info hunger_data[] =
  */
 static size_t prt_hunger(struct player *p, int row, int col)
 {
-    size_t i;
-
-    for (i = 0; i < N_ELEMENTS(hunger_data); i++)
-    {
-        if (p->food < hunger_data[i].value)
-        {
-            if (hunger_data[i].str[0])
-            {
-                put_str_hook(col, row, -1, hunger_data[i].attr, hunger_data[i].str);
-                return hunger_data[i].len;
-            }
-            return 0;
-        }
-    }
-
+    PRINT_STATE(<, hunger_data, p->food, row, col);
     return 0;
 }
+
+
+/*
+ * For the various TMD_* effects
+ */
+static const struct state_info effects[] =
+{
+    { TMD_BLIND,       S("Blind"),      COLOUR_ORANGE },
+    { TMD_PARALYZED,   S("Paralyzed!"), COLOUR_RED },
+    { TMD_CONFUSED,    S("Confused"),   COLOUR_ORANGE },
+    { TMD_AFRAID,      S("Afraid"),     COLOUR_ORANGE },
+    { TMD_TERROR,      S("Terror"),     COLOUR_RED },
+    { TMD_SPRINT,      S("Sprint"),     COLOUR_L_GREEN },
+    { TMD_POISONED,    S("Poisoned"),   COLOUR_ORANGE },
+    { TMD_OPP_ACID,    S("RAcid"),      COLOUR_SLATE },
+    { TMD_OPP_ELEC,    S("RElec"),      COLOUR_BLUE },
+    { TMD_OPP_FIRE,    S("RFire"),      COLOUR_RED },
+    { TMD_OPP_COLD,    S("RCold"),      COLOUR_WHITE },
+    { TMD_OPP_POIS,    S("RPois"),      COLOUR_GREEN },
+    { TMD_OPP_CONF,    S("RConf"),      COLOUR_VIOLET },
+    { TMD_AMNESIA,     S("Amnesiac"),   COLOUR_ORANGE },
+    { TMD_IMAGE,       S("Hallu"),      COLOUR_ORANGE },
+    { TMD_PROTEVIL,    S("ProtEvil"),   COLOUR_L_GREEN },
+    { TMD_INVULN,      S("Invuln"),     COLOUR_L_GREEN },
+    { TMD_HERO,        S("Hero"),       COLOUR_L_GREEN },
+    { TMD_SHERO,       S("Berserk"),    COLOUR_L_GREEN },
+    { TMD_BOLD,        S("Bold"),       COLOUR_L_GREEN },
+    { TMD_STONESKIN,   S("Stone"),      COLOUR_L_GREEN },
+    { TMD_SHIELD,      S("Shield"),     COLOUR_L_GREEN },
+    { TMD_BLESSED,     S("Blessed"),    COLOUR_L_GREEN },
+    { TMD_SINVIS,      S("SInvis"),     COLOUR_L_GREEN },
+    { TMD_SINFRA,      S("Infra"),      COLOUR_L_GREEN },
+    { TMD_WRAITHFORM,  S("Wraith"),     COLOUR_L_GREEN },
+    { TMD_MEDITATE,    S("Medit"),      COLOUR_L_GREEN },
+    { TMD_MANASHIELD,  S("MShield"),    COLOUR_L_GREEN },
+    { TMD_INVIS,       S("Invis"),      COLOUR_L_GREEN },
+    { TMD_MIMIC,       S("Mimic"),      COLOUR_L_GREEN },
+    { TMD_TRAPS,       S("PTraps"),     COLOUR_L_GREEN },
+    { TMD_BOWBRAND,    S("Brand"),      COLOUR_L_GREEN },
+    { TMD_ESP,         S("ESP"),        COLOUR_L_GREEN },
+    { TMD_ANCHOR,      S("Anchor"),     COLOUR_L_GREEN },
+    { TMD_PROBTRAVEL,  S("Proba"),      COLOUR_L_GREEN },
+    { TMD_ADRENALINE,  S("Adren"),      COLOUR_L_GREEN },
+    { TMD_BIOFEEDBACK, S("BioFB"),      COLOUR_L_GREEN },
+    { TMD_TOUCH,       S("Vamp"),       COLOUR_L_GREEN },
+    { TMD_SOUL,        S("Drain"),      COLOUR_L_GREEN },
+    { TMD_DEADLY,      S("TDeath"),     COLOUR_L_GREEN },
+    { TMD_EPOWER,      S("EPower"),     COLOUR_L_GREEN },
+    { TMD_ICY_AURA,    S("IcyAura"),    COLOUR_WHITE },
+    { TMD_SGRASP,      S("Brand"),      COLOUR_BLUE },
+    { TMD_FARSIGHT,    S("Farsight"),   COLOUR_L_GREEN },
+    { TMD_ZFARSIGHT,   S("Farsight"),   COLOUR_L_GREEN },
+    { TMD_REGEN,       S("Regen"),      COLOUR_L_GREEN },
+    { TMD_HARMONY,     S("Harmony"),    COLOUR_L_GREEN },
+    { TMD_ANTISUMMON,  S("NoSummon"),   COLOUR_YELLOW }
+};
 
 
 /*
@@ -919,16 +970,12 @@ static size_t prt_tmd(struct player *p, int row, int col)
 {
     size_t i, len = 0;
 
-    for (i = 0; i < TMD_MAX; i++)
+    for (i = 0; i < N_ELEMENTS(effects); i++)
     {
-        if (p->timed[i])
+        if (p->timed[effects[i].value])
         {
-            struct timed_grade *grade = get_grade(i);
-
-            while ((p->timed[i] > grade->max) || ((p->timed[i] < 0) && grade->next))
-                grade = grade->next;
-            put_str_hook(col + len, row, -1, grade->color, grade->name);
-            len += strlen(grade->name) + 1;
+            put_str_hook(col + len, row, -1, effects[i].attr, effects[i].str);
+            len += effects[i].len;
         }
     }
 
@@ -1085,7 +1132,7 @@ static size_t prt_descent(struct player *p, int row, int col)
 
 
 /*
- * Prints Resting or Stealth Mode status
+ * Prints Searching, Resting, or Stealth Mode status
  */
 static size_t prt_state(struct player *p, int row, int col)
 {
@@ -1096,11 +1143,16 @@ static size_t prt_state(struct player *p, int row, int col)
     if (p->upkeep->resting)
         text = "Resting";
 
-    /* Stealth mode */
-    else if (p->stealthy)
+    /* Searching */
+    else if (p->searching)
     {
-        attr = COLOUR_L_DARK;
-        text = "Stealth Mode";
+        if (!player_has(p, PF_STEALTH_MODE))
+            text = "Searching";
+        else
+        {
+            attr = COLOUR_L_DARK;
+            text = "Stealth Mode";
+        }
     }
 
     /* Display the info (or blanks) */
@@ -1175,8 +1227,8 @@ typedef size_t status_f(struct player *p, int row, int col);
  */
 static status_f *status_handlers[] =
 {
-    prt_level_feeling, prt_unignore, prt_recall, prt_descent, prt_state, prt_hunger, prt_study,
-        prt_tmd, prt_dtrap
+    prt_level_feeling, prt_unignore, prt_recall, prt_descent, prt_state, prt_cut, prt_stun,
+    prt_hunger, prt_study, prt_tmd, prt_dtrap
 };
 
 

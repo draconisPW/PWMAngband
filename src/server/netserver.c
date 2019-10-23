@@ -2,7 +2,7 @@
  * File: netserver.c
  * Purpose: The server side of the network stuff
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -95,6 +95,7 @@
 static server_setup_t Setup;
 static int login_in_progress;
 static int num_logins, num_logouts;
+static int MetaSocket = -1;
 
 
 /* The contact socket */
@@ -176,7 +177,6 @@ int Setup_net_server(void)
     init_players();
 
     /* Tell the metaserver that we're starting up */
-    plog("Report to metaserver");
     Report_to_meta(META_START);
 
     plog_fmt("Server is running version %s", version_build(VB_BASE | VB_BUILD));
@@ -185,7 +185,7 @@ int Setup_net_server(void)
 }
 
 
-void Conn_set_state(connection_t *connp, int state, long timeout)
+static void Conn_set_state(connection_t *connp, int state)
 {
     static int num_conn_busy;
     static int num_conn_playing;
@@ -198,12 +198,23 @@ void Conn_set_state(connection_t *connp, int state, long timeout)
     connp->state = state;
     ht_copy(&connp->start, &turn);
 
-    if ((connp->state == CONN_PLAYING) || (connp->state == CONN_QUIT))
+    if (connp->state == CONN_PLAYING)
+    {
         num_conn_playing++;
+        connp->timeout = PLAY_TIMEOUT;
+    }
+    else if (connp->state == CONN_QUIT)
+    {
+        num_conn_playing++;
+        connp->timeout = QUIT_TIMEOUT;
+    }
+    else if (connp->state == CONN_SETUP)
+        connp->timeout = SETUP_TIMEOUT;
     else if (connp->state == CONN_FREE)
+    {
         num_conn_busy--;
-
-    if (timeout) connp->timeout = timeout;
+        connp->timeout = FREE_TIMEOUT;
+    }
     login_in_progress = num_conn_busy - num_conn_playing;
 }
 
@@ -216,16 +227,14 @@ void Conn_set_state(connection_t *connp, int state, long timeout)
 static void do_quit(int ind)
 {
     connection_t *connp = get_connection(ind);
-    struct worldpos wpos;
+    int depth = 0;
     bool dungeon_master = false;
-
-    memset(&wpos, 0, sizeof(wpos));
 
     if (connp->id != -1)
     {
         struct player *p = player_get(get_player_index(connp));
 
-        memcpy(&wpos, &p->wpos, sizeof(wpos));
+        depth = p->depth;
         dungeon_master = is_dm_p(p);
     }
 
@@ -239,17 +248,16 @@ static void do_quit(int ind)
     connp->w.sock = -1;
 
     /* Check for immediate disconnection */
-    if (town_area(&wpos) || dungeon_master)
+    if (town_area(depth) || dungeon_master)
     {
-        /* If we are close to a town, exit quickly. */
+        /* If we are close to the center of town, exit quickly. */
         /* DM always disconnects immediately */
         Destroy_connection(ind, "Client quit");
     }
     else
     {
         /* Otherwise wait for the timeout */
-        connp->quit_msg = string_make("Client quit");
-        Conn_set_state(connp, CONN_QUIT, QUIT_TIMEOUT);
+        Conn_set_state(connp, CONN_QUIT);
     }
 }
 
@@ -267,7 +275,7 @@ static int Send_reliable(int ind)
 
     if ((num_written = Sockbuf_write(&connp->w, connp->c.buf, connp->c.len)) != connp->c.len)
     {
-        plog_fmt("Cannot write reliable data (%d, %d)", num_written, connp->c.len);
+        plog_fmt("Cannot write reliable data (%d,%d)", num_written, connp->c.len);
         Destroy_connection(ind, "Cannot write reliable data");
         return -1;
     }
@@ -475,7 +483,6 @@ static int Setup_connection(u32b account, char *real, char *nick, char *addr, ch
             connp->Client_setup.t_char = mem_zalloc(z_info->trap_max * sizeof(char_lit));
             connp->Client_setup.flvr_x_attr = mem_zalloc(flavor_max * sizeof(byte));
             connp->Client_setup.flvr_x_char = mem_zalloc(flavor_max * sizeof(char));
-            connp->Client_setup.note_aware = mem_zalloc(z_info->k_max * sizeof(char_note));
             connp->has_setup = true;
         }
 
@@ -498,14 +505,14 @@ static int Setup_connection(u32b account, char *real, char *nick, char *addr, ch
         connp->console_authenticated = false;
         connp->console_listen = false;
 
-        Conn_set_state(connp, CONN_CONSOLE, 0);
+        Conn_set_state(connp, CONN_CONSOLE);
     }
 
     /* Non-players leave now */
     if (conntype != CONNTYPE_PLAYER)
         return free_conn_index;
 
-    Conn_set_state(connp, CONN_SETUP, SETUP_TIMEOUT);
+    Conn_set_state(connp, CONN_SETUP);
 
     /* Remove the contact input handler */
     remove_input(sock);
@@ -614,16 +621,11 @@ static void Contact(int fd, int arg)
         {
             /*
              * We couldn't accept the socket connection. This is bad because we can't
-             * handle this situation correctly yet. For the moment, we just log the
-             * error and quit.
-             *
-             * PWMAngband: when running the server in debug mode, we get a lot of
-             * TCP connection failures with errno = 0, which doesn't make any sense.
-             * In this case, we just return without quitting.
+             * handle this situation correctly yet.  For the moment, we just log the
+             * error and quit
              */
             plog_fmt("Could not accept TCP Connection, socket error = %d", errno);
-            if (errno) quit("Couldn't accept TCP connection.");
-            return;
+            quit("Couldn't accept TCP connection.");
         }
         install_input(Contact, newsock, 2);
 
@@ -766,15 +768,6 @@ static void Contact(int fd, int arg)
     /* Send reply */
     Packet_printf(&ibuf, "%c", (int)status);
     Packet_printf(&ibuf, "%hu", (unsigned)num);
-    Packet_printf(&ibuf, "%hu", (unsigned)cfg_max_account_chars);
-
-    /* Some error */
-    if (status)
-    {
-        Net_Send(fd);
-        return;
-    }
-
     for (i = 0; i < (size_t)num; i++)
     {
         hash_entry *ptr;
@@ -842,13 +835,139 @@ void setup_contact_socket(void)
  * This function is called on startup, on death, and when the number of players
  * in the game changes.
  */
+#define OLD_MANG_FORMAT
 bool Report_to_meta(int flag)
 {
-    /* Abort if the user doesn't want to report */
-    if (!cfg_report_to_meta) return false;
+    static sockbuf_t meta_buf;
+    static char local_name[MSG_LEN];
+    static int init = 0;
+    int bytes, i;
+    char buf[MSG_LEN], temp[100];
+    int hidden_dungeon_master = 0;
 
-    /* New implementation */
-    meta_report(flag);
+    /* Abort if the user doesn't want to report */
+    if (!cfg_report_to_meta)
+        return false;
+
+    /* If this is the first time called, initialize our hostname */
+    if (!init)
+    {
+        /* Never do this again */
+        init = 1;
+
+        /* Get our hostname */
+        if (cfg_report_address)
+            my_strcpy(local_name, cfg_report_address, sizeof(local_name));
+        else if (cfg_bind_name)
+            my_strcpy(local_name, cfg_bind_name, sizeof(local_name));
+        else
+            GetLocalHostName(local_name, MSG_LEN);
+
+        my_strcat(local_name, ":", sizeof(local_name));
+        strnfmt(temp, sizeof(temp), "%d", (int)cfg_tcp_port);
+        my_strcat(local_name, temp, sizeof(local_name));
+    }
+
+    my_strcpy(buf, local_name, sizeof(buf));
+
+#ifndef OLD_MANG_FORMAT
+    /* Append the version number */
+    strnfmt(temp, sizeof(temp), "  %s  ", version_build(VB_NAME | VB_BUILD));
+#endif
+
+    if (flag & META_START)
+    {
+        if ((MetaSocket = CreateDgramSocket(0)) == -1)
+            quit("Couldn't create meta-server Dgram socket");
+
+        if (SetSocketNonBlocking(MetaSocket, 1) == -1)
+            quit("Can't make socket non-blocking");
+
+        if (Sockbuf_init(&meta_buf, MetaSocket, SERVER_SEND_SIZE,
+            SOCKBUF_READ | SOCKBUF_WRITE | SOCKBUF_DGRAM) == -1)
+        {
+            quit("No memory for sockbuf buffer");
+        }
+
+        Sockbuf_clear(&meta_buf);
+#ifdef OLD_MANG_FORMAT
+        my_strcat(buf, " Number of players: 0 ", sizeof(buf));
+#else
+        my_strcat(buf, "(no players)", sizeof(buf));
+#endif
+    }
+
+    else if (flag & META_DIE)
+    {
+#ifndef OLD_MANG_FORMAT
+        my_strcat(buf, "(down)", sizeof(buf));
+#endif
+    }
+
+    else if (flag & META_UPDATE)
+    {
+        /*
+         * Hack -- if cfg_secret_dungeon_master is enabled, determine
+         * if the Dungeon Master is playing, and if so, reduce the
+         * number of players reported.
+         */
+        for (i = 1; i <= NumPlayers; i++)
+        {
+            if (player_get(i)->dm_flags & DM_SECRET_PRESENCE) hidden_dungeon_master++;
+        }
+
+        /* If someone other than a dungeon master is playing */
+        if (NumPlayers - hidden_dungeon_master)
+        {
+            /* Tell the metaserver about everyone except hidden dungeon masters */
+#ifdef OLD_MANG_FORMAT
+            strnfmt(temp, sizeof(temp),
+                " Number of players: %d Names:", NumPlayers - hidden_dungeon_master);
+#else
+            strnfmt(temp, sizeof(temp), "Players (%d):", NumPlayers - hidden_dungeon_master);
+#endif
+            my_strcat(buf, temp, sizeof(buf));
+            for (i = 1; i <= NumPlayers; i++)
+            {
+                struct player *p = player_get(i);
+
+                /* Handle the cfg_secret_dungeon_master option */
+                if (p->dm_flags & DM_SECRET_PRESENCE) continue;
+                my_strcat(buf, " ", sizeof(buf));
+                my_strcat(buf, player_safe_name(p->name), sizeof(buf));
+            }
+        }
+        else
+        {
+#ifdef OLD_MANG_FORMAT
+            my_strcat(buf, " Number of players: 0", sizeof(buf));
+#else
+            my_strcat(buf, "(no players)", sizeof(buf));
+#endif
+        }
+    }
+
+#ifdef OLD_MANG_FORMAT
+    /* Append the version number */
+    strnfmt(temp, sizeof(temp), " Version: %s", version_build(VB_BASE | VB_BUILD));
+
+    if (!(flag & META_DIE)) my_strcat(buf, temp, sizeof(buf));
+#endif
+
+    /* If we haven't setup the meta connection yet, abort */
+    if (MetaSocket == -1) return false;
+
+    Sockbuf_clear(&meta_buf);
+
+    Packet_printf(&meta_buf, "%S", buf);
+
+    bytes = DgramSend(MetaSocket, cfg_meta_address, 8800, meta_buf.buf, meta_buf.len);
+    if (bytes == -1)
+    {
+        plog("Couldn't send info to meta-server!");
+        return false;
+    }
+
     return true;
 }
 
@@ -862,21 +981,24 @@ static void Delete_player(int id)
     char buf[255];
     int i;
     struct monster *mon;
-    struct source who_body;
-    struct source *who = &who_body;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct actor who_body;
+    struct actor *who = &who_body;
+    struct chunk *c = chunk_get(p->depth);
     struct chunk *c_last = NULL;
 
-    source_player(who, id, p);
+    ACTOR_PLAYER(who, id, p);
 
     /* Be paranoid */
     if (c)
     {
         /* Remove the player */
-        square_set_mon(c, &p->grid, 0);
+        c->squares[p->py][p->px].mon = 0;
 
         /* Redraw */
-        square_light_spot(c, &p->grid);
+        square_light_spot(c, p->py, p->px);
+
+        /* Forget the view */
+        forget_view(p, c);
 
         /* Free monsters from slavery */
         for (i = 1; i < cave_monster_max(c); i++)
@@ -898,7 +1020,7 @@ static void Delete_player(int id)
     channels_leave(p);
 
     /* Hack -- unstatic if the DM left while manually designing a dungeon level */
-    if (chunk_inhibit_players(&p->wpos)) chunk_set_player_count(&p->wpos, 0);
+    if (chunk_inhibit_players(c->depth)) chunk_set_player_count(c->depth, 0);
 
     /* Try to save his character */
     save_player(p);
@@ -925,8 +1047,8 @@ static void Delete_player(int id)
     {
         struct player *q = player_get(i);
         struct actor_race *monster_race = &q->upkeep->monster_race;
-        struct source *cursor_who = &q->cursor_who;
-        struct source *health_who = &q->upkeep->health_who;
+        struct actor *cursor_who = &q->cursor_who;
+        struct actor *health_who = &q->upkeep->health_who;
 
         if (q == p) continue;
 
@@ -937,10 +1059,10 @@ static void Delete_player(int id)
         if (target_equals(q, who)) target_set_monster(q, NULL);
 
         /* Cancel tracking */
-        if (source_equal(cursor_who, who)) cursor_track(q, NULL);
+        if (ACTOR_EQUAL(cursor_who, who)) cursor_track(q, NULL);
 
         /* Cancel the health bar */
-        if (source_equal(health_who, who)) health_track(q->upkeep, NULL);
+        if (ACTOR_EQUAL(health_who, who)) health_track(q->upkeep, NULL);
     }
 
     /* Swap entry number 'id' with the last one */
@@ -949,8 +1071,8 @@ static void Delete_player(int id)
     {
         struct player *q = player_get(NumPlayers);
 
-        c_last = chunk_get(&q->wpos);
-        if (c_last) square_set_mon(c_last, &q->grid, 0 - id);
+        c_last = chunk_get(q->depth);
+        if (c_last) c_last->squares[q->py][q->px].mon = 0 - id;
         player_set(NumPlayers, player_get(id));
         player_set(id, q);
         set_player_index(get_connection(player_get(id)->conn), id);
@@ -992,9 +1114,8 @@ static void wipe_connection(connection_t *connp)
     char (*f_char)[LIGHTING_MAX];
     byte (*t_attr)[LIGHTING_MAX];
     char (*t_char)[LIGHTING_MAX];
-    byte *flvr_x_attr;
-    char *flvr_x_char;
-    char (*note_aware)[4];
+    byte* flvr_x_attr;
+    char* flvr_x_char;
     bool has_setup = connp->has_setup;
 
     /* Save */
@@ -1010,7 +1131,6 @@ static void wipe_connection(connection_t *connp)
         f_char = connp->Client_setup.f_char;
         t_char = connp->Client_setup.t_char;
         flvr_x_char = connp->Client_setup.flvr_x_char;
-        note_aware = connp->Client_setup.note_aware;
     }
 
     /* Wipe */
@@ -1030,7 +1150,6 @@ static void wipe_connection(connection_t *connp)
         connp->Client_setup.f_char = f_char;
         connp->Client_setup.t_char = t_char;
         connp->Client_setup.flvr_x_char = flvr_x_char;
-        connp->Client_setup.note_aware = note_aware;
     }
 }
 
@@ -1041,41 +1160,42 @@ static void wipe_connection(connection_t *connp)
  * closed.  If our connection to it has been closed, then connp->w.sock will
  * be set to -1.
  */
-void Destroy_connection(int ind, char *reason)
+bool Destroy_connection(int ind, char *reason)
 {
     connection_t *connp = get_connection(ind);
+    int len, sock;
+    char pkt[NORMAL_WID];
 
     if (connp->state == CONN_FREE)
     {
         errno = 0;
         plog_fmt("Cannot destroy empty connection (\"%s\")", reason);
-        return;
+        return true;
     }
+
+    sock = connp->w.sock;
+    if (sock != -1) remove_input(sock);
 
     if (connp->conntype == CONNTYPE_PLAYER)
     {
-        if (connp->w.sock != -1)
+        my_strcpy(&pkt[1], reason, sizeof(pkt) - 2);
+        pkt[0] = PKT_QUIT;
+        len = strlen(pkt) + 2;
+        pkt[len - 1] = PKT_END;
+        pkt[len] = '\0';
+        if (sock != -1)
         {
-            char pkt[NORMAL_WID];
-            int len;
-
-            pkt[0] = PKT_QUIT;
-            my_strcpy(&pkt[1], reason, sizeof(pkt) - 2);
-            len = strlen(pkt) + 2;
-            pkt[len - 1] = PKT_END;
-            pkt[len] = '\0';
-
-            if (DgramWrite(connp->w.sock, pkt, len) != len)
+            if (DgramWrite(sock, pkt, len) != len)
             {
-                GetSocketError(connp->w.sock);
-                DgramWrite(connp->w.sock, pkt, len);
+                GetSocketError(sock);
+                DgramWrite(sock, pkt, len);
             }
         }
         plog_fmt("Goodbye %s=%s@%s (\"%s\")", (connp->nick? connp->nick: ""),
             (connp->real? connp->real: ""), (connp->host? connp->host: ""), reason);
     }
 
-    Conn_set_state(connp, CONN_FREE, FREE_TIMEOUT);
+    Conn_set_state(connp, CONN_FREE);
 
     if (connp->id != -1) Delete_player(get_player_index(connp));
     string_free(connp->real);
@@ -1083,21 +1203,18 @@ void Destroy_connection(int ind, char *reason)
     string_free(connp->addr);
     string_free(connp->host);
     string_free(connp->pass);
-    string_free(connp->quit_msg);
     Sockbuf_cleanup(&connp->w);
     Sockbuf_cleanup(&connp->r);
     Sockbuf_cleanup(&connp->c);
     Sockbuf_cleanup(&connp->q);
 
-    if (connp->w.sock != -1)
-    {
-        DgramClose(connp->w.sock);
-        remove_input(connp->w.sock);
-    }
-
     wipe_connection(connp);
 
     num_logouts++;
+
+    if (sock != -1) DgramClose(sock);
+
+    return true;
 }
 
 
@@ -1122,7 +1239,6 @@ void Stop_net_server(void)
             mem_free(connp->Client_setup.t_char);
             mem_free(connp->Client_setup.flvr_x_attr);
             mem_free(connp->Client_setup.flvr_x_char);
-            mem_free(connp->Client_setup.note_aware);
         }
     }
 
@@ -1320,7 +1436,7 @@ int Init_setup(void)
 }
 
 
-byte *Conn_get_console_channels(int ind)
+byte* Conn_get_console_channels(int ind)
 {
     connection_t *connp = get_connection(ind);
     return connp->console_channels;
@@ -1367,12 +1483,11 @@ int Send_limits_struct_info(int ind)
         return -1;
     }
 
-    if (Packet_printf(&connp->c, "%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu", (unsigned)z_info->a_max,
+    if (Packet_printf(&connp->c, "%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu", (unsigned)z_info->a_max,
         (unsigned)z_info->e_max, (unsigned)z_info->k_max, (unsigned)z_info->r_max,
         (unsigned)z_info->f_max, (unsigned)z_info->trap_max, (unsigned)flavor_max,
         (unsigned)z_info->pack_size, (unsigned)z_info->quiver_size, (unsigned)z_info->floor_size,
-        (unsigned)z_info->quiver_slot_size, (unsigned)z_info->store_inven_max,
-        (unsigned)z_info->curse_max) <= 0)
+        (unsigned)z_info->stack_size, (unsigned)z_info->store_inven_max) <= 0)
     {
         Destroy_connection(ind, "Send_limits_struct_info write error");
         return -1;
@@ -1451,7 +1566,7 @@ int Send_race_struct_info(int ind)
         }
         for (j = 0; j < ELEM_MAX; j++)
         {
-            if (Packet_printf(&connp->c, "%hd", r->el_info[j].res_level) <= 0)
+            if (Packet_printf(&connp->c, "%b", (unsigned)r->el_info[j].res_level) <= 0)
             {
                 Destroy_connection(ind, "Send_race_struct_info write error");
                 return -1;
@@ -1513,7 +1628,7 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
-        if (Packet_printf(&connp->c, "%b", (unsigned)c->c_mhp) <= 0)
+        if (Packet_printf(&connp->c, "%b%hd", (unsigned)c->c_mhp, (int)c->c_exp) <= 0)
         {
             Destroy_connection(ind, "Send_class_struct_info write error");
             return -1;
@@ -1526,22 +1641,11 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
-        if (Packet_printf(&connp->c, "%b%b%c", (unsigned)c->magic.total_spells, (unsigned)tval,
-            c->magic.num_books) <= 0)
+        if (Packet_printf(&connp->c, "%b%b%b%c", (unsigned)c->magic.spell_realm->index,
+            (unsigned)c->magic.total_spells, (unsigned)tval, c->magic.num_books) <= 0)
         {
             Destroy_connection(ind, "Send_class_struct_info write error");
             return -1;
-        }
-        for (j = 0; j < (u32b)c->magic.num_books; j++)
-        {
-            struct class_book *book = &c->magic.books[j];
-
-            if (Packet_printf(&connp->c, "%b%b%s", (unsigned)book->tval, (unsigned)book->sval,
-                book->realm->name) <= 0)
-            {
-                Destroy_connection(ind, "Send_class_struct_info write error");
-                return -1;
-            }
         }
     }
 
@@ -1707,7 +1811,7 @@ int Send_ego_struct_info(int ind)
     for (i = 0; i < (u32b)z_info->e_max; i++)
     {
         u16b max = 0;
-        struct poss_item *poss;
+        struct ego_poss_item *poss;
 
         if (Packet_printf(&connp->c, "%s", (e_info[i].name? e_info[i].name: "")) <= 0)
         {
@@ -1867,205 +1971,6 @@ int Send_rbinfo_struct_info(int ind)
 }
 
 
-int Send_curse_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    u32b i;
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for curse info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_CURSES,
-        (unsigned)z_info->curse_max) <= 0)
-    {
-        Destroy_connection(ind, "Send_curse_struct_info write error");
-        return -1;
-    }
-
-    for (i = 0; i < (u32b)z_info->curse_max; i++)
-    {
-        if (Packet_printf(&connp->c, "%s", (curses[i].name? curses[i].name: "")) <= 0)
-        {
-            Destroy_connection(ind, "Send_curse_struct_info write error");
-            return -1;
-        }
-
-        /* Transfer other fields here */
-        if (Packet_printf(&connp->c, "%s", (curses[i].desc? curses[i].desc: "")) <= 0)
-        {
-            Destroy_connection(ind, "Send_curse_struct_info write error");
-            return -1;
-        }
-    }
-
-    return 1;
-}
-
-
-int Send_realm_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    u16b max = 0;
-    struct magic_realm *realm;
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for realm info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    /* Count player magic realms */
-    for (realm = realms; realm; realm = realm->next) max++;
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_REALM,
-        (unsigned)max) <= 0)
-    {
-        Destroy_connection(ind, "Send_realm_struct_info write error");
-        return -1;
-    }
-
-    for (realm = realms; realm; realm = realm->next)
-    {
-        const char *spell_noun = (realm->spell_noun? realm->spell_noun: "");
-        const char *verb = (realm->verb? realm->verb: "");
-
-        if (Packet_printf(&connp->c, "%s", realm->name) <= 0)
-        {
-            Destroy_connection(ind, "Send_realm_struct_info write error");
-            return -1;
-        }
-
-        /* Transfer other fields here */
-        if (Packet_printf(&connp->c, "%s%s", spell_noun, verb) <= 0)
-        {
-            Destroy_connection(ind, "Send_realm_struct_info write error");
-            return -1;
-        }
-    }
-
-    return 1;
-}
-
-
-int Send_feat_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    u32b i;
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for feat info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_FEAT,
-        (unsigned)z_info->f_max) <= 0)
-    {
-        Destroy_connection(ind, "Send_feat_struct_info write error");
-        return -1;
-    }
-
-    for (i = 0; i < (u32b)z_info->f_max; i++)
-    {
-        if (Packet_printf(&connp->c, "%s", (f_info[i].name? f_info[i].name: "")) <= 0)
-        {
-            Destroy_connection(ind, "Send_feat_struct_info write error");
-            return -1;
-        }
-    }
-
-    return 1;
-}
-
-
-int Send_trap_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    u32b i;
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for trap info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_TRAP,
-        (unsigned)z_info->trap_max) <= 0)
-    {
-        Destroy_connection(ind, "Send_trap_struct_info write error");
-        return -1;
-    }
-
-    for (i = 0; i < (u32b)z_info->trap_max; i++)
-    {
-        if (Packet_printf(&connp->c, "%s", (trap_info[i].desc? trap_info[i].desc: "")) <= 0)
-        {
-            Destroy_connection(ind, "Send_trap_struct_info write error");
-            return -1;
-        }
-    }
-
-    return 1;
-}
-
-
-int Send_timed_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    size_t i;
-    byte dummy = 1;
-    byte dummy1 = 0;
-    int dummy2 = 0;
-    const char *dummy3 = "";
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for timed info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_TIMED,
-        (unsigned)TMD_MAX) <= 0)
-    {
-        Destroy_connection(ind, "Send_timed_struct_info write error");
-        return -1;
-    }
-
-    for (i = 0; i < TMD_MAX; i++)
-    {
-        struct timed_effect_data *effect = &timed_effects[i];
-        struct timed_grade *grade = effect->grade;
-
-        while (grade)
-        {
-            if (Packet_printf(&connp->c, "%b%b%hd%s", (unsigned)dummy, (unsigned)grade->color,
-                grade->max, (grade->name? grade->name: "")) <= 0)
-            {
-                Destroy_connection(ind, "Send_timed_struct_info write error");
-                return -1;
-            }
-            grade = grade->next;
-        }
-    }
-
-    if (Packet_printf(&connp->c, "%b%b%hd%s", (unsigned)dummy, (unsigned)dummy1, dummy2, dummy3) <= 0)
-    {
-        Destroy_connection(ind, "Send_timed_struct_info write error");
-        return -1;
-    }
-
-    return 1;
-}
-
-
 static connection_t *get_connp(struct player *p, const char *errmsg)
 {
     connection_t *connp;
@@ -2094,10 +1999,10 @@ int Send_death_cause(struct player *p)
     connection_t *connp = get_connp(p, "death_cause");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%s%hd%ld%ld%hd%hd%hd%s%s", (unsigned)PKT_DEATH_CAUSE,
+    return Packet_printf(&connp->c, "%b%s%hd%ld%ld%hd%s%s", (unsigned)PKT_DEATH_CAUSE,
         p->death_info.title, (int)p->death_info.lev, p->death_info.exp,
-        p->death_info.au, (int)p->death_info.wpos.grid.y, (int)p->death_info.wpos.grid.x,
-        (int)p->death_info.wpos.depth, p->death_info.died_from, p->death_info.ctime);
+        p->death_info.au, (int)p->death_info.depth, p->death_info.died_from,
+        p->death_info.ctime);
 }
 
 
@@ -2212,20 +2117,6 @@ int Send_history(struct player *p, int line, const char *hist)
 }
 
 
-int Send_autoinscription(struct player *p, struct object_kind *kind)
-{
-    const char *note;
-
-    connection_t *connp = get_connp(p, "autoinscriptions");
-    if (connp == NULL) return 0;
-
-    note = get_autoinscription(p, kind);
-    if (!note) note = "";
-
-    return Packet_printf(&connp->c, "%b%lu%s", (unsigned)PKT_AUTOINSCR, kind->kidx, note);
-}
-
-
 int Send_index(struct player *p, int i, int index, byte type)
 {
     connection_t *connp = get_connp(p, "index");
@@ -2235,13 +2126,12 @@ int Send_index(struct player *p, int i, int index, byte type)
 }
 
 
-int Send_item_request(struct player *p, byte tester_hook, char *dice_string)
+int Send_item_request(struct player *p, byte tester_hook)
 {
     connection_t *connp = get_connp(p, "item request");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%b%s", (unsigned)PKT_ITEM_REQUEST, (unsigned)tester_hook,
-        dice_string);
+    return Packet_printf(&connp->c, "%b%b", (unsigned)PKT_ITEM_REQUEST, (unsigned)tester_hook);
 }
 
 
@@ -2264,12 +2154,12 @@ int Send_turn(struct player *p, u32b game_turn, u32b player_turn, u32b active_tu
 }
 
 
-int Send_depth(struct player *p, int depth, int maxdepth, const char *depths)
+int Send_depth(struct player *p, int depth, int maxdepth)
 {
     connection_t *connp = get_connp(p, "depth");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%s", (unsigned)PKT_DEPTH, depth, maxdepth, depths);
+    return Packet_printf(&connp->c, "%b%hd%hd", (unsigned)PKT_DEPTH, depth, maxdepth);
 }
 
 
@@ -2308,12 +2198,12 @@ int Send_recall(struct player *p, s16b word_recall, s16b deep_descent)
 }
 
 
-int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring)
+int Send_state(struct player *p, bool searching, bool resting, bool unignoring)
 {
     connection_t *connp = get_connp(p, "state");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd", (unsigned)PKT_STATE, (int)stealthy,
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd", (unsigned)PKT_STATE, (int)searching,
         (int)resting, (int)unignoring, (int)p->obj_feeling, (int)p->mon_feeling);
 }
 
@@ -2321,9 +2211,12 @@ int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring)
 /*
  * Encodes and sends an attr/char pairs stream using one of the following "mode"s:
  *
- * RLE_NONE - no encoding is performed, the stream is sent as is (3 bytes per grid).
- * RLE_CLASSIC - classic mangband encoding, the attr is ORed with 0x40, uses 5 bytes per repetition
- * RLE_LARGE - same as RLE_CLASSIC, but the attr is ORed with 0x8000 to transfer high-bit attr/chars
+ * RLE_NONE - no encoding is performed, the stream is sent as is.
+ * RLE_CLASSIC - classic mangband encoding, the attr is ORed with 0x40,
+ *               uses 3 bytes per repetition
+ * RLE_LARGE - a more traffic-consuming routine, which is using a separate
+ *             byte to mark the repetition spot (making it 4 bytes per rep.),
+ *             but it can be used to transfer high-bit attr/chars
  *
  * "lineref" is a pointer to an attr/char array, and "max_col" is specifying its size
  *
@@ -2334,6 +2227,7 @@ static int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
     int x1, i;
     char c;
     u16b a, n;
+    int dummy = -1;
 
     /* Count bytes */
     int b = 0;
@@ -2359,23 +2253,20 @@ static int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
             x1++;
         }
 
-        /* RLE_LARGE if there are at least 2 similar grids in a row */
-        if ((mode == RLE_LARGE) && (n >= 2))
+        /* RLE-II if there are at least 3 similar grids in a row */
+        if ((mode == RLE_LARGE) && (n >= 3))
         {
-            /* Set bit 0x8000 of a */
-            a |= 0x8000;
-
             /* Output the info */
-            Packet_printf(buf, "%c%hu%hu", (int)c, (unsigned)a, (unsigned)n);
+            Packet_printf(buf, "%c%hu%c%hu", dummy, (unsigned)n, (int)c, (unsigned)a);
 
             /* Start again after the run */
             i = x1 - 1;
 
             /* Count bytes */
-            b += 5;
+            b += 6;
         }
 
-        /* RLE_CLASSIC if there are at least 2 similar grids in a row */
+        /* RLE-I if there are at least 2 similar grids in a row */
         else if ((mode == RLE_CLASSIC) && (n >= 2))
         {
             /* Set bit 0x40 of a */
@@ -2390,11 +2281,9 @@ static int rle_encode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
             /* Count bytes */
             b += 5;
         }
-
-        /* Normal, single grid */
         else
         {
-            /* Output the info */
+            /* Normal, single grid */
             Packet_printf(buf, "%c%hu", (int)c, (unsigned)a);
 
             /* Count bytes */
@@ -2525,12 +2414,12 @@ int Send_remote_line(struct player *p, int y)
 }
 
 
-int Send_speed(struct player *p, int speed, int mult)
+int Send_speed(struct player *p, int speed)
 {
     connection_t *connp = get_connp(p, "speed");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd", (unsigned)PKT_SPEED, speed, mult);
+    return Packet_printf(&connp->c, "%b%hd", (unsigned)PKT_SPEED, speed);
 }
 
 
@@ -2562,7 +2451,7 @@ int Send_show_floor(struct player *p, byte mode)
 }
 
 
-int Send_char(struct player *p, struct loc *grid, u16b a, char c, u16b ta, char tc)
+int Send_char(struct player *p, int x, int y, u16b a, char c, u16b ta, char tc)
 {
     connection_t *connp, *connp2;
 
@@ -2590,23 +2479,23 @@ int Send_char(struct player *p, struct loc *grid, u16b a, char c, u16b ta, char 
 
         if (p_ptr2->use_graphics && (p_ptr2->remote_term == NTERM_WIN_OVERHEAD))
         {
-            Packet_printf(&connp2->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-                (unsigned)grid->y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
+            Packet_printf(&connp2->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)x,
+                (unsigned)y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
         }
         else
         {
-            Packet_printf(&connp2->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-                (unsigned)grid->y, (unsigned)a, (int)c);
+            Packet_printf(&connp2->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)x, (unsigned)y,
+                (unsigned)a, (int)c);
         }
     }
 
     if (p->use_graphics && (p->remote_term == NTERM_WIN_OVERHEAD))
     {
-        return Packet_printf(&connp->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-            (unsigned)grid->y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
+        return Packet_printf(&connp->c, "%b%b%b%hu%c%hu%c", (unsigned)PKT_CHAR, (unsigned)x,
+            (unsigned)y, (unsigned)a, (int)c, (unsigned)ta, (int)tc);
     }
-    return Packet_printf(&connp->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)grid->x,
-        (unsigned)grid->y, (unsigned)a, (int)c);
+    return Packet_printf(&connp->c, "%b%b%b%hu%c", (unsigned)PKT_CHAR, (unsigned)x, (unsigned)y,
+        (unsigned)a, (int)c);
 }
 
 
@@ -2622,16 +2511,8 @@ int Send_spell_info(struct player *p, int book, int i, const char *out_val,
 }
 
 
-int Send_book_info(struct player *p, int book, const char *name)
-{
-    connection_t *connp = get_connp(p, "book info");
-    if (connp == NULL) return 0;
-
-    return Packet_printf(&connp->c, "%b%hd%s", (unsigned)PKT_BOOK_INFO, book, name);
-}
-
-
-int Send_floor(struct player *p, byte num, const struct object *obj, struct object_xtra *info_xtra)
+int Send_floor(struct player *p, byte num, const struct object *obj,
+    struct object_xtra *info_xtra)
 {
     byte ignore = ((obj->known->notice & OBJ_NOTICE_IGNORE)? 1: 0);
     connection_t *connp = get_connp(p, "floor");
@@ -2640,14 +2521,12 @@ int Send_floor(struct player *p, byte num, const struct object *obj, struct obje
     Packet_printf(&connp->c, "%b%b", (unsigned)PKT_FLOOR, (unsigned)num);
     Packet_printf(&connp->c, "%b%b%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
-        (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
-        (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->known,
-        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->carry,
-        (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
-        (unsigned)info_xtra->magic, info_xtra->bidx);
-    Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,
-        info_xtra->name_base, info_xtra->name_curse, info_xtra->name_power);
+    Packet_printf(&connp->c, "%b%b%b%b%hd%b%b%b%b%b%hd%hd", (unsigned)info_xtra->attr,
+        (unsigned)info_xtra->act, (unsigned)info_xtra->fuel, (unsigned)info_xtra->fail,
+        info_xtra->slot, (unsigned)info_xtra->known, (unsigned)info_xtra->carry,
+        (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored,
+        (unsigned)info_xtra->ego_ignore, info_xtra->eidx, info_xtra->bidx);
+    Packet_printf(&connp->c, "%s%s%s", info_xtra->name, info_xtra->name_terse, info_xtra->name_base);
 
     return 1;
 }
@@ -2671,14 +2550,14 @@ int Send_special_other(struct player *p, char *header, byte peruse, bool protect
 
 
 int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number, byte owned,
-    s32b price, byte tval, byte max, s16b bidx, const char *name)
+    s32b price, byte tval, byte max, const char *name)
 {
     connection_t *connp = get_connp(p, "store");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%b%b%hd%s", (unsigned)PKT_STORE,
+    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%b%b%s", (unsigned)PKT_STORE,
         (int)pos, (unsigned)attr, (int)wgt, (unsigned)number, (unsigned)owned,
-        price, (unsigned)tval, (unsigned)max, (int)bidx, name);
+        price, (unsigned)tval, (unsigned)max, name);
 }
 
 
@@ -2749,9 +2628,9 @@ int Send_skills(struct player *p)
     /* Basic abilities */
     skills[2] = p->state.skills[SKILL_SAVE];
     skills[3] = p->state.skills[SKILL_STEALTH];
-    skills[4] = p->state.skills[SKILL_SEARCH];
-    skills[5] = p->state.skills[SKILL_DISARM_PHYS];
-    skills[6] = p->state.skills[SKILL_DISARM_MAGIC];
+    skills[4] = p->state.skills[SKILL_SEARCH_FREQUENCY];
+    skills[5] = p->state.skills[SKILL_SEARCH];
+    skills[6] = p->state.skills[SKILL_DISARM];
     skills[7] = p->state.skills[SKILL_DEVICE];
 
     /* Number of blows */
@@ -2916,8 +2795,8 @@ int Send_player_pos(struct player *p)
     connection_t *connp = get_connp(p, "player pos");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd", (unsigned)PKT_PLAYER, (int)p->grid.x,
-        (int)p->offset_grid.x, (int)p->grid.y, (int)p->offset_grid.y);
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd", (unsigned)PKT_PLAYER, (int)p->px,
+        (int)p->offset_x, (int)p->py, (int)p->offset_y);
 }
 
 
@@ -2933,20 +2812,6 @@ int Send_play(int ind)
     }
 
     return Packet_printf(&connp->c, "%b", (unsigned)PKT_PLAY);
-}
-
-
-int Send_features(int ind, int lighting, int off)
-{
-    connection_t *connp = get_connection(ind);
-
-    if (Packet_printf(&connp->c, "%b%hd%hd", (unsigned)PKT_FEATURES, lighting, off) <= 0)
-    {
-        Destroy_connection(ind, "Send_features write error");
-        return -1;
-    }
-
-    return 1;
 }
 
 
@@ -3038,17 +2903,11 @@ int Send_birth_options(int ind, struct birth_options *options)
 }
 
 
-/*
- * Send a character dump to the client
- *
- * mode: 1 = normal dump, 2 = manual death dump
- */
-bool Send_dump_character(connection_t *connp, const char *dumpname, int mode)
+bool Send_dump_character(connection_t *connp, const char *dumpname, bool dump_only)
 {
     char pathname[MSG_LEN];
     char buf[MSG_LEN];
     ang_file *fp;
-    const char *tok;
 
     /* Build the filename */
     path_build(pathname, sizeof(pathname), ANGBAND_DIR_SCORES, dumpname);
@@ -3058,24 +2917,14 @@ bool Send_dump_character(connection_t *connp, const char *dumpname, int mode)
     if (!fp) return false;
 
     /* Begin sending */
-    switch (mode)
-    {
-        case 1: tok = "BEGIN_NORMAL_DUMP"; break;
-        case 2: tok = "BEGIN_MANUAL_DUMP"; break;
-    }
-    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, tok);
+    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, (dump_only? "BEGIN_DUMP_ONLY": "BEGIN"));
 
     /* Process the file */
     while (file_getl(fp, buf, sizeof(buf)))
         Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, buf);
 
     /* End sending */
-    switch (mode)
-    {
-        case 1: tok = "END_NORMAL_DUMP"; break;
-        case 2: tok = "END_MANUAL_DUMP"; break;
-    }
-    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, tok);
+    Packet_printf(&connp->c, "%b%s", (unsigned)PKT_CHAR_DUMP, "END");
 
     /* Close the file */
     file_close(fp);
@@ -3118,16 +2967,15 @@ int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
         price, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
 
     /* Extra info */
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
-        (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
-        (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->stuck,
-        (unsigned)info_xtra->known, (unsigned)info_xtra->known_effect, (unsigned)info_xtra->sellable,
-        (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
-        (unsigned)info_xtra->magic, info_xtra->bidx);
+    Packet_printf(&connp->c, "%b%b%b%b%hd%b%b%b%b%b%b%hd%hd", (unsigned)info_xtra->attr,
+        (unsigned)info_xtra->act, (unsigned)info_xtra->fuel, (unsigned)info_xtra->fail,
+        info_xtra->slot, (unsigned)info_xtra->cursed, (unsigned)info_xtra->known,
+        (unsigned)info_xtra->sellable, (unsigned)info_xtra->quality_ignore,
+        (unsigned)info_xtra->ignored, (unsigned)info_xtra->ego_ignore, info_xtra->eidx,
+        info_xtra->bidx);
 
     /* Descriptions */
-    Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,
-        info_xtra->name_base, info_xtra->name_curse, info_xtra->name_power);
+    Packet_printf(&connp->c, "%s%s%s", info_xtra->name, info_xtra->name_terse, info_xtra->name_base);
 
     return 1;
 }
@@ -3247,7 +3095,7 @@ int Send_ignore(struct player *p)
 
     /* Quality ignoring */
     for (i = ITYPE_NONE; i < ITYPE_MAX; i++)
-        Packet_printf(&connp->c, "%b", (unsigned)p->opts.ignore_lvl[i]);
+        Packet_printf(&connp->c, "%b", (unsigned)p->other.ignore_lvl[i]);
 
     return 1;
 }
@@ -3302,6 +3150,17 @@ int cmd_rest(struct player *p, s16b resting)
 }
 
 
+int cmd_search(struct player *p)
+{
+    byte starting = 0;
+
+    connection_t *connp = get_connp(p, "search");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->q, "%b%b", (unsigned)PKT_SEARCH, (unsigned)starting);
+}
+
+
 int cmd_tunnel(struct player *p)
 {
     byte starting = 0;
@@ -3311,29 +3170,6 @@ int cmd_tunnel(struct player *p)
 
     return Packet_printf(&connp->q, "%b%c%b", (unsigned)PKT_TUNNEL, (int)p->digging_dir,
         (unsigned)starting);
-}
-
-
-int cmd_fire_at_nearest(struct player *p)
-{
-    byte starting = 0;
-
-    connection_t *connp = get_connp(p, "fire_at_nearest");
-    if (connp == NULL) return 0;
-
-    return Packet_printf(&connp->q, "%b%b", (unsigned)PKT_FIRE_AT_NEAREST, (unsigned)starting);
-}
-
-
-int cmd_cast(struct player *p, s16b book, s16b spell, int dir)
-{
-    byte starting = 0;
-
-    connection_t *connp = get_connp(p, "cast");
-    if (connp == NULL) return 0;
-
-    return Packet_printf(&connp->q, "%b%hd%hd%c%b", (unsigned)PKT_SPELL, (int)book, (int)spell,
-        (int)dir, (unsigned)starting);
 }
 
 
@@ -3363,53 +3199,6 @@ static int Receive_undefined(int ind)
 }
 
 
-static int Receive_features(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    int n, local_size, i;
-    byte ch;
-    char lighting;
-    s16b len, off;
-    bool discard = false;
-    byte a;
-    char c;
-
-    if ((n = Packet_scanf(&connp->r, "%b%c%hd%hd", &ch, &lighting, &len, &off)) <= 0)
-    {
-        if (n == -1) Destroy_connection(ind, "Receive_features read error");
-        return n;
-    }
-
-    /* Paranoia */
-    if ((lighting < 0) || (lighting >= LIGHTING_MAX)) discard = true;
-
-    /* Size */
-    local_size = z_info->f_max;
-
-    /* Finally read the data */
-    for (i = off; i < off + len; i++)
-    {
-        if ((n = Packet_scanf(&connp->r, "%b%c", &a, &c)) <= 0)
-        {
-            if (n == -1) Destroy_connection(ind, "Receive_features read error");
-            return n;
-        }
-
-        /* Check size */
-        if (i >= local_size) discard = true;
-
-        if (discard) continue;
-
-        connp->Client_setup.f_attr[i][lighting] = a;
-        connp->Client_setup.f_char[i][lighting] = c;
-    }
-
-    Send_features(ind, lighting, off + len);
-
-    return 2;
-}
-
-
 static int Receive_verify(int ind)
 {
     connection_t *connp = get_connection(ind);
@@ -3425,7 +3214,7 @@ static int Receive_verify(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &type, &size)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_verify read error");
+        if (n == -1) Destroy_connection(ind, "verify read error");
         return n;
     }
 
@@ -3433,10 +3222,11 @@ static int Receive_verify(int ind)
     switch (type)
     {
         case 0: local_size = get_flavor_max(); break;
-        case 1: local_size = z_info->k_max; break;
-        case 2: local_size = z_info->r_max; break;
-        case 3: local_size = PROJ_MAX * BOLT_MAX; break;
-        case 4: local_size = z_info->trap_max * LIGHTING_MAX; break;
+        case 1: local_size = z_info->f_max * LIGHTING_MAX; break;
+        case 2: local_size = z_info->k_max; break;
+        case 3: local_size = z_info->r_max; break;
+        case 4: local_size = GF_MAX * BOLT_MAX; break;
+        case 5: local_size = z_info->trap_max * LIGHTING_MAX; break;
         default: discard = true;
     }
     if (local_size != size) discard = true;
@@ -3446,7 +3236,7 @@ static int Receive_verify(int ind)
     {
         if ((n = Packet_scanf(&connp->r, "%b%c", &a, &c)) <= 0)
         {
-            if (n == -1) Destroy_connection(ind, "Receive_verify read error");
+            if (n == -1) Destroy_connection(ind, "verify_visual read error");
             return n;
         }
 
@@ -3459,18 +3249,22 @@ static int Receive_verify(int ind)
                 connp->Client_setup.flvr_x_char[i] = c;
                 break;
             case 1:
+                connp->Client_setup.f_attr[i / LIGHTING_MAX][i % LIGHTING_MAX] = a;
+                connp->Client_setup.f_char[i / LIGHTING_MAX][i % LIGHTING_MAX] = c;
+                break;
+            case 2:
                 connp->Client_setup.k_attr[i] = a;
                 connp->Client_setup.k_char[i] = c;
                 break;
-            case 2:
+            case 3:
                 connp->Client_setup.r_attr[i] = a;
                 connp->Client_setup.r_char[i] = c;
                 break;
-            case 3:
-                connp->Client_setup.proj_attr[i / BOLT_MAX][i % BOLT_MAX] = a;
-                connp->Client_setup.proj_char[i / BOLT_MAX][i % BOLT_MAX] = c;
-                break;
             case 4:
+                connp->Client_setup.gf_attr[i / BOLT_MAX][i % BOLT_MAX] = a;
+                connp->Client_setup.gf_char[i / BOLT_MAX][i % BOLT_MAX] = c;
+                break;
+            case 5:
                 connp->Client_setup.t_attr[i / LIGHTING_MAX][i % LIGHTING_MAX] = a;
                 connp->Client_setup.t_char[i / LIGHTING_MAX][i % LIGHTING_MAX] = c;
                 break;
@@ -3491,7 +3285,8 @@ static int Receive_icky(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &icky)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_icky read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_icky read error");
         return n;
     }
 
@@ -3516,7 +3311,8 @@ static int Receive_symbol_query(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_symbol_query read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_symbol_query read error");
         return n;
     }
 
@@ -3542,7 +3338,8 @@ static int Receive_poly_race(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_poly_race read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_poly_race read error");
         return n;
     }
 
@@ -3567,7 +3364,8 @@ static int Receive_breath(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_breath read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_breath read error");
         return n;
     }
 
@@ -3578,7 +3376,7 @@ static int Receive_breath(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_breath(p, dir);
             return 2;
@@ -3602,7 +3400,8 @@ static int Receive_walk(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_walk read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_walk read error");
         return n;
     }
 
@@ -3620,7 +3419,7 @@ static int Receive_walk(int ind)
             return 1;
         }
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_walk(p, dir);
             return 2;
@@ -3661,7 +3460,8 @@ static int Receive_run(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_run read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_run read error");
         return n;
     }
 
@@ -3673,7 +3473,7 @@ static int Receive_run(int ind)
         break_mind_link(p);
 
         /* Start running */
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_run(p, dir);
             return 2;
@@ -3714,7 +3514,8 @@ static int Receive_tunnel(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%b", &ch, &dir, &starting)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_tunnel read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_tunnel read error");
         return n;
     }
 
@@ -3725,10 +3526,10 @@ static int Receive_tunnel(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        /* Repeat digging 99 times */
+        /* Repeat digging 10 times */
         if (starting)
         {
-            p->digging_request = 99;
+            p->digging_request = 10;
             p->digging_dir = (byte)dir;
             starting = 0;
         }
@@ -3755,7 +3556,8 @@ static int Receive_aim_wand(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_aim_wand read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_aim_wand read error");
         return n;
     }
 
@@ -3766,7 +3568,7 @@ static int Receive_aim_wand(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_aim_wand(p, item, dir);
             return 2;
@@ -3790,7 +3592,8 @@ static int Receive_drop(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &amt)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_drop read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_drop read error");
         return n;
     }
 
@@ -3801,7 +3604,7 @@ static int Receive_drop(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_drop(p, item, amt);
             return 2;
@@ -3824,7 +3627,8 @@ static int Receive_ignore_drop(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_ignore_drop read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_ignore_drop read error");
         return n;
     }
 
@@ -3835,7 +3639,7 @@ static int Receive_ignore_drop(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             ignore_drop(p);
             return 2;
@@ -3860,7 +3664,8 @@ static int Receive_fire(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &dir, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_fire read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_fire read error");
         return n;
     }
 
@@ -3871,7 +3676,7 @@ static int Receive_fire(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_fire(p, dir, item);
             return 2;
@@ -3896,7 +3701,8 @@ static int Receive_pickup(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b%hd", &ch, &ignore, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_pickup read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_pickup read error");
         return n;
     }
 
@@ -3912,7 +3718,7 @@ static int Receive_pickup(int ind)
             case 0:
             {
                 /* Stand still */
-                if (has_energy(p, true))
+                if (has_energy(p))
                 {
                     p->ignore = 0;
                     do_cmd_hold(p, item);
@@ -3969,7 +3775,8 @@ static int Receive_destroy(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &des)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_destroy read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_destroy read error");
         return n;
     }
 
@@ -3997,7 +3804,8 @@ static int Receive_target_closest(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &mode)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_target_closest read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_target_closest read error");
         return n;
     }
 
@@ -4015,16 +3823,16 @@ static int Receive_target_closest(int ind)
 }
 
 
-static int Receive_cast(int ind, char *errmsg)
+static int Receive_cast(int ind, char* errmsg)
 {
     connection_t *connp = get_connection(ind);
     struct player *p;
     char dir;
     int n;
     s16b book, spell;
-    byte ch, starting;
+    byte ch;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%hd%c%b", &ch, &book, &spell, &dir, &starting)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%hd%c", &ch, &book, &spell, &dir)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, errmsg);
         return n;
@@ -4037,19 +3845,13 @@ static int Receive_cast(int ind, char *errmsg)
         /* Break mind link */
         break_mind_link(p);
 
-        /* Repeat casting 99 times if fire-till-kill mode is active */
-        if (starting)
+        if (has_energy(p))
         {
-            if (OPT(p, fire_till_kill) && (dir == DIR_TARGET)) p->firing_request = 99;
-            else p->firing_request = 1;
-            starting = 0;
+            do_cmd_cast(p, book, spell, dir);
+            return 2;
         }
 
-        if (do_cmd_cast(p, book, spell, dir)) return 2;
-
-        /* If we don't have enough energy to cast, queue the command */
-        Packet_printf(&connp->q, "%b%hd%hd%c%b", (unsigned)ch, (int)book, (int)spell, (int)dir,
-            (unsigned)starting);
+        Packet_printf(&connp->q, "%b%hd%hd%c", (unsigned)ch, (int)book, (int)spell, (int)dir);
         return 0;
     }
 
@@ -4073,7 +3875,8 @@ static int Receive_open(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_open read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_open read error");
         return n;
     }
 
@@ -4084,7 +3887,7 @@ static int Receive_open(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_open(p, dir, true);
             return 2;
@@ -4095,6 +3898,12 @@ static int Receive_open(int ind)
     }
 
     return 1;
+}
+
+
+static int Receive_pray(int ind)
+{
+    return Receive_cast(ind, "Receive_pray read error");
 }
 
 
@@ -4109,7 +3918,8 @@ static int Receive_quaff(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_quaff read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_quaff read error");
         return n;
     }
 
@@ -4120,7 +3930,7 @@ static int Receive_quaff(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_quaff_potion(p, item, dir);
             return 2;
@@ -4144,7 +3954,8 @@ static int Receive_read(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_read read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_read read error");
         return n;
     }
 
@@ -4155,13 +3966,52 @@ static int Receive_read(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_read_scroll(p, item);
             return 2;
         }
 
         Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
+        return 0;
+    }
+
+    return 1;
+}
+
+
+static int Receive_search(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    struct player *p;
+    byte ch, starting;
+    int n;
+
+    if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &starting)) <= 0)
+    {
+        if (n == -1)
+            Destroy_connection(ind, "Receive_search read error");
+        return n;
+    }
+
+    if (connp->id != -1)
+    {
+        p = player_get(get_player_index(connp));
+
+        /* Break mind link */
+        break_mind_link(p);
+
+        /* Repeat searching 10 times */
+        if (starting)
+        {
+            p->search_request = 10;
+            starting = 0;
+        }
+
+        if (do_cmd_search(p)) return 2;
+
+        /* If we don't have enough energy to search, queue the command */
+        Packet_printf(&connp->q, "%b%b", (unsigned)ch, (unsigned)starting);
         return 0;
     }
 
@@ -4179,7 +4029,8 @@ static int Receive_take_off(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_take_off read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_take_off read error");
         return n;
     }
 
@@ -4190,7 +4041,7 @@ static int Receive_take_off(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_takeoff(p, item);
             return 2;
@@ -4214,7 +4065,8 @@ static int Receive_use(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_use read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_use read error");
         return n;
     }
 
@@ -4225,7 +4077,7 @@ static int Receive_use(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_use_staff(p, item);
             return 2;
@@ -4250,7 +4102,8 @@ static int Receive_throw(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &dir, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_throw read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_throw read error");
         return n;
     }
 
@@ -4261,7 +4114,7 @@ static int Receive_throw(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_throw(p, dir, item);
             return 2;
@@ -4285,7 +4138,8 @@ static int Receive_wield(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &slot)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_wield read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_wield read error");
         return n;
     }
 
@@ -4296,7 +4150,7 @@ static int Receive_wield(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_wield(p, item, slot);
             return 2;
@@ -4321,7 +4175,8 @@ static int Receive_zap(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_zap read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_zap read error");
         return n;
     }
 
@@ -4332,7 +4187,7 @@ static int Receive_zap(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_zap_rod(p, item, dir);
             return 2;
@@ -4356,7 +4211,8 @@ static int Receive_target_interactive(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b%lu", &ch, &mode, &query)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_target_interactive read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_target_interactive read error");
         return n;
     }
 
@@ -4385,7 +4241,8 @@ static int Receive_inscribe(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &item, inscription)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_inscribe read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_inscribe read error");
         return n;
     }
 
@@ -4413,7 +4270,8 @@ static int Receive_uninscribe(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_uninscribe read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_uninscribe read error");
         return n;
     }
 
@@ -4442,7 +4300,8 @@ static int Receive_activate(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_activate read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_activate read error");
         return n;
     }
 
@@ -4453,7 +4312,7 @@ static int Receive_activate(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_activate(p, item, dir);
             return 2;
@@ -4477,7 +4336,8 @@ static int Receive_disarm(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_disarm read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_disarm read error");
         return n;
     }
 
@@ -4488,7 +4348,7 @@ static int Receive_disarm(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_disarm(p, dir, true);
             return 2;
@@ -4512,7 +4372,8 @@ static int Receive_eat(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_eat read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_eat read error");
         return n;
     }
 
@@ -4523,7 +4384,7 @@ static int Receive_eat(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_eat_food(p, item);
             return 2;
@@ -4547,7 +4408,8 @@ static int Receive_fill(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_fill read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_fill read error");
         return n;
     }
 
@@ -4558,7 +4420,7 @@ static int Receive_fill(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_refill(p, item);
             return 2;
@@ -4582,7 +4444,8 @@ static int Receive_locate(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_locate read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_locate read error");
         return n;
     }
 
@@ -4609,7 +4472,8 @@ static int Receive_map(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &mode)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_map read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_map read error");
         return n;
     }
 
@@ -4628,7 +4492,7 @@ static int Receive_map(int ind)
 }
 
 
-static int Receive_stealth_mode(int ind)
+static int Receive_search_mode(int ind)
 {
     connection_t *connp = get_connection(ind);
     struct player *p;
@@ -4637,7 +4501,8 @@ static int Receive_stealth_mode(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_stealth_mode read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_search_mode read error");
         return n;
     }
 
@@ -4648,7 +4513,7 @@ static int Receive_stealth_mode(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        do_cmd_toggle_stealth(p);
+        do_cmd_toggle_search(p);
     }
 
     return 1;
@@ -4664,7 +4529,8 @@ static int Receive_quest(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_quest read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_quest read error");
         return n;
     }
 
@@ -4693,7 +4559,8 @@ static int Receive_close(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_close read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_close read error");
         return n;
     }
 
@@ -4704,7 +4571,7 @@ static int Receive_close(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_close(p, dir, true);
             return 2;
@@ -4728,7 +4595,8 @@ static int Receive_gain(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &book, &spell)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_gain read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_gain read error");
         return n;
     }
 
@@ -4739,7 +4607,7 @@ static int Receive_gain(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_study(p, book, spell);
             return 2;
@@ -4762,7 +4630,8 @@ static int Receive_go_up(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_go_up read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_go_up read error");
         return n;
     }
 
@@ -4773,7 +4642,7 @@ static int Receive_go_up(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_go_up(p);
             return 2;
@@ -4796,7 +4665,8 @@ static int Receive_go_down(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_go_down read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_go_down read error");
         return n;
     }
 
@@ -4807,7 +4677,7 @@ static int Receive_go_down(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             current_clear(p);
             do_cmd_go_down(p);
@@ -4832,7 +4702,8 @@ static int Receive_drop_gold(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%ld", &ch, &amt)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_drop_gold read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_drop_gold read error");
         return n;
     }
 
@@ -4843,7 +4714,7 @@ static int Receive_drop_gold(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_drop_gold(p, amt);
             return 2;
@@ -4866,7 +4737,8 @@ static int Receive_redraw(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_redraw read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_redraw read error");
         return n;
     }
 
@@ -4895,7 +4767,8 @@ static int Receive_rest(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &resting)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_rest read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_rest read error");
         return n;
     }
 
@@ -4929,7 +4802,8 @@ static int Receive_ghost(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &ability, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_ghost read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_ghost read error");
         return n;
     }
 
@@ -4940,7 +4814,7 @@ static int Receive_ghost(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_ghost(p, ability, dir);
             return 2;
@@ -4963,7 +4837,8 @@ static int Receive_suicide(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_suicide read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_suicide read error");
         return n;
     }
 
@@ -4974,15 +4849,15 @@ static int Receive_suicide(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        /* End character (or retire if winner) */
+        /* Commit suicide (or retire if winner) */
         do_cmd_suicide(p);
 
-        /* Send any remaining information over the network (the tombstone) */
+        /* Send any remaining information over the network (the tomsbtone) */
         Net_output_p(p);
 
         /* Get rid of him */
         if (!p->total_winner)
-            Destroy_connection(p->conn, "Terminated");
+            Destroy_connection(p->conn, "Committed suicide");
         else
             Destroy_connection(p->conn, "Retired");
     }
@@ -5001,7 +4876,8 @@ static int Receive_steal(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_steal read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_steal read error");
         return n;
     }
 
@@ -5014,7 +4890,7 @@ static int Receive_steal(int ind)
 
         if (!cfg_no_steal)
         {
-            if (has_energy(p, true))
+            if (has_energy(p))
             {
                 do_cmd_steal(p, dir);
                 return 2;
@@ -5024,7 +4900,7 @@ static int Receive_steal(int ind)
             return 0;
         }
         else
-            /* Handle the option to disable stealing */
+            /* Handle the option to disable player/player stealing */
             msg(p, "Your pathetic attempts at stealing fail.");
     }
 
@@ -5049,7 +4925,8 @@ static int Receive_master(int ind)
      */
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &command, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_master read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_master read error");
         return n;
     }
 
@@ -5075,7 +4952,8 @@ static int Receive_mimic(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd%c", &ch, &page, &spell, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_mimic read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_mimic read error");
         return n;
     }
 
@@ -5086,7 +4964,7 @@ static int Receive_mimic(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_mimic(p, page, spell, dir);
             return 2;
@@ -5131,7 +5009,8 @@ static int Receive_observe(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_observe read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_observe read error");
         return n;
     }
 
@@ -5142,7 +5021,7 @@ static int Receive_observe(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_observe(p, item);
             return 2;
@@ -5160,13 +5039,14 @@ static int Receive_store_examine(int ind)
 {
     connection_t *connp = get_connection(ind);
     struct player *p;
-    byte ch, describe;
+    byte ch;
     int n;
     s16b item;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%b", &ch, &item, &describe)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_store_examine read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_store_examine read error");
         return n;
     }
 
@@ -5177,7 +5057,33 @@ static int Receive_store_examine(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (in_store(p)) store_examine(p, item, (bool)describe);
+        if (in_store(p)) store_examine(p, item);
+    }
+
+    return 1;
+}
+
+
+static int Receive_pass(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    struct player *p;
+    char buf[NORMAL_WID];
+    int n;
+    byte ch;
+
+    if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
+    {
+        if (n == -1)
+            Destroy_connection(ind, "Receive_pass read error");
+        return n;
+    }
+
+    if (connp->id != -1)
+    {
+        p = player_get(get_player_index(connp));
+
+        my_strcpy(p->pass, buf, MAX_PASS_LEN + 1);
     }
 
     return 1;
@@ -5194,7 +5100,8 @@ static int Receive_alter(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_alter read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_alter read error");
         return n;
     }
 
@@ -5205,7 +5112,7 @@ static int Receive_alter(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_alter(p, dir);
             return 2;
@@ -5224,11 +5131,12 @@ static int Receive_fire_at_nearest(int ind)
     connection_t *connp = get_connection(ind);
     struct player *p;
     int n;
-    byte ch, starting;
+    byte ch;
 
-    if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &starting)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_fire_at_nearest read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_fire_at_nearest read error");
         return n;
     }
 
@@ -5239,18 +5147,13 @@ static int Receive_fire_at_nearest(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        /* Repeat firing 99 times if fire-till-kill mode is active */
-        if (starting)
+        if (has_energy(p))
         {
-            if (OPT(p, fire_till_kill)) p->firing_request = 99;
-            else p->firing_request = 1;
-            starting = 0;
+            do_cmd_fire_at_nearest(p);
+            return 2;
         }
 
-        if (do_cmd_fire_at_nearest(p)) return 2;
-
-        /* If we don't have enough energy to fire, queue the command */
-        Packet_printf(&connp->q, "%b%b", (unsigned)ch, (unsigned)starting);
+        Packet_printf(&connp->q, "%b", (unsigned)ch);
         return 0;
     }
 
@@ -5268,7 +5171,8 @@ static int Receive_jump(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c", &ch, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_jump read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_jump read error");
         return n;
     }
 
@@ -5286,7 +5190,7 @@ static int Receive_jump(int ind)
             return 1;
         }
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_jump(p, dir);
             return 2;
@@ -5311,7 +5215,8 @@ static int Receive_social(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%s", &ch, &dir, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_social read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_social read error");
         return n;
     }
 
@@ -5338,7 +5243,8 @@ static int Receive_monlist(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_monlist read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_monlist read error");
         return n;
     }
 
@@ -5363,7 +5269,8 @@ static int Receive_feeling(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_feeling read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_feeling read error");
         return n;
     }
 
@@ -5395,7 +5302,8 @@ static int Receive_interactive(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%lu", &ch, &type, &key)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_interactive read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_interactive read error");
         return n;
     }
 
@@ -5420,7 +5328,8 @@ static int Receive_fountain(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_fountain read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_fountain read error");
         return n;
     }
 
@@ -5431,7 +5340,7 @@ static int Receive_fountain(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_fountain(p, item);
             return 2;
@@ -5439,33 +5348,6 @@ static int Receive_fountain(int ind)
 
         Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
         return 0;
-    }
-
-    return 1;
-}
-
-
-static int Receive_time(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    struct player *p;
-    int n;
-    byte ch;
-
-    if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
-    {
-        if (n == -1) Destroy_connection(ind, "Receive_time read error");
-        return n;
-    }
-
-    if (connp->id != -1)
-    {
-        p = player_get(get_player_index(connp));
-
-        /* Break mind link */
-        break_mind_link(p);
-
-        display_time(p);
     }
 
     return 1;
@@ -5481,7 +5363,8 @@ static int Receive_objlist(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_objlist read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_objlist read error");
         return n;
     }
 
@@ -5506,7 +5389,8 @@ static int Receive_center(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_center read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_center read error");
         return n;
     }
 
@@ -5533,7 +5417,8 @@ static int Receive_toggle_ignore(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_toggle_ignore read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_toggle_ignore read error");
         return n;
     }
 
@@ -5564,7 +5449,8 @@ static int Receive_use_any(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_use_any read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_use_any read error");
         return n;
     }
 
@@ -5575,7 +5461,7 @@ static int Receive_use_any(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        if (has_energy(p))
         {
             do_cmd_use_any(p, item, dir);
             return 2;
@@ -5599,7 +5485,8 @@ static int Receive_store_order(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_store_order read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_store_order read error");
         return n;
     }
 
@@ -5627,7 +5514,8 @@ static int Receive_track_object(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_track_object read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_track_object read error");
         return n;
     }
 
@@ -5678,15 +5566,15 @@ static bool screen_compatible(int ind)
 
 static void get_birth_options(struct player *p, struct birth_options *options)
 {
-    options->force_descend = OPT(p, birth_force_descend);
-    options->no_recall = OPT(p, birth_no_recall);
-    options->no_artifacts = OPT(p, birth_no_artifacts);
-    options->feelings = OPT(p, birth_feelings);
-    options->no_selling = OPT(p, birth_no_selling);
-    options->start_kit = OPT(p, birth_start_kit);
-    options->no_stores = OPT(p, birth_no_stores);
-    options->no_ghost = OPT(p, birth_no_ghost);
-    options->fruit_bat = OPT(p, birth_fruit_bat);
+    options->force_descend = OPT_P(p, birth_force_descend);
+    options->no_recall = OPT_P(p, birth_no_recall);
+    options->no_artifacts = OPT_P(p, birth_no_artifacts);
+    options->feelings = OPT_P(p, birth_feelings);
+    options->no_selling = OPT_P(p, birth_no_selling);
+    options->start_kit = OPT_P(p, birth_start_kit);
+    options->no_stores = OPT_P(p, birth_no_stores);
+    options->no_ghost = OPT_P(p, birth_no_ghost);
+    options->fruit_bat = OPT_P(p, birth_fruit_bat);
 }
 
 
@@ -5695,34 +5583,38 @@ static void update_birth_options(struct player *p, struct birth_options *options
     /* Birth options: can only be set at birth */
     if (!ht_zero(&p->game_turn))
     {
-        OPT(p, birth_force_descend) = options->force_descend;
-        OPT(p, birth_no_recall) = options->no_recall;
-        OPT(p, birth_no_artifacts) = options->no_artifacts;
-        OPT(p, birth_feelings) = options->feelings;
-        OPT(p, birth_no_selling) = options->no_selling;
-        OPT(p, birth_start_kit) = options->start_kit;
-        OPT(p, birth_no_stores) = options->no_stores;
-        OPT(p, birth_no_ghost) = options->no_ghost;
-        OPT(p, birth_fruit_bat) = options->fruit_bat;
+        OPT_P(p, birth_force_descend) = options->force_descend;
+        OPT_P(p, birth_no_recall) = options->no_recall;
+        OPT_P(p, birth_no_artifacts) = options->no_artifacts;
+        OPT_P(p, birth_feelings) = options->feelings;
+        OPT_P(p, birth_no_selling) = options->no_selling;
+        OPT_P(p, birth_start_kit) = options->start_kit;
+        OPT_P(p, birth_no_stores) = options->no_stores;
+        OPT_P(p, birth_no_ghost) = options->no_ghost;
+        OPT_P(p, birth_fruit_bat) = options->fruit_bat;
     }
 
-    /* Server options supercede birth options */
-    if (cfg_limit_stairs == 3) OPT(p, birth_force_descend) = true;
-    if (cfg_diving_mode == 3) OPT(p, birth_no_recall) = true;
-    if (cfg_no_artifacts) OPT(p, birth_no_artifacts) = true;
-    if (cfg_no_selling) OPT(p, birth_no_selling) = true;
-    if (cfg_no_stores) OPT(p, birth_no_stores) = true;
-    if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
+    /* Ironman options: not on ironman servers */
+    if (cfg_limit_stairs == 3) OPT_P(p, birth_force_descend) = false;
+    if (cfg_no_recall) OPT_P(p, birth_no_recall) = false;
+    if (cfg_no_ghost) OPT_P(p, birth_no_ghost) = false;
 
-    /* Fruit bat mode: not when a Dragon */
-    if (pf_has(p->race->pflags, PF_DRAGON)) OPT(p, birth_fruit_bat) = false;
+    /* Fruit bat mode: not when a Dragon, a Shapechanger or a Necromancer */
+    if (pf_has(p->race->pflags, PF_DRAGON) || pf_has(p->clazz->pflags, PF_MONSTER_SPELLS) ||
+        pf_has(p->clazz->pflags, PF_UNDEAD_POWERS))
+    {
+        OPT_P(p, birth_fruit_bat) = false;
+    }
 
     /* Fruit bat mode supercedes no-ghost mode */
-    if (OPT(p, birth_fruit_bat)) OPT(p, birth_no_ghost) = true;
+    if (OPT_P(p, birth_fruit_bat)) OPT_P(p, birth_no_ghost) = false;
 
     /* Update form */
-    if (OPT(p, birth_fruit_bat) != options->fruit_bat)
-        do_cmd_poly(p, (OPT(p, birth_fruit_bat)? get_race("fruit bat"): NULL), false, domsg);
+    if (OPT_P(p, birth_fruit_bat) != options->fruit_bat)
+    {
+        do_cmd_poly(p, (OPT_P(p, birth_fruit_bat)? get_race("Fruit bat"): NULL), false,
+            domsg);
+    }
 }
 
 
@@ -5736,21 +5628,16 @@ static void update_graphics(struct player *p, connection_t *connp)
         for (j = 0; j < LIGHTING_MAX; j++)
         {
             /* Ignore mimics */
-            if (f_info[i].mimic)
+            if (f_info[i].mimic != i)
             {
-                int mimic = lookup_feat(f_info[i].mimic);
-
-                p->f_attr[i][j] = connp->Client_setup.f_attr[mimic][j];
-                p->f_char[i][j] = connp->Client_setup.f_char[mimic][j];
+                p->f_attr[i][j] = connp->Client_setup.f_attr[f_info[i].mimic][j];
+                p->f_char[i][j] = connp->Client_setup.f_char[f_info[i].mimic][j];
             }
             else
             {
                 p->f_attr[i][j] = connp->Client_setup.f_attr[i][j];
                 p->f_char[i][j] = connp->Client_setup.f_char[i][j];
             }
-
-            /* Default attribute value */
-            if (p->f_attr[i][j] == 0xFF) p->f_attr[i][j] = feat_x_attr[i][j];
 
             if (!(p->f_attr[i][j] && p->f_char[i][j]))
             {
@@ -5839,17 +5726,17 @@ static void update_graphics(struct player *p, connection_t *connp)
     }
 
     /* Desired special things */
-    for (i = 0; i < PROJ_MAX; i++)
+    for (i = 0; i < GF_MAX; i++)
     {
         for (j = 0; j < BOLT_MAX; j++)
         {
-            p->proj_attr[i][j] = connp->Client_setup.proj_attr[i][j];
-            p->proj_char[i][j] = connp->Client_setup.proj_char[i][j];
+            p->gf_attr[i][j] = connp->Client_setup.gf_attr[i][j];
+            p->gf_char[i][j] = connp->Client_setup.gf_char[i][j];
 
-            if (!(p->proj_attr[i][j] && p->proj_char[i][j]))
+            if (!(p->gf_attr[i][j] && p->gf_char[i][j]))
             {
-                p->proj_attr[i][j] = proj_to_attr[i][j];
-                p->proj_char[i][j] = proj_to_char[i][j];
+                p->gf_attr[i][j] = gf_to_attr[i][j];
+                p->gf_char[i][j] = gf_to_char[i][j];
             }
         }
     }
@@ -5894,13 +5781,13 @@ static int Enter_player(int ind)
 
     /* Create the character */
     p = player_birth(NumPlayers + 1, connp->account, connp->nick, connp->pass, ind, connp->ridx,
-        connp->cidx, connp->psex, connp->stat_roll, connp->options[OPT_birth_start_kit],
-        connp->options[OPT_birth_no_recall]);
+        connp->cidx, connp->psex, connp->stat_roll, connp->Client_setup.options[OPT_birth_start_kit],
+        connp->Client_setup.options[OPT_birth_no_recall]);
 
     /* Failed, connection already destroyed */
     if (!p) return -1;
 
-    my_strcpy(p->full_name, connp->real, sizeof(p->full_name));
+    my_strcpy(p->other.full_name, connp->real, sizeof(p->other.full_name));
     my_strcpy(p->hostname, connp->host, sizeof(p->hostname));
     my_strcpy(p->addr, connp->addr, sizeof(p->addr));
     p->version = connp->version;
@@ -5911,7 +5798,7 @@ static int Enter_player(int ind)
     /* Copy the client preferences to the player struct */
     get_birth_options(p, &options);
     for (i = 0; i < OPT_MAX; i++)
-        p->opts.opt[i] = connp->options[i];
+        p->other.opt[i] = connp->Client_setup.options[i];
 
     /* Update birth options */
     update_birth_options(p, &options, false);
@@ -5932,7 +5819,7 @@ static int Enter_player(int ind)
     p->tile_distorted = connp->Client_setup.settings[SETTING_TILE_DISTORTED];
     p->max_hgt = connp->Client_setup.settings[SETTING_MAX_HGT];
     p->window_flag = connp->Client_setup.settings[SETTING_WINDOW_FLAG];
-    p->opts.hitpoint_warn = connp->Client_setup.settings[SETTING_HITPOINT_WARN];
+    p->other.hitpoint_warn = connp->Client_setup.settings[SETTING_HITPOINT_WARN];
 
     /*
      * Hack -- when processing a quickstart character, attr/char pair for
@@ -5943,8 +5830,8 @@ static int Enter_player(int ind)
         byte cidx = p->clazz->cidx;
         byte ridx = p->race->ridx;
 
-        p->r_attr[0] = presets[p->use_graphics - 1].player_presets[p->psex][cidx][ridx].a;
-        p->r_char[0] = presets[p->use_graphics - 1].player_presets[p->psex][cidx][ridx].c;
+        p->r_attr[0] = player_presets[p->use_graphics - 1][cidx][ridx][p->psex].a;
+        p->r_char[0] = player_presets[p->use_graphics - 1][cidx][ridx][p->psex].c;
     }
 
     verify_panel(p);
@@ -5958,7 +5845,7 @@ static int Enter_player(int ind)
 
     Send_play(ind);
 
-    Conn_set_state(connp, CONN_PLAYING, PLAY_TIMEOUT);
+    Conn_set_state(connp, CONN_PLAYING);
 
     /* Send party information */
     Send_party(p);
@@ -5986,8 +5873,8 @@ static int Enter_player(int ind)
     num_logins++;
 
     /* Report */
-    strnfmt(buf, sizeof(buf), "%s=%s@%s (%s) connected.", p->name, p->full_name, p->hostname,
-        p->addr);
+    strnfmt(buf, sizeof(buf), "%s=%s@%s (%s) connected.", p->name, p->other.full_name,
+        p->hostname, p->addr);
     debug(buf);
 
     /* Tell the new player about server configuration options */
@@ -5999,18 +5886,8 @@ static int Enter_player(int ind)
         msg(p, "Server is no-up.");
     if (cfg_limit_stairs == 3)
         msg(p, "Server is force-down.");
-    if (cfg_diving_mode == 1)
-        msg(p, "Server has fast wilderness.");
-    if (cfg_diving_mode == 2)
-        msg(p, "Server has no wilderness.");
-    if (cfg_diving_mode == 3)
+    if (cfg_no_recall)
         msg(p, "Server is no-recall.");
-    if (cfg_no_artifacts)
-        msg(p, "Server has no artifacts.");
-    if (cfg_no_selling)
-        msg(p, "Server is no-selling.");
-    if (cfg_no_stores)
-        msg(p, "Server has no stores.");
     if (cfg_no_ghost)
         msg(p, "Server is no-ghost.");
 
@@ -6027,13 +5904,13 @@ static int Enter_player(int ind)
     Send_poly(p, (p->poly_race? p->poly_race->ridx: 0));
     p->delayed_display = true;
     p->upkeep->update |= (PU_BONUS | PU_SPELLS | PU_INVEN);
-    update_stuff(p, chunk_get(&p->wpos));
+    update_stuff(p, chunk_get(p->depth));
     p->delayed_display = false;
 
     /* Give a level feeling to this player */
     p->obj_feeling = -1;
     p->mon_feeling = -1;
-    if (random_level(&p->wpos)) display_feeling(p, false);
+    if (random_level(p->depth)) display_feeling(p, false);
     p->upkeep->redraw |= (PR_STATE);
 
     /*
@@ -6109,9 +5986,12 @@ static bool Limit_connections(int ind)
         }
 
         /* Only one connection allowed? */
-        if (cfg_limit_player_connections && !my_stricmp(p->full_name, connp->real) &&
-            !my_stricmp(p->addr, connp->addr) && !my_stricmp(p->hostname, connp->host) &&
-            my_stricmp(connp->nick, cfg_dungeon_master) && my_stricmp(p->name, cfg_dungeon_master))
+        if (cfg_limit_player_connections &&
+            !my_stricmp(p->other.full_name, connp->real) &&
+            !my_stricmp(p->addr, connp->addr) &&
+            !my_stricmp(p->hostname, connp->host) &&
+             my_stricmp(connp->nick, cfg_dungeon_master) &&
+             my_stricmp(p->name, cfg_dungeon_master))
         {
             return true;
         }
@@ -6163,7 +6043,7 @@ static int Receive_play(int ind)
             strnfmt(dumpname, sizeof(dumpname), "%s.txt", nick);
 
             /* Dump the character */
-            if (!Send_dump_character(connp, dumpname, 2))
+            if (!Send_dump_character(connp, dumpname, true))
             {
                 Destroy_connection(ind, "Character dump failed");
                 return -1;
@@ -6204,7 +6084,7 @@ static int Receive_play(int ind)
             need_info = true;
 
             /* Check number of characters */
-            if (player_id_count(connp->account) >= cfg_max_account_chars)
+            if (player_id_count(connp->account) == MAX_ACCOUNT_CHARS)
             {
                 plog("Account is full");
                 Destroy_connection(ind, "Account is full");
@@ -6282,17 +6162,12 @@ static int Receive_play(int ind)
         Send_kind_struct_info(ind);
         Send_ego_struct_info(ind);
         Send_race_struct_info(ind);
-        Send_realm_struct_info(ind);
         Send_class_struct_info(ind);
         Send_body_struct_info(ind);
         Send_socials_struct_info(ind);
         Send_hints_struct_info(ind);
         Send_rinfo_struct_info(ind);
         Send_rbinfo_struct_info(ind);
-        Send_curse_struct_info(ind);
-        Send_feat_struct_info(ind);
-        Send_trap_struct_info(ind);
-        Send_timed_struct_info(ind);
         Send_char_info_conn(ind);
     }
     else
@@ -6433,7 +6308,7 @@ static int sync_settings(struct player *p)
     p->tile_distorted = connp->Client_setup.settings[SETTING_TILE_DISTORTED];
     p->max_hgt = connp->Client_setup.settings[SETTING_MAX_HGT];
     p->window_flag = connp->Client_setup.settings[SETTING_WINDOW_FLAG];
-    p->opts.hitpoint_warn = connp->Client_setup.settings[SETTING_HITPOINT_WARN];
+    p->other.hitpoint_warn = connp->Client_setup.settings[SETTING_HITPOINT_WARN];
 
     return 1;
 }
@@ -6450,7 +6325,8 @@ static int Receive_options(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &settings)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_options read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_options read error");
         return n;
     }
 
@@ -6462,7 +6338,7 @@ static int Receive_options(int ind)
 
             if (n <= 0)
             {
-                if (n == -1) Destroy_connection(ind, "Receive_options read error");
+                Destroy_connection(ind, "Receive_options read error");
                 return n;
             }
         }
@@ -6476,11 +6352,11 @@ static int Receive_options(int ind)
 
         if (n <= 0)
         {
-            if (n == -1) Destroy_connection(ind, "Receive_options read error");
+            Destroy_connection(ind, "Receive_options read error");
             return n;
         }
 
-        connp->options[i] = (bool)opt;
+        connp->Client_setup.options[i] = (bool)opt;
     }
 
     if (connp->id != -1)
@@ -6495,7 +6371,7 @@ static int Receive_options(int ind)
 
         /* Set new values */
         for (i = 0; i < OPT_MAX; i++)
-            p->opts.opt[i] = connp->options[i];
+            p->other.opt[i] = connp->Client_setup.options[i];
 
         /* Update birth options */
         update_birth_options(p, &options, true);
@@ -6516,7 +6392,8 @@ static int Receive_char_dump(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_char_dump read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_char_dump read error");
         return n;
     }
 
@@ -6528,8 +6405,9 @@ static int Receive_char_dump(int ind)
 
         /* In-game dump */
         player_dump(p, false);
+
         strnfmt(dumpname, sizeof(dumpname), "%s.txt", p->name);
-        Send_dump_character(connp, dumpname, 1);
+        Send_dump_character(connp, dumpname, false);
     }
 
     return 1;
@@ -6548,7 +6426,8 @@ static int Receive_message(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%S", &ch, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_message read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_message read error");
         return n;
     }
 
@@ -6560,7 +6439,7 @@ static int Receive_message(int ind)
 }
 
 
-static void Handle_item(struct player *p, int item, int curse)
+static void Handle_item(struct player *p, int item)
 {
     /* Set current value */
     p->current_value = item;
@@ -6571,24 +6450,19 @@ static void Handle_item(struct player *p, int item, int curse)
         /* Cast current normal spell */
         if (p->current_item >= 0)
         {
+            int old_num = get_player_num(p);
             const struct player_class *c = p->clazz;
             quark_t note = (quark_t)p->current_item;
             const struct class_spell *spell;
             bool ident = false;
             struct beam_info beam;
-            struct source who_body;
-            struct source *who = &who_body;
 
-            /* Hack -- select a single curse for uncursing */
-            p->current_action = curse;
-
-            if (p->ghost && !player_can_undead(p)) c = lookup_player_class("Ghost");
+            if (p->ghost && !player_can_undead(p)) c = player_id2class(CLASS_GHOST);
 
             spell = spell_by_index(&c->magic, p->current_spell);
             fill_beam_info(p, p->current_spell, &beam);
 
-            source_player(who, get_player_index(get_connection(p->conn)), p);
-            if (!effect_do(spell->effect, who, &ident, true, 0, &beam, 0, note, NULL))
+            if (!effect_do(p, spell->effect, &ident, true, 0, &beam, 0, note, NULL, NULL))
                 return;
 
             cast_spell_end(p);
@@ -6597,7 +6471,13 @@ static void Handle_item(struct player *p, int item, int curse)
             use_energy(p);
 
             /* Use some mana */
-            use_mana(p);
+            p->csp -= p->spell_cost;
+
+            /* Hack -- redraw picture */
+            redraw_picture(p, old_num);
+
+            /* Redraw mana */
+            p->upkeep->redraw |= (PR_MANA);
         }
 
         /* Cast current projected spell */
@@ -6615,9 +6495,6 @@ static void Handle_item(struct player *p, int item, int curse)
 
         /* Paranoia: requires an item */
         if (!obj) return;
-
-        /* Hack -- select a single curse for uncursing */
-        p->current_action = curse;
 
         /* The player is aware of the object's flavour */
         p->was_aware = object_flavor_is_aware(p, obj);
@@ -6652,7 +6529,7 @@ static void Handle_item(struct player *p, int item, int curse)
         switch (p->current_action)
         {
             /* Pickup */
-            case ACTION_PICKUP: player_pickup_item(p, chunk_get(&p->wpos), 3, NULL); break;
+            case ACTION_PICKUP: player_pickup_item(p, chunk_get(p->depth), 3, NULL); break;
             case ACTION_GO_DOWN: do_cmd_go_down(p); break;
             default: return;
         }
@@ -6666,11 +6543,12 @@ static int Receive_item(int ind)
     struct player *p;
     byte ch;
     int n;
-    s16b item, curse;
+    s16b item;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &curse)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_item read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_item read error");
         return n;
     }
 
@@ -6681,7 +6559,7 @@ static int Receive_item(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        Handle_item(p, item, curse);
+        Handle_item(p, item);
     }
 
     return 1;
@@ -6698,7 +6576,8 @@ static int Receive_sell(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &amt)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_sell read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_sell read error");
         return n;
     }
 
@@ -6709,21 +6588,7 @@ static int Receive_sell(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (in_store(p))
-        {
-            struct store *store = store_at(p);
-
-            /* Real store */
-            if (store->type != STORE_HOME)
-                do_cmd_sell(p, item, amt);
-
-            /* Player is at home */
-            else
-            {
-                do_cmd_stash(p, item, amt);
-                Send_store_sell(p, -1, false);
-            }
-        }
+        do_cmd_sell(p, item, amt);
     }
 
     return 1;
@@ -6741,7 +6606,8 @@ static int Receive_party(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &command, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_party read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_party read error");
         return n;
     }
 
@@ -6767,7 +6633,8 @@ static int Receive_special_line(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%c%hd", &ch, &type, &line)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_special_line read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_special_line read error");
         return n;
     }
 
@@ -6814,7 +6681,8 @@ static int Receive_fullmap(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_fullmap read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_fullmap read error");
         return n;
     }
 
@@ -6842,7 +6710,8 @@ static int Receive_poly(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &number)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_poly read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_poly read error");
         return n;
     }
 
@@ -6853,28 +6722,18 @@ static int Receive_poly(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        /* Non mimics */
-        if (!player_has(p, PF_SHAPECHANGE))
+        /* Restrict to shapechangers in non-fruitbat mode */
+        if (player_has(p, PF_MONSTER_SPELLS) && !OPT_P(p, birth_fruit_bat))
         {
-            msg(p, "You are too solid.");
-            return 1;
-        }
+            /* Check boundaries */
+            if ((number < 0) || (number > z_info->r_max - 1))
+            {
+                msg(p, "This monster race doesn't exist.");
+                return 1;
+            }
 
-        /* Not if a Dragon or in fruit bat mode */
-        if (player_has(p, PF_DRAGON) || OPT(p, birth_fruit_bat))
-        {
-            msg(p, "You are already polymorphed permanently.");
-            return 1;
+            do_cmd_poly(p, (number? &r_info[number]: NULL), true, true);
         }
-
-        /* Check boundaries */
-        if ((number < 0) || (number > z_info->r_max - 1))
-        {
-            msg(p, "This monster race doesn't exist.");
-            return 1;
-        }
-
-        do_cmd_poly(p, (number? &r_info[number]: NULL), true, true);
     }
 
     return 1;
@@ -6891,7 +6750,8 @@ static int Receive_purchase(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &amt)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_purchase read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_purchase read error");
         return n;
     }
 
@@ -6904,16 +6764,7 @@ static int Receive_purchase(int ind)
 
         if (in_store(p))
         {
-            struct store *store = store_at(p);
-
-            /* Attempt to buy it */
-            if (store->type != STORE_HOME)
-                do_cmd_buy(p, item, amt);
-
-            /* Home is much easier */
-            else
-                do_cmd_retrieve(p, item, amt);
-
+            do_cmd_buy(p, item, amt);
             Packet_printf(&connp->c, "%b", (unsigned)PKT_PURCHASE);
         }
         else
@@ -6934,14 +6785,15 @@ static int Receive_store_leave(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_store_leave read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_store_leave read error");
         return n;
     }
 
     if (connp->id != -1)
     {
         p = player_get(get_player_index(connp));
-        c = chunk_get(&p->wpos);
+        c = chunk_get(p->depth);
 
         /* Break mind link */
         break_mind_link(p);
@@ -6950,7 +6802,7 @@ static int Receive_store_leave(int ind)
         p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_SPELL);
+        p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
 
         sound(p, MSG_STORE_LEAVE);
 
@@ -6959,18 +6811,13 @@ static int Receive_store_leave(int ind)
         store_num = p->store_num;
         if (store_num != -1)
         {
-            struct store *s = &stores[store_num];
-
             p->store_num = -1;
 
             /* Hack -- don't stand in the way */
-            if (s->type != STORE_PLAYER)
+            if (store_num != STORE_PLAYER)
             {
                 bool look = true;
-                int d, i, dis = 1;
-                struct loc grid;
-
-                loc_copy(&grid, &p->grid);
+                int d, i, dis = 1, x = p->py, y = p->px;
 
                 while (look)
                 {
@@ -6979,19 +6826,20 @@ static int Receive_store_leave(int ind)
                     {
                         while (1)
                         {
-                            rand_loc(&grid, &p->grid, dis, dis);
-                            d = distance(&p->grid, &grid);
+                            y = rand_spread(p->py, dis);
+                            x = rand_spread(p->px, dis);
+                            d = distance(p->py, p->px, y, x);
                             if (d <= dis) break;
                         }
-                        if (!square_in_bounds_fully(c, &grid)) continue;
-                        if (!square_isempty(c, &grid)) continue;
-                        if (square_isvault(c, &grid)) continue;
+                        if (!square_in_bounds_fully(c, y, x)) continue;
+                        if (!square_isempty(c, y, x)) continue;
+                        if (square_isvault(c, y, x)) continue;
                         look = false;
                         break;
                     }
                     dis = dis * 2;
                 }
-                monster_swap(c, &p->grid, &grid);
+                monster_swap(c, p->py, p->px, y, x);
                 handle_stuff(p);
             }
 
@@ -7016,7 +6864,8 @@ static int Receive_store_confirm(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_store_confirm read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_store_confirm read error");
         return n;
     }
 
@@ -7035,7 +6884,7 @@ static int Receive_store_confirm(int ind)
         else if (p->current_house != -1)
             do_cmd_purchase_house(p, 0);
         else
-            player_pickup_item(p, chunk_get(&p->wpos), 4, NULL);
+            player_pickup_item(p, chunk_get(p->depth), 4, NULL);
     }
 
     return 1;
@@ -7055,7 +6904,8 @@ static int Receive_ignore(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_ignore read error");
         return n;
     }
 
@@ -7067,7 +6917,7 @@ static int Receive_ignore(int ind)
 
         if (n <= 0)
         {
-            if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
+            Destroy_connection(ind, "Receive_ignore read error");
             mem_free(new_kind_ignore);
             return n;
         }
@@ -7087,7 +6937,7 @@ static int Receive_ignore(int ind)
         n = Packet_scanf(&connp->r, "%hd%b", &repeat, &last);
         if (n <= 0)
         {
-            if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
+            Destroy_connection(ind, "Receive_ignore read error");
             for (k = 0; k < z_info->e_max; k++) mem_free(new_ego_ignore_types[k]);
             mem_free(new_ego_ignore_types);
             mem_free(new_kind_ignore);
@@ -7113,7 +6963,7 @@ static int Receive_ignore(int ind)
 
         if (n <= 0)
         {
-            if (n == -1) Destroy_connection(ind, "Receive_ignore read error");
+            Destroy_connection(ind, "Receive_ignore read error");
             for (k = 0; k < z_info->e_max; k++) mem_free(new_ego_ignore_types[k]);
             mem_free(new_ego_ignore_types);
             mem_free(new_kind_ignore);
@@ -7148,8 +6998,8 @@ static int Receive_ignore(int ind)
         /* Quality ignoring */
         for (i = ITYPE_NONE; i < ITYPE_MAX; i++)
         {
-            if (new_ignore_level[i] > p->opts.ignore_lvl[i]) ignore = true;
-            p->opts.ignore_lvl[i] = new_ignore_level[i];
+            if (new_ignore_level[i] > p->other.ignore_lvl[i]) ignore = true;
+            p->other.ignore_lvl[i] = new_ignore_level[i];
         }
     }
 
@@ -7176,7 +7026,8 @@ static int Receive_flush(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_flush read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_flush read error");
         return n;
     }
 
@@ -7207,7 +7058,8 @@ static int Receive_channel(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%s", &ch, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_channel read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_channel read error");
         return n;
     }
 
@@ -7236,7 +7088,8 @@ static int Receive_history(int ind)
 
     if ((n = Packet_scanf(&connp->r, "%b%hd%s", &ch, &line, buf)) <= 0)
     {
-        if (n == -1) Destroy_connection(ind, "Receive_history read error");
+        if (n == -1)
+            Destroy_connection(ind, "Receive_history read error");
         return n;
     }
 
@@ -7248,33 +7101,6 @@ static int Receive_history(int ind)
         break_mind_link(p);
 
         my_strcpy(p->history[line], buf, sizeof(p->history[0]));
-    }
-
-    return 1;
-}
-
-
-static int Receive_autoinscriptions(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    int i, n;
-    byte ch;
-
-    if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
-    {
-        if (n == -1) Destroy_connection(ind, "Receive_autoinscriptions read error");
-        return n;
-    }
-
-    for (i = 0; i < z_info->k_max; i++)
-    {
-        n = Packet_scanf(&connp->r, "%s", connp->Client_setup.note_aware[i]);
-
-        if (n <= 0)
-        {
-            if (n == -1) Destroy_connection(ind, "Receive_autoinscriptions read error");
-            return n;
-        }
     }
 
     return 1;
@@ -7366,7 +7192,7 @@ bool process_pending_commands(int ind)
 
             /* Paranoia */
             if ((type < PKT_UNDEFINED) || (type >= PKT_MAX)) type = PKT_UNDEFINED;
-            
+
             result = (*receive_tbl[type])(ind);
             data_advance += ((int)connp->r.ptr - last_pos);
             ht_copy(&connp->start, &turn);
@@ -7394,13 +7220,10 @@ bool process_pending_commands(int ind)
         if ((type < PKT_UNDEFINED) || (type >= PKT_MAX)) type = PKT_UNDEFINED;
 
         /* Cancel repeated commands */
+        if ((type != PKT_SEARCH) && (type != PKT_KEEPALIVE) && p->search_request)
+            p->search_request = 0;
         if ((type != PKT_TUNNEL) && (type != PKT_KEEPALIVE) && p->digging_request)
             p->digging_request = 0;
-        if ((type != PKT_FIRE_AT_NEAREST) && (type != PKT_SPELL) && (type != PKT_KEEPALIVE) &&
-            p->firing_request)
-        {
-            p->firing_request = 0;
-        }
 
         result = (*receive_tbl[type])(ind);
         if (connp->state == CONN_PLAYING) ht_copy(&connp->start, &turn);
@@ -7470,7 +7293,7 @@ int Net_input(void)
         if (ht_diff(&turn, &connp->start) > (u32b)(connp->timeout * cfg_fps))
         {
             if (connp->state == CONN_QUIT)
-                Destroy_connection(i, connp->quit_msg);
+                Destroy_connection(i, "Client quit");
             else
             {
                 strnfmt(msg, sizeof(msg), "Timeout %02x", connp->state);
@@ -7553,11 +7376,10 @@ bool process_turn_based(void)
     if (connp->state != CONN_PLAYING) return false;
 
     /* Only at the end of each turn */
-    if (!has_energy(p, false)) return false;
+    if (!has_energy(p)) return false;
 
     /* Not while resting */
     if (p->upkeep->resting) return false;
 
     return true;
 }
-

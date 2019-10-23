@@ -3,39 +3,18 @@
 
 # === Understanding store.txt ===
 
-# store: store name
-# type: store type
+# store: store number : store name
 # owner: max purse : name (as many or few as you like >1)
 # turnover: turnover (how many items the store turns over)
 # slots: min : max (number of 'normal' slots to keep stocked)
-# normal: type name : item name (for the normal stocking list) : rarity : price
-#         factor
-# always: type name : ?item name (for things to always stock)
+# normal: type name : item name (for the normal stocking list)
+# always: type name : item name (for things to always stock)
 # buy: type name (base types the store will buy)
 # buy-flag: flag : type name (types to buy if the flag is present)
-#
-# Store types must match the following values:
-#  1 = STORE_GENERAL
-#  2 = STORE_TEMPLE
-#  3 = STORE_B_MARKET
-#  4 = STORE_XBM
-#  5 = STORE_TAVERN
-#  6 = STORE_HOME
-#  7 = STORE_PLAYER
-#
-# There must be one and only one store with each of the types above. Other
-# stores and custom stores must have no type defined (0 = STORE_OTHER).
-#
-# Custom stores MUST be placed at the proper location (between regular stores
-# and black market), otherwise towns may not be generated properly.
-#
-# Don't forget to update terrain.txt (and the prf files) if you add custom
-# stores to this file.
 
 
 # General store
-store:General Store
-type:1
+store:1:General Store
 owner:5000:Bilbo the Friendly (Hobbit)
 owner:10000:Rincewind the Chicken (Human)
 owner:20000:Snafu the Midget (Gnome)
@@ -70,7 +49,7 @@ buy:crop
 buy:horn
 
 # Armoury
-store:Armoury
+store:2:Armoury
 owner:5000:Kon-Dar the Ugly (Half-Orc)
 owner:10000:Darg-Low the Grim (Human)
 owner:25000:Decado the Handsome (Dunadan)
@@ -106,7 +85,7 @@ buy:hard armour
 buy:dragon armour
 
 # Weaponsmith
-store:Weapon Smiths
+store:3:Weapon Smiths
 owner:5000:Ithyl-Mak the Beastly (Half-Troll)
 owner:10000:Arndal Beast-Slayer (Half-Elf)
 owner:25000:Tarl Beast-Master (Hobbit)
@@ -153,17 +132,18 @@ buy:rock
 buy:mage staff
 
 # Temple
-store:Temple
-type:2
+store:4:Temple
 owner:15000:Ludwig the Humble (Human)
 owner:20000:Gunnar the Paladin (Human)
 owner:25000:Delilah the Pure (Elf)
 owner:30000:Keldon the Wise (Dwarf)
 slots:6:14
 turnover:9
-always:prayer book
+always:prayer book:[Beginners Handbook]
+always:prayer book:[Words of Wisdom]
+always:prayer book:[Chants and Blessings]
+always:prayer book:[Exorcism and Dispelling]
 always:potion:Cure Light Wounds
-always:scroll:Remove Curse
 always:scroll:Life
 normal:hafted:Whip
 normal:hafted:Quarterstaff
@@ -181,7 +161,6 @@ normal:potion:Heroism
 normal:potion:Neutralize Poison
 normal:potion:Cure Serious Wounds
 normal:potion:Cure Critical Wounds
-normal:potion:Healing:10:300
 buy:prayer book
 buy:scroll
 buy:potion
@@ -190,7 +169,7 @@ buy-flag:BLESSED:sword
 buy-flag:BLESSED:polearm
 
 # Alchemist
-store:Alchemy Shop
+store:5:Alchemy Shop
 owner:10000:Mauser the Chemist (Half-Elf)
 owner:10000:Wizzle the Chaotic (Hobbit)
 owner:15000:Ga-nat the Greedy (Gnome)
@@ -199,8 +178,11 @@ slots:6:10
 turnover:9
 always:scroll:Word of Recall
 always:scroll:Phase Door
+normal:scroll:Identify
 normal:scroll:Monster Confusion
 normal:scroll:Magic Mapping
+normal:scroll:Trap Detection
+normal:scroll:Door/Stair Location
 normal:scroll:Detect Invisible
 normal:scroll:Recharging
 normal:scroll:Satisfy Hunger
@@ -214,26 +196,30 @@ buy:scroll
 buy:potion
 
 # Magic-user's
-store:Magic Shop
+store:6:Magic Shop
 owner:15000:Ariel the Sorceress (Half-Elf)
 owner:20000:Buggerby the Great (Gnome)
 owner:25000:Inglorian the Mage (Human)
 owner:30000:Luthien Starshine (High-Elf)
 slots:4:14
 turnover:9
-always:magic book
+always:magic book:[Magic for Beginners]
+always:magic book:[Conjurings and Tricks]
+always:magic book:[Incantations and Illusions]
+always:magic book:[Sorcery and Evocations]
 normal:ring:Searching
-normal:ring:Levitation
+normal:ring:Feather Falling
 normal:ring:Protection
 normal:amulet:Slow Digestion
 normal:amulet:Resist Acid
-normal:wand:Light
 normal:wand:Slow Monster
 normal:wand:Confuse Monster
+normal:wand:Sleep Monster
 normal:wand:Magic Missile
 normal:wand:Stinking Cloud
-normal:wand:Stone to Mud
+normal:wand:Wonder
 normal:staff:Teleportation
+normal:staff:Identify
 normal:staff:Light
 normal:staff:Magic Mapping
 normal:staff:Detect Invisible
@@ -247,28 +233,45 @@ buy:rod
 buy:scroll
 buy:potion
 
-# Bookseller
-store:Bookseller
+# House of Arcanes
+store:7:House of Arcanes
 owner:15000:Yveen the Witch (Half-Elf)
 owner:20000:Narn the Short (Gnome)
 owner:25000:Lord X the Black (Human)
 owner:30000:Senya the Beautiful (High-Elf)
-slots:0:2
-turnover:0
-always:nature book
-always:shadow book
-always:psi book
-always:elemental book
-buy:nature book
+slots:6:18
+turnover:9
+normal:sorcery book:[Apprentice Handbook]
+normal:sorcery book:[Mystical Words]
+normal:sorcery book:[Arcane Chants]
+normal:sorcery book:[Locus of Force]
+normal:shadow book:[Robbers Handbook]
+normal:shadow book:[Shadows and Illusions]
+normal:shadow book:[Killing Made Easy]
+normal:hunt book:[Hunting and Tracking]
+normal:psi book:of Telepathy
+normal:psi book:of Mind Support
+normal:psi book:of Mindcraft
+normal:death book:[Necromancy for Beginners]
+normal:death book:[Dark Conjurings]
+normal:death book:[Necromantic Incantations]
+normal:elemental book:[Air]
+normal:elemental book:[Fire]
+normal:elemental book:[Earth]
+normal:elemental book:[Water]
+normal:elemental book:[Elemental]
+normal:summoning book:[Survival]
+normal:summoning book:[Nature]
+buy:sorcery book
 buy:shadow book
+buy:hunt book
 buy:psi book
+buy:death book
 buy:elemental book
-
-# Place custom stores here
+buy:summoning book
 
 # Black Market - no stock given but we still need slot/turnover info
-store:Black Market
-type:3
+store:8:Black Market
 owner:15000:Lo-Hak the Awful (Half-Troll)
 owner:20000:Histor the Goblin (Kobold)
 owner:25000:Durwin the Shifty (Half-Orc)
@@ -277,31 +280,21 @@ slots:6:18
 turnover:9
 
 # Expensive Black Market - no stock given but we still need slot/turnover info
-store:Expensive Black Market
-type:4
+store:9:Expensive Black Market
 owner:15000:Eek the Yeek (Yeek)
 owner:20000:Zak the Kobold (Kobold)
 owner:25000:Fangorn the Treebeard (Ent)
 owner:30000:Lisa the Green (Thunderlord)
-slots:8:16
+slots:6:18
 turnover:9
 
-store:Tavern
-type:5
+store:10:Tavern
 owner:0:Tavern
 owner:0:Tavern
 owner:0:Tavern
 owner:0:Tavern
 
-store:Home
-type:6
-owner:0:Your home
-owner:0:Your home
-owner:0:Your home
-owner:0:Your home
-
-store:Player shop
-type:7
+store:11:Player shop
 owner:0:Player shop
 owner:0:Player shop
 owner:0:Player shop

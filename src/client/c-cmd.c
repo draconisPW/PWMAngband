@@ -3,7 +3,7 @@
  * Purpose: Deal with command processing
  *
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -30,7 +30,7 @@ void textui_cmd_poly(void)
     int number;
 
     /* Non mimics */
-    if (!player_has(player, PF_SHAPECHANGE))
+    if (!player_has(player, PF_MONSTER_SPELLS))
     {
         c_msg_print("You are too solid.");
         return;
@@ -65,8 +65,7 @@ void textui_cmd_poly(void)
         special_line_type = SPECIAL_FILE_POLY;
 
         /* Set the header */
-        my_strcpy(special_line_header[NTERM_WIN_OVERHEAD],
-            (player_has(player, PF_MONSTER_SPELLS)? "Killed List": "Forms"),
+        my_strcpy(special_line_header[NTERM_WIN_OVERHEAD], "Killed List",
             sizeof(special_line_header[0]));
 
         /* Call the file perusal */
@@ -200,6 +199,46 @@ void do_cmd_view_map(void)
 void do_cmd_wild_map(void)
 {
     view_map_aux(1);
+}
+
+
+/*
+ * Get a password from the user
+ *
+ * Return 1 on abort, 2 on escape, 0 otherwise.
+ */
+static int cmd_changepass(void)
+{
+    char pass1[NORMAL_WID];
+    char pass2[NORMAL_WID];
+    ui_event ke;
+    int res;
+
+    pass1[0] = '\0';
+    pass2[0] = '\0';
+
+    res = get_string_ex("New password: ", pass1, MAX_PASS_LEN + 1, true);
+    if (res) return res;
+    res = get_string_ex("Confirm it: ", pass2, MAX_PASS_LEN + 1, true);
+    if (res) return res;
+
+    if (!strcmp(pass1, pass2))
+    {
+        MD5Password(pass1);
+        Send_pass(pass1);
+        prt(" Password changed [press any key]", 0, 0);
+    }
+    else
+        prt(" Not matching [paused]", 0, 0);
+
+    while (1)
+    {
+        ke = inkey_ex();
+        return_on_abort(ke);
+        if ((ke.type == EVT_KBRD) && ke.key.code) break;
+    }
+
+    return 0;
 }
 
 
@@ -457,14 +496,14 @@ static int cmd_changehistory(void)
 
 
 /* Display player mode */
-static byte char_screen_mode = 0;
+static bool char_screen_mode = false;
 
 
 /*
  * Hack -- change name
  *
- * PWMAngband: character name cannot be changed; instead, you can generate a local character dump,
- * or even modify character history
+ * PWMAngband: character name cannot be changed; instead, you can change the password, generate
+ * a local character dump, or even modify character history
  */
 void do_cmd_change_name(void)
 {
@@ -473,7 +512,7 @@ void do_cmd_change_name(void)
     bool more = true;
 
     /* Prompt */
-    p = "['h'/'m' to change history/mode, 'f' to file, or ESC]";
+    p = "['p'/'h'/'m' to change password/history/mode, 'f' to file, or ESC]";
 
     /* Save screen */
     screen_save();
@@ -497,6 +536,14 @@ void do_cmd_change_name(void)
         {
             switch (ke.key.code)
             {
+                /* Change password */
+                case 'p':
+                case 'P':
+                {
+                    if (cmd_changepass() == 1) more = false;
+                    break;
+                }
+
                 /* Character dump */
                 case 'f':
                 case 'F': Send_char_dump(); break;
@@ -511,12 +558,7 @@ void do_cmd_change_name(void)
 
                 /* Toggle */
                 case 'm':
-                case 'M':
-                {
-                    char_screen_mode++;
-                    if (char_screen_mode == 3) char_screen_mode = 0;
-                    break;
-                }
+                case 'M': char_screen_mode = !char_screen_mode; break;
 
                 /* Exit */
                 case 'q':
@@ -874,6 +916,7 @@ static int cmd_master_aux_generate_item_aux(void)
 {
     ui_event ke;
     char buf[NORMAL_WID];
+    s32b tmp_quan;
 
     /* Process requests until done */
     while (1)
@@ -886,9 +929,10 @@ static int cmd_master_aux_generate_item_aux(void)
         Term_putstr(0, 2, -1, COLOUR_WHITE, "Generate Item");
 
         /* Selections */
-        Term_putstr(5, 4, -1, COLOUR_WHITE, "(k/e) Item/ego by name");
-        Term_putstr(5, 5, -1, COLOUR_WHITE, "(+/*) Next item/ego");
-        Term_putstr(5, 6, -1, COLOUR_WHITE, "(-//) Previous item/ego");
+        Term_putstr(5, 4, -1, COLOUR_WHITE, "(k/e) Item/ego by number");
+        Term_putstr(5, 5, -1, COLOUR_WHITE, "(K/E) Item/ego by name");
+        Term_putstr(5, 6, -1, COLOUR_WHITE, "(+/*) Next item/ego");
+        Term_putstr(5, 7, -1, COLOUR_WHITE, "(-//) Previous item/ego");
 
         Term_putstr(30, 4, -1, COLOUR_WHITE, "(h/H) Increment/decrement to-hit");
         Term_putstr(30, 5, -1, COLOUR_WHITE, "(d/D) Increment/decrement to-dam");
@@ -918,6 +962,37 @@ static int cmd_master_aux_generate_item_aux(void)
         {
             if (ke.key.code == 'k')
             {
+                /* Item by number */
+                buf[1] = 'k';
+                buf[2] = '#';
+                tmp_quan = get_quantity_ex("Item number? ", z_info->k_max);
+                if (tmp_quan == -1) return 1;
+                if (!tmp_quan) continue;
+                buf[4] = 0;
+                buf[5] = 0;
+                if (tmp_quan > 255)
+                {
+                    tmp_quan -= 255;
+                    buf[4] = 255;
+                }
+                if (tmp_quan > 255)
+                {
+                    tmp_quan -= 255;
+                    buf[5] = 255;
+                }
+                buf[3] = tmp_quan;
+            }
+            else if (ke.key.code == 'e')
+            {
+                /* Ego by number */
+                buf[1] = 'e';
+                buf[2] = '#';
+                buf[3] = get_quantity_ex("Ego number? ", z_info->e_max);
+                if (buf[3] == -1) return 1;
+                if (!buf[3]) continue;
+            }
+            else if (ke.key.code == 'K')
+            {
                 int res;
 
                 /* Item by name */
@@ -927,7 +1002,7 @@ static int cmd_master_aux_generate_item_aux(void)
                 if (res == 1) return 1;
                 if ((res == 2) || !buf[3]) continue;
             }
-            else if (ke.key.code == 'e')
+            else if (ke.key.code == 'E')
             {
                 int res;
 
@@ -1104,11 +1179,10 @@ static int cmd_master_aux_generate(void)
         Term_putstr(5, 4, -1, COLOUR_WHITE, "(1) Vault");
         Term_putstr(5, 5, -1, COLOUR_WHITE, "(2) Item");
         Term_putstr(5, 6, -1, COLOUR_WHITE, "(3) Random artifact");
-        Term_putstr(5, 7, -1, COLOUR_WHITE, "(4) Random artifact (reroll)");
-        Term_putstr(5, 8, -1, COLOUR_WHITE, "(5) True artifact");
+        Term_putstr(5, 7, -1, COLOUR_WHITE, "(4) True artifact");
 
         /* Prompt */
-        Term_putstr(0, 10, -1, COLOUR_WHITE, "Command: ");
+        Term_putstr(0, 9, -1, COLOUR_WHITE, "Command: ");
 
         /* Get a key */
         ke = inkey_ex();
@@ -1133,38 +1207,25 @@ static int cmd_master_aux_generate(void)
             /* Generate a random artifact */
             else if (ke.key.code == '3')
             {
-                Send_master(MASTER_GENERATE, "rn");
-                return 1;
-            }
-
-            /* Generate a (rerolled) random artifact */
-            else if (ke.key.code == '4')
-            {
-                Send_master(MASTER_GENERATE, "rr");
+                Send_master(MASTER_GENERATE, "r");
                 return 1;
             }
 
             /* Generate a true artifact */
-            else if (ke.key.code == '5')
+            else if (ke.key.code == '4')
             {
                 char buf[NORMAL_WID];
-                char kind[NORMAL_WID], name[NORMAL_WID];
-                int res;
+                s32b tmp_quan;
 
-                memset(kind, 0, sizeof(kind));
-                memset(name, 0, sizeof(name));
+                /* Initialize buffer */
+                memset(buf, 0, sizeof(buf));
+                buf[0] = 'a';
 
-                /* Artifact by kind */
-                res = get_string_ex("Artifact kind: ", kind, sizeof(kind), false);
-                if (res == 1) return 1;
-                if ((res == 2) || !kind[0]) continue;
-
-                /* Artifact by name */
-                res = get_string_ex("Artifact name: ", name, sizeof(name), false);
-                if (res == 1) return 1;
-                if ((res == 2) || !name[0]) continue;
-
-                strnfmt(buf, sizeof(buf), "a%s|%s", kind, name);
+                /* Item by number */
+                tmp_quan = get_quantity_ex("Artifact number? ", z_info->a_max);
+                if (tmp_quan == -1) return 1;
+                if (!tmp_quan) continue;
+                buf[1] = tmp_quan;
 
                 /* Send choice to server */
                 Send_master(MASTER_GENERATE, buf);
@@ -1217,12 +1278,9 @@ static int cmd_master_aux_build(void)
             /* Set Feature */
             if (ke.key.code == '1')
             {
-                int res;
-
                 buf[0] = 'i';
-                res = get_string_ex("Feature name: ", &buf[1], sizeof(buf), false);
-                if (res == 1) return 1;
-                if ((res == 2) || !buf[1]) continue;
+                buf[1] = get_quantity_ex("Feature number? ", z_info->f_max);
+                if (buf[1] == -1) return 1;
             }
 
             /* Place Feature */
@@ -1623,7 +1681,7 @@ static int cmd_master_aux_visuals(void)
         Term_putstr(0, 2, -1, COLOUR_WHITE, "Visual commands");
 
         /* Selections */
-        Term_putstr(5, 4, -1, COLOUR_WHITE, "(1) Display PROJ_XXX types");
+        Term_putstr(5, 4, -1, COLOUR_WHITE, "(1) Display GF_XXX types");
 
         /* Prompt */
         Term_putstr(0, 8, -1, COLOUR_WHITE, "Command: ");
@@ -1634,7 +1692,7 @@ static int cmd_master_aux_visuals(void)
         /* Leave */
         return_on_abort(ke);
 
-        /* Display PROJ_XXX types */
+        /* Display GF_XXX types */
         if ((ke.type == EVT_KBRD) && (ke.key.code == '1'))
             Send_master(MASTER_VISUALS, " ");
     }
@@ -1736,11 +1794,9 @@ static int cmd_master_aux_debug(void)
 
         /* Selections */
         Term_putstr(5, 4, -1, COLOUR_WHITE, "(1) Perform an effect (EFFECT_XXX)");
-        Term_putstr(5, 5, -1, COLOUR_WHITE, "(2) Create a trap");
-        Term_putstr(5, 6, -1, COLOUR_WHITE, "(3) Advance time");
 
         /* Prompt */
-        Term_putstr(0, 8, -1, COLOUR_WHITE, "Command: ");
+        Term_putstr(0, 6, -1, COLOUR_WHITE, "Command: ");
 
         /* Get a key */
         ke = inkey_ex();
@@ -1758,8 +1814,6 @@ static int cmd_master_aux_debug(void)
 
                 buf[0] = 'E';
                 buf[1] = '\0';
-
-                memset(tmp, 0, sizeof(tmp));
 
                 /* Get the name */
                 res = get_string_ex("Do which effect? ", tmp, sizeof(tmp), false);
@@ -1788,58 +1842,6 @@ static int cmd_master_aux_debug(void)
                 my_strcat(buf, tmp, sizeof(buf));
                 my_strcat(buf, "|", sizeof(buf));
                 res = get_string_ex("Enter third parameter: ", tmp, sizeof(tmp), false);
-                if (res == 1) return 1;
-                if ((res == 2) || !tmp[0]) continue;
-                my_strcat(buf, tmp, sizeof(buf));
-                my_strcat(buf, "|", sizeof(buf));
-                res = get_string_ex("Enter y parameter: ", tmp, sizeof(tmp), false);
-                if (res == 1) return 1;
-                if ((res == 2) || !tmp[0]) continue;
-                my_strcat(buf, tmp, sizeof(buf));
-                my_strcat(buf, "|", sizeof(buf));
-                res = get_string_ex("Enter x parameter: ", tmp, sizeof(tmp), false);
-                if (res == 1) return 1;
-                if ((res == 2) || !tmp[0]) continue;
-                my_strcat(buf, tmp, sizeof(buf));
-
-                Send_master(MASTER_DEBUG, buf);
-                return 1;
-            }
-
-            /* Create a trap */
-            if (ke.key.code == '2')
-            {
-                int res;
-                char tmp[NORMAL_WID];
-
-                buf[0] = 'T';
-                buf[1] = '\0';
-
-                memset(tmp, 0, sizeof(tmp));
-
-                /* Get the name */
-                res = get_string_ex("Create which trap? ", tmp, sizeof(tmp), false);
-                if (res == 1) return 1;
-                if ((res == 2) || !tmp[0]) continue;
-                my_strcat(buf, tmp, sizeof(buf));
-
-                Send_master(MASTER_DEBUG, buf);
-                return 1;
-            }
-
-            /* Advance time */
-            if (ke.key.code == '3')
-            {
-                int res;
-                char tmp[NORMAL_WID];
-
-                buf[0] = 'H';
-                buf[1] = '\0';
-
-                memset(tmp, 0, sizeof(tmp));
-
-                /* Get the amount */
-                res = get_string_ex("Amount (1-12 hours): ", tmp, sizeof(tmp), false);
                 if (res == 1) return 1;
                 if ((res == 2) || !tmp[0]) continue;
                 my_strcat(buf, tmp, sizeof(buf));
@@ -2049,10 +2051,4 @@ void do_cmd_fountain(void)
 
     /* Send it */
     Send_fountain(item);
-}
-
-
-void do_cmd_time(void)
-{
-    Send_time();
 }

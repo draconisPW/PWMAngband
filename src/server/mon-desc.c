@@ -3,7 +3,7 @@
  * Purpose: Monster description
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -26,9 +26,7 @@
  */
 void plural_aux(char *name, size_t max)
 {
-    size_t name_len = strlen(name);
-
-    my_assert(name_len != 0);
+    unsigned long name_len = strlen(name);
 
     if (name[name_len - 1] == 's')
         my_strcat(name, "es", max);
@@ -41,25 +39,35 @@ void plural_aux(char *name, size_t max)
  * Helper function for displaying monster list. Prints the number of creatures, followed
  * by either a singular or plural version of the race name as appropriate.
  */
-void get_mon_name(char *buf, size_t buflen, const struct monster_race *race, int num)
+void get_mon_name(char *output_name, size_t max, const struct monster_race *race, int num)
 {
-    my_assert(race != NULL);
+    my_assert(race);
 
     /* Unique names don't have a number */
-    if (monster_is_unique(race))
-        strnfmt(buf, buflen, "[U] %s", race->name);
+    if (rf_has(race->flags, RF_UNIQUE))
+    {
+        my_strcpy(output_name, "[U] ", max);
+        my_strcat(output_name, race->name, max);
+        return;
+    }
+
+    my_strcpy(output_name, format("%3d ", num), max);
+
+    if (num == 1)
+    {
+        my_strcat(output_name, race->name, max);
+        return;
+    }
+
+    if (race->plural != NULL)
+        my_strcat(output_name, race->plural, max);
     else
     {
-        strnfmt(buf, buflen, "%3d ", num);
-        if (num == 1)
-            my_strcat(buf, race->name, buflen);
-        else if (race->plural != NULL)
-            my_strcat(buf, race->plural, buflen);
-        else
-        {
-            my_strcat(buf, race->name, buflen);
-            plural_aux(buf, buflen);
-        }
+        char race_name[NORMAL_WID];
+
+        my_strcpy(race_name, race->name, sizeof(race_name));
+        plural_aux(race_name, sizeof(race_name));
+        my_strcat(output_name, race_name, max);
     }
 }
 
@@ -79,6 +87,10 @@ void get_mon_name(char *buf, size_t buflen, const struct monster_race *race, int
  * can get messages like "You hit someone.  She screams in agony!".
  *
  * Reflexives are acquired by requesting Objective plus Possessive.
+ *
+ * I am assuming that no monster name is more than 65 characters long,
+ * so that "char desc[NORMAL_WID];" is sufficiently large for any result, even
+ * when the "offscreen" notation is added.
  *
  * Note that the "possessive" for certain unique monsters will look
  * really silly, as in "Morgoth, King of Darkness's".  We should
@@ -110,41 +122,48 @@ void get_mon_name(char *buf, size_t buflen, const struct monster_race *race, int
  */
 void monster_desc(struct player *p, char *desc, size_t max, const struct monster *mon, int mode)
 {
+    const char *choice;
     bool seen, use_pronoun;
+    bool offscreen;
 
-    my_assert(mon != NULL);
+    my_assert(mon);
 
-    /* Can we see it? (forced, or not hidden + visible) */
+    /* Can we "see" it (forced, or not hidden + visible) */
     if (p)
     {
-        seen = ((mode & MDESC_SHOW) ||
-            (!(mode & MDESC_HIDE) && monster_is_visible(p, mon->midx)));
+        seen = ((mode & MDESC_SHOW) || (!(mode & MDESC_HIDE) &&
+            mflag_has(p->mflag[mon->midx], MFLAG_VISIBLE)));
+        offscreen = !panel_contains(p, mon->fy, mon->fx);
     }
     else
+    {
         seen = ((mode & MDESC_SHOW) || !(mode & MDESC_HIDE));
+        offscreen = false;
+    }
 
-    /* Sexed pronouns (seen and forced, or unseen and allowed) */
+    /* Sexed Pronouns (seen and allowed, or unseen and allowed) */
     use_pronoun = ((seen && (mode & MDESC_PRO_VIS)) || (!seen && (mode & MDESC_PRO_HID)));
 
     /* First, try using pronouns, or describing hidden monsters */
     if (!seen || use_pronoun)
     {
-        const char *choice = "it";
-
         /* An encoding of the monster "sex" */
         int msex = 0x00;
 
         /* Extract the gender (if applicable) */
-        if (use_pronoun)
-        {
-            if (rf_has(mon->race->flags, RF_FEMALE)) msex = 0x20;
-            else if (rf_has(mon->race->flags, RF_MALE)) msex = 0x10;
-        }
+        if (rf_has(mon->race->flags, RF_FEMALE)) msex = 0x20;
+        else if (rf_has(mon->race->flags, RF_MALE)) msex = 0x10;
+
+        /* Ignore the gender (if desired) */
+        if (!mon->race || !use_pronoun) msex = 0x00;
+
+        /* Assume simple result */
+        choice = "it";
 
         /* Brute force: split on the possibilities */
         switch (msex + (mode & 0x07))
         {
-            /* Neuter */
+            /* Neuter, or unknown */
             case 0x00: choice = "it"; break;
             case 0x01: choice = "it"; break;
             case 0x02: choice = "its"; break;
@@ -154,7 +173,7 @@ void monster_desc(struct player *p, char *desc, size_t max, const struct monster
             case 0x06: choice = "something's"; break;
             case 0x07: choice = "itself"; break;
 
-            /* Male */
+            /* Male (assume human if vague) */
             case 0x10: choice = "he"; break;
             case 0x11: choice = "him"; break;
             case 0x12: choice = "his"; break;
@@ -164,7 +183,7 @@ void monster_desc(struct player *p, char *desc, size_t max, const struct monster
             case 0x16: choice = "someone's"; break;
             case 0x17: choice = "himself"; break;
 
-            /* Female */
+            /* Female (assume human if vague) */
             case 0x20: choice = "she"; break;
             case 0x21: choice = "her"; break;
             case 0x22: choice = "her"; break;
@@ -175,6 +194,7 @@ void monster_desc(struct player *p, char *desc, size_t max, const struct monster
             case 0x27: choice = "herself"; break;
         }
 
+        /* Copy the result */
         my_strcpy(desc, choice, max);
     }
 
@@ -189,36 +209,41 @@ void monster_desc(struct player *p, char *desc, size_t max, const struct monster
     /* Unique, indefinite or definite */
     else
     {
-        bool offscreen = (p? !panel_contains(p, &((struct monster *)mon)->grid): false);
-
-        if (monster_is_unique(mon->race))
+        if (rf_has(mon->race->flags, RF_UNIQUE))
         {
             /* Start with the name (thus nominative and objective) */
             my_strcpy(desc, mon->race->name, max);
         }
+        else if (mode & MDESC_IND_VIS)
+        {
+            /* XXX Check plurality for "some" */
+
+            /* Indefinite monsters need an indefinite article */
+            my_strcpy(desc, is_a_vowel(mon->race->name[0])? "an ": "a ", max);
+            my_strcat(desc, mon->race->name, max);
+        }
         else
         {
-            if (mode & MDESC_IND_VIS)
-            {
-                /* XXX Check plurality for "some" */
-                /* Indefinite monsters need an indefinite article */
-                my_strcpy(desc, is_a_vowel(mon->race->name[0])? "an ": "a ", max);
-            }
-            else
-            {
-                /* Definite monsters need a definite article */
-                my_strcpy(desc, "the ", max);
-            }
-
+            /* Definite monsters need a definite article */
+            my_strcpy(desc, "the ", max);
             my_strcat(desc, mon->race->name, max);
         }
 
-        /* Handle the possessive */
-        /* XXX Check for trailing "s" */
-        if (mode & MDESC_POSS) my_strcat(desc, "'s", max);
+        /* Handle the Possessive as a special afterthought */
+        if (mode & MDESC_POSS)
+        {
+            /* XXX Check for trailing "s" */
 
-        /* Mention "offscreen" monsters */
-        if (offscreen) my_strcat(desc, " (offscreen)", max);
+            /* Simply append "apostrophe" and "s" */
+            my_strcat(desc, "'s", max);
+        }
+
+        /* Mention "offscreen" monsters XXX XXX */
+        if (offscreen)
+        {
+            /* Append special notation */
+            my_strcat(desc, " (offscreen)", max);
+        }
     }
 
     if (mode & MDESC_CAPITAL) my_strcap(desc);

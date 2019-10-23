@@ -13,7 +13,9 @@ extern void do_cmd_chat(struct player *p, char *buf);
 /* cmd-cave.c */
 extern void do_cmd_go_up(struct player *p);
 extern void do_cmd_go_down(struct player *p);
-extern void do_cmd_toggle_stealth(struct player *p);
+extern bool search(struct player *p, struct chunk *c, bool verbose);
+extern bool do_cmd_search(struct player *p);
+extern void do_cmd_toggle_search(struct player *p);
 extern void do_cmd_open(struct player *p, int dir, bool easy);
 extern void do_cmd_close(struct player *p, int dir, bool easy);
 extern bool do_cmd_tunnel(struct player *p);
@@ -31,7 +33,6 @@ extern void do_cmd_purchase_house(struct player *p, int dir);
 extern int wielding_cut(struct player *p);
 extern bool create_house(struct player *p);
 extern bool build_house(struct player *p);
-extern void display_time(struct player *p);
 
 /* cmd-innate.c */
 extern void do_cmd_ghost(struct player *p, int ability, int dir);
@@ -50,7 +51,7 @@ extern void do_cmd_wield(struct player *p, int item, int slot);
 extern void do_cmd_drop(struct player *p, int item, int quantity);
 extern void do_cmd_destroy(struct player *p, int item, bool des);
 extern void do_cmd_study(struct player *p, int book_index, int spell_index);
-extern bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir);
+extern void do_cmd_cast(struct player *p, int book_index, int spell_index, int dir);
 extern bool execute_effect(struct player *p, struct object **obj_address, struct effect *effect,
     int dir, bool *ident, bool *used, bool *notice);
 extern void do_cmd_use_staff(struct player *p, int item);
@@ -77,7 +78,7 @@ extern bool weight_okay(struct player *p, struct object *obj);
 extern void do_cmd_hold(struct player *p, int item);
 
 /* game-ui.c */
-extern void do_cmd_master(struct player *p, s16b command, char *buf);
+extern void do_cmd_master(struct player *p, s16b command, char* buf);
 extern void do_cmd_social(struct player *p, const char *buf, int dir);
 
 /* knowledge-ui.c */
@@ -101,6 +102,6 @@ extern void do_cmd_check_socials(struct player *p, int line);
 extern void do_cmd_interactive(struct player *p, int type, u32b query);
 
 /* party.c */
-extern void do_cmd_party(struct player *p, s16b command, char *buf);
+extern void do_cmd_party(struct player *p, s16b command, char* buf);
 
 #endif

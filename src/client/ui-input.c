@@ -3,7 +3,7 @@
  * Purpose: Some high-level UI functions, inkey()
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -124,6 +124,9 @@ struct keypress *inkey_next = NULL;
  * If we are waiting for a keypress, and no keypress is ready, then we will
  * refresh (once) the window which was active when this function was called.
  *
+ * Note that "back-quote" is automatically converted into "escape" for
+ * convenience on machines with no "escape" key.
+ *
  * If "angband_term[0]" is not active, we will make it active during this
  * function, so that the various "main-xxx.c" files can assume that input
  * is only requested (via "Term_inkey()") when "angband_term[0]" is active.
@@ -202,6 +205,9 @@ ui_event inkey_ex(void)
 
         /* Error */
         if (ke.type == EVT_ERROR) quit(NULL);
+
+        /* Treat back-quote as escape */
+        if (ke.key.code == '`') ke.key.code = ESCAPE;
     }
 
     /* Hack -- restore the term */
@@ -419,11 +425,9 @@ bool askfor_aux(char *buf, int len, keypress_handler keypress_h)
     int y, x;
     size_t k = 0;   /* Cursor position */
     size_t nul = 0; /* Position of the null byte in the string */
-    struct keypress ch;
+    struct keypress ch = {0};
     bool done = false;
     bool firsttime = true;
-
-    memset(&ch, 0, sizeof(ch));
 
     if (keypress_h == NULL) keypress_h = askfor_aux_keypress;
 
@@ -718,7 +722,7 @@ static bool textui_get_check(const char *prompt)
     char buf[NORMAL_WID];
 
     /* Option -- "auto_accept" */
-    if (OPT(player, auto_accept)) return true;
+    if (OPT(auto_accept)) return true;
 
     /* Hack -- build a "useful" prompt */
     strnfmt(buf, NORMAL_WID - 2, "%.70s[y/n] ", prompt);
@@ -760,7 +764,7 @@ static int textui_get_check_ex(const char *prompt)
     char buf[NORMAL_WID];
 
     /* Option -- "auto_accept" */
-    if (OPT(player, auto_accept)) return 0;
+    if (OPT(auto_accept)) return 0;
 
     /* Hack -- build a "useful" prompt */
     strnfmt(buf, NORMAL_WID - 2, "%.70s[y/n] ", prompt);
@@ -950,7 +954,7 @@ int target_dir(struct keypress ch)
         const struct keypress *act;
 
         /* Roguelike */
-        if (OPT(player, rogue_like_commands)) mode = KEYMAP_MODE_ROGUE;
+        if (OPT(rogue_like_commands)) mode = KEYMAP_MODE_ROGUE;
 
         /* Original */
         else mode = KEYMAP_MODE_ORIG;
@@ -1039,14 +1043,14 @@ static bool textui_get_aim_dir(int *dp)
                 /* Set new target, use target if legal */
                 case '*':
                 {
-                    if (cmd_target_interactive(TARGET_KILL | TARGET_AIM)) dir = DIR_TARGET;
+                    if (cmd_target_interactive(TARGET_KILL | TARGET_AIM)) dir = 5;
                     break;
                 }
 
                 /* Set new friendly target, use target if legal */
                 case '(':
                 {
-                    if (cmd_target_interactive(TARGET_HELP)) dir = DIR_TARGET;
+                    if (cmd_target_interactive(TARGET_HELP)) dir = 5;
                     break;
                 }
 
@@ -1054,7 +1058,7 @@ static bool textui_get_aim_dir(int *dp)
                 case '\'':
                 {
                     Send_target_closest(TARGET_KILL);
-                    dir = DIR_TARGET;
+                    dir = 5;
                     break;
                 }
 
@@ -1078,11 +1082,11 @@ static bool textui_get_aim_dir(int *dp)
                         else
                             break;
 
-                        if ((player->opts.lazymove_delay == 0) || (++keypresses_handled > 1))
+                        if ((player->other.lazymove_delay == 0) || (++keypresses_handled > 1))
                             break;
 
                         /* See if there's a second keypress within the defined period of time */
-                        inkey_scan = player->opts.lazymove_delay;
+                        inkey_scan = player->other.lazymove_delay;
                         ke = inkey_ex();
                     }
                 }
@@ -1181,7 +1185,6 @@ void textui_input_init(void)
     get_aim_dir_ex_hook = textui_get_aim_dir_ex;
     get_spell_hook = textui_get_spell;
     get_item_hook = textui_get_item;
-    get_curse_hook = textui_get_curse;
 }
 
 
@@ -1423,12 +1426,6 @@ int get_diff(struct player *p)
 }
 
 
-struct timed_grade *get_grade(int i)
-{
-    return timed_grades[i];
-}
-
-
 /*** Input processing ***/
 
 
@@ -1451,7 +1448,7 @@ static struct keypress request_command_buffer[256];
  */
 ui_event textui_get_command(void)
 {
-    int mode = (OPT(player, rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
+    int mode = (OPT(rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
     ui_event ke = EVENT_EMPTY;
     const struct keypress *act = NULL;
 

@@ -3,7 +3,7 @@
  * Purpose: Object inscription code
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -79,7 +79,7 @@ static char map_inscriptions[INSCRIPTION_MAX][3] =
 
 bool check_prevent_inscription(struct player *p, int what)
 {
-    int mode = (OPT(p, rogue_like_commands)? 1: 0);
+    int mode = (OPT_P(p, rogue_like_commands)? 1: 0);
 
     return p->prevents[map_inscriptions[what][mode]];
 }
@@ -122,7 +122,7 @@ static bool inscription_prevent(quark_t quark, char what, bool is_harmless)
 bool object_prevent_inscription(struct player *p, const struct object *obj, int what,
     bool is_harmless)
 {
-    int mode = (OPT(p, rogue_like_commands)? 1: 0);
+    int mode = (OPT_P(p, rogue_like_commands)? 1: 0);
 
     return inscription_prevent(obj->note, map_inscriptions[what][mode], is_harmless);
 }
@@ -132,25 +132,4 @@ bool protected_p(struct player *p, const struct object *obj, int what, bool is_h
 {
     return (!is_dm_p(p) && obj->owner && (p->id != obj->owner) &&
         object_prevent_inscription(p, obj, what, is_harmless));
-}
-
-
-bool object_match_inscription(struct player *p, const struct object *obj, int what)
-{
-    int mode = (OPT(p, rogue_like_commands)? 1: 0);
-    const char *str;
-
-    /* Get inscription */
-    str = quark_str(obj->note);
-    if (!str) return false;
-
-    /* Check for a "matching" inscription */
-    str = strchr(str, '@');
-    if (!str) return false;
-    str++;
-
-    /* Exact match */
-    if (*str && (*str == map_inscriptions[what][mode])) return true;
-
-    return false;
 }

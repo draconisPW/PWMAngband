@@ -2,7 +2,7 @@
  * File: cmd-innate.c
  * Purpose: Innate casting
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -25,12 +25,11 @@
  */
 void do_cmd_ghost(struct player *p, int ability, int dir)
 {
-    struct player_class *c = lookup_player_class("Ghost");
+    struct player_class *c = player_id2class(CLASS_GHOST);
     const struct class_book *book = &c->magic.books[0];
     int spell_index;
     struct class_spell *spell;
-    struct source who_body;
-    struct source *who = &who_body;
+    const char *pself = player_self(p);
 
     /* Check for ghost-ness */
     if (!p->ghost || player_can_undead(p)) return;
@@ -78,15 +77,13 @@ void do_cmd_ghost(struct player *p, int ability, int dir)
     p->current_item = 0;
 
     /* Only fire in direction 5 if we have a target */
-    if ((dir == DIR_TARGET) && !target_okay(p)) return;
-
-    source_player(who, get_player_index(get_connection(p->conn)), p);
+    if ((dir == 5) && !target_okay(p)) return;
 
     /* Projected */
     if (ability >= c->magic.total_spells)
     {
-        project_aimed(who, PROJ_PROJECT, dir, spell_index, PROJECT_STOP | PROJECT_KILL | PROJECT_PLAY,
-            "killed");
+        project_aimed(p, NULL, GF_PROJECT, dir, spell_index,
+            PROJECT_STOP | PROJECT_KILL | PROJECT_PLAY, "killed");
     }
 
     /* Cast the spell */
@@ -99,7 +96,7 @@ void do_cmd_ghost(struct player *p, int ability, int dir)
 
         if (spell->effect && spell->effect->other_msg)
             msg_print_near(p, MSG_PY_SPELL, spell->effect->other_msg);
-        if (!effect_do(spell->effect, who, &ident, true, dir, &beam, 0, 0, NULL))
+        if (!effect_do(p, spell->effect, &ident, true, dir, &beam, 0, 0, NULL, NULL))
             return;
     }
 
@@ -107,14 +104,10 @@ void do_cmd_ghost(struct player *p, int ability, int dir)
     use_energy(p);
 
     /* Too much can kill you */
+    strnfmt(p->died_flavor, sizeof(p->died_flavor), "exhausted %s with ghostly spells",
+        pself);
     if (p->exp < spell->slevel * spell->smana)
-    {
-        const char *pself = player_self(p);
-        char df[160];
-
-        strnfmt(df, sizeof(df), "exhausted %s with ghostly spells", pself);
-        take_hit(p, 5000, "the strain of ghostly powers", false, df);
-    }
+        take_hit(p, 5000, "the strain of ghostly powers", false);
 
     /* Take some experience */
     player_exp_lose(p, spell->slevel * spell->smana, true);
@@ -132,8 +125,6 @@ void do_cmd_breath(struct player *p, int dir)
     int typ;
     struct effect *effect;
     bool ident = false;
-    struct source who_body;
-    struct source *who = &who_body;
 
     /* Restrict ghosts */
     if (p->ghost && !(p->dm_flags & DM_GHOST_BODY))
@@ -170,12 +161,11 @@ void do_cmd_breath(struct player *p, int dir)
     /* Make the breath attack an effect */
     effect = mem_zalloc(sizeof(struct effect));
     effect->index = EF_BREATH;
-    effect->subtype = typ;
-    effect->radius = 20;
+    effect->params[0] = typ;
+    effect->params[1] = 20;
 
     /* Cast the breath attack */
-    source_player(who, get_player_index(get_connection(p->conn)), p);
-    effect_do(effect, who, &ident, true, dir, NULL, 0, 0, NULL);
+    effect_do(p, effect, &ident, true, dir, NULL, 0, 0, NULL, NULL);
 
     free_effect(effect);
 }
@@ -189,6 +179,7 @@ void do_cmd_mimic(struct player *p, int page, int spell_index, int dir)
     int i, j = 0, k = 0, chance;
     struct class_spell *spell;
     bool projected = false;
+    int old_num = get_player_num(p);
 
     /* Restrict ghosts */
     if (p->ghost && !is_dm_p(p))
@@ -267,18 +258,14 @@ void do_cmd_mimic(struct player *p, int page, int spell_index, int dir)
     if (i == p->clazz->magic.books[0].num_spells) return;
 
     /* Check mana */
-    if ((spell->smana > p->csp) && !OPT(p, risky_casting))
+    if (spell->smana > p->csp)
     {
         msg(p, "You do not have enough mana.");
         return;
     }
 
     /* Antimagic field (no effect on spells that are not "magical") */
-    if ((spell->smana > 0) && check_antimagic(p, chunk_get(&p->wpos), NULL))
-    {
-        use_energy(p);
-        return;
-    }
+    if ((spell->smana > 0) && check_antimagic(p, chunk_get(p->depth), NULL)) return;
 
     /* Spell cost */
     p->spell_cost = spell->smana;
@@ -293,25 +280,20 @@ void do_cmd_mimic(struct player *p, int page, int spell_index, int dir)
     /* Process spell */
     else
     {
-        struct source who_body;
-        struct source *who = &who_body;
-
         /* Set current spell and inscription */
         p->current_spell = spell->sidx;
         p->current_item = 0;
 
         /* Only fire in direction 5 if we have a target */
-        if ((dir == DIR_TARGET) && !target_okay(p)) return;
+        if ((dir == 5) && !target_okay(p)) return;
 
         /* Unaware players casting spells reveal themselves */
         if (p->k_idx) aware_player(p, p);
 
-        source_player(who, get_player_index(get_connection(p->conn)), p);
-
         /* Projected */
         if (projected)
         {
-            project_aimed(who, PROJ_PROJECT, dir, spell->sidx,
+            project_aimed(p, NULL, GF_PROJECT, dir, spell->sidx,
                 PROJECT_STOP | PROJECT_KILL | PROJECT_PLAY, "killed");
         }
 
@@ -322,6 +304,7 @@ void do_cmd_mimic(struct player *p, int page, int spell_index, int dir)
 
             if (spell->effect && spell->effect->other_msg)
             {
+
                 /* Hack -- formatted message */
                 switch (spell->effect->flag)
                 {
@@ -341,7 +324,7 @@ void do_cmd_mimic(struct player *p, int page, int spell_index, int dir)
                     }
                 }
             }
-            if (!effect_do(spell->effect, who, &ident, true, dir, NULL, 0, 0, NULL))
+            if (!effect_do(p, spell->effect, &ident, true, dir, NULL, 0, 0, NULL, NULL))
                 return;
         }
     }
@@ -350,5 +333,11 @@ void do_cmd_mimic(struct player *p, int page, int spell_index, int dir)
     use_energy(p);
 
     /* Use some mana */
-    use_mana(p);
+    p->csp -= p->spell_cost;
+
+    /* Hack -- redraw picture */
+    redraw_picture(p, old_num);
+
+    /* Redraw mana */
+    p->upkeep->redraw |= (PR_MANA);
 }

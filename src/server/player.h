@@ -25,9 +25,7 @@
 
 #define BTH_PLUS_ADJ        3       /* Adjust BTH per plus-to-hit */
 
-/*
- * Terrain that the player has a chance of digging through
- */
+/* Terrain that the player has a chance of digging through */
 enum
 {
     DIGGING_TREE = 0,
@@ -71,13 +69,16 @@ enum
     (((P)->dm_flags & DM_IS_MASTER)? true: false)
 
 #define restrict_winner(P, T) \
-    ((P) && (P)->total_winner && !kf_has((T)->kind->kind_flags, KF_QUEST_ART))
+    ((P)->total_winner && !kf_has((T)->kind->kind_flags, KF_QUEST_ART))
+
+#define restrict_artifacts(P, T) \
+    (OPT_P(P, birth_no_artifacts) && !kf_has((T)->kind->kind_flags, KF_QUEST_ART))
 
 /*
  * Should we shimmer stuff for this player?
  */
 #define allow_shimmer(P) \
-    (OPT(P, animate_flicker) && !(P)->use_graphics)
+    (OPT_P(P, animate_flicker) && !(P)->use_graphics)
 
 /*
  * Prevents abuse from level 1 characters
@@ -105,13 +106,13 @@ extern void free_players(void);
 extern struct player *player_get(int id);
 extern void player_set(int id, struct player *p);
 extern void player_death_info(struct player *p, const char *died_from);
-extern void player_safe_name(char *safe, size_t safelen, const char *name);
-extern void init_player(struct player *p, int conn, bool old_history, bool no_recall);
+extern const char *player_safe_name(const char *name);
+extern void init_player(struct player *p, int conn, bool old_history);
 extern void cleanup_player(struct player *p);
 extern void player_cave_new(struct player *p, int height, int width);
 extern void player_cave_free(struct player *p);
 extern void player_cave_clear(struct player *p, bool full);
-extern bool player_square_in_bounds(struct player *p, struct loc *grid);
-extern bool player_square_in_bounds_fully(struct player *p, struct loc *grid);
+extern bool player_square_in_bounds(struct player *p, int y, int x);
+extern bool player_square_in_bounds_fully(struct player *p, int y, int x);
 
 #endif /* PLAYER_H */

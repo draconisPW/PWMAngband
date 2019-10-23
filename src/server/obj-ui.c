@@ -3,7 +3,7 @@
  * Purpose: Lists of objects and object pictures
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -72,7 +72,7 @@ static void display_item(struct player *p, struct object *obj, byte equipped)
     char o_name_terse[NORMAL_WID];
     char o_name_base[NORMAL_WID];
     int wgt;
-    s32b price = 0;
+    s32b price;
 
     memset(&info_xtra, 0, sizeof(info_xtra));
 
@@ -82,15 +82,56 @@ static void display_item(struct player *p, struct object *obj, byte equipped)
         ODESC_PREFIX | ODESC_FULL | ODESC_TERSE);
     object_desc(p, o_name_base, sizeof(o_name_base), obj, ODESC_BASE | ODESC_PLURAL);
 
+    /* Get the color */
+    if (equipped) info_xtra.attr = obj->kind->base->attr;
+
     /* Display the weight if needed */
     wgt = (obj->tval? obj->weight * obj->number: 0);
 
     /* Display the price if needed */
-    if (in_store(p) && (store_at(p)->type <= STORE_XBM))
-        price = price_item(p, obj, true, obj->number);
+    price = ((in_store(p) && (p->store_num <= STORE_XBM))? price_item(p, obj, true, obj->number): 0);
 
     /* Get the info */
-    get_object_info(p, obj, equipped, &info_xtra);
+    if (equipped)
+    {
+        /* Get the "activation" flag */
+        if (object_effect(obj))
+        {
+            /* Check the recharge */
+            if (obj->timeout) info_xtra.act = ACT_TIMEOUT;
+
+            /* Get direction choice */
+            else if (effect_aim(object_effect(obj))) info_xtra.act = ACT_AIMED;
+            else info_xtra.act = ACT_NORMAL;
+        }
+
+        /* Get the "fuelable" flag */
+        if (tval_is_light(obj) && of_has(obj->flags, OF_TAKES_FUEL))
+        {
+            /* Non-everburning lamps are okay */
+            if (!of_has(obj->flags, OF_NO_FUEL)) info_xtra.fuel = 1;
+        }
+
+        /* Get the "fail" flag */
+        info_xtra.fail = 255;
+        if (obj_can_fail(p, obj))
+        {
+            info_xtra.fail--;
+            if (object_effect_is_known(obj, object_flavor_is_aware(p, obj)))
+                info_xtra.fail = (9 + get_use_device_chance(p, obj)) / 10;
+        }
+
+        /* Get the "cursed" flag */
+        info_xtra.cursed = cursed_p(obj->flags);
+
+        /* Get the "known" flag */
+        info_xtra.known = object_is_known(p, obj);
+
+        /* Get the "slot" flag */
+        info_xtra.slot = equipped_item_slot(p->body, obj);
+    }
+    else
+        get_object_info(p, obj, &info_xtra);
 
     /* Get the "sellable" flag */
     info_xtra.sellable = store_will_buy_tester(p, obj);
@@ -98,10 +139,10 @@ static void display_item(struct player *p, struct object *obj, byte equipped)
     /* Get the "ignore" flags */
     info_xtra.quality_ignore = ignore_level_of(p, obj);
     info_xtra.ignored = (byte)object_is_ignored(p, obj);
-    info_xtra.eidx = ((obj->ego && obj->known->ego)? (s16b)obj->ego->eidx: -1);
+    info_xtra.ego_ignore = object_ego_is_visible(obj);
+    info_xtra.eidx = (obj->ego? (s16b)obj->ego->eidx: 0);
 
     info_xtra.equipped = equipped;
-    if (of_has(obj->flags, OF_AMMO_MAGIC)) info_xtra.magic = 1;
     info_xtra.bidx = (s16b)object_to_book_index(p, obj);
 
     my_strcpy(info_xtra.name, o_name, sizeof(info_xtra.name));
@@ -226,16 +267,15 @@ void display_floor(struct player *p, struct chunk *c, struct object **floor_list
             ODESC_BASE | ODESC_PLURAL);
 
         /* Get the info */
-        get_object_info(p, floor_list[i], 0, &info_xtra);
+        get_object_info(p, floor_list[i], &info_xtra);
         if (inven_carry_okay(p, floor_list[i])) info_xtra.carry = 1;
 
         /* Get the "ignore" flags */
         info_xtra.quality_ignore = ignore_level_of(p, floor_list[i]);
         info_xtra.ignored = (byte)object_is_ignored(p, floor_list[i]);
-        info_xtra.eidx = ((floor_list[i]->ego && floor_list[i]->known->ego)?
-            (s16b)floor_list[i]->ego->eidx: -1);
+        info_xtra.ego_ignore = object_ego_is_visible(floor_list[i]);
+        info_xtra.eidx = (floor_list[i]->ego? (s16b)floor_list[i]->ego->eidx: 0);
 
-        if (of_has(floor_list[i]->flags, OF_AMMO_MAGIC)) info_xtra.magic = 1;
         info_xtra.bidx = (s16b)object_to_book_index(p, floor_list[i]);
 
         my_strcpy(info_xtra.name, o_name, sizeof(info_xtra.name));
@@ -257,12 +297,12 @@ void show_floor(struct player *p, int mode)
 }
 
 
-bool get_item(struct player *p, byte tester_hook, char *dice_string)
+bool get_item(struct player *p, byte tester_hook)
 {
     /* Pending */
     p->current_value = ITEM_PENDING;
 
-    Send_item_request(p, tester_hook, dice_string);
+    Send_item_request(p, tester_hook);
 
     return true;
 }

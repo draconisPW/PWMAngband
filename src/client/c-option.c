@@ -3,7 +3,7 @@
  * Purpose: Options table and definitions.
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -46,7 +46,7 @@ bool option_set(bool *opts, const char *name, size_t val)
     {
         /* Bounds */
         if (val > 9) val = 9;
-        player->opts.hitpoint_warn = val;
+        player->other.hitpoint_warn = val;
 
         return true;
     }
@@ -54,7 +54,7 @@ bool option_set(bool *opts, const char *name, size_t val)
     {
         /* Bounds */
         if (val > 255) val = 255;
-        player->opts.delay_factor = val;
+        player->other.delay_factor = val;
 
         return true;
     }
@@ -62,7 +62,7 @@ bool option_set(bool *opts, const char *name, size_t val)
     {
         /* Bounds */
         if (val > 9) val = 9;
-        player->opts.lazymove_delay = val;
+        player->other.lazymove_delay = val;
 
         return true;
     }
@@ -72,29 +72,12 @@ bool option_set(bool *opts, const char *name, size_t val)
 
 
 /*
- * Set player default options
- */
-void options_init_defaults(struct player_options *opts)
-{
-    int i;
-
-    /* 40ms for the delay factor */
-    opts->delay_factor = 40;
-
-    /* 30% of HP */
-    opts->hitpoint_warn = 3;
-
-    /* Initialize extra parameters */
-    for (i = ITYPE_NONE; i < ITYPE_MAX; i++) opts->ignore_lvl[i] = IGNORE_BAD;
-}
-
-
-/*
- * Initialise options package
+ * Initialize options to defaults
  */
 void init_options(bool *opts)
 {
     size_t opt;
+    int i;
 
     /* Allocate options to pages */
     option_init();
@@ -102,4 +85,13 @@ void init_options(bool *opts)
     /* Set defaults */
     for (opt = 0; opt < OPT_MAX; opt++)
         opts[opt] = option_normal(opt);
+
+    /* 40ms for the delay factor */
+    player->other.delay_factor = 40;
+
+    /* 30% of HP */
+    player->other.hitpoint_warn = 3;
+
+    /* Initialize extra parameters */
+    for (i = ITYPE_NONE; i < ITYPE_MAX; i++) player->other.ignore_lvl[i] = IGNORE_WORTHLESS;
 }

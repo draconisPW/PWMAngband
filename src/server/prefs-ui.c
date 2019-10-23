@@ -3,7 +3,7 @@
  * Purpose: Pref file handling code
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -43,7 +43,9 @@ struct prefs_data
 {
     bool bypass;
     bool skip;
-    struct preset *ps;
+    int mode;
+    int nrace;
+    int nclass;
 };
 
 
@@ -105,7 +107,7 @@ static enum parser_error parse_prefs_object(struct parser *p)
 
         for (i = 0; i < z_info->k_max; i++)
         {
-            kind = &k_info[i];
+            struct object_kind *kind = &k_info[i];
 
             kind_x_attr[kind->kidx] = attr;
             kind_x_char[kind->kidx] = chr;
@@ -130,7 +132,7 @@ static enum parser_error parse_prefs_object(struct parser *p)
 
             for (i = 0; i < z_info->k_max; i++)
             {
-                kind = &k_info[i];
+                struct object_kind *kind = &k_info[i];
 
                 if (kind->tval != tvi) continue;
 
@@ -194,7 +196,7 @@ static enum parser_error parse_prefs_monster_base(struct parser *p)
 
     name = parser_getsym(p, "name");
     mb = lookup_monster_base(name);
-    if (!mb) return PARSE_ERROR_INVALID_MONSTER_BASE;
+    if (!mb) return PARSE_ERROR_NO_KIND_FOUND;
 
     a = (byte)parser_getint(p, "attr");
     c = (char)parser_getint(p, "char");
@@ -223,7 +225,8 @@ static enum parser_error parse_prefs_feat(struct parser *p)
     my_assert(d != NULL);
     if (d->bypass) return PARSE_ERROR_NONE;
 
-    idx = lookup_feat(parser_getsym(p, "idx"));
+    idx = parser_getuint(p, "idx");
+    if (idx >= z_info->f_max) return PARSE_ERROR_OUT_OF_BOUNDS;
 
     lighting = parser_getsym(p, "lighting");
     if (streq(lighting, "torch"))
@@ -288,17 +291,18 @@ static enum parser_error parse_prefs_trap(struct parser *p)
     my_assert(d != NULL);
     if (d->bypass) return PARSE_ERROR_NONE;
 
-    /* idx can be "*" or a name */
+    /* idx can be "*" or a number */
     idx_sym = parser_getsym(p, "idx");
 
     if (!strcmp(idx_sym, "*"))
         trap_idx = -1;
     else
     {
-        struct trap_kind *trap = lookup_trap(idx_sym);
+        char *z = NULL;
 
-        if (!trap) return PARSE_ERROR_UNRECOGNISED_TRAP;
-        trap_idx = trap->tidx;
+        trap_idx = strtoul(idx_sym, NULL, 0);
+        if ((z == idx_sym) || (*idx_sym == '-')) return PARSE_ERROR_NOT_NUMBER;
+        if (trap_idx >= z_info->trap_max) return PARSE_ERROR_OUT_OF_BOUNDS;
     }
 
     lighting = parser_getsym(p, "lighting");
@@ -334,7 +338,7 @@ static enum parser_error parse_prefs_trap(struct parser *p)
 
 static enum parser_error parse_prefs_gf(struct parser *p)
 {
-    bool types[PROJ_MAX];
+    bool types[GF_MAX] = { 0 };
     const char *direction;
     int motion, motion2 = 0;
     char *s, *t;
@@ -344,18 +348,16 @@ static enum parser_error parse_prefs_gf(struct parser *p)
     my_assert(d != NULL);
     if (d->bypass) return PARSE_ERROR_NONE;
 
-    memset(types, 0, PROJ_MAX * sizeof(bool));
-
-    /* Parse the type, which is a | seperated list of PROJ_ constants */
+    /* Parse the type, which is a | seperated list of GF_ constants */
     s = string_make(parser_getsym(p, "type"));
     t = strtok(s, "| ");
     while (t)
     {
         if (streq(t, "*"))
-            memset(types, true, PROJ_MAX * sizeof(bool));
+            memset(types, true, sizeof(types));
         else
         {
-            int idx = proj_name_to_idx(t);
+            int idx = gf_name_to_idx(t);
 
             if (idx == -1) return PARSE_ERROR_INVALID_VALUE;
 
@@ -401,18 +403,18 @@ static enum parser_error parse_prefs_gf(struct parser *p)
     else
         return PARSE_ERROR_INVALID_VALUE;
 
-    for (i = 0; i < PROJ_MAX; i++)
+    for (i = 0; i < GF_MAX; i++)
     {
         if (!types[i]) continue;
 
-        proj_to_attr[i][motion] = (byte)parser_getuint(p, "attr");
-        proj_to_char[i][motion] = (char)parser_getuint(p, "char");
+        gf_to_attr[i][motion] = (byte)parser_getuint(p, "attr");
+        gf_to_char[i][motion] = (char)parser_getuint(p, "char");
 
         /* Default values */
         if (motion2)
         {
-            proj_to_attr[i][motion2] = (byte)parser_getuint(p, "attr");
-            proj_to_char[i][motion2] = (char)parser_getuint(p, "char");
+            gf_to_attr[i][motion2] = (byte)parser_getuint(p, "attr");
+            gf_to_char[i][motion2] = (char)parser_getuint(p, "char");
         }
     }
 
@@ -465,7 +467,7 @@ static struct parser *init_parse_prefs(void)
     parser_reg(p, "object sym tval sym sval int attr int char", parse_prefs_object);
     parser_reg(p, "monster sym name int attr int char", parse_prefs_monster);
     parser_reg(p, "monster-base sym name int attr int char", parse_prefs_monster_base);
-    parser_reg(p, "feat sym idx sym lighting int attr int char", parse_prefs_feat);
+    parser_reg(p, "feat uint idx sym lighting int attr int char", parse_prefs_feat);
     parser_reg(p, "trap sym idx sym lighting int attr int char", parse_prefs_trap);
     parser_reg(p, "GF sym type sym direction uint attr uint char", parse_prefs_gf);
     parser_reg(p, "flavor uint idx int attr int char", parse_prefs_flavor);
@@ -548,18 +550,18 @@ static enum parser_error parse_xprefs_monster(struct parser *p)
 
     parser_getsym(p, "name");
 
-    d->ps->ridx++;
-    if (d->ps->ridx == player_rmax())
+    d->nrace++;
+    if (d->nrace == MAX_XTRA_RACES)
     {
-        d->ps->ridx = 0;
-        d->ps->cidx++;
+        d->nrace = 0;
+        d->nclass++;
     }
 
     /* Hack -- default player presets */
     for (i = 0; i < MAX_SEXES; i++)
     {
-        d->ps->player_presets[i][d->ps->cidx][d->ps->ridx].a = (u16b)parser_getint(p, "attr");
-        d->ps->player_presets[i][d->ps->cidx][d->ps->ridx].c = (char)parser_getint(p, "char");
+        player_presets[d->mode][d->nclass][d->nrace][i].a = (u16b)parser_getint(p, "attr");
+        player_presets[d->mode][d->nclass][d->nrace][i].c = (char)parser_getint(p, "char");
     }
 
     return PARSE_ERROR_NONE;
@@ -576,30 +578,21 @@ static enum parser_error parse_xprefs_rf(struct parser *p)
     parser_getsym(p, "name");
 
     /* Hack -- player presets for female characters */
-    d->ps->player_presets[SEX_FEMALE][d->ps->cidx][d->ps->ridx].a = (u16b)parser_getint(p, "attr");
-    d->ps->player_presets[SEX_FEMALE][d->ps->cidx][d->ps->ridx].c = (char)parser_getint(p, "char");
+    player_presets[d->mode][d->nclass][d->nrace][SEX_FEMALE].a = (u16b)parser_getint(p, "attr");
+    player_presets[d->mode][d->nclass][d->nrace][SEX_FEMALE].c = (char)parser_getint(p, "char");
 
     return PARSE_ERROR_NONE;
 }
 
 
-static struct parser *init_parse_xprefs(struct preset *ps)
+static struct parser *init_parse_xprefs(int mode)
 {
     struct parser *p = parser_new();
     struct prefs_data *d = mem_zalloc(sizeof(struct prefs_data));
-    int sidx, cidx;
 
-    for (sidx = 0; sidx < MAX_SEXES; sidx++)
-    {
-        ps->player_presets[sidx] = mem_zalloc(player_cmax() * sizeof(cave_view_type *));
-        for (cidx = 0; cidx < player_cmax(); cidx++)
-            ps->player_presets[sidx][cidx] = mem_zalloc(player_rmax() * sizeof(cave_view_type));
-    }
-
-    ps->ridx = player_rmax() - 1;
-    ps->cidx = -1;
-
-    d->ps = ps;
+    d->mode = mode;
+    d->nrace = MAX_XTRA_RACES - 1;
+    d->nclass = -1;
 
     parser_setpriv(p, d);
     parser_reg(p, "? str expr", parse_prefs_expr);
@@ -615,7 +608,7 @@ static struct parser *init_parse_xprefs(struct preset *ps)
  *
  * Returns true if everything worked OK, false otherwise
  */
-static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const char *name)
+static bool process_pref_file_xtra_aux(int mode, const char *dir, const char *name)
 {
     char path[MSG_LEN], buf[MSG_LEN];
     ang_file *f;
@@ -636,7 +629,7 @@ static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const
     {
         char line[MSG_LEN];
 
-        p = init_parse_xprefs(ps);
+        p = init_parse_xprefs(mode);
 
         while (file_getl(f, line, sizeof(line)))
         {
@@ -651,6 +644,7 @@ static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const
         }
 
         file_close(f);
+        mem_free(parser_priv(p));
         parser_destroy(p);
     }
 
@@ -661,15 +655,14 @@ static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const
 
 static enum parser_error parse_pprefs_p(struct parser *p)
 {
-    struct preset *ps = parser_priv(p);
-    struct preset *psnew = mem_zalloc(sizeof(struct preset));
+    int *pint = parser_priv(p);
 
-    psnew->next = ps;
+    my_assert(pint != NULL);
+
+    *pint = parser_getint(p, "mode");
 
     /* Read player presets from pref files */
-    process_pref_file_xtra_aux(psnew, parser_getsym(p, "dirname"), parser_getstr(p, "file"));
-
-    parser_setpriv(p, psnew);
+    process_pref_file_xtra_aux(*pint, parser_getsym(p, "dirname"), parser_getstr(p, "file"));
 
     return PARSE_ERROR_NONE;
 }
@@ -677,15 +670,15 @@ static enum parser_error parse_pprefs_p(struct parser *p)
 
 static enum parser_error parse_pprefs_n(struct parser *p)
 {
-    struct preset *ps = parser_priv(p);
+    int *pint = parser_priv(p);
     int idx;
 
-    my_assert(ps != NULL);
+    my_assert(pint != NULL);
 
     idx = parser_getint(p, "idx");
 
-    ps->player_numbers[idx].a = (u16b)parser_getint(p, "attr");
-    ps->player_numbers[idx].c = (char)parser_getint(p, "char");
+    player_numbers[*pint][idx].a = (u16b)parser_getint(p, "attr");
+    player_numbers[*pint][idx].c = (char)parser_getint(p, "char");
 
     return PARSE_ERROR_NONE;
 }
@@ -694,42 +687,13 @@ static enum parser_error parse_pprefs_n(struct parser *p)
 static struct parser *init_parse_pprefs(void)
 {
     struct parser *p = parser_new();
+    int *pint = mem_zalloc(sizeof(int));
 
-    parser_setpriv(p, NULL);
-    parser_reg(p, "P sym dirname str file", parse_pprefs_p);
+    parser_setpriv(p, pint);
+    parser_reg(p, "P int mode sym dirname str file", parse_pprefs_p);
     parser_reg(p, "N int idx int attr int char", parse_pprefs_n);
 
     return p;
-}
-
-
-static void finish_parse_pprefs(struct parser *p)
-{
-    struct preset *ps, *next;
-    int idx;
-
-    /* Scan the list for the max id */
-    presets_count = 0;
-    ps = parser_priv(p);
-    while (ps)
-    {
-        presets_count++;
-        ps = ps->next;
-    }
-
-    /* Allocate the direct access list and copy the data to it */
-    presets = mem_zalloc(presets_count * sizeof(*ps));
-    idx = presets_count - 1;
-    for (ps = parser_priv(p); ps; ps = next, idx--)
-    {
-        memcpy(&presets[idx], ps, sizeof(*ps));
-        next = ps->next;
-        if (idx < presets_count - 1) presets[idx].next = &presets[idx + 1];
-        else presets[idx].next = NULL;
-        mem_free(ps);
-    }
-
-    parser_destroy(p);
 }
 
 
@@ -767,7 +731,8 @@ bool process_pref_file_xtra(const char *name)
         }
 
         file_close(f);
-        finish_parse_pprefs(p);
+        mem_free(parser_priv(p));
+        parser_destroy(p);
     }
 
     /* Result */

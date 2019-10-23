@@ -3,7 +3,7 @@
  * Purpose: Utility functions
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -24,14 +24,10 @@
 struct object_kind *k_info;
 struct ego_item *e_info;
 struct player_race *races;
-struct dragon_breed *breeds;
 struct player_class *classes;
-struct magic_realm *realms;
 struct player_body *bodies;
 struct monster_race *r_info;
 struct monster_base *rb_info;
-struct curse *curses;
-struct trap_kind *trap_info;
 
 
 void cleanup_p_race(void)
@@ -43,24 +39,6 @@ void cleanup_p_race(void)
     {
         next = p->next;
         string_free(p->name);
-        mem_free(p);
-        p = next;
-    }
-}
-
-
-void cleanup_realm(void)
-{
-    struct magic_realm *p = realms;
-    struct magic_realm *next;
-
-    while (p)
-    {
-        next = p->next;
-        string_free(p->name);
-        string_free(p->verb);
-        string_free(p->spell_noun);
-        string_free(p->book_noun);
         mem_free(p);
         p = next;
     }
@@ -151,30 +129,34 @@ void cleanup_body(void)
  * Player Sexes
  *
  *      Title,
- *      Winner,
- *      Conqueror of the Nether Realm,
- *      Melkor killer
+ *      Winner
  */
 player_sex sex_info[MAX_SEXES] =
 {
     {
         "Female",
-        "Queen",
-        "Empress",
-        "Goddess"
+        "Queen"
     },
     {
         "Male",
-        "King",
-        "Emperor",
-        "God"
+        "King"
     },
     {
         "Neuter",
-        "Regent",
-        "Ruler",
-        "Deity"
+        "Regent"
     }
+};
+
+
+/*
+ * Magic realms:
+ * index, spell stat, verb, spell noun, book noun, adjective
+ */
+struct magic_realm realms[] =
+{
+    #define REALM(a, b, c, d, e, f) {REALM_##a, b, c, d, e, f},
+    #include "list-magic-realms.h"
+    {REALM_MAX, STAT_STR, "", "", "", NULL}
 };
 
 
@@ -223,7 +205,6 @@ size_t obj_desc_name_format(char *buf, size_t max, size_t end, const char *fmt, 
     /* Copy the string */
     while (*fmt)
     {
-        /* Skip */
         if (*fmt == '&')
         {
             while (*fmt == ' ' || *fmt == '&')
@@ -346,22 +327,6 @@ int lookup_sval(int tval, const char *name)
 int lookup_sval_silent(int tval, const char *name)
 {
     return lookup_sval_aux(tval, name, true);
-}
-
-
-void object_short_name(char *buf, size_t max, const char *name)
-{
-    size_t j, k;
-    size_t len = strlen(name);
-
-    /* Copy across the name, stripping modifiers & and ~ */
-    for (j = 0, k = 0; ((j < len) && (k < max)); j++)
-    {
-        if ((j == 0) && (name[0] == '&') && (name[1] == ' ')) j += 2;
-        if (name[j] == '~') continue;
-        buf[k++] = name[j];
-    }
-    buf[k] = 0;
 }
 
 
@@ -824,19 +789,6 @@ struct player_class *player_id2class(guid id)
 }
 
 
-struct player_class *lookup_player_class(const char *name)
-{
-    struct player_class *c;
-
-    for (c = classes; c; c = c->next)
-    {
-        if (streq(c->name, name)) break;
-    }
-
-    return c;
-}
-
-
 int player_cmax(void)
 {
     int n = 0;
@@ -979,7 +931,7 @@ ignore_type_t ignore_type_of(const struct object *obj)
  */
 bool ego_has_ignore_type(struct ego_item *ego, ignore_type_t itype)
 {
-    struct poss_item *poss;
+    struct ego_poss_item *poss;
 
     /* Go through all the possible items */
     for (poss = ego->poss_items; poss; poss = poss->next)
@@ -1039,7 +991,7 @@ struct monster_race *lookup_monster(const char *name)
         if (!race->name) continue;
 
         /* Test for equality */
-        if (my_stricmp(name, race->name) == 0) return race;
+        if (streq(name, race->name)) return race;
 
         /* Test for close matches */
         if (!closest && my_stristr(race->name, name)) closest = race;
@@ -1123,72 +1075,4 @@ int message_lookup_by_name(const char *name)
     }
 
     return -1;
-}
-
-
-/*
- * Creates the player's body
- */
-void player_embody(struct player *p)
-{
-    int i;
-
-    memcpy(&p->body, &bodies[p->race->body], sizeof(p->body));
-    p->body.slots = mem_zalloc(p->body.count * sizeof(struct equip_slot));
-    memcpy(p->body.slots, bodies[p->race->body].slots, p->body.count * sizeof(struct equip_slot));
-
-    for (i = 0; i < N_HISTORY_FLAGS; i++)
-        p->hist_flags[i] = mem_zalloc((p->body.count + 1) * sizeof(cave_view_type));
-}
-
-
-const struct magic_realm *lookup_realm(const char *name)
-{
-    struct magic_realm *realm = realms;
-
-    while (realm)
-    {
-        if (!my_stricmp(name, realm->name)) return realm;
-        realm = realm->next;
-    }
-
-    /* Fail horribly */
-    quit_fmt("Failed to find %s magic realm", name);
-    return NULL;
-}
-
-
-/*
- * Find a trap kind based on its short description
- */
-struct trap_kind *lookup_trap(const char *desc)
-{
-    int i;
-    struct trap_kind *closest = NULL;
-
-    /* Look for it */
-    for (i = 1; i < z_info->trap_max; i++)
-    {
-        struct trap_kind *kind = &trap_info[i];
-
-        /* Test for equality */
-        if (streq(desc, kind->desc)) return kind;
-
-        /* Test for close matches */
-        if (!closest && my_stristr(kind->desc, desc)) closest = kind;
-    }
-
-    /* Return our best match */
-    return closest;
-}
-
-
-/*
- * Returns N which is the 1 in N chance for recharging to fail.
- */
-int recharge_failure_chance(const struct object *obj, int strength)
-{
-    int raw_chance = (strength + 100 - obj->kind->level - (10 * (obj->pval / obj->number))) / 15;
-
-    return ((raw_chance > 1)? raw_chance: 1);
 }

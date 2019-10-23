@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007-9 Andi Sidwell, Chris Carr, Ed Graham, Erik Osheim
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -69,22 +69,136 @@ static bool check_devices(struct player *p, struct object *obj)
 }
 
 
+typedef enum
+{
+    ART_TAG_NONE,
+    ART_TAG_NAME,
+    ART_TAG_KIND,
+    ART_TAG_VERB,
+    ART_TAG_VERB_IS
+} art_tag_t;
+
+
+static art_tag_t art_tag_lookup(const char *tag)
+{
+    if (strncmp(tag, "name", 4) == 0) return ART_TAG_NAME;
+    if (strncmp(tag, "kind", 4) == 0) return ART_TAG_KIND;
+    if (strncmp(tag, "s", 1) == 0) return ART_TAG_VERB;
+    if (strncmp(tag, "is", 2) == 0) return ART_TAG_VERB_IS;
+    return ART_TAG_NONE;
+}
+
+
+/*
+ * Puts a very stripped-down version of an object's name into buf.
+ * If aware is true, then the IDed names are used, otherwise
+ * flavours, scroll names, etc will be used.
+ *
+ * Just truncates if the buffer isn't big enough.
+ */
+static void object_kind_name_activation(struct player *p, char *buf, size_t max, struct object *obj)
+{
+    /* Flavored non-artifact items get a base description */
+    if (obj->kind->flavor && !obj->artifact)
+        object_desc(p, buf, max, obj, ODESC_BASE);
+
+    /* If not aware, the plain flavour (e.g. Copper) will do. */
+    else if (!p->obj_aware[obj->kind->kidx] && obj->kind->flavor)
+        my_strcpy(buf, obj->kind->flavor->text, max);
+
+    /* Use proper name (Healing, or whatever) */
+    else
+        obj_desc_name_format(buf, max, 0, obj->kind->name, NULL, false);
+}
+
+
 /*
  * Print an artifact activation message.
+ *
+ * In order to support randarts, with scrambled names, we re-write
+ * the message to replace instances of {name} with the artifact name
+ * and instances of {kind} with the type of object.
+ *
+ * This code deals with plural and singular forms of verbs correctly
+ * when encountering {s}, though in fact both names and kinds are
+ * always singular in the current code (gloves are "Set of" and boots
+ * are "Pair of")
  */
 static void activation_message(struct player *p, struct object *obj)
 {
-    const char *message;
+    char buf[MSG_LEN] = "\0";
+    const char *next;
+    const char *s;
+    const char *tag;
+    const char *in_cursor;
+    size_t end = 0;
 
     /* See if we have a message */
     if (!obj->activation) return;
     if (!obj->activation->message) return;
     if (true_artifact_p(obj) && obj->artifact->alt_msg)
-        message = obj->artifact->alt_msg;
+        in_cursor = obj->artifact->alt_msg;
     else
-        message = obj->activation->message;
+        in_cursor = obj->activation->message;
 
-    print_custom_message(p, obj, message, MSG_GENERIC);
+    next = strchr(in_cursor, '{');
+    while (next)
+    {
+        /* Copy the text leading up to this { */
+        strnfcat(buf, MSG_LEN, &end, "%.*s", next - in_cursor, in_cursor);
+
+        s = next + 1;
+        while (*s && isalpha((unsigned char)*s)) s++;
+
+        /* Valid tag */
+        if (*s == '}')
+        {
+            /* Start the tag after the { */
+            tag = next + 1;
+            in_cursor = s + 1;
+
+            switch (art_tag_lookup(tag))
+            {
+                case ART_TAG_NAME:
+                    /* Flavored non-artifact items get a base description */
+                    if (obj->kind->flavor && !obj->artifact)
+                    {
+                        strnfcat(buf, MSG_LEN, &end, "Your ");
+                        object_desc(p, &buf[end], MSG_LEN - end, obj, ODESC_BASE);
+                        end += strlen(&buf[end]);
+                    }
+                    else
+                        end += object_desc(p, buf, MSG_LEN, obj, ODESC_PREFIX | ODESC_BASE);
+                    break;
+                case ART_TAG_KIND:
+                    object_kind_name_activation(p, &buf[end], MSG_LEN - end, obj);
+                    end += strlen(&buf[end]);
+                    break;
+                case ART_TAG_VERB:
+                    strnfcat(buf, MSG_LEN, &end, "s");
+                    break;
+                case ART_TAG_VERB_IS:
+                    if ((end > 2) && (buf[end - 2] == 's'))
+                        strnfcat(buf, MSG_LEN, &end, "are");
+                    else
+                        strnfcat(buf, MSG_LEN, &end, "is");
+                default:
+                    break;
+            }
+        }
+
+        /* An invalid tag, skip it */
+        else
+            in_cursor = next + 1;
+
+        next = strchr(in_cursor, '{');
+    }
+    strnfcat(buf, MSG_LEN, &end, in_cursor);
+
+    /* Capitalize (in case we start with the {name} tag) */
+    my_strcap(buf);
+
+    msg(p, buf);
 }
 
 
@@ -104,9 +218,7 @@ void do_cmd_uninscribe(struct player *p, int item)
     if (!obj) return;
 
     /* Restrict ghosts */
-    /* One exception: players in undead form can uninscribe items (from pack only) */
-    if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS) &&
-        !(player_undead(p) && object_is_carried(p, obj)))
+    if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
     {
         msg(p, "You cannot uninscribe items!");
         return;
@@ -137,13 +249,6 @@ void do_cmd_uninscribe(struct player *p, int item)
     obj->note = 0;
     msg(p, "Inscription removed.");
 
-    /* PWMAngband: remove autoinscription if aware */
-    if (p->obj_aware[obj->kind->kidx])
-    {
-        remove_autoinscription(p, obj->kind->kidx);
-        Send_autoinscription(p, obj->kind);
-    }
-
     /* Update global "preventive inscriptions" */
     update_prevent_inscriptions(p);
 
@@ -152,7 +257,7 @@ void do_cmd_uninscribe(struct player *p, int item)
     p->upkeep->update |= (PU_INVEN);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
     if (!object_is_carried(p, obj))
-        redraw_floor(&p->wpos, &obj->grid);
+        redraw_floor(obj->depth, obj->iy, obj->ix);
 }
 
 
@@ -177,9 +282,7 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     }
 
     /* Restrict ghosts */
-    /* One exception: players in undead form can inscribe items (from pack only) */
-    if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS) &&
-        !(player_undead(p) && object_is_carried(p, obj)))
+    if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
     {
         msg(p, "You cannot inscribe items!");
         return;
@@ -237,15 +340,10 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     message_flush(p);
 
     /* Save the inscription */
-    obj->note = quark_add(inscription);
-
-    /* PWMAngband: add autoinscription if aware and inscription has the right format (@xn) */
-    if (p->obj_aware[obj->kind->kidx] && (strlen(inscription) == 3) && (inscription[0] == '@') &&
-        isalpha(inscription[1]) && isdigit(inscription[2]))
-    {
-        add_autoinscription(p, obj->kind->kidx, inscription);
-        Send_autoinscription(p, obj->kind);
-    }
+    if (OPT_P(p, birth_no_selling))
+        obj->note = quark_add(format("*%s", inscription));
+    else
+        obj->note = quark_add(inscription);
 
     /* Update global "preventive inscriptions" */
     update_prevent_inscriptions(p);
@@ -255,7 +353,7 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     p->upkeep->update |= (PU_INVEN);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
     if (!object_is_carried(p, obj))
-        redraw_floor(&p->wpos, &obj->grid);
+        redraw_floor(obj->depth, obj->iy, obj->ix);
 }
 
 
@@ -328,11 +426,11 @@ void do_cmd_takeoff(struct player *p, int item)
         return;
     }
 
-    /* Item is stuck */
-    if (!obj_can_takeoff(obj))
+    /* Item is cursed */
+    if (cursed_p(obj->flags))
     {
         /* Oops */
-        msg(p, "Hmmm, it seems to be stuck.");
+        msg(p, "Hmmm, it seems to be cursed.");
 
         /* Nope */
         return;
@@ -378,7 +476,7 @@ void do_cmd_wield(struct player *p, int item, int slot)
         }
 
         /* Restricted by choice */
-        if (obj->artifact && (cfg_no_artifacts || OPT(p, birth_no_artifacts)))
+        if (true_artifact_p(obj) && restrict_artifacts(p, obj))
         {
             msg(p, "You cannot wield that item.");
             return;
@@ -395,13 +493,6 @@ void do_cmd_wield(struct player *p, int item, int slot)
         if (!is_owner(p, obj))
         {
             msg(p, "This item belongs to someone else!");
-            return;
-        }
-
-        /* Must meet level requirement */
-        if (!has_level_req(p, obj))
-        {
-            msg(p, "You don't have the required level!");
             return;
         }
 
@@ -436,11 +527,11 @@ void do_cmd_wield(struct player *p, int item, int slot)
         return;
     }
 
-    /* Prevent wielding into a stuck slot */
-    if (!obj_can_takeoff(equip_obj))
+    /* Prevent wielding into a cursed slot */
+    if (cursed_p(equip_obj->flags))
     {
         object_desc(p, o_name, sizeof(o_name), equip_obj, ODESC_BASE);
-        msg(p, "The %s you are %s appears to be stuck.", o_name, equip_describe(p, slot));
+        msg(p, "The %s you are %s appears to be cursed.", o_name, equip_describe(p, slot));
         return;
     }
 
@@ -474,8 +565,9 @@ void do_cmd_wield(struct player *p, int item, int slot)
             msg(p, "You are blasted by the Crown's power!");
 
             /* This should pierce invulnerability */
-            take_hit(p, 10000, "the Massive Iron Crown of Morgoth", false,
-                "was blasted by the Massive Iron Crown of Morgoth");
+            my_strcpy(p->died_flavor, "was blasted by the Massive Iron Crown of Morgoth",
+                sizeof(p->died_flavor));
+            take_hit(p, 10000, "the Massive Iron Crown of Morgoth", false);
             return;
         }
 
@@ -548,12 +640,12 @@ void do_cmd_drop(struct player *p, int item, int quantity)
         return;
     }
 
-    /* Cannot remove stuck items */
-    if (object_is_equipped(p->body, obj) && !obj_can_takeoff(obj))
+    /* Cannot remove cursed items */
+    if (object_is_equipped(p->body, obj) && cursed_p(obj->flags))
     {
-        msg(p, "Hmmm, it seems to be stuck.");
+        msg(p, "Hmmm, it seems to be cursed.");
         return;
-    }
+    }        
 
     /* Take a turn */
     use_energy(p);
@@ -598,13 +690,6 @@ void do_cmd_destroy(struct player *p, int item, bool des)
             return;
         }
 
-        /* Must meet level requirement */
-        if (!has_level_req(p, obj))
-        {
-            msg(p, "You don't have the required level!");
-            return;
-        }
-
         /* Check preventive inscription '!g' */
         if (object_prevent_inscription(p, obj, INSCRIPTION_PICKUP, false))
         {
@@ -620,12 +705,12 @@ void do_cmd_destroy(struct player *p, int item, bool des)
         return;
     }
 
-    /* Can't ignore or destroy stuck items we're wielding. */
-    if (object_is_equipped(p->body, obj) && !obj_can_takeoff(obj))
+    /* Can't ignore or destroy cursed items we're wielding. */
+    if (object_is_equipped(p->body, obj) && cursed_p(obj->flags))
     {
         /* Message */
-        if (des) msg(p, "You cannot destroy the stuck item.");
-        else msg(p, "You cannot ignore stuck equipment.");
+        if (des) msg(p, "You cannot destroy the cursed item.");
+        else msg(p, "You cannot ignore cursed equipment.");
 
         /* Done */
         return;
@@ -639,6 +724,15 @@ void do_cmd_destroy(struct player *p, int item, bool des)
     {
         /* Message */
         msg(p, "You cannot destroy %s.", o_name);
+
+        /* Mark the object as indestructible */
+        object_notice_sensing(p, obj);
+
+        /* Combine the pack */
+        p->upkeep->notice |= (PN_COMBINE);
+
+        /* Redraw */
+        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
 
         /* Done */
         return;
@@ -719,7 +813,7 @@ static bool spell_okay(struct player *p, int spell_index, bool known)
 static int get_spell(struct player *p, struct object *obj, int spell_index, const char *prompt,
     bool known)
 {
-    const struct class_book *book = player_object_to_book(p, obj);
+    const struct class_book *book = object_to_book(p, obj);
     int sidx;
 
     /* Set the spell number */
@@ -757,6 +851,8 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
     int sidx = -1;
     const struct class_spell *spell;
     int i, k = 0;
+    const char *noun;
+    const char *prompt;
     struct object *obj = object_from_index(p, book_index, true, true);
 
     /* Paranoia: requires an item */
@@ -764,12 +860,14 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
 
     /* Restrict ghosts */
     /* One exception: players in undead form can read books (from pack only) */
-    if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS) &&
-        !(player_undead(p) && object_is_carried(p, obj)))
+    if (p->ghost && !is_dm_p(p) && !(player_undead(p) && object_is_carried(p, obj)))
     {
         msg(p, "You cannot read books!");
         return;
     }
+
+    noun = p->clazz->magic.spell_realm->spell_noun;
+    prompt = format("You cannot learn that %s!", noun);
 
     if (!player_can_cast(p, true)) return;
 
@@ -787,21 +885,14 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
         return;
     }
 
-    /* Must meet level requirement */
-    if (!object_is_carried(p, obj) && !has_level_req(p, obj))
-    {
-        msg(p, "You don't have the required level!");
-        return;
-    }
-
     /* Get the book */
-    book = player_object_to_book(p, obj);
+    book = object_to_book(p, obj);
 
     /* Requires a spellbook */
     if (!book) return;
 
     /* Elementalists can increase the power of their spells */
-    if (streq(book->realm->name, "elemental"))
+    if (p->clazz->magic.spell_realm->index == REALM_ELEM)
     {
         /* Check if spell is learned */
         sidx = get_spell(p, obj, spell_index, NULL, true);
@@ -853,15 +944,13 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
 
     if (!p->upkeep->new_spells)
     {
-        msg(p, "You cannot learn any new %ss!", book->realm->spell_noun);
+        msg(p, "You cannot learn any new %ss!", noun);
         return;
     }
 
     /* Spellcaster -- learn a selected spell */
     if (player_has(p, PF_CHOOSE_SPELLS))
     {
-        const char *prompt = format("You cannot learn that %s!", book->realm->spell_noun);
-
         /* Ask for a spell */
         sidx = get_spell(p, obj, spell_index, prompt, false);
 
@@ -896,7 +985,7 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
     if (sidx < 0)
     {
         /* Message */
-        msg(p, "You cannot learn any %ss in that book.", book->realm->spell_noun);
+        msg(p, "You cannot learn any %ss in that book.", noun);
 
         /* Abort */
         return;
@@ -920,7 +1009,7 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
     p->spell_order[i++] = sidx;
 
     /* Mention the result */
-    msgt(p, MSG_STUDY, "You have learned the %s of %s.", spell->realm->spell_noun, spell->name);
+    msgt(p, MSG_STUDY, "You have learned the %s of %s.", noun, spell->name);
 
     /* One less spell available */
     p->upkeep->new_spells--;
@@ -929,7 +1018,7 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
     if (p->upkeep->new_spells)
     {
         /* Message */
-        msg(p, "You can learn %d more %s%s.", p->upkeep->new_spells, book->realm->spell_noun,
+        msg(p, "You can learn %d more %s%s.", p->upkeep->new_spells, noun,
             PLURAL(p->upkeep->new_spells));
     }
 
@@ -942,6 +1031,8 @@ void do_cmd_study(struct player *p, int book_index, int spell_index)
 static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note, bool projected)
 {
     int chance;
+    int old_num = get_player_num(p);
+    bool pious = ((p->clazz->magic.spell_realm->index == REALM_PIOUS)? true: false);
 
     /* Spell failure chance */
     chance = spell_chance(p, spell_index);
@@ -951,11 +1042,6 @@ static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note,
         msg(p, "You failed to concentrate hard enough!");
     else
     {
-        struct source who_body;
-        struct source *who = &who_body;
-        const struct class_spell *spell = spell_by_index(&p->clazz->magic, spell_index);
-        bool pious = streq(spell->realm->name, "divine");
-
         /* Set current spell */
         p->current_spell = spell_index;
 
@@ -963,20 +1049,19 @@ static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note,
         p->current_item = (s16b)note;
 
         /* Only fire in direction 5 if we have a target */
-        if ((dir == DIR_TARGET) && !target_okay(p)) return false;
-
-        source_player(who, get_player_index(get_connection(p->conn)), p);
+        if ((dir == 5) && !target_okay(p)) return false;
 
         /* Projected */
         if (projected)
         {
-            project_aimed(who, PROJ_PROJECT, dir, spell_index,
+            project_aimed(p, NULL, GF_PROJECT, dir, spell_index,
                 PROJECT_STOP | PROJECT_KILL | PROJECT_PLAY, "killed");
         }
 
         /* Cast the spell */
         else
         {
+            const struct class_spell *spell = spell_by_index(&p->clazz->magic, spell_index);
             bool ident = false;
             struct beam_info beam;
 
@@ -984,7 +1069,7 @@ static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note,
 
             if (spell->effect && spell->effect->other_msg)
                 msg_print_near(p, (pious? MSG_PY_PRAYER: MSG_PY_SPELL), spell->effect->other_msg);
-            if (!effect_do(spell->effect, who, &ident, true, dir, &beam, 0, note, NULL))
+            if (!effect_do(p, spell->effect, &ident, true, dir, &beam, 0, note, NULL, NULL))
                 return false;
         }
 
@@ -992,13 +1077,16 @@ static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note,
         sound(p, (pious? MSG_PRAYER: MSG_SPELL));
 
         cast_spell_end(p);
-
-        /* Put on cooldown */
-        p->spell_cooldown[spell->sidx] = spell->cooldown;
     }
 
     /* Use some mana */
-    use_mana(p);
+    p->csp -= p->spell_cost;
+
+    /* Hack -- redraw picture */
+    redraw_picture(p, old_num);
+
+    /* Redraw mana */
+    p->upkeep->redraw |= (PR_MANA);
 
     return true;
 }
@@ -1009,7 +1097,7 @@ static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note,
  */
 static bool item_tester_unknown(struct player *p, const struct object *obj)
 {
-    return (object_runes_known(obj)? false: true);
+    return (object_is_known(p, obj)? false: true);
 }
 
 
@@ -1024,7 +1112,7 @@ static bool spell_identify_unknown_available(struct player *p)
     struct object *obj;
     bool unidentified_gear = false;
 
-    floor_num = scan_floor(p, chunk_get(&p->wpos), floor_list, floor_max,
+    floor_num = scan_floor(p, chunk_get(p->depth), floor_list, floor_max,
         OFLOOR_TEST | OFLOOR_SENSE | OFLOOR_VISIBLE, item_tester_unknown);
     for (obj = p->gear; obj; obj = obj->next)
     {
@@ -1043,111 +1131,65 @@ static bool spell_identify_unknown_available(struct player *p)
 /*
  * Cast a spell from a book
  */
-bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
+void do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
 {
-    const char *prompt;
+    const char *verb, *noun, *prompt;
     const struct class_spell *spell;
     struct object *obj = object_from_index(p, book_index, true, true);
     const struct class_book *book;
     int sidx;
 
-    /* Cancel repeat */
-    if (!p->firing_request) return true;
-
-    /* Check energy */
-    if (!has_energy(p, true)) return false;
-
     /* Paranoia: requires an item */
-    if (!obj)
-    {
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
-    }
+    if (!obj) return;
 
     /* Clear current */
     current_clear(p);
 
-    /* Check the player can cast spells at all */
-    if (!player_can_cast(p, true))
+    verb = p->clazz->magic.spell_realm->verb;
+    noun = p->clazz->magic.spell_realm->spell_noun;
+
+    /* Restrict ghosts */
+    /* One exception: players in undead form can cast spells (from pack only) */
+    if (p->ghost && !is_dm_p(p) && !(player_undead(p) && object_is_carried(p, obj)))
     {
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        msg(p, "You cannot %s that %s.", verb, noun);
+        return;
     }
+
+    /* Check the player can cast spells at all */
+    if (!player_can_cast(p, true)) return;
 
     /* Check preventive inscription '^m' */
     if (check_prevent_inscription(p, INSCRIPTION_CAST))
     {
         msg(p, "The item's inscription prevents it.");
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        return;
     }
 
     /* Restricted by choice */
     if (!object_is_carried(p, obj) && !is_owner(p, obj))
     {
         msg(p, "This item belongs to someone else!");
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
-    }
-
-    /* Must meet level requirement */
-    if (!object_is_carried(p, obj) && !has_level_req(p, obj))
-    {
-        msg(p, "You don't have the required level!");
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        return;
     }
 
     /* Get the book */
-    book = player_object_to_book(p, obj);
+    book = object_to_book(p, obj);
 
     /* Requires a spellbook */
-    if (!book)
-    {
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
-    }
+    if (!book) return;
 
     /* Check preventive inscription '!m' */
     if (object_prevent_inscription(p, obj, INSCRIPTION_CAST, false))
     {
         msg(p, "The item's inscription prevents it.");
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
-    }
-
-    /* Restrict ghosts */
-    /* One exception: players in undead form can cast spells (from pack only) */
-    if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS) &&
-        !(player_undead(p) && object_is_carried(p, obj)))
-    {
-        msg(p, "You cannot %s that %s.", book->realm->verb, book->realm->spell_noun);
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        return;
     }
 
     /* Ask for a spell */
-    prompt = format("You cannot %s that %s.", book->realm->verb, book->realm->spell_noun);
+    prompt = format("You cannot %s that %s.", verb, noun);
     sidx = get_spell(p, obj, spell_index, prompt, true);
-    if (sidx == -1)
-    {
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
-    }
+    if (sidx == -1) return;
 
     /* Get the spell */
     spell = spell_by_index(&p->clazz->magic, sidx);
@@ -1156,68 +1198,33 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (spell_is_identify(p, sidx) && !spell_identify_unknown_available(p))
     {
         msg(p, "You have nothing to identify.");
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        return;
     }
 
     /* Check mana */
-    if ((spell->smana > p->csp) && !OPT(p, risky_casting))
+    if (spell->smana > p->csp)
     {
         /* Warning */
-        msg(p, "You do not have enough mana to %s this %s.", spell->realm->verb,
-            spell->realm->spell_noun);
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
-    }
-
-    /* Check cooldown */
-    if (p->spell_cooldown[spell->sidx])
-    {
-        /* Warning */
-        msg(p, "This %s is on cooldown.", spell->realm->spell_noun);
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        msg(p, "You do not have enough mana to %s this %s.", verb, noun);
+        return;
     }
 
     /* Antimagic field (no effect on psi powers which are not "magical") */
-    if (strcmp(book->realm->name, "psi") && check_antimagic(p, chunk_get(&p->wpos), NULL))
+    if ((p->clazz->magic.spell_realm->index != REALM_PSI) &&
+        check_antimagic(p, chunk_get(p->depth), NULL))
     {
-        use_energy(p);
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        return;
     }
 
     /* Spell cost */
     p->spell_cost = spell->smana;
 
     /* Cast a spell */
-    if (!spell_cast(p, sidx, dir, obj->note,
+    if (spell_cast(p, sidx, dir, obj->note,
         (spell_index >= p->clazz->magic.total_spells)? true: false))
     {
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
+        use_energy(p);
     }
-
-    /* Take a turn, or half a turn if fast casting */
-    if (p->timed[TMD_FASTCAST])
-        p->energy -= move_energy(p->wpos.depth) / 2;
-    else
-        p->energy -= move_energy(p->wpos.depth);
-    if (p->energy < 0) p->energy = 0;
-
-    /* Repeat */
-    if (p->firing_request > 0) p->firing_request--;
-    if (p->firing_request > 0) cmd_cast(p, book_index, spell_index, dir);
-    return true;
 }
 
 
@@ -1389,7 +1396,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
     /* ID the object by use if appropriate, otherwise, mark it as "tried" */
     if (ident && !p->was_aware)
-        object_learn_on_use(p, obj);
+        object_notice_on_use(p, obj);
     else if (used)
         object_flavor_tried(p, obj);
 
@@ -1408,7 +1415,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
             /* Redraw */
             else
-                redraw_floor(&p->wpos, &obj->grid);
+                redraw_floor(obj->depth, obj->iy, obj->ix);
         }
         else if (use == USE_TIMEOUT)
         {
@@ -1419,7 +1426,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
                 /* Redraw */
                 if (!object_is_carried(p, obj))
-                    redraw_floor(&p->wpos, &obj->grid);
+                    redraw_floor(obj->depth, obj->iy, obj->ix);
             }
 
             /* Other activatable items */
@@ -1428,9 +1435,6 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
         }
         else if (use == USE_SINGLE)
         {
-            /* Log ownership change (in case we use item from the floor) */
-            object_audit(p, obj);
-
             /* Destroy an item */
             none_left = use_object(p, obj, 1, true);
         }
@@ -1457,8 +1461,6 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
     quark_t note;
     bool no_ident = false;
     struct effect *e = effect;
-    struct source who_body;
-    struct source *who = &who_body;
 
     /* Get the level */
     if ((*obj_address)->artifact)
@@ -1496,8 +1498,8 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
                 /* Fall through */
             }
 
-            /* Glyph + teleport level */
-            case EF_GLYPH:
+            /* Rune + teleport level */
+            case EF_RUNE:
             case EF_TELEPORT_LEVEL:
             {
                 /* Use up the scroll first */
@@ -1519,7 +1521,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
                 if (((*obj_address)->owner && (p->id != (*obj_address)->owner)) ||
                     ((*obj_address)->origin == ORIGIN_STORE) || ((*obj_address)->askprice == 1))
                 {
-                    e->subtype = 1;
+                    e->params[0] = 1;
                 }
 
                 break;
@@ -1557,8 +1559,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
 
     /* Do effect */
     if (effect->other_msg) msg_misc(p, effect->other_msg);
-    source_player(who, get_player_index(get_connection(p->conn)), p);
-    *used = effect_do(effect, who, ident, p->was_aware, dir, &beam, boost, note, NULL);
+    *used = effect_do(p, effect, ident, p->was_aware, dir, &beam, boost, note, NULL, NULL);
 
     /* Notice */
     if (*ident) *notice = true;
@@ -1576,9 +1577,8 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
 {
     struct object *obj = object_from_index(p, item, true, true);
     struct effect *effect;
-    bool ident = false, used = false, can_use = true;
+    bool ident = false, used = false;
     bool notice = false;
-    int aim;
 
     /* Paranoia: requires an item */
     if (!obj) return;
@@ -1618,13 +1618,6 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
             return;
         }
 
-        /* Must meet level requirement */
-        if (!has_level_req(p, obj))
-        {
-            msg(p, "You don't have the required level!");
-            return;
-        }
-
         /* Check preventive inscription '!g' */
         if (object_prevent_inscription(p, obj, INSCRIPTION_PICKUP, false))
         {
@@ -1644,12 +1637,8 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
     }
 
     /* Antimagic field (except horns which are not magical) */
-    if (p_cmd->check_antimagic && !tval_is_horn(obj) &&
-        check_antimagic(p, chunk_get(&p->wpos), NULL))
-    {
-        use_energy(p);
+    if (p_cmd->check_antimagic && !tval_is_horn(obj) && check_antimagic(p, chunk_get(p->depth), NULL))
         return;
-    }
 
     /* The player is aware of the object's flavour */
     p->was_aware = object_flavor_is_aware(p, obj);
@@ -1670,25 +1659,11 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
         return;
     }
 
-    aim = obj_needs_aim(p, obj);
-    if (aim != AIM_NONE)
-    {
-        /* Determine whether we know an item needs to be aimed */
-        bool known_aim = (aim == AIM_NORMAL);
+    /* Apply confusion */
+    player_confuse_dir(p, &dir);
 
-        /* Unknown things with no obvious aim get a random direction */
-        if (!known_aim) dir = ddd[randint0(8)];
-
-        /* Confusion wrecks aim */
-        player_confuse_dir(p, &dir);
-    }
-
-    /* Check for use if necessary */
-    if ((p_cmd->use == USE_CHARGE) || (p_cmd->use == USE_TIMEOUT))
-        can_use = check_devices(p, obj);
-
-    /* Execute the effect */
-    if (can_use)
+    /* Check for use if necessary, and execute the effect */
+    if (((p_cmd->use != USE_CHARGE) && (p_cmd->use != USE_TIMEOUT)) || check_devices(p, obj))
     {
         /* Sound and/or message */
         sound(p, p_cmd->snd);
@@ -1896,7 +1871,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
         {
             /* Obtain a local object, split */
             struct object *used = object_split(obj, 1);
-            struct chunk *c = chunk_get(&p->wpos);
+            struct chunk *c = chunk_get(p->depth);
 
             /* Remove fuel */
             used->timeout = 0;
@@ -1905,7 +1880,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
             if (object_is_carried(p, obj))
                 inven_carry(p, used, true, true);
             else
-                drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE);
+                drop_near(p, c, used, 0, p->py, p->px, false, DROP_FADE);
         }
 
         /* Empty a single lamp */
@@ -1969,13 +1944,6 @@ void do_cmd_refill(struct player *p, int item)
             return;
         }
 
-        /* Must meet level requirement */
-        if (!has_level_req(p, obj))
-        {
-            msg(p, "You don't have the required level!");
-            return;
-        }
-
         /* Check preventive inscription '!g' */
         if (object_prevent_inscription(p, obj, INSCRIPTION_PICKUP, false))
         {
@@ -2031,5 +1999,4 @@ void do_cmd_activate_end(struct player *p, struct object *obj, bool ident, bool 
 {
     do_cmd_use_end(p, obj, ident, used, USE_TIMEOUT);
 }
-
 

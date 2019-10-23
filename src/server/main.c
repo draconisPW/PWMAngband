@@ -3,7 +3,7 @@
  * Purpose: Core game initialisation
  *
  * Copyright (c) 1997 Ben Harrison, and others
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -154,16 +154,6 @@ static void server_log(const char *str)
 }
 
 
-static void show_version(void)
-{
-    printf("PWMAngband Server %s\n", version_build(VB_BASE | VB_BUILD));
-    puts("Copyright (c) 2007-2016 MAngband and PWMAngband Project Team");
-
-    /* Actually abort the process */
-    quit(NULL);
-}
-
-
 /*
  * Some machines can actually parse command line args
  */
@@ -180,6 +170,9 @@ int main(int argc, char *argv[])
 
     /* Setup our logging hook */
     plog_aux = server_log;
+
+    /* Note we are starting up */
+    plog("Game Restarted");
 
     /* Save the "program name" */
     argv0 = argv[0];
@@ -200,23 +193,28 @@ int main(int argc, char *argv[])
         /* Analyze option */
         switch (argv[0][1])
         {
-            case 'v':
-                show_version();
+            case 'p':
+                arg_power = true;
+                break;
+
+            case 'r':
+                arg_rebalance = true;
+                break;
 
             default:
                 usage:
 
                 /* Note -- the Term is NOT initialized */
                 puts("Usage: mangband [options]");
-                puts("  -v   Show version");
+                puts("  -p   Compute monster power");
+                puts("  -r   Rebalance monsters");
 
                 /* Actually abort the process */
                 quit(NULL);
         }
     }
 
-    /* Note we are starting up */
-    plog("Game Restarted");
+    /* This is all removed, as there is no need for the server to open a term */
 
     /* Tell "quit()" to call "Term_nuke()" */
     quit_aux = quit_hook;

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Leon Marrick
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -29,9 +29,9 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
 {
     s32b total_gold = 0L;
     char name[30] = "";
+    struct object *obj = square_object(c, p->py, p->px), *next;
     int sound_msg;
     bool at_most_one = true;
-    struct object *obj = square_object(c, &p->grid), *next;
 
     /* Pick up all the ordinary gold objects */
     while (obj)
@@ -78,7 +78,7 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
         object_own(p, obj);
 
         /* Delete the gold */
-        square_excise_object(c, &p->grid, obj);
+        square_excise_object(c, p->py, p->px, obj);
         object_delete(&obj);
         obj = next;
     }
@@ -92,8 +92,7 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
         disturb(p, 0);
 
         /* Build a message */
-        strnfmt(buf, sizeof(buf), "You have found %d gold piece%s worth of ", total_gold,
-            PLURAL(total_gold));
+        strnfmt(buf, sizeof(buf), "You have found %d gold pieces worth of ", total_gold);
 
         /* One treasure type.. */
         if (at_most_one) my_strcat(buf, name, sizeof(buf));
@@ -121,58 +120,12 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
 
 
 /*
- * Looks if "inscrip" is present on the given object.
- */
-static unsigned check_for_inscrip(const struct object *obj, const char *inscrip)
-{
-    unsigned i = 0;
-    const char *s;
-
-    if (!obj->note) return 0;
-
-    s = quark_str(obj->note);
-    if (!s) return 0;
-
-    do
-    {
-        s = strstr(s, inscrip);
-        if (!s) break;
-
-        i++;
-        s++;
-    }
-    while (s);
-
-    return i;
-}
-
-
-/*
- * Find the specified object in the inventory (not equipment)
- */
-static struct object *find_stack_object_in_inventory(struct player *p, const struct object *obj)
-{
-    struct object *gear_obj;
-
-    for (gear_obj = p->gear; gear_obj; gear_obj = gear_obj->next)
-    {
-        if (!object_is_equipped(p->body, gear_obj) &&
-            object_stackable(p, gear_obj, obj, OSTACK_PACK))
-        {
-            /* We found the object */
-            return gear_obj;
-        }
-    }
-
-    return NULL;
-}
-
-
-/*
  * Determine if an object can be picked up automatically.
  */
 static bool auto_pickup_okay(struct player *p, struct object *obj)
 {
+    const char *s;
+
     /*** Negative checks ***/
 
     /* Winners cannot pickup artifacts except the Crown and Grond */
@@ -180,7 +133,7 @@ static bool auto_pickup_okay(struct player *p, struct object *obj)
         return false;
 
     /* Restricted by choice */
-    if (obj->artifact && (cfg_no_artifacts || OPT(p, birth_no_artifacts)))
+    if (true_artifact_p(obj) && restrict_artifacts(p, obj))
         return false;
 
     /* It can't be carried */
@@ -192,9 +145,6 @@ static bool auto_pickup_okay(struct player *p, struct object *obj)
     /* Restricted by choice */
     if (!is_owner(p, obj)) return false;
 
-    /* Must meet level requirement */
-    if (!has_level_req(p, obj)) return false;
-
     /* Ignore ignored items */
     if (ignore_item_ok(p, obj)) return false;
 
@@ -204,18 +154,27 @@ static bool auto_pickup_okay(struct player *p, struct object *obj)
     /*** Positive checks ***/
 
     /* Vacuum up everything if requested */
-    if (OPT(p, pickup_always)) return true;
+    if (OPT_P(p, pickup_always)) return true;
 
     /* Check inscription */
-    if (check_for_inscrip(obj, "=g")) return true;
+    if (obj->note)
+    {
+        /* Find a '=' */
+        s = strchr(quark_str(obj->note), '=');
+
+        /* Process permissions */
+        while (s)
+        {
+            /* =g ('g'et) means auto pickup */
+            if (s[1] == 'g') return true;
+
+            /* Find another '=' */
+            s = strchr(s + 1, '=');
+        }
+    }
 
     /* Pickup if it matches the inventory */
-    if (OPT(p, pickup_inven))
-    {
-        struct object *gear_obj = find_stack_object_in_inventory(p, obj);
-
-        if (inven_carry_num(p, obj, true) && !check_for_inscrip(gear_obj, "!g")) return true;
-    }
+    if (OPT_P(p, pickup_inven) && inven_carry_num(p, obj, true)) return true;
 
     /* Don't auto pickup */
     return false;
@@ -239,17 +198,26 @@ static void player_pickup_aux(struct player *p, struct chunk *c, struct object *
     {
         /* Set ignore status as appropriate */
         p->upkeep->notice |= PN_IGNORE;
+
+        /* Allow ignore */
+        obj->allow_ignore = IGNORE_ALLOW;
     }
     else
     {
         /* Bypass auto-ignore */
-        obj->ignore_protect = 1;
+        obj->allow_ignore = IGNORE_PROTECT;
     }
+
+    /* Mark artifact as found */
+    set_artifact_info(p, obj, ARTS_FOUND);
+
+    /* Automatically sense artifacts */
+    object_sense_artifact(p, obj);
 
     /* Carry the object, prompting for number if necessary */
     if (max == obj->number)
     {
-        square_excise_object(c, &p->grid, obj);
+        square_excise_object(c, p->py, p->px, obj);
         inven_carry(p, obj, true, domsg);
     }
     else
@@ -274,14 +242,11 @@ static bool allow_pickup_object(struct player *p, struct object *obj)
         return false;
 
     /* Restricted by choice */
-    if (obj->artifact && (cfg_no_artifacts || OPT(p, birth_no_artifacts)))
+    if (true_artifact_p(obj) && restrict_artifacts(p, obj))
         return false;
 
     /* Restricted by choice */
     if (!is_owner(p, obj)) return false;
-
-    /* Must meet level requirement */
-    if (!has_level_req(p, obj)) return false;
 
     return true;
 }
@@ -354,7 +319,7 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
             q = player_get(i);
             if (q->id == obj->owner)
             {
-                okay = player_is_in_view(p, i);
+                okay = mflag_has(p->pflag[i], MFLAG_VIEW);
                 break;
             }
         }
@@ -393,15 +358,18 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
         }
 
         /* Bypass auto-ignore */
-        obj->ignore_protect = 1;
+        obj->allow_ignore = IGNORE_PROTECT;
 
         /* Perform the transaction */
         p->au -= price;
         p->upkeep->redraw |= PR_GOLD;
-        q->au += price;
-        q->upkeep->redraw |= PR_GOLD;
+        if (!OPT_P(q, birth_no_selling))
+        {
+            q->au += price;
+            q->upkeep->redraw |= PR_GOLD;
+        }
 
-        /* Know original object */
+        /* Identify original object */
         object_notice_everything(p, obj);
 
         /* Describe the object (short name) */
@@ -413,13 +381,14 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
 
         /* Message */
         msg(p, "You bought %s for %d gold.", o_name, price);
-        msg(q, "You sold %s for %d gold.", o_name, price);
+        if (!OPT_P(q, birth_no_selling))
+            msg(q, "You sold %s for %d gold.", o_name, price);
 
         /* Erase the inscription */
         obj->note = 0;
 
         /* Set origin */
-        set_origin(obj, ORIGIN_PLAYER, p->wpos.depth, NULL);
+        set_origin(obj, ORIGIN_PLAYER, p->depth, 0);
 
         /* Mark artifact as sold */
         set_artifact_info(q, obj, ARTS_SOLD);
@@ -469,6 +438,8 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
  */
 byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct object *o)
 {
+    int py = p->py;
+    int px = p->px;
     struct object *current = NULL;
     int floor_max = z_info->floor_size;
     struct object **floor_list = mem_zalloc(floor_max * sizeof(*floor_list));
@@ -480,7 +451,7 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
     byte objs_picked_up = 0;
 
     /* Nothing else to pick up -- return */
-    if (!square_object(c, &p->grid))
+    if (!square_object(c, py, px))
     {
         mem_free(floor_list);
         return 0;
@@ -523,7 +494,7 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
             display_floor(p, c, floor_list, floor_num);
 
             p->current_action = ACTION_PICKUP;
-            get_item(p, HOOK_CARRY, "");
+            get_item(p, HOOK_CARRY);
             mem_free(floor_list);
             return objs_picked_up;
         }
@@ -550,7 +521,7 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
             }
 
             /* Restricted by choice */
-            if (obj->artifact && (cfg_no_artifacts || OPT(p, birth_no_artifacts)))
+            if (true_artifact_p(obj) && restrict_artifacts(p, obj))
             {
                 msg(p, "You cannot pick up that item.");
                 mem_free(floor_list);
@@ -561,14 +532,6 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
             if (!is_owner(p, obj))
             {
                 msg(p, "This item belongs to someone else!");
-                mem_free(floor_list);
-                return objs_picked_up;
-            }
-
-            /* Must meet level requirement */
-            if (!has_level_req(p, obj))
-            {
-                msg(p, "You don't have the required level!");
                 mem_free(floor_list);
                 return objs_picked_up;
             }
@@ -642,11 +605,15 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
  */
 byte do_autopickup(struct player *p, struct chunk *c, int pickup)
 {
+    int py = p->py;
+    int px = p->px;
     struct object *obj, *next;
+
+    /* Objects picked up. Used to determine time cost of command. */
     byte objs_picked_up = 0;
 
     /* Nothing to pick up -- return */
-    if (!square_object(c, &p->grid)) return 0;
+    if (!square_object(c, py, px)) return 0;
 
     /* Normal ghosts cannot pick things up */
     if (p->ghost && !(p->dm_flags & DM_GHOST_BODY)) return 0;
@@ -656,7 +623,7 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
     if (!(p->ghost && (pickup < 2))) player_pickup_gold(p, c);
 
     /* Scan the remaining objects */
-    obj = square_object(c, &p->grid);
+    obj = square_object(c, py, px);
     while (obj)
     {
         next = obj->next;
@@ -668,6 +635,10 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
 
             /* Hack -- disturb */
             if (!p->ghost) disturb(p, 0);
+
+            /* Auto-id */
+            if (player_of_has(p, OF_KNOWLEDGE))
+                object_notice_everything(p, obj);
 
             /* Hack -- ghosts don't pick up gold automatically */
             auto_pickup = (pickup? true: false);
@@ -685,6 +656,10 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
 
         obj = next;
     }
+    
+    /* Auto-id */
+    if (player_of_has(p, OF_KNOWLEDGE))
+        redraw_floor(p->depth, py, px);
 
     return objs_picked_up;
 }
@@ -695,11 +670,11 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
  */
 void do_cmd_pickup(struct player *p, int item)
 {
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
     struct object *obj;
 
     /* Check item (on the floor) */
-    for (obj = square_object(c, &p->grid); obj; obj = obj->next)
+    for (obj = square_object(c, p->py, p->px); obj; obj = obj->next)
     {
         if (obj->oidx == item) break;
     }
@@ -718,7 +693,7 @@ void do_cmd_pickup(struct player *p, int item)
  */
 void do_cmd_autopickup(struct player *p)
 {
-    do_autopickup(p, chunk_get(&p->wpos), 2);
+    do_autopickup(p, chunk_get(p->depth), 2);
 }
 
 
@@ -728,7 +703,7 @@ void leave_depth(struct player *p, struct chunk *c)
     struct monster *mon;
 
     /* One less player here */
-    chunk_decrease_player_count(&p->wpos);
+    chunk_decrease_player_count(p->depth);
 
     /* Free monsters from slavery */
     for (i = 1; i < cave_monster_max(c); i++)
@@ -765,8 +740,12 @@ void do_cmd_hold(struct player *p, int item)
     /* Take a turn */
     use_energy(p);
 
-    /* Searching XXX */
-    search(p, chunk_get(&p->wpos));
+    /* Spontaneous Searching */
+    if ((p->state.skills[SKILL_SEARCH_FREQUENCY] >= 50) ||
+        one_in_(50 - p->state.skills[SKILL_SEARCH_FREQUENCY]))
+    {
+        search(p, chunk_get(p->depth), false);
+    }
 
     /* Pick things up, not using extra energy */
     do_cmd_pickup(p, item);

@@ -22,41 +22,12 @@ struct loc
     int y;
 };
 
-struct loc_iterator
-{
-    struct loc begin;
-    struct loc end;
-    struct loc cur;
-};
-
-extern bool loc_is_zero(struct loc *grid);
-extern void loc_init(struct loc *grid, int x, int y);
-extern void loc_copy(struct loc *dest, struct loc *src);
-extern bool loc_eq(struct loc *grid1, struct loc *grid2);
-extern void loc_sum(struct loc *sum, struct loc *grid1, struct loc *grid2);
-extern void loc_diff(struct loc *sum, struct loc *grid1, struct loc *grid2);
-extern void rand_loc(struct loc *rand, struct loc *grid, int x_spread, int y_spread);
-extern void loc_iterator_first(struct loc_iterator *iter, struct loc *begin, struct loc *end);
-extern bool loc_iterator_next(struct loc_iterator *iter);
-extern bool loc_iterator_next_strict(struct loc_iterator *iter);
-extern bool loc_between(struct loc *grid, struct loc *grid1, struct loc *grid2);
-
 struct cmp_loc
 {
-    struct loc grid;
+    int x;
+    int y;
     void *data;
 };
-
-/* Coordinates on the world map */
-struct worldpos
-{
-    struct loc grid;    /* The wilderness coordinates */
-    s16b depth;         /* Cur depth */
-};
-
-extern bool wpos_null(struct worldpos *wpos);
-extern void wpos_init(struct worldpos *wpos, struct loc *grid, int depth);
-extern bool wpos_eq(struct worldpos *wpos1, struct worldpos *wpos2);
 
 /*
  * Defines a (value, name) pairing. Variable names used are historical.
@@ -79,9 +50,9 @@ struct point_set
 
 extern struct point_set *point_set_new(int initial_size);
 extern void point_set_dispose(struct point_set *ps);
-extern void add_to_point_set(struct point_set *ps, void *data, struct loc *grid);
+extern void add_to_point_set(struct point_set *ps, void *data, int y, int x);
 extern int point_set_size(struct point_set *ps);
-extern int point_set_contains(struct point_set *ps, struct loc *grid);
+extern int point_set_contains(struct point_set *ps, int y, int x);
 
 /**** MAngband specific ****/
 
@@ -140,12 +111,11 @@ enum grid_light_level
 typedef byte byte_lit[LIGHTING_MAX];
 typedef char char_lit[LIGHTING_MAX];
 
-typedef char char_note[4];
-
 /* The setup data that the client transmits to the server */
 typedef struct
 {
     s16b settings[SETTING_MAX];
+    bool options[OPT_MAX];
     byte *flvr_x_attr;
     char *flvr_x_char;
     byte (*f_attr)[LIGHTING_MAX];
@@ -156,9 +126,8 @@ typedef struct
     char *k_char;
     byte *r_attr;
     char *r_char;
-    byte proj_attr[PROJ_MAX][BOLT_MAX];
-    char proj_char[PROJ_MAX][BOLT_MAX];
-    char (*note_aware)[4];
+    byte gf_attr[GF_MAX][BOLT_MAX];
+    char gf_char[GF_MAX][BOLT_MAX];
 } client_setup_t;
 
 extern client_setup_t Client_setup;
@@ -209,24 +178,11 @@ struct angband_constants
     u16b s_max;                 /* Maximum number of magic spells */
     u16b pit_max;               /* Maximum number of monster pit types */
     u16b act_max;               /* Maximum number of activations */
-    u16b curse_max;             /* Maximum number of curses */
-    u16b slay_max;              /* Maximum number of slays */
-    u16b brand_max;             /* Maximum number of brands */
     u16b mon_blows_max;         /* Maximum number of monster blows */
-    u16b blow_methods_max;      /* Maximum number of monster blow methods */
-    u16b blow_effects_max;      /* Maximum number of monster blow effects */
     u16b equip_slots_max;       /* Maximum number of player equipment slots */
     u16b profile_max;           /* Maximum number of cave_profiles */
     u16b quest_max;             /* Maximum number of quests */
-    u16b projection_max;        /* Maximum number of projection types */
-    u16b calculation_max;       /* Maximum number of object power calculations */
-    u16b property_max;          /* Maximum number of object properties */
-    u16b summon_max;            /* Maximum number of summon types */
     u16b soc_max;               /* Maximum number of socials */
-    u16b wf_max;                /* Maximum number of wilderness terrain features */
-    u16b tf_max;                /* Maximum number of town terrain features */
-    u16b town_max;              /* Maximum number of towns */
-    u16b dungeon_max;           /* Maximum number of dungeons */
 
     /* Maxima of things on a given level, read from constants.txt */
     u16b level_monster_max;     /* Maximum number of monsters on a given level */
@@ -244,6 +200,7 @@ struct angband_constants
     u16b glyph_hardness;        /* How hard for a monster to break a glyph */
     u16b repro_monster_rate;    /* Monster reproduction rate-slower */
     u16b life_drain_percent;    /* Percent of player life drained */
+    u16b max_flow_depth;        /* Maximum depth for flow calculation */
     u16b flee_range;            /* Monsters run this many grids out of view */
     u16b turn_range;            /* Monsters turn to fight closer than this */
 
@@ -262,8 +219,8 @@ struct angband_constants
     u16b day_length;            /* Number of turns from dawn to dawn */
     u16b dungeon_hgt;           /* Maximum number of vertical grids on a level */
     u16b dungeon_wid;           /* Maximum number of horizontal grids on a level */
-    u16b town_hgt;              /* Number of features in the starting town (vertically) */
-    u16b town_wid;              /* Number of features in the starting town (horizontally) */
+    u16b town_hgt;              /* Number of features in the town (vertically) */
+    u16b town_wid;              /* Number of features in the town (horizontally) */
     u16b feeling_total;         /* Total number of feeling squares per level */
     u16b feeling_need;          /* Squares needed to see to get first feeling */
     u16b stair_skip;            /* Number of levels to skip for each down stair */
@@ -272,8 +229,8 @@ struct angband_constants
     /* Carrying capacity constants, read from constants.txt */
     u16b pack_size;             /* Maximum number of pack slots */
     u16b quiver_size;           /* Maximum number of quiver slots */
-    u16b quiver_slot_size;      /* Maximum number of missiles per quiver slot */
     u16b floor_size;            /* Maximum number of items per floor grid */
+    u16b stack_size;            /* Maximum number of items per stack */
 
     /* Store parameters, read from constants.txt */
     u16b store_inven_max;       /* Maximum number of objects in store inventory */
@@ -283,8 +240,6 @@ struct angband_constants
 
     /* Object creation constants, read from constants.txt */
     u16b max_obj_depth;         /* Maximum depth used in object allocation */
-    u16b good_obj;              /* Chance of object being "good" */
-    u16b ego_obj;               /* Chance of object being "great" */
     u16b great_obj;             /* 1/chance of inflating the requested object level */
     u16b great_ego;             /* 1/chance of inflating the requested ego item level */
     u16b fuel_torch;            /* Maximum amount of fuel in a torch */

@@ -3,7 +3,7 @@
  * Purpose: Wrapper functions for tvals.
  *
  * Copyright (c) 2014 Ben Semmler
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -143,6 +143,12 @@ bool tval_is_money_k(const struct object_kind *kind)
 }
 
 
+bool tval_is_pointy(const struct object *obj)
+{
+    return ((obj->tval == TV_SWORD) || (obj->tval == TV_POLEARM));
+}
+
+
 bool tval_can_have_nourishment(const struct object *obj)
 {
     switch (obj->tval)
@@ -205,19 +211,6 @@ bool tval_is_ammo(const struct object *obj)
 }
 
 
-bool tval_is_sharp_missile(const struct object *obj)
-{
-    switch (obj->tval)
-    {
-        case TV_ARROW:
-        case TV_BOLT:
-            return true;
-        default:
-            return false;
-    }
-}
-
-
 bool tval_is_launcher(const struct object *obj)
 {
     return (obj->tval == TV_BOW);
@@ -268,7 +261,6 @@ bool tval_is_enchantable_weapon(const struct object *obj)
     switch (obj->tval)
     {
         case TV_SWORD:
-            return (obj->sval != lookup_sval(obj->tval, "Dark Sword"));
         case TV_HAFTED:
         case TV_POLEARM:
         case TV_BOW:
@@ -285,7 +277,7 @@ bool tval_is_enchantable_weapon(const struct object *obj)
 
 bool tval_is_weapon(const struct object *obj)
 {
-    return (tval_is_enchantable_weapon(obj) || tval_is_mstaff(obj) || tval_is_dark_sword(obj));
+    return (tval_is_enchantable_weapon(obj) || tval_is_mstaff(obj));
 }
 
 
@@ -357,35 +349,6 @@ bool tval_has_variable_power(const struct object *obj)
 }
 
 
-bool tval_is_wearable(const struct object *obj)
-{
-    switch (obj->tval)
-    {
-        case TV_BOW:
-        case TV_DIGGING:
-        case TV_HAFTED:
-        case TV_POLEARM:
-        case TV_SWORD:
-        case TV_BOOTS:
-        case TV_GLOVES:
-        case TV_HELM:
-        case TV_CROWN:
-        case TV_SHIELD:
-        case TV_CLOAK:
-        case TV_SOFT_ARMOR:
-        case TV_HARD_ARMOR:
-        case TV_DRAG_ARMOR:
-        case TV_LIGHT:
-        case TV_AMULET:
-        case TV_RING:
-        case TV_MSTAFF:
-        case TV_HORN: return true;
-    }
-
-    return false;
-}
-
-
 bool tval_can_have_flavor(const struct object *obj)
 {
     switch (obj->tval)
@@ -405,33 +368,19 @@ bool tval_can_have_flavor(const struct object *obj)
 }
 
 
-bool tval_is_book_k(const struct object_kind *kind)
-{
-    switch (kind->tval)
-    {
-        case TV_MAGIC_BOOK:
-        case TV_PRAYER_BOOK:
-        case TV_NATURE_BOOK:
-        case TV_SHADOW_BOOK:
-        case TV_PSI_BOOK:
-        case TV_ELEM_BOOK:
-            return true;
-        default:
-            return false;
-    }
-}
-
-
 bool tval_is_book(const struct object *obj)
 {
     switch (obj->tval)
     {
         case TV_MAGIC_BOOK:
         case TV_PRAYER_BOOK:
-        case TV_NATURE_BOOK:
+        case TV_SORCERY_BOOK:
         case TV_SHADOW_BOOK:
+        case TV_HUNT_BOOK:
         case TV_PSI_BOOK:
+        case TV_DEATH_BOOK:
         case TV_ELEM_BOOK:
+        case TV_SUMMON_BOOK:
             return true;
         default:
             return false;
@@ -619,12 +568,6 @@ bool tval_is_tool(const struct object *obj)
 bool tval_is_mstaff(const struct object *obj)
 {
     return (obj->tval == TV_MSTAFF);
-}
-
-
-bool tval_is_dark_sword(const struct object *obj)
-{
-    return ((obj->tval == TV_SWORD) && (obj->sval == lookup_sval(obj->tval, "Dark Sword")));
 }
 
 

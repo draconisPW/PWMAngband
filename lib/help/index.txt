@@ -1,12 +1,36 @@
-This is a short in-game reference to available commands and the symbols
-you might encounter in-game. For more detailed help, please see Manual.html
-help file.
+~~~~~~~~~~~~~~~~~~~~~
+The PWMAngband Manual
+~~~~~~~~~~~~~~~~~~~~~
 
-Please choose one of the following help files:
-    
-    (a) Available commands
-    (b) Available symbols
+.. image:: ../icons/mr_att.png
+   :alt: 
+   :align: center
 
-.. menu:: [a] commands.txt
+.. sectnum::
 
-.. menu:: [b] symbols.txt
+.. contents:: Table of Contents
+   :depth: 1
+
+.. include:: general.txt
+
+.. include:: birth.txt
+
+.. include:: dungeon.txt
+
+.. include:: attack.txt
+
+.. include:: playing.txt
+
+.. include:: command.txt
+
+.. include:: option.txt
+
+.. include:: customize.txt
+
+.. include:: modifying.txt
+
+.. include:: version.txt
+
+.. include:: copying.txt
+
+.. include:: mangband.hlp

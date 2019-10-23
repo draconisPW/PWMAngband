@@ -3,7 +3,7 @@
  * Purpose: Spell and prayer casting/praying
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -24,7 +24,7 @@
 /*
  * Stat Table (INT/WIS) -- minimum failure rate (percentage)
  */
-static const int adj_mag_fail[] =
+static const byte adj_mag_fail[] =
 {
     99  /* 3 */,
     99  /* 4 */,
@@ -127,7 +127,6 @@ void player_spells_init(struct player *p)
     p->spell_flags = mem_zalloc(num_spells * sizeof(byte));
     p->spell_order = mem_zalloc(num_spells * sizeof(byte));
     p->spell_power = mem_zalloc(num_spells * sizeof(byte));
-    p->spell_cooldown = mem_zalloc(num_spells * sizeof(byte));
 
     /* None of the spells have been learned yet */
     for (i = 0; i < num_spells; i++) p->spell_order[i] = 99;
@@ -142,34 +141,6 @@ void player_spells_free(struct player *p)
     mem_free(p->spell_flags);
     mem_free(p->spell_order);
     mem_free(p->spell_power);
-    mem_free(p->spell_cooldown);
-}
-
-
-/*
- * Get the spellbook structure from any object which is a book
- */
-const struct class_book *object_kind_to_book(const struct object_kind *kind)
-{
-    struct player_class *clazz = classes;
-
-    while (clazz)
-    {
-        int i;
-
-        for (i = 0; i < clazz->magic.num_books; i++)
-        {
-            if ((kind->tval == clazz->magic.books[i].tval) &&
-                (kind->sval == clazz->magic.books[i].sval))
-            {
-                return &clazz->magic.books[i];
-            }
-        }
-
-        clazz = clazz->next;
-    }
-
-    return NULL;
 }
 
 
@@ -177,7 +148,7 @@ const struct class_book *object_kind_to_book(const struct object_kind *kind)
  * Get the spellbook structure from an object which is a book the player can
  * cast from
  */
-const struct class_book *player_object_to_book(struct player *p, const struct object *obj)
+const struct class_book *object_to_book(struct player *p, const struct object *obj)
 {
     int i;
 
@@ -234,9 +205,9 @@ const struct class_spell *spell_by_index(const struct class_magic *magic, int in
 /*
  * Spell failure adjustment by casting stat level
  */
-static int fail_adjust(struct player *p, const struct class_spell *spell)
+static int fail_adjust(struct player *p)
 {
-    int stat = spell->realm->stat;
+    int stat = p->clazz->magic.spell_realm->stat;
 
     return adj_mag_stat[p->state.stat_ind[stat]];
 }
@@ -245,9 +216,9 @@ static int fail_adjust(struct player *p, const struct class_spell *spell)
 /*
  * Spell minimum failure by casting stat level
  */
-static int min_fail(struct player *p, const struct class_spell *spell)
+static int min_fail(struct player *p)
 {
-    int stat = spell->realm->stat;
+    int stat = p->clazz->magic.spell_realm->stat;
 
     return adj_mag_fail[p->state.stat_ind[stat]];
 }
@@ -273,18 +244,17 @@ s16b spell_chance(struct player *p, int spell_index)
     /* Reduce failure rate by "effective" level adjustment */
     chance -= 3 * (p->lev - spell->slevel);
 
-    /* Reduce failure rate by casting stat level adjustment */
-    chance -= fail_adjust(p, spell);
-
-    /* Not enough mana to cast */
-    if (spell->smana > p->csp)
-        chance += 5 * (spell->smana - p->csp);
+    /* Reduce failure rate by realm adjustment */
+    chance -= fail_adjust(p);
 
     /* Extract the minimum failure rate */
-    minfail = min_fail(p, spell);
+    minfail = min_fail(p);
 
-    /* Non zero-fail characters never get better than 5 percent */
+    /* Non mage/priest characters never get better than 5 percent */
     if (!player_has(p, PF_ZERO_FAIL) && (minfail < 5)) minfail = 5;
+
+    /* Priest prayer penalty for "edged" weapons (before minfail) */
+    if (p->state.icky_wield) chance += 25;
 
     /* Fear makes spells harder (before minfail) */
     if (player_of_has(p, OF_AFRAID)) chance += 20;
@@ -337,29 +307,29 @@ static size_t append_random_value_string(char *buffer, size_t size, random_value
 }
 
 
-void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
+static void spell_append_value_info(struct player *p, int spell_index, char *buf, size_t len)
 {
-    struct effect *effect;
     const struct player_class *c = p->clazz;
     const struct class_spell *spell;
-    bool first = true;
+    random_value rv;
+    const char *type = NULL;
+    const char *special = NULL;
     size_t offset = 0;
-    struct source actor_body;
-    struct source *data = &actor_body;
+    bool first = true;
+    struct effect *effect;
+    struct actor actor_body;
+    struct actor *data = &actor_body;
 
-    source_player(data, 0, p);
+    data->idx = 0;
+    data->player = p;
+    data->mon = NULL;
 
-    if (p->ghost && !player_can_undead(p)) c = lookup_player_class("Ghost");
+    if (p->ghost && !player_can_undead(p)) c = player_id2class(CLASS_GHOST);
+
     spell = spell_by_index(&c->magic, spell_index);
-
-    /* Blank 'buf' first */
-    buf[0] = '\0';
 
     while (true)
     {
-        random_value rv;
-        const char *type;
-        const char *special = NULL;
         s16b current_spell;
 
         if (first) effect = spell->effect;
@@ -368,20 +338,20 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
         type = effect_info(effect);
 
         /* Hack -- teleport other (show nothing) */
-        if ((effect->index == EF_BOLT) && (effect->subtype == PROJ_AWAY_ALL)) return;
+        if ((effect->index == EF_BOLT) && (effect->params[0] == GF_AWAY_ALL)) return;
 
         /* Hack -- non-explosive branded shots (show nothing) */
-        if ((effect->index == EF_BOW_BRAND) && (effect->radius == 0)) return;
+        if ((effect->index == EF_BOW_BRAND) && (effect->params[1] == 0)) return;
 
         /* Hack -- non-damaging LOS effects (show nothing) */
-        if ((effect->index == EF_PROJECT_LOS_AWARE) && (effect->other == 0)) return;
+        if ((effect->index == EF_PROJECT_LOS_AWARE) && (effect->params[1] == 0)) return;
 
         /* Hack -- illumination ("damage" value is used for radius, so change the tip accordingly) */
-        if ((effect->index == EF_LIGHT_AREA) && streq(spell->realm->name, "elemental"))
+        if ((effect->index == EF_LIGHT_AREA) && (c->magic.spell_realm->index == REALM_ELEM))
             type = "range";
 
         /* Hack -- mana drain ("damage" value is used for healing, so change the tip accordingly) */
-        if ((effect->index == EF_BOLT_AWARE) && (effect->subtype == PROJ_DRAIN_MANA))
+        if ((effect->index == EF_BOLT_AWARE) && (effect->params[0] == GF_DRAIN_MANA))
             type = "heal";
 
         /* Hack -- set current spell (for spell_value_base_by_name) */
@@ -391,7 +361,7 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
         memset(&rv, 0, sizeof(rv));
 
         /* Hack -- mana drain (show real value) */
-        if ((effect->index == EF_BOLT_AWARE) && (effect->subtype == PROJ_DRAIN_MANA))
+        if ((effect->index == EF_BOLT_AWARE) && (effect->params[0] == GF_DRAIN_MANA))
         {
             rv.base = 6;
             rv.dice = 3;
@@ -415,52 +385,6 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
                 break;
             }
             case EF_BALL:
-            {
-                /* Append number of projectiles. */
-                if (rv.m_bonus) special = format("x%d", rv.m_bonus);
-
-                /* Append radius */
-                else
-                {
-                    int rad = (effect->radius? effect->radius: 2);
-                    struct beam_info beam;
-
-                    if (effect->other) rad += p->lev / effect->other;
-                    if (p->poly_race && monster_is_powerful(p->poly_race)) rad++;
-
-                    fill_beam_info(p, spell_index, &beam);
-
-                    rad = rad + beam.spell_power / 2;
-                    rad = rad * (20 + beam.elem_power) / 20;
-
-                    special = format(", rad %d", rad);
-                }
-
-                break;
-            }
-            case EF_BLAST:
-            {
-                /* Append radius */
-                int rad = (effect->radius? effect->radius: 2);
-                struct beam_info beam;
-
-                if (effect->other) rad += p->lev / effect->other;
-                if (p->poly_race && monster_is_powerful(p->poly_race)) rad++;
-
-                fill_beam_info(p, spell_index, &beam);
-
-                rad = rad + beam.spell_power / 2;
-                rad = rad * (20 + beam.elem_power) / 20;
-
-                special = format(", rad %d", rad);
-                break;
-            }
-            case EF_STRIKE:
-            {
-                /* Append radius */
-                if (effect->radius) special = format(", rad %d", effect->radius);
-                break;
-            }
             case EF_BOLT_OR_BEAM:
             case EF_STAR:
             case EF_STAR_BALL:
@@ -481,7 +405,7 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
                 if (rv.m_bonus)
                 {
                     /* Append percentage only, as the fixed value is always displayed */
-                    if (effect->subtype == TMD_EPOWER)
+                    if (effect->params[0] == TMD_EPOWER)
                         special = format("/+%d%%", rv.m_bonus);
 
                     /* Append the bonus only, since the duration is always displayed. */
@@ -490,8 +414,6 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
                 }
                 break;
             }
-            default:
-                break;
         }
 
         if (type == NULL) return;
@@ -508,45 +430,46 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
         /* Hack -- if next effect has the same tip, also append that info */
         if (!effect->next) return;
         if (!effect_info(effect->next)) return;
-        if (strcmp(effect_info(effect->next), effect_info(effect))) return;
+        if (strcmp(effect_info(effect->next), type)) return;
     }
 }
 
 
-static int spell_value_base_spell_power(void *data)
+void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
 {
-    int power = 0;
+    /* Blank 'buf' first */
+    buf[0] = '\0';
+
+    spell_append_value_info(p, spell_index, buf, len);
+}
+
+
+static int spell_value_base_monster_level(void *data)
+{
+    int level = 0;
 
     /* Check the reference race first */
     if (ref_race)
-        power = ref_race->spell_power;
+        level = ref_race->level;
 
     /* Otherwise the current monster if there is one */
     else
     {
-        struct source *who = (struct source *)data;
+        struct actor *who = (struct actor *)data;
 
-        if (who->monster)
-            power = who->monster->race->spell_power;
+        if (who->mon)
+            level = who->mon->race->level;
     }
 
-    return power;
+    return level;
 }
 
 
 static int spell_value_base_player_level(void *data)
 {
-    struct source *who = (struct source *)data;
+    struct actor *who = (struct actor *)data;
 
     return who->player->lev;
-}
-
-
-static int spell_value_base_dungeon_level(void *data)
-{
-    struct source *who = (struct source *)data;
-
-    return who->player->wpos.depth;
 }
 
 
@@ -568,37 +491,15 @@ static int spell_value_base_food_starve(void *data)
 }
 
 
-static int spell_value_base_weapon_damage(void *data)
-{
-    struct source *who = (struct source *)data;
-    struct object *obj = who->player->body.slots[slot_by_name(who->player, "weapon")].obj;
-
-    if (!obj) return 0;
-    return (damroll(obj->dd, obj->ds) + obj->to_d);
-}
-
-
-static int spell_value_base_monster_percent_hp_gone(void *data)
-{
-    struct source *who = (struct source *)data;
-
-    if (who->monster)
-        return (((who->monster->maxhp - who->monster->hp) * 100) / who->monster->maxhp);
-    if (who->player)
-        return (((who->player->mhp - who->player->chp) * 100) / who->player->mhp);
-    return 0;
-}
-
-
 static int spell_value_base_food_max(void *data)
 {
     return PY_FOOD_MAX;
 }
 
 
-static int spell_value_base_player_spell_power(void *data)
+static int spell_value_base_spell_power(void *data)
 {
-    struct source *who = (struct source *)data;
+    struct actor *who = (struct actor *)data;
 
     return who->player->spell_power[who->player->current_spell];
 }
@@ -606,7 +507,7 @@ static int spell_value_base_player_spell_power(void *data)
 
 static int spell_value_base_ball_element(void *data)
 {
-    struct source *who = (struct source *)data;
+    struct actor *who = (struct actor *)data;
     int power = who->player->spell_power[who->player->current_spell];
 
     return who->player->lev + power * 10;
@@ -615,7 +516,7 @@ static int spell_value_base_ball_element(void *data)
 
 static int spell_value_base_xball_element(void *data)
 {
-    struct source *who = (struct source *)data;
+    struct actor *who = (struct actor *)data;
     int power = who->player->spell_power[who->player->current_spell];
 
     return who->player->lev + power * 5;
@@ -624,7 +525,7 @@ static int spell_value_base_xball_element(void *data)
 
 static int spell_value_base_blast_element(void *data)
 {
-    struct source *who = (struct source *)data;
+    struct actor *who = (struct actor *)data;
     int power = who->player->spell_power[who->player->current_spell];
 
     return who->player->lev * 2 + power * 20;
@@ -633,7 +534,7 @@ static int spell_value_base_blast_element(void *data)
 
 static int spell_value_base_xblast_element(void *data)
 {
-    struct source *who = (struct source *)data;
+    struct actor *who = (struct actor *)data;
     int power = who->player->spell_power[who->player->current_spell];
 
     return who->player->lev * 2 + power * 10;
@@ -648,16 +549,13 @@ expression_base_value_f spell_value_base_by_name(const char *name)
         expression_base_value_f function;
     } value_bases[] =
     {
-        {"SPELL_POWER", spell_value_base_spell_power},
+        {"MONSTER_LEVEL", spell_value_base_monster_level},
         {"PLAYER_LEVEL", spell_value_base_player_level},
-        {"DUNGEON_LEVEL", spell_value_base_dungeon_level},
         {"MAX_SIGHT", spell_value_base_max_sight},
         {"FOOD_FAINT", spell_value_base_food_faint},
         {"FOOD_STARVE", spell_value_base_food_starve},
-        {"WEAPON_DAMAGE", spell_value_base_weapon_damage},
-        {"MONSTER_PERCENT_HP_GONE", spell_value_base_monster_percent_hp_gone},
         {"FOOD_MAX", spell_value_base_food_max},
-        {"PLAYER_SPELL_POWER", spell_value_base_player_spell_power},
+        {"SPELL_POWER", spell_value_base_spell_power},
         {"BALL_ELEMENT", spell_value_base_ball_element},
         {"XBALL_ELEMENT", spell_value_base_xball_element},
         {"BLAST_ELEMENT", spell_value_base_blast_element},
@@ -684,7 +582,7 @@ void cast_spell_end(struct player *p)
     const struct class_spell *spell;
     const struct player_class *c = p->clazz;
 
-    if (p->ghost && !player_can_undead(p)) c = lookup_player_class("Ghost");
+    if (p->ghost && !player_can_undead(p)) c = player_id2class(CLASS_GHOST);
 
     /* Access the spell */
     spell = spell_by_index(&c->magic, spell_index);
@@ -711,7 +609,7 @@ void cast_spell_end(struct player *p)
  */
 void show_ghost_spells(struct player *p)
 {
-    struct player_class *c = lookup_player_class("Ghost");
+    struct player_class *c = player_id2class(CLASS_GHOST);
     const struct class_book *book = &c->magic.books[0];
     struct class_spell *spell;
     int i;
@@ -729,8 +627,6 @@ void show_ghost_spells(struct player *p)
 
     /* Wipe the spell array */
     Send_spell_info(p, 0, 0, "", &flags);
-
-    Send_book_info(p, 0, book->realm->name);
 
     /* Check each spell */
     for (i = 0; i < book->num_spells; i++)
@@ -763,36 +659,27 @@ void show_ghost_spells(struct player *p)
 
 
 /*
- * Get antimagic field from an object
- */
-int antimagic_field(const struct object *obj, bitflag flags[OF_SIZE])
-{
-    /* Base antimagic field */
-    return 10 * obj->modifiers[OBJ_MOD_ANTI_MAGIC];
-}
-
-
-/*
  * Check if the antimagic field around a player will disrupt the caster's spells.
  */
 bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
 {
     s16b id;
-    int i, amchance, amrad, dist;
-    struct loc grid;
+    int y, x, i, amchance, amrad, dist;
 
     /* The caster is a monster */
     if (who)
     {
         id = who->master;
-        loc_copy(&grid, &who->grid);
+        y = who->fy;
+        x = who->fx;
     }
 
     /* The caster is the player */
     else
     {
         id = p->id;
-        loc_copy(&grid, &p->grid);
+        y = p->py;
+        x = p->px;
     }
 
     /* Check each player */
@@ -800,9 +687,10 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
     {
         struct player *q = player_get(i);
         struct object *obj;
+        bitflag f[OF_SIZE];
 
-        /* Skip players not on this level */
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
+        /* Skip players not on this depth */
+        if (q->depth != p->depth) continue;
 
         /* Compute the probability of an unbeliever to disrupt any magic attempts */
         if (player_has(q, PF_ANTIMAGIC))
@@ -828,24 +716,26 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
 
         /* Dark swords can disrupt magic attempts too */
         obj = equipped_item_by_slot_name(q, "weapon");
-        if (obj)
+        object_flags(obj, f);
+        if (of_has(f, OF_ANTI_MAGIC))
         {
-            int field = antimagic_field(obj, obj->flags);
+            int minus = 0;
 
-            /* Apply field */
-            amchance = amchance + field;
-            amrad = amrad + field / 10;
+            /* Enchantments lessen the antimagic field */
+            if (obj) minus = obj->to_h + obj->to_d;
+            if (minus < 0) minus = 0;
+            if (minus > 50) minus = 50;
+
+            /* Apply penalty */
+            amchance = amchance + 50 - minus;
+            amrad = amrad + 5 - (minus / 10);
         }
-
-        /* Paranoia */
-        if (amchance < 0) amchance = 0;
-        if (amrad < 0) amrad = 0;
 
         /* Own antimagic field */
         if (p == q)
         {
-            /* Antimagic field is capped at 90% */
-            if (amchance > 90) amchance = 90;
+            /* Antimagic field is capped at 95% */
+            if (amchance > 95) amchance = 95;
 
             /* Check antimagic */
             if (magik(amchance))
@@ -869,11 +759,11 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
             /* Lower effect from party mates (greatly) */
             if (master_in_party(id, q->id)) amchance >>= 2;
 
-            /* Antimagic field is capped at 90% */
-            if (amchance > 90) amchance = 90;
+            /* Antimagic field is capped at 95% */
+            if (amchance > 95) amchance = 95;
 
             /* Compute distance */
-            dist = distance(&grid, &q->grid);
+            dist = distance(y, x, q->py, q->px);
             if (dist > amrad) amchance = 0;
 
             /* Check antimagic */
@@ -888,7 +778,7 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
                 }
                 else
                 {
-                    if (player_is_visible(p, i))
+                    if (mflag_has(p->pflag[i], MFLAG_VISIBLE))
                         msg(p, "%s's anti-magic field disrupts your attempt.", q->name);
                     else
                         msg(p, "An anti-magic field disrupts your attempt.");
@@ -897,9 +787,6 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
             }
         }
     }
-
-    /* Monsters don't disrupt other monsters' spells, that would be cheezy */
-    if (who) return false;
 
     /* Check each monster */
     for (i = 1; i < cave_monster_max(c); i++)
@@ -912,7 +799,7 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
 
         /* Learn about antimagic field */
         lore = get_lore(p, mon->race);
-        if (monster_is_visible(p, i)) rf_on(lore->flags, RF_ANTI_MAGIC);
+        if (mflag_has(p->mflag[i], MFLAG_VISIBLE) && !who) rf_on(lore->flags, RF_ANTI_MAGIC);
 
         /* Skip monsters without antimagic field */
         if (!rf_has(mon->race->flags, RF_ANTI_MAGIC)) continue;
@@ -924,25 +811,35 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
         /* Lower effect from party mates (greatly) */
         if (master_in_party(id, mon->master)) amchance >>= 2;
 
-        /* Antimagic field is capped at 90% */
-        if (amchance > 90) amchance = 90;
+        /* Antimagic field is capped at 95% */
+        if (amchance > 95) amchance = 95;
 
         /* Compute distance */
-        dist = distance(&grid, &mon->grid);
+        dist = distance(y, x, mon->fy, mon->fx);
         if (dist > amrad) amchance = 0;
 
         /* Check antimagic */
         if (magik(amchance))
         {
-            if (monster_is_visible(p, i))
+            if (who)
             {
                 char m_name[NORMAL_WID];
 
-                monster_desc(p, m_name, sizeof(m_name), mon, MDESC_CAPITAL);
-                msg(p, "%s's anti-magic field disrupts your attempt.", m_name);
+                monster_desc(p, m_name, sizeof(m_name), who, MDESC_CAPITAL);
+                msg(p, "%s fails to cast a spell.", m_name);
             }
             else
-                msg(p, "An anti-magic field disrupts your attempt.");
+            {
+                if (mflag_has(p->mflag[i], MFLAG_VISIBLE))
+                {
+                    char m_name[NORMAL_WID];
+
+                    monster_desc(p, m_name, sizeof(m_name), mon, MDESC_CAPITAL);
+                    msg(p, "%s's anti-magic field disrupts your attempt.", m_name);
+                }
+                else
+                    msg(p, "An anti-magic field disrupts your attempt.");
+            }
 
             return true;
         }
@@ -959,21 +856,22 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
 bool check_antisummon(struct player *p, struct monster *mon)
 {
     s16b id;
-    int i, amchance, amrad, dist;
-    struct loc grid;
+    int y, x, i, amchance, amrad, dist;
 
     /* The caster is a monster */
     if (mon)
     {
         id = mon->master;
-        loc_copy(&grid, &mon->grid);
+        y = mon->fy;
+        x = mon->fx;
     }
 
     /* The caster is the player */
     else
     {
         id = p->id;
-        loc_copy(&grid, &p->grid);
+        y = p->py;
+        x = p->px;
     }
 
     /* Check each player */
@@ -981,15 +879,15 @@ bool check_antisummon(struct player *p, struct monster *mon)
     {
         struct player *q = player_get(i);
 
-        /* Skip players not on this level */
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
+        /* Skip players not on this depth */
+        if (q->depth != p->depth) continue;
 
         /* No antisummon */
         if (!q->timed[TMD_ANTISUMMON]) continue;
 
         /* Compute the probability of a summoner to disrupt any summon attempts */
-        /* This value ranges from 60% (clvl 35) to 90% (clvl 50) */
-        amchance = q->lev * 2 - 10;
+        /* This value ranges from 65% (clvl 35) to 95% (clvl 50) */
+        amchance = q->lev * 2 - 5;
 
         /* Range of the antisummon field (8-11 squares for a max sight of 20 squares) */
         amrad = 1 + z_info->max_sight * q->lev / 100;
@@ -1020,7 +918,7 @@ bool check_antisummon(struct player *p, struct monster *mon)
             if (master_in_party(id, q->id)) amchance >>= 2;
 
             /* Compute distance */
-            dist = distance(&grid, &q->grid);
+            dist = distance(y, x, q->py, q->px);
             if (dist > amrad) amchance = 0;
 
             /* Check antisummon */
@@ -1035,7 +933,7 @@ bool check_antisummon(struct player *p, struct monster *mon)
                 }
                 else
                 {
-                    if (player_is_visible(p, i))
+                    if (mflag_has(p->pflag[i], MFLAG_VISIBLE))
                         msg(p, "%s's anti-summon field disrupts your attempt.", q->name);
                     else
                         msg(p, "An anti-summon field disrupts your attempt.");
@@ -1073,8 +971,6 @@ void show_mimic_spells(struct player *p)
 
     /* Wipe the spell array */
     Send_spell_info(p, 0, 0, "", &flags);
-
-    Send_book_info(p, 0, book->realm->name);
 
     /* Check each spell */
     for (i = 0; i < book->num_spells; i++)
@@ -1115,8 +1011,6 @@ void show_mimic_spells(struct player *p)
         {
             j = 0;
             k++;
-
-            Send_book_info(p, k, book->realm->name);
         }
     }
 }
@@ -1134,10 +1028,8 @@ bool cast_spell_proj(struct player *p, int cidx, int spell_index, bool silent)
 {
     const struct player_class *c = player_id2class(cidx);
     const struct class_spell *spell = spell_by_index(&c->magic, spell_index);
-    bool pious = streq(spell->realm->name, "divine");
+    bool pious = ((c->magic.spell_realm->index == REALM_PIOUS)? true: false);
     bool ident = false;
-    struct source who_body;
-    struct source *who = &who_body;
 
     /* Clear current */
     current_clear(p);
@@ -1171,8 +1063,7 @@ bool cast_spell_proj(struct player *p, int cidx, int spell_index, bool silent)
         }
     }
 
-    source_player(who, get_player_index(get_connection(p->conn)), p);
-    return effect_do(spell->effect, who, &ident, true, 0, NULL, 0, 0, NULL);
+    return effect_do(p, spell->effect, &ident, true, 0, NULL, 0, 0, NULL, NULL);
 }
 
 
@@ -1218,11 +1109,11 @@ void fill_beam_info(struct player *p, int spell_index, struct beam_info *beam)
     beam->beam = beam_chance(p);
 
     c = p->clazz;
-    if (p->ghost && !player_can_undead(p)) c = lookup_player_class("Ghost");
+    if (p->ghost && !player_can_undead(p)) c = player_id2class(CLASS_GHOST);
     spell = spell_by_index(&c->magic, spell_index);
 
     /* Hack -- elemental spells */
-    if (streq(spell->realm->name, "elemental"))
+    if (c->magic.spell_realm->index == REALM_ELEM)
     {
         int i, j;
 
@@ -1245,7 +1136,7 @@ void fill_beam_info(struct player *p, int spell_index, struct beam_info *beam)
                     spell = &c->magic.books[i].spells[j];
 
                     if ((spell->effect->index == EF_TIMED_INC) &&
-                        (spell->effect->subtype == TMD_EPOWER))
+                        (spell->effect->params[0] == TMD_EPOWER))
                     {
                         beam->elem_power = p->spell_power[spell->sidx];
                         break;

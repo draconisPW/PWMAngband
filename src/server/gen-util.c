@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -27,6 +27,10 @@
  * This file contains various utility functions for dungeon generation - mostly
  * for finding appropriate grids for some purposes, or placing things.
  */
+
+
+/* Number of trees in town */
+byte trees_in_town;
 
 
 /*
@@ -99,30 +103,30 @@ byte get_angle_to_grid[41][41] =
 
 
 /*
- * Used to convert grid into an array index (i) in a chunk of width w.
+ * Used to convert (x, y) into an array index (i) in a chunk of width w.
  *
- * grid location
+ * y, x co-ordinates
  * w area width
  *
  * Returns the grid index.
  */
-int grid_to_i(struct loc *grid, int w)
+int yx_to_i(int y, int x, int w)
 {
-    return grid->y * w + grid->x;
+    return y * w + x;
 }
 
 
 /*
- * Used to convert an array index (i) into grid in a chunk of width w.
+ * Used to convert an array index (i) into (x, y) in a chunk of width w.
  *
  * i grid index
  * w area width
- * grid location
+ * y, x co-ordinates
  */
-void i_to_grid(int i, int w, struct loc *grid)
+void i_to_yx(int i, int w, int *y, int *x)
 {
-    grid->y = i / w;
-    grid->x = i % w;
+    *y = i / w;
+    *x = i % w;
 }
 
 
@@ -147,158 +151,24 @@ void shuffle(int *arr, int n)
 
 
 /*
- * Locate a square in a rectangle which satisfies the given predicate.
- *
- * c current chunk
- * grid found grid
- * top_left top left grid of rectangle
- * bottom_right bottom right grid of rectangle
- * pred square_predicate specifying what we're looking for
- *
- * Returns success
- */
-bool cave_find_in_range(struct chunk *c, struct loc *grid, struct loc *top_left,
-    struct loc *bottom_right, square_predicate pred)
-{
-    struct loc diff;
-    int i, n;
-    bool found = false;
-    int *squares;
-
-    loc_diff(&diff, bottom_right, top_left);
-    n = diff.y * diff.x;
-
-    /* Allocate the squares, and randomize their order */
-    squares = mem_alloc(n * sizeof(int));
-
-    for (i = 0; i < n; i++) squares[i] = i;
-
-    /* Test each square in (random) order for openness */
-    for (i = 0; i < n && !found; i++)
-    {
-        int j = randint0(n - i) + i;
-        int k = squares[j];
-
-        squares[j] = squares[i];
-        squares[i] = k;
-
-        grid->y = (k / diff.x) + top_left->y;
-        grid->x = (k % diff.x) + top_left->x;
-        if (pred(c, grid)) found = true;
-    }
-
-    mem_free(squares);
-
-    /* Return whether we found an empty square or not. */
-    return found;
-}
-
-
-/*
- * Locate a square in the dungeon which satisfies the given predicate.
- *
- * c current chunk
- * grid found grid
- * pred square_predicate specifying what we're looking for
- *
- * Returns success
- */
-static bool cave_find(struct chunk *c, struct loc *grid, square_predicate pred)
-{
-    struct loc top_left, bottom_right;
-
-    loc_init(&top_left, 0, 0);
-    loc_init(&bottom_right, c->width, c->height);
-    return cave_find_in_range(c, grid, &top_left, &bottom_right, pred);
-}
-
-
-/*
- * Locate an empty square for 0 <= y < ymax, 0 <= x < xmax.
+ * Locate a square in y1 <= y < y2, x1 <= x < x2 which satisfies the given
+ * predicate.
  *
  * c current chunk
  * y found y co-ordinate
+ * y1, y2 y-range
  * x found x co-ordinate
+ * x1, x2 x-range
+ * pred square_predicate specifying what we're looking for
  *
  * Returns success
  */
-bool find_empty(struct chunk *c, struct loc *grid)
+static bool _find_in_range(struct chunk *c, int *y, int y1, int y2, int *x, int x1, int x2,
+    square_predicate pred)
 {
-    return cave_find(c, grid, square_isempty);
-}
-
-
-/*
- * Locate a grid within +/- yd, xd of a centre.
- *
- * c current chunk
- * grid found grid
- * centre starting grid
- * yd y-range
- * xd x-range
- *
- * Returns success
- */
-bool find_nearby_grid(struct chunk *c, struct loc *grid, struct loc *centre, int yd, int xd)
-{
-    struct loc top_left, bottom_right;
-
-    loc_init(&top_left, centre->x - xd, centre->y - yd);
-    loc_init(&bottom_right, centre->x + xd + 1, centre->y + yd + 1);
-    return cave_find_in_range(c, grid, &top_left, &bottom_right, square_in_bounds_fully);
-}
-
-
-/*
- * Given two points, pick a valid cardinal direction from one to the other.
- *
- * offset found offset direction from grid1 to grid2
- * grid1 starting grid
- * grid2 target grid
- */
-void correct_dir(struct loc *offset, struct loc *grid1, struct loc *grid2)
-{
-    /* Extract horizontal and vertical directions */
-    offset->x = CMP(grid2->x, grid1->x);
-    offset->y = CMP(grid2->y, grid1->y);
-
-    /* If we only have one direction to go, then we're done */
-    if (!offset->x || !offset->y) return;
-
-    /* If we need to go diagonally, then choose a random direction */
-    if (magik(50))
-        offset->y = 0;
-    else
-        offset->x = 0;
-}
-
-
-/*
- * Pick a random cardinal direction.
- *
- * offset direction offset
- */
-void rand_dir(struct loc *offset)
-{
-    /* Pick a random direction and extract the dy/dx components */
-    int i = randint0(4);
-
-    loc_copy(offset, &ddgrid_ddd[i]);
-}
-
-
-/*
- * Locate a square that is suited for stair placement.
- *
- * c current chunk
- * grid found grid
- * walls number of adjacent walls
- *
- * Returns success
- */
-static bool square_suits_stairs(struct chunk *c, struct loc *grid, int walls)
-{
-    int i, n = c->height * c->width;
+    int yd = y2 - y1;
+    int xd = x2 - x1;
+    int i, n = yd * xd;
     bool found = false;
 
     /* Allocate the squares, and randomize their order */
@@ -315,12 +185,9 @@ static bool square_suits_stairs(struct chunk *c, struct loc *grid, int walls)
         squares[j] = squares[i];
         squares[i] = k;
 
-        grid->y = (k / c->width);
-        grid->x = (k % c->width);
-
-        if (!square_isempty(c, grid)) continue;
-        if (square_isvault(c, grid) || square_isno_stairs(c, grid)) continue;
-        if (square_num_walls_adjacent(c, grid) == walls) found = true;
+        *y = (k / xd) + y1;
+        *x = (k % xd) + x1;
+        if (pred(c, *y, *x)) found = true;
     }
 
     mem_free(squares);
@@ -331,57 +198,143 @@ static bool square_suits_stairs(struct chunk *c, struct loc *grid, int walls)
 
 
 /*
- * Determine whether the given coordinate is a valid starting location.
+ * Locate a square in the dungeon which satisfies the given predicate.
  *
  * c current chunk
- * grid found grid
+ * y found y co-ordinate
+ * x found x co-ordinate
+ * pred square_predicate specifying what we're looking for
  *
  * Returns success
  */
-static bool find_start(struct chunk *c, struct loc *grid)
+static bool square_find(struct chunk *c, int *y, int *x, square_predicate pred)
 {
-    int walls = 3;
-
-    /* Gradually reduce number of walls if having trouble */
-    while (walls >= 0)
-    {
-        /* Find the best possible place */
-        if (square_suits_stairs(c, grid, walls))
-            return true;
-
-        walls--;
-    }
-
-    quit("Failed to place player!");
-    return false;
+    return _find_in_range(c, y, 0, c->height, x, 0, c->width, pred);
 }
 
 
-static bool square_suits_down_stairs(struct chunk *c, struct loc *grid)
+/*
+ * Locate a square in y1 <= y < y2, x1 <= x < x2 which satisfies the given
+ * predicate.
+ *
+ * c current chunk
+ * y found y co-ordinate
+ * y1, y2 y-range
+ * x found x co-ordinate
+ * x1, x2 x-range
+ * pred square_predicate specifying what we're looking for
+ *
+ * Returns success
+ */
+bool square_find_in_range(struct chunk *c, int *y, int y1, int y2, int *x, int x1, int x2,
+    square_predicate pred)
 {
-    if (!square_isempty(c, grid)) return false;
-    if (square_isvault(c, grid)) return false;
+    return _find_in_range(c, y, y1, y2, x, x1, x2, pred);
+}
+
+
+/*
+ * Locate an empty square for 0 <= y < ymax, 0 <= x < xmax.
+ *
+ * c current chunk
+ * y found y co-ordinate
+ * x found x co-ordinate
+ *
+ * Returns success
+ */
+bool find_empty(struct chunk *c, int *y, int *x)
+{
+    return square_find(c, y, x, square_isempty);
+}
+
+
+/*
+ * Locate a grid nearby (y0, x0) within +/- yd, xd.
+ *
+ * c current chunk
+ * y found y co-ordinate
+ * y0 starting y co-ordinate
+ * yd y-range
+ * x found x co-ordinate
+ * x0 starting x co-ordinate
+ * xd x-range
+ *
+ * Returns success
+ */
+bool find_nearby_grid(struct chunk *c, int *y, int y0, int yd, int *x, int x0, int xd)
+{
+    int y1 = y0 - yd;
+    int x1 = x0 - xd;
+    int y2 = y0 + yd + 1;
+    int x2 = x0 + xd + 1;
+
+    return square_find_in_range(c, y, y1, y2, x, x1, x2, square_in_bounds);
+}
+
+
+/*
+ * Given two points, pick a valid cardinal direction from one to the other.
+ *
+ * rdir found row change (up or down)
+ * cdir found column change (left or right)
+ * y1, x1 starting co-ordinates
+ * y2, x2 target co-ordinates
+ */
+void correct_dir(int *rdir, int *cdir, int y1, int x1, int y2, int x2)
+{
+    /* Extract vertical and horizontal directions */
+    *rdir = CMP(y2, y1);
+    *cdir = CMP(x2, x1);
+
+    /* If we only have one direction to go, then we're done */
+    if (!*rdir || !*cdir) return;
+
+    /* If we need to go diagonally, then choose a random direction */
+    if (magik(50))
+        *rdir = 0;
+    else
+        *cdir = 0;
+}
+
+
+/*
+ * Pick a random cardinal direction.
+ *
+ * rdir, cdir direction co-ordinates
+ */
+void rand_dir(int *rdir, int *cdir)
+{
+    /* Pick a random direction and extract the dy/dx components */
+    int i = randint0(4);
+
+    *rdir = ddy_ddd[i];
+    *cdir = ddx_ddd[i];
+}
+
+
+/*
+ * Determine whether the given coordinate is a valid starting location.
+ *
+ * c current chunk
+ * y, x co-ordinates
+ *
+ * Returns success
+ */
+static bool square_isstart(struct chunk *c, int y, int x)
+{
+    if (!square_isempty(c, y, x)) return false;
+    if (square_isvault(c, y, x)) return false;
     return true;
 }
 
 
 /*
- * Add down stairs at a random location.
- *
- * c current chunk
+ * Pick random co-ordinates
  */
-void add_down_stairs(struct chunk *c)
+static void rand_xy(struct chunk *c, int *py, int *px)
 {
-    struct loc grid;
-
     /* Try to find a good place to put the player */
-    cave_find(c, &grid, square_suits_down_stairs);
-
-    /* Place a staircase */
-    square_set_downstairs(c, &grid);
-
-    /* Hack -- the players start on the stairs while recalling */
-    square_set_join_rand(c, &grid);
+    square_find_in_range(c, py, 0, c->height, px, 0, c->width, square_isstart);
 }
 
 
@@ -393,125 +346,92 @@ void add_down_stairs(struct chunk *c)
  */
 void new_player_spot(struct chunk *c, struct player *p)
 {
-    struct loc grid;
+    int y, x;
 
     /* Place the player */
-    find_start(c, &grid);
+    rand_xy(c, &y, &x);
 
     /* Save the new grid */
-    square_set_join_rand(c, &grid);
+    c->level_rand_y = y;
+    c->level_rand_x = x;
 
     /* Disconnected stairs */
     if (cfg_limit_stairs)
     {
         /* Set this to be the starting location for people going down */
-        find_start(c, &grid);
-        square_set_join_down(c, &grid);
+        rand_xy(c, &y, &x);
+        c->level_down_y = y;
+        c->level_down_x = x;
 
         /* Set this to be the starting location for people going up */
-        find_start(c, &grid);
-        square_set_join_up(c, &grid);
+        rand_xy(c, &y, &x);
+        c->level_up_y = y;
+        c->level_up_x = x;
     }
 
     /* Hack -- stay in bounds (to avoid asserts during cave generation) */
-    p->grid.y = MIN(MAX(p->grid.y, 1), c->height - 2);
-    p->grid.x = MIN(MAX(p->grid.x, 1), c->width - 2);
+    p->py = MIN(MAX(p->py, 1), c->height - 2);
+    p->px = MIN(MAX(p->px, 1), c->width - 2);
 }
 
 
 /*
- * Place rubble at a given location.
+ * Return how many cardinal directions around (x, y) contain walls.
  *
  * c current chunk
- * grid location
+ * y, x co-ordinates
+ *
+ * Returns the number of walls
  */
-static void place_rubble(struct chunk *c, struct loc *grid)
+static int next_to_walls(struct chunk *c, int y, int x)
 {
-    int i, j;
-    int feat = (one_in_(2)? FEAT_PASS_RUBBLE: FEAT_RUBBLE);
+    int k = 0;
 
-    /* Create rubble */
-    square_set_feat(c, grid, feat);
+    my_assert(square_in_bounds(c, y, x));
 
-    /* HIGHLY EXPERIMENTAL: turn-based mode (for single player games) */
-    if (TURN_BASED) return;
+    if (square_iswall(c, y + 1, x)) k++;
+    if (square_iswall(c, y - 1, x)) k++;
+    if (square_iswall(c, y, x + 1)) k++;
+    if (square_iswall(c, y, x - 1)) k++;
 
-    for (j = -1; j < 2; j++)
-    {
-        for (i = -1; i < 2; i++)
-        {
-            struct loc next;
-
-            loc_init(&next, grid->x + i, grid->y + j);
-
-            /* Skip corners */
-            if (abs(i + j) != 1) continue;
-            
-            /* Check Bounds */
-            if (!square_in_bounds_fully(c, &next)) continue;
-
-            /* Totally useless AKA Require a certain number of adjacent walls */
-            if (square_num_walls_adjacent(c, &next) < 2) continue;
-            
-            /* Require wall grid */
-            if (square_isempty(c, &next)) continue;
-
-            /* Require an empty grid on the opposite side */
-            loc_init(&next, grid->x - i, grid->y - j);
-            if (!square_isempty(c, &next)) continue;
-            
-            /* Place on the opposite side */
-            square_set_feat(c, &next, feat);
-            
-            /* Done */
-            return;     
-        }
-    }
+    return (k);
 }
 
 
 /*
- * Place traps at (x, y).
+ * Place rubble at (x, y).
  *
  * c current chunk
  * y, x co-ordinates
  */
-static void place_traps(struct chunk *c, struct loc *grid)
+static void place_rubble(struct chunk *c, int y, int x)
 {
     int i, j;
 
-    /* Create trap */
-    square_add_trap(c, grid);
-
-    /* HIGHLY EXPERIMENTAL: turn-based mode (for single player games) */
-    if (TURN_BASED) return;
+    /* Create rubble */
+    square_set_feat(c, y, x, FEAT_RUBBLE);
 
     for (j = -1; j < 2; j++)
     {
         for (i = -1; i < 2; i++)
         {
-            struct loc next;
-
-            loc_init(&next, grid->x + i, grid->y + j);
-
             /* Skip corners */
             if (abs(i + j) != 1) continue;
             
             /* Check Bounds */
-            if (!square_in_bounds_fully(c, &next)) continue;
+            if (!square_in_bounds_fully(c, y + j, x + i)) continue;
 
             /* Totally useless AKA Require a certain number of adjacent walls */
-            if (square_num_walls_adjacent(c, &next) < 2) continue;
+            if (next_to_walls(c, y + j, x + i) < 2) continue;
             
             /* Require wall grid */
-            if (square_isempty(c, &next)) continue;
+            if (square_isempty(c, y + j, x + i)) continue;
 
             /* Require an empty grid on the opposite side */
-            loc_init(&next, grid->x - i, grid->y - j);
-            if (!square_isempty(c, &next)) continue;
+            if (!square_isempty(c, y - j, x - i)) continue;
             
             /* Place on the opposite side */
-            square_add_trap(c, &next);
+            square_set_feat(c, y - j, x - i, FEAT_RUBBLE);
             
             /* Done */
             return;     
@@ -523,7 +443,7 @@ static void place_traps(struct chunk *c, struct loc *grid)
 /*
  * Convert existing terrain type to fountain
  */
-static void place_fountain(struct chunk *c, struct loc *grid)
+static void place_fountain(struct chunk *c, int y, int x)
 {
     int feat;
 
@@ -532,33 +452,52 @@ static void place_fountain(struct chunk *c, struct loc *grid)
     else feat = FEAT_FNT_DRIED;
     
     /* Create fountain */
-    square_set_feat(c, grid, feat);
+    square_set_feat(c, y, x, feat);
 }
 
 
 /*
- * Place stairs (of the requested type 'feat' if allowed) at a given location.
+ * Place stairs (of the requested type 'feat' if allowed) at (x, y).
  *
  * c current chunk
- * grid location
+ * y, x co-ordinates
  * feat requested feature
  *
- * All stairs from the surface go down. All stairs from bottom go up.
+ * All stairs from town go down. All stairs from bottom go up.
  */
-static void place_stairs(struct chunk *c, struct loc *grid, int feat)
+static void place_stairs(struct chunk *c, int y, int x, int feat)
 {
-    struct wild_type *w_ptr = get_wt_info_at(&c->wpos.grid);
+    if (!c->depth)
+        square_set_feat(c, y, x, FEAT_MORE);
+    else if (c->depth == z_info->max_depth - 1)
+    {
+        /* Clear previous contents, add up stairs */
+        if (cfg_limit_stairs < 2) square_set_feat(c, y, x, FEAT_LESS);
 
-    if (c->wpos.depth == 0)
-        square_set_feat(c, grid, FEAT_MORE);
-    else if (c->wpos.depth == w_ptr->max_depth - 1)
-        square_set_upstairs(c, grid);
+        /* Set this to be the starting location for people going down */
+        c->level_down_y = y;
+        c->level_down_x = x;
+    }
     else
     {
         if (feat == FEAT_LESS)
-            square_set_upstairs(c, grid);
+        {
+            /* Clear previous contents, add up stairs */
+            if (cfg_limit_stairs < 2) square_set_feat(c, y, x, FEAT_LESS);
+
+            /* Set this to be the starting location for people going down */
+            c->level_down_y = y;
+            c->level_down_x = x;
+        }
         if (feat == FEAT_MORE)
-            square_set_downstairs(c, grid);
+        {
+            /* Clear previous contents, add down stairs */
+            square_set_feat(c, y, x, FEAT_MORE);
+
+            /* Set this to be the starting location for people going up */
+            c->level_up_y = y;
+            c->level_up_x = x;
+        }
     }
 }
 
@@ -569,43 +508,43 @@ static void place_stairs(struct chunk *c, struct loc *grid, int feat)
  * c current chunk
  * y, x co-ordinates
  */
-void place_random_stairs(struct chunk *c, struct loc *grid)
+void place_random_stairs(struct chunk *c, int y, int x)
 {
     int feat = (magik(50)? FEAT_LESS: FEAT_MORE);
 
-    if (square_canputitem(c, grid)) place_stairs(c, grid, feat);
+    if (square_canputitem(c, y, x)) place_stairs(c, y, x, feat);
 }
 
 
 /*
- * Place a random object at a given location.
+ * Place a random object at (x, y).
  *
  * p the player
  * c current chunk
- * grid location
+ * y, x co-ordinates
  * level generation depth
  * good is it a good object?
  * great is it a great object?
  * origin item origin
  * tval specified tval, if any
  */
-void place_object(struct player *p, struct chunk *c, struct loc *grid, int level, bool good,
+void place_object(struct player *p, struct chunk *c, int y, int x, int level, bool good,
     bool great, byte origin, int tval)
 {
     s32b rating = 0;
     struct object *new_obj;
-    bool dummy = true;
 
-    if (!square_in_bounds(c, grid)) return;
-    if (!square_canputitem(c, grid)) return;
+    my_assert(square_in_bounds(c, y, x));
 
-    /* Make an appropriate object */
+    if (!square_canputitem(c, y, x)) return;
+
     new_obj = make_object(p, c, level, good, great, false, &rating, tval);
     if (!new_obj) return;
-    set_origin(new_obj, origin, c->wpos.depth, NULL);
+
+    set_origin(new_obj, origin, c->depth, 0);
 
     /* Give it to the floor */
-    if (!floor_carry(p, c, grid, new_obj, &dummy))
+    if (!floor_carry(p, c, y, x, new_obj, false))
     {
         object_delete(&new_obj);
         return;
@@ -621,87 +560,82 @@ void place_object(struct player *p, struct chunk *c, struct loc *grid, int level
 
 
 /*
- * Place a random amount of gold at a given location.
+ * Place a random amount of gold at (x, y).
  *
  * p the player
  * c current chunk
- * grid location
+ * y, x co-ordinates
  * level generation depth
  * origin item origin
  */
-void place_gold(struct player *p, struct chunk *c, struct loc *grid, int level, byte origin)
+void place_gold(struct player *p, struct chunk *c, int y, int x, int level, byte origin)
 {
     struct object *money = NULL;
-    bool dummy = true;
 
-    if (!square_in_bounds(c, grid)) return;
-    if (!square_canputitem(c, grid)) return;
+    my_assert(square_in_bounds(c, y, x));
+
+    if (!square_canputitem(c, y, x)) return;
 
     /* Make some gold */
     money = make_gold(p, level, "any");
-    set_origin(money, origin, c->wpos.depth, NULL);
+
+    set_origin(money, origin, c->depth, 0);
 
     /* Give it to the floor */
-    if (!floor_carry(p, c, grid, money, &dummy))
+    if (!floor_carry(NULL, c, y, x, money, false))
         object_delete(&money);
 }
 
 
 /*
- * Place a secret door at a given location.
+ * Place a secret door at (x, y).
  *
  * c current chunk
- * grid location
+ * y, x co-ordinates
  */
-void place_secret_door(struct chunk *c, struct loc *grid)
+void place_secret_door(struct chunk *c, int y, int x)
 {
-    square_set_feat(c, grid, FEAT_SECRET);
+    square_set_feat(c, y, x, FEAT_SECRET);
 }
 
 
 /*
- * Place a closed door at a given location.
+ * Place a closed door at (x, y).
  *
  * c current chunk
- * grid location
+ * y, x co-ordinates
  */
-void place_closed_door(struct chunk *c, struct loc *grid)
+void place_closed_door(struct chunk *c, int y, int x)
 {
-    square_close_door(c, grid);
+    square_close_door(c, y, x);
     if (one_in_(4))
-        square_set_door_lock(c, grid, randint1(7));
+        square_set_door_lock(c, y, x, randint1(7));
 }
 
 
 /*
- * Place a random door at a given location.
+ * Place a random door at (x, y).
  *
  * c current chunk
- * grid location
+ * y, x co-ordinates
  *
  * The door generated could be closed, open, broken, or secret.
  */
-void place_random_door(struct chunk *c, struct loc *grid)
+void place_random_door(struct chunk *c, int y, int x)
 {
     int tmp = randint0(100);
-    struct worldpos dpos;
-    struct location *dungeon;
-
-    /* Get the dungeon */
-    wpos_init(&dpos, &c->wpos.grid, 0);
-    dungeon = get_dungeon(&dpos);
-
-    /* Some dungeons don't have doors at all */
-    if (dungeon && c->wpos.depth && df_has(dungeon->flags, DF_NO_DOORS)) return;
 
     /* Create open door */
-    if (tmp < 30) square_open_door(c, grid);
+    if (tmp < 30) square_open_door(c, y, x);
 
     /* Create broken door */
-    else if (tmp < 40) square_smash_door(c, grid);
+    else if (tmp < 40) square_smash_door(c, y, x);
+
+    /* Create secret door */
+    else if (tmp < 60) square_set_feat(c, y, x, FEAT_SECRET);
 
     /* Create closed door */
-    else place_closed_door(c, grid);
+    else place_closed_door(c, y, x);
 }
 
 
@@ -711,29 +645,34 @@ void place_random_door(struct chunk *c, struct loc *grid)
  * c current chunk
  * feat the stair terrain type
  * num number of staircases to place
+ * walls number of walls to surround the stairs (negotiable)
  */
-void alloc_stairs(struct chunk *c, int feat, int num)
+void alloc_stairs(struct chunk *c, int feat, int num, int walls)
 {
-    int i;
-    struct loc grid;
-    int walls = 3;
+    int y, x, i, j, done;
 
     /* Place "num" stairs */
     for (i = 0; i < num; i++)
     {
-        /* Gradually reduce number of walls if having trouble */
-        while (true)
+        /* Place some stairs */
+        for (done = false; !done; )
         {
-            /* Find the best possible place */
-            if (square_suits_stairs(c, &grid, walls))
+            /* Try several times, then decrease "walls" */
+            for (j = 0; !done && j <= 1000; j++)
             {
-                place_stairs(c, &grid, feat);
-                break;
+                find_empty(c, &y, &x);
+
+                /* Require a certain number of adjacent walls */
+                if (next_to_walls(c, y, x) < walls) continue;
+
+                place_stairs(c, y, x, feat);
+
+                /* All done */
+                done = true;
             }
 
             /* Require fewer walls */
-            if (walls == 0) quit("Failed to place stairs!");
-            walls--;
+            if (walls) walls--;
         }
     }
 }
@@ -782,21 +721,21 @@ void alloc_objects(struct player *p, struct chunk *c, int set, int typ, int num,
 bool alloc_object(struct player *p, struct chunk *c, int set, int typ, int depth,
     byte origin)
 {
+    int x = 0, y = 0;
     int tries = 0;
-    struct loc grid;
 
     /* Pick a "legal" spot */
     while (tries < 2000)
     {
         tries++;
 
-        find_empty(c, &grid);
+        find_empty(c, &y, &x);
 
         /* If we are ok with a corridor and we're in one, we're done */
-        if (set & SET_CORR && !square_isroom(c, &grid)) break;
+        if (set & SET_CORR && !square_isroom(c, y, x)) break;
 
         /* If we are ok with a room and we're in one, we're done */
-        if (set & SET_ROOM && square_isroom(c, &grid)) break;
+        if (set & SET_ROOM && square_isroom(c, y, x)) break;
     }
 
     if (tries == 2000) return false;
@@ -804,27 +743,27 @@ bool alloc_object(struct player *p, struct chunk *c, int set, int typ, int depth
     /* Place something */
     switch (typ)
     {
-        case TYP_RUBBLE: place_rubble(c, &grid); break;
-        case TYP_FOUNTAIN: place_fountain(c, &grid); break;
-        case TYP_TRAP: place_traps(c, &grid); break;
+        case TYP_RUBBLE: place_rubble(c, y, x); break;
+        case TYP_FOUNTAIN: place_fountain(c, y, x); break;
+        case TYP_TRAP: square_add_trap(c, y, x); break;
         case TYP_GOLD:
         {
-            place_gold(p, c, &grid, depth, origin);
+            place_gold(p, c, y, x, depth, origin);
             break;
         }
         case TYP_OBJECT:
         {
-            place_object(p, c, &grid, depth, false, false, origin, 0);
+            place_object(p, c, y, x, depth, false, false, origin, 0);
             break;
         }
         case TYP_GOOD:
         {
-            place_object(p, c, &grid, depth, true, false, origin, 0);
+            place_object(p, c, y, x, depth, true, false, origin, 0);
             break;
         }
         case TYP_GREAT:
         {
-            place_object(p, c, &grid, depth, true, true, origin, 0);
+            place_object(p, c, y, x, depth, true, true, origin, 0);
             break;
         }
     }
@@ -838,12 +777,12 @@ bool alloc_object(struct player *p, struct chunk *c, int set, int typ, int depth
  *
  * p the player
  * c current chunk
- * grid location
+ * y, x co-ordinates
  * num number of objects
  */
-void vault_objects(struct player *p, struct chunk *c, struct loc *grid, int num)
+void vault_objects(struct player *p, struct chunk *c, int y, int x, int num)
 {
-    int i;
+    int i, j, k;
 
     /* Attempt to place 'num' objects */
     for (; num > 0; --num)
@@ -851,19 +790,17 @@ void vault_objects(struct player *p, struct chunk *c, struct loc *grid, int num)
         /* Try up to 11 spots looking for empty space */
         for (i = 0; i < 11; ++i)
         {
-            struct loc nearby;
-
             /* Pick a random location */
-            find_nearby_grid(c, &nearby, grid, 2, 3);
+            find_nearby_grid(c, &j, y, 2, &k, x, 3);
 
             /* Require "clean" floor space */
-            if (!square_canputitem(c, &nearby)) continue;
+            if (!square_canputitem(c, j, k)) continue;
 
             /* Place an item or gold */
             if (magik(75))
-                place_object(p, c, &nearby, c->wpos.depth, false, false, ORIGIN_SPECIAL, 0);
+                place_object(p, c, j, k, object_level(c->depth), false, false, ORIGIN_SPECIAL, 0);
             else
-                place_gold(p, c, &nearby, c->wpos.depth, ORIGIN_SPECIAL);
+                place_gold(p, c, j, k, object_level(c->depth), ORIGIN_SPECIAL);
 
             /* Placement accomplished */
             break;
@@ -873,25 +810,23 @@ void vault_objects(struct player *p, struct chunk *c, struct loc *grid, int num)
 
 
 /*
- * Place a trap near a location, with a given displacement.
+ * Place a trap near (x, y), with a given displacement.
  *
  * c current chunk
- * grid location to place the trap near
+ * y, x co-ordinates to place the trap near
  * yd, xd how far afield to look for a place
  */
-static void vault_trap_aux(struct chunk *c, struct loc *grid, int yd, int xd)
+static void vault_trap_aux(struct chunk *c, int y, int x, int yd, int xd)
 {
-    int tries;
+    int tries, y1, x1;
 
     /* Find a nearby empty grid and place a trap */
     for (tries = 0; tries <= 5; tries++)
     {
-        struct loc nearby;
+        find_nearby_grid(c, &y1, y, yd, &x1, x, xd);
+        if (!square_isempty(c, y1, x1)) continue;
 
-        find_nearby_grid(c, &nearby, grid, yd, xd);
-        if (!square_isempty(c, &nearby)) continue;
-
-        square_add_trap(c, &nearby);
+        square_add_trap(c, y1, x1);
 
         break;
     }
@@ -899,37 +834,34 @@ static void vault_trap_aux(struct chunk *c, struct loc *grid, int yd, int xd)
 
 
 /*
- * Place 'num' traps near a location, with a given displacement.
+ * Place 'num' traps near (x, y), with a given displacement.
  *
  * c current chunk
- * grid location to place the trap near
+ * y, x co-ordinates to place the trap near
  * yd, xd how far afield to look for a place
  * num number of traps to place
  */
-void vault_traps(struct chunk *c, struct loc *grid, int yd, int xd, int num)
+void vault_traps(struct chunk *c, int y, int x, int yd, int xd, int num)
 {
     int i;
 
     for (i = 0; i < num; i++)
-        vault_trap_aux(c, grid, yd, xd);
+        vault_trap_aux(c, y, x, yd, xd);
 }
 
 
 /*
- * Place 'num' sleeping monsters near the location.
+ * Place 'num' sleeping monsters near (x, y).
  *
  * p the player
  * c current chunk
- * grid location to place the monsters near
+ * y1, x1 co-ordinates to place the monsters near
  * depth generation depth
  * num number of monsters to place
  */
-void vault_monsters(struct player *p, struct chunk *c, struct loc *grid, int depth, int num)
+void vault_monsters(struct player *p, struct chunk *c, int y1, int x1, int depth, int num)
 {
-    int k, i;
-
-    /* If the starting location is illegal, don't even start */
-    if (!square_in_bounds(c, grid)) return;
+    int k, i, y, x;
 
     /* Try to summon "num" monsters "near" the given location */
     for (k = 0; k < num; k++)
@@ -937,16 +869,17 @@ void vault_monsters(struct player *p, struct chunk *c, struct loc *grid, int dep
         /* Try nine locations */
         for (i = 0; i < 9; i++)
         {
-            struct loc nearby;
+            int d = 1;
 
             /* Pick a nearby location */
-            if (!scatter(c, &nearby, grid, 1, true)) continue;
+            scatter(c, &y, &x, y1, x1, d, true);
+            if (!square_in_bounds_fully(c, y, x)) continue;
 
             /* Require "empty" floor grids */
-            if (!square_isemptyfloor(c, &nearby)) continue;
+            if (!square_isemptyfloor(c, y, x)) continue;
 
             /* Place the monster (allow groups) */
-            pick_and_place_monster(p, c, &nearby, depth, MON_ASLEEP | MON_GROUP, ORIGIN_DROP_SPECIAL);
+            pick_and_place_monster(p, c, y, x, depth, MON_SLEEP | MON_GROUP, ORIGIN_DROP_SPECIAL);
 
             break;
         }

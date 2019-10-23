@@ -3,7 +3,7 @@
  * Purpose: Character creation
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -271,9 +271,6 @@ static void get_stats(struct player *p, s16b* stat_roll)
         /* Start fully healed */
         p->stat_cur[i] = p->stat_max[i];
 
-        /* Start with unscrambled stats */
-        p->stat_map[i] = i;
-
         /* Save birth stats */
         p->stat_birth[i] = p->stat_max[i];
     }
@@ -323,7 +320,7 @@ static void get_bonuses(struct player *p)
     p->upkeep->update |= (PU_BONUS);
 
     /* Update stuff */
-    update_stuff(p, chunk_get(&p->wpos));
+    update_stuff(p, chunk_get(p->depth));
 
     /* Fully healed */
     p->chp = p->mhp;
@@ -485,7 +482,7 @@ static void get_money(struct player *p, bool no_recall)
     p->au = z_info->start_gold;
 
     /* Give double starting gold to no_recall characters */
-    if ((cfg_diving_mode == 3) || no_recall) p->au *= 2;
+    if (cfg_no_recall || no_recall) p->au *= 2;
 }
 
 
@@ -545,18 +542,16 @@ static void player_outfit_aux(struct player *p, struct object_kind *k, byte numb
         obj->modifiers[OBJ_MOD_SPEED] = 30;
 
     /* Set origin */
-    set_origin(obj, ORIGIN_BIRTH, 0, NULL);
+    set_origin(obj, ORIGIN_BIRTH, 0, 0);
 
     /* Object is known */
     object_notice_everything_aux(p, obj, false, false);
 
     /* Bypass auto-ignore */
-    obj->ignore_protect = 1;
+    obj->allow_ignore = IGNORE_PROTECT;
 
     /* Deduct the cost of the item from starting cash */
-    /* PWMAngband: food and light are free */
-    if (!tval_is_food_k(k) && !tval_is_light_k(k))
-        p->au -= (s32b)object_value(p, obj, obj->number);
+    p->au -= object_value(p, obj, obj->number);
 
     /* Carry the item */
     inven_carry(p, obj, true, false);
@@ -574,77 +569,35 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
     int i;
     const struct start_item *si;
 
-    /* Player learns innate runes */
-    player_learn_innate(p);
-
-    /* Give the player obvious object knowledge */
-    p->obj_k->dd = 1;
-    p->obj_k->ds = 1;
-    p->obj_k->ac = 1;
-    p->obj_k->to_a = 1;
-    p->obj_k->to_h = 1;
-    p->obj_k->to_d = 1;
-    for (i = 1; i < OF_MAX; i++)
-    {
-        struct obj_property *prop = lookup_obj_property(OBJ_PROPERTY_FLAG, i);
-
-        if (prop->subtype == OFT_LIGHT) of_on(p->obj_k->flags, i);
-        if (prop->subtype == OFT_DIG) of_on(p->obj_k->flags, i);
-    }
+    /* Player needs a body */
+    memcpy(&p->body, &bodies[p->race->body], sizeof(p->body));
+    p->body.slots = mem_zalloc(p->body.count * sizeof(struct equip_slot));
+    memcpy(p->body.slots, bodies[p->race->body].slots, p->body.count * sizeof(struct equip_slot));
+    for (i = 0; i < N_HISTORY_FLAGS; i++)
+        p->hist_flags[i] = mem_zalloc((p->body.count + 1) * sizeof(cave_view_type));
 
     /* Give the player starting equipment */
     for (si = p->clazz->start_items; si; si = si->next)
     {
         int num = rand_range(si->min, si->max);
-        struct object_kind *kind = lookup_kind(si->tval, si->sval);
 
-        my_assert(kind);
-
-        /* Without start_kit, only start with food and light */
-        if (!start_kit && !tval_is_food_k(kind) && !tval_is_light_k(kind)) continue;
+        /* Without start_kit, only start with 1 food and 1 light */
+        if (!start_kit)
+        {
+            if (!tval_is_food_k(si->kind) && !tval_is_light_k(si->kind)) continue;
+            num = 1;
+        }
 
         /* Don't give unnecessary starting equipment to no_recall characters */
-        if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
+        if ((cfg_no_recall || no_recall) && !si->flag) continue;
 
-        player_outfit_aux(p, kind, (byte)num);
+        player_outfit_aux(p, si->kind, (byte)num);
     }
 
     /* Sanity check */
     if (p->au < 0) p->au = 0;
 
-    /*
-     * Without start_kit, start at least with the amount of gold we would need for buying
-     * the items we don't get
-     */
-    if (!start_kit)
-    {
-      int value = 0;
-
-      for (si = p->clazz->start_items; si; si = si->next)
-      {
-          struct object *obj;
-          struct object_kind *kind = lookup_kind(si->tval, si->sval);
-
-          /* Skip food and light (we get them) */
-          if (tval_is_food_k(kind) || tval_is_light_k(kind)) continue;
-
-          /* Skip starting equipment no_recall characters don't get */
-          if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
-
-          /* Prepare the item */
-          obj = object_new();
-          object_prep(p, obj, kind, 0, MINIMISE);
-          obj->number = si->min;
-          object_notice_everything_aux(p, obj, false, false);
-
-          /* Add the value */
-          value += object_value(p, obj, obj->number);
-          object_delete(&obj);
-      }
-      if (p->au < value) p->au = value;
-    }
-
-    if ((cfg_diving_mode > 1) || no_recall || is_dm_p(p)) return;
+    if (cfg_no_recall || no_recall || is_dm_p(p)) return;
 
     /* Give the player a deed of property */
     player_outfit_aux(p, lookup_kind_by_name(TV_DEED, "Deed of Property"), 1);
@@ -657,7 +610,6 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
 static void player_outfit_dm(struct player *p)
 {
     int i;
-    struct object_kind *kind;
 
     /* Initialize the DM with special powers */
     if (is_dm_p(p))
@@ -684,23 +636,21 @@ static void player_outfit_dm(struct player *p)
 #endif
 
     /* All books */
-    for (i = 0; i < p->clazz->magic.num_books; i++)
+    if ((p->clazz->magic.spell_realm->index >= REALM_ARCANE) &&
+        (p->clazz->magic.spell_realm->index <= REALM_SUMMON))
     {
-        struct class_book *book = &p->clazz->magic.books[i];
+        for (i = 0; i < p->clazz->magic.num_books; i++)
+        {
+            struct class_book *book = &p->clazz->magic.books[i];
 
-        if (book->realm->book_noun)
             player_outfit_aux(p, lookup_kind(book->tval, book->sval), 1);
+        }
     }
 
     /* Other useful stuff */
-    kind = lookup_kind_by_name(TV_POTION, "Augmentation");
-    player_outfit_aux(p, kind, kind->base->max_stack);
-    kind = lookup_kind_by_name(TV_POTION, "Experience");
-    player_outfit_aux(p, kind, kind->base->max_stack);
+    player_outfit_aux(p, lookup_kind_by_name(TV_POTION, "Augmentation"), z_info->stack_size);
+    player_outfit_aux(p, lookup_kind_by_name(TV_POTION, "Experience"), z_info->stack_size);
     player_outfit_aux(p, lookup_kind_by_name(TV_RING, "Speed"), 2);
-
-    /* Max recall depth */
-    p->max_depth = z_info->max_depth - 1;
 
     /* A ton of gold */
     p->au = 50000000;
@@ -721,8 +671,16 @@ static void player_generate(struct player *p, byte psex, const struct player_rac
     /* Initialize the spells */
     player_spells_init(p);
 
-    /* No Dragon DMs, turn into a Human instead */
-    if (pf_has(p->race->pflags, PF_DRAGON) && is_dm_p(p)) p->race = player_id2race(0);
+    /* Restrict choices for Dragon race */
+    if (pf_has(p->race->pflags, PF_DRAGON))
+    {
+        /* No Dragon DMs, Shapechangers and Necromancers */
+        if (is_dm_p(p) || pf_has(p->clazz->pflags, PF_MONSTER_SPELLS) ||
+            pf_has(p->clazz->pflags, PF_UNDEAD_POWERS))
+        {
+            p->race = player_id2race(0);
+        }
+    }
 
     p->sex = &sex_info[p->psex];
 
@@ -730,7 +688,7 @@ static void player_generate(struct player *p, byte psex, const struct player_rac
     p->max_lev = p->lev = 1;
 
     /* Experience factor */
-    p->expfact = p->race->r_exp;
+    p->expfact = p->race->r_exp + p->clazz->c_exp;
 
     /* Hitdice */
     p->hitdie = p->race->r_mhp + p->clazz->c_mhp;
@@ -747,7 +705,7 @@ static int count_players(struct player *p)
 {
     int i, count = 0;
 
-    /* Count players on this level */
+    /* Count players on this depth */
     for (i = 1; i <= NumPlayers; i++)
     {
         struct player *player = player_get(i);
@@ -756,57 +714,50 @@ static int count_players(struct player *p)
         if (player == p) continue;
 
         /* Count */
-        if (wpos_eq(&player->wpos, &p->wpos)) count++;
+        if (player->depth == p->depth) count++;
     }
 
     return count;
 }
 
 
-static bool depth_is_valid(struct wild_type *w_ptr, int depth)
+static void player_setup(struct player *p, int id, u32b account)
 {
-    if (depth == 0) return true;
-    if ((depth >= w_ptr->min_depth) && (depth < w_ptr->max_depth)) return true;
-    return false;
-}
-
-
-static void player_setup(struct player *p, int id, u32b account, bool no_recall)
-{
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
-    bool reposition = false, push_up = false;
-    int i, k, d;
+    int wild_idx = world_index(p->world_x, p->world_y);
+    bool reposition = false;
+    int i, k, y, x, d;
     hturn death_turn;
     struct chunk *c;
 
     /* Paranoia: catch bad player coordinates */
 
-    /* Invalid wilderness coordinates */
-    if (!w_ptr) reposition = true;
-
     /* Invalid depth */
-    else if (!depth_is_valid(w_ptr, p->wpos.depth)) reposition = true;
+    if ((p->depth < 0 - MAX_WILD) || (p->depth >= z_info->max_depth)) reposition = true;
+
+    /* Invalid wilderness coordinates */
+    else if ((wild_idx < 0 - MAX_WILD) || (wild_idx >= z_info->max_depth) ||
+        ((p->depth < 0) && (p->depth != wild_idx)) || ((p->depth >= 0) && (wild_idx != 0)))
+    {
+        reposition = true;
+
+        /* Unstatic the old level, in case depth was valid */
+        chunk_set_player_count(p->depth, count_players(p));
+    }
 
     /* Default location if just starting */
-    else if (wpos_null(&p->wpos) && loc_is_zero(&p->grid)) reposition = true;
+    else if (!p->depth && !p->py && !p->px) reposition = true;
 
     /* Don't allow placement inside an arena */
-    else if (pick_arena(&p->wpos, &p->grid) != -1)
+    else if (pick_arena(p->depth, p->py, p->px) != -1)
     {
         reposition = true;
 
         /* Unstatic the old level */
-        chunk_set_player_count(&p->wpos, count_players(p));
+        chunk_set_player_count(p->depth, count_players(p));
     }
 
     /* Hack -- DM redesigning the level */
-    else if (chunk_inhibit_players(&p->wpos))
-    {
-        reposition = true;
-
-        /* No-recall players are simply pushed up one level (should be safe) */
-        if ((cfg_diving_mode == 3) || no_recall) push_up = true;
-    }
+    else if (chunk_inhibit_players(p->depth)) reposition = true;
 
     /*
      * Don't allow placement inside a house if someone is shopping or
@@ -827,7 +778,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
                 reposition = true;
 
                 /* Unstatic the old level */
-                chunk_set_player_count(&p->wpos, count_players(p));
+                chunk_set_player_count(p->depth, count_players(p));
 
                 break;
             }
@@ -839,17 +790,12 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
                 if (q && (p != q))
                 {
                     /* Someone in here? */
-                    if (q->player_store_num == i)
+                    if ((q->player_store_num == i) && (q->store_num == STORE_PLAYER))
                     {
-                        struct store *s = store_at(q);
+                        reposition = true;
 
-                        if (s && (s->type == STORE_PLAYER))
-                        {
-                            reposition = true;
-
-                            /* Unstatic the old level */
-                            chunk_set_player_count(&p->wpos, count_players(p));
-                        }
+                        /* Unstatic the old level */
+                        chunk_set_player_count(p->depth, count_players(p));
 
                         break;
                     }
@@ -866,36 +812,30 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     /* If we need to reposition the player, do it */
     if (reposition)
     {
-        /* Hack -- DM redesigning the level (no_recall players) */
-        if (push_up) p->wpos.depth = dungeon_get_next_level(p, p->wpos.depth, -1);
-
-        /* Put us in base town */
-        else if ((cfg_diving_mode > 1) || no_recall)
-            memcpy(&p->wpos, base_wpos(), sizeof(struct worldpos));
-
-        /* Put us in starting town */
-        else
-            memcpy(&p->wpos, start_wpos(), sizeof(struct worldpos));
+        /* Put us in town */
+        p->depth = 0;
+        p->world_x = 0;
+        p->world_y = 0;
     }
 
     /* Make sure the server doesn't think the player is in a store */
     p->store_num = -1;
 
-    c = chunk_get(&p->wpos);
+    c = chunk_get(p->depth);
 
     /* Rebuild the level if necessary */
     if (!c)
     {
         /* Generate a dungeon level there */
-        c = prepare_next_level(p, &p->wpos);
+        c = cave_generate(p);
 
         /* Player is now on the level */
-        chunk_increase_player_count(&p->wpos);
+        chunk_increase_player_count(p->depth);
 
-        wild_deserted_message(p);
+        if (p->depth < 0) wild_deserted_message(p);
 
         /* Paranoia: update the player's wilderness map */
-        if (p->wpos.depth == 0) wild_set_explored(p, &p->wpos);
+        if (p->depth < 0) wild_set_explored(p, 0 - p->depth);
     }
 
     /* Apply illumination */
@@ -924,11 +864,11 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
             done = true;
 
             /* Player is now on the level */
-            chunk_increase_player_count(&p->wpos);
+            chunk_increase_player_count(p->depth);
         }
 
         /* Hack -- night time in wilderness */
-        if (in_wild(&p->wpos) && !is_daytime())
+        if ((p->depth < 0) && !is_daytime())
         {
             player_cave_clear(p, false);
             done = true;
@@ -942,20 +882,21 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     }
 
     /* Player gets to go first */
-    set_energy(p, &p->wpos);
+    set_energy(p, p->depth);
 
     /* If we need to reposition the player, do it */
     if (reposition)
     {
         /* Put us in the tavern */
-        loc_copy(&p->grid, &c->join->down);
+        p->py = c->level_down_y;
+        p->px = c->level_down_x;
     }
 
     /* Be sure the player is in bounds */
-    if (!square_in_bounds_fully(c, &p->grid))
+    if (!square_in_bounds_fully(c, p->py, p->px))
     {
-        p->grid.x = MIN(MAX(p->grid.x, 1), c->width - 2);
-        p->grid.y = MIN(MAX(p->grid.y, 1), c->height - 2);
+        p->px = MIN(MAX(p->px, 1), c->width - 2);
+        p->py = MIN(MAX(p->py, 1), c->height - 2);
     }
 
     /* Pick a location */
@@ -964,32 +905,32 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     /* If no location can be found (VERY unlikely), then simply use the initial location */
     for (i = 0; i < 3000; i++)
     {
-        struct loc new_grid;
-
         /* Increase distance (try 10 times for each step) */
         d = (i + 9) / 10;
 
         /* Pick a location (skip LOS test) */
-        if (!scatter(c, &new_grid, &p->grid, d, false)) continue;
+        scatter(c, &y, &x, p->py, p->px, d, false);
 
         /* Require an "empty" floor grid */
-        if (square_isemptyfloor(c, &new_grid))
+        if (square_isemptyfloor(c, y, x))
         {
             /* Set the player's location */
-            loc_copy(&p->grid, &new_grid);
+            p->py = y;
+            p->px = x;
 
             break;
         }
     }
 
     /* Hack -- set previous player location */
-    loc_copy(&p->old_grid, &p->grid);
+    p->old_py = p->py;
+    p->old_px = p->px;
 
     /* Add the player */
-    square_set_mon(c, &p->grid, 0 - id);
+    c->squares[p->py][p->px].mon = 0 - id;
 
     /* Redraw */
-    square_light_spot(c, &p->grid);
+    square_light_spot(c, p->py, p->px);
 
     /*
      * Delete him from the player name database
@@ -1009,7 +950,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     /* Set his "current activities" variables */
     current_clear(p);
     p->current_house = p->current_selling = -1;
-    loc_init(&p->old_offset_grid, -1, -1);
+    p->offset_y_old = p->offset_x_old = -1;
 
     /* Make sure his party still exists */
     if (p->party && parties[p->party].num == 0)
@@ -1025,6 +966,9 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
 
     /* Fully update the visuals (and monster distances) */
     p->upkeep->update |= (PU_UPDATE_VIEW | PU_DISTANCE);
+
+    /* Fully update the flow */
+    p->upkeep->update |= (PU_UPDATE_FLOW);
 
     /* Redraw dungeon */
     p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
@@ -1047,7 +991,7 @@ static void player_admin(struct player *p)
     p->dm_flags |= (DM___MENU | DM_CAN_MUTATE_SELF);
 #endif
 
-    if (cfg_dungeon_master && !my_stricmp(p->name, cfg_dungeon_master))
+    if (cfg_dungeon_master && !strcmp(p->name, cfg_dungeon_master))
     {
         /* All DM powers! */
         p->dm_flags = 0xFFFFFFFF;
@@ -1105,14 +1049,17 @@ bool savefile_set_name(struct player *p, char *savefile, const char *fname)
 {
     char path[128];
 
-    player_safe_name(path, sizeof(path), fname);
+    memset(path, 0, sizeof(path));
 
     /* Error */
-    if (strlen(path) > MAX_NAME_LEN)
+    if (!fname)
     {
         if (p) Destroy_connection(p->conn, "Your name is too long!");
         return false;
     }
+
+    /* Rename the savefile, using the base name */
+    my_strcpy(path, fname, sizeof(path));
 
     /* Build the filename */
     path_build(savefile, MSG_LEN, ANGBAND_DIR_SAVE, path);
@@ -1126,7 +1073,7 @@ bool savefile_set_name(struct player *p, char *savefile, const char *fname)
  *
  * Returns 1 if quick start is possible, 0 if quick start is not possible, -1 if an error occurs.
  */
-static int quickstart_ok(struct player *p, const char *name, int conn, bool no_recall)
+static int quickstart_ok(struct player *p, const char *name, int conn)
 {
     char previous[NORMAL_WID];
 
@@ -1135,13 +1082,13 @@ static int quickstart_ok(struct player *p, const char *name, int conn, bool no_r
     if (!get_previous_incarnation(previous, sizeof(previous))) return 0;
 
     /* Clear old information */
-    init_player(p, conn, false, no_recall);
+    init_player(p, conn, false);
 
     /* Copy his name */
     my_strcpy(p->name, previous, sizeof(p->name));
 
     /* Verify his name and create a savefile name */
-    if (!savefile_set_name(p, p->savefile, p->name)) return -1;
+    if (!savefile_set_name(p, p->savefile, player_safe_name(p->name))) return -1;
 
     /* Try to load the savefile */
     p->is_dead = true;
@@ -1149,7 +1096,7 @@ static int quickstart_ok(struct player *p, const char *name, int conn, bool no_r
     {
         /* Last incarnation: if "Foo I" doesn't exist, try "Foo" */
         my_strcpy(p->name, strip_suffix(previous), sizeof(p->name));
-        if (!savefile_set_name(p, p->savefile, p->name)) return -1;
+        if (!savefile_set_name(p, p->savefile, player_safe_name(p->name))) return -1;
         if (!(p->savefile[0] && file_exists(p->savefile))) return 0;
     }
     if (!load_player(p)) return -1;
@@ -1192,7 +1139,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     /* Handle dynastic quick start */
     if (stat_roll[STAT_MAX] == BR_QDYNA)
     {
-        int ret = quickstart_ok(p, name, conn, no_recall);
+        int ret = quickstart_ok(p, name, conn);
 
         if (ret == -1)
         {
@@ -1205,7 +1152,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     }
 
     /* Clear old information */
-    init_player(p, conn, old_history, no_recall);
+    init_player(p, conn, old_history);
 
     /* Copy his name */
     my_strcpy(p->name, name, sizeof(p->name));
@@ -1215,7 +1162,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     player_admin(p);
 
     /* Verify his name and create a savefile name */
-    if (!savefile_set_name(p, p->savefile, p->name))
+    if (!savefile_set_name(p, p->savefile, player_safe_name(p->name)))
     {
         cleanup_player(p);
         mem_free(p);
@@ -1257,14 +1204,14 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
             quickstart_roll(p, character_existed, &ridx, &cidx, &psex, &old_history, stat_roll);
 
         /* Hack -- rewipe the player info if load failed */
-        init_player(p, conn, old_history, no_recall);
+        init_player(p, conn, old_history);
 
         /* Copy his name and connection info */
         my_strcpy(p->name, name, sizeof(p->name));
         my_strcpy(p->pass, pass, sizeof(p->pass));
 
         /* Reprocess his name */
-        if (!savefile_set_name(p, p->savefile, p->name))
+        if (!savefile_set_name(p, p->savefile, player_safe_name(p->name)))
         {
             cleanup_player(p);
             mem_free(p);
@@ -1295,8 +1242,8 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
 
         roll_hp(p);
 
-        /* Embody */
-        player_embody(p);
+        /* Add new starting message */
+        history_add_unique(p, "Began the quest to destroy Morgoth", HIST_PLAYER_BIRTH);
 
         /* Give the player some money */
         get_money(p, no_recall);
@@ -1316,17 +1263,18 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
         }
 
         /* Set his location, panel, etc. */
-        player_setup(p, id, account, no_recall);
-
-        /* Add new starting message */
-        history_add_unique(p, "Began the quest to destroy Morgoth", HIST_PLAYER_BIRTH);
+        player_setup(p, id, account);
 
         /* Give the DM full knowledge */
         if (is_dm_p(p))
         {
             /* Every item in the game */
-            for (i = 0; i < z_info->k_max; i++) p->kind_everseen[i] = 1;
-            for (i = 0; i < z_info->e_max; i++) p->ego_everseen[i] = 1;
+            for (i = 0; i < z_info->k_max; i++)
+            {
+                p->obj_aware[i] = true;
+                p->kind_everseen[i] = 1;
+            }
+            for (i = 1; i < z_info->e_max; i++) p->ego_everseen[i] = 1;
 
             /* Every monster in the game */
             for (i = 1; i < z_info->r_max; i++)
@@ -1335,9 +1283,6 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
                 p->lore[i].pkills = z_info->max_depth;
                 lore_update(&r_info[i], &p->lore[i]);
             }
-
-            /* Every rune in the game */
-            player_learn_everything(p);
         }
 
         /* Success */
@@ -1345,7 +1290,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     }
 
     /* Loading succeeded */
-    player_setup(p, id, account, no_recall);
+    player_setup(p, id, account);
     return p;
 }
 
@@ -1385,9 +1330,5 @@ u16b connection_type_ok(u16b conntype)
 {
     if (conntype == CONNTYPE_PLAYER) return CONNTYPE_PLAYER;
     if (conntype == 8202 || conntype == 8205) return CONNTYPE_CONSOLE;
-
-    /* PuTTY via Telnet */
-    if (conntype == 65531) return CONNTYPE_CONSOLE;
-
     return CONNTYPE_ERROR;
 }

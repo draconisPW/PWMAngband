@@ -3,7 +3,7 @@
  * Purpose: Text-based user interface for character creation
  *
  * Copyright (c) 1987 - 2015 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -138,20 +138,12 @@ static void choose_name(void)
 }
 
 
-static void display_password(void)
-{
-    size_t i;
-
-    for (i = 0; i < strlen(pass); i++)
-        Term_putch(15 + i, 3, COLOUR_L_BLUE, 'x');
-}
-
-
 /*
  * Choose a password
  */
 static void enter_password(void)
 {
+    size_t c;
     char tmp[NORMAL_WID];
 
     /* Prompt and ask */
@@ -186,7 +178,8 @@ static void enter_password(void)
 
     /* Redraw the password (in light blue) */
     Term_erase(15, 3, 9);
-    display_password();
+    for (c = 0; c < strlen(pass); c++)
+        Term_putch(15 + c, 3, COLOUR_L_BLUE, 'x');
 
     /* Now hash that sucker! */
     my_strcpy(stored_pass, pass, sizeof(stored_pass));
@@ -225,7 +218,7 @@ static struct menu sex_menu, race_menu, class_menu, roller_menu;
 /* Upper left column and row, width, and lower column */
 static region gender_region = {SEX_COL, TABLE_ROW, 12, MENU_ROWS};
 static region race_region = {RACE_COL, TABLE_ROW, 15, MENU_ROWS};
-static region class_region = {CLASS_COL, TABLE_ROW, 16, 0};
+static region class_region = {CLASS_COL, TABLE_ROW, 16, MENU_ROWS};
 static region roller_region = {ROLLER_COL, TABLE_ROW, 30, MENU_ROWS};
 
 
@@ -305,14 +298,15 @@ static void skill_help(int col, int *row, const s16b r_skills[], const s16b c_sk
     format_help(col, (*row)++, "Hit/Shoot/Throw: %+3d/%+4d/%+4d", skills[SKILL_TO_HIT_MELEE],
         skills[SKILL_TO_HIT_BOW], skills[SKILL_TO_HIT_THROW]);
     format_help(col, (*row)++, "Hit die: %2d       XP mod: %3d%%", mhp, exp);
-    format_help(col, (*row)++, "Disarm: %+3d/%+3d   Devices: %+3d", skills[SKILL_DISARM_PHYS],
-        skills[SKILL_DISARM_MAGIC], skills[SKILL_DEVICE]);
+    format_help(col, (*row)++, "Disarm: %+3d       Devices: %+3d", skills[SKILL_DISARM],
+        skills[SKILL_DEVICE]);
     format_help(col, (*row)++, "Save:   %+3d       Stealth: %+3d", skills[SKILL_SAVE],
         skills[SKILL_STEALTH]);
     if (infra >= 0)
         format_help(col, (*row)++, "Infravision:             %2d ft", infra * 10);
     format_help(col, (*row)++, "Digging:                   %+3d", skills[SKILL_DIGGING]);
-    format_help(col, (*row)++, "Search:                    %+3d", skills[SKILL_SEARCH]);
+    format_help(col, (*row)++, "Search:                 %+3d/%2d", skills[SKILL_SEARCH],
+        skills[SKILL_SEARCH_FREQUENCY]);
     if (infra < 0) erase_help(col, row);
 }
 
@@ -321,9 +315,16 @@ static const char *get_flag_desc(bitflag flag)
 {
     switch (flag)
     {
-        #define OF(a, b) case OF_##a: return b;
-        #include "../common/list-object-flags.h"
-        #undef OF
+        case OF_SUST_STR: return "Sustains strength";
+        case OF_SUST_DEX: return "Sustains dexterity";
+        case OF_SUST_CON: return "Sustains constitution";
+        case OF_PROT_BLIND: return "Resists blindness";
+        case OF_HOLD_LIFE: return "Sustains experience";
+        case OF_FREE_ACT: return "Resists paralysis";
+        case OF_REGEN: return "Regenerates quickly";
+        case OF_SEE_INVIS: return "Sees invisible creatures";
+        case OF_FEATHER: return "Falls like a feather";
+        case OF_SLOW_DIGEST: return "Digests food slowly";
 
         default: return "Undocumented flag";
     }
@@ -334,35 +335,10 @@ static const char *get_resist_desc(int element)
 {
     switch (element)
     {
-        #define ELEM(a, b, c, d) case ELEM_##a: return b;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_immune_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return c;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_vuln_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return d;
-        #include "../common/list-elements.h"
-        #undef ELEM
+        case ELEM_POIS: return "Resists poison";
+        case ELEM_LIGHT: return "Resists light damage";
+        case ELEM_DARK: return "Resists darkness damage";
+        case ELEM_NEXUS: return "Resists nexus";
 
         default: return "Undocumented element";
     }
@@ -415,51 +391,19 @@ static void race_help(int i, void *db, const region *l)
 
     skill_help(RACE_AUX_COL, &j, r->r_skills, NULL, r->r_mhp, r->r_exp, r->infra);
 
-    for (k = 1; k < OF_MAX; k++)
+    for (k = 0; k < OF_MAX; k++)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
         if (!of_has(r->flags, k)) continue;
-        s = get_flag_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        format_help(RACE_AUX_COL, j++, "%-30s", get_flag_desc(k));
         n_flags++;
     }
 
     for (k = 0; k < ELEM_MAX; k++)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
         if (r->el_info[k].res_level != 1) continue;
-        s = get_resist_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != 3) continue;
-        s = get_immune_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != -1) continue;
-        s = get_vuln_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        format_help(RACE_AUX_COL, j++, "%-30s", get_resist_desc(k));
         n_flags++;
     }
 
@@ -515,31 +459,11 @@ static void class_help(int i, void *db, const region *l)
             format_help(CLASS_AUX_COL, j, "%s%+3d", name, adj);
     }
 
-    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp, r->r_exp, -1);
+    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp,
+        r->r_exp + c->c_exp, -1);
 
-    if (c->magic.total_spells)
-    {
-        char adjective[24];
-        char realm[17];
-        struct class_book *book = &c->magic.books[0];
-        int i;
-
-        my_strcpy(realm, book->realm->name, sizeof(realm));
-
-        for (i = 1; i < c->magic.num_books; i++)
-        {
-            book = &c->magic.books[i];
-
-            if (!strstr(realm, book->realm->name))
-            {
-                my_strcat(realm, "/", sizeof(realm));
-                my_strcat(realm, book->realm->name, sizeof(realm));
-            }
-        }
-
-        strnfmt(adjective, sizeof(adjective), "%s magic", realm);
-        format_help(CLASS_AUX_COL, j++, "Learns %-23s", adjective);
-    }
+    if (c->magic.spell_realm->adjective)
+        format_help(CLASS_AUX_COL, j++, "Learns %-23s", c->magic.spell_realm->adjective);
 
     for (k = 0; k < PF__MAX; k++)
     {
@@ -549,7 +473,7 @@ static void class_help(int i, void *db, const region *l)
         if (!pf_has(c->pflags, k)) continue;
         s = get_pflag_desc(k);
         if (!s) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        format_help(CLASS_AUX_COL, j++, "%-30s", s);
         n_flags++;
     }
 
@@ -574,10 +498,10 @@ static void init_birth_menu(struct menu *menu, int n_choices, int initial_choice
     menu_init(menu, MN_SKIN_SCROLL, &birth_iter);
 
     /*
-     * A couple of behavioural flags - we want all selection letters (in case we have more than 26
-     * races or classes) and a double tap to act as a selection.
+     * A couple of behavioural flags - we want selections letters in
+     * lower case and a double tap to act as a selection.
      */
-    menu->selections = all_letters;
+    menu->selections = lower_case;
     menu->flags = MN_DBL_TAP;
 
     /* Copy across the game's suggested initial selection, etc. */
@@ -787,6 +711,9 @@ static enum birth_stage roller_command(enum birth_stage current_stage)
 
         /* Hack -- remove the fake "ghost" class */
         n--;
+
+        /* Restrict choices for Dragon race */
+        if (pf_has(player->race->pflags, PF_DRAGON)) n -= 2;
 
         /* Class menu similar to race. */
         init_birth_menu(menu, n, (player->clazz? player->clazz->cidx: 0), &class_region,
@@ -1308,15 +1235,11 @@ static bool enter_server_name(void)
  */
 bool get_server_name(void)
 {
-    int i;
-    int j, k, l, bytes = 0, socket, offsets[20], lines = 0;
-    char buf[80192], *ptr, out_val[260];
-    int retries;
+    int i, j, y, bytes, socket, offsets[20];
     bool server, info;
-    int ports[20];
+    char buf[8192], *ptr, out_val[160];
+    int ports[30];
     struct keypress c;
-    bool mang_meta = true;
-    bool first_player = false, the_end = false;
 
     /* Perhaps we already have a server name from config file ? */
     if (strlen(server_name) > 0) return true;
@@ -1328,247 +1251,87 @@ bool get_server_name(void)
     Term_fresh();
 
     /* Connect to metaserver */
-    socket = CreateClientSocket(meta_address, meta_port);
+    socket = CreateClientSocket(meta_address, 8802);
 
     /* Check for failure */
-    if (socket == -1)
-    {
-        prt("Failed to connect to meta server.", 2, 1);
-        return enter_server_name();
-    }
+    if (socket == -1) return enter_server_name();
 
-    /* Wipe the buffer */
-    memset(buf, 0, sizeof(buf));
-
-    /* Listen for reply (try ten times in ten seconds) */
-    for (retries = 0; retries < 10; retries++)
-    {
-        /* Set timeout */
-        SetTimeout(1, 0);
-
-        /* Wait for info */
-        if (!SocketReadable(socket)) continue;
-
-        /* Read */
-        bytes = SocketRead(socket, buf, sizeof(buf));
-        break;
-    }
+    /* Read */
+    bytes = SocketRead(socket, buf, 8192);
 
     /* Close the socket */
     SocketClose(socket);
 
     /* Check for error while reading */
-    if (bytes <= 0)
-    {
-        prt("Meta server didn't respond.", 2, 1);
-        return enter_server_name();
-    }
-
-    Term_clear();
-
-    /* Check reply format */
-    if (strstr(buf, "<meta>"))
-    {
-        mang_meta = false;
-        ptr = buf;
-        while (ptr - buf < bytes)
-        {
-            if (*ptr == '\n') *ptr = '\0';
-            ptr++;
-        }
-    }
+    if (bytes <= 0) return enter_server_name();
 
     /* Start at the beginning */
     ptr = buf;
-    i = 0;
+    i = y = 0;
 
     /* Print each server */
     while (ptr - buf < bytes)
     {
         /* Check for no entry */
-        if ((*ptr == '\0') || ((*ptr == '\n') && mang_meta))
+        if (strlen(ptr) <= 1)
         {
+            /* Increment */
             ptr++;
+
+            /* Next */
             continue;
         }
 
-        /* Entries can be "server" or "%port" or " notice" (MAngband format) */
-        server = info = false;
-
-        /* Display notices */
-        if ((*ptr == ' ') || (!mang_meta && !strstr(ptr, "protocol")))
-        {
-            /* Check for no entry */
-            if (strlen(ptr) == 1)
-            {
-                ptr += 2;
-                continue;
-            }
-
-            if (mang_meta)
-            {
-                info = true;
-                memset(out_val, 0, sizeof(out_val));
-                strnfmt(out_val, sizeof(out_val), "%s", ptr);
-            }
-            else
-            {
-                /* <meta>...</meta> */
-                if (strstr(ptr, "<meta>"))
-                {
-                    char meta[100], *t;
-
-                    my_strcpy(meta, ptr, sizeof(meta));
-                    t = strtok(meta, ">");
-                    t = strtok(NULL, "<");
-
-                    info = true;
-                    memset(out_val, 0, sizeof(out_val));
-                    my_strcpy(out_val, t, sizeof(out_val));
-                }
-
-                /* \t<game>...</game> */
-                else if (strstr(ptr, "<game>"))
-                {
-                    char game[100], *t;
-
-                    my_strcpy(game, ptr, sizeof(game));
-                    t = strtok(game, ">");
-                    t = strtok(NULL, "<");
-
-                    memset(out_val, 0, sizeof(out_val));
-                    strnfmt(out_val, sizeof(out_val), "     Game: %s", t);
-                }
-
-                /* \t<version>...</version> */
-                else if (strstr(ptr, "<version>"))
-                {
-                    char version[100], *t;
-
-                    my_strcpy(version, ptr, sizeof(version));
-                    t = strtok(version, ">");
-                    t = strtok(NULL, "<");
-
-                    info = true;
-                    my_strcat(out_val, " Version: ", sizeof(out_val));
-                    my_strcat(out_val, t, sizeof(out_val));
-                    first_player = true;
-                }
-
-                /* \t<player>...</player> */
-                else if (strstr(ptr, "<player>"))
-                {
-                    char name[100], *t;
-
-                    my_strcpy(name, ptr, sizeof(name));
-                    t = strtok(name, ">");
-                    t = strtok(NULL, "<");
-
-                    if (first_player)
-                    {
-                        memset(out_val, 0, sizeof(out_val));
-                        my_strcpy(out_val, "     Players:", sizeof(out_val));
-                        first_player = false;
-                    }
-                    else
-                        my_strcat(out_val, ",", sizeof(out_val));
-                    my_strcat(out_val, " ", sizeof(out_val));
-                    my_strcat(out_val, t, sizeof(out_val));
-                }
-
-                /* </server> */
-                else if (!the_end)
-                {
-                    if (!first_player) info = true;
-                    the_end = true;
-                }
-            }
-        }
-
-        /* Save port */
-        else if (*ptr == '%')
-        {
-            /* Check for no entry */
-            if ((strlen(ptr) == 1) || (i == 0))
-            {
-                ptr += strlen(ptr) + 1;
-                continue;
-            }
-
-            ports[i - 1] = atoi(ptr + 1);
-        }
+        info = true;
 
         /* Save server entries */
-        else
+        if (*ptr == '%')
+        {
+            server = info = false;
+
+            /* Save port */
+            ports[i] = atoi(ptr+1);
+        }
+        else if (*ptr != ' ')
         {
             server = true;
-            info = true;
-            the_end = false;
 
             /* Save offset */
             offsets[i] = ptr - buf;
 
             /* Format entry */
-            memset(out_val, 0, sizeof(out_val));
-            if (mang_meta)
-                strnfmt(out_val, sizeof(out_val), "%c) %s", I2A(i), ptr);
-            else
-            {
-                char server[100], *t;
+            strnfmt(out_val, sizeof(out_val), "%c) %s", I2A(i), ptr);
+        }
+        else
+        {
+            server = false;
 
-                /* <server url="server" port="port" protocol="2"> */
-                while (*ptr != '\"') ptr++;
-                ptr++;
-                offsets[i] = ptr - buf;
-                while (*ptr != '\"') ptr++;
-                *ptr = '\0';
-                ptr++;
-                sscanf(buf + offsets[i], "%s", server);
-                strnfmt(out_val, sizeof(out_val), "%c) %s", I2A(i), server);
-
-                my_strcpy(server, ptr, sizeof(server));
-                t = strtok(server, "\"");
-                t = strtok(NULL, "\"");
-                ports[i] = atoi(t);
-            }
+            /* Display notices */
+            strnfmt(out_val, sizeof(out_val), "%s", ptr);
         }
 
         if (info)
         {
-            j = strlen(out_val);
-
             /* Strip off offending characters */
-            if (mang_meta) out_val[j - 1] = '\0';
+            out_val[strlen(out_val) - 1] = '\0';
 
-            /* Print this entry (with word wrap) */
-            k = 0;
-            while (j)
-            {
-                l = strlen(&out_val[k]);
-                if (j > 75)
-                {
-                    l = 75;
-                    while (out_val[k + l] != ' ') l--;
-                    out_val[l] = '\0';
-                }
-                prt(out_val + k, lines++, (k? 4: 1));
-                k += (l + 1);
-                j = strlen(&out_val[k]);
-            }
+            /* Print this entry */
+            prt(out_val, y + 1, 1);
+
+            /* One more entry */
+            if (server) i++;
+            y++;
         }
 
         /* Go to next metaserver entry */
         ptr += strlen(ptr) + 1;
 
-        /* One more entry */
-        if (server) i++;
-
-        /* We can't handle more than 20 lines */
-        if (lines > 20) break;
+        /* We can't handle more than 20 entries -- BAD */
+        if (i > 20) break;
     }
 
     /* Prompt */
-    prt("Choose a server to connect to (Ctrl-m for manual selection): ", lines + 2, 1);
+    prt("Choose a server to connect to (Ctrl-m for manual selection): ", y + 2, 1);
 
     /* Ask until happy */
     while (1)
@@ -1593,7 +1356,7 @@ bool get_server_name(void)
     sscanf(buf + offsets[j], "%s", server_name);
 
     /* Set port */
-    server_port = ports[j];
+    server_port = ports[j+1];
 
     /* Success */
     return true;
@@ -1694,7 +1457,8 @@ void get_char_name(void)
     c_put_str(COLOUR_L_BLUE, nick, 2, 15);
 
     /* Redraw the password (in light blue) */
-    display_password();
+    for (i = 0; i < strlen(pass); i++)
+        Term_putch(15 + i, 3, COLOUR_L_BLUE, 'x');
 
     /* Display some helpful information */
     c_put_str(COLOUR_L_BLUE, "Please select your character from the list below:", 6, 1);
@@ -1726,7 +1490,7 @@ void get_char_name(void)
     }
 
     /* Check number of characters */
-    if (char_num >= max_account_chars)
+    if (char_num == MAX_ACCOUNT_CHARS)
     {
         c_put_str(COLOUR_YELLOW, "Your account is full.", 9 + char_num, 5);
         c_put_str(COLOUR_YELLOW, "You cannot create any new character with this account.",
@@ -1755,7 +1519,7 @@ void get_char_name(void)
         i = A2I(c.code);
 
         /* Check for legality */
-        if ((i > (size_t)char_num) || (i >= (size_t)max_account_chars)) continue;
+        if ((i > (size_t)char_num) || (i >= MAX_ACCOUNT_CHARS)) continue;
 
         /* Paranoia */
         if ((i == (size_t)char_num) || (char_expiry[i] > 0) || (char_expiry[i] == -1))
@@ -1783,8 +1547,8 @@ void get_char_name(void)
         /* Dump the player name */
         c_put_str(COLOUR_L_BLUE, nick, 2, 15);
 
-        /* Redraw the password (in light blue) */
-        display_password();
+        /* Enter password */
+        enter_password();
 
         /* Display actions */
         if (char_expiry[i] > 0)
@@ -1844,7 +1608,7 @@ void get_char_name(void)
         /* Choose a name */
         choose_name();
 
-        /* Redraw the password (in light blue) */
-        display_password();
+        /* Enter password */
+        enter_password();
     }
 }

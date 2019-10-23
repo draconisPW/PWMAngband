@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2010 Andi Sidwell
  * Copyright (c) 2011 Peter Denison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -24,30 +24,31 @@
 
 void text_out_init(struct player *p)
 {
-    loc_init(&p->info_grid, 0, 0);
+    p->info_x = 0;
+    p->info_y = 0;
 }
 
 
 static void text_out_line_end(struct player *p)
 {
     /* Fill the rest of the line with spaces */
-    while (p->info_grid.x < NORMAL_WID)
+    while (p->info_x < NORMAL_WID)
     {
-        p->info[p->info_grid.y][p->info_grid.x].a = COLOUR_WHITE;
-        p->info[p->info_grid.y][p->info_grid.x].c = ' ';
-        p->info_grid.x++;
+        p->info[p->info_y][p->info_x].a = COLOUR_WHITE;
+        p->info[p->info_y][p->info_x].c = ' ';
+        p->info_x++;
     }
 }
 
 
 void text_out_done_no_newline(struct player *p)
 {
-    if (p->info_grid.y == MAX_TXT_INFO)
+    if (p->info_y == MAX_TXT_INFO)
         p->last_info_line = MAX_TXT_INFO - 1;
     else
     {
         text_out_line_end(p);
-        p->last_info_line = p->info_grid.y;
+        p->last_info_line = p->info_y;
     }
 }
 
@@ -75,7 +76,7 @@ static void text_out_aux(struct player *p, byte a, const char *str)
     char buf[MSG_LEN];
 
     /* Check limit */
-    if (p->info_grid.y == MAX_TXT_INFO) return;
+    if (p->info_y == MAX_TXT_INFO) return;
 
     /* Copy to a rewriteable string */
     my_strcpy(buf, str, MSG_LEN);
@@ -87,7 +88,7 @@ static void text_out_aux(struct player *p, byte a, const char *str)
     while (*s)
     {
         int n = 0;
-        int len = NORMAL_WID - 6 - p->info_grid.x;
+        int len = NORMAL_WID - 6 - p->info_x;
         int l_space = -1;
 
         /* Paranoia */
@@ -107,7 +108,7 @@ static void text_out_aux(struct player *p, byte a, const char *str)
         if ((l_space == -1) && (n == len))
         {
             /* If we are at the start of a new line */
-            if (p->info_grid.x == 0) len = n;
+            if (p->info_x == 0) len = n;
 
             /* Hack -- output punctuation at the end of the line */
             else if ((s[0] == ' ') || (s[0] == ',') || (s[0] == '.')) len = 1;
@@ -116,13 +117,13 @@ static void text_out_aux(struct player *p, byte a, const char *str)
             {
                 /* Begin a new line */
                 text_out_line_end(p);
-                p->info_grid.y++;
+                p->info_y++;
 
                 /* Reset */
-                p->info_grid.x = 0;
+                p->info_x = 0;
 
                 /* Check limit */
-                if (p->info_grid.y == MAX_TXT_INFO) return;
+                if (p->info_y == MAX_TXT_INFO) return;
 
                 continue;
             }
@@ -140,11 +141,11 @@ static void text_out_aux(struct player *p, byte a, const char *str)
         for (n = 0; n < len; n++)
         {
             /* Write out the character */
-            p->info[p->info_grid.y][p->info_grid.x].a = a;
-            p->info[p->info_grid.y][p->info_grid.x].c = s[n];
+            p->info[p->info_y][p->info_x].a = a;
+            p->info[p->info_y][p->info_x].c = s[n];
 
             /* Increment */
-            p->info_grid.x++;
+            p->info_x++;
         }
 
         /* Move 's' past the stuff we've written */
@@ -158,13 +159,13 @@ static void text_out_aux(struct player *p, byte a, const char *str)
 
         /* Begin a new line */
         text_out_line_end(p);
-        p->info_grid.y++;
+        p->info_y++;
 
         /* Reset */
-        p->info_grid.x = 0;
+        p->info_x = 0;
 
         /* Check limit */
-        if (p->info_grid.y == MAX_TXT_INFO) return;
+        if (p->info_y == MAX_TXT_INFO) return;
 
         /* Skip whitespace */
         while (*s == ' ') s++;
@@ -224,7 +225,7 @@ void text_out_c(struct player *p, byte a, const char *fmt, ...)
  * path the path to write to
  * writer the text-writing function
  */
-errr text_lines_to_file(const char *path, text_writer writer, void *data)
+errr text_lines_to_file(struct player *p, const char *path, text_writer writer)
 {
     char new_fname[MSG_LEN];
     char old_fname[MSG_LEN];
@@ -238,7 +239,7 @@ errr text_lines_to_file(const char *path, text_writer writer, void *data)
     new_file = file_open(new_fname, MODE_WRITE, FTYPE_TEXT);
     if (!new_file) return -1;
 
-    writer(new_file, data);
+    writer(p, new_file);
     file_close(new_file);
 
     /* Move files around */

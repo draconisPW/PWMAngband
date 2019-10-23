@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Antony Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -143,8 +143,8 @@ static void prt_ac(struct player *p)
 static void prt_hp(struct player *p)
 {
     /* Hack -- redraw player, since the player's color now indicates approximate health. */
-    if (OPT(p, hp_changes_color) && !p->use_graphics)
-        square_light_spot(chunk_get(&p->wpos), &p->grid);
+    if (OPT_P(p, hp_changes_color) && !p->use_graphics)
+        square_light_spot(chunk_get(p->depth), p->py, p->px);
 
     Send_hp(p, p->mhp, p->chp);
 }
@@ -171,13 +171,13 @@ static void prt_sp(struct player *p)
  */
 static void prt_health(struct player *p)
 {
-    bool is_unseen, is_dead, is_afraid, is_confused, is_stunned, is_asleep, is_held;
-    bool is_poisoned, is_bleeding, is_blind, is_disenchanted;
+    bool is_unseen, is_dead, is_afraid, is_confused, is_stunned, is_asleep;
+    bool is_poisoned, is_bleeding;
     int pct;
-    struct source *health_who = &p->upkeep->health_who;
+    struct actor *health_who = &p->upkeep->health_who;
 
     /* Not tracking */
-    if (source_null(health_who))
+    if (ACTOR_NULL(health_who))
     {
         /* Erase the health bar */
         Send_monster_health(p, 0, 0);
@@ -188,17 +188,14 @@ static void prt_health(struct player *p)
     if (health_who->player)
     {
         /* Extract various states */
-        is_unseen = !player_is_visible(p, health_who->idx);
-        is_dead = ((health_who->player->chp < 0)? true: false);
+        is_unseen = !mflag_has(p->pflag[health_who->idx], MFLAG_VISIBLE);
+        is_dead = false;
         is_afraid = (player_of_has(health_who->player, OF_AFRAID)? true: false);
-        is_disenchanted = false;
         is_confused = (health_who->player->timed[TMD_CONFUSED]? true: false);
         is_stunned = (health_who->player->timed[TMD_PARALYZED]? true: false);
         is_asleep = (health_who->player->timed[TMD_PARALYZED]? true: false);
-        is_held = (health_who->player->timed[TMD_PARALYZED]? true: false);
         is_poisoned = (health_who->player->timed[TMD_POISONED]? true: false);
         is_bleeding = (health_who->player->timed[TMD_CUT]? true: false);
-        is_blind =  (health_who->player->timed[TMD_BLIND]? true: false);
 
         /* Extract the "percent" of health */
         pct = 100L * health_who->player->chp / health_who->player->mhp;
@@ -208,20 +205,19 @@ static void prt_health(struct player *p)
     else
     {
         /* Extract various states */
-        is_unseen = !monster_is_visible(p, health_who->idx);
-        is_dead = ((health_who->monster->hp < 0)? true: false);
-        is_afraid = (health_who->monster->m_timed[MON_TMD_FEAR]? true: false);
-        is_disenchanted = (health_who->monster->m_timed[MON_TMD_DISEN]? true: false);
-        is_confused = (health_who->monster->m_timed[MON_TMD_CONF]? true: false);
-        is_stunned = (health_who->monster->m_timed[MON_TMD_STUN]? true: false);
-        is_asleep = (health_who->monster->m_timed[MON_TMD_SLEEP]? true: false);
-        is_held = (health_who->monster->m_timed[MON_TMD_HOLD]? true: false);
-        is_poisoned = (health_who->monster->m_timed[MON_TMD_POIS]? true: false);
-        is_bleeding = (health_who->monster->m_timed[MON_TMD_CUT]? true: false);
-        is_blind = (health_who->monster->m_timed[MON_TMD_BLIND]? true: false);
+        is_unseen = !mflag_has(p->mflag[health_who->idx], MFLAG_VISIBLE);
+        is_dead = ((health_who->mon->hp < 0)? true: false);
+        is_afraid = (health_who->mon->m_timed[MON_TMD_FEAR]? true: false);
+        is_confused = (health_who->mon->m_timed[MON_TMD_CONF] ||
+            health_who->mon->m_timed[MON_TMD_BLIND]);
+        is_stunned = (health_who->mon->m_timed[MON_TMD_STUN] ||
+            health_who->mon->m_timed[MON_TMD_HOLD]);
+        is_asleep = (health_who->mon->m_timed[MON_TMD_SLEEP]? true: false);
+        is_poisoned = (health_who->mon->m_timed[MON_TMD_POIS]? true: false);
+        is_bleeding = (health_who->mon->m_timed[MON_TMD_CUT]? true: false);
 
         /* Extract the "percent" of health */
-        pct = 100L * health_who->monster->hp / health_who->monster->maxhp;
+        pct = 100L * health_who->mon->hp / health_who->mon->maxhp;
     }
 
     /* Tracking an unseen, hallucinatory, or dead monster (or player) */
@@ -254,9 +250,6 @@ static void prt_health(struct player *p)
         /* Afraid */
         if (is_afraid) attr = COLOUR_VIOLET;
 
-        /* Disenchanted */
-        if (is_disenchanted) attr = COLOUR_L_UMBER;
-
         /* Poisoned */
         if (is_poisoned) attr = COLOUR_GREEN;
 
@@ -271,12 +264,6 @@ static void prt_health(struct player *p)
 
         /* Asleep */
         if (is_asleep) attr = COLOUR_BLUE;
-
-        /* Held */
-        if (is_held) attr = COLOUR_BLUE;
-
-        /* Blind */
-        if (is_blind) attr = COLOUR_L_DARK;
 
         /* Convert percent into "health" */
         len = ((pct < 10)? 1: ((pct < 90)? (pct / 10 + 1): 10));
@@ -293,9 +280,8 @@ static void prt_health(struct player *p)
 static void prt_speed(struct player *p)
 {
     s16b speed = get_speed(p);
-    int mult = 10 * frame_energy(speed + 110) / frame_energy(110);
 
-    Send_speed(p, speed, mult);
+    Send_speed(p, speed);
 }
 
 
@@ -304,19 +290,7 @@ static void prt_speed(struct player *p)
  */
 static void prt_depth(struct player *p)
 {
-    if (p->wpos.depth > 0)
-        strnfmt(p->depths, sizeof(p->depths), "%d' (L%d)", p->wpos.depth * 50, p->wpos.depth);
-    else
-    {
-        struct location *town = get_town(&p->wpos);
-
-        if (town)
-            my_strcpy(p->depths, town->shortname, sizeof(p->depths));
-        else
-            strnfmt(p->depths, sizeof(p->depths), "W (%d, %d)", p->wpos.grid.x, p->wpos.grid.y);
-    }
-
-    Send_depth(p, p->wpos.depth, p->max_depth, p->depths);
+    Send_depth(p, p->depth, p->max_depth);
 }
 
 
@@ -367,8 +341,8 @@ static void prt_state(struct player *p)
 {
     bool s, r, u;
 
-    /* Stealth mode */
-    s = (p->stealthy? true: false);
+    /* Searching */
+    s = (p->searching? true: false);
 
     /* Resting */
     r = player_is_resting(p);
@@ -415,7 +389,7 @@ static void prt_floor_item(struct player *p)
     int floor_max = z_info->floor_size;
     struct object **floor_list = mem_zalloc(floor_max * sizeof(struct object *));
     int floor_num;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* Paranoia */
     if (!c) return;
@@ -426,7 +400,7 @@ static void prt_floor_item(struct player *p)
 }
 
 
-void dump_spells(struct player *p, struct object *obj)
+static void dump_spells(struct player *p, struct object *obj)
 {
     int j;
     spell_flags flags;
@@ -439,12 +413,10 @@ void dump_spells(struct player *p, struct object *obj)
 
     /* Get the book */
     int bidx = object_to_book_index(p, obj);
-    const struct class_book *book = player_object_to_book(p, obj);
+    const struct class_book *book = object_to_book(p, obj);
 
     /* Requires a spellbook */
     if (!book) return;
-
-    Send_book_info(p, bidx, book->realm->name);
 
     /* Dump the spells */
     for (j = 0; j < book->num_spells; j++)
@@ -501,11 +473,6 @@ void dump_spells(struct player *p, struct object *obj)
             comment = " untried";
             line_attr = COLOUR_L_GREEN;
         }
-        else if (p->spell_cooldown[spell_index])
-        {
-            comment = " cooldown";
-            line_attr = COLOUR_SLATE;
-        }
 
         flags.line_attr = line_attr;
         flags.flag = RSF_NONE;
@@ -513,7 +480,7 @@ void dump_spells(struct player *p, struct object *obj)
         flags.proj_attr = spell->sproj;
 
         /* Dump the spell --(-- */
-        if (streq(spell->realm->name, "elemental"))
+        if (p->clazz->magic.spell_realm->index == REALM_ELEM)
         {
             strnfmt(spell_name, sizeof(spell_name), "%s (%d)", spell->name,
                 p->spell_power[spell_index]);
@@ -540,7 +507,7 @@ static void fix_spell(struct player *p)
     int floor_max = z_info->floor_size;
     struct object **floor_list = mem_zalloc(floor_max * sizeof(struct object *));
     int floor_num;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* Ghosts get a different set */
     if (p->ghost && !player_can_undead(p))
@@ -708,8 +675,8 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
             /* Handle polymorphed players */
             if (p->poly_race)
             {
-                if ((p->poly_race->weight > 0) && (p->poly_race->weight <= 100)) *res = true;
-                else if (p->poly_race->weight > 150) *vul = true;
+                if (p->poly_race->extra <= 100) *res = true;
+                else if (p->poly_race->extra > 150) *vul = true;
             }
 
             /* Monks get stealth bonus */
@@ -768,15 +735,6 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
 }
 
 
-static bool is_dragon_immune(struct monster_race *race)
-{
-    struct dragon_breed *dn = get_dragon_form(race);
-
-    if (dn) return (dn->immune? true: false);
-    return false;
-}
-
-
 /*
  * Obtain the "elements" for the player as if he was an item
  */
@@ -822,47 +780,31 @@ void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
     /* Handle polymorphed players */
     if (p->poly_race)
     {
-        bool dragon_immune = (player_has(p, PF_DRAGON) && is_dragon_immune(p->poly_race));
-
-        if (rf_has(p->poly_race->flags, RF_IM_ACID))
-            el_info[ELEM_ACID].res_level = (dragon_immune? 3: 1);
-        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_ACID))
-            el_info[ELEM_ACID].res_level = 1;
-
-        if (rf_has(p->poly_race->flags, RF_IM_ELEC))
-            el_info[ELEM_ELEC].res_level = (dragon_immune? 3: 1);
-        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_ELEC))
-            el_info[ELEM_ELEC].res_level = 1;
-
-        if (rf_has(p->poly_race->flags, RF_IM_FIRE))
-            el_info[ELEM_FIRE].res_level = (dragon_immune? 3: 1);
-        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_FIRE))
-            el_info[ELEM_FIRE].res_level = 1;
-        else if (rf_has(p->poly_race->flags, RF_HURT_FIRE))
-            el_info[ELEM_FIRE].res_level = -1;
-
-        if (rf_has(p->poly_race->flags, RF_IM_COLD))
-            el_info[ELEM_COLD].res_level = (dragon_immune? 3: 1);
-        else if (rsf_has(p->poly_race->spell_flags, RSF_BR_COLD))
-            el_info[ELEM_COLD].res_level = 1;
-        else if (rf_has(p->poly_race->flags, RF_HURT_COLD))
-            el_info[ELEM_COLD].res_level = -1;
-
-        if (rf_has(p->poly_race->flags, RF_IM_POIS) || rsf_has(p->poly_race->spell_flags, RSF_BR_POIS))
-            el_info[ELEM_POIS].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_HURT_ROCK)) el_info[ELEM_SHARD].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_HURT_FIRE)) el_info[ELEM_FIRE].res_level = -1;
+        if (rf_has(p->poly_race->flags, RF_HURT_COLD)) el_info[ELEM_COLD].res_level = -1;
+        if (rf_has(p->poly_race->flags, RF_IM_ACID)) el_info[ELEM_ACID].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_ELEC)) el_info[ELEM_ELEC].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_FIRE)) el_info[ELEM_FIRE].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_COLD)) el_info[ELEM_COLD].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_POIS)) el_info[ELEM_POIS].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_NETHER)) el_info[ELEM_NETHER].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_NEXUS)) el_info[ELEM_NEXUS].res_level = 1;
+        if (rf_has(p->poly_race->flags, RF_IM_DISEN)) el_info[ELEM_DISEN].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_ACID)) el_info[ELEM_ACID].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_ELEC)) el_info[ELEM_ELEC].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_FIRE)) el_info[ELEM_FIRE].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_COLD)) el_info[ELEM_COLD].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_POIS)) el_info[ELEM_POIS].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_NETH)) el_info[ELEM_NETHER].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_LIGHT)) el_info[ELEM_LIGHT].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_DARK)) el_info[ELEM_DARK].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_SOUN)) el_info[ELEM_SOUND].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_HURT_ROCK) || rsf_has(p->poly_race->spell_flags, RSF_BR_SHAR))
-            el_info[ELEM_SHARD].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_NEXUS) || rsf_has(p->poly_race->spell_flags, RSF_BR_NEXU))
-            el_info[ELEM_NEXUS].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_NETHER) || rsf_has(p->poly_race->spell_flags, RSF_BR_NETH))
-            el_info[ELEM_NETHER].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_CHAO)) el_info[ELEM_CHAOS].res_level = 1;
-        if (rf_has(p->poly_race->flags, RF_IM_DISEN) || rsf_has(p->poly_race->spell_flags, RSF_BR_DISE))
-            el_info[ELEM_DISEN].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_DISE)) el_info[ELEM_DISEN].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_NEXU)) el_info[ELEM_NEXUS].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_TIME)) el_info[ELEM_TIME].res_level = 1;
+        if (rsf_has(p->poly_race->spell_flags, RSF_BR_SHAR)) el_info[ELEM_SHARD].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_MANA)) el_info[ELEM_MANA].res_level = 1;
     }
 }
@@ -880,12 +822,12 @@ void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
 static void cursor_redraw(struct player *p)
 {
     bool is_unseen, is_dead;
-    struct loc grid;
-    struct source *cursor_who = &p->cursor_who;
-    struct chunk *c = chunk_get(&p->wpos);
+    int x, y;
+    struct actor *cursor_who = &p->cursor_who;
+    struct chunk *c = chunk_get(p->depth);
 
     /* Not tracking */
-    if (source_null(cursor_who))
+    if (ACTOR_NULL(cursor_who))
     {
         /* Reset the cursor */
         Send_cursor(p, 0, 0, 0);
@@ -900,18 +842,20 @@ static void cursor_redraw(struct player *p)
     if (cursor_who->player)
     {
         /* Extract various states */
-        is_unseen = !player_is_visible(p, cursor_who->idx);
+        is_unseen = !mflag_has(p->pflag[cursor_who->idx], MFLAG_VISIBLE);
         is_dead = false;
-        loc_copy(&grid, &cursor_who->player->grid);
+        x = cursor_who->player->px;
+        y = cursor_who->player->py;
     }
 
     /* Tracking a monster */
     else
     {
         /* Extract various states */
-        is_unseen = !monster_is_visible(p, cursor_who->idx);
-        is_dead = ((cursor_who->monster->hp < 0)? true: false);
-        loc_copy(&grid, &cursor_who->monster->grid);
+        is_unseen = !mflag_has(p->mflag[cursor_who->idx], MFLAG_VISIBLE);
+        is_dead = ((cursor_who->mon->hp < 0)? true: false);
+        x = cursor_who->mon->fx;
+        y = cursor_who->mon->fy;
     }
 
     /* Tracking an unseen or dead monster (or player) */
@@ -931,15 +875,12 @@ static void cursor_redraw(struct player *p)
     else
     {
         char vis = 1;
-        struct loc above;
-
-        loc_init(&above, grid.x, grid.y - 1);
 
         /* Hack -- is there something targetable above our position? */
-        if (square_in_bounds_fully(c, &above) && target_accept(p, &above))
+        if (square_in_bounds_fully(c, y - 1, x) && target_accept(p, y - 1, x))
             vis = 2;
 
-        Send_cursor(p, vis, grid.x - p->offset_grid.x, grid.y - p->offset_grid.y + 1);
+        Send_cursor(p, vis, x - p->offset_x, y - p->offset_y + 1);
 
         /* Redraw targeting path */
         if (p->path_drawn)
@@ -948,9 +889,9 @@ static void cursor_redraw(struct player *p)
             load_path(p, p->path_n, p->path_g);
 
             /* Redraw new targeting path */
-            p->path_n = project_path(NULL, p->path_g, z_info->max_range, c, &p->grid, &grid,
-                PROJECT_THRU);
-            p->path_drawn = draw_path(p, p->path_n, p->path_g, &p->grid);
+            p->path_n = project_path(p->path_g, z_info->max_range, c, p->py, p->px,
+                y, x, PROJECT_THRU);
+            p->path_drawn = draw_path(p, p->path_n, p->path_g, p->py, p->px);
         }
     }
 }
@@ -968,16 +909,12 @@ static void prt_player_sust_info(struct player *p)
     /* Process equipment */
     for (i = 0; i < p->body.count; ++i)
     {
-        s32b modifiers[OBJ_MOD_MAX];
-
         /* Get the object */
         obj = slot_object(p, i);
 
         /* Get the "known" flags */
         aware = (obj? object_flavor_is_aware(p, obj): false);
         object_flags_known(obj, f, aware);
-
-        object_modifiers(obj, modifiers);
 
         /* Initialize color based on sign of modifier. */
         for (stat = 0; stat < STAT_MAX; stat++)
@@ -987,31 +924,31 @@ static void prt_player_sust_info(struct player *p)
             c = '.';
 
             /* Boosted or reduced */
-            if (modifiers[stat])
+            if (obj && obj->modifiers[stat])
             {
                 /* Default */
                 c = '*';
 
                 /* Good */
-                if (modifiers[stat] > 0)
+                if (obj->modifiers[stat] > 0)
                 {
                     /* Good */
                     a = COLOUR_L_GREEN;
 
                     /* Label boost */
-                    if (modifiers[stat] < 10)
-                        c = I2D(modifiers[stat]);
+                    if (obj->modifiers[stat] < 10)
+                        c = I2D(obj->modifiers[stat]);
                 }
 
                 /* Bad */
-                if (modifiers[stat] < 0)
+                if (obj->modifiers[stat] < 0)
                 {
                     /* Bad */
                     a = COLOUR_RED;
 
                     /* Label boost */
-                    if (modifiers[stat] > -10)
-                        c = I2D(0 - modifiers[stat]);
+                    if (obj->modifiers[stat] > -10)
+                        c = I2D(-(obj->modifiers[stat]));
                 }
             }
 
@@ -1067,8 +1004,8 @@ static void prt_player_sust_info(struct player *p)
         c = p->hist_flags[STAT_INT + 1][p->body.count].c;
         boost = 0;
 
-        if (monster_is_stupid(p->poly_race)) boost -= 2;
-        if (monster_is_smart(p->poly_race)) boost += 2;
+        if (rf_has(p->poly_race->flags, RF_STUPID)) boost -= 2;
+        if (rf_has(p->poly_race->flags, RF_SMART)) boost += 2;
         if (p->poly_race->freq_spell == 33) boost += 1;
         if (p->poly_race->freq_spell == 50) boost += 3;
         if (p->poly_race->freq_spell == 100) boost += 5;
@@ -1119,12 +1056,12 @@ struct player_flag_record
 };
 
 
-static const struct player_flag_record player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
+static const struct player_flag_record player_flag_table[RES_PANELS * RES_ROWS] =
 {
     {-1, -1, ELEM_ACID, TMD_OPP_ACID},
     {-1, -1, ELEM_ELEC, TMD_OPP_ELEC},
     {-1, -1, ELEM_FIRE, TMD_OPP_FIRE},
-    {-1, -1, ELEM_COLD, TMD_OPP_COLD},
+    {-1, -1, ELEM_COLD, TMD_OPP_FIRE},
     {-1, -1, ELEM_POIS, TMD_OPP_POIS},
     {-1, -1, ELEM_LIGHT, -1},
     {-1, -1, ELEM_DARK, -1},
@@ -1135,7 +1072,7 @@ static const struct player_flag_record player_flag_table[(RES_PANELS + 1) * RES_
     {-1, -1, ELEM_NETHER, -1},
     {-1, -1, ELEM_CHAOS, -1},
     {-1, -1, ELEM_DISEN, -1},
-    {-1, OF_FEATHER, -1, TMD_FLIGHT},
+    {-1, OF_FEATHER, -1, -1},
     {-1, OF_PROT_FEAR, -1, TMD_BOLD},
     {-1, OF_PROT_BLIND, -1, -1},
     {-1, OF_PROT_CONF, -1, TMD_OPP_CONF},
@@ -1143,10 +1080,10 @@ static const struct player_flag_record player_flag_table[(RES_PANELS + 1) * RES_
 
     {OBJ_MOD_LIGHT, -1, -1, -1},
     {-1, OF_REGEN, -1, -1},
-    {-1, OF_ESP_ALL, -1, TMD_ESP},
+    {-1, OF_ESP_POWER, -1, TMD_ESP},
     {-1, OF_SEE_INVIS, -1, TMD_SINVIS},
     {-1, OF_FREE_ACT, -1, -1},
-    {-1, OF_HOLD_LIFE, -1, TMD_HOLD_LIFE},
+    {-1, OF_HOLD_LIFE, -1, -1},
     {OBJ_MOD_STEALTH, -1, -1, -1},
     {OBJ_MOD_SEARCH, -1, -1, -1},
     {OBJ_MOD_INFRA, -1, -1, TMD_SINFRA},
@@ -1159,45 +1096,36 @@ static const struct player_flag_record player_flag_table[(RES_PANELS + 1) * RES_
     {-1, OF_SLOW_DIGEST, -1, -1},
     {-1, OF_IMPAIR_HP, -1, -1},
     {-1, OF_AFRAID, -1, TMD_AFRAID},
-    {-1, OF_AGGRAVATE, -1, -1},
-
-    {-1, OF_ESP_RADIUS, -1, -1},
-    {-1, OF_ESP_EVIL, -1, -1},
-    {-1, OF_ESP_ANIMAL, -1, -1},
-    {-1, OF_ESP_UNDEAD, -1, -1},
-    {-1, OF_ESP_DEMON, -1, -1},
-    {-1, OF_ESP_ORC, -1, -1},
-    {-1, OF_ESP_TROLL, -1, -1},
-    {-1, OF_ESP_GIANT, -1, -1},
-    {-1, OF_ESP_DRAGON, -1, -1}
+    {-1, OF_AGGRAVATE, -1, -1}
 };
 
 
-static void prt_resistance_panel(struct player *p, int which, const struct player_flag_record *rec)
+static void prt_resistance_panel(struct player *p, int which,
+    const struct player_flag_record *rec)
 {
-    size_t i;
-    int j;
+    size_t i, j;
     int off = 1 + STAT_MAX + RES_ROWS * which;
 
     for (i = 0; i < RES_ROWS; i++)
     {
         /* Repeated extraction of flags is inefficient but more natural */
-        for (j = 0; j <= p->body.count; j++)
+        for (j = 0; j <= (size_t)p->body.count; j++)
         {
+            struct object *obj = NULL;
             bitflag f[OF_SIZE];
             byte attr = (COLOUR_WHITE | (j % 2) * 8); /* Alternating columns */
             char sym = '.';
-            bool res = false, imm = false, vul = false, rune = false;
+            bool res = false, imm = false, vul = false;
             bool timed = false;
             bool known = true;
 
-            /* Object or player info? */
-            if (j < p->body.count)
-            {
-                struct object *obj = slot_object(p, j);
+            /* Wipe flagset */
+            of_wipe(f);
 
-                /* Wipe flagset */
-                of_wipe(f);
+            /* Get the object or player info */
+            if (j < (size_t)p->body.count)
+            {
+                obj = slot_object(p, j);
 
                 /* Get known properties */
                 if (obj)
@@ -1209,29 +1137,6 @@ static void prt_resistance_panel(struct player *p, int which, const struct playe
                         known = object_element_is_known(obj, rec[i].element, aware);
                     else if (rec[i].flag != -1)
                         known = object_flag_is_known(p, obj, rec[i].flag);
-                }
-
-                /* Get resistance, immunity and vulnerability info */
-                if (rec[i].mod != -1)
-                {
-                    s32b modifiers[OBJ_MOD_MAX];
-
-                    object_modifiers(obj, modifiers);
-
-                    res = (modifiers[rec[i].mod] > 0);
-                    vul = (modifiers[rec[i].mod] < 0);
-                }
-                else if (rec[i].flag != -1)
-                    res = of_has(f, rec[i].flag);
-                else if (rec[i].element != -1)
-                {
-                    struct element_info el_info[ELEM_MAX];
-
-                    object_elements(obj, el_info);
-
-                    imm = (known && (el_info[rec[i].element].res_level == 3));
-                    res = (known && (el_info[rec[i].element].res_level == 1));
-                    vul = (known && (el_info[rec[i].element].res_level == -1));
                 }
             }
             else
@@ -1247,13 +1152,30 @@ static void prt_resistance_panel(struct player *p, int which, const struct playe
                     if ((rec[i].tmd_flag == TMD_AFRAID) && (p->timed[TMD_TERROR]))
                         timed = true;
                 }
+            }
 
-                /* Set which (if any) symbol and color are used */
-                if (rec[i].mod != -1)
+            /* Set which (if any) symbol and color are used */
+            if (rec[i].mod != -1)
+            {
+                if (j < (size_t)p->body.count)
+                {
+                    res = (obj && (obj->modifiers[rec[i].mod] > 0));
+                    vul = (obj && (obj->modifiers[rec[i].mod] < 0));
+                }
+                else
                     player_mods(p, rec[i].mod, &res, &vul);
-                else if (rec[i].flag != -1)
-                    res = of_has(f, rec[i].flag);
-                else if (rec[i].element != -1)
+            }
+            else if (rec[i].flag != -1)
+                res = of_has(f, rec[i].flag);
+            else if (rec[i].element != -1)
+            {
+                if (j < (size_t)p->body.count)
+                {
+                    imm = (known && obj && (obj->el_info[rec[i].element].res_level == 3));
+                    res = (known && obj && (obj->el_info[rec[i].element].res_level == 1));
+                    vul = (known && obj && (obj->el_info[rec[i].element].res_level == -1));
+                }
+                else
                 {
                     struct element_info el_info[ELEM_MAX];
 
@@ -1265,23 +1187,37 @@ static void prt_resistance_panel(struct player *p, int which, const struct playe
                 }
             }
 
-            /* Check if the rune is known */
-            if (rec[i].mod != -1)
-                rune = (p->obj_k->modifiers[rec[i].mod] == 1);
-            else if (rec[i].flag != -1)
-                rune = of_has(p->obj_k->flags, rec[i].flag);
-            else if (rec[i].element != -1)
-                rune = (p->obj_k->el_info[rec[i].element].res_level == 1);
-
             /* Set the symbols and print them */
             if (imm) sym = '*';
             else if (res && !vul) sym = '+';
             else if (vul && !res) sym = '-';
-            else if (timed) {sym = '!'; attr = COLOUR_L_GREEN;}
-            else if (!known && !rune) sym = '?';
+            else if (timed) sym = '!';
+            else if (!known) sym = '?';
 
-            /* Hack -- rune is known */
-            if (rune) attr += BASIC_COLORS;
+            /* Special case: ESP flags */
+            if (rec[i].flag == OF_ESP_POWER)
+            {
+                bitflag f_esp[OF_SIZE], f2[OF_SIZE];
+
+                of_copy(f_esp, f);
+                create_mask(f2, false, OFT_ESP, OFT_MAX);
+                of_inter(f_esp, f2);
+
+                sym = '.';
+                if (of_has(f_esp, OF_ESP_ALL)) sym = '+';
+                else if (timed) sym = '!';
+                else if (of_has(f_esp, OF_ESP_RADIUS)) sym = 'R';
+                else if (of_has(f_esp, OF_ESP_EVIL)) sym = 'E';
+                else if (of_has_unique(f_esp, OF_ESP_ANIMAL)) sym = 'N';
+                else if (of_has_unique(f_esp, OF_ESP_UNDEAD)) sym = 'G';
+                else if (of_has_unique(f_esp, OF_ESP_DEMON)) sym = 'U';
+                else if (of_has_unique(f_esp, OF_ESP_ORC)) sym = 'o';
+                else if (of_has_unique(f_esp, OF_ESP_TROLL)) sym = 'T';
+                else if (of_has_unique(f_esp, OF_ESP_GIANT)) sym = 'P';
+                else if (of_has_unique(f_esp, OF_ESP_DRAGON)) sym = 'D';
+                else if (!of_is_empty(f_esp)) sym = 'M'; /* Mixed */
+                else if (!known) sym = '?';
+            }
 
             p->hist_flags[off + i][j].a = attr;
             p->hist_flags[off + i][j].c = sym;
@@ -1294,7 +1230,7 @@ static void prt_player_flag_info(struct player *p)
 {
     int i;
 
-    for (i = 0; i <= RES_PANELS; i++)
+    for (i = 0; i < RES_PANELS; i++)
         prt_resistance_panel(p, i, player_flag_table + i * RES_ROWS);
 }
 
@@ -1547,8 +1483,6 @@ static void evacuate_arena(struct player *p)
 {
     char buf[100];
     struct player *q = pick_arena_opponent(p, p->arena_num);
-    struct source who_body;
-    struct source *who = &who_body;
 
     /* Paranoia */
     if (!q || (q == p)) return;
@@ -1577,11 +1511,9 @@ static void evacuate_arena(struct player *p)
 
     /* Teleport */
     p->arena_num = -1;
-    source_player(who, get_player_index(get_connection(p->conn)), p);
-    effect_simple(EF_TELEPORT, who, "1", 0, 0, 0, 0, 0, NULL);
+    effect_simple(p, EF_TELEPORT, "1", 0, 0, 0, NULL, NULL);
     q->arena_num = -1;
-    source_player(who, get_player_index(get_connection(q->conn)), q);
-    effect_simple(EF_TELEPORT, who, "1", 0, 0, 0, 0, 0, NULL);
+    effect_simple(q, EF_TELEPORT, "1", 0, 0, 0, NULL, NULL);
 
     /* Messages */
     msg(p, "You recover outside the arena.");
@@ -1603,9 +1535,9 @@ static int cmp_value(const void *a, const void *b)
     s32b va = 0, vb = 0;
 
     if (pa->obj->tval)
-        va = (s32b)object_value(pa->player, pa->obj, 1);
+        va = object_value(pa->player, pa->obj, 1);
     if (pb->obj->tval)
-        vb = (s32b)object_value(pb->player, pb->obj, 1);
+        vb = object_value(pb->player, pb->obj, 1);
 
     if (va > vb) return -1;
     if (va < vb) return 1;
@@ -1613,12 +1545,12 @@ static int cmp_value(const void *a, const void *b)
 }
 
 
-static void player_strip(struct player *p, bool perma_death)
+static void player_strip(struct player *p)
 {
     size_t i, count = 0;
     struct object *obj;
     struct cmp_val *gear;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* Scan player's gear */
     for (obj = p->gear; obj; obj = obj->next) count++;
@@ -1637,8 +1569,8 @@ static void player_strip(struct player *p, bool perma_death)
     {
         obj = gear[i].obj;
 
-        /* If we will permanently die, drop nothing */
-        if (perma_death)
+        /* If we committed suicide, drop nothing */
+        if (!p->alive)
         {
             gear_excise_object(p, obj);
 
@@ -1656,12 +1588,10 @@ static void player_strip(struct player *p, bool perma_death)
 
         /* Excise the object and drop it */
         gear_excise_object(p, obj);
-        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+        drop_near(p, c, obj, 0, p->py, p->px, false, DROP_FADE);
     }
 
     mem_free(gear);
-
-    if (perma_death) return;
 
     /* Drop gold if player has any */
     if (p->alive && p->au)
@@ -1677,7 +1607,7 @@ static void player_strip(struct player *p, bool perma_death)
         p->au = 0;
 
         /* Drop it */
-        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+        drop_near(p, c, obj, 0, p->py, p->px, false, DROP_FADE);
     }
 }
 
@@ -1698,7 +1628,7 @@ static void player_funeral(struct player *p)
     if (!p->alive) p->is_dead = true;
 
     /* One less player here */
-    leave_depth(p, chunk_get(&p->wpos));
+    leave_depth(p, chunk_get(p->depth));
 
     /* Remove him from the player name database */
     remove_player_name(p->name);
@@ -1764,7 +1694,7 @@ void death_knowledge(struct player *p)
 
     know_houses(p);
 
-    history_unmask_unknown(p);
+    history_unmask(p);
 
     /* Hack -- recalculate bonuses */
     p->upkeep->update |= (PU_BONUS);
@@ -1785,9 +1715,7 @@ void player_death(struct player *p)
     bool perma_death, suicided = false;
     int i;
     u16b type = MSG_BROADCAST_DIED;
-    bool no_ghost = (OPT(p, birth_no_ghost) || OPT(p, birth_fruit_bat) || cfg_no_ghost);
-    struct source who_body;
-    struct source *who = &who_body;
+    bool no_ghost = (OPT_P(p, birth_no_ghost) || OPT_P(p, birth_fruit_bat) || cfg_no_ghost);
 
     /* Hack -- don't die in Arena! */
     if (p->alive && (p->arena_num != -1))
@@ -1803,7 +1731,7 @@ void player_death(struct player *p)
     if (p->ghost != 1)
     {
         strnfmt(buf, sizeof(buf), "Was killed by %s", p->died_from);
-        history_add(p, buf, HIST_PLAYER_DEATH);
+        history_add(p, buf, HIST_PLAYER_DEATH, NULL);
     }
 
     /* Tell everyone he died */
@@ -1816,26 +1744,22 @@ void player_death(struct player *p)
     {
         char brave[40];
 
-        if ((OPT(p, birth_no_ghost) && !cfg_no_ghost) ||
-            (OPT(p, birth_no_recall) && (cfg_diving_mode < 3)) ||
-            (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3)))
+        if (OPT_P(p, birth_no_ghost) || OPT_P(p, birth_no_recall) || OPT_P(p, birth_force_descend))
         {
-            strnfmt(brave, sizeof(brave), "The%s%s%s",
-                (OPT(p, birth_no_ghost) && !cfg_no_ghost)? " brave": "",
-                (OPT(p, birth_no_recall) && (cfg_diving_mode < 3))? " hardcore": "",
-                (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3))? " diving": "");
+            strnfmt(brave, sizeof(brave), "The%s%s%s", OPT_P(p, birth_no_ghost)? " brave": "",
+                OPT_P(p, birth_no_recall)? " hardcore": "",
+                OPT_P(p, birth_force_descend)? " diving": "");
         }
         else
             my_strcpy(brave, "The unfortunate", sizeof(brave));
 
-        strnfmt(buf, sizeof(buf), "%s %s %s the level %i %s %s %s.", brave, prompt, p->name, p->lev,
-            p->race->name, p->clazz->name, p->died_flavor);
+        strnfmt(buf, sizeof(buf), "%s %s %s %s.", brave, prompt, p->name, p->died_flavor);
     }
     else if (!strcmp(p->died_from, "divine wrath"))
         strnfmt(buf, sizeof(buf), "%s was killed by divine wrath.", p->name);
     else if (!p->total_winner)
     {
-        strnfmt(buf, sizeof(buf), "%s was terminated.", p->name);
+        strnfmt(buf, sizeof(buf), "%s committed suicide.", p->name);
         suicided = true;
         type = MSG_BROADCAST_ENTER_LEAVE;
     }
@@ -1873,12 +1797,12 @@ void player_death(struct player *p)
         player_dump(p, p->alive);
 
     /*
-     * Handle every item (including gold):
-     * - delete them for all characters that will permanently die
-     * - keep them for Necromancers that can turn into an undead being
-     * - drop them on the floor for all other characters
+     * Drop every item (including gold) for:
+     * - all characters that will permanently die
+     * - all other characters except Necromancers that can turn into an undead being
+     * Note that items from suiciding characters never drop, they vanish instead...
      */
-    if (perma_death || !player_can_undead(p)) player_strip(p, perma_death);
+    if (perma_death || !player_can_undead(p)) player_strip(p);
 
     /* Tell him */
     if ((p->ghost != 1) && p->alive)
@@ -1907,8 +1831,7 @@ void player_death(struct player *p)
     restore_sp(p);
 
     /* Teleport him */
-    source_player(who, get_player_index(get_connection(p->conn)), p);
-    effect_simple(EF_TELEPORT, who, "200", 0, 0, 0, 0, 0, NULL);
+    effect_simple(p, EF_TELEPORT, "200", 0, 0, 0, NULL, NULL);
 
     /* Feed him (maybe he died from starvation) */
     player_set_food(p, PY_FOOD_MAX - 1);
@@ -1945,13 +1868,13 @@ void resurrect_player(struct player *p, struct chunk *c)
 
         /* Redraw */
         p->upkeep->redraw |= (PR_TITLE);
-        square_light_spot(c, &p->grid);
+        square_light_spot(c, p->py, p->px);
 
         return;
     }
 
     /* Log event */
-    history_add(p, "Resurrected", HIST_PLAYER_REVIVE);
+    history_add(p, "Resurrected", HIST_PLAYER_REVIVE, NULL);
 
     /* Reset ghost flag */
     set_ghost_flag(p, 0, true);
@@ -1978,7 +1901,7 @@ void resurrect_player(struct player *p, struct chunk *c)
 
     /* Redraw */
     p->upkeep->redraw |= (PR_BASIC | PR_SPELL);
-    square_light_spot(c, &p->grid);
+    square_light_spot(c, p->py, p->px);
 
     /* Update */
     p->upkeep->update |= (PU_BONUS);
@@ -1988,7 +1911,7 @@ void resurrect_player(struct player *p, struct chunk *c)
 }
 
 
-static bool panel_should_modify(struct player *p, struct loc *grid)
+static bool panel_should_modify(struct player *p, int *wy, int *wx)
 {
     int screen_hgt, screen_wid;
 
@@ -1996,15 +1919,15 @@ static bool panel_should_modify(struct player *p, struct loc *grid)
     screen_wid = p->screen_cols / p->tile_wid;
 
     /* Verify wy, adjust if needed */
-    if (grid->y > z_info->dungeon_hgt - screen_hgt) grid->y = z_info->dungeon_hgt - screen_hgt;
-    if (grid->y < 0) grid->y = 0;
+    if (*wy > z_info->dungeon_hgt - screen_hgt) *wy = z_info->dungeon_hgt - screen_hgt;
+    if (*wy < 0) *wy = 0;
 
     /* Verify wx, adjust if needed */
-    if (grid->x > z_info->dungeon_wid - screen_wid) grid->x = z_info->dungeon_wid - screen_wid;
-    if (grid->x < 0) grid->x = 0;
+    if (*wx > z_info->dungeon_wid - screen_wid) *wx = z_info->dungeon_wid - screen_wid;
+    if (*wx < 0) *wx = 0;
 
     /* Needs changes? */
-    return !loc_eq(&p->offset_grid, grid);
+    return ((p->offset_y != *wy) || (p->offset_x != *wx));
 }
 
 
@@ -2017,13 +1940,14 @@ static bool panel_should_modify(struct player *p, struct loc *grid)
  * As a total hack, whenever the current panel changes, we assume that
  * the "overhead view" window should be updated.
  */
-bool modify_panel(struct player *p, struct loc *grid)
+bool modify_panel(struct player *p, int wy, int wx)
 {
     /* React to changes */
-    if (panel_should_modify(p, grid))
+    if (panel_should_modify(p, &wy, &wx))
     {
         /* Save wy, wx */
-        loc_copy(&p->offset_grid, grid);
+        p->offset_y = wy;
+        p->offset_x = wx;
 
         /* Update stuff */
         p->upkeep->update |= (PU_MONSTERS);
@@ -2050,7 +1974,8 @@ bool modify_panel(struct player *p, struct loc *grid)
  */
 bool change_panel(struct player *p, int dir)
 {
-    struct loc grid;
+    bool changed = false;
+    int wx, wy;
     int screen_hgt, screen_wid;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
@@ -2060,11 +1985,13 @@ bool change_panel(struct player *p, int dir)
     screen_wid = p->screen_cols / p->tile_wid;
 
     /* Shift by half a panel */
-    loc_init(&grid, p->offset_grid.x + ddx[dir] * screen_wid / 2,
-        p->offset_grid.y + ddy[dir] * screen_hgt / 2);
+    wy = p->offset_y + ddy[dir] * screen_hgt / 2;
+    wx = p->offset_x + ddx[dir] * screen_wid / 2;
 
     /* Use "modify_panel" */
-    return modify_panel(p, &grid);
+    if (modify_panel(p, wy, wx)) changed = true;
+
+    return (changed);
 }
 
 
@@ -2081,42 +2008,45 @@ bool change_panel(struct player *p, int dir)
  */
 static void verify_panel_int(struct player *p, bool centered)
 {
-    struct loc grid;
+    int wy, wx;
     int panel_wid, panel_hgt;
+    int py = p->py;
+    int px = p->px;
     int screen_hgt, screen_wid;
 
     screen_hgt = p->screen_rows / p->tile_hgt;
     screen_wid = p->screen_cols / p->tile_wid;
 
-    loc_copy(&grid, &p->offset_grid);
+    wy = p->offset_y;
+    wx = p->offset_x;
 
     panel_wid = screen_wid / 2;
     panel_hgt = screen_hgt / 2;
 
     /* Scroll screen vertically when off-center */
-    if (centered && !p->upkeep->running && (p->grid.y != grid.y + panel_hgt))
-        grid.y = p->grid.y - panel_hgt;
+    if (centered && !p->upkeep->running && (py != wy + panel_hgt))
+        wy = py - panel_hgt;
 
     /* Scroll screen vertically when 3 grids from top/bottom edge */
-    else if ((p->grid.y < grid.y + 3) || (p->grid.y >= grid.y + screen_hgt - 3))
-        grid.y = p->grid.y - panel_hgt;
+    else if ((py < wy + 3) || (py >= wy + screen_hgt - 3))
+        wy = py - panel_hgt;
 
     /* Scroll screen horizontally when off-center */
-    if (centered && !p->upkeep->running && (p->grid.x != grid.x + panel_wid))
-        grid.x = p->grid.x - panel_wid;
+    if (centered && !p->upkeep->running && (px != wx + panel_wid))
+        wx = px - panel_wid;
 
     /* Scroll screen horizontally when 3 grids from left/right edge */
-    else if ((p->grid.x < grid.x + 3) || (p->grid.x >= grid.x + screen_wid - 3))
-        grid.x = p->grid.x - panel_wid;
+    else if ((px < wx + 3) || (px >= wx + screen_wid - 3))
+        wx = px - panel_wid;
 
     /* Scroll if needed */
-    modify_panel(p, &grid);
+    modify_panel(p, wy, wx);
 }
 
 
 void verify_panel(struct player *p)
 {
-    verify_panel_int(p, OPT(p, center_player));
+    verify_panel_int(p, OPT_P(p, center_player));
 }
 
 
@@ -2131,14 +2061,14 @@ void center_panel(struct player *p)
 
 /*
  * This table provides for different game speeds at different dungeon depths. Shallower depths
- * are faster, allowing for easier navigation. Deeper depths are slow, hopefully making
+ * are faster, allowing for easier town navigation. Deeper depths are slow, hopefully make
  * deep combat less of a test of reflexes.
  *
  * PWMAngband:
  * Game speed has been reduced again below 4250' to give more reaction time to the player
  * during fights with fast monsters. Game speed now caps at 4950', allowing the player to get
- * the same turn duration against "Fast (+20)" monsters as you would get on the surface against
- * unhasted monsters. Game speed has been greatly reduced on quest levels (depths 100/124+)
+ * the same turn duration against "Fast (+20)" monsters as you would get in the town against
+ * unhasted monsters. Game speed has been greatly reduced on quest levels (depths 100/126/127)
  * to get the same turn duration against "Fast (+30)" questors.
  */
 static u16b level_speeds[] =
@@ -2155,7 +2085,7 @@ static u16b level_speeds[] =
     210, 212, 214, 216, 218, 220, 222, 223, 224, 225,   /* 4500' - 4950' */
     285, 225, 225, 225, 225, 225, 225, 225, 225, 225,   /* 5000' - 5450' */
     225, 225, 225, 225, 225, 225, 225, 225, 225, 225,   /* 5500' - 5950' */
-    225, 225, 225, 225, 285, 285, 285, 285              /* 6000' - 6350' */
+    225, 225, 225, 225, 225, 225, 285, 285              /* 6000' - 6350' */
 };
 
 
@@ -2166,7 +2096,8 @@ static u16b level_speeds[] =
  */
 int move_energy(int depth)
 {
-    return level_speeds[depth] * 5 * z_info->move_energy;
+    if (depth <= 0) return level_speeds[0] * 5 * z_info->move_energy;
+    else return level_speeds[depth] * 5 * z_info->move_energy;
 }
 
 
@@ -2183,20 +2114,23 @@ int move_energy(int depth)
  * When calling this function pass slowest as zero, which acts as a flag
  * that this is the main call, not a recursive call.
  */
-static int base_time_factor(struct player *p, struct chunk *c, int slowest)
+int base_time_factor(struct player *p, struct chunk *c, int slowest)
 {
-    int i, timefactor, health;
+    struct player *q;
+    int i, dist, health, timefactor;
+    bool los;
 
     /* Paranoia */
     if (!p) return NORMAL_TIME;
 
-    /* If this is the initial call, reset time bubble check for all players on the level */
-    for (i = 1; !slowest && (i <= NumPlayers); i++)
+    /* If this is the initial call, reset all players time bubble check */
+    if (!slowest)
     {
-        struct player *q = player_get(i);
-
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
-        q->bubble_checked = false;
+        for (i = 1; i <= NumPlayers; i++)
+        {
+            q = player_get(i);
+            if (q) q->bubble_checked = false;
+        }
     }
 
     /* Normal time scale */
@@ -2209,13 +2143,8 @@ static int base_time_factor(struct player *p, struct chunk *c, int slowest)
     if (health < MIN_TIME_SCALE) health = MIN_TIME_SCALE;
 
     /* Scale depending on health if HP are low enough */
-    if (health <= p->opts.hitpoint_warn * 10)
-    {
-        if (cfg_constant_time_factor > 0)
-            timefactor = timefactor / cfg_constant_time_factor;
-        else
-            timefactor = timefactor * health / 100;
-    }
+    if (health <= p->other.hitpoint_warn * 10)
+        timefactor = timefactor * health / 100;
 
     /* Resting speeds up time disregarding health time scaling */
     if (player_is_resting(p)) timefactor = MAX_TIME_SCALE;
@@ -2226,26 +2155,26 @@ static int base_time_factor(struct player *p, struct chunk *c, int slowest)
      */
     if (slowest && (timefactor == NORMAL_TIME))
     {
-        bool los = false;
-
         /* If nothing in LoS */
+        los = false;
         for (i = 1; i < cave_monster_max(c); i++)
         {
             struct monster *mon = cave_monster(c, i);
-            bool incapacitated = (mon->m_timed[MON_TMD_SLEEP] || mon->m_timed[MON_TMD_HOLD]);
 
             if (!mon->race) continue;
 
             /* Check this monster */
-            if (monster_is_in_view(p, i) && !incapacitated)
+            if (mflag_has(p->mflag[i], MFLAG_VIEW) && !mon->m_timed[MON_TMD_SLEEP])
             {
                 los = true;
                 break;
             }
         }
-
-        /* We don't really care about our time */
-        if (!los) timefactor = MAX_TIME_SCALE;
+        if (!los)
+        {
+            /* We don't really care about our time */
+            timefactor = MAX_TIME_SCALE;
+        }
     }
 
     /* We have checked our time bubble */
@@ -2254,91 +2183,26 @@ static int base_time_factor(struct player *p, struct chunk *c, int slowest)
     /* Check all other players within our range */
     for (i = 1; i <= NumPlayers; i++)
     {
-        struct player *q = player_get(i);
-        int dist;
-
-        /* Skip him if he's on a different dungeon level */
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
+        q = player_get(i);
 
         /* Only check them if they haven't already been checked */
-        if (q->bubble_checked) continue;
+        if (q && !q->bubble_checked)
+        {
+            /* Skip him if he's on a different dungeon level */
+            if (q->depth != p->depth) continue;
 
-        /* How far away is he? */
-        dist = distance(&p->grid, &q->grid);
+            /* How far away is he? */
+            dist = distance(p->py, p->px, q->py, q->px);
 
-        /* Skip him if he's too far away */
-        if (dist > z_info->max_sight) continue;
+            /* Skip him if he's too far away */
+            if (dist > z_info->max_sight) continue;
 
-        /* Find the slowest time bubble chain we are part of */
-        slowest = base_time_factor(q, c, timefactor);
+            /* Find the slowest time bubble chain we are part of */
+            slowest = base_time_factor(q, c, timefactor);
 
-        /* Use the slowest time bubble */
-        if (slowest < timefactor) timefactor = slowest;
-    }
-
-    return timefactor;
-}
-
-
-/*
- * Determine the speed of a given players "time bubble" when the player is in town.
- *
- * This is a simplified version of base_time_factor() without concern for monsters or health.
- */
-static int base_time_factor_simple(struct player *p, int slowest)
-{
-    int i, timefactor;
-
-    /* Paranoia */
-    if (!p) return NORMAL_TIME;
-
-    /* If this is the initial call, reset time bubble check for all players on the level */
-    for (i = 1; !slowest && (i <= NumPlayers); i++)
-    {
-        struct player *q = player_get(i);
-
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
-        q->bubble_checked = false;
-    }
-
-    /* Normal time scale */
-    timefactor = NORMAL_TIME;
-
-    /* Resting speeds up time */
-    if (player_is_resting(p)) timefactor = MAX_TIME_SCALE;
-
-    /*
-     * If this is a check for another player give way to their time
-     * bubble if we aren't doing anything important
-     */
-    if (slowest && (timefactor == NORMAL_TIME)) timefactor = MAX_TIME_SCALE;
-
-    /* We have checked our time bubble */
-    p->bubble_checked = true;
-
-    /* Check all other players within our range */
-    for (i = 1; i <= NumPlayers; i++)
-    {
-        struct player *q = player_get(i);
-        int dist;
-
-        /* Skip him if he's on a different dungeon level */
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
-
-        /* Only check them if they haven't already been checked */
-        if (q->bubble_checked) continue;
-
-        /* How far away is he? */
-        dist = distance(&p->grid, &q->grid);
-
-        /* Skip him if he's too far away */
-        if (dist > z_info->max_sight) continue;
-
-        /* Find the slowest time bubble chain we are part of */
-        slowest = base_time_factor_simple(q, timefactor);
-
-        /* Use the slowest time bubble */
-        if (slowest < timefactor) timefactor = slowest;
+            /* Use the slowest time bubble */
+            if (slowest < timefactor) timefactor = slowest;
+        }
     }
 
     return timefactor;
@@ -2350,14 +2214,27 @@ static int base_time_factor_simple(struct player *p, int slowest)
  */
 int time_factor(struct player *p, struct chunk *c)
 {
-    /* Paranoia */
-    if (!p) return NORMAL_TIME;
+    int timefactor, scale;
 
-    /* Use basic time scaling in towns */
-    if (in_town(&p->wpos)) return base_time_factor_simple(p, 0);
+    /* Normal time scale, 100% */
+    scale = NORMAL_TIME;
+
+    /* Paranoia */
+    if (!p) return scale;
+
+    /* Forget all about time scaling in town */
+    if (!p->depth) return scale;
+
+    /* Running speeds up time */
+    if (p->upkeep->running) scale = RUNNING_FACTOR;
+
+    /* Determine our time scaling factor */
+    timefactor = base_time_factor(p, c, 0);
 
     /* Scale our time by our bubbles time factor */
-    return base_time_factor(p, c, 0);
+    scale = scale * timefactor / 100;
+
+    return scale;
 }
 
 
@@ -2373,14 +2250,14 @@ static void unstatic_level(struct player *p)
     /* Figure out how many players are currently on the level */
     for (i = 1; i <= NumPlayers; i++)
     {
-        if (wpos_eq(&player_get(i)->wpos, &p->wpos)) num_on_depth++;
+        if (player_get(i)->depth == p->depth) num_on_depth++;
     }
 
     /*
      * Set the number of players on the level equal to the number of
      * currently connected players on the level.
      */
-    chunk_set_player_count(&p->wpos, num_on_depth);
+    chunk_set_player_count(p->depth, num_on_depth);
 }
 
 
@@ -2388,12 +2265,14 @@ static void manual_design(struct player *p, struct chunk *c, bool new_level)
 {
     int i;
 
-    /* Not in towns or quest levels */
-    if (in_town(&p->wpos)) return;
-    if (is_quest(p->wpos.depth)) return;
+    /* Forbidden outside of the dungeon (for now) */
+    if (p->depth < 0) return;
+
+    /* Not in town or quest levels */
+    if (!p->depth || is_quest(p->depth)) return;
 
     /* Level is already locked */
-    if (chunk_inhibit_players(&p->wpos)) return;
+    if (chunk_inhibit_players(p->depth)) return;
 
     msg(p, "Entering manual design mode...");
 
@@ -2406,22 +2285,7 @@ static void manual_design(struct player *p, struct chunk *c, bool new_level)
         struct player *q = player_get(i);
 
         if (q == p) continue;
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
-
-        /* No-recall players are simply pushed up one level (should be safe) */
-        if ((cfg_diving_mode == 3) || OPT(q, birth_no_recall))
-        {
-            struct worldpos wpos;
-
-            wpos_init(&wpos, &q->wpos.grid, dungeon_get_next_level(q, q->wpos.depth, -1));
-            msg(p, "You are pulled upwards.");
-            dungeon_change_level(q, chunk_get(&q->wpos), &wpos, LEVEL_GHOST);
-            continue;
-        }
-
-        /* If in the wilderness, go to starting town */
-        if (in_wild(&q->wpos))
-            memcpy(&q->recall_wpos, start_wpos(), sizeof(struct worldpos));
+        if (q->depth != p->depth) continue;
 
         q->word_recall = 0;
         q->deep_descent = 0;
@@ -2429,80 +2293,56 @@ static void manual_design(struct player *p, struct chunk *c, bool new_level)
     }
 
     /* Lock the level */
-    chunk_set_player_count(&p->wpos, INHIBIT_DEPTH);
+    chunk_set_player_count(p->depth, INHIBIT_DEPTH);
 
     /* New level */
     if (new_level)
     {
-        bool daytime;
-
         /* Deallocate the level */
-        chunk_list_remove(c);
         cave_wipe(c);
+        chunk_list_remove(p->depth);
 
-        /* Make a new chunk */
+        /* Generate a new empty level */
         c = cave_new(z_info->dungeon_hgt, z_info->dungeon_wid);
-        memcpy(&c->wpos, &p->wpos, sizeof(struct worldpos));
+        c->depth = p->depth;
         player_cave_new(p, z_info->dungeon_hgt, z_info->dungeon_wid);
-
-        /* Dungeon */
-        if (p->wpos.depth > 0)
-        {
-            daytime = true;
-
-            /* Generate a new empty level */
-            draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
-            fill_rectangle(c, 1, 1, c->height - 2, c->width - 2, FEAT_FLOOR, SQUARE_NONE);
-        }
-
-        /* Wilderness */
-        else
-        {
-            daytime = is_daytime();
-
-            /* Generate a new basic wilderness level */
-            wilderness_gen_basic_layout(c);
-        }
-
-        /* Apply illumination */
+        draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
+        fill_rectangle(c, 1, 1, c->height - 2, c->width - 2, FEAT_FLOOR, SQUARE_NONE);
         player_cave_clear(p, true);
-        cave_illuminate(p, c, daytime);
-
         chunk_list_add(c);
         ht_copy(&c->generated, &turn);
 
-        square_set_mon(c, &p->grid, 0 - get_player_index(get_connection(p->conn)));
+        c->squares[p->py][p->px].mon = 0 - get_player_index(get_connection(p->conn));
 
-        square_init_join_up(c);
-        square_init_join_down(c);
+        c->level_up_y = 0;
+        c->level_up_x = 0;
+        c->level_down_y = 0;
+        c->level_down_x = 0;
+
+        /* Enlighten the level */
+        wiz_light(p, c, true);
     }
 
-    square_init_join_rand(c);
+    c->level_rand_y = 0;
+    c->level_rand_x = 0;
 }
 
 
 static void exit_design(struct player *p, struct chunk *c, bool town)
 {
+    int yy, xx;
+
     /* Level is not locked */
-    if (!chunk_inhibit_players(&p->wpos)) return;
+    if (!chunk_inhibit_players(p->depth)) return;
 
-    /* Dungeon */
-    if (p->wpos.depth > 0)
+    /* Check level_up and level_down */
+    if (!c->level_up_y && !c->level_up_x)
+        msg(p, "There is no down staircase on this level!");
+    else if (!c->level_down_y && !c->level_down_x)
+        msg(p, "There is no up staircase on this level!");
+    else
     {
-        struct loc grid;
         int tries = 10000;
-
-        /* Check level_up and level_down */
-        if (!c->join->up.y && !c->join->up.x)
-        {
-            msg(p, "There is no down staircase on this level!");
-            return;
-        }
-        if (!c->join->down.y && !c->join->down.x)
-        {
-            msg(p, "There is no up staircase on this level!");
-            return;
-        }
 
         /* Set level_rand */
         while (tries > 0)
@@ -2510,39 +2350,42 @@ static void exit_design(struct player *p, struct chunk *c, bool town)
             tries--;
 
             /* Pick a legal spot */
-            loc_init(&grid, rand_range(1, c->width - 2), rand_range(1, c->height - 2));
+            yy = rand_range(1, c->height - 2);
+            xx = rand_range(1, c->width - 2);
 
             /* Must be a "naked" floor grid */
-            if (square_isempty(c, &grid)) break;
+            if (square_isempty(c, yy, xx)) break;
         }
+
+        /* Check level_rand */
         if (!tries)
-        {
             msg(p, "There are no naked floor grids on this level!");
-            return;
+        else
+        {
+            msg(p, "Exiting manual design mode...");
+
+            c->level_rand_y = yy;
+            c->level_rand_x = xx;
+
+            /* Hack -- clear player count */
+            chunk_set_player_count(p->depth, 0);
+
+            /* Save manually-designed dungeon level to file */
+            save_dungeon_special(p->depth, town);
+
+            /* Unlock the level */
+            chunk_set_player_count(p->depth, 1);
         }
-
-        square_set_join_rand(c, &grid);
     }
-
-    msg(p, "Exiting manual design mode...");
-
-    /* Hack -- clear player count */
-    chunk_set_player_count(&p->wpos, 0);
-
-    /* Save manually-designed dungeon level to file */
-    save_dungeon_special(&p->wpos, town);
-
-    /* Unlock the level */
-    chunk_set_player_count(&p->wpos, 1);
 }
 
 
 /*
  * Static or unstatic a level
  */
-static void master_level(struct player *p, char *parms)
+static void master_level(struct player *p, char* parms)
 {
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* Paranoia -- make sure the player is on a valid level */
     if (!c) return;
@@ -2561,7 +2404,7 @@ static void master_level(struct player *p, char *parms)
         case 's':
         {
             /* Increase the number of players on the DM level by one. */
-            chunk_increase_player_count(&p->wpos);
+            chunk_increase_player_count(p->depth);
             msg(p, "The level has been staticed.");
             break;
         }
@@ -2593,6 +2436,7 @@ static void master_level(struct player *p, char *parms)
             exit_design(p, c, false);
             break;
         }
+
     }
 }
 
@@ -2603,7 +2447,7 @@ static char master_specific_race_char = 'a';
 static bool master_summon_specific_aux(struct monster_race *race)
 {
     /* No uniques */
-    if (monster_is_unique(race)) return false;
+    if (rf_has(race->flags, RF_UNIQUE)) return false;
 
     /* If we look like what we are looking for */
     if (race->d_char == master_specific_race_char) return true;
@@ -2617,7 +2461,7 @@ static bool master_summon_specific_aux(struct monster_race *race)
 static struct monster_race *race_from_name(char *name)
 {
     char monster[NORMAL_WID];
-    char *str;
+    char* str;
     int i;
 
     /* Lowercase our search string */
@@ -2646,7 +2490,7 @@ static struct monster_race *race_from_name(char *name)
 static struct monster_race *race_from_name_fuzzy(char *name)
 {
     char monster[NORMAL_WID];
-    char *str;
+    char* str;
     int i;
 
     /* Lowercase our search string */
@@ -2673,8 +2517,7 @@ static struct monster_race *race_from_name_fuzzy(char *name)
  * Auxillary function to master_summon, determine the exact type of monster
  * to summon from a more general description.
  */
-static struct monster_race *master_summon_aux_monster_type(struct chunk *c, char monster_type,
-    char *monster_parms)
+static struct monster_race *master_summon_aux_monster_type(char monster_type, char *monster_parms)
 {
     /* Handle each category of monster types */
     switch (monster_type)
@@ -2682,6 +2525,7 @@ static struct monster_race *master_summon_aux_monster_type(struct chunk *c, char
         /* Specific monster specified */
         case 's':
         {
+            int depth;
             struct monster_race *race;
 
             /* Summon monster given by race name */
@@ -2697,7 +2541,10 @@ static struct monster_race *master_summon_aux_monster_type(struct chunk *c, char
             /* Summon monster given by race symbol */
             master_specific_race_char = monster_parms[0];
             get_mon_num_prep(master_summon_specific_aux);
-            race = get_mon_num(c, randint0(100) + 10, true);
+            depth = randint0(100) + 10;
+            race = get_mon_num(chunk_get(depth), monster_level(depth));
+
+            /* Prepare allocation table */
             get_mon_num_prep(NULL);
 
             /* Return our monster */
@@ -2706,7 +2553,7 @@ static struct monster_race *master_summon_aux_monster_type(struct chunk *c, char
 
         /* Specific depth specified */
         case 'd':
-            return get_mon_num(c, monster_parms[0], true);
+            return get_mon_num(chunk_get(monster_parms[0]), monster_level(monster_parms[0]));
     }
 
     /* Failure */
@@ -2717,7 +2564,7 @@ static struct monster_race *master_summon_aux_monster_type(struct chunk *c, char
 /*
  * Monster summoning options.
  */
-static void master_summon(struct player *p, char *parms)
+static void master_summon(struct player *p, char* parms)
 {
     /* Type: by number, group, pet, summoning mode on, summoning mode off */
     static char type = 0;
@@ -2737,8 +2584,8 @@ static void master_summon(struct player *p, char *parms)
     /* Which monster to actually summon, from previous variables */
     struct monster_race *race = NULL;
 
-    int i;
-    struct chunk *c = chunk_get(&p->wpos);
+    int c;
+    struct chunk *cv = chunk_get(p->depth);
 
     /* Extract arguments. If none are found, summon previous type (for master_move_hook). */
     if (parms)
@@ -2757,24 +2604,20 @@ static void master_summon(struct player *p, char *parms)
         case 'x':
         {
             /* For each monster we are summoning */
-            for (i = 0; i < count; i++)
+            for (c = 0; c < count; c++)
             {
                 /* Hack -- monster_type 'b' specifies mass banishment */
                 if (monster_type == 'b')
                 {
-                    struct source who_body;
-                    struct source *who = &who_body;
-
-                    source_player(who, get_player_index(get_connection(p->conn)), p);
-                    effect_simple(EF_MASS_BANISH, who, "0", 0, 0, 0, 0, 0, NULL);
+                    effect_simple(p, EF_MASS_BANISH, "0", 0, 0, 0, NULL, NULL);
                     break;
                 }
 
                 /* Figure out who to summon */
-                race = master_summon_aux_monster_type(c, monster_type, monster_parms);
+                race = master_summon_aux_monster_type(monster_type, monster_parms);
 
                 /* Summon the monster, if we have a valid one */
-                if (race) summon_specific_race(p, c, &p->grid, race, 1);
+                if (race) summon_specific_race(p, cv, p->py, p->px, race, 1);
             }
             break;
         }
@@ -2782,13 +2625,13 @@ static void master_summon(struct player *p, char *parms)
         /* Summon x at random locations */
         case 'X':
         {
-            for (i = 0; i < count; i++)
+            for (c = 0; c < count; c++)
             {
                 /* Figure out who to summon */
-                race = master_summon_aux_monster_type(c, monster_type, monster_parms);
+                race = master_summon_aux_monster_type(monster_type, monster_parms);
 
                 /* Summon the monster at a random location */
-                if (race) summon_specific_race_somewhere(p, c, race, 1);
+                if (race) summon_specific_race_somewhere(p, cv, race, 1);
             }
             break;
         }
@@ -2800,10 +2643,10 @@ static void master_summon(struct player *p, char *parms)
             size = randint0(randint0(50)) + 2;
 
             /* Figure out who to summon */
-            race = master_summon_aux_monster_type(c, monster_type, monster_parms);
+            race = master_summon_aux_monster_type(monster_type, monster_parms);
 
             /* Summon the group here */
-            if (race) summon_specific_race(p, c, &p->grid, race, size);
+            if (race) summon_specific_race(p, cv, p->py, p->px, race, size);
 
             break;
         }
@@ -2815,10 +2658,10 @@ static void master_summon(struct player *p, char *parms)
             size = randint0(randint0(50)) + 2;
 
             /* Figure out who to summon */
-            race = master_summon_aux_monster_type(c, monster_type, monster_parms);
+            race = master_summon_aux_monster_type(monster_type, monster_parms);
 
             /* Summon the group at a random location */
-            if (race) summon_specific_race_somewhere(p, c, race, size);
+            if (race) summon_specific_race_somewhere(p, cv, race, size);
 
             break;
         }
@@ -2827,10 +2670,10 @@ static void master_summon(struct player *p, char *parms)
         case 'P':
         {
             /* Figure out who to summon */
-            race = master_summon_aux_monster_type(c, monster_type, monster_parms);
+            race = master_summon_aux_monster_type(monster_type, monster_parms);
 
             /* Summon the monster, if we have a valid one */
-            if (race) summon_specific_race_aux(p, c, &p->grid, race, 1, true);
+            if (race) summon_specific_race_aux(p, cv, p->py, p->px, race, 1, true);
 
             break;
         }
@@ -2859,7 +2702,7 @@ static struct vault *get_vault_byfuzzyname(char *name)
 {
     struct vault *v; 
     char buf[NORMAL_WID];
-    char *str;
+    char* str;
 
     /* Lowercase our search string */
     for (str = name; *str; str++) *str = tolower((unsigned char)*str);
@@ -2918,21 +2761,10 @@ static struct object_kind *item_kind(struct object_kind *k, int method)
 }
 
 
-static bool kind_match_char(struct object_kind *kind, char d_char)
-{
-    if (!d_char) return true;
-
-    /* Hack -- use '*' for rods since '-' will always look for a wand */
-    if (d_char == '*') return (kind->tval == TV_ROD);
-
-    return (d_char == kind->d_char);
-}
-
-
 static struct object_kind *item_kind_fuzzy(char *name)
 {
     char match[NORMAL_WID];
-    char *str;
+    char* str;
     int i;
     char d_char = '\0';
 
@@ -2943,14 +2775,14 @@ static struct object_kind *item_kind_fuzzy(char *name)
     if ((*name < 'a') || (*name > 'z')) d_char = *name;
 
     /* For each item kind race */
-    for (i = 0; i < z_info->k_max; i++)
+    for (i = 1; i < z_info->k_max; i++)
     {
         struct object_kind *kind = &k_info[i];
 
         if (!kind->name) continue;
 
         /* Check default object character */
-        if (!kind_match_char(kind, d_char)) continue;
+        if (d_char && (d_char != kind->d_char)) continue;
 
         /* Clean up its name */
         clean_name(match, kind->name);
@@ -2968,7 +2800,10 @@ static struct object_kind *item_kind_fuzzy(char *name)
  */
 static bool check_ego(const struct object *obj, struct ego_item *ego)
 {
-    struct poss_item *poss;
+    struct ego_poss_item *poss;
+
+    /* XXX Ignore cursed items for now */
+    if (cursed_p(ego->flags)) return false;
 
     /* Test if this is a legal ego item type for this object */
     for (poss = ego->poss_items; poss; poss = poss->next)
@@ -2987,7 +2822,7 @@ static struct ego_item *item_ego(const struct object *obj, struct ego_item *e, i
     if (method == GE_NEXT) i++;
     if (method == GE_PREV) i--;
 
-    while ((i >= 0) && (i < z_info->e_max))
+    while ((i > 0) && (i < z_info->e_max))
     {
         struct ego_item *ego = &e_info[i];
 
@@ -3006,14 +2841,14 @@ static struct ego_item *item_ego(const struct object *obj, struct ego_item *e, i
 static struct ego_item *item_ego_fuzzy(const struct object *obj, char *name)
 {
     char match[NORMAL_WID];
-    char *str;
+    char* str;
     int i;
 
     /* Lowercase our search string */
     for (str = name; *str; str++) *str = tolower((unsigned char)*str);
 
     /* For each ego kind race */
-    for (i = 0; i < z_info->e_max; i++)
+    for (i = 1; i < z_info->e_max; i++)
     {
         struct ego_item *ego = &e_info[i];
 
@@ -3035,11 +2870,8 @@ static struct ego_item *item_ego_fuzzy(const struct object *obj, char *name)
 
 static bool tohit_varies(const struct object *obj)
 {
-    /* Normal magic ammo are always +0 +0 */
-    if (tval_is_ammo(obj) && of_has(obj->flags, OF_AMMO_MAGIC)) return false;
-
-    /* Mage weapons and dark swords are always +0 +0 */
-    if (tval_is_mstaff(obj) || tval_is_dark_sword(obj)) return false;
+    /* Magic ammo are always +0 +0 */
+    if (magic_ammo_p(obj)) return false;
 
     /* Missiles and weapons */
     if (tval_is_enchantable_weapon(obj)) return true;
@@ -3095,11 +2927,8 @@ static s16b tohit_max(const struct object *obj)
 
 static bool todam_varies(const struct object *obj)
 {
-    /* Normal magic ammo are always +0 +0 */
-    if (tval_is_ammo(obj) && of_has(obj->flags, OF_AMMO_MAGIC)) return false;
-
-    /* Mage weapons and dark swords are always +0 +0 */
-    if (tval_is_mstaff(obj) || tval_is_dark_sword(obj)) return false;
+    /* Magic ammo are always +0 +0 */
+    if (magic_ammo_p(obj)) return false;
 
     /* Missiles and weapons */
     if (tval_is_enchantable_weapon(obj)) return true;
@@ -3304,7 +3133,7 @@ static void mod_add(struct object *obj, int mod, int incr)
 
             race = &r_info[value];
         }
-        while (!race->name || monster_is_unique(race) ||
+        while (!race->name || rf_has(race->flags, RF_UNIQUE) ||
             (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters) ||
             (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters));
 
@@ -3376,11 +3205,8 @@ static void apply_base_magic(struct object *obj)
     bool great = false;
     int level = z_info->max_depth - 1;
 
-    /* Normal magic ammo are always +0 +0 */
-    if (tval_is_ammo(obj) && of_has(obj->flags, OF_AMMO_MAGIC)) return;
-
-    /* Mage weapons and dark swords are always +0 +0 */
-    if (tval_is_mstaff(obj) || tval_is_dark_sword(obj)) return;
+    /* Magic ammo are always +0 +0 */
+    if (magic_ammo_p(obj)) return;
 
     /* Roll for "great" */
     if (obj->ego) great = true;
@@ -3432,55 +3258,16 @@ static void apply_base_magic(struct object *obj)
 }
 
 
-static struct artifact *item_art_fuzzy(const struct object *obj, char *name)
-{
-    char match[NORMAL_WID];
-    char *str;
-    int i;
-    char *t;
-    struct object_kind *kind;
-
-    /* Get the kind */
-    t = strtok(name, "|");
-    kind = item_kind_fuzzy(t);
-    if (!kind) return NULL;
-
-    /* Get the name */
-    t = strtok(NULL, "|");
-
-    /* Lowercase our search string */
-    for (str = t; *str; str++) *str = tolower((unsigned char)*str);
-
-    /* For each artifact */
-    for (i = 0; i < z_info->a_max; i++)
-    {
-        struct artifact *art = &a_info[i];
-
-        if (!art->name) continue;
-        if (art->created) continue;
-        if (kind != lookup_kind(art->tval, art->sval)) continue;
-
-        /* Clean up its name */
-        clean_name(match, art->name);
-
-        /* If cleaned name matches our search string, return it */
-        if (strstr(match, t)) return art;
-    }
-
-    return NULL;
-}
-
-
 /*
  * Generate something
  */
-static void master_generate(struct player *p, char *parms)
+static void master_generate(struct player *p, char* parms)
 {
     static struct object *obj = NULL;
     static int power;
     static int resist;
     static int mod;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     switch (parms[0])
     {
@@ -3512,6 +3299,22 @@ static void master_generate(struct player *p, char *parms)
                     /* Parse subcommand */
                     switch (parms[2])
                     {
+                        case '#':
+                        {
+                            int k0 = 0;
+
+                            if (parms[3])
+                            {
+                                k0 += (byte)parms[3];
+                                if (parms[4])
+                                {
+                                    k0 += (byte)parms[4];
+                                    if (parms[5]) k0 += (byte)parms[5];
+                                }
+                            }
+                            kind = item_kind(&k_info[k0], GE_IDX);
+                            break;
+                        }
                         case 'n':
                         {
                             kind = item_kind_fuzzy(&parms[3]);
@@ -3538,6 +3341,7 @@ static void master_generate(struct player *p, char *parms)
 
                         /* Prepare the object */
                         object_prep(p, obj, kind, z_info->max_depth - 1, RANDOMISE);
+                        object_flavor_aware(p, obj);
                         apply_base_magic(obj);
 
                         /* Set extra powers */
@@ -3559,6 +3363,11 @@ static void master_generate(struct player *p, char *parms)
                     /* Parse subcommand */
                     switch (parms[2])
                     {
+                        case '#':
+                        {
+                            ego = item_ego(obj, &e_info[(byte)parms[3]], GE_IDX);
+                            break;
+                        }
                         case 'n':
                         {
                             ego = item_ego_fuzzy(obj, &parms[3]);
@@ -3676,7 +3485,12 @@ static void master_generate(struct player *p, char *parms)
                         case 'i':
                         {
                             /* Set unidentified */
-                            if (obj->known) object_free(obj->known);
+                            if (obj->known)
+                            {
+                                free_brand(obj->known->brands);
+                                free_slay(obj->known->slays);
+                                mem_free(obj->known);
+                            }
                             object_set_base_known(p, obj);
                             break;
                         }
@@ -3741,12 +3555,12 @@ static void master_generate(struct player *p, char *parms)
                         }
                         case 'x':
                         {
-                            inc_power(obj, &power, &resist);
+                            inc_power(obj, &power);
                             break;
                         }
                         case 'y':
                         {
-                            inc_resist(obj, &power, &resist);
+                            inc_resist(obj, &resist);
                             break;
                         }
                         case 'm':
@@ -3761,7 +3575,7 @@ static void master_generate(struct player *p, char *parms)
                         }
                         case 'i':
                         {
-                            /* Set known */
+                            /* Set identified */
                             object_notice_everything(p, obj);
                             break;
                         }
@@ -3781,10 +3595,10 @@ static void master_generate(struct player *p, char *parms)
                     obj->number = parms[2];
 
                     /* Set origin */
-                    set_origin(obj, ORIGIN_CHEAT, p->wpos.depth, NULL);
+                    set_origin(obj, ORIGIN_CHEAT, p->depth, 0);
 
                     /* Bypass auto-ignore */
-                    obj->ignore_protect = 1;
+                    obj->allow_ignore = IGNORE_PROTECT;
 
                     /* Initialize some stuff */
                     do_fixed_powers(obj, power, resist);
@@ -3792,9 +3606,7 @@ static void master_generate(struct player *p, char *parms)
                     /* Generate */
                     drop = object_new();
                     object_copy(drop, obj);
-                    if (object_has_standard_to_h(drop)) drop->known->to_h = 1;
-                    if (object_flavor_is_aware(p, drop)) object_id_set_aware(drop);
-                    drop_near(p, c, &drop, 0, &p->grid, true, DROP_FADE);
+                    drop_near(p, c, drop, 0, p->py, p->px, true, DROP_FADE);
 
                     /* Reinitialize some stuff */
                     undo_fixed_powers(obj, power, resist);
@@ -3858,23 +3670,16 @@ static void master_generate(struct player *p, char *parms)
                 }
             }
 
-            if (!v || !v->wid) msg(p, "Vault not found.");
+            if (!v || !v->wid) return;
 
-            /* Forbidden outside of the dungeon */
-            else if (p->wpos.depth == 0) msg(p, "You cannot generate a vault here");
+            /* Forbidden outside of the dungeon (for now) */
+            if (p->depth < 0) return;
 
-            /* Not on quest levels */
-            else if (is_quest(p->wpos.depth)) msg(p, "You cannot generate a vault here");
+            /* Not in town or quest levels */
+            if (!p->depth || is_quest(p->depth)) return;
 
             /* Build a vault with the DM at the top left corner */
-            else
-            {
-                struct loc grid;
-
-                loc_init(&grid, p->grid.x + v->wid / 2, p->grid.y + v->hgt / 2);
-                if (!build_vault(p, c, &grid, v, false))
-                    msg(p, "Vault cannot be generated at this location.");
-            }
+            build_vault(p, c, p->py + v->hgt / 2, p->px + v->wid / 2, v);
 
             break;
         }
@@ -3882,38 +3687,33 @@ static void master_generate(struct player *p, char *parms)
         /* Generate a random artifact */
         case 'r':
         {
-            /* Parse command */
-            switch (parms[1])
-            {
-                /* Generate a random artifact from scratch */
-                case 'n':
-                    create_randart(p, c);
-                    break;
-
-                /* Reroll a random artifact */
-                case 'r':
-                {
-                    reroll_randart(p, c);
-                    break;
-                }
-            }
-
+            create_randart(p, c);
             break;
         }
 
         /* Generate a true artifact */
         case 'a':
         {
-            struct artifact *art = item_art_fuzzy(obj, &parms[1]);
+            byte a_idx = (byte)parms[1];
+
             struct object_kind *kind;
             struct object *obj;
+            struct artifact *art;
 
             /* Paranoia */
-            if (!art) break;
+            if (a_idx >= z_info->a_max) break;
+
+            art = &a_info[a_idx];
+
+            /* Ignore "empty" artifacts */
+            if (!art->name) break;
 
             /* Acquire the "kind" index */
             kind = lookup_kind(art->tval, art->sval);
             if (!kind) break;
+
+            /* Cannot make an artifact twice */
+            if (art->created) break;
 
             /* Get object */
             obj = object_new();
@@ -3934,13 +3734,10 @@ static void master_generate(struct player *p, char *parms)
             set_artifact_info(p, obj, ARTS_GENERATED);
 
             /* Mark as cheat, and where created */
-            set_origin(obj, ORIGIN_CHEAT, p->wpos.depth, NULL);
-
-            if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
-            if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
+            set_origin(obj, ORIGIN_CHEAT, p->depth, 0);
 
             /* Drop the object from heaven */
-            drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE);
+            drop_near(p, c, obj, 0, p->py, p->px, true, DROP_FADE);
 
             break;
         }
@@ -3948,7 +3745,7 @@ static void master_generate(struct player *p, char *parms)
 }
 
 
-static const char *dm_flags_str[17] =
+static const char *dm_flags_str[17] =  
 {
     "Dungeon Master",
     "Presence Hidden",
@@ -3997,7 +3794,7 @@ static bool check_permissions(struct player *p, struct player *who, bool silent)
 }
 
 
-static void master_player(struct player *p, char *parms)
+static void master_player(struct player *p, char* parms)
 {
     static struct player *dm_ptr = NULL;
     static int dm_player_off = 0;
@@ -4081,7 +3878,6 @@ static void master_player(struct player *p, char *parms)
         {
             if (!check_permissions(p, dm_ptr, true)) return;
 
-            if (dm_ptr->poly_race && !dm_ptr->ghost) do_cmd_poly(dm_ptr, NULL, false, true);
             set_ghost_flag(dm_ptr, (dm_ptr->ghost? 0: 1), true);
             dm_ptr->upkeep->redraw |= (PR_BASIC | PR_SPELL);
             dm_ptr->upkeep->update |= (PU_BONUS);
@@ -4106,7 +3902,7 @@ static void master_player(struct player *p, char *parms)
     }
 
     /* Cannot toggle ghost for Dragon players or in fruit bat mode */
-    if (dm_ptr->ghost && (player_has(dm_ptr, PF_DRAGON) || OPT(dm_ptr, birth_fruit_bat)))
+    if (dm_ptr->ghost && (player_has(dm_ptr, PF_DRAGON) || OPT_P(dm_ptr, birth_fruit_bat)))
     {
         Send_special_line(p, 17, 17, 15, COLOUR_WHITE,
             " Error: can't toggle ghost for no-ghost players");
@@ -4135,11 +3931,11 @@ static void master_visuals(struct player *p)
     /* Let the player scroll through the info */
     p->special_file_type = SPECIAL_FILE_OTHER;
 
-    /* Scan the PROJ_XXX types */
-    for (type = 0; type < PROJ_MAX; type++)
+    /* Scan the GF_XXX types */
+    for (type = 0; type < GF_MAX; type++)
     {
         size_t i;
-        const char *proj_name = proj_idx_to_name(type);
+        const char *gf_name = gf_idx_to_name(type);
 
         /* Hack -- special coloring */
         p->info[type][0].a = COLOUR_SPECIAL;
@@ -4153,14 +3949,14 @@ static void master_visuals(struct player *p)
         }
 
         /* Name */
-        for (i = 0; i < strlen(proj_name); i++) p->info[type][i * 2 + 1].c = proj_name[i];
-        p->info[type][strlen(proj_name) * 2 + 1].c = ':';
+        for (i = 0; i < strlen(gf_name); i++) p->info[type][i * 2 + 1].c = gf_name[i];
+        p->info[type][strlen(gf_name) * 2 + 1].c = ':';
 
         for (i = 0; i < BOLT_MAX; i++)
         {
             bool use_gfx = (p->use_graphics && !p->tile_distorted);
-            byte a = (use_gfx? p->proj_attr[type][i]: proj_color(type));
-            char c = (use_gfx? p->proj_char[type][i]: chars[i]);
+            byte a = (use_gfx? p->gf_attr[type][i]: gf_color(type));
+            char c = (use_gfx? p->gf_char[type][i]: chars[i]);
 
             p->info[type][i * 2 + 32].c = a;
             p->info[type][i * 2 + 33].c = c;
@@ -4168,14 +3964,14 @@ static void master_visuals(struct player *p)
     }
 
     /* Last line */
-    p->last_info_line = PROJ_MAX - 1;
+    p->last_info_line = GF_MAX - 1;
 
     /* Let the client know to expect some info */
-    Send_special_other(p, "PROJ_XXX types", 1, true);
+    Send_special_other(p, "GF_XXX types", 1, true);
 }
 
 
-static void master_order(struct player *p, char *parms)
+static void master_order(struct player *p, char* parms)
 {
     static int dm_order = 0;
     char *desc;
@@ -4235,7 +4031,7 @@ static s16b get_idx_from_name(char *s)
 }
 
 
-static void master_debug(struct player *p, char *parms)
+static void master_debug(struct player *p, char* parms)
 {
     /* Analyze the command */
     switch (parms[0])
@@ -4246,11 +4042,9 @@ static void master_debug(struct player *p, char *parms)
             char *t;
             int index = EF_MAX;
             char dice[NORMAL_WID];
-            int subtype = 0, radius = 0, other = 0, y = 0, x = 0;
+            int p1 = 0, p2 = 0, p3 = 0;
             bool ident = false;
             static bool used = true;
-            struct source who_body;
-            struct source *who = &who_body;
 
             /* Get the name */
             t = strtok(&parms[1], "|");
@@ -4263,7 +4057,7 @@ static void master_debug(struct player *p, char *parms)
                 if ((index <= EF_NONE) || (index >= EF_MAX))
                     index = effect_lookup(t);
             }
-            if ((index <= EF_NONE) || (index >= EF_MAX))
+            if (index == EF_MAX)
             {
                 msg(p, "No effect found.");
                 break;
@@ -4278,81 +4072,27 @@ static void master_debug(struct player *p, char *parms)
             t = strtok(NULL, "|");
             if (t)
             {
-                subtype = get_idx_from_name(t);
+                p1 = get_idx_from_name(t);
 
                 /* See if an effect parameter was entered */
-                if (subtype == 0) subtype = effect_subtype(index, t);
-                if (subtype == -1) subtype = 0;
+                if (p1 == 0) p1 = effect_param(index, t);
+                if (p1 == -1) p1 = 0;
             }
             t = strtok(NULL, "|");
-            if (t) radius = get_idx_from_name(t);
+            if (t) p2 = get_idx_from_name(t);
             t = strtok(NULL, "|");
-            if (t) other = get_idx_from_name(t);
-            t = strtok(NULL, "|");
-            if (t) y = get_idx_from_name(t);
-            t = strtok(NULL, "|");
-            if (t) x = get_idx_from_name(t);
+            if (t) p3 = get_idx_from_name(t);
 
             if (used) current_clear(p);
-            source_player(who, get_player_index(get_connection(p->conn)), p);
-            used = effect_simple(index, who, dice, subtype, radius, other, y, x, &ident);
+            used = effect_simple(p, index, dice, p1, p2, p3, &ident, NULL);
             if (ident) msg(p, "Identified!");
-            break;
-        }
-
-        /* Create a trap */
-        case 'T':
-        {
-            struct chunk *c = chunk_get(&p->wpos);
-            struct trap_kind *trap;
-
-            if (!random_level(&p->wpos) || !square_isfloor(c, &p->grid))
-            {
-                msg(p, "You can't place a trap there!");
-                break;
-            }
-
-            trap = lookup_trap(&parms[1]);
-            if (trap) place_trap(c, &p->grid, trap->tidx, 0);
-            else msg(p, "Trap not found.");
-
-            break;
-        }
-
-        /* Advance time */
-        case 'H':
-        {
-            int nbhours = atoi(&parms[1]);
-
-            if ((nbhours >= 1) && (nbhours <= 12))
-            {
-                bool daytime = is_daytime();
-                int i, nbturns = (5 * z_info->day_length * nbhours) / 12;
-
-                ht_add(&turn, nbturns);
-
-                for (i = 1; i <= NumPlayers; i++)
-                {
-                    struct player *player = player_get(i);
-
-                    ht_copy(&get_connection(player->conn)->start, &turn);
-                    ht_add(&player->game_turn, nbturns);
-                    msg(player, "Time advanced by %d hour%s.", nbhours, PLURAL(nbhours));
-                    Send_turn(player, ht_div(&player->game_turn, cfg_fps),
-                        ht_div(&player->player_turn, 1), ht_div(&player->active_turn, 1));
-
-                    if ((player->wpos.depth == 0) && (is_daytime() != daytime))
-                        dusk_or_dawn(player, chunk_get(&player->wpos), is_daytime());
-                }
-            }
-
             break;
         }
     }
 }
 
 
-void do_cmd_master(struct player *p, s16b command, char *buf)
+void do_cmd_master(struct player *p, s16b command, char* buf)
 {
     switch (command)
     {
@@ -4415,15 +4155,15 @@ void do_cmd_master(struct player *p, s16b command, char *buf)
 
 
 /* Find arena by those coordinates */
-int pick_arena(struct worldpos *wpos, struct loc *grid)
+int pick_arena(int depth, int y, int x)
 {
     int i;
 
     for (i = 0; i < num_arenas; i++)
     {
-        if (!wpos_eq(&arenas[i].wpos, wpos)) continue;
-        if (grid->x < arenas[i].grid_1.x || grid->x > arenas[i].grid_2.x) continue;
-        if (grid->y < arenas[i].grid_1.y || grid->y > arenas[i].grid_2.y) continue;
+        if (arenas[i].depth != depth) continue;
+        if (x < arenas[i].x_1 || x > arenas[i].x_2) continue;
+        if (y < arenas[i].y_1 || y > arenas[i].y_2) continue;
 
         /* Found */
         return i;
@@ -4456,7 +4196,7 @@ static int count_arena_opponents(int a)
 /*
  * Access Arena (Player touches its wall in py,px)
  */
-void access_arena(struct player *p, struct loc *grid)
+void access_arena(struct player *p, int py, int px)
 {
     struct player *q;
     int tmp_count, a;
@@ -4491,13 +4231,9 @@ void access_arena(struct player *p, struct loc *grid)
         /* If he is alone, leave */
         if (tmp_count == 1)
         {
-            struct source who_body;
-            struct source *who = &who_body;
-
             msg(p, "You leave the arena.");
             p->arena_num = -1;
-            source_player(who, get_player_index(get_connection(p->conn)), p);
-            effect_simple(EF_TELEPORT, who, "1", 0, 0, 0, 0, 0, NULL);
+            effect_simple(p, EF_TELEPORT, "1", 0, 0, 0, NULL, NULL);
         }
         else
             msg(p, "There is a wall blocking your way.");
@@ -4506,7 +4242,7 @@ void access_arena(struct player *p, struct loc *grid)
     /* Player tries to enter the arena */
     else
     {
-        a = pick_arena(&p->wpos, grid);
+        a = pick_arena(p->depth, py, px);
 
         /* Count players in this arena */
         tmp_count = count_arena_opponents(a);
@@ -4514,14 +4250,10 @@ void access_arena(struct player *p, struct loc *grid)
         /* If arena is not 'full' -- enter it */
         if (tmp_count < 2)
         {
-            struct source who_body;
-            struct source *who = &who_body;
-
             msg(p, "You enter an ancient fighting pit.");
-            source_player(who, get_player_index(get_connection(p->conn)), p);
-            effect_simple(EF_TELEPORT_TO, who, "0", 0, 0, 1,
-                arenas[a].grid_1.y + 1 + randint1(arenas[a].grid_2.y - arenas[a].grid_1.y - 2),
-                arenas[a].grid_1.x + 1 + randint1(arenas[a].grid_2.x - arenas[a].grid_1.x - 2), NULL);
+            effect_simple(p, EF_TELEPORT_TO, "0",
+                arenas[a].y_1 + 1 + randint1(arenas[a].y_2 - arenas[a].y_1 - 2),
+                arenas[a].x_1 + 1 + randint1(arenas[a].x_2 - arenas[a].x_1 - 2), 0, NULL, NULL);
             p->arena_num = a;
 
             /* Both players are ready! */
@@ -4540,7 +4272,7 @@ void access_arena(struct player *p, struct loc *grid)
 }
 
 
-static void format_line(struct player *p, struct source *who, char *line, char *buf, int len)
+static void format_line(struct player *p, struct actor *who, char *line, char* buf, int len)
 {
     const char *poss = player_poss(p);
     const char *refl;
@@ -4572,12 +4304,12 @@ static void format_line(struct player *p, struct source *who, char *line, char *
     /* Monster */
     else
     {
-        if (rf_has(who->monster->race->flags, RF_FEMALE))
+        if (rf_has(who->mon->race->flags, RF_FEMALE))
         {
             poss_t = "her";
             refl_t = "her";
         }
-        else if (rf_has(who->monster->race->flags, RF_MALE))
+        else if (rf_has(who->mon->race->flags, RF_MALE))
         {
             poss_t = "his";
             refl_t = "him";
@@ -4588,7 +4320,7 @@ static void format_line(struct player *p, struct source *who, char *line, char *
             refl_t = "it";
         }
 
-        monster_desc(p, target_name, sizeof(target_name), who->monster, MDESC_DEFAULT);
+        monster_desc(p, target_name, sizeof(target_name), who->mon, MDESC_DEFAULT);
     }
 
     /* Initialize */
@@ -4640,11 +4372,11 @@ void do_cmd_social(struct player *p, const char *buf, int dir)
     char *t;
     char line[NORMAL_WID];
     char text[MSG_LEN];
-    struct source self_body;
-    struct source *self = &self_body;
-    struct source who_body;
-    struct source *who = &who_body;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct actor self_body;
+    struct actor *self = &self_body;
+    struct actor who_body;
+    struct actor *who = &who_body;
+    struct chunk *c = chunk_get(p->depth);
 
     /* Ghosts don't socialize */
     if (p->ghost) return;
@@ -4668,36 +4400,39 @@ void do_cmd_social(struct player *p, const char *buf, int dir)
     if (s->target && dir && VALID_DIR(dir))
     {
         int flg = PROJECT_STOP;
+        int ty, tx;
         int path_n = 0;
         struct loc path_g[512];
-        struct loc grid;
+        int m_idx;
 
         /* Only fire in direction 5 if we have a target */
-        if ((dir == DIR_TARGET) && !target_okay(p)) return;
+        if ((dir == 5) && !target_okay(p)) return;
 
         /* Use the given direction */
-        grid.x = p->grid.x + 99 * ddx[dir];
-        grid.y = p->grid.y + 99 * ddy[dir];
+        tx = p->px + 99 * ddx[dir];
+        ty = p->py + 99 * ddy[dir];
 
         /* Hack -- use an actual "target" */
-        if (dir == DIR_TARGET)
+        if (dir == 5)
         {
             flg &= ~PROJECT_STOP;
-            target_get(p, &grid);
+            target_get(p, &tx, &ty);
         }
 
         /* Calculate the path */
-        path_n = project_path(NULL, path_g, (s->max_dist? s->max_dist: z_info->max_range), c,
-            &p->grid, &grid, flg);
+        path_n = project_path(path_g, (s->max_dist? s->max_dist: z_info->max_range), c, p->py,
+            p->px, ty, tx, flg);
         if (!path_n) return;
 
         /* Get target grid */
-        loc_copy(&grid, &path_g[path_n - 1]);
+        tx = path_g[path_n - 1].x;
+        ty = path_g[path_n - 1].y;
+        m_idx = c->squares[ty][tx].mon;
 
         /* Target found at a reasonable distance */
-        if (square(c, &grid)->mon)
+        if (m_idx)
         {
-            square_actor(c, &grid, who);
+            ACTOR_WHO(who, m_idx, player_get(0 - m_idx), cave_monster(c, m_idx));
 
             /* Get social */
             my_strcpy(text, s->text, sizeof(text));
@@ -4739,7 +4474,7 @@ void do_cmd_social(struct player *p, const char *buf, int dir)
 
     /* Display nearby players line */
     t = strtok(NULL, "#");
-    source_player(self, 0, p);
+    ACTOR_PLAYER(self, 0, p);
     format_line(p, self, t, line, sizeof(line));
     msg_print_complex_near(p, p, MSG_SOCIAL, line);
 }               
@@ -4781,15 +4516,15 @@ void describe_player(struct player *p, struct player *q)
     {
         char buf[N_HIST_WRAP], tmp[N_HIST_WRAP];
 
-        /* Replace "your" with "his/her/its" */
-        strrepall(buf, sizeof(buf), q->history[i], "Your", poss);
-        strrepall(tmp, sizeof(tmp), buf, "your", poss2);
-
-        /* Replace "you" with "he/she/it" */
-        strrepall(buf, sizeof(buf), tmp, "You", pm);
+        /* Replace "you" by "he/she/it" */
+        strrepall(buf, sizeof(buf), q->history[i], "You", pm);
         strrepall(tmp, sizeof(tmp), buf, "you", pm2);
 
-        /* Replace "are/have" with "is/has" */
+        /* Replace "your" by "his/her/its" */
+        strrepall(buf, sizeof(buf), tmp, "Your", poss);
+        strrepall(tmp, sizeof(tmp), buf, "your", poss2);
+
+        /* Replace "are/have" by "is/has" */
         strrepall(buf, sizeof(buf), tmp, "are", "is");
         strrepall(tmp, sizeof(tmp), buf, "have", "has");
 
@@ -4877,24 +4612,24 @@ void describe_feat(struct player *p, struct feature *feat)
 /*
  * Find the attr/char pair to use for a spell effect
  *
- * It is moving (or has moved) from start to end; if the distance is not
+ * It is moving (or has moved) from (x, y) to (nx, ny); if the distance is not
  * "one", we (may) return "*".
  */
-void bolt_pict(struct player *p, struct loc *start, struct loc *end, int typ, byte *a, char *c)
+void bolt_pict(struct player *p, int y, int x, int ny, int nx, int typ, byte *a, char *c)
 {
     int motion;
 
     /* Convert co-ordinates into motion */
-    if (loc_eq(end, start))
+    if ((ny == y) && (nx == x))
         motion = BOLT_NO_MOTION;
-    else if (end->x == start->x)
-        motion = ((end->y < start->y)? BOLT_0: BOLT_180);
-    else if ((end->y - start->y) == (start->x - end->x))
-        motion = ((end->y < start->y)? BOLT_45: BOLT_225);
-    else if (end->y == start->y)
-        motion = ((end->x > start->x)? BOLT_90: BOLT_270);
-    else if ((end->y - start->y) == (end->x - start->x))
-        motion = ((end->x > start->x)? BOLT_135: BOLT_315);
+    else if (nx == x)
+        motion = ((ny < y)? BOLT_0: BOLT_180);
+    else if ((ny - y) == (x - nx))
+        motion = ((ny < y)? BOLT_45: BOLT_225);
+    else if (ny == y)
+        motion = ((nx > x)? BOLT_90: BOLT_270);
+    else if ((ny - y) == (nx - x))
+        motion = ((nx > x)? BOLT_135: BOLT_315);
     else
         motion = BOLT_NO_MOTION;
 
@@ -4905,12 +4640,12 @@ void bolt_pict(struct player *p, struct loc *start, struct loc *end, int typ, by
         char chars[] = "*|/-\\|/-\\";
 
         *c = chars[motion];
-        *a = proj_color(typ);
+        *a = gf_color(typ);
     }
     else
     {
-        *a = p->proj_attr[typ][motion];
-        *c = p->proj_char[typ][motion];
+        *a = p->gf_attr[typ][motion];
+        *c = p->gf_char[typ][motion];
     }
 }
 
@@ -4918,15 +4653,15 @@ void bolt_pict(struct player *p, struct loc *start, struct loc *end, int typ, by
 /*
  * Draw an explosion
  */
-void display_explosion(struct chunk *cv, struct explosion *data, const bool *drawing, bool arc)
+void display_explosion(struct chunk *cv, struct explosion *data, const bool *drawing)
 {
     bool new_radius = false;
     bool drawn[MAX_PLAYERS];
-    int i, j;
-    int proj_type = data->proj_type;
+    int i, y, x, j;
+    int gf_type = data->gf_type;
     int num_grids = data->num_grids;
     const int *distance_to_grid = data->distance_to_grid;
-    struct loc *blast_grid = (struct loc *)data->blast_grid;
+    const struct loc *blast_grid = data->blast_grid;
 
     /* Assume the player has seen no blast grids */
     for (i = 0; i < MAX_PLAYERS; ++i) drawn[i] = false;
@@ -4934,8 +4669,9 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
     /* Draw the blast from inside out */
     for (i = 0; i < num_grids; i++)
     {
-        /* Hack -- don't draw over breather */
-        if (arc && !distance_to_grid[i]) continue;
+        /* Extract the location */
+        y = blast_grid[i].y;
+        x = blast_grid[i].x;
 
         /* Do visuals for all players that can see the blast */
         for (j = 1; j <= NumPlayers; j++)
@@ -4943,13 +4679,13 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
             struct player *p = player_get(j);
 
             /* Skip irrelevant players */
-            if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
+            if (p->depth != cv->depth) continue;
             if (p->timed[TMD_BLIND]) continue;
-            if (!panel_contains(p, &blast_grid[i])) continue;
+            if (!panel_contains(p, y, x)) continue;
             if (p->did_visuals) continue;
 
             /* Only do visuals if the player can see the blast */
-            if (square_isview(p, &blast_grid[i]))
+            if (square_isview(p, y, x))
             {
                 byte a;
                 char c;
@@ -4957,10 +4693,10 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
                 drawn[j] = true;
 
                 /* Obtain the explosion pict */
-                bolt_pict(p, &blast_grid[i], &blast_grid[i], proj_type, &a, &c);
+                bolt_pict(p, y, x, y, x, gf_type, &a, &c);
 
                 /* Just display the pict, ignoring what was under it */
-                draw_path_grid(p, &blast_grid[i], a, c);
+                draw_path_grid(p, y, x, a, c);
             }
         }
 
@@ -4979,7 +4715,7 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
                 struct player *p = player_get(j);
 
                 /* Skip irrelevant players */
-                if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
+                if (p->depth != cv->depth) continue;
                 if (p->timed[TMD_BLIND]) continue;
 
                 /* Delay to show this radius appearing */
@@ -4999,7 +4735,7 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
         struct player *p = player_get(j);
 
         /* Skip irrelevant players */
-        if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
+        if (p->depth != cv->depth) continue;
         if (p->timed[TMD_BLIND]) continue;
 
         /* Erase and flush */
@@ -5008,15 +4744,16 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
             /* Erase the explosion drawn above */
             for (i = 0; i < num_grids; i++)
             {
-                /* Hack -- don't draw over breather */
-                if (arc && !distance_to_grid[i]) continue;
+                /* Extract the location */
+                y = blast_grid[i].y;
+                x = blast_grid[i].x;
 
                 /* Skip irrelevant players */
-                if (!panel_contains(p, &blast_grid[i])) continue;
+                if (!panel_contains(p, y, x)) continue;
 
                 /* Erase visible, valid grids */
-                if (square_isview(p, &blast_grid[i]))
-                    square_light_spot_aux(p, cv, &blast_grid[i]);
+                if (square_isview(p, y, x))
+                    square_light_spot_aux(p, cv, y, x);
             }
 
             /* Flush the explosion */
@@ -5030,7 +4767,7 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
         struct player *p = player_get(j);
 
         /* Skip irrelevant players */
-        if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
+        if (p->depth != cv->depth) continue;
         if (p->timed[TMD_BLIND]) continue;
 
         /* Add one to the count */
@@ -5044,6 +4781,12 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
  */
 void display_bolt(struct chunk *cv, struct bolt *data, bool *drawing)
 {
+    int gf_type = data->gf_type;
+    bool beam = data->beam;
+    int oy = data->oy;
+    int ox = data->ox;
+    int y = data->y;
+    int x = data->x;
     int j;
 
     /* Do visuals for all players that can "see" the bolt */
@@ -5052,31 +4795,31 @@ void display_bolt(struct chunk *cv, struct bolt *data, bool *drawing)
         struct player *p = player_get(j);
 
         /* Skip irrelevant players */
-        if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
+        if (p->depth != cv->depth) continue;
         if (p->timed[TMD_BLIND]) continue;
-        if (!panel_contains(p, &data->grid)) continue;
+        if (!panel_contains(p, y, x)) continue;
         if (p->did_visuals) continue;
 
         /* Only do visuals if the player can "see" the bolt */
-        if (square_isview(p, &data->grid))
+        if (square_isview(p, y, x))
         {
             byte a;
             char c;
 
             /* Obtain the bolt pict */
-            bolt_pict(p, &data->ogrid, &data->grid, data->proj_type, &a, &c);
+            bolt_pict(p, oy, ox, y, x, gf_type, &a, &c);
 
             /* Visual effects */
-            flush_path_grid(p, cv, &data->grid, a, c);
+            flush_path_grid(p, cv->depth, y, x, a, c);
 
             /* Display "beam" grids */
-            if (data->beam)
+            if (beam)
             {
                 /* Obtain the explosion pict */
-                bolt_pict(p, &data->grid, &data->grid, data->proj_type, &a, &c);
+                bolt_pict(p, y, x, y, x, gf_type, &a, &c);
 
                 /* Visual effects */
-                draw_path_grid(p, &data->grid, a, c);
+                draw_path_grid(p, y, x, a, c);
             }
 
             /* Activate delay */
@@ -5095,6 +4838,10 @@ void display_bolt(struct chunk *cv, struct bolt *data, bool *drawing)
  */
 void display_missile(struct chunk *cv, struct missile *data)
 {
+    byte mattr = data->mattr;
+    char mchar = data->mchar;
+    int y = data->y;
+    int x = data->x;
     int k;
 
     /* Display the missile for each player */
@@ -5103,14 +4850,14 @@ void display_missile(struct chunk *cv, struct missile *data)
         struct player *p = player_get(k);
 
         /* Skip irrelevant players */
-        if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
-        if (!panel_contains(p, &data->grid)) continue;
+        if (p->depth != cv->depth) continue;
+        if (!panel_contains(p, y, x)) continue;
 
         /* Only do visuals if the player can "see" the missile */
-        if (square_isseen(p, &data->grid))
+        if (square_isseen(p, y, x))
         {
             /* Draw, Highlight, Fresh, Pause, Erase */
-            flush_path_grid(p, cv, &data->grid, data->mattr, data->mchar);
+            flush_path_grid(p, p->depth, y, x, mattr, mchar);
         }
         else
         {

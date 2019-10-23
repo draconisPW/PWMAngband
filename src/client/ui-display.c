@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Antony Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -256,7 +256,7 @@ static void prt_hp(int row, int col)
 
     if (player->chp >= player->mhp)
         color = COLOUR_L_GREEN;
-    else if (player->chp > (player->mhp * player->opts.hitpoint_warn) / 10)
+    else if (player->chp > (player->mhp * player->other.hitpoint_warn) / 10)
         color = COLOUR_YELLOW;
     else
         color = COLOUR_RED;
@@ -288,7 +288,7 @@ static void prt_sp(int row, int col)
 
     if (player->csp >= player->msp)
         color = COLOUR_L_GREEN;
-    else if (player->csp > (player->msp * player->opts.hitpoint_warn) / 10)
+    else if (player->csp > (player->msp * player->other.hitpoint_warn) / 10)
         color = COLOUR_YELLOW;
     else
         color = COLOUR_RED;
@@ -374,10 +374,10 @@ static void prt_lag(int row, int col)
  */
 static void prt_speed(int row, int col)
 {
-    s16b speed = get_speed(player);
     byte attr = COLOUR_WHITE;
     const char *type = NULL;
     char buf[32] = "";
+    s16b speed = get_speed(player);
 
     /* 0 is normal speed, and requires no display */
     if (speed > 0)
@@ -391,17 +391,7 @@ static void prt_speed(int row, int col)
         type = "Slow";
     }
 
-    if (type)
-    {
-        if (OPT(player, effective_speed))
-        {
-            int multiplier = player->state.ammo_mult;
-
-            strnfmt(buf, sizeof(buf), "%s (%d.%dx)", type, multiplier / 10, multiplier % 10);
-        }
-        else
-            strnfmt(buf, sizeof(buf), "%s (%+d)", type, speed);
-    }
+    if (type) strnfmt(buf, sizeof(buf), "%s (%+d)", type, speed);
 
     /* Display the speed */
     c_put_str(attr, format("%-11s", buf), row, col);
@@ -551,15 +541,14 @@ static void update_statusline(game_event_type type, game_event_data *data, void 
 
 
 /*
- * Display the character on the screen (three different modes)
+ * Display the character on the screen (two different modes)
  *
  * The top two lines, and the bottom line (or two) are left blank.
  *
- * Mode 0 = standard display with skills/history
- * Mode 1 = special display with equipment flags
- * Mode 2 = special display with equipment flags (ESP flags)
+ * Mode false = standard display with skills/history
+ * Mode true = special display with equipment flags
  */
-void display_player_screen(byte mode)
+void display_player_screen(bool mode)
 {
     /* Set the hooks */
     clear_hook = Term_clear;
@@ -622,7 +611,7 @@ static void update_player0_subwindow(game_event_type type, game_event_data *data
     Term_activate(inv_term);
 
     /* Display flags */
-    display_player_screen(0);
+    display_player_screen(false);
 
     Term_fresh();
 
@@ -643,7 +632,7 @@ static void update_player1_subwindow(game_event_type type, game_event_data *data
     Term_activate(inv_term);
 
     /* Display flags */
-    display_player_screen(1);
+    display_player_screen(true);
 
     Term_fresh();
 
@@ -717,7 +706,7 @@ static void update_player_compact_subwindow(game_event_type type, game_event_dat
 
 
 #define TYPE_BROADCAST(type) \
-    (((type) >= MSG_BROADCAST_ENTER_LEAVE) && ((type) <= MSG_BROADCAST_STORE))
+    (((type) >= MSG_BROADCAST_ENTER_LEAVE) && ((type) <= MSG_BROADCAST_FRUITBAT))
 
 
 static void update_messages_subwindow(game_event_type type, game_event_data *data, void *user)
@@ -824,7 +813,7 @@ static void add_chat_message(char **msgs, const char *str, size_t *n, size_t *sz
  * a message is not truncated, it is split in multiple messages of length smaller than
  * NORMAL_WID - 5.
  */
-static void display_chat_message(const char *msg, byte color, int h, int yoff, int *l, int *line)
+void display_chat_message(const char *msg, byte color, int h, int yoff, int *l, int *line)
 {
     char words[MSG_LEN], *p;
     char buf[NORMAL_WID];
@@ -987,12 +976,6 @@ static void update_message_chat_subwindow(game_event_type type, game_event_data 
         {
             /* Hack -- "&say" */
             tab = find_whisper_tab("&say", text, sizeof(text));
-            if (!tab || tab != view_channel) continue;
-        }
-        else if (type == MSG_YELL)
-        {
-            /* Hack -- "&yell" */
-            tab = find_whisper_tab("&yell", text, sizeof(text));
             if (!tab || tab != view_channel) continue;
         }
         else if (!TYPE_BROADCAST(type))
@@ -1203,17 +1186,17 @@ static int dump_spells(int book, int y, int col)
     Term_get_size(&w, &h);
 
     /* Check for end of the book */
-    while (book_info[book].spell_info[i].info[0] != '\0')
+    while (spell_info[book][i].info[0] != '\0')
     {
         /* End of terminal */
         if (y >= h) break;
 
         /* Dump the info */
-        line_attr = book_info[book].spell_info[i].flag.line_attr;
+        line_attr = spell_info[book][i].flag.line_attr;
         if ((line_attr == COLOUR_WHITE) || (line_attr == COLOUR_L_GREEN))
         {
             strnfmt(out_val, sizeof(out_val), "%c-%c) %s", I2A(book), I2A(i),
-                book_info[book].spell_info[i].info);
+                spell_info[book][i].info);
             c_prt(line_attr, out_val, y, col);
             y++;
         }

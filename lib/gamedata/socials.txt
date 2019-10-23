@@ -13,11 +13,12 @@
 
 # === Understanding socials.txt ===
 
-# N: action
+# N: serial number : action
 # I: target: max_dist
 # D: description
 
-# 'N' indicates the beginning of an entry.
+# 'N' indicates the beginning of an entry. The serial number must
+# increase for each new action.
 
 # 'I' is for basic information. The target tells if the action
 # asks for a target or not. The max_dist tells the maximal
@@ -40,7 +41,7 @@
 #   $M = objective (or reflexive), genderized (target)
 
 
-N:accuse
+N:0:accuse
 I:1:5
 D:You accuse yourself.#
 D:$n seems to have a bad conscience.#
@@ -48,17 +49,17 @@ D:You look accusingly at $N.#
 D:$n looks accusingly at $N.#
 D:$n looks accusingly at you.
 
-N:afk
+N:1:afk
 I:0:0
 D:AFK for a moment!#
 D:$n seems to be AFK.
 
-N:applaud
+N:2:applaud
 I:0:0
 D:Clap, clap, clap.#
 D:$n gives a round of applause.
 
-N:beg
+N:3:beg
 I:1:0
 D:You beg the gods for mercy.#
 D:The gods fall down laughing at $n's request for mercy.#
@@ -66,22 +67,22 @@ D:You desperately try to squeeze a few coins from $N.#
 D:$n begs $N for a dime or two.#
 D:$n begs you for money.
 
-N:bleed
+N:4:bleed
 I:0:0
 D:You bleed profusely.#
 D:$n bleeds profusely.
 
-N:blush
+N:5:blush
 I:0:0
 D:Your cheeks are burning.#
 D:$n blushes.
 
-N:bounce
+N:6:bounce
 I:0:0
 D:BOIINNNNNNGG!#
 D:$n bounces around.
 
-N:bow
+N:7:bow
 I:1:5
 D:You bow deeply.#
 D:$n bows deeply.#
@@ -89,32 +90,32 @@ D:You bow before $N.#
 D:$n bows before $N.#
 D:$n bows before you.
 
-N:brb
+N:8:brb
 I:0:0
 D:Come back soon!#
 D:$n will be right back!
 
-N:burp
+N:9:burp
 I:0:0
 D:You burp loudly.#
 D:$n burps loudly.
 
-N:cackle
+N:10:cackle
 I:0:0
 D:You cackle gleefully.#
 D:$n throws back $s head and cackles with insane glee!
 
-N:chuckle
+N:11:chuckle
 I:0:0
 D:You chuckle politely.#
 D:$n chuckles politely.
 
-N:clap
+N:12:clap
 I:0:0
 D:You clap your small hands together.#
 D:$n shows $s approval by clapping $s small hands together.
 
-N:comb
+N:13:comb
 I:1:0
 D:You comb your hair.#
 D:$n combs $s hair.#
@@ -122,7 +123,7 @@ D:You patiently untangle $N's hair.#
 D:$n tries patiently to untangle $N's hair.#
 D:$n pulls your hair in an attempt to comb it.
 
-N:comfort
+N:14:comfort
 I:1:5
 D:Do you feel uncomfortable?#
 D:$n comforts $mself.#
@@ -130,12 +131,12 @@ D:You comfort $N.#
 D:$n comforts $N.#
 D:$n comforts you.
 
-N:cough
+N:15:cough
 I:0:0
 D:Yuck, try to cover your mouth next time!#
 D:$n coughs loudly.
 
-N:cringe
+N:16:cringe
 I:1:0
 D:You cringe in terror.#
 D:$n cringes in terror!#
@@ -143,7 +144,7 @@ D:You cringe away from $N.#
 D:$n cringes away from $N in mortal terror.#
 D:$n cringes away from you.
 
-N:cry
+N:17:cry
 I:1:5
 D:Waaaaah..#
 D:$n bursts into tears.#
@@ -151,7 +152,7 @@ D:You cry on $N's shoulder.#
 D:$n cries on $N's shoulder.#
 D:$n cries on your shoulder.
 
-N:cuddle
+N:18:cuddle
 I:1:5
 D:You must feel very cuddly indeed.#
 D:$n feels very cuddly.#
@@ -159,17 +160,17 @@ D:You cuddle $N.#
 D:$n cuddles $N.#
 D:$n cuddles you.
 
-N:curse
+N:19:curse
 I:0:0
 D:You swear loudly for a long time.#
 D:$n swears.
 
-N:curtsey
+N:20:curtsey
 I:0:0
 D:You curtsey to your audience.#
 D:$n curtseys gracefully.
 
-N:dance
+N:21:dance
 I:1:8
 D:Feels silly, doesn't it?#
 D:$n tries to dance breakdance but nearly breaks $s neck!#
@@ -177,12 +178,12 @@ D:You lead $N to the dancefloor.#
 D:$n sends $N across the dancefloor.#
 D:$n sends you across the dancefloor.
 
-N:daydream
+N:22:daydream
 I:0:0
 D:You dream of better times.#
 D:$n looks absent-minded, $s eyes staring into space.
 
-N:drool
+N:23:drool
 I:1:0
 D:You start to drool.#
 D:$n starts to drool.#
@@ -190,7 +191,7 @@ D:You drool all over $N.#
 D:$n drools all over $N.#
 D:$n drools all over you.
 
-N:embrace
+N:24:embrace
 I:1:0
 D:You embrace yourself??#
 D:$n gives $mself a warm self-embrace.#
@@ -198,17 +199,17 @@ D:You embrace $N warmly.#
 D:$n embraces $N warmly.#
 D:$n embraces you warmly.
 
-N:fart
+N:25:fart
 I:0:0
 D:Where are your manners?#
 D:$n lets off a real rip-roarer!
 
-N:flip
+N:26:flip
 I:0:0
 D:You flip head over heels.#
 D:$n flips head over heels.
 
-N:flirt
+N:27:flirt
 I:1:5
 D:You flirt outrageously.#
 D:$n flirts outragously.#
@@ -216,7 +217,7 @@ D:You flirt outrageously with $N.#
 D:$n flirts outrageously with $N.#
 D:$n flirts outrageously with you.
 
-N:fondle
+N:28:fondle
 I:1:5
 D:You fondly fondle yourself.#
 D:$n fondly fondles $mself.#
@@ -224,7 +225,7 @@ D:You fondly fondle $N.#
 D:$n fondly fondles $N.#
 D:$n fondly fondles you.
 
-N:french
+N:29:french
 I:1:0
 D:You gather yourself in your arms and try to kiss yourself.#
 D:$n makes an attempt at kissing $mself.#
@@ -232,12 +233,12 @@ D:You give $N a long and passionate kiss.#
 D:$n kisses $N passionately.#
 D:$n gives you a long and passionate kiss.
 
-N:frown
+N:30:frown
 I:0:0
 D:What's bothering you?#
 D:$n frowns.
 
-N:fume
+N:31:fume
 I:1:5
 D:Take it easy now!#
 D:$n grits $s teeth and fumes with rage.#
@@ -245,17 +246,17 @@ D:You stare at $N, fuming.#
 D:$n stares at $N, fuming with rage.#
 D:$n stares at you, fuming with rage!
 
-N:gasp
+N:32:gasp
 I:0:0
 D:You gasp in astonishment.#
 D:$n gasps in astonishment.
 
-N:giggle
+N:33:giggle
 I:0:0
 D:You giggle.#
 D:$n giggles.
 
-N:glare
+N:34:glare
 I:1:5
 D:You glare at nothing in particular.#
 D:$n glares around $mself.#
@@ -263,7 +264,7 @@ D:You glare icily at $N.#
 D:$n glares at $N.#
 D:$n glares icily at you.
 
-N:greet
+N:35:greet
 I:1:0
 D:So, you've finally discovered yourself!#
 D:$n greets $mself.#
@@ -271,17 +272,17 @@ D:You greet $N with a light kiss on $S cheek.#
 D:$n greets $N with a light kiss on $S cheek.#
 D:$n greets you with a light kiss on your cheek.
 
-N:grin
+N:36:grin
 I:0:0
 D:You grin evilly.#
 D:$n grins evilly.
 
-N:groan
+N:37:groan
 I:0:0
 D:You groan loudly.#
 D:$n groans loudly.
 
-N:grope
+N:38:grope
 I:1:5
 D:You grope yourself.#
 D:$n gropes $mself.#
@@ -289,7 +290,7 @@ D:You grope $N.#
 D:$n gropes $N.#
 D:$n gropes you.
 
-N:grovel
+N:39:grovel
 I:1:0
 D:You grovel in the dirt.#
 D:$n grovels in the dirt.#
@@ -297,17 +298,17 @@ D:You grovel before $N.#
 D:$n grovels in dirt before $N.#
 D:$n grovels in dirt before you.
 
-N:growl
+N:40:growl
 I:0:0
 D:Grrrrrrrrr...#
 D:$n growls.
 
-N:hiccup
+N:41:hiccup
 I:0:0
 D:*HIC*#
 D:$n hiccups.
 
-N:hug
+N:42:hug
 I:1:5
 D:You hug yourself.#
 D:$n hugs $mself.#
@@ -315,7 +316,7 @@ D:You hug $N.#
 D:$n hugs $N.#
 D:$n hugs you.
 
-N:kiss
+N:43:kiss
 I:1:0
 D:All the lonely people...#
 D:$n feels lonely.#
@@ -323,12 +324,12 @@ D:You kiss $N.#
 D:$n kisses $N.#
 D:$n kisses you.
 
-N:laugh
+N:44:laugh
 I:0:0
 D:You fall down laughing.#
 D:$n falls down laughing.
 
-N:lick
+N:45:lick
 I:1:0
 D:You lick your mouth and smile.#
 D:$n licks $s mouth and smiles.#
@@ -336,17 +337,17 @@ D:You lick $N.#
 D:$n licks $N.#
 D:$n licks you.
 
-N:lmao
+N:46:lmao
 I:0:0
 D:You laugh your ass off.#
 D:$n laughs $s ass off.
 
-N:lol
+N:47:lol
 I:0:0
 D:You laugh out loud.#
 D:$n laughs out loud.
 
-N:love
+N:48:love
 I:1:0
 D:You love the whole world.#
 D:$n loves everybody in the world.#
@@ -354,7 +355,7 @@ D:You tell your true feelings to $N.#
 D:$n whispers softly to $N.#
 D:$n whispers to you sweet words of love.
 
-N:massage
+N:49:massage
 I:1:0
 D:You practise yoga as you try to massage yourself.#
 D:$n gives a show on yoga-positions, trying to massage $mself.#
@@ -362,12 +363,12 @@ D:You gently massage $N's shoulders.#
 D:$n massages $N's shoulders.#
 D:$n gently massages your shoulders.
 
-N:moan
+N:50:moan
 I:0:0
 D:You start to moan.#
 D:$n starts moaning.
 
-N:nibble
+N:51:nibble
 I:1:0
 D:You nibble... on your OWN ear?#
 D:$n nibbles... on $s OWN ear!#
@@ -375,12 +376,12 @@ D:You nibbles on $N's ear.#
 D:$n nibbles on $N's ear.#
 D:$n nibbles on your ear.
 
-N:nod
+N:52:nod
 I:0:0
 D:You nod solemnly.#
 D:$n nods solemnly.
 
-N:nudge
+N:53:nudge
 I:1:0
 D:Well, just nudge yourself, but how do you get your elbow in that position?#
 D:$n nudges $mself with $s elbows, looking like a large chicken.#
@@ -388,7 +389,7 @@ D:You nudge $N with your elbow.#
 D:$n nudges $N suggestively with $s elbow.#
 D:$n nudges you suggestively.
 
-N:nuzzle
+N:54:nuzzle
 I:1:5
 D:I'm sorry, friend, but there's nobody around.#
 D:$n tries to nuzzle up against someone, but there's nobody around.#
@@ -396,7 +397,7 @@ D:You nuzzle $N's neck softly.#
 D:$n softly nuzzles $N's neck.#
 D:$n softly nuzzles your neck.
 
-N:pat
+N:55:pat
 I:1:0
 D:You pat yourself on your head.#
 D:$n pats $mself on the head.#
@@ -404,12 +405,12 @@ D:You pat $N on $S head.#
 D:$n pats $N on $S head.#
 D:$n pats you on your head.
 
-N:peer
+N:56:peer
 I:0:0
 D:You peer around you.#
 D:$n peers around.
 
-N:point
+N:57:point
 I:1:0
 D:You point at yourself.#
 D:$n points at $mself.#
@@ -417,7 +418,7 @@ D:You point at $N.#
 D:$n muffles a laugh, pointing at $N.#
 D:$n points at you.
 
-N:poke
+N:58:poke
 I:1:0
 D:You poke yourself in the ribs.#
 D:$n pokes $mself in the ribs.#
@@ -425,17 +426,17 @@ D:You poke $N in the ribs.#
 D:$n pokes $N in the ribs.#
 D:$n pokes you in the ribs.
 
-N:ponder
+N:59:ponder
 I:0:0
 D:You ponder over matters as they appear to you at this moment.#
 D:$n sinks deeply into $s own thoughts.
 
-N:pout
+N:60:pout
 I:0:0
 D:Ah, don't take it so hard.#
 D:$n pouts.
 
-N:pray
+N:61:pray
 I:1:0
 D:You feel righteous, and maybe a little foolish.#
 D:$n begs and grovels to the powers that be.#
@@ -443,7 +444,7 @@ D:You crawl in the dust before $N.#
 D:$n falls down and grovels in the dirt before $N.#
 D:$n kisses the dirt at your feet.
 
-N:puke
+N:62:puke
 I:1:0
 D:You puke on yourself.#
 D:$n pukes on $s clothes.#
@@ -451,7 +452,7 @@ D:You puke on $N.#
 D:$n pukes on $N.#
 D:$n pukes on your clothes!
 
-N:punch
+N:63:punch
 I:1:0
 D:Punch the air?#
 D:$n starts shadow-boxing.#
@@ -459,22 +460,22 @@ D:You punch $N right in the face!#
 D:$n punches weakly at $N.#
 D:$n tries a punch at you.
 
-N:purr
+N:64:purr
 I:0:0
 D:MMMMEEEEEEEEOOOOOOOOOWWWWWWWWWWWW.#
 D:$n purrs contentedly.
 
-N:rofl
+N:65:rofl
 I:0:0
 D:You roll on the floor laughing.#
 D:$n rolls on the floor laughing.
 
-N:roflmao
+N:66:roflmao
 I:0:0
 D:You roll on the floor laughing your ass off.#
 D:$n rolls on the floor laughing $s ass off.
 
-N:roll
+N:67:roll
 I:1:0
 D:You roll your eyes in disgust.#
 D:$n rolls $s eyes in disgust.#
@@ -482,7 +483,7 @@ D:You look at $N and roll your eyes in disgust.#
 D:$n looks at $N in contempt and rolls $s eyes with disgust.#
 D:$n stares at you and rolls $s eyes in digust.
 
-N:ruffle
+N:68:ruffle
 I:1:0
 D:You ruffle your hair.#
 D:$n ruffles $s hair.#
@@ -490,12 +491,12 @@ D:You ruffle $N's hair playfully.#
 D:$n ruffles $N's hair playfully.#
 D:$n ruffles your hair playfully.
 
-N:scream
+N:69:scream
 I:0:0
 D:ARRRRRRRRRGH!!!#
 D:$n screams loudly!
 
-N:shake
+N:70:shake
 I:1:5
 D:You shake your head.#
 D:$n shakes $s head.#
@@ -503,27 +504,27 @@ D:You shake $N's hand.#
 D:$n shakes $N's hand.#
 D:$n shakes your hand.
 
-N:shiver
+N:71:shiver
 I:0:0
 D:Brrrrrrrr.#
 D:$n shivers uncomfortably.
 
-N:shrug
+N:72:shrug
 I:0:0
 D:You shrug.#
 D:$n shrugs helplessly.
 
-N:sigh
+N:73:sigh
 I:0:0
 D:You sigh.#
 D:$n sighs loudly.
 
-N:sing
+N:74:sing
 I:0:0
 D:You raise your clear voice towards the sky.#
 D:$n begins to sing.
 
-N:slap
+N:75:slap
 I:1:0
 D:You slap yourself.#
 D:$n slaps $mself.#
@@ -531,7 +532,7 @@ D:You slap $N.#
 D:$n slaps $N.#
 D:You are slapped by $n.
 
-N:smile
+N:76:smile
 I:1:0
 D:You smile happily.#
 D:$n smiles happily.#
@@ -539,17 +540,17 @@ D:You smile at $N.#
 D:$n beams a smile at $N.#
 D:$n smiles at you.
 
-N:smirk
+N:77:smirk
 I:0:0
 D:You smirk.#
 D:$n smirks.
 
-N:snap
+N:78:snap
 I:0:0
 D:You snap your fingers.#
 D:$n snaps $s fingers.
 
-N:snarl
+N:79:snarl
 I:1:0
 D:You snarl like a viscious animal.#
 D:$n snarls like a cornered, viscious animal.#
@@ -557,27 +558,27 @@ D:You snarl at $N angrily.#
 D:$n snarls angrily at $N.#
 D:$n snarls viciously at you.
 
-N:sneeze
+N:80:sneeze
 I:0:0
 D:Gesundheit!#
 D:$n sneezes.
 
-N:snicker
+N:81:snicker
 I:0:0
 D:You snicker softly.#
 D:$n snickers softly.
 
-N:sniff
+N:82:sniff
 I:0:0
 D:You sniff sadly.#
 D:$n sniffs sadly.
 
-N:snore
+N:83:snore
 I:0:0
 D:Zzzzzzzzzzzzzzzzz.#
 D:$n snores loudly.
 
-N:snowball
+N:84:snowball
 I:1:0
 D:You conjure a snowball from thin air and throw it at yourself.#
 D:$n conjures a snowball from thin air and throws it at $mself.#
@@ -585,7 +586,7 @@ D:You throw a snowball in $N's face.#
 D:$n conjures a snowball from thin air and throws it at $N.#
 D:$n conjures a snowball from thin air and throws it at you.
 
-N:snuggle
+N:85:snuggle
 I:1:5
 D:I'm sorry, friend, but there's nobody around.#
 D:$n tries to snuggle up to someone, but there's nobody around...#
@@ -593,7 +594,7 @@ D:You snuggle $N.#
 D:$n snuggles up to $N.#
 D:$n snuggles up to you.
 
-N:spank
+N:86:spank
 I:1:8
 D:You spank the thin air with a flat hand.#
 D:$n spanks the thin air with a flat hand.#
@@ -601,7 +602,7 @@ D:You spank $N vigorously, long and hard.#
 D:$n spanks $N over $s knee.#
 D:$n spanks you long and hard.
 
-N:spit
+N:87:spit
 I:1:0
 D:You spit over your left shoulder.#
 D:$n spits over $s left shoulder.#
@@ -609,7 +610,7 @@ D:You spit on $N.#
 D:$n spits in $N's face.#
 D:$n spits in your face.
 
-N:squeeze
+N:88:squeeze
 I:1:0
 D:You squeeze yourself.#
 D:$n squeezes $mself.#
@@ -617,7 +618,7 @@ D:You squeeze $N fondly.#
 D:$n squeezes $N fondly.#
 D:$n squeezes you fondly.
 
-N:stare
+N:89:stare
 I:1:5
 D:You stare at the sky.#
 D:$n stares at the sky.#
@@ -625,12 +626,12 @@ D:You stare dreamily at $N, completely lost in $S eyes.#
 D:$n stares dreamily at $N.#
 D:$n stares dreamily at you, completely lost in your eyes.
 
-N:steam
+N:90:steam
 I:0:0
 D:You let out some steam.#
 D:$n lets out a lot of steam.
 
-N:stroke
+N:91:stroke
 I:1:0
 D:You are about to do something you would rather not be caught doing.#
 D:$n starts to do something disgusting and then stops.#
@@ -638,17 +639,17 @@ D:You gently stroke $N's inner thigh.#
 D:$n gently strokes $N's inner thigh...#
 D:$n gently strokes your inner thigh with feathery touches.
 
-N:strut
+N:92:strut
 I:0:0
 D:Strut your stuff.#
 D:$n struts proudly.
 
-N:sulk
+N:93:sulk
 I:0:0
 D:You sulk.#
 D:$n sulks in the corner.
 
-N:tackle
+N:94:tackle
 I:1:5
 D:You tackle the air.#
 D:$n starts running around $mself in an attempt to tackle the air.#
@@ -656,7 +657,7 @@ D:You ruthlessly tackle $N to the ground.#
 D:$n ruthlessly tackles $N, pinning $M to the ground.#
 D:$n suddenly lunges at you and tackles you to the ground!
 
-N:tango
+N:95:tango
 I:1:8
 D:Feels rather stupid, doesn't it?#
 D:$n puts a rose between $s teeth and tries to tango with $mself.#
@@ -664,7 +665,7 @@ D:You put a rose between your teeth and tango with $N seductively.#
 D:$n puts a rose between $s teeth and tangos with $N seductively.#
 D:$n puts a rose between $s teeth and tangos with you seductively.
 
-N:taunt
+N:96:taunt
 I:1:0
 D:You taunt yourself, almost making you cry.#
 D:$n taunts $mself to tears.#
@@ -672,7 +673,7 @@ D:You taunt $N, to your own delight.#
 D:$n taunts $N rather insultingly.#
 D:$n taunts you.
 
-N:thank
+N:97:thank
 I:1:5
 D:You thank yourself since nobody else wants to!#
 D:$n thanks $mself since you won't.#
@@ -680,7 +681,7 @@ D:You thank $N heartily.#
 D:$n thanks $N heartily.#
 D:$n thanks you heartily.
 
-N:think
+N:98:think
 I:1:0
 D:You think about life, the universe and everything.#
 D:$n sinks deeply into thought about the meaning of life.#
@@ -688,7 +689,7 @@ D:You think about what purpose $N has in relation to your life.#
 D:$n stops and thinks about $N, completely lost in thought.#
 D:Your ears burn as $n thinks about you.
 
-N:tickle
+N:99:tickle
 I:1:0
 D:You tickle yourself.#
 D:$n tickles $mself.#
@@ -696,12 +697,12 @@ D:You tickle $N.#
 D:$n tickles $N.#
 D:$n tickles you.
 
-N:twiddle
+N:100:twiddle
 I:0:0
 D:You patiently twiddle your thumbs.#
 D:$n patiently twiddles $s thumbs.
 
-N:wave
+N:101:wave
 I:1:0
 D:You wave.#
 D:$n waves happily.#
@@ -709,22 +710,22 @@ D:You wave goodbye to $N.#
 D:$n waves goodbye to $N.#
 D:$n waves goodbye to you.
 
-N:whine
+N:102:whine
 I:0:0
 D:You whine pitifully.#
 D:$n whines pitifully about the whole situation.
 
-N:whistle
+N:103:whistle
 I:0:0
 D:You whistle appreciatively.#
 D:$n whistles appreciatively.
 
-N:wiggle
+N:104:wiggle
 I:0:0
 D:Your wiggle your bottom.#
 D:$n wiggles $s bottom.
 
-N:wink
+N:105:wink
 I:1:5
 D:Have you got something in your eye?#
 D:$n winks suggestively.#
@@ -732,7 +733,7 @@ D:You wink suggestively at $N.#
 D:$n winks at $N.#
 D:$n winks suggestively at you.
 
-N:worship
+N:106:worship
 I:1:5
 D:You find yourself head-down in the dirt, worshipping.#
 D:$n starts worshipping $s god.#
@@ -740,12 +741,12 @@ D:You fall to your knees and worship $N deeply.#
 D:$n falls to $s knees, worshipping $N with uncanny dedication.#
 D:$n kneels before you in solemn worship.
 
-N:yawn
+N:107:yawn
 I:0:0
 D:Gosh, will you trade those teeth for mine??#
 D:$n yawns.
 
-N:yodel
+N:108:yodel
 I:0:0
 D:You start yodelling loudly and rather beautifully in your own ears.#
 D:$n starts a yodelling session that goes right to the bone.

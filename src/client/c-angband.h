@@ -36,7 +36,6 @@
 #include "ui-birth.h"
 #include "ui-command.h"
 #include "ui-context.h"
-#include "ui-curse.h"
 #include "ui-death.h"
 #include "ui-display.h"
 #include "ui-game.h"

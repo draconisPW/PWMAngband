@@ -3,7 +3,7 @@
  * Purpose: Game core management of the game world
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -79,22 +79,6 @@ bool is_daytime(void)
 }
 
 
-void dusk_or_dawn(struct player *p, struct chunk *c, bool dawn)
-{
-    /* Day breaks */
-    if (dawn) msg(p, "The sun has risen.");
-
-    /* Night falls */
-    else msg(p, "The sun has fallen.");
-
-    /* Clear the flags for each cave grid */
-    player_cave_clear(p, false);
-
-    /* Illuminate */
-    cave_illuminate(p, c, dawn);
-}
-
-
 /*
  * The amount of energy gained in a turn by a player or monster
  */
@@ -124,7 +108,7 @@ static void recharged_notice(struct player *p, const struct object *obj, bool al
 {
     char o_name[NORMAL_WID];
 
-    if (!OPT(p, notify_recharge)) return;
+    if (!OPT_P(p, notify_recharge)) return;
 
     /* Describe (briefly) */
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_BASE);
@@ -247,56 +231,62 @@ static void recharge_objects(struct player *p)
 
 
 /*
- * Play an ambient sound dependent on dungeon level, and day or night in towns
+ * Play an ambient sound dependent on dungeon level, and day or night in town
  */
 static void play_ambient_sound(struct player *p)
 {
-    if (p->wpos.depth == 0)
+    if (p->depth < 0)
     {
-        if (in_town(&p->wpos))
+        switch (wild_info[p->depth].type)
         {
-            if (is_daytime())
-                sound(p, MSG_AMBIENT_DAY);
-            else
-                sound(p, MSG_AMBIENT_NITE);
+            case WILD_SHORE: sound(p, MSG_WILD_SHORE); break;
+            case WILD_GRASS: sound(p, MSG_WILD_GRASS); break;
+            case WILD_WOOD: sound(p, MSG_WILD_WOOD); break;
+            case WILD_SWAMP: sound(p, MSG_WILD_SWAMP); break;
+            case WILD_WASTE: sound(p, MSG_WILD_WASTE); break;
+            case WILD_MOUNTAIN: sound(p, MSG_WILD_MOUNTAIN); break;
+            case WILD_VOLCANO: sound(p, MSG_WILD_VOLCANO); break;
         }
-        else
-            sound(p, wf_info[get_wt_info_at(&p->wpos.grid)->type].sound_idx);
     }
-    else if (p->wpos.depth <= 20)
+    else if (!p->depth)
+    {
+        if (is_daytime())
+            sound(p, MSG_AMBIENT_DAY);
+        else
+            sound(p, MSG_AMBIENT_NITE);
+    }
+    else if (p->depth <= 20)
         sound(p, MSG_AMBIENT_DNG1);
-    else if (p->wpos.depth <= 40)
+    else if (p->depth <= 40)
         sound(p, MSG_AMBIENT_DNG2);
-    else if (p->wpos.depth <= 60)
+    else if (p->depth <= 60)
         sound(p, MSG_AMBIENT_DNG3);
-    else if (p->wpos.depth <= 80)
+    else if (p->depth <= 80)
         sound(p, MSG_AMBIENT_DNG4);
-    else if (p->wpos.depth <= 98)
+    else if (p->depth <= 98)
         sound(p, MSG_AMBIENT_DNG5);
-    else if (p->wpos.depth == 99)
+    else if (p->depth == 99)
         sound(p, MSG_AMBIENT_SAURON);
-    else if (p->wpos.depth == 100)
+    else if (p->depth == 100)
         sound(p, MSG_AMBIENT_MORGOTH);
-    else if (p->wpos.depth <= 124)
+    else if (p->depth <= 125)
         sound(p, MSG_AMBIENT_DNG6);
-    else if (p->wpos.depth == 125)
+    else if (p->depth == 126)
         sound(p, MSG_AMBIENT_SENYA);
-    else if (p->wpos.depth == 126)
-        sound(p, MSG_AMBIENT_XAKAZE);
     else
-        sound(p, MSG_AMBIENT_MELKOR);
+        sound(p, MSG_AMBIENT_XAKAZE);
 }
 
 
 /*
- * Helper for process_player -- decrement p->timed[] and curse effect fields.
+ * Helper for process_player -- decrement p->timed[] fields.
  */
 static void decrease_timeouts(struct player *p, struct chunk *c)
 {
     int adjust = (adj_con_fix[p->state.stat_ind[STAT_CON]] + 1);
     int i;
 
-    /* Most timed effects decrement by 1 */
+    /* Most effects decrement by 1 */
     for (i = 0; i < TMD_MAX; i++)
     {
         int decr = 1;
@@ -325,7 +315,7 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
             case TMD_WRAITHFORM:
             {
                 /* Hack -- must be in bounds */
-                if (!chunk_has_players(&c->wpos) || !square_in_bounds_fully(c, &p->grid))
+                if (!chunk_has_players(p->depth) || !square_in_bounds_fully(c, p->py, p->px))
                     decr = 0;
                 break;
             }
@@ -337,33 +327,6 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
         /* Decrement the effect */
         if (decr > 0) player_dec_timed(p, i, decr, false);
     }
-
-    /* Curse effects always decrement by 1 */
-    for (i = 0; i < p->body.count; i++)
-    {
-        struct curse_data *curse = NULL;
-        int j;
-
-        if (p->body.slots[i].obj == NULL) continue;
-        curse = p->body.slots[i].obj->curses;
-        for (j = 0; curse && (j < z_info->curse_max); j++)
-        {
-            if (curse[j].power == 0) continue;
-            if (curse[j].timeout == 0) continue;
-            curse[j].timeout--;
-            if (!curse[j].timeout)
-            {
-                do_curse_effect(p, j);
-                curse[j].timeout = randcalc(curses[j].obj->time, 0, RANDOMISE);
-            }
-        }
-    }
-
-    /* Spell cooldown */
-    for (i = 0; i < p->clazz->magic.total_spells; i++)
-    {
-        if (p->spell_cooldown[i]) p->spell_cooldown[i]--;
-    }
 }
 
 
@@ -372,8 +335,7 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
  */
 static void process_world(struct player *p, struct chunk *c)
 {
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x;
 
     if (!p)
     {
@@ -385,26 +347,6 @@ static void process_world(struct player *p, struct chunk *c)
         if (cave_monster_count(c) + 32 < cave_monster_max(c))
             compact_monsters(c, 0);
 
-        loc_init(&begin, 0, 0);
-        loc_init(&end, c->width, c->height);
-        loc_iterator_first(&iter, &begin, &end);
-
-        /* Decrease trap timeouts */
-        do
-        {
-            struct trap *trap = square(c, &iter.cur)->trap;
-            while (trap)
-            {
-                if (trap->timeout)
-                {
-                    trap->timeout--;
-                    if (!trap->timeout) square_light_spot(c, &iter.cur);
-                }
-                trap = trap->next;
-            }
-        }
-        while (loc_iterator_next_strict(&iter));
-
         return;
     }
 
@@ -413,36 +355,44 @@ static void process_world(struct player *p, struct chunk *c)
     /* Play an ambient sound at regular intervals. */
     if (!(turn.turn % ((10L * z_info->day_length) / 4))) play_ambient_sound(p);
 
-    /* Daybreak/Nighfall in towns or wilderness */
-    if ((p->wpos.depth == 0) && !(turn.turn % ((10L * z_info->day_length) / 2)))
+    /* Daybreak/Nighfall in town or wilderness */
+    if ((p->depth <= 0) && !(turn.turn % ((10L * z_info->day_length) / 2)))
     {
         bool dawn;
 
         /* Check for dawn */
         dawn = (!(turn.turn % (10L * z_info->day_length)));
 
-        dusk_or_dawn(p, c, dawn);
+        /* Day breaks */
+        if (dawn) msg(p, "The sun has risen.");
 
-        loc_init(&begin, 0, 0);
-        loc_init(&end, c->width, c->height);
-        loc_iterator_first(&iter, &begin, &end);
+        /* Night falls */
+        else msg(p, "The sun has fallen.");
+
+        /* Clear the flags for each cave grid */
+        player_cave_clear(p, false);
+
+        /* Illuminate */
+        cave_illuminate(p, c, dawn);
 
         /* Hack -- regenerate crops */
-        do
+        for (y = 0; y < c->height; y++)
         {
-            /* Regenerate crops */
-            if (square_iscrop(c, &iter.cur) && !square_object(c, &iter.cur) &&
-                !square(c, &iter.cur)->mon && dawn && one_in_(16))
+            for (x = 0; x < c->width; x++)
             {
-                /* Add crop to that location */
-                wild_add_crop(c, &iter.cur, randint0(7));
+                /* Regenerate crops */
+                if (square_iscrop(c, y, x) && !square_object(c, y, x) && !c->squares[y][x].mon &&
+                    dawn && one_in_(16))
+                {
+                    /* Add crop to that location */
+                    wild_add_crop(c, x, y, randint0(7));
+                }
             }
         }
-        while (loc_iterator_next_strict(&iter));
     }
 
     /* Hack -- DM redesigning the level */
-    if (chunk_inhibit_players(&p->wpos)) return;
+    if (chunk_inhibit_players(p->depth)) return;
 
     /* Every ten turns */
     if (turn.turn % 10) return;
@@ -455,17 +405,143 @@ static void process_world(struct player *p, struct chunk *c)
 
     /* Check for creature generation */
     /* Hack -- increase respawn rate on no_recall servers */
-    if (one_in_((cfg_diving_mode == 3)? z_info->alloc_monster_chance / 4:
-        z_info->alloc_monster_chance))
+    if (one_in_(cfg_no_recall? z_info->alloc_monster_chance / 4: z_info->alloc_monster_chance))
     {
-        if (in_wild(&p->wpos))
+        if (p->depth >= 0)
+            pick_and_place_distant_monster(p, c, z_info->max_sight + 5, MON_SLEEP);
+        else
+            wild_add_monster(p, c);
+    }
+}
+
+
+/*
+ * Check for nearby players/monsters and attack the current target.
+ */
+static void auto_retaliate(struct player *p, struct chunk *c)
+{
+    int i, n = 0, target_x[8], target_y[8];
+    int tx, ty, m_idx;
+    bool found = false;
+    struct actor *health_who = &p->upkeep->health_who;
+    struct actor who_body;
+    struct actor *who = &who_body;
+
+    /* Hack -- shoppers don't auto-retaliate */
+    if (in_store(p)) return;
+
+    /* The dungeon master does not auto-retaliate */
+    if (p->dm_flags & DM_MONSTER_FRIEND) return;
+
+    /* Not while confused */
+    if (p->timed[TMD_CONFUSED]) return;
+
+    /* Check preventive inscription '^O' */
+    if (check_prevent_inscription(p, INSCRIPTION_RETALIATE)) return;
+
+    /* Try to find valid targets around us */
+    for (i = 0; i < 8; i++)
+    {
+        bool hostile, visible, mimicking;
+
+        /* Current location */
+        tx = p->px + ddx_ddd[i];
+        ty = p->py + ddy_ddd[i];
+        m_idx = c->squares[ty][tx].mon;
+
+        /* Paranoia */
+        if (!square_in_bounds_fully(c, ty, tx)) continue;
+
+        /* Nobody here */
+        if (!m_idx) continue;
+
+        ACTOR_WHO(who, m_idx, player_get(0 - m_idx), cave_monster(c, m_idx));
+
+        /* Target info */
+        if (who->player)
         {
-            /* Respawn residents in the wilderness outside of town areas */
-            if (!town_area(&p->wpos)) wild_add_monster(p, c);
+            hostile = pvp_check(p, who->player, PVP_CHECK_BOTH, true, c->squares[ty][tx].feat);
+            visible = mflag_has(p->pflag[who->idx], MFLAG_VISIBLE);
+            mimicking = (who->player->k_idx != 0);
         }
         else
-            pick_and_place_distant_monster(p, c, z_info->max_sight + 5, MON_ASLEEP);
+        {
+            hostile = pvm_check(p, who->mon);
+            visible = mflag_has(p->mflag[who->idx], MFLAG_VISIBLE);
+            mimicking = is_mimicking(who->mon);
+        }
+
+        /* If hostile and visible, it's a fair target (except unaware mimics) */
+        if (hostile && visible && !mimicking)
+        {
+            target_x[n] = tx;
+            target_y[n] = ty;
+            n++;
+        }
     }
+
+    /* No valid target around */
+    if (!n) return;
+
+    /* If there's a current target, attack it (always) */
+    if (!ACTOR_NULL(health_who))
+    {
+        for (i = 0; i < n; i++)
+        {
+            /* Current location */
+            tx = target_x[i];
+            ty = target_y[i];
+            m_idx = c->squares[ty][tx].mon;
+
+            /* Not the current target */
+            ACTOR_WHO(who, m_idx, player_get(0 - m_idx), cave_monster(c, m_idx));
+            if (!ACTOR_EQUAL(health_who, who)) continue;
+
+            /* Current target found */
+            found = true;
+            break;
+        }
+    }
+
+    /* If there's at least one valid target around, attack one (active auto-retaliator only) */
+    if (OPT_P(p, active_auto_retaliator) && !found)
+    {
+        /* Choose randomly */
+        i = randint0(n);
+        tx = target_x[i];
+        ty = target_y[i];
+        m_idx = c->squares[ty][tx].mon;
+        ACTOR_WHO(who, m_idx, player_get(0 - m_idx), cave_monster(c, m_idx));
+        found = true;
+    }
+
+    /* No current target */
+    if (!found) return;
+
+    /* Handle player fear */
+    if (player_of_has(p, OF_AFRAID))
+    {
+        char target_name[NORMAL_WID];
+
+        if (who->mon)
+            monster_desc(p, target_name, sizeof(target_name), who->mon, MDESC_DEFAULT);
+        else
+            my_strcpy(target_name, who->player->name, sizeof(target_name));
+
+        /* Message (only once per player turn) */
+        if (!p->is_afraid)
+            msgt(p, MSG_AFRAID, "You are too afraid to attack %s!", target_name);
+        p->is_afraid = true;
+
+        /* Done */
+        return;
+    }
+
+    /* Attack the current target */
+    py_attack(p, c, ty, tx);
+
+    /* Take a turn */
+    use_energy(p);
 }
 
 
@@ -478,179 +554,13 @@ static void digest_food(struct player *p)
     if (p->ghost) return;
 
     /* Don't use food in towns */
-    if (forbid_town(&p->wpos)) return;
+    if (forbid_town(p->depth)) return;
 
-    /* Don't use food near towns (to avoid starving in one's own house) */
-    if (town_area(&p->wpos)) return;
+    /* Don't use food near town (to avoid starving in one's own house) */
+    if (town_area(p->depth)) return;
 
     /* Digest some food */
     player_set_food(p, p->food - player_digest(p));
-}
-
-
-/*
- * Every turn, the character makes enough noise that nearby monsters can use
- * it to home in.
- *
- * This function actually just computes distance from the player; this is
- * used in combination with the player's stealth value to determine what
- * monsters can hear. We mark the player's grid with 0, then fill in the noise
- * field of every grid that the player can reach with that "noise"
- * (actually distance) plus the number of steps needed to reach that grid,
- * so higher values mean further from the player.
- *
- * Monsters use this information by moving to adjacent grids with lower noise
- * values, thereby homing in on the player even though twisty tunnels and
- * mazes. Monsters have a hearing value, which is the largest sound value
- * they can detect.
- */
-static void make_noise(struct player *p)
-{
-    struct loc next;
-    int y, x, d;
-    int noise = 0;
-    struct queue *queue = q_new(p->cave->height * p->cave->width);
-    struct chunk *c = chunk_get(&p->wpos);
-    struct loc *decoy = cave_find_decoy(c);
-
-    loc_copy(&next, &p->grid);
-
-    /* Set all the grids to silence */
-    for (y = 1; y < p->cave->height - 1; y++)
-        for (x = 1; x < p->cave->width - 1; x++)
-            p->cave->noise.grids[y][x] = 0;
-
-    /* If there's a decoy, use that instead of the player */
-    if (!loc_is_zero(decoy)) loc_copy(&next, decoy);
-
-    /* Player makes noise */
-    p->cave->noise.grids[next.y][next.x] = noise;
-    q_push_int(queue, grid_to_i(&next, p->cave->width));
-    noise++;
-
-    /* Propagate noise */
-    while (q_len(queue) > 0)
-    {
-        /* Get the next grid */
-        i_to_grid(q_pop_int(queue), p->cave->width, &next);
-
-        /* If we've reached the current noise level, put it back and step */
-        if (p->cave->noise.grids[next.y][next.x] == noise)
-        {
-            q_push_int(queue, grid_to_i(&next, p->cave->width));
-            noise++;
-            continue;
-        }
-
-        /* Assign noise to the children and enqueue them */
-        for (d = 0; d < 8; d++)
-        {
-            struct loc child;
-
-            /* Child location */
-            loc_sum(&child, &next, &ddgrid_ddd[d]);
-            if (!player_square_in_bounds(p, &child)) continue;
-
-            /* Ignore features that don't transmit sound */
-            if (square_isnoflow(c, &child)) continue;
-
-            /* Skip grids that already have noise */
-            if (p->cave->noise.grids[child.y][child.x] != 0) continue;
-
-            /* Skip the player grid */
-            if (loc_eq(&child, &p->grid)) continue;
-
-            /* Save the noise */
-            p->cave->noise.grids[child.y][child.x] = noise;
-
-            /* Enqueue that entry */
-            q_push_int(queue, grid_to_i(&child, p->cave->width));
-        }
-    }
-
-    q_free(queue);
-}
-
-
-/*
- * Characters leave scent trails for perceptive monsters to track.
- *
- * Scent is rather more limited than sound. Many creatures cannot use
- * it at all, it doesn't extend very far outwards from the character's
- * current position, and monsters can use it to home in the character,
- * but not to run away.
- *
- * Scent is valued according to age. When a character takes his turn,
- * scent is aged by one, and new scent is laid down. Monsters have a smell
- * value which indicates the oldest scent they can detect. Grids where the
- * player has never been will have scent 0. The player's grid will also have
- * scent 0, but this is OK as no monster will ever be smelling it.
- */
-static void update_scent(struct player *p)
-{
-    int y, x;
-    int scent_strength[5][5] =
-    {
-        {2, 2, 2, 2, 2},
-        {2, 1, 1, 1, 2},
-        {2, 1, 0, 1, 2},
-        {2, 1, 1, 1, 2},
-        {2, 2, 2, 2, 2},
-    };
-    struct chunk *c = chunk_get(&p->wpos);
-
-    /* Update scent for all grids */
-    for (y = 1; y < p->cave->height - 1; y++)
-    {
-        for (x = 1; x < p->cave->width - 1; x++)
-        {
-            if (p->cave->scent.grids[y][x] > 0)
-                p->cave->scent.grids[y][x]++;
-        }
-    }
-
-    /* Scentless player */
-    if (p->timed[TMD_SCENTLESS]) return;
-
-    /* Lay down new scent around the player */
-    for (y = 0; y < 5; y++)
-    {
-        for (x = 0; x < 5; x++)
-        {
-            struct loc scent;
-            int new_scent = scent_strength[y][x];
-            int d;
-            bool add_scent = false;
-
-            /* Initialize */
-            loc_init(&scent, x + p->grid.x - 2, y + p->grid.y - 2);
-
-            /* Ignore invalid or non-scent-carrying grids */
-            if (!player_square_in_bounds(p, &scent)) continue;
-            if (square_isnoscent(c, &scent)) continue;
-
-            /* Check scent is spreading on floors, not going through walls */
-            for (d = 0; d < 8; d++)
-            {
-                struct loc adj;
-
-                loc_sum(&adj, &scent, &ddgrid_ddd[d]);
-                if (!player_square_in_bounds(p, &adj)) continue;
-
-                /* Player grid is always valid */
-                if ((x == 2) && (y == 2)) add_scent = true;
-
-                /* Adjacent to a closer grid, so valid */
-                if (p->cave->scent.grids[adj.y][adj.x] == new_scent - 1) add_scent = true;
-            }
-
-            /* Not valid */
-            if (!add_scent) continue;
-
-            /* Mark the scent */
-            p->cave->scent.grids[scent.y][scent.x] = new_scent;
-        }
-    }
 }
 
 
@@ -684,19 +594,18 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Hack -- semi-constant hallucination (but not in stores) */
     if (p->timed[TMD_IMAGE] && !in_store(p)) p->upkeep->redraw |= (PR_MAP);
 
-    /*** Damage (or healing) over Time ***/
-
-    /* Take damage from permanent wraithform while inside walls */
-    if ((p->timed[TMD_WRAITHFORM] == -1) && !square_ispassable(c, &p->grid))
-        take_hit(p, 1, "hypoxia", false, "was entombed into solid terrain");
+    /*** Damage over Time ***/
 
     /* Take damage from Undead Form */
     if (player_undead(p))
-        take_hit(p, 1, "fading", false, "faded away");
+        take_hit(p, 1, "fading", false);
 
     /* Take damage from poison */
     if (p->timed[TMD_POISONED])
-        take_hit(p, 1, "poison", false, "died of blood poisoning");
+    {
+        my_strcpy(p->died_flavor, "died of blood poisoning", sizeof(p->died_flavor));
+        take_hit(p, 1, "poison", false);
+    }
 
     /* Take damage from cuts */
     if (p->timed[TMD_CUT])
@@ -711,56 +620,37 @@ static void process_player_world(struct player *p, struct chunk *c)
         else i = 1;
 
         /* Take damage */
-        take_hit(p, i, "a fatal wound", false, "bled to death");
+        my_strcpy(p->died_flavor, "bled to death", sizeof(p->died_flavor));
+        take_hit(p, i, "a fatal wound", false);
     }
 
-    /* Side effects of diminishing bloodlust */
-    if (p->timed[TMD_BLOODLUST])
+    /* Take damage from drowning */
+    if (square_iswater(c, p->py, p->px) && !player_passwall(p) && !can_swim(p))
     {
-        player_over_exert(p, PY_EXERT_HP | PY_EXERT_CUT | PY_EXERT_SLOW,
-            MAX(0, 10 - p->timed[TMD_BLOODLUST]), p->chp / 10);
+        msg(p, "You are drowning!");
+        my_strcpy(p->died_flavor, "drowned", sizeof(p->died_flavor));
+        take_hit(p, p->mhp / 100 + randint1(3), "drowning", false);
     }
 
-    /* Timed healing */
-    if (p->timed[TMD_HEAL])
+    /* Take damage from fire */
+    if (square_islava(c, p->py, p->px) && !player_passwall(p))
     {
-        bool ident = false;
-        struct source who_body;
-        struct source *who = &who_body;
+        int damage = p->mhp / 100 + randint1(3);
 
-        source_player(who, get_player_index(get_connection(p->conn)), p);
-        effect_simple(EF_HEAL_HP, who, "30", 0, 0, 0, 0, 0, &ident);
-    }
-
-    /* Player can be damaged by terrain */
-    player_take_terrain_damage(p, c);
-
-    /* Effects of Black Breath */
-    if (p->timed[TMD_BLACKBREATH])
-    {
-        if (one_in_(2))
+        msg(p, "You are hit by fire!");
+        my_strcpy(p->died_flavor, "took a bath in molten lava", sizeof(p->died_flavor));
+        damage = adjust_dam(p, GF_FIRE, damage, RANDOMISE, 0);
+        if (damage)
         {
-            msg(p, "The Black Breath sickens you.");
-            player_stat_dec(p, STAT_CON, false);
-        }
-        if (one_in_(2))
-        {
-            msg(p, "The Black Breath saps your strength.");
-            player_stat_dec(p, STAT_STR, false);
-        }
-        if (one_in_(2))
-        {
-            int drain = 100 + (p->exp / 100) * z_info->life_drain_percent;
-
-            msg(p, "The Black Breath dims your life force.");
-            player_exp_lose(p, drain, false);
+            if (!take_hit(p, damage, "molten lava", false))
+                inven_damage(p, GF_FIRE, MIN(damage * 5, 300));
         }
     }
 
     /*** Check the Food, and Regenerate ***/
 
     /* Every 100 "scaled" turns */
-    time = move_energy(p->wpos.depth) / time_factor(p, c);
+    time = move_energy(p->depth) / base_time_factor(p, c, 0);
 
     /* Digest normally */
     if (!(turn.turn % time)) digest_food(p);
@@ -787,11 +677,12 @@ static void process_player_world(struct player *p, struct chunk *c)
         i = (PY_FOOD_STARVE - p->food) / 10;
 
         /* Take damage */
-        take_hit(p, i, "starvation", false, "starved to death");
+        my_strcpy(p->died_flavor, "starved to death", sizeof(p->died_flavor));
+        take_hit(p, i, "starvation", false);
     }
 
     /* Regenerate Hit Points if needed */
-    if (p->chp < p->mhp) player_regen_hp(p, c);
+    if (p->chp < p->mhp) player_regen_hp(p);
 
     /* Regenerate mana if needed */
     if (p->csp < p->msp) player_regen_mana(p);
@@ -808,11 +699,7 @@ static void process_player_world(struct player *p, struct chunk *c)
             !p->timed[TMD_PARALYZED] && !p->timed[TMD_TERROR] &&
             !p->timed[TMD_AFRAID])
         {
-            struct source who_body;
-            struct source *who = &who_body;
-
-            source_player(who, get_player_index(get_connection(p->conn)), p);
-            effect_simple(EF_DETECT_GOLD, who, "0", 0, 0, 0, 3, 3, NULL);
+            effect_simple(p, EF_DETECT_GOLD, "3d3", 0, 0, 0, NULL, NULL);
         }
     }
 
@@ -824,10 +711,6 @@ static void process_player_world(struct player *p, struct chunk *c)
 
     /* Process light */
     player_update_light(p);
-
-    /* Update noise and scent */
-    make_noise(p);
-    update_scent(p);
 
     /*** Process Inventory ***/
 
@@ -841,17 +724,24 @@ static void process_player_world(struct player *p, struct chunk *c)
             player_exp_lose(p, d / 10, false);
         }
 
-        equip_learn_flag(p, OF_DRAIN_EXP);
+        equip_notice_flag(p, OF_DRAIN_EXP);
     }
 
     /* Recharge activatable objects and rods */
     recharge_objects(p);
 
-    /* Notice things after time */
-    if (!(turn.turn % 100))
-        equip_learn_after_time(p);
+    /* Feel the inventory */
+    sense_inventory(p);
 
     /*** Involuntary Movement ***/
+
+    /* Random teleportation */
+    if (player_of_has(p, OF_TELEPORT) && one_in_(50))
+    {
+        equip_notice_flag(p, OF_TELEPORT);
+        effect_simple(p, EF_TELEPORT, "40", 0, 0, 0, NULL, NULL);
+        disturb(p, 0);
+    }
 
     /* Delayed Word-of-Recall */
     if (p->word_recall)
@@ -863,7 +753,7 @@ static void process_player_world(struct player *p, struct chunk *c)
         if (!p->word_recall)
         {
             /* Hack -- no recall if in a shop, or under the influence of space/time anchor */
-            if (in_store(p) || check_st_anchor(&p->wpos, &p->grid))
+            if (in_store(p) || check_st_anchor(p->depth, p->py, p->px))
                 p->word_recall++;
 
             /* Hack -- no recall if waiting for confirmation */
@@ -879,22 +769,18 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Delayed Deep Descent */
     if (p->deep_descent)
     {
-        /* Count down towards descent */
+        /* Count down towards recall */
         p->deep_descent--;
 
-        /* Activate the descent */
+        /* Activate the recall */
         if (!p->deep_descent)
         {
             /* Hack -- not if in a shop, or under the influence of space/time anchor */
-            if (in_store(p) || check_st_anchor(&p->wpos, &p->grid))
+            if (in_store(p) || check_st_anchor(p->depth, p->py, p->px))
                 p->deep_descent++;
             else
             {
-                struct source who_body;
-                struct source *who = &who_body;
-
-                source_player(who, get_player_index(get_connection(p->conn)), p);
-                if (effect_simple(EF_DEEP_DESCENT, who, "0", 0, 1, 0, 0, 0, NULL)) return;
+                if (effect_simple(p, EF_DEEP_DESCENT, "0", 0, 1, 0, NULL, NULL)) return;
 
                 /* Failure */
                 p->deep_descent++;
@@ -910,15 +796,15 @@ static void process_player_world(struct player *p, struct chunk *c)
 static void process_player_cleanup(struct player *p)
 {
     int timefactor, time;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* If we are in a slow time condition, give visual warning */
-    timefactor = time_factor(p, c);
+    timefactor = base_time_factor(p, c, 0);
     if (timefactor < NORMAL_TIME)
-        square_light_spot_aux(p, c, &p->grid);
+        square_light_spot_aux(p, c, p->py, p->px);
 
     /* Check for auto-retaliate */
-    if (has_energy(p, true)) auto_retaliate(p, c, false);
+    if (has_energy(p)) auto_retaliate(p, c);
 
     /* Notice stuff */
     notice_stuff(p);
@@ -927,7 +813,7 @@ static void process_player_cleanup(struct player *p)
     pack_overflow(p, c, NULL);
 
     /* Determine basic frequency of regen in game turns, then scale by players local time bubble */
-    time = move_energy(p->wpos.depth) / (10 * timefactor);
+    time = move_energy(p->depth) / (10 * timefactor);
 
     /* Process the world of that player every ten "scaled" turns */
     if (!(turn.turn % time)) process_player_world(p, c);
@@ -937,7 +823,7 @@ static void process_player_cleanup(struct player *p)
     {
         /* Flicker self if multi-hued */
         if (p->poly_race && monster_shimmer(p->poly_race) && allow_shimmer(p))
-            square_light_spot_aux(p, c, &p->grid);
+            square_light_spot_aux(p, c, p->py, p->px);
 
         /* Flicker multi-hued players, party leaders and elementalists */
         if (p->shimmer)
@@ -949,26 +835,20 @@ static void process_player_cleanup(struct player *p)
             {
                 struct player *q = player_get(j);
 
-                /* Ignore the player that we're updating */
-                if (q == p) continue;
-
                 /* If he's not here, skip him */
-                if (!wpos_eq(&q->wpos, &p->wpos)) continue;
-
-                /* If he's not here YET, also skip him */
-                if (q->upkeep->new_level_method) continue;
+                if (q->depth != p->depth) continue;
 
                 /* Flicker multi-hued players */
                 if (p->poly_race && monster_shimmer(p->poly_race) && allow_shimmer(q))
-                    square_light_spot_aux(q, c, &p->grid);
+                    square_light_spot_aux(q, c, p->py, p->px);
 
                 /* Flicker party leaders */
-                if (is_party_owner(q, p) && OPT(q, highlight_leader))
-                    square_light_spot_aux(q, c, &p->grid);
+                if (is_party_owner(q, p) && OPT_P(q, highlight_leader))
+                    square_light_spot_aux(q, c, p->py, p->px);
 
                 /* Flicker elementalists */
                 if (player_has(p, PF_ELEMENTAL_SPELLS) && allow_shimmer(q))
-                    square_light_spot_aux(q, c, &p->grid);
+                    square_light_spot_aux(q, c, p->py, p->px);
             }
         }
     }
@@ -1064,6 +944,16 @@ static void on_new_level(void)
      * the energy given per game turn given the current player speed.
      */
 
+    /* Hack -- reset "afraid" status every player turn */
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *p = player_get(i);
+        int player_turn = move_energy(p->depth) / frame_energy(p->state.speed);
+
+        /* Reset "afraid" status */
+        if (!(turn.turn % player_turn)) p->is_afraid = false;
+    }
+
     /* Hack -- reset projection indicator every player turn */
     for (i = 1; i <= NumPlayers; i++)
     {
@@ -1073,7 +963,7 @@ static void on_new_level(void)
          * For projection indicator, we will consider the shortest number of game turns
          * possible -- the one obtained at max speed.
          */
-        int player_turn = move_energy(p->wpos.depth) / frame_energy(199);
+        int player_turn = move_energy(p->depth) / frame_energy(199);
 
         /* Reset projection indicator */
         if (!(turn.turn % player_turn)) p->did_visuals = false;
@@ -1087,31 +977,23 @@ static void on_new_level(void)
 static void on_leave_level(void)
 {
     int i;
-    struct loc grid;
 
     /* Deallocate any unused levels */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (i = 0 - MAX_WILD; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
-        {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+        struct chunk *c = chunk_get(i);
 
-            /* Caves */
-            for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
-            {
-                if (!w_ptr->chunk_list[i]) continue;
+        if (!c) continue;
 
-                /* Don't deallocate special levels */
-                if (level_keep_allocated(w_ptr->chunk_list[i])) continue;
+        /* Don't deallocate town and special levels */
+        if (level_keep_allocated(i)) continue;
 
-                /* Hack -- deallocate custom houses */
-                wipe_custom_houses(&w_ptr->chunk_list[i]->wpos);
+        /* Hack -- deallocate custom houses */
+        wipe_custom_houses(i);
 
-                /* Deallocate the level */
-                cave_wipe(w_ptr->chunk_list[i]);
-                w_ptr->chunk_list[i] = NULL;
-            }
-        }
+        /* Deallocate the level */
+        cave_wipe(c);
+        chunk_list_remove(i);
     }
 }
 
@@ -1168,47 +1050,64 @@ static void process_various(void)
         if (cfg_level_unstatic_chance >= 0)
         {
             int depth;
-            struct loc grid;
 
             /* For each dungeon level */
-            for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+            for (depth = 1; depth < z_info->max_depth; depth++)
             {
-                for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+                int num_on_depth = 0;
+
+                /* Random chance of the level unstaticing */
+                /* The chance is one in (base_chance * depth) / 250 feet */
+                int chance = (cfg_level_unstatic_chance * (depth + 5) / 5) - 1;
+
+                /* Full unstaticer */
+                if (!cfg_level_unstatic_chance) chance = 0;
+
+                /* If this depth is static */
+                if (!chunk_has_players(depth)) continue;
+
+                /* Count the number of players actually in game on this depth */
+                for (i = 1; i <= NumPlayers; i++)
                 {
-                    struct wild_type *w_ptr = get_wt_info_at(&grid);
+                    struct player *p = player_get(i);
 
-                    for (depth = w_ptr->min_depth; depth < w_ptr->max_depth; depth++)
-                    {
-                        int num_on_depth = 0;
-                        struct worldpos wpos;
-
-                        /* Random chance of the level unstaticing */
-                        /* The chance is one in (base_chance * depth) / 250 feet */
-                        int chance = (cfg_level_unstatic_chance * (depth + 5) / 5) - 1;
-
-                        /* Full unstaticer */
-                        if (!cfg_level_unstatic_chance) chance = 0;
-
-                        wpos_init(&wpos, &grid, depth);
-
-                        /* If this depth is static */
-                        if (!chunk_has_players(&wpos)) continue;
-
-                        /* Count the number of players actually in game on this level */
-                        for (i = 1; i <= NumPlayers; i++)
-                        {
-                            struct player *p = player_get(i);
-
-                            if (!p->upkeep->funeral && wpos_eq(&p->wpos, &wpos))
-                                num_on_depth++;
-                        }
-
-                        /* Unstatic the level if this level is static and no one is actually on it */
-                        if (!num_on_depth && one_in_(chance))
-                            chunk_set_player_count(&wpos, 0);
-                    }
+                    if (!p->upkeep->funeral && (p->depth == depth)) num_on_depth++;
                 }
+
+                /* Unstatic the level if this level is static and no one is actually on it */
+                if (!num_on_depth && one_in_(chance))
+                    chunk_set_player_count(depth, 0);
             }
+        }
+    }
+
+    /* Grow trees very occasionally */
+    if (!(turn.turn % (10L * GROW_TREE)) &&
+        ((trees_in_town < cfg_max_trees) || (cfg_max_trees == -1)))
+    {
+        int i;
+        struct chunk *c = chunk_get(0);
+
+        /* Find a suitable location */
+        for (i = 1; i < 1000; i++)
+        {
+            /* Pick a location */
+            int y = rand_range(1, c->height - 2);
+            int x = rand_range(1, c->width - 2);
+
+            /* Only allow "dirt" */
+            if (!square_isdirt(c, y, x)) continue;
+
+            /* Never grow on top of objects or monsters/players */
+            if (c->squares[y][x].mon) continue;
+            if (c->squares[y][x].obj) continue;
+
+            /* Grow a tree here */
+            square_add_tree(c, y, x);
+            trees_in_town++;
+
+            /* Done */
+            break;
         }
     }
 
@@ -1218,42 +1117,36 @@ static void process_various(void)
     /* Hack -- prevent wilderness monster "buildup" */
     if (!(turn.turn % ((10L * z_info->day_length) / 2)) && !(turn.turn % (10L * z_info->day_length)))
     {
-        struct loc grid;
+        int i;
 
-        for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+        for (i = 1; i <= MAX_WILD; i++)
         {
-            for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+            struct chunk *c = chunk_get(0 - i);
+            int m_idx;
+
+            /* Must exist and not contain players */
+            if (!c || chunk_has_players(0 - i)) continue;
+
+            /* Mimic stuff */
+            for (m_idx = cave_monster_max(c) - 1; m_idx >= 1; m_idx--)
             {
-                struct wild_type *w_ptr = get_wt_info_at(&grid);
-                struct chunk *c = w_ptr->chunk_list[0];
-                int m_idx;
+                struct monster *mon = cave_monster(c, m_idx);
+                struct object *obj = mon->mimicked_obj;
 
-                if (in_town(&w_ptr->wpos)) continue;
-
-                /* Must exist and not contain players */
-                if (!c || chunk_has_players(&c->wpos)) continue;
-
-                /* Mimic stuff */
-                for (m_idx = cave_monster_max(c) - 1; m_idx >= 1; m_idx--)
+                /* Delete mimicked objects */
+                if (obj)
                 {
-                    struct monster *mon = cave_monster(c, m_idx);
-                    struct object *obj = mon->mimicked_obj;
-
-                    /* Delete mimicked objects */
-                    if (obj)
-                    {
-                        square_excise_object(c, &mon->grid, obj);
-                        object_delete(&obj);
-                    }
-
-                    /* Delete mimicked features */
-                    if (mon->race->base == lookup_monster_base("feature mimic"))
-                        square_set_feat(c, &mon->grid, mon->feat);
+                    square_excise_object(c, mon->fy, mon->fx, obj);
+                    object_delete(&obj);
                 }
 
-                /* Wipe the monster list */
-                wipe_mon_list(c);
+                /* Delete mimicked features */
+                if (mon->race->base == lookup_monster_base("feature mimic"))
+                    square_set_feat(c, mon->fy, mon->fx, mon->feat);
             }
+
+            /* Wipe the monster list */
+            wipe_mon_list(c);
         }
     }
 }
@@ -1291,13 +1184,13 @@ static void remove_hounds(struct player *p, struct chunk *c)
         if (!mon->race) continue;
 
         /* Hack -- skip unique monsters */
-        if (monster_is_unique(mon->race)) continue;
+        if (rf_has(mon->race->flags, RF_UNIQUE)) continue;
 
         /* Skip monsters other than hounds */
         if (mon->race->base != lookup_monster_base("zephyr hound")) continue;
 
         /* Skip distant monsters */
-        d = distance(&p->grid, &mon->grid);
+        d = distance(p->py, p->px, mon->fy, mon->fx);
         if (d > z_info->max_sight) continue;
 
         /* Delete the monster */
@@ -1306,30 +1199,28 @@ static void remove_hounds(struct player *p, struct chunk *c)
 }
 
 
-static void place_player(struct player *p, struct chunk *c, struct loc *grid)
+static void place_player(struct player *p, struct chunk *c, int starty, int startx)
 {
-    int d, j;
+    int y, x, d, j;
 
     /* Try to find an empty space */
     for (j = 0; j < 1500; ++j)
     {
-        struct loc new_grid;
-
         /* Increasing distance */
         d = (j + 149) / 150;
 
         /* Pick a location (skip LOS test) */
-        if (!scatter(c, &new_grid, grid, d, false)) continue;
+        scatter(c, &y, &x, starty, startx, d, false);
 
         /* Must have an "empty" grid */
-        if (!square_isemptyfloor(c, &new_grid)) continue;
+        if (!square_isemptyfloor(c, y, x)) continue;
 
         /* Not allowed to go onto a icky location (house) */
-        if ((p->wpos.depth == 0) && square_isvault(c, &new_grid)) continue;
+        if ((p->depth <= 0) && square_isvault(c, y, x)) continue;
 
         /* Place the player */
-        loc_copy(&p->old_grid, &new_grid);
-        loc_copy(&p->grid, &new_grid);
+        p->old_py = p->py = y;
+        p->old_px = p->px = x;
 
         return;
     }
@@ -1337,55 +1228,49 @@ static void place_player(struct player *p, struct chunk *c, struct loc *grid)
     /* Try to find an occupied space */
     for (j = 0; j < 1500; ++j)
     {
-        struct loc new_grid;
-
         /* Increasing distance */
         d = (j + 149) / 150;
 
         /* Pick a location (skip LOS test) */
-        if (!scatter(c, &new_grid, grid, d, false)) continue;
+        scatter(c, &y, &x, starty, startx, d, false);
 
         /* Must have a "floor" grid (forbid players only) */
-        if (!square_ispassable(c, &new_grid) || (square(c, &new_grid)->mon < 0))
+        if (!square_ispassable(c, y, x) || (c->squares[y][x].mon < 0))
             continue;
 
         /* Not allowed to go onto a icky location (house) */
-        if ((p->wpos.depth == 0) && square_isvault(c, &new_grid)) continue;
+        if ((p->depth <= 0) && square_isvault(c, y, x)) continue;
 
         /* Remove any monster at that location */
-        delete_monster(c, &new_grid);
+        delete_monster(c, y, x);
 
         /* Place the player */
-        loc_copy(&p->old_grid, &new_grid);
-        loc_copy(&p->grid, &new_grid);
+        p->old_py = p->py = y;
+        p->old_px = p->px = x;
 
         return;
     }
 
     /* Paranoia: place the player in bounds */
-    loc_copy(&p->old_grid, grid);
-    loc_copy(&p->grid, grid);
+    p->old_py = p->py = starty;
+    p->old_px = p->px = startx;
 }
 
 
 static void generate_new_level(struct player *p)
 {
-    int id;
+    int startx, starty, id = get_player_index(get_connection(p->conn));
     bool new_level = false;
-    struct chunk *c;
-    struct loc grid;
-
-    id = get_player_index(get_connection(p->conn));
-    c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* Paranoia */
-    if (!chunk_has_players(&p->wpos)) return;
+    if (!chunk_has_players(p->depth)) return;
 
     /* Play ambient sound on change of level. */
     play_ambient_sound(p);
 
     /* Check "maximum depth" to make sure it's still correct */
-    if (p->wpos.depth > p->max_depth) p->max_depth = p->wpos.depth;
+    if (p->depth > p->max_depth) p->max_depth = p->depth;
 
     /* Make sure the server doesn't think the player is in a store */
     p->store_num = -1;
@@ -1396,9 +1281,9 @@ static void generate_new_level(struct player *p)
         new_level = true;
 
         /* Generate a dungeon level there */
-        c = prepare_next_level(p, &p->wpos);
+        c = cave_generate(p);
 
-        wild_deserted_message(p);
+        if (p->depth < 0) wild_deserted_message(p);
     }
 
     /* Apply illumination */
@@ -1410,39 +1295,20 @@ static void generate_new_level(struct player *p)
 
         /* Illuminate */
         cave_illuminate(p, c, is_daytime());
-
-        /* Ensure fixed encounters on special levels (wilderness) */
-        if (special_level(&c->wpos) && (cfg_diving_mode < 2))
-        {
-            int i;
-
-            for (i = 1; i < z_info->r_max; i++)
-            {
-                struct monster_race *race = &r_info[i];
-
-                /* The monster must be an unseen fixed encounter of this depth. */
-                if (race->lore.spawned) continue;
-                if (!rf_has(race->flags, RF_PWMANG_FIXED)) continue;
-                if (race->level != c->wpos.depth) continue;
-
-                /* Pick a location and place the monster */
-                find_empty(c, &grid);
-                place_new_monster(p, c, &grid, race, MON_ASLEEP | MON_GROUP, ORIGIN_DROP);
-            }
-        }
     }
 
     /* Give a level feeling to this player */
     p->obj_feeling = -1;
     p->mon_feeling = -1;
-    if (random_level(&p->wpos)) display_feeling(p, false);
+    if (random_level(p->depth)) display_feeling(p, false);
     p->upkeep->redraw |= (PR_STATE);
 
     /* Player gets to go first */
-    if (p->upkeep->new_level_method != LEVEL_GHOST) set_energy(p, &p->wpos);
+    if (p->upkeep->new_level_method != LEVEL_GHOST) set_energy(p, p->depth);
 
     /* Hack -- enforce illegal panel */
-    loc_init(&p->offset_grid, z_info->dungeon_wid, z_info->dungeon_hgt);
+    p->offset_y = z_info->dungeon_hgt;
+    p->offset_x = z_info->dungeon_wid;
 
     /* Determine starting location */
     switch (p->upkeep->new_level_method)
@@ -1450,37 +1316,41 @@ static void generate_new_level(struct player *p)
         /* Climbed down */
         case LEVEL_DOWN:
         {
-            loc_copy(&grid, &c->join->down);
+            starty = c->level_down_y;
+            startx = c->level_down_x;
 
             /* Never get pushed from stairs when entering a new level */
-            if (new_level) delete_monster(c, &grid);
+            if (new_level) delete_monster(c, starty, startx);
             break;
         }
 
         /* Climbed up */
         case LEVEL_UP:
         {
-            loc_copy(&grid, &c->join->up);
+            starty = c->level_up_y;
+            startx = c->level_up_x;
 
             /* Never get pushed from stairs when entering a new level */
-            if (new_level) delete_monster(c, &grid);
+            if (new_level) delete_monster(c, starty, startx);
             break;
         }
 
         /* Teleported level */
         case LEVEL_RAND:
-            loc_copy(&grid, &c->join->rand);
+            starty = c->level_rand_y;
+            startx = c->level_rand_x;
             break;
 
         /* Used ghostly travel, stay in bounds */
         case LEVEL_GHOST:
-            loc_init(&grid, MIN(MAX(p->grid.x, 1), c->width - 2),
-                MIN(MAX(p->grid.y, 1), c->height - 2));
+            starty = MIN(MAX(p->py, 1), c->height - 2);
+            startx = MIN(MAX(p->px, 1), c->width - 2);
             break;
 
         /* Over the river and through the woods */
         case LEVEL_OUTSIDE:
-            loc_copy(&grid, &p->grid);
+            starty = p->py;
+            startx = p->px;
             break;
 
         /*
@@ -1495,21 +1365,22 @@ static void generate_new_level(struct player *p)
             /* Make sure we aren't in an "icky" location */
             do
             {
-                loc_init(&grid, rand_range(1, c->width - 2), rand_range(1, c->height - 2));
+                starty = rand_range(1, c->height - 2);
+                startx = rand_range(1, c->width - 2);
             }
-            while (square_isvault(c, &grid) || !square_ispassable(c, &grid));
+            while (square_isvault(c, starty, startx) || !square_ispassable(c, starty, startx));
             break;
         }
     }
 
     /* Place the player */
-    place_player(p, c, &grid);
+    place_player(p, c, starty, startx);
 
     /* Add the player */
-    square_set_mon(c, &p->grid, 0 - id);
+    c->squares[p->py][p->px].mon = 0 - id;
 
     /* Redraw */
-    square_light_spot(c, &p->grid);
+    square_light_spot(c, p->py, p->px);
 
     /* Prevent hound insta-death */
     if (new_level) remove_hounds(p, c);
@@ -1522,9 +1393,14 @@ static void generate_new_level(struct player *p)
         PR_ITEMLIST);
 
     /* Fully update the visuals (and monster distances) */
+    forget_view(p, c);
     update_view(p, c);
     update_monsters(c, true);
     update_players();
+
+    /* Fully update the flow */
+    cave_forget_flow(p, c);
+    cave_update_flow(p, c);
 
     /* Clear the flag */
     p->upkeep->new_level_method = 0;
@@ -1540,9 +1416,6 @@ static void generate_new_level(struct player *p)
 
     /* Calculate torch radius */
     p->upkeep->update |= (PU_BONUS);
-
-    /* Detect secret doors and traps */
-    search(p, c);
 }
 
 
@@ -1552,10 +1425,10 @@ static void generate_new_level(struct player *p)
 static void energize_player(struct player *p)
 {
     int energy;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* Player is idle */
-    p->is_idle = has_energy(p, false);
+    p->is_idle = has_energy(p);
 
     /* How much energy should we get? */
     energy = frame_energy(p->state.speed);
@@ -1563,14 +1436,15 @@ static void energize_player(struct player *p)
     /* Scale depending upon our time bubble */
     energy = energy * time_factor(p, c) / 100;
 
-    /* Running speeds up time */
-    if (p->upkeep->running) energy = energy * RUNNING_FACTOR / 100;
+    /* In town, give everyone a RoS when they are running */
+    if (!p->depth && p->upkeep->running)
+        energy = energy * RUNNING_FACTOR / 100;
 
     /* Hack -- record that amount for player turn calculation */
     p->charge += energy;
 
     /* Make sure they don't have too much */
-    if (p->energy < move_energy(p->wpos.depth))
+    if (p->energy < move_energy(p->depth))
     {
         /* Give the player some energy */
         p->energy += energy;
@@ -1607,27 +1481,17 @@ static void energize_monsters(struct chunk *c)
         if (mon->m_timed[MON_TMD_FAST])
             mspeed += 10;
         if (mon->m_timed[MON_TMD_SLOW])
-        {
-            int slow_level = monster_effect_level(mon, MON_TMD_SLOW);
-
-            mspeed -= (2 * slow_level);
-        }
+            mspeed -= 10;
 
         /* Obtain the energy boost */
         energy = frame_energy(mspeed);
 
         /* If we are within a player's time bubble, scale our energy */
         if (mon->closest_player)
-        {
             energy = energy * time_factor(mon->closest_player, c) / 100;
 
-            /* Speed up time if the player is running, except in town */
-            if (!in_town(&c->wpos) && mon->closest_player->upkeep->running)
-                energy = energy * RUNNING_FACTOR / 100;
-        }
-
         /* Make sure we don't store up too much energy */
-        if (mon->energy < move_energy(mon->wpos.depth))
+        if (mon->energy < move_energy(mon->depth))
         {
             /* Give this monster some energy */
             mon->energy += energy;
@@ -1642,7 +1506,6 @@ static void energize_monsters(struct chunk *c)
 static void pre_turn_game_loop(void)
 {
     int i;
-    struct loc grid;
 
     on_new_level();
 
@@ -1650,19 +1513,11 @@ static void pre_turn_game_loop(void)
     Net_input();
 
     /* Process monsters with even more energy first */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (i = 0 - MAX_WILD; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
-        {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+        struct chunk *c = chunk_get(i);
 
-            for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
-            {
-                struct chunk *c = w_ptr->chunk_list[i];
-
-                if (c) process_monsters(c, true);
-            }
-        }
+        if (c) process_monsters(c, true);
     }
 
     /* Check for death */
@@ -1676,30 +1531,21 @@ static void pre_turn_game_loop(void)
 static void post_turn_game_loop(void)
 {
     int i;
-    struct loc grid;
 
     /* Check for death */
     process_death();
 
     /* Process the rest of the monsters */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (i = 0 - MAX_WILD; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        struct chunk *c = chunk_get(i);
+
+        if (c)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            process_monsters(c, false);
 
-            for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
-            {
-                struct chunk *c = w_ptr->chunk_list[i];
-
-                if (c)
-                {
-                    process_monsters(c, false);
-
-                    /* Mark all monsters as ready to act when they have the energy */
-                    reset_monsters(c);
-                }
-            }
+            /* Mark all monsters as ready to act when they have the energy */
+            reset_monsters(c);
         }
     }
 
@@ -1707,36 +1553,20 @@ static void post_turn_game_loop(void)
     process_death();
 
     /* Process the objects */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (i = 0 - MAX_WILD; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
-        {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+        struct chunk *c = chunk_get(i);
 
-            for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
-            {
-                struct chunk *c = w_ptr->chunk_list[i];
-
-                if (c) process_objects(c);
-            }
-        }
+        if (c) process_objects(c);
     }
 
     /* Process the world */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (i = 0 - MAX_WILD; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
-        {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+        struct chunk *c = chunk_get(i);
 
-            for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
-            {
-                struct chunk *c = w_ptr->chunk_list[i];
-
-                /* Process the world every ten turns */
-                if (c && !(turn.turn % 10)) process_world(NULL, c);
-            }
-        }
+        /* Process the world every ten turns */
+        if (c && !(turn.turn % 10)) process_world(NULL, c);
     }
 
     /* Process the world */
@@ -1746,7 +1576,7 @@ static void post_turn_game_loop(void)
 
         /* Process the world of that player */
         if (!p->upkeep->new_level_method && !p->upkeep->funeral)
-            process_world(p, chunk_get(&p->wpos));
+            process_world(p, chunk_get(p->depth));
     }
 
     /* Process everything else */
@@ -1762,19 +1592,11 @@ static void post_turn_game_loop(void)
     }
 
     /* Give energy to all monsters */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (i = 0 - MAX_WILD; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
-        {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+        struct chunk *c = chunk_get(i);
 
-            for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
-            {
-                struct chunk *c = w_ptr->chunk_list[i];
-
-                if (c) energize_monsters(c);
-            }
-        }
+        if (c) energize_monsters(c);
     }
 
     /* Count game turns */
@@ -1789,9 +1611,9 @@ static void post_turn_game_loop(void)
         ht_add(&p->game_turn, 1);
 
         /* Increment the player turn counter */
-        if (p->charge >= move_energy(p->wpos.depth))
+        if (p->charge >= move_energy(p->depth))
         {
-            p->charge -= move_energy(p->wpos.depth);
+            p->charge -= move_energy(p->depth);
             ht_add(&p->player_turn, 1);
         }
 
@@ -1799,7 +1621,7 @@ static void post_turn_game_loop(void)
         if (p->has_energy && !p->is_idle) ht_add(&p->active_turn, 1);
 
         /* Player has energy */
-        p->has_energy = has_energy(p, false);
+        p->has_energy = has_energy(p);
 
         /* Inform the client every second */
         if (!(turn.turn % cfg_fps))
@@ -1832,10 +1654,8 @@ static void post_turn_game_loop(void)
     {
         struct player *p = player_get(i);
         char buf[MSG_LEN];
-        connection_t *connp = get_connection(p->conn);
 
         if (!p->upkeep->funeral) continue;
-        if (connp->state == CONN_QUIT) continue;
 
         /* Format string */
         if (!p->alive)
@@ -1843,7 +1663,7 @@ static void post_turn_game_loop(void)
             if (!strcmp(p->died_from, "divine wrath"))
                 my_strcpy(buf, "Killed by divine wrath", sizeof(buf));
             else if (!p->total_winner)
-                my_strcpy(buf, "Terminated", sizeof(buf));
+                my_strcpy(buf, "Committed suicide", sizeof(buf));
             else
                 my_strcpy(buf, "Retired", sizeof(buf));
         }
@@ -1853,9 +1673,7 @@ static void post_turn_game_loop(void)
             strnfmt(buf, sizeof(buf), "Killed by %s", p->died_from);
 
         /* Get rid of him */
-        /*Destroy_connection(p->conn, buf);*/
-        connp->quit_msg = string_make(buf);
-        Conn_set_state(connp, CONN_QUIT, 1);
+        Destroy_connection(p->conn, buf);
     }
 
     /* Kick out starving players */
@@ -1888,7 +1706,7 @@ static void post_turn_game_loop(void)
  */
 static void process_player_shimmer(struct player *p)
 {
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
     static byte loop = 0;
     int i;
 
@@ -1899,7 +1717,7 @@ static void process_player_shimmer(struct player *p)
 
     /* Flicker self if multi-hued */
     if (p->poly_race && monster_shimmer(p->poly_race))
-        square_light_spot_aux(p, c, &p->grid);
+        square_light_spot_aux(p, c, p->py, p->px);
 
     /* Shimmer multi-hued objects */
     shimmer_objects(p, c);
@@ -1914,7 +1732,7 @@ static void process_player_shimmer(struct player *p)
 
         /* Light that spot */
         if (mon->race && monster_shimmer(mon->race))
-            square_light_spot_aux(p, c, &mon->grid);
+            square_light_spot_aux(p, c, mon->fy, mon->fx);
     }
 }
 
@@ -1934,10 +1752,10 @@ static void process_player_turn_based(struct player *p)
     if (process_pending_commands(p->conn)) return;
 
     /* Shimmer multi-hued things if idle */
-    if (allow_shimmer(p) && has_energy(p, false)) process_player_shimmer(p);
+    if (allow_shimmer(p) && has_energy(p)) process_player_shimmer(p);
 
     /* Process the player until they use some energy */
-    if (has_energy(p, false)) return;
+    if (has_energy(p)) return;
 
     if (!p->upkeep->new_level_method && !p->upkeep->funeral)
         process_player_cleanup(p);
@@ -1953,7 +1771,7 @@ static void process_player_turn_based(struct player *p)
  * This is called every frame (1/FPS seconds).
  * A character will get frame_energy(speed) energy every frame and will be able to act once
  * move_energy(depth) energy has been accumulated. With a FPS of 75, a normal unhasted unburdened
- * character gets 1 player turn at 0' every (75 * 5 * 100) / (10 * 100 * 75) = 0.5 second.
+ * character gets 1 player turn in town every (75 * 5 * 100) / (10 * 100 * 75) = 0.5 second.
  * Energy required will be doubled at 3000' and tripled at 4950', which means that a character
  * will need to be "Fast (+10)" and "Fast (+20)" at these depths to act every 0.5 second.
  *
@@ -1965,7 +1783,7 @@ void run_game_loop(void)
     int i;
 
     /* HIGHLY EXPERIMENTAL: turn-based mode (for single player games) */
-    if (TURN_BASED && process_turn_based())
+    if (cfg_turn_based && (NumPlayers == 1) && process_turn_based())
     {
         struct player *p = player_get(1);
 
@@ -1977,7 +1795,7 @@ void run_game_loop(void)
             process_player_turn_based(p);
 
         /* Execute post-turn processing if the player used some energy */
-        if (!has_energy(p, false)) post_turn_game_loop();
+        if (!has_energy(p)) post_turn_game_loop();
 
         /* Player is idle: refresh and send info to client (for commands that don't use energy) */
         else
@@ -2039,16 +1857,16 @@ void kingly(struct player *p)
 }
 
 
-bool level_keep_allocated(struct chunk *c)
+bool level_keep_allocated(int depth)
 {
     /* Don't deallocate levels which contain players */
-    if (chunk_has_players(&c->wpos)) return true;
+    if (chunk_has_players(depth)) return true;
 
-    /* Don't deallocate special levels */
-    if (special_level(&c->wpos)) return true;
+    /* Don't deallocate town and special levels */
+    if (forbid_special(depth)) return true;
 
-    /* Hack -- don't deallocate levels which contain owned houses */
-    return level_has_owned_houses(&c->wpos);
+    /* Hack -- don't deallocate levels which contain houses owned by players */
+    return level_has_owned_houses(depth);
 }
 
 
@@ -2094,47 +1912,35 @@ static void save_game(struct player *p)
 static void preserve_artifacts(void)
 {
     int i;
-    struct loc grid;
 
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (i = 0 - MAX_WILD; i < z_info->max_depth; i++)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        struct chunk *c = chunk_get(i);
+        struct object *obj;
+        int y, x;
+
+        /* Don't deallocate town and special levels */
+        if (!c || level_keep_allocated(i)) continue;
+
+        for (y = 0; y < c->height; y++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
-
-            for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
+            for (x = 0; x < c->width; x++)
             {
-                struct chunk *c = w_ptr->chunk_list[i];
-                struct object *obj;
-                struct loc begin, end;
-                struct loc_iterator iter;
-
-                /* Don't deallocate special levels */
-                if (!c || level_keep_allocated(c)) continue;
-
-                loc_init(&begin, 0, 0);
-                loc_init(&end, c->width, c->height);
-                loc_iterator_first(&iter, &begin, &end);
-
-                do
+                for (obj = square_object(c, y, x); obj; obj = obj->next)
                 {
-                    for (obj = square_object(c, &iter.cur); obj; obj = obj->next)
+                    /* Hack -- preserve artifacts */
+                    if (obj->artifact)
                     {
-                        /* Hack -- preserve artifacts */
-                        if (obj->artifact)
-                        {
-                            /* Only works when owner is ingame */
-                            struct player *p = player_get(get_owner_id(obj));
+                        /* Only works when owner is ingame */
+                        struct player *p = player_get(get_owner_id(obj));
 
-                            /* Mark artifact as abandoned */
-                            set_artifact_info(p, obj, ARTS_ABANDONED);
+                        /* Mark artifact as abandoned */
+                        set_artifact_info(p, obj, ARTS_ABANDONED);
 
-                            /* Preserve any artifact */
-                            preserve_artifact_aux(obj);
-                        }
+                        /* Preserve any artifact */
+                        preserve_artifact_aux(obj);
                     }
                 }
-                while (loc_iterator_next_strict(&iter));
             }
         }
     }
@@ -2219,6 +2025,10 @@ void play_game(void)
         plog_fmt("Loading pref file: %s", cfg_load_pref_file);
         process_pref_file(cfg_load_pref_file, false);
     }
+
+    /* Generate a town level if needed */
+    if (!chunk_get(0))
+        cave_generate(NULL);
 
     /* Server initialization is now "complete" */
     server_generated = true;
@@ -2339,7 +2149,7 @@ void exit_game_panic(void)
         my_strcpy(p->died_from, "(panic save)", sizeof(p->died_from));
 
         /* Hack -- unstatic if the DM left while manually designing a dungeon level */
-        if (chunk_inhibit_players(&p->wpos)) chunk_set_player_count(&p->wpos, 0);
+        if (chunk_inhibit_players(p->depth)) chunk_set_player_count(p->depth, 0);
 
         /*
          * Try to save the player, don't worry if this fails because there

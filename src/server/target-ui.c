@@ -1,9 +1,9 @@
 /*
  * File: target-ui.c
- * Purpose: UI for targeting code
+ * Purpose: UI for targetting code
  *
  * Copyright (c) 1997-2014 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -42,24 +42,28 @@ void target_display_help(char *help, size_t len, bool monster, bool free)
  */
 static bool adjust_panel_help(struct player *p, int y, int x)
 {
-    struct loc grid;
+    bool changed = false;
+    int wx, wy;
     int screen_hgt, screen_wid;
 
     screen_hgt = p->screen_rows / p->tile_hgt;
     screen_wid = p->screen_cols / p->tile_wid;
 
-    loc_copy(&grid, &p->offset_grid);
+    wy = p->offset_y;
+    wx = p->offset_x;
 
     /* Adjust as needed */
-    while (y >= grid.y + screen_hgt) grid.y += screen_hgt / 2;
-    while (y < grid.y) grid.y -= screen_hgt / 2;
+    while (y >= wy + screen_hgt) wy += screen_hgt / 2;
+    while (y < wy) wy -= screen_hgt / 2;
 
     /* Adjust as needed */
-    while (x >= grid.x + screen_wid) grid.x += screen_wid / 2;
-    while (x < grid.x) grid.x -= screen_wid / 2;
+    while (x >= wx + screen_wid) wx += screen_wid / 2;
+    while (x < wx) wx -= screen_wid / 2;
 
     /* Use "modify_panel" */
-    return (modify_panel(p, &grid));
+    if (modify_panel(p, wy, wx)) changed = true;
+
+    return (changed);
 }
 
 
@@ -93,21 +97,18 @@ static bool need_target_info(struct player *p, u32b query, byte step)
 /*
  * Inform client about target info
  */
-static bool target_info(struct player *p, struct loc *grid, const char *info, const char *help,
+static bool target_info(struct player *p, int y, int x, const char *info, const char *help,
     u32b query)
 {
-    int col = grid->x - p->offset_grid.x;
-    int row = grid->y - p->offset_grid.y + 1;
+    int col = x - p->offset_x;
+    int row = y - p->offset_y + 1;
     bool dble = true;
-    struct loc above;
-
-    next_grid(&above, grid, DIR_N);
 
     /* Do nothing on quit */
     if ((query == 'q') || (query == ESCAPE)) return false;
 
     /* Hack -- is there something targetable above our position? */
-    if (square_in_bounds_fully(chunk_get(&p->wpos), &above) && target_accept(p, &above))
+    if (square_in_bounds_fully(chunk_get(p->depth), y - 1, x) && target_accept(p, y - 1, x))
         dble = false;
 
     /* Display help info */
@@ -146,7 +147,7 @@ static bool target_info(struct player *p, struct loc *grid, const char *info, co
  *
  * This function must handle blindness/hallucination.
  */
-static bool target_set_interactive_aux(struct player *p, struct loc *grid, int mode,
+static bool target_set_interactive_aux(struct player *p, int y, int x, int mode,
     const char *help, u32b query)
 {
     const char *s1, *s2, *s3;
@@ -158,14 +159,14 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
     char out_val[256];
     char coords[20];
     int tries = 200;
-    struct chunk *c = chunk_get(&p->wpos);
-    struct source who_body;
-    struct source *who = &who_body;
+    struct chunk *c = chunk_get(p->depth);
+    struct actor who_body;
+    struct actor *who = &who_body;
 
-    square_actor(c, grid, who);
+    square_actor(c, y, x, who);
 
     /* Describe the square location */
-    grid_desc(p, coords, sizeof(coords), grid);
+    coords_desc(p, coords, sizeof(coords), y, x);
 
     /* Repeat forever */
     while (tries--)
@@ -179,9 +180,6 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
         s1 = "You see ";
         s2 = "";
         s3 = "";
-
-        /* Bail if looking at a forbidden grid */
-        if (!square_in_bounds(c, grid)) break;
 
         /* The player */
         if (who->player && (who->player == p))
@@ -205,7 +203,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
             if (need_target_info(p, query, TARGET_NONE))
             {
                 mem_free(floor_list);
-                return target_info(p, grid, out_val, help, query);
+                return target_info(p, y, x, out_val, help, query);
             }
 
             /* Stop on everything but "return" */
@@ -223,7 +221,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
         if (who->player && (who->player != p))
         {
             /* Visible */
-            if (player_is_visible(p, who->idx))
+            if (mflag_has(p->pflag[who->idx], MFLAG_VISIBLE))
             {
                 bool recall = false;
                 char player_name[NORMAL_WID];
@@ -263,7 +261,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                     if (need_target_info(p, query, TARGET_MON))
                     {
                         mem_free(floor_list);
-                        return target_info(p, grid, out_val, help, query);
+                        return target_info(p, y, x, out_val, help, query);
                     }
 
                     /* Stop on everything but "return" */
@@ -317,7 +315,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                     if (need_target_info(p, query, TARGET_MON))
                     {
                         mem_free(floor_list);
-                        return target_info(p, grid, out_val, help, query);
+                        return target_info(p, y, x, out_val, help, query);
                     }
                 }
 
@@ -338,10 +336,10 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
         }
 
         /* Actual monsters */
-        if (who->monster)
+        if (who->mon)
         {
             /* Visible */
-            if (monster_is_obvious(p, who->idx, who->monster))
+            if (mflag_has(p->mflag[who->idx], MFLAG_VISIBLE) && !who->mon->unaware)
             {
                 bool recall = false;
                 char m_name[NORMAL_WID];
@@ -350,7 +348,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                 boring = false;
 
                 /* Get the monster name ("a kobold") */
-                monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_IND_VIS);
+                monster_desc(p, m_name, sizeof(m_name), who->mon, MDESC_IND_VIS);
 
                 /* Hack -- track this monster race */
                 monster_race_track(p->upkeep, who);
@@ -383,7 +381,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                     char buf[NORMAL_WID];
 
                     /* Describe the monster */
-                    look_mon_desc(who->monster, buf, sizeof(buf));
+                    look_mon_desc(who->mon, buf, sizeof(buf));
 
                     /* Describe, and prompt for recall */
                     strnfmt(out_val, sizeof(out_val), "%s%s%s%s (%s), %s.", s1, s2, s3, m_name, buf,
@@ -393,7 +391,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                     if (need_target_info(p, query, TARGET_MON))
                     {
                         mem_free(floor_list);
-                        return target_info(p, grid, out_val, help, query);
+                        return target_info(p, y, x, out_val, help, query);
                     }
                 }
 
@@ -404,8 +402,8 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                 if ((query == ' ') && !(mode & (TARGET_LOOK))) break;
 
                 /* Take account of gender */
-                if (rf_has(who->monster->race->flags, RF_FEMALE)) s1 = "She is ";
-                else if (rf_has(who->monster->race->flags, RF_MALE)) s1 = "He is ";
+                if (rf_has(who->mon->race->flags, RF_FEMALE)) s1 = "She is ";
+                else if (rf_has(who->mon->race->flags, RF_MALE)) s1 = "He is ";
                 else s1 = "It is ";
 
                 /* Disabled for non-DMs since monsters now carry their drops */
@@ -418,7 +416,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                     if (p->tt_o) s2 = "also carrying ";
 
                     /* Scan all objects being carried */
-                    if (!p->tt_o) p->tt_o = who->monster->held_obj;
+                    if (!p->tt_o) p->tt_o = who->mon->held_obj;
                     else p->tt_o = p->tt_o->next;
                     if (p->tt_o)
                     {
@@ -433,7 +431,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
 
                         /* Inform client */
                         mem_free(floor_list);
-                        return target_info(p, grid, out_val, help, query);
+                        return target_info(p, y, x, out_val, help, query);
                     }
                 }
 
@@ -443,7 +441,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
         }
 
         /* A trap */
-        trap = square_known_trap(p, c, grid);
+        trap = square_known_trap(p, c, y, x);
 		if (trap)
 		{
 			bool recall = false;
@@ -478,7 +476,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                 if (need_target_info(p, query, TARGET_TRAP))
                 {
                     mem_free(floor_list);
-                    return target_info(p, grid, out_val, help, query);
+                    return target_info(p, y, x, out_val, help, query);
                 }
             }
 
@@ -490,10 +488,10 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
 		}
 
 		/* Double break */
-		if (square_known_trap(p, c, grid)) break;
+		if (square_known_trap(p, c, y, x)) break;
 
         /* Scan all sensed objects in the grid */
-        floor_num = scan_distant_floor(p, c, floor_list, floor_max, grid);
+        floor_num = scan_distant_floor(p, c, floor_list, floor_max, y, x);
         if (floor_num > 0)
         {
             /* Not boring */
@@ -513,7 +511,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                 if (need_target_info(p, query, TARGET_OBJ))
                 {
                     mem_free(floor_list);
-                    return target_info(p, grid, out_val, help, query);
+                    return target_info(p, y, x, out_val, help, query);
                 }
 
                 /* Display objects */
@@ -568,7 +566,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                     if (need_target_info(p, query, TARGET_OBJ))
                     {
                         mem_free(floor_list);
-                        return target_info(p, grid, out_val, help, query);
+                        return target_info(p, y, x, out_val, help, query);
                     }
                 }
 
@@ -586,14 +584,13 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
             }
         }
 
-        feat = square_apparent_feat(p, c, grid);
+        feat = square_apparent_feat(p, c, y, x);
 
         /* Terrain feature if needed */
         if (boring || feat_isterrain(feat))
         {
-            const char *name = square_apparent_name(p, c, grid);
+            const char *name = square_apparent_name(p, c, y, x);
             bool recall = false;
-            struct location *dungeon = get_dungeon(&p->wpos);
 
             /* Pick a prefix */
             if (*s2 && feat_isprefixed(feat))
@@ -604,13 +601,6 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
 
             /* Hack -- special introduction for store doors */
             if (feat_is_shop(feat)) s3 = "the entrance to the ";
-
-            /* Hack -- dungeon entrance */
-            if (dungeon && square_isdownstairs(c, grid))
-            {
-                s3 = "the entrance to ";
-                name = dungeon->name;
-            }
 
             /* Interact */
             if ((query == 'r') && (p->tt_step == TARGET_FEAT))
@@ -635,7 +625,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                 if (need_target_info(p, query, TARGET_FEAT))
                 {
                     mem_free(floor_list);
-                    return target_info(p, grid, out_val, help, query);
+                    return target_info(p, y, x, out_val, help, query);
                 }
             }
 
@@ -677,12 +667,11 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
  * The first two result from information being lost from the dungeon arrays,
  * which requires changes elsewhere.
  */
-int draw_path(struct player *p, u16b path_n, struct loc *path_g, struct loc *grid)
+int draw_path(struct player *p, u16b path_n, struct loc *path_g, int y1, int x1)
 {
     int i;
     bool on_screen;
-    bool pastknown = false;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* No path, so do nothing. */
     if (path_n < 1) return 0;
@@ -691,15 +680,21 @@ int draw_path(struct player *p, u16b path_n, struct loc *path_g, struct loc *gri
      * The starting square is never drawn, but notice if it is being
      * displayed. In theory, it could be the last such square.
      */
-    on_screen = panel_contains(p, grid);
+    on_screen = panel_contains(p, y1, x1);
 
     /* Draw the path. */
     for (i = 0; i < path_n; i++)
     {
         byte colour;
-        struct object *obj = square_known_pile(p, c, &path_g[i]);
-        struct source who_body;
-        struct source *who = &who_body;
+
+        /* Find the co-ordinates on the level. */
+        int y = path_g[i].y;
+        int x = path_g[i].x;
+
+        struct object *obj = floor_pile_known(p, c, y, x);
+
+        struct actor who_body;
+        struct actor *who = &who_body;
 
         /*
          * As path[] is a straight line and the screen is oblong,
@@ -710,21 +705,17 @@ int draw_path(struct player *p, u16b path_n, struct loc *path_g, struct loc *gri
          * If some of it has been drawn, finish now as there are no
          * more visible squares to draw.
          */
-        if (panel_contains(p, &path_g[i])) on_screen = true;
+        if (panel_contains(p, y, x)) on_screen = true;
         else if (on_screen) break;
         else continue;
 
-        square_actor(c, &path_g[i], who);
-
-        /* Once we pass an unknown square, we no longer know if we will reach later squares */
-        if (pastknown)
-            colour = COLOUR_L_DARK;
+        square_actor(c, y, x, who);
 
         /* Choose a colour (monsters). */
-        else if (who->monster && monster_is_visible(p, who->idx))
+        if (who->mon && mflag_has(p->mflag[who->idx], MFLAG_VISIBLE))
         {
             /* Mimics act as objects */
-            if (monster_is_mimicking(who->monster))
+            if (who->mon->unaware && who->mon->mimicked_obj)
                 colour = COLOUR_YELLOW;
 
             /* Visible monsters are red. */
@@ -733,7 +724,7 @@ int draw_path(struct player *p, u16b path_n, struct loc *path_g, struct loc *gri
         }
 
         /* Choose a colour (players). */
-        else if (who->player && player_is_visible(p, who->idx))
+        else if (who->player && mflag_has(p->pflag[who->idx], MFLAG_VISIBLE))
         {
             /* Player mimics act as objects (or features) */
             if (who->player->k_idx > 0)
@@ -751,25 +742,22 @@ int draw_path(struct player *p, u16b path_n, struct loc *path_g, struct loc *gri
             colour = COLOUR_YELLOW;
 
         /* Known walls are blue. */
-        else if (!square_isprojectable(c, &path_g[i]) &&
-            (square_isknown(p, &path_g[i]) || square_isseen(p, &path_g[i])))
+        else if (!square_isprojectable(c, y, x) &&
+            (square_isknown(p, y, x) || square_isseen(p, y, x)))
         {
             colour = COLOUR_BLUE;
         }
 
         /* Unknown squares are grey. */
-        else if (!square_isknown(p, &path_g[i]) && !square_isseen(p, &path_g[i]))
-        {
-            pastknown = true;
+        else if (!square_isknown(p, y, x) && !square_isseen(p, y, x))
             colour = COLOUR_L_DARK;
-        }
 
         /* Unoccupied squares are white. */
         else
             colour = COLOUR_WHITE;
 
         /* Draw the path segment */
-        draw_path_grid(p, &path_g[i], colour, '*');
+        draw_path_grid(p, y, x, colour, '*');
     }
 
     /* Flush and wait (delay for consistency) */
@@ -789,8 +777,11 @@ void load_path(struct player *p, u16b path_n, struct loc *path_g)
 
     for (i = 0; i < path_n; i++)
     {
-        if (!panel_contains(p, &path_g[i])) continue;
-        square_light_spot_aux(p, chunk_get(&p->wpos), &path_g[i]);
+        int y = path_g[i].y;
+        int x = path_g[i].x;
+
+        if (!panel_contains(p, y, x)) continue;
+        square_light_spot_aux(p, chunk_get(p->depth), y, x);
     }
 
     Send_flush(p, true, false);
@@ -806,9 +797,7 @@ static int target_dir(u32b ch)
     int d = 0;
 
     /* Already a direction? */
-    if (ch <= 9)
-        d = ch;
-    else if (isdigit((unsigned char)ch))
+    if (isdigit((unsigned char)ch))
         d = D2I(ch);
     else if (isarrow(ch))
     {
@@ -884,16 +873,19 @@ static void set_tt_m(struct player *p, s16b m)
  */
 bool target_set_interactive(struct player *p, int mode, u32b query)
 {
+    int py = p->py;
+    int px = p->px;
     int i, d, t, bd;
     bool done = false;
     struct point_set *targets;
     bool good_target;
     char help[NORMAL_WID];
-    struct target old_target_body;
-    struct target *old_target = &old_target_body;
+    struct actor old_target_who_body;
+    struct actor *old_target_who = &old_target_who_body;
+    int old_target_x, old_target_y;
     bool auto_target = false;
     int tries = 200;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     /* Paranoia */
     if (!c) return false;
@@ -902,9 +894,11 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
     if (p->path_drawn) load_path(p, p->path_n, p->path_g);
 
     /* Hack -- auto-target if requested */
-    if ((mode & (TARGET_AIM)) && OPT(p, use_old_target) && target_okay(p))
+    if ((mode & (TARGET_AIM)) && OPT_P(p, use_old_target) && target_okay(p))
     {
-        memcpy(old_target, &p->target, sizeof(struct target));
+        memcpy(old_target_who, &p->target_who, sizeof(struct actor));
+        old_target_x = p->target_x;
+        old_target_y = p->target_y;
         auto_target = true;
     }
 
@@ -918,10 +912,15 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
     /* Start on the player */
     if (query == '\0')
     {
-        loc_copy(&p->tt_grid, &p->grid);
+        p->tt_x = p->px;
+        p->tt_y = p->py;
 
         /* Hack -- auto-target if requested */
-        if (auto_target) loc_copy(&p->tt_grid, &old_target->grid);
+        if (auto_target)
+        {
+            p->tt_x = old_target_x;
+            p->tt_y = old_target_y;
+        }
     }
 
     /* Cancel target */
@@ -944,12 +943,16 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
             /* Find the old target */
             for (i = 0; i < point_set_size(targets); i++)
             {
-                struct source temp_who_body;
-                struct source *temp_who = &temp_who_body;
+                int temp_y = targets->pts[i].y;
+                int temp_x = targets->pts[i].x;
+                int temp_idx;
+                struct actor temp_who_body;
+                struct actor *temp_who = &temp_who_body;
 
-                square_actor(c, &targets->pts[i].grid, temp_who);
+                temp_idx = c->squares[temp_y][temp_x].mon;
+                ACTOR_WHO(temp_who, temp_idx, player_get(0 - temp_idx), cave_monster(c, temp_idx));
 
-                if (source_equal(temp_who, &old_target->target_who))
+                if (ACTOR_EQUAL(temp_who, old_target_who))
                 {
                     set_tt_m(p, i);
                     break;
@@ -985,16 +988,16 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
 
                 default:
                 {
-                    int col = p->grid.x - p->offset_grid.x;
-                    int row = p->grid.y - p->offset_grid.y + 1;
+                    int col = p->px - p->offset_x;
+                    int row = p->py - p->offset_y + 1;
                     bool dble = true;
-                    struct loc grid;
-
-                    loc_init(&grid, p->grid.x, p->grid.y - 1);
 
                     /* Hack -- is there something targetable above our position? */
-                    if (square_in_bounds_fully(c, &grid) && target_accept(p, &grid))
+                    if (square_in_bounds_fully(c, p->py - 1, p->px) &&
+                        target_accept(p, p->py - 1, p->px))
+                    {
                         dble = false;
+                    }
 
                     Send_target_info(p, col, row, dble, "Nothing to target. [p,q]");
                     point_set_dispose(targets);
@@ -1007,29 +1010,30 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
         /* Interesting grids if chosen and there are any, otherwise arbitrary */
         if (p->tt_flag && point_set_size(targets))
         {
-            struct source who_body;
-            struct source *who = &who_body;
+            struct actor who_body;
+            struct actor *who = &who_body;
 
-            loc_copy(&p->tt_grid, &targets->pts[p->tt_m].grid);
+            p->tt_y = targets->pts[p->tt_m].y;
+            p->tt_x = targets->pts[p->tt_m].x;
 
             /* Adjust panel if needed */
-            if (adjust_panel_help(p, p->tt_grid.y, p->tt_grid.x)) handle_stuff(p);
+            if (adjust_panel_help(p, p->tt_y, p->tt_x)) handle_stuff(p);
 
             /* Update help */
-            square_actor(c, &targets->pts[p->tt_m].grid, who);
+            square_actor(c, p->tt_y, p->tt_x, who);
             good_target = target_able(p, who);
             target_display_help(help, sizeof(help), good_target, false);
 
             /* Find the path. */
-            p->path_n = project_path(p, p->path_g, z_info->max_range, c, &p->grid,
-                &targets->pts[p->tt_m].grid, PROJECT_THRU | PROJECT_INFO);
+            p->path_n = project_path(p->path_g, z_info->max_range, c, py, px, p->tt_y,
+                p->tt_x, PROJECT_THRU);
 
             /* Draw the path in "target" mode. If there is one */
             if (mode & TARGET_KILL)
-                p->path_drawn = draw_path(p, p->path_n, p->path_g, &p->grid);
+                p->path_drawn = draw_path(p, p->path_n, p->path_g, py, px);
 
             /* Describe and Prompt */
-            ret = target_set_interactive_aux(p, &p->tt_grid, mode, help, query);
+            ret = target_set_interactive_aux(p, p->tt_y, p->tt_x, mode, help, query);
 
             if (ret)
             {
@@ -1087,7 +1091,8 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                     /* Handle stuff */
                     handle_stuff(p);
 
-                    loc_copy(&p->tt_grid, &p->grid);
+                    p->tt_y = p->py;
+                    p->tt_x = p->px;
                 }
 
                 case 'o':
@@ -1113,7 +1118,7 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                 case '0':
                 case '.':
                 {
-                    square_actor(c, &p->tt_grid, who);
+                    square_actor(c, p->tt_y, p->tt_x, who);
 
                     if (target_able(p, who))
                     {
@@ -1145,8 +1150,8 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
             /* Hack -- move around */
             if (d)
             {
-                int old_y = targets->pts[p->tt_m].grid.y;
-                int old_x = targets->pts[p->tt_m].grid.x;
+                int old_y = targets->pts[p->tt_m].y;
+                int old_x = targets->pts[p->tt_m].x;
 
                 /* Find a new monster */
                 i = target_pick(old_y, old_x, ddy[d], ddx[d], targets);
@@ -1154,9 +1159,8 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                 /* Scroll to find interesting grid */
                 if (i < 0)
                 {
-                    struct loc offset_grid;
-
-                    loc_copy(&offset_grid, &p->offset_grid);
+                    int old_wy = p->offset_y;
+                    int old_wx = p->offset_x;
 
                     /* Change if legal */
                     if (change_panel(p, d))
@@ -1169,7 +1173,7 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                         i = target_pick(old_y, old_x, ddy[d], ddx[d], targets);
 
                         /* Restore panel if needed */
-                        if ((i < 0) && modify_panel(p, &offset_grid))
+                        if ((i < 0) && modify_panel(p, old_wy, old_wx))
                         {
                             /* Recalculate interesting grids */
                             point_set_dispose(targets);
@@ -1190,24 +1194,24 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
         }
         else
         {
-            struct source who_body;
-            struct source *who = &who_body;
+            struct actor who_body;
+            struct actor *who = &who_body;
 
             /* Update help */
-            square_actor(c, &p->tt_grid, who);
+            square_actor(c, p->tt_y, p->tt_x, who);
             good_target = target_able(p, who);
             target_display_help(help, sizeof(help), good_target, true);
 
             /* Find the path. */
-            p->path_n = project_path(p, p->path_g, z_info->max_range, c, &p->grid, &p->tt_grid,
-                PROJECT_THRU | PROJECT_INFO);
+            p->path_n = project_path(p->path_g, z_info->max_range, c, py, px, p->tt_y,
+                p->tt_x, PROJECT_THRU);
 
             /* Draw the path in "target" mode. If there is one */
             if (mode & TARGET_KILL)
-                p->path_drawn = draw_path(p, p->path_n, p->path_g, &p->grid);
+                p->path_drawn = draw_path(p, p->path_n, p->path_g, py, px);
 
             /* Describe and Prompt (enable "TARGET_LOOK") */
-            ret = target_set_interactive_aux(p, &p->tt_grid, mode | TARGET_LOOK,
+            ret = target_set_interactive_aux(p, p->tt_y, p->tt_x, mode | TARGET_LOOK,
                 help, query);
 
             if (ret)
@@ -1253,7 +1257,8 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                     /* Handle stuff */
                     handle_stuff(p);
 
-                    loc_copy(&p->tt_grid, &p->grid);
+                    p->tt_y = p->py;
+                    p->tt_x = p->px;
                 }
 
                 case 'o':
@@ -1274,7 +1279,7 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                     /* Pick a nearby monster */
                     for (i = 0; i < point_set_size(targets); i++)
                     {
-                        t = distance(&p->tt_grid, &targets->pts[i].grid);
+                        t = distance(p->tt_y, p->tt_x, targets->pts[i].y, targets->pts[i].x);
 
                         /* Pick closest */
                         if (t < bd)
@@ -1298,7 +1303,7 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                 case '0':
                 case '.':
                 {
-                    target_set_location(p, &p->tt_grid);
+                    target_set_location(p, p->tt_y, p->tt_x);
                     done = true;
 
                     break;
@@ -1324,19 +1329,19 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
             if (d)
             {
                 /* Move */
-                p->tt_grid.x += ddx[d];
-                p->tt_grid.y += ddy[d];
+                p->tt_x += ddx[d];
+                p->tt_y += ddy[d];
 
                 /* Slide into legality */
-                if (p->tt_grid.x >= c->width - 1) p->tt_grid.x--;
-                else if (p->tt_grid.x <= 0) p->tt_grid.x++;
+                if (p->tt_x >= c->width - 1) p->tt_x--;
+                else if (p->tt_x <= 0) p->tt_x++;
 
                 /* Slide into legality */
-                if (p->tt_grid.y >= c->height - 1) p->tt_grid.y--;
-                else if (p->tt_grid.y <= 0) p->tt_grid.y++;
+                if (p->tt_y >= c->height - 1) p->tt_y--;
+                else if (p->tt_y <= 0) p->tt_y++;
 
                 /* Adjust panel if needed */
-                if (adjust_panel_help(p, p->tt_grid.y, p->tt_grid.x))
+                if (adjust_panel_help(p, p->tt_y, p->tt_x))
                 {
                     /* Handle stuff */
                     handle_stuff(p);
@@ -1365,7 +1370,7 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
     handle_stuff(p);
 
     /* Failure to set target */
-    if (!p->target.target_set) return false;
+    if (!p->target_set) return false;
 
     /* Success */
     return true;

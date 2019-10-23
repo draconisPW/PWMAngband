@@ -115,8 +115,6 @@
 #define SPECIAL_FILE_POLY       14
 #define SPECIAL_FILE_SOCIALS    15
 #define SPECIAL_FILE_HELP       16
-#define SPECIAL_FILE_RUNE       17
-#define SPECIAL_FILE_DUNGEONS   18
 
 /* Is string empty? Beats calling strlen */
 #define STRZERO(S) \
@@ -131,11 +129,8 @@
 #define HOOK_AMMO       5
 #define HOOK_SEND       6
 #define HOOK_POISON     7
-#define HOOK_UNCURSE    8
-#define HOOK_DRAIN      9
-#define HOOK_STAFF      10
 
-#define N_HOOKS         11
+#define N_HOOKS         8
 
 /* Special hooks */
 #define HOOK_DOWN       254
@@ -146,17 +141,15 @@
  */
 enum
 {
-    OLIST_NONE   = 0x00,        /* No options */
-    OLIST_WINDOW = 0x01,        /* Display list in a sub-term (left-align) */
-    OLIST_QUIVER = 0x02,        /* Display quiver lines */
-    OLIST_GOLD   = 0x04,        /* Include gold in the list */
-    OLIST_WEIGHT = 0x08,        /* Show item weight */
-    OLIST_PRICE  = 0x10,        /* Show item price */
-    OLIST_FAIL   = 0x20,        /* Show device failure */
-    OLIST_SEMPTY = 0x40,        /* Show empty slots */
-    OLIST_FLOOR  = 0x80,        /* Include first floor item in the list */
-    OLIST_BOOK_TAGS = 0x100,    /* Use book sval for item tags */
-    OLIST_RECHARGE = 0x200      /* Show failure for device recharging */
+    OLIST_NONE   = 0x00,    /* No options */
+    OLIST_WINDOW = 0x01,    /* Display list in a sub-term (left-align) */
+    OLIST_QUIVER = 0x02,    /* Display quiver lines */
+    OLIST_GOLD   = 0x04,    /* Include gold in the list */
+    OLIST_WEIGHT = 0x08,    /* Show item weight */
+    OLIST_PRICE  = 0x10,    /* Show item price */
+    OLIST_FAIL   = 0x20,    /* Show device failure */
+    OLIST_SEMPTY = 0x40,    /* Show empty slots */
+    OLIST_FLOOR  = 0x80     /* Include first floor item in the list */
 };
 
 #endif /* INCLUDED_Z_DEFINES_H */

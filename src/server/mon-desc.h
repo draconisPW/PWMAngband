@@ -21,16 +21,13 @@
 #define MDESC_CAPITAL   0x100   /* Capitalise */
 
 /* "someone", "something", or "the kobold" at the start of a message */
-#define MDESC_STANDARD (MDESC_CAPITAL | MDESC_IND_HID | MDESC_PRO_HID)
-
-/* "someone", "something", or "the kobold" as the target of an attack */
-#define MDESC_TARG (MDESC_OBJE | MDESC_IND_HID | MDESC_PRO_HID)
+#define MDESC_STANDARD  (MDESC_CAPITAL | MDESC_IND_HID | MDESC_PRO_HID)
 
 /* Reveal the full, indefinite name of a monster */
 #define MDESC_DIED_FROM (MDESC_SHOW | MDESC_IND_VIS)
 
 extern void plural_aux(char *name, size_t max);
-extern void get_mon_name(char *buf, size_t buflen, const struct monster_race *race, int num);
+extern void get_mon_name(char *output_name, size_t max, const struct monster_race *race, int num);
 extern void monster_desc(struct player *p, char *desc, size_t max, const struct monster *mon,
     int mode);
 

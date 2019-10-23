@@ -3,7 +3,7 @@
  * Purpose: Character screens and dumps
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -49,18 +49,17 @@ static void update_statusline(struct player *p)
 
 
 /*
- * Display the character in a file (three different modes)
+ * Display the character in a file (two different modes)
  *
  * The top two lines, and the bottom line (or two) are left blank.
  *
- * Mode 0 = standard display with skills/history
- * Mode 1 = special display with equipment flags
- * Mode 2 = special display with equipment flags (ESP flags)
+ * Mode false = standard display with skills/history
+ * Mode true = special display with equipment flags
  *
- * Similar to the function in "ui-display.c" but modified to work server-side.
+ * Similar to the function in "ui-game.c" but modified to work server-side.
  * This is used for server-side character dumps.
  */
-static void display_player_file(struct player *p, byte mode)
+static void display_player_file(struct player *p, bool mode)
 {
     /* Set the hooks */
     clear_hook = buffer_clear;
@@ -74,45 +73,17 @@ static void display_player_file(struct player *p, byte mode)
 }
 
 
-static void dump_buffer(ang_file *fff, int y1, int y2, int length, bool skip_empty)
-{
-    int y;
-    char buf[100];
-    char *s;
-
-    for (y = y1; y <= y2; y++)
-    {
-        /* Dump each row */
-        if (length > 0)
-            my_strcpy(buf, buffer_line(y), length);
-        else if (length <= 0)
-            my_strcpy(buf, buffer_line(y) - length, sizeof(buf));
-        s = buf + strlen(buf);
-
-        /* Back up over spaces */
-        while ((s > buf) && (s[-1] == ' ')) --s;
-
-        /* Terminate */
-        *s = '\0';
-
-        /* End the row */
-        if (!(skip_empty && STRZERO(buf))) file_putf(fff, "%s\n", buf);
-    }
-}
-
-
 /*
  * Write a character dump
  */
-static void write_character_dump(ang_file *fff, void *data)
+static void write_character_dump(struct player *p, ang_file *fff)
 {
-    struct player *p = (struct player *)data;
-    int i;
+    int i, x, y;
     u16b a;
     char c;
-    struct store *home = p->home;
-    struct object **home_list = mem_zalloc(sizeof(struct object *) * z_info->store_inven_max);
+    char buf[100];
     char o_name[NORMAL_WID];
+    char *s;
     time_t ct = time((time_t*)0);
     char today[10];
     int x1, x2, y1, y2;
@@ -121,8 +92,7 @@ static void write_character_dump(ang_file *fff, void *data)
     char sx;
     bool victory = streq(p->death_info.died_from, "winner");
     bool final = (p->is_dead || !p->alive || victory);
-    struct chunk *cv = chunk_get(&p->wpos);
-    struct loc grid;
+    struct chunk *cv = chunk_get(p->depth);
 
     switch (p->psex)
     {
@@ -141,7 +111,7 @@ static void write_character_dump(ang_file *fff, void *data)
         file_putf(fff,
             "# %u|%u|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s|%s\n",
             total_points(p, p->max_exp, p->max_depth), p->au, today,
-            p->name, sx, p->race->ridx, p->clazz->cidx, p->lev, p->wpos.depth,
+            p->name, sx, p->race->ridx, p->clazz->cidx, p->lev, p->depth,
             p->max_lev, p->max_depth, p->death_info.died_from, version_build(VB_BASE));
 
         /* Leave it at that for characters lower than level 20 */
@@ -152,35 +122,67 @@ static void write_character_dump(ang_file *fff, void *data)
     file_putf(fff, "  [%s Character Dump]\n\n", version_build(VB_NAME));
 
     /* Display player */
-    display_player_file(p, 0);
+    display_player_file(p, false);
 
     /* Dump part of the screen */
-    dump_buffer(fff, 0, 17, 0, false);
-    dump_buffer(fff, 18, 20, 0, true);
+    for (y = 0; y < 21; y++)
+    {
+        /* Dump each row */
+        my_strcpy(buf, buffer_line(y), sizeof(buf));
+        s = buf + strlen(buf);
+
+        /* Back up over spaces */
+        while ((s > buf) && (s[-1] == ' ')) --s;
+
+        /* Terminate */
+        *s = '\0';
+
+        /* End the row */
+        file_putf(fff, "%s\n", buf);
+    }
 
     /* Skip a line */
     file_put(fff, "\n");
 
     /* Display player */
-    display_player_file(p, 1);
+    display_player_file(p, true);
 
     /* Dump part of the screen */
-    dump_buffer(fff, 10, 18, 39, false);
+    for (y = 10; y < 19; y++)
+    {
+        /* Dump each row */
+        my_strcpy(buf, buffer_line(y), 39);
+        s = buf + strlen(buf);
+
+        /* Back up over spaces */
+        while ((s > buf) && (s[-1] == ' ')) --s;
+
+        /* Terminate */
+        *s = '\0';
+
+        /* End the row */
+        file_putf(fff, "%s\n", buf);
+    }
 
     /* Skip a line */
     file_put(fff, "\n");
 
     /* Dump part of the screen */
-    dump_buffer(fff, 10, 18, -38, false);
+    for (y = 10; y < 19; y++)
+    {
+        /* Dump each row */
+        my_strcpy(buf, buffer_line(y) + 38, sizeof(buf));
+        s = buf + strlen(buf);
 
-    /* Skip a line */
-    file_put(fff, "\n");
+        /* Back up over spaces */
+        while ((s > buf) && (s[-1] == ' ')) --s;
 
-    /* Display player */
-    display_player_file(p, 2);
+        /* Terminate */
+        *s = '\0';
 
-    /* Dump part of the screen */
-    dump_buffer(fff, 10, 18, 0, false);
+        /* End the row */
+        file_putf(fff, "%s\n", buf);
+    }
 
     /* Skip some lines */
     file_put(fff, "\n\n");
@@ -199,7 +201,7 @@ static void write_character_dump(ang_file *fff, void *data)
             i++;
             if (i == MAX_MSG_HIST) i = 0;
         }
-        if (victory) file_putf(fff, "\nAll Hail the Mighty %s!\n\n\n", get_title(p));
+        if (victory) file_putf(fff, "\nAll Hail the Mighty %s!\n\n\n", p->sex->winner);
         else file_putf(fff, "\nKilled by %s.\n\n\n", p->death_info.died_from);
     }
 
@@ -217,7 +219,7 @@ static void write_character_dump(ang_file *fff, void *data)
     }
 
     /* Dump the quiver */
-    file_put(fff, "\n  [Character Quiver]\n\n");
+    file_put(fff, "\n\n  [Character Quiver]\n\n");
     for (i = 0; i < z_info->quiver_size; i++)
     {
         struct object *obj = p->upkeep->quiver[i];
@@ -230,7 +232,7 @@ static void write_character_dump(ang_file *fff, void *data)
     }
 
     /* Dump the inventory */
-    file_put(fff, "\n  [Character Inventory]\n\n");
+    file_put(fff, "\n\n  [Character Inventory]\n\n");
     for (i = 0; i < z_info->pack_size; i++)
     {
         struct object *obj = p->upkeep->inven[i];
@@ -241,30 +243,9 @@ static void write_character_dump(ang_file *fff, void *data)
         file_putf(fff, "%c) %s\n", I2A(i), o_name);
         object_info_chardump(p, fff, obj);
     }
-    file_put(fff, "\n");
+    file_put(fff, "\n\n");
 
     /* Dump the Home -- if anything there */
-    store_stock_list(p, home, home_list, z_info->store_inven_max);
-    if (home->stock_num)
-    {
-        /* Header */
-        file_put(fff, "  [Home Inventory]\n\n");
-
-        /* Dump all available items */
-        for (i = 0; i < z_info->store_inven_max; i++)
-        {
-            struct object *obj = home_list[i];
-
-            if (!obj) break;
-            object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
-            file_putf(fff, "%c) %s\n", I2A(i), o_name);
-            object_info_chardump(p, fff, obj);
-        }
-
-        /* Add an empty line */
-        file_put(fff, "\n");
-    }
-
     if (has_home_inventory(p)) house_dump(p, fff);
 
     /* Dump character history */
@@ -295,7 +276,7 @@ static void write_character_dump(ang_file *fff, void *data)
             /* Hack -- only display server options */
             if (!option_server(opt)) continue;
 
-            file_putf(fff, "%-45s: %s (%s)\n", option_desc(opt), p->opts.opt[opt]? "yes": "no ",
+            file_putf(fff, "%-45s: %s (%s)\n", option_desc(opt), p->other.opt[opt]? "yes": "no ",
                 option_name(opt));
         }
 
@@ -310,10 +291,10 @@ static void write_character_dump(ang_file *fff, void *data)
         else file_put(fff, "\n  [Scene of Death]\n\n");
 
         /* Get an in bounds area */
-        x1 = p->grid.x - 39;
-        x2 = p->grid.x + 39;
-        y1 = p->grid.y - 10;
-        y2 = p->grid.y + 10;
+        x1 = p->px - 39;
+        x2 = p->px + 39;
+        y1 = p->py - 10;
+        y2 = p->py + 10;
         if (y1 < 0)
         {
             y2 = y2 - y1;
@@ -336,16 +317,16 @@ static void write_character_dump(ang_file *fff, void *data)
         }
 
         /* Describe each row */
-        for (grid.y = y1; grid.y <= y2; grid.y++)
+        for (y = y1; y <= y2; y++)
         {
-            for (grid.x = x1; grid.x <= x2; grid.x++)
+            for (x = x1; x <= x2; x++)
             {
                 /* Get the features */
-                map_info(p, cv, &grid, &g);
+                map_info(p, cv, y, x, &g);
                 grid_data_as_text(p, cv, true, &g, &a, &c, &a, &c);
 
                 /* Hack for the player who is already dead and gone */
-                if (player_is_at(p, &grid))
+                if ((x == p->px) && (y == p->py))
                 {
                     c = (victory? '@': '†');
                     a = COLOUR_WHITE;
@@ -375,8 +356,6 @@ static void write_character_dump(ang_file *fff, void *data)
         /* Dump status line */
         file_putf(fff, "\n%s\n\n", buffer_line(0));
     }
-
-    mem_free(home_list);
 }
 
 
@@ -394,7 +373,7 @@ bool dump_save(struct player *p, const char *path)
     else
         path_build(buf, sizeof(buf), ANGBAND_DIR_SCORES, path);
 
-    if (text_lines_to_file(buf, write_character_dump, (void *)p))
+    if (text_lines_to_file(p, buf, write_character_dump))
     {
         plog_fmt("Failed to create file %s.new", buf);
         return false;

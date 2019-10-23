@@ -5,7 +5,7 @@
  * Copyright (c) 1997-2000 Robert A. Koeneke, James E. Wilson, Ben Harrison
  * Copyright (c) 2007 Pete Mack
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -112,25 +112,25 @@ static bool option_toggle_handle(struct menu *m, const ui_event *event, int oid)
     {
         /* Hack -- birth options can not be toggled after birth */
         if (!(m->flags == MN_NO_TAGS))
-            option_set(player->opts.opt, option_name(oid), !player->opts.opt[oid]);
+            option_set(Client_setup.options, option_name(oid), !Client_setup.options[oid]);
     }
     else if (event->type == EVT_KBRD)
     {
         if ((event->key.code == 'y') || (event->key.code == 'Y'))
         {
-            option_set(player->opts.opt, option_name(oid), true);
+            option_set(Client_setup.options, option_name(oid), true);
             next = true;
         }
         else if ((event->key.code == 'n') || (event->key.code == 'N'))
         {
-            option_set(player->opts.opt, option_name(oid), false);
+            option_set(Client_setup.options, option_name(oid), false);
             next = true;
         }
         else if (event->key.code == 't' || event->key.code == 'T')
         {
             /* Hack -- birth options can not be toggled after birth */
             if (!(m->flags == MN_NO_TAGS))
-                option_set(player->opts.opt, option_name(oid), !player->opts.opt[oid]);
+                option_set(Client_setup.options, option_name(oid), !Client_setup.options[oid]);
         }
         else if (event->key.code == '?')
         {
@@ -206,7 +206,7 @@ static void option_toggle_menu(const char *name, int page)
     }
 
     /* Set the data to the player's options */
-    menu_setpriv(m, OPT_MAX, &player->opts.opt);
+    menu_setpriv(m, OPT_MAX, &Client_setup.options);
     menu_set_filter(m, option_page[page], i);
     menu_layout(m, &SCREEN_REGION);
 
@@ -369,7 +369,7 @@ static void do_cmd_options_win(const char *name, int row)
 /*
  * Current (or recent) keymap action
  */
-static struct keypress keymap_buffer[KEYMAP_ACTION_MAX + 1];
+static struct keypress keymap_buffer[KEYMAP_ACTION_MAX];
 
 
 /*
@@ -380,10 +380,8 @@ static struct keypress keymap_buffer[KEYMAP_ACTION_MAX + 1];
 static int keymap_get_trigger(struct keypress *c)
 {
     char tmp[MSG_LEN];
-    struct keypress buf[2];
+    struct keypress buf[2] = {{0}, {0}};
     ui_event ke;
-
-    memset(buf, 0, 2 * sizeof(struct keypress));
 
     /* Flush */
     event_signal(EVENT_INPUT_FLUSH);
@@ -428,7 +426,7 @@ static void ui_keymap_pref_append(const char *title, int row)
 static void ui_keymap_query(const char *title, int row)
 {
     char tmp[MSG_LEN];
-    int mode = (OPT(player, rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
+    int mode = (OPT(rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
     struct keypress c;
     const struct keypress *act;
     int res;
@@ -476,9 +474,9 @@ static void ui_keymap_create(const char *title, int row)
 {
     bool done = false;
     size_t n = 0;
-    struct keypress c, esc;
+    struct keypress c;
     char tmp[MSG_LEN];
-    int mode = (OPT(player, rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
+    int mode = (OPT(rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
     int res;
     ui_event ke;
     ui_event ea = EVENT_ABORT;
@@ -503,14 +501,6 @@ static void ui_keymap_create(const char *title, int row)
         if (is_abort(ke)) Term_event_push(&ea);
         return;
     }
-
-    memset(keymap_buffer, 0, (KEYMAP_ACTION_MAX + 1) * sizeof(struct keypress));
-
-    /* PWMAngband: always start with ESCAPE */
-    esc.type = EVT_KBRD;
-    esc.code = ESCAPE;
-    esc.mods = 0;
-    keymap_buffer[n++] = esc;
 
     /* Get an encoded action, with a default response */
     while (!done)
@@ -561,7 +551,7 @@ static void ui_keymap_create(const char *title, int row)
             }
             case KTRL('U'):
             {
-                memset(keymap_buffer, 0, (KEYMAP_ACTION_MAX + 1) * sizeof(struct keypress));
+                memset(keymap_buffer, 0, sizeof(keymap_buffer));
                 n = 0;
                 break;
             }
@@ -569,6 +559,7 @@ static void ui_keymap_create(const char *title, int row)
             {
                 if (n == KEYMAP_ACTION_MAX) continue;
 
+                if (n == 0) memset(keymap_buffer, 0, sizeof(keymap_buffer));
                 keymap_buffer[n++] = kp;
                 break;
             }
@@ -594,7 +585,7 @@ static void ui_keymap_create(const char *title, int row)
 static void ui_keymap_remove(const char *title, int row)
 {
     struct keypress c;
-    int mode = (OPT(player, rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
+    int mode = (OPT(rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
     int res;
     ui_event ke;
     ui_event ea = EVENT_ABORT;
@@ -988,14 +979,14 @@ static void do_cmd_delay(const char *name, int row)
     char tmp[4] = "";
     ui_event ea = EVENT_ABORT;
 
-    strnfmt(tmp, sizeof(tmp), "%i", player->opts.delay_factor);
+    strnfmt(tmp, sizeof(tmp), "%i", player->other.delay_factor);
 
     screen_save();
 
     /* Prompt */
     prt("Command: Base Delay Factor", 20, 0);
 
-    prt(format("Current base delay factor: %d msec", player->opts.delay_factor), 22, 0);
+    prt(format("Current base delay factor: %d msec", player->other.delay_factor), 22, 0);
     prt("New base delay factor (0-255): ", 21, 0);
 
     /* Ask for a numeric value */
@@ -1004,7 +995,7 @@ static void do_cmd_delay(const char *name, int row)
     {
         u16b val = (u16b)strtoul(tmp, NULL, 0);
 
-        player->opts.delay_factor = MIN(val, 255);
+        player->other.delay_factor = MIN(val, 255);
     }
     else if (res == 1)
         Term_event_push(&ea);
@@ -1022,7 +1013,7 @@ static void do_cmd_hp_warn(const char *name, int row)
     char tmp[2] = "";
     ui_event ea = EVENT_ABORT;
 
-    strnfmt(tmp, sizeof(tmp), "%i", player->opts.hitpoint_warn);
+    strnfmt(tmp, sizeof(tmp), "%i", player->other.hitpoint_warn);
 
     screen_save();
 
@@ -1030,14 +1021,14 @@ static void do_cmd_hp_warn(const char *name, int row)
     prt("Command: Hitpoint Warning", 20, 0);
 
     prt(format("Current hitpoint warning: %d (%d%%)",
-        player->opts.hitpoint_warn, player->opts.hitpoint_warn * 10), 22, 0);
+        player->other.hitpoint_warn, player->other.hitpoint_warn * 10), 22, 0);
     prt("New hitpoint warning (0-9): ", 21, 0);
 
     /* Ask the user for a string */
     res = askfor_ex(tmp, sizeof(tmp), askfor_aux_numbers, false);
 
     /* Process input */
-    if (!res) player->opts.hitpoint_warn = (byte)strtoul(tmp, NULL, 0);
+    if (!res) player->other.hitpoint_warn = (byte)strtoul(tmp, NULL, 0);
     else if (res == 1) Term_event_push(&ea);
 
     screen_load(false);
@@ -1053,7 +1044,7 @@ static void do_cmd_lazymove_delay(const char *name, int row)
     char tmp[2] = "";
     ui_event ea = EVENT_ABORT;
 
-    strnfmt(tmp, sizeof(tmp), "%i", player->opts.lazymove_delay);
+    strnfmt(tmp, sizeof(tmp), "%i", player->other.lazymove_delay);
 
     screen_save();
 
@@ -1061,14 +1052,14 @@ static void do_cmd_lazymove_delay(const char *name, int row)
     prt("Command: Movement Delay Factor", 20, 0);
 
     prt(format("Current movement delay factor: %d (%d msec)",
-        player->opts.lazymove_delay, player->opts.lazymove_delay * 100), 22, 0);
+        player->other.lazymove_delay, player->other.lazymove_delay * 100), 22, 0);
     prt("New movement delay factor (0-9): ", 21, 0);
 
     /* Ask the user for a string */
     res = askfor_ex(tmp, sizeof(tmp), askfor_aux_numbers, false);
 
     /* Process input */
-    if (!res) player->opts.lazymove_delay = (byte)strtoul(tmp, NULL, 0);
+    if (!res) player->other.lazymove_delay = (byte)strtoul(tmp, NULL, 0);
     else if (res == 1) Term_event_push(&ea);
 
     screen_load(false);
@@ -1135,15 +1126,6 @@ static void do_dump_options(const char *title, int row)
         c_msg_print("Failed to save subwindow preferences.");
 
     dump_pref_file(option_dump, "Dump options", 20);
-}
-
-
-/*
- * Write autoinscriptions to a file.
- */
-static void do_dump_autoinsc(const char *title, int row)
-{
-    dump_pref_file(dump_autoinscriptions, "Dump autoinscriptions", 20);
 }
 
 
@@ -1219,9 +1201,11 @@ static quality_name_struct quality_choices[] =
 static quality_name_struct quality_values[IGNORE_MAX] =
 {
     {IGNORE_NONE, "no ignore"},
-    {IGNORE_BAD, "worthless"},
+    {IGNORE_WORTHLESS, "worthless"},
     {IGNORE_AVERAGE, "average"},
     {IGNORE_GOOD, "good"},
+    {IGNORE_EXCELLENT_NO_HI, "excellent with no high resists"},
+    {IGNORE_EXCELLENT_NO_SPL, "excellent but not splendid"},
     {IGNORE_ALL, "non-artifact"}
 };
 
@@ -1233,7 +1217,7 @@ static void quality_display(struct menu *menu, int oid, bool cursor, int row, in
 {
     /* Choice is [1..ITYPE_MAX], level is [0..ITYPE_MAX] */
     const char *name = quality_choices[oid].name;
-    byte level = player->opts.ignore_lvl[oid + 1];
+    byte level = player->other.ignore_lvl[oid + 1];
     const char *level_name = quality_values[level].name;
     byte attr = (cursor? COLOUR_L_BLUE: COLOUR_WHITE);
 
@@ -1292,7 +1276,7 @@ static bool quality_action(struct menu *m, const ui_event *event, int oid)
     if (is_abort(evt)) Term_event_push(&ea);
 
     /* Set the new value appropriately */
-    if (evt.type == EVT_SELECT) player->opts.ignore_lvl[oid + 1] = menu.cursor;
+    if (evt.type == EVT_SELECT) player->other.ignore_lvl[oid + 1] = menu.cursor;
 
     /* Load and finish */
     screen_load(false);
@@ -1593,11 +1577,15 @@ static tval_desc sval_dependent[] =
     {TV_MUSHROOM, "Mushrooms"},
     {TV_MAGIC_BOOK, "Magic Books"},
     {TV_PRAYER_BOOK, "Prayer Books"},
-    {TV_NATURE_BOOK, "Nature Books"},
+    {TV_SORCERY_BOOK, "Sorcery Books"},
     {TV_SHADOW_BOOK, "Shadow Books"},
+    {TV_HUNT_BOOK, "Hunt Books"},
     {TV_PSI_BOOK, "Psi Books"},
+    {TV_DEATH_BOOK, "Death Books"},
     {TV_ELEM_BOOK, "Elemental Books"},
-    {TV_FLASK, "Flasks of Oil"}
+    {TV_SUMMON_BOOK, "Summoning Books"}
+    /*{TV_LIGHT, "Lights"} -- PWMAngband: removed because of ego light sources */
+    /*{TV_FLASK, "Flasks of Oil"} -- PWMAngband: moved to MAngband submenu because lack of space */
 };
 
 
@@ -1607,11 +1595,13 @@ static tval_desc sval_dependent[] =
 static bool ignore_tval_extra(int tval)
 {
     /* PWMAngband: allow crops and junk to be ignored */
+    /* PWMAngband: flasks of oil moved here because lack of space on main menu */
     switch (tval)
     {
         case TV_SKELETON:
         case TV_BOTTLE:
         case TV_CORPSE:
+        case TV_FLASK:
         case TV_CROP: return true;
     }
 
@@ -1709,7 +1699,7 @@ static int ignore_collect_kind(int tval, ignore_choice **ch)
     /*choice = mem_alloc(2 * z_info->k_max * sizeof(*choice));*/
     choice = mem_alloc(z_info->k_max * sizeof(*choice));
 
-    for (i = 0; i < z_info->k_max; i++)
+    for (i = 1; i < z_info->k_max; i++)
     {
         struct object_kind *kind = &k_info[i];
         bool artifact;
@@ -1760,12 +1750,16 @@ static bool sval_menu(int tval, const char *desc)
     switch (tval)
     {
         /* Leave sorted by sval */
+        /*case TV_LIGHT:*/
         case TV_MAGIC_BOOK:
         case TV_PRAYER_BOOK:
-        case TV_NATURE_BOOK:
+        case TV_SORCERY_BOOK:
         case TV_SHADOW_BOOK:
+        case TV_HUNT_BOOK:
         case TV_PSI_BOOK:
-        case TV_ELEM_BOOK: break;
+        case TV_DEATH_BOOK:
+        case TV_ELEM_BOOK:
+        case TV_SUMMON_BOOK: break;
 
         /* Sort by name */
         default: sort(choices, n_choices, sizeof(*choices), cmp_ignore);
@@ -1803,7 +1797,7 @@ static bool seen_tval(int tval)
 {
     int i;
 
-    for (i = 0; i < z_info->k_max; i++)
+    for (i = 1; i < z_info->k_max; i++)
     {
         struct object_kind *kind = &k_info[i];
 
@@ -1831,7 +1825,7 @@ static int ignore_collect_kind_extra(ignore_choice **ch)
     /*choice = mem_alloc(2 * z_info->k_max * sizeof(*choice));*/
     choice = mem_alloc(z_info->k_max * sizeof(*choice));
 
-    for (i = 0; i < z_info->k_max; i++)
+    for (i = 1; i < z_info->k_max; i++)
     {
         struct object_kind *kind = &k_info[i];
         bool artifact;
@@ -2052,15 +2046,14 @@ static menu_action option_actions[] =
     {0, 'c', "Birth (difficulty) options", option_toggle_menu},
     {0, 'w', "Subwindow setup", do_cmd_options_win},
     {0, 'i', "Item ignoring setup", do_cmd_options_item},
-    {0, 0, NULL, NULL},
+    {0, 0, 0, 0},
     {0, 'd', "Set base delay factor", do_cmd_delay},
     {0, 'h', "Set hitpoint warning", do_cmd_hp_warn},
     {0, 'm', "Set movement delay", do_cmd_lazymove_delay},
-    {0, 0, NULL, NULL},
+    {0, 0, 0, 0},
     {0, 'l', "Load a user pref file", options_load_pref_file},
     {0, 's', "Save options to pref file", do_dump_options},
-    {0, 't', "Save autoinscriptions to pref file", do_dump_autoinsc},
-    {0, 0, NULL, NULL},
+    {0, 0, 0, 0},
     {0, 'k', "Edit keymaps (advanced)", do_cmd_keymaps},
     {0, 'v', "Edit colours (advanced)", do_cmd_colors}
 };

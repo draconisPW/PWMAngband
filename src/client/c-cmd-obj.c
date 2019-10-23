@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007-9 Andi Sidwell, Chris Carr, Ed Graham, Erik Osheim
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -25,10 +25,10 @@
 /*** Taking off/putting on ***/
 
 
-/* Can only take off non-stuck items */
+/* Can only take off non-cursed items */
 bool obj_can_takeoff(struct player *p, const struct object *obj)
 {
-    return !obj->info_xtra.stuck;
+    return !obj->info_xtra.cursed;
 }
 
 
@@ -55,7 +55,7 @@ static int spell_book_count_spells(const struct object *obj, bool (*tester)(int,
     if (book >= player->clazz->magic.num_books) return 0;
 
     /* Check for end of the book */
-    while (book_info[book].spell_info[i].info[0] != '\0')
+    while (spell_info[book][i].info[0] != '\0')
     {
         /* Spell is available */
         if (tester(book, i)) n_spells++;
@@ -96,7 +96,7 @@ bool obj_browse_pre(void)
             num = 0;
 
             /* Check for end of the book */
-            while (book_info[page].spell_info[i].info[0] != '\0')
+            while (spell_info[page][i].info[0] != '\0')
             {
                 /* Spell is available */
                 num++;
@@ -186,7 +186,7 @@ bool obj_cast_pre(void)
             num = 0;
 
             /* Check for end of the book */
-            while (book_info[page].spell_info[i].info[0] != '\0')
+            while (spell_info[page][i].info[0] != '\0')
             {
                 /* Spell is available */
                 num++;
@@ -235,7 +235,7 @@ bool obj_cast_pre(void)
     }
 
     /* Require spell ability */
-    if (!player->clazz->magic.total_spells)
+    if (player->clazz->magic.spell_realm->index == REALM_NONE)
     {
         c_msg_print("You cannot pray or produce magics.");
         return false;
@@ -300,7 +300,7 @@ bool obj_has_charges(const struct object *obj)
 bool obj_can_zap(const struct object *obj)
 {
     /* Check activation flag */
-    return (obj->info_xtra.act == ACT_NORMAL);
+    return (obj->info_xtra.act > ACT_TIMEOUT);
 }
 
 
@@ -316,7 +316,7 @@ bool inven_carry_okay(const struct object *obj)
 bool obj_is_activatable(struct player *p, const struct object *obj)
 {
     /* Check activation flag */
-    return (obj->info_xtra.act != ACT_NONE);
+    return (obj->info_xtra.act > ACT_NONE);
 }
 
 
@@ -324,7 +324,7 @@ bool obj_is_activatable(struct player *p, const struct object *obj)
 bool obj_can_activate(const struct object *obj)
 {
     /* Check activation flag */
-    return (obj->info_xtra.act == ACT_NORMAL);
+    return (obj->info_xtra.act > ACT_TIMEOUT);
 }
 
 
@@ -353,7 +353,8 @@ bool obj_is_useable(struct player *p, const struct object *obj)
 int need_dir(struct object *obj)
 {
     /* Needs a direction */
-    if (obj->info_xtra.aim) return DIR_UNKNOWN;
+    if ((obj->info_xtra.act == ACT_HACK) || (obj->info_xtra.act == ACT_AIMED))
+        return DIR_UNKNOWN;
 
     return DIR_SKIP;
 }

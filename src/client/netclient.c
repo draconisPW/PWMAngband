@@ -2,7 +2,7 @@
  * File: netclient.c
  * Purpose: The client side of the networking stuff
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -170,9 +170,9 @@ void check_term_resize(bool main_win, int *cols, int *rows)
     }
     else
     {
-        /* Minimum window size is 16x4 */
-        if (*cols < NORMAL_WID / 5) *cols = NORMAL_WID / 5;
-        if (*rows < NORMAL_HGT / 5) *rows = NORMAL_HGT / 5;
+        /* Minimum window size is 40x12 */
+        if (*cols < NORMAL_WID / 2) *cols = NORMAL_WID / 2;
+        if (*rows < NORMAL_HGT / 2) *rows = NORMAL_HGT / 2;
 
         /* Maximum window size is 80x24 */
         if (*cols > NORMAL_WID) *cols = NORMAL_WID;
@@ -300,11 +300,11 @@ static int Receive_struct_info(void)
         case STRUCT_INFO_LIMITS:
         {
             u16b a_max, e_max, k_max, r_max, f_max, trap_max, pack_size, quiver_size, floor_size,
-                quiver_slot_size, store_inven_max, curse_max;
+                stack_size, store_inven_max;
 
-            if ((n = Packet_scanf(&rbuf, "%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu", &a_max, &e_max,
+            if ((n = Packet_scanf(&rbuf, "%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu%hu", &a_max, &e_max,
                 &k_max, &r_max, &f_max, &trap_max, &flavor_max, &pack_size, &quiver_size,
-                &floor_size, &quiver_slot_size, &store_inven_max, &curse_max)) <= 0)
+                &floor_size, &stack_size, &store_inven_max)) <= 0)
             {
                 /* Rollback the socket buffer */
                 Sockbuf_rollback(&rbuf, bytes_read);
@@ -312,7 +312,7 @@ static int Receive_struct_info(void)
                 /* Packet isn't complete, graceful failure */
                 return n;
             }
-            bytes_read += 26;
+            bytes_read += 24;
 
             /* z_info */
             z_info = &z_info_struct;
@@ -347,9 +347,6 @@ static int Receive_struct_info(void)
             Client_setup.flvr_x_attr = mem_zalloc(flavor_max * sizeof(byte));
             Client_setup.flvr_x_char = mem_zalloc(flavor_max * sizeof(char));
 
-            /* Autoinscriptions */
-            Client_setup.note_aware = mem_zalloc(z_info->k_max * sizeof(char_note));
-
             /* Alloc */
             player->obj_aware = mem_zalloc(z_info->k_max * sizeof(bool));
             player->kind_ignore = mem_zalloc(z_info->k_max * sizeof(byte));
@@ -363,7 +360,7 @@ static int Receive_struct_info(void)
             z_info->pack_size = pack_size;
             z_info->quiver_size = quiver_size;
             z_info->floor_size = floor_size;
-            z_info->quiver_slot_size = quiver_slot_size;
+            z_info->stack_size = stack_size;
 
             z_info->store_inven_max = store_inven_max;
 
@@ -375,17 +372,14 @@ static int Receive_struct_info(void)
             current_store.stock = mem_zalloc(z_info->store_inven_max * sizeof(struct object));
             store_names = mem_zalloc(z_info->store_inven_max * sizeof(store_name));
 
-            /* curses */
-            z_info->curse_max = curse_max;
-
             break;
         }
 
         /* Player Races */
         case STRUCT_INFO_RACE:
         {
-            s16b r_adj, r_skills, r_exp, res_level;
-            byte ridx, r_mhp, infra, flag;
+            s16b r_adj, r_skills, r_exp;
+            byte ridx, r_mhp, infra, flag, res_level;
 
             races = NULL;
 
@@ -486,7 +480,7 @@ static int Receive_struct_info(void)
                 }
                 for (j = 0; j < ELEM_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd", &res_level)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &res_level)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -496,7 +490,7 @@ static int Receive_struct_info(void)
                         mem_free(r);
                         return n;
                     }
-                    bytes_read += 2;
+                    bytes_read += 1;
 
                     r->el_info[j].res_level = res_level;
                 }
@@ -514,10 +508,9 @@ static int Receive_struct_info(void)
         /* Player Classes */
         case STRUCT_INFO_CLASS:
         {
-            s16b c_adj, c_skills;
-            byte cidx, c_mhp, total_spells, tval, sval;
+            s16b c_adj, c_skills, c_exp;
+            byte cidx, c_mhp, spell_realm, total_spells, tval;
             char num_books;
-            char realm[NORMAL_WID];
 
             classes = NULL;
 
@@ -573,7 +566,7 @@ static int Receive_struct_info(void)
 
                     c->c_skills[j] = c_skills;
                 }
-                if ((n = Packet_scanf(&rbuf, "%b", &c_mhp)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%hd", &c_mhp, &c_exp)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -583,7 +576,7 @@ static int Receive_struct_info(void)
                     mem_free(c);
                     return n;
                 }
-                bytes_read += 1;
+                bytes_read += 3;
                 for (j = 0; j < PF_SIZE; j++)
                 {
                     if ((n = Packet_scanf(&rbuf, "%b", &pflag)) <= 0)
@@ -600,7 +593,8 @@ static int Receive_struct_info(void)
 
                     c->pflags[j] = pflag;
                 }
-                if ((n = Packet_scanf(&rbuf, "%b%b%c", &total_spells, &tval, &num_books)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%b%b%c", &spell_realm, &total_spells, &tval,
+                    &num_books)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -610,36 +604,16 @@ static int Receive_struct_info(void)
                     mem_free(c);
                     return n;
                 }
-                bytes_read += 3;
+                bytes_read += 4;
 
                 c->c_mhp = c_mhp;
+                c->c_exp = c_exp;
+                c->magic.spell_realm = &realms[spell_realm];
                 c->magic.total_spells = total_spells;
                 c->magic.num_books = num_books;
-                c->magic.books = mem_zalloc(num_books * sizeof(struct class_book));
 
                 /* Hack -- put the tval in the unused "spell_first" field */
                 c->magic.spell_first = tval;
-
-                for (j = 0; j < num_books; j++)
-                {
-                    struct class_book *book = &c->magic.books[j];
-
-                    if ((n = Packet_scanf(&rbuf, "%b%b%s", &tval, &sval, realm)) <= 0)
-                    {
-                        /* Rollback the socket buffer */
-                        Sockbuf_rollback(&rbuf, bytes_read);
-
-                        /* Packet isn't complete, graceful failure */
-                        string_free(c->name);
-                        mem_free(c);
-                        return n;
-                    }
-                    bytes_read += 2 + strlen(realm);
-
-                    book->tval = tval;
-                    book->sval = sval;
-                    if (strlen(realm)) book->realm = lookup_realm(realm);
-                }
 
                 c->next = classes;
                 classes = c;
@@ -855,7 +829,7 @@ static int Receive_struct_info(void)
 
                 for (p = 0; p < pmax; p++)
                 {
-                    struct poss_item *poss;
+                    struct ego_poss_item *poss;
 
                     if ((n = Packet_scanf(&rbuf, "%lu", &kidx)) <= 0)
                     {
@@ -867,7 +841,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 4;
 
-                    poss = mem_zalloc(sizeof(struct poss_item));
+                    poss = mem_zalloc(sizeof(struct ego_poss_item));
                     poss->kidx = kidx;
                     poss->next = ego->poss_items;
                     ego->poss_items = poss;
@@ -962,199 +936,6 @@ static int Receive_struct_info(void)
 
             break;
         }
-
-        /* Object curses */
-        case STRUCT_INFO_CURSES:
-        {
-            char desc[NORMAL_WID];
-
-            /* Alloc */
-            curses = mem_zalloc(max * sizeof(struct curse));
-
-            /* Paranoia */
-            if (max != z_info->curse_max) z_info->curse_max = max;
-
-            /* Fill */
-            for (i = 0; i < max; i++)
-            {
-                struct curse *curse = &curses[i];
-
-                if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(name) + 1;
-
-                if (strlen(name)) curse->name = string_make(name);
-
-                /* Transfer other fields here */
-                if ((n = Packet_scanf(&rbuf, "%s", desc)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(desc) + 1;
-
-                if (strlen(desc))
-                {
-                    my_strcap(desc);
-                    curse->desc = string_make(desc);
-                }
-            }
-
-            break;
-        }
-
-        /* Player magic realms */
-        case STRUCT_INFO_REALM:
-        {
-            char spell_noun[NORMAL_WID];
-            char verb[NORMAL_WID];
-
-            realms = NULL;
-
-            /* Fill */
-            for (i = 0; i < max; i++)
-            {
-                struct magic_realm *realm;
-
-                if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(name) + 1;
-
-                /* Transfer other fields here */
-                if ((n = Packet_scanf(&rbuf, "%s%s", spell_noun, verb)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(spell_noun) + 1;
-                bytes_read += strlen(verb) + 1;
-
-                realm = mem_zalloc(sizeof(*realm));
-                realm->name = string_make(name);
-                if (strlen(spell_noun)) realm->spell_noun = string_make(spell_noun);
-                if (strlen(verb)) realm->verb = string_make(verb);
-                realm->next = realms;
-                realms = realm;
-            }
-
-            break;
-        }
-
-        /* Terrain features */
-        case STRUCT_INFO_FEAT:
-        {
-            /* Alloc */
-            f_info = mem_zalloc(max * sizeof(struct feature));
-
-            /* Fill */
-            for (i = 0; i < max; i++)
-            {
-                struct feature *f = &f_info[i];
-
-                if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(name) + 1;
-
-                if (strlen(name)) f->name = string_make(name);
-                f->fidx = i;
-            }
-
-            break;
-        }
-
-        /* Traps */
-        case STRUCT_INFO_TRAP:
-        {
-            /* Alloc */
-            trap_info = mem_zalloc(max * sizeof(struct trap_kind));
-
-            /* Fill */
-            for (i = 0; i < max; i++)
-            {
-                struct trap_kind *t = &trap_info[i];
-
-                if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(name) + 1;
-
-                if (strlen(name)) t->desc = string_make(name);
-                t->tidx = i;
-            }
-
-            break;
-        }
-
-        /* Player timed effects */
-        case STRUCT_INFO_TIMED:
-        {
-            byte grade_color, dummy;
-            s16b grade_max;
-            struct timed_grade *current, *l;
-
-            i = -1;
-            while (true)
-            {
-                if ((n = Packet_scanf(&rbuf, "%b%b%hd%s", &dummy, &grade_color, &grade_max,
-                    name)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(name) + 4;
-
-                if (strlen(name))
-                {
-                    l = mem_zalloc(sizeof(*l));
-                    current->next = l;
-                    l->color = grade_color;
-                    l->max = grade_max;
-                    l->name = string_make(name);
-                    current = current->next;
-                }
-                else
-                {
-                    i++;
-                    if (i == max) break;
-                    timed_grades[i] = mem_zalloc(sizeof(struct timed_grade));
-                    current = timed_grades[i];
-                }
-            }
-
-            break;
-        }
     }
 
     return 1;
@@ -1166,11 +947,9 @@ static int Receive_death_cause(void)
     int n;
     byte ch;
 
-    if ((n = Packet_scanf(&rbuf, "%b%s%hd%ld%ld%hd%hd%hd%s%s", &ch, player->death_info.title,
+    if ((n = Packet_scanf(&rbuf, "%b%s%hd%ld%ld%hd%s%s", &ch, player->death_info.title,
         &player->death_info.lev, &player->death_info.exp, &player->death_info.au,
-        &player->death_info.wpos.grid.y, &player->death_info.wpos.grid.x,
-        &player->death_info.wpos.depth, player->death_info.died_from,
-        player->death_info.ctime)) <= 0)
+        &player->death_info.depth, player->death_info.died_from, player->death_info.ctime)) <= 0)
     {
         return n;
     }
@@ -1444,8 +1223,8 @@ static bool item_tester_hook_ammo(struct player *p, const struct object *obj)
     /* Ammo */
     if (!tval_is_ammo(obj)) return false;
 
-    /* Normal magic ammo cannot be branded */
-    if (obj->info_xtra.magic) return false;
+    /* Magic ammo are always +0 +0 */
+    if (kf_has(obj->kind->kind_flags, KF_AMMO_MAGIC)) return false;
 
     return true;
 }
@@ -1508,37 +1287,6 @@ static bool item_tester_hook_carry_okay(struct player *p, const struct object *o
 }
 
 
-/*
- * Hook to specify uncursable items
- */
-static bool item_tester_hook_uncurse(struct player *p, const struct object *obj)
-{
-    if (STRZERO(obj->info_xtra.name_curse)) return false;
-    return true;
-}
-
-
-/*
- * Hook to specify drainable items
- */
-static bool item_tester_hook_drain(struct player *p, const struct object *obj)
-{
-    /* Drain staves and wands */
-    if (tval_can_have_charges(obj)) return true;
-
-    return false;
-}
-
-
-/*
- * Hook to specify a staff
- */
-static bool item_tester_hook_staff(struct player *p, const struct object *obj)
-{
-    return tval_is_staff(obj);
-}
-
-
 struct tester_hook
 {
     const char *prompt;
@@ -1561,31 +1309,24 @@ static struct tester_hook tester_hook_item[N_HOOKS] =
     {"Identify which item? ", "You have nothing to identify.", CMD_NULL,
         USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR, item_tester_hook_identify},
     {"Recharge which item? ", "You have nothing to recharge.", CMD_NULL,
-        USE_INVEN | USE_FLOOR | SHOW_RECHARGE, item_tester_hook_recharge},
+        USE_INVEN | USE_FLOOR, item_tester_hook_recharge},
     {"Brand which kind of ammunition? ", "You have nothing to brand.", CMD_NULL,
         USE_INVEN | USE_QUIVER | USE_FLOOR, item_tester_hook_ammo},
     {"Send which item? ", "You have nothing to send.", CMD_NULL,
         USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR, NULL},
     {"Transform which potion? ", "You have nothing to transform.", CMD_NULL,
-        USE_INVEN | USE_FLOOR, item_tester_hook_potion},
-    {"Uncurse which item? ", "You have nothing to uncurse.", CMD_NULL,
-        USE_EQUIP | USE_INVEN | USE_FLOOR, item_tester_hook_uncurse},
-    {"Drain charges from which item? ", "You have nothing to drain charges from.", CMD_NULL,
-        USE_INVEN | USE_FLOOR, item_tester_hook_drain},
-    {"Make arrows from which staff? ", "You have no staff to use.", CMD_NULL,
-        USE_INVEN | USE_FLOOR, item_tester_hook_staff}
+        USE_INVEN | USE_FLOOR, item_tester_hook_potion}
 };
 
 
 static int Receive_item_request(void)
 {
     byte ch;
-    int n, item = -1, curse = -1;
+    int n, item = -1;
     byte tester_hook;
     bool result = false;
-    char dice_string[NORMAL_WID];
 
-    if ((n = Packet_scanf(&rbuf, "%b%b%s", &ch, &tester_hook, dice_string)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b", &ch, &tester_hook)) <= 0)
         return n;
 
     if (!player->screen_save_depth && !topline_icky)
@@ -1607,25 +1348,19 @@ static int Receive_item_request(void)
             {
                 struct object *obj;
 
-                /* Hack -- recharge strength */
-                player->upkeep->recharge_pow = atoi(dice_string);
-
                 result = get_item(&obj, tester_hook_item[tester_hook].prompt,
                     tester_hook_item[tester_hook].reject, tester_hook_item[tester_hook].code,
                     tester_hook_item[tester_hook].item_tester_hook_item,
                     tester_hook_item[tester_hook].mode);
 
                 if (obj) item = obj->oidx;
-
-                /* Hack -- select a single curse for uncursing */
-                if (result && (tester_hook == HOOK_UNCURSE)) get_curse(&curse, obj, dice_string);
             }
         }
 
         if (!result)
             Send_flush();
         else
-            Send_item(item, curse);
+            Send_item(item);
     }
     else if ((n = Packet_printf(&qbuf, "%b%b", (unsigned)ch, (unsigned)tester_hook)) <= 0)
         return n;
@@ -1681,10 +1416,10 @@ static int Receive_depth(void)
     byte ch;
     s16b depth, maxdepth;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%s", &ch, &depth, &maxdepth, player->depths)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd", &ch, &depth, &maxdepth)) <= 0)
         return n;
 
-    player->wpos.depth = depth;
+    player->depth = depth;
     player->max_depth = maxdepth;
 
     player->upkeep->redraw |= (PR_DEPTH);
@@ -1764,16 +1499,16 @@ static int Receive_state(void)
 {
     int n;
     byte ch;
-    s16b stealthy, resting, unignoring, obj_feeling, mon_feeling;
+    s16b searching, resting, unignoring, obj_feeling, mon_feeling;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd", &ch, &stealthy, &resting, &unignoring,
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd", &ch, &searching, &resting, &unignoring,
         &obj_feeling, &mon_feeling)) <= 0)
     {
         return n;
     }
 
     player->upkeep->resting = resting;
-    player->stealthy = (byte)stealthy;
+    player->searching = (byte)searching;
     player->unignoring = (byte)unignoring;
     player->obj_feeling = obj_feeling;
     player->mon_feeling = mon_feeling;
@@ -1813,14 +1548,14 @@ static int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
         }
         *bytes_read += 3;
 
-        /* RLE_LARGE */
-        if ((mode == RLE_LARGE) && (a & 0x8000))
+        /* RLE-II */
+        if ((mode == RLE_LARGE) && (c == -1))
         {
-            /* First, clear the bit */
-            a &= ~(0x8000);
+            /* Get the number of repetitions */
+            n = a;
 
-            /* Read the number of repetitions */
-            nread = Packet_scanf(buf, "%hu", &n);
+            /* Read the attr/char pair */
+            nread = Packet_scanf(buf, "%c%hu", &c, &a);
             if (nread <= 0)
             {
                 /* Rollback the socket buffer */
@@ -1829,10 +1564,10 @@ static int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
                 /* Packet isn't complete, graceful failure */
                 return nread;
             }
-            *bytes_read += 2;
+            *bytes_read += 3;
         }
 
-        /* RLE_CLASSIC */
+        /* RLE-I */
         else if ((mode == RLE_CLASSIC) && (a & 0x40))
         {
             /* First, clear the bit */
@@ -1850,10 +1585,11 @@ static int rle_decode(sockbuf_t* buf, cave_view_type* lineref, int max_col, int 
             }
             *bytes_read += 2;
         }
-
-        /* No RLE, just one instance */
         else
+        {
+            /* No RLE, just one instance */
             n = 1;
+        }
 
         /* Draw a character n times */
         if (lineref)
@@ -2093,13 +1829,12 @@ static int Receive_speed(void)
 {
     int n;
     byte ch;
-    s16b speed, mult;
+    s16b speed;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd", &ch, &speed, &mult)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd", &ch, &speed)) <= 0)
         return n;
 
     player->state.speed = speed;
-    player->state.ammo_mult = mult;
 
     player->upkeep->redraw |= (PR_SPEED);
 
@@ -2272,16 +2007,16 @@ static int Receive_spell_info(void)
 
     /* Hack -- wipe the arrays if blank */
     if (!strlen(buf))
-        memset(book_info, 0, MAX_PAGES * sizeof(struct book_info));
+        memset(spell_info, 0, sizeof(spell_info));
 
     /* Save the info */
     else
     {
-        book_info[book].spell_info[line].flag.line_attr = line_attr;
-        book_info[book].spell_info[line].flag.flag = flag;
-        book_info[book].spell_info[line].flag.dir_attr = dir_attr;
-        book_info[book].spell_info[line].flag.proj_attr = proj_attr;
-        my_strcpy(book_info[book].spell_info[line].info, buf, NORMAL_WID);
+        spell_info[book][line].flag.line_attr = line_attr;
+        spell_info[book][line].flag.flag = flag;
+        spell_info[book][line].flag.dir_attr = dir_attr;
+        spell_info[book][line].flag.proj_attr = proj_attr;
+        my_strcpy(spell_info[book][line].info, buf, NORMAL_WID);
     }
 
     /* Redraw */
@@ -2291,37 +2026,17 @@ static int Receive_spell_info(void)
 }
 
 
-static int Receive_book_info(void)
-{
-    byte ch;
-    int n;
-    s16b book;
-    char realm[NORMAL_WID];
-
-    if ((n = Packet_scanf(&rbuf, "%b%hd%s", &ch, &book, realm)) <= 0)
-    {
-        return n;
-    }
-
-    if (strlen(realm)) book_info[book].realm = lookup_realm(realm);
-
-    return 1;
-}
-
-
 static int Receive_floor(void)
 {
     int n, bytes_read;
-    byte ch, num, tval, sval, notice, attr, act, aim, fuel, fail, known, known_effect, carry,
-        quality_ignore, ignored, magic;
+    byte ch, num, tval, sval, notice, attr, act, fuel, fail, known, carry, quality_ignore, ignored,
+        ego_ignore;
     s16b amt, slot, oidx, eidx, bidx;
     s32b pval;
     quark_t note;
     char name[NORMAL_WID];
     char name_terse[NORMAL_WID];
     char name_base[NORMAL_WID];
-    char name_curse[NORMAL_WID];
-    char name_power[NORMAL_WID];
     struct object *obj;
 
     if ((n = Packet_scanf(&rbuf, "%b%b", &ch, &num)) <= 0)
@@ -2339,8 +2054,8 @@ static int Receive_floor(void)
     }
     bytes_read += 15;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel, &fail,
-        &slot, &known, &known_effect, &carry, &quality_ignore, &ignored, &eidx, &magic, &bidx)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%hd%b%b%b%b%b%hd%hd", &attr, &act, &fuel, &fail, &slot,
+        &known, &carry, &quality_ignore, &ignored, &ego_ignore, &eidx, &bidx)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -2348,10 +2063,9 @@ static int Receive_floor(void)
         /* Packet isn't complete, graceful failure */
         return n;
     }
-    bytes_read += 16;
+    bytes_read += 15;
 
-    if ((n = Packet_scanf(&rbuf, "%s%s%s%s%s", name, name_terse, name_base, name_curse,
-        name_power)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%s%s%s", name, name_terse, name_base)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -2392,25 +2106,21 @@ static int Receive_floor(void)
         /* Hack -- extra information used by the client */
         obj->info_xtra.attr = attr;
         obj->info_xtra.act = act;
-        obj->info_xtra.aim = aim;
         obj->info_xtra.fuel = fuel;
         obj->info_xtra.fail = fail;
         obj->info_xtra.slot = slot;
         obj->info_xtra.known = known;
-        obj->info_xtra.known_effect = known_effect;
         obj->info_xtra.carry = carry;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;
+        obj->info_xtra.ego_ignore = ego_ignore;
         obj->info_xtra.eidx = eidx;
-        obj->info_xtra.magic = magic;
         obj->info_xtra.bidx = bidx;
 
         /* Hack -- the name is stored separately */
         my_strcpy(obj->info_xtra.name, name, sizeof(obj->info_xtra.name));
         my_strcpy(obj->info_xtra.name_terse, name_terse, sizeof(obj->info_xtra.name_terse));
         my_strcpy(obj->info_xtra.name_base, name_base, sizeof(obj->info_xtra.name_base));
-        my_strcpy(obj->info_xtra.name_curse, name_curse, sizeof(obj->info_xtra.name_curse));
-        my_strcpy(obj->info_xtra.name_power, name_power, sizeof(obj->info_xtra.name_power));
 
         /* Hack -- number of floor items */
         floor_num++;
@@ -2450,14 +2160,14 @@ static int Receive_store(void)
     int n;
     char name[MSG_LEN];
     byte attr;
-    s16b wgt, bidx;
+    s16b wgt;
     char pos;
     s32b price;
     byte num, owned, tval, max;
     byte ch;
 
-    if ((n = Packet_scanf(&rbuf, "%b%c%b%hd%b%b%ld%b%b%hd%s", &ch, &pos, &attr, &wgt, &num, &owned,
-        &price, &tval, &max, &bidx, name)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%c%b%hd%b%b%ld%b%b%s", &ch, &pos, &attr, &wgt, &num, &owned,
+        &price, &tval, &max, name)) <= 0)
     {
         return n;
     }
@@ -2472,7 +2182,6 @@ static int Receive_store(void)
     current_store.stock[pos].info_xtra.attr = attr;
     current_store.stock[pos].info_xtra.max = max;
     current_store.stock[pos].info_xtra.owned = owned;
-    current_store.stock[pos].info_xtra.bidx = bidx;
 
     my_strcpy(store_names[pos], name, sizeof(store_names[0]));
 
@@ -2488,9 +2197,9 @@ static int Receive_store_info(void)
     char store_owner_name[NORMAL_WID];
     s16b num_items;
     s32b max_cost;
-    s16b type;
+    s16b sidx;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%s%s%hd%ld", &ch, &type, store_name, store_owner_name,
+    if ((n = Packet_scanf(&rbuf, "%b%hd%s%s%hd%ld", &ch, &sidx, store_name, store_owner_name,
         &num_items, &max_cost)) <= 0)
     {
         return n;
@@ -2502,7 +2211,7 @@ static int Receive_store_info(void)
     current_store.name = string_make(store_name);
     string_free(current_store.owner->name);
     current_store.owner->name = string_make(store_owner_name);
-    current_store.type = type;
+    current_store.sidx = ((sidx == -1)? MAX_STORES: sidx);
 
     /* Only display store if we're not already shopping */
     if (!store_ctx) store_enter();
@@ -2593,9 +2302,9 @@ static int Receive_skills(void)
     player->state.skills[SKILL_TO_HIT_BOW] = tmp[1];
     player->state.skills[SKILL_SAVE] = tmp[2];
     player->state.skills[SKILL_STEALTH] = tmp[3];
-    player->state.skills[SKILL_SEARCH] = tmp[4];
-    player->state.skills[SKILL_DISARM_PHYS] = tmp[5];
-    player->state.skills[SKILL_DISARM_MAGIC] = tmp[6];
+    player->state.skills[SKILL_SEARCH_FREQUENCY] = tmp[4];
+    player->state.skills[SKILL_SEARCH] = tmp[5];
+    player->state.skills[SKILL_DISARM] = tmp[6];
     player->state.skills[SKILL_DEVICE] = tmp[7];
     player->state.num_blows = tmp[8];
     player->state.num_shots = tmp[9];
@@ -2871,7 +2580,7 @@ static int Receive_spell_desc(void)
         return n;
 
     /* Save the info */
-    my_strcpy(book_info[book].spell_info[line].desc, buf, MSG_LEN);
+    my_strcpy(spell_info[book][line].desc, buf, MSG_LEN);
 
     return 1;
 }
@@ -2980,8 +2689,8 @@ static int Receive_player_pos(void)
     int n;
     byte ch;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd", &ch, &player->grid.x, &player->offset_grid.x,
-        &player->grid.y, &player->offset_grid.y)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd", &ch, &player->px, &player->offset_x,
+        &player->py, &player->offset_y)) <= 0)
     {
         return n;
     }
@@ -3025,8 +2734,7 @@ static int Receive_quit(void)
     char pkt;
     char reason[NORMAL_WID];
 
-    /* Redraw stuff before quitting to show the cause of death (and last messages) */
-    player->upkeep->redraw |= (PR_MESSAGE);
+    /* Redraw stuff before quitting to show the cause of death */
     redraw_stuff();
     Term_fresh();
 
@@ -3043,36 +2751,6 @@ static int Receive_quit(void)
         quit_fmt("Quitting: %s", reason);
     }
     return -1;
-}
-
-
-static int Receive_features(void)
-{
-    int n;
-    byte ch;
-    s16b lighting, off;
-
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd", &ch, &lighting, &off)) <= 0)
-        return n;
-
-    if (off == z_info->f_max)
-    {
-        off = 0;
-        lighting++;
-    }
-
-    /* Send request for splash screen (MOTD) to read */
-    if (lighting == LIGHTING_MAX)
-    {
-        Setup.initialized = true;
-        Send_text_screen(TEXTFILE_MOTD, 0);
-    }
-
-    /* Request continuation */
-    else
-        Send_features(lighting, off);
-
-    return 1;
 }
 
 
@@ -3202,7 +2880,12 @@ static int Receive_char_info_conn(void)
 
     /* Set pointers */
     player->sex = &sex_info[player->psex];
-    player_embody(player);
+    memcpy(&player->body, &bodies[player->race->body], sizeof(player->body));
+    player->body.slots = mem_zalloc(player->body.count * sizeof(struct equip_slot));
+    memcpy(player->body.slots, bodies[player->race->body].slots,
+        player->body.count * sizeof(struct equip_slot));
+    for (n = 0; n < N_HISTORY_FLAGS; n++)
+        player->hist_flags[n] = mem_zalloc((player->body.count + 1) * sizeof(cave_view_type));
 
     /* Copy his name */
     my_strcpy(player->name, nick, sizeof(player->name));
@@ -3245,8 +2928,14 @@ static int Receive_char_info(void)
         for (n = 0; n < N_HISTORY_FLAGS; n++)
             mem_free(player->hist_flags[n]);
 
+        memcpy(&player->body, &bodies[player->race->body], sizeof(player->body));
+
         /* Reallocate properly */
-        player_embody(player);
+        player->body.slots = mem_zalloc(player->body.count * sizeof(struct equip_slot));
+        memcpy(player->body.slots, bodies[player->race->body].slots,
+            player->body.count * sizeof(struct equip_slot));
+        for (n = 0; n < N_HISTORY_FLAGS; n++)
+            player->hist_flags[n] = mem_zalloc((player->body.count + 1) * sizeof(cave_view_type));
     }
 
     /* Copy his name */
@@ -3273,15 +2962,15 @@ static int Receive_options(void)
         return n;
     }
 
-    OPT(player, birth_force_descend) = force_descend;
-    OPT(player, birth_no_recall) = no_recall;
-    OPT(player, birth_no_artifacts) = no_artifacts;
-    OPT(player, birth_feelings) = feelings;
-    OPT(player, birth_no_selling) = no_selling;
-    OPT(player, birth_start_kit) = start_kit;
-    OPT(player, birth_no_stores) = no_stores;
-    OPT(player, birth_no_ghost) = no_ghost;
-    OPT(player, birth_fruit_bat) = fruit_bat;
+    OPT(birth_force_descend) = force_descend;
+    OPT(birth_no_recall) = no_recall;
+    OPT(birth_no_artifacts) = no_artifacts;
+    OPT(birth_feelings) = feelings;
+    OPT(birth_no_selling) = no_selling;
+    OPT(birth_start_kit) = start_kit;
+    OPT(birth_no_stores) = no_stores;
+    OPT(birth_no_ghost) = no_ghost;
+    OPT(birth_fruit_bat) = fruit_bat;
 
     return 1;
 }
@@ -3297,9 +2986,9 @@ static int Receive_char_dump(void)
         return n;
 
     /* Begin receiving */
-    if (streq(buf, "BEGIN_NORMAL_DUMP") || streq(buf, "BEGIN_MANUAL_DUMP"))
+    if (streq(buf, "BEGIN") || streq(buf, "BEGIN_DUMP_ONLY"))
     {
-        if (streq(buf, "BEGIN_MANUAL_DUMP")) dump_only = true;
+        if (streq(buf, "BEGIN_DUMP_ONLY")) dump_only = true;
 
         /* Open a temporary file */
         path_build(buf, sizeof(buf), ANGBAND_DIR_USER, "@@tmp@@.txt");
@@ -3307,7 +2996,7 @@ static int Receive_char_dump(void)
     }
 
     /* End receiving */
-    else if (streq(buf, "END_NORMAL_DUMP") || streq(buf, "END_MANUAL_DUMP"))
+    else if (streq(buf, "END"))
     {
         char tmp[MSG_LEN];
         char fname[NORMAL_WID];
@@ -3414,16 +3103,14 @@ static int Receive_message(void)
 static int Receive_item(void)
 {
     int n, bytes_read;
-    byte ch, tval, equipped, sval, notice, attr, act, aim, fuel, fail, stuck, known, known_effect,
-        sellable, quality_ignore, ignored, magic;
+    byte ch, tval, equipped, sval, notice, attr, act, fuel, fail, cursed, known, sellable,
+        quality_ignore, ignored, ego_ignore;
     s16b wgt, amt, oidx, slot, eidx, bidx;
     s32b price, pval;
     quark_t note;
     char name[NORMAL_WID];
     char name_terse[NORMAL_WID];
     char name_base[NORMAL_WID];
-    char name_curse[NORMAL_WID];
-    char name_power[NORMAL_WID];
 
     /* Packet and base info */
     if ((n = Packet_scanf(&rbuf, "%b%b%b", &ch, &tval, &equipped)) <= 0)
@@ -3443,9 +3130,8 @@ static int Receive_item(void)
     bytes_read += 20;
 
     /* Extra info */
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel,
-        &fail, &slot, &stuck, &known, &known_effect, &sellable, &quality_ignore, &ignored, &eidx,
-        &magic, &bidx)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%hd%b%b%b%b%b%b%hd%hd", &attr, &act, &fuel, &fail, &slot,
+        &cursed, &known, &sellable, &quality_ignore, &ignored, &ego_ignore, &eidx, &bidx)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -3453,11 +3139,10 @@ static int Receive_item(void)
         /* Packet isn't complete, graceful failure */
         return n;
     }
-    bytes_read += 17;
+    bytes_read += 16;
 
     /* Descriptions */
-    if ((n = Packet_scanf(&rbuf, "%s%s%s%s%s", name, name_terse, name_base, name_curse,
-        name_power)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%s%s%s", name, name_terse, name_base)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -3503,16 +3188,15 @@ static int Receive_item(void)
 
         obj->info_xtra.attr = attr;
         obj->info_xtra.act = act;
-        obj->info_xtra.aim = aim;
         obj->info_xtra.fuel = fuel;
         obj->info_xtra.fail = fail;
         obj->info_xtra.slot = slot;
-        obj->info_xtra.stuck = stuck;
+        obj->info_xtra.cursed = cursed;
         obj->info_xtra.known = known;
-        obj->info_xtra.known_effect = known_effect;
         obj->info_xtra.sellable = sellable;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;
+        obj->info_xtra.ego_ignore = ego_ignore;
         obj->info_xtra.eidx = eidx;
         obj->info_xtra.equipped = equipped;
         obj->info_xtra.bidx = bidx;
@@ -3520,8 +3204,6 @@ static int Receive_item(void)
         my_strcpy(obj->info_xtra.name, name, sizeof(obj->info_xtra.name));
         my_strcpy(obj->info_xtra.name_terse, name_terse, sizeof(obj->info_xtra.name_terse));
         my_strcpy(obj->info_xtra.name_base, name_base, sizeof(obj->info_xtra.name_base));
-        my_strcpy(obj->info_xtra.name_curse, name_curse, sizeof(obj->info_xtra.name_curse));
-        my_strcpy(obj->info_xtra.name_power, name_power, sizeof(obj->info_xtra.name_power));
     }
 
     /* Redraw */
@@ -3875,7 +3557,7 @@ static int Receive_ignore(void)
         }
         bytes_read++;
 
-        player->opts.ignore_lvl[i] = setting;
+        player->other.ignore_lvl[i] = setting;
     }
 
     return 1;
@@ -3895,7 +3577,7 @@ static int Receive_flush(void)
     if (fresh) Term_fresh();
 
     /* Wait */
-    if (delay) Term_xtra(TERM_XTRA_DELAY, player->opts.delay_factor);
+    if (delay) Term_xtra(TERM_XTRA_DELAY, player->other.delay_factor);
 
     return 1;
 }
@@ -4021,58 +3703,7 @@ static int Receive_history(void)
 }
 
 
-static int Receive_autoinscriptions(void)
-{
-    int n;
-    byte ch;
-    u32b kidx;
-    char note_aware[4];
-
-    if ((n = Packet_scanf(&rbuf, "%b%lu%s", &ch, &kidx, note_aware)) <= 0)
-        return n;
-
-    my_strcpy(Client_setup.note_aware[kidx], note_aware, sizeof(Client_setup.note_aware[0]));
-
-    return 1;
-}
-
-
 /*** Sending ***/
-
-
-#define MAX_FEATURE_CHUNK   512
-
-int Send_features(int lighting, int off)
-{
-    int n, i, size, max, offset = off;
-    byte a;
-    char c;
-
-    /* Paranoia */
-    if ((lighting < 0) || (lighting >= LIGHTING_MAX)) return 0;
-
-    /* Size */
-    size = z_info->f_max;
-
-    max = MAX_FEATURE_CHUNK;
-    if (offset + max > size) max = size - offset;
-    if (offset > size) offset = size;
-
-    if ((n = Packet_printf(&wbuf, "%b%c%hd%hd", (unsigned)PKT_FEATURES, lighting, max, offset)) <= 0)
-        return n;
-
-    /* Send attr/char stream */
-    for (i = offset; i < offset + max; i++)
-    {
-        a = Client_setup.f_attr[i][lighting];
-        c = Client_setup.f_char[i][lighting];
-
-        if ((n = Packet_printf(&wbuf, "%b%c", (unsigned)a, (int)c)) <= 0)
-            return n;
-    }
-
-    return 1;
-}
 
 
 int Send_verify(int type)
@@ -4085,10 +3716,11 @@ int Send_verify(int type)
     switch (type)
     {
         case 0: size = flavor_max; break;
-        case 1: size = z_info->k_max; break;
-        case 2: size = z_info->r_max; break;
-        case 3: size = PROJ_MAX * BOLT_MAX; break;
-        case 4: size = z_info->trap_max * LIGHTING_MAX; break;
+        case 1: size = z_info->f_max * LIGHTING_MAX; break;
+        case 2: size = z_info->k_max; break;
+        case 3: size = z_info->r_max; break;
+        case 4: size = GF_MAX * BOLT_MAX; break;
+        case 5: size = z_info->trap_max * LIGHTING_MAX; break;
         default: return 0;
     }
 
@@ -4105,18 +3737,22 @@ int Send_verify(int type)
                 c = Client_setup.flvr_x_char[i];
                 break;
             case 1:
+                a = Client_setup.f_attr[i / LIGHTING_MAX][i % LIGHTING_MAX];
+                c = Client_setup.f_char[i / LIGHTING_MAX][i % LIGHTING_MAX];
+                break;
+            case 2:
                 a = Client_setup.k_attr[i];
                 c = Client_setup.k_char[i];
                 break;
-            case 2:
+            case 3:
                 a = Client_setup.r_attr[i];
                 c = Client_setup.r_char[i];
                 break;
-            case 3:
-                a = Client_setup.proj_attr[i / BOLT_MAX][i % BOLT_MAX];
-                c = Client_setup.proj_char[i / BOLT_MAX][i % BOLT_MAX];
-                break;
             case 4:
+                a = Client_setup.gf_attr[i / BOLT_MAX][i % BOLT_MAX];
+                c = Client_setup.gf_char[i / BOLT_MAX][i % BOLT_MAX];
+                break;
+            case 5:
                 a = Client_setup.t_attr[i / LIGHTING_MAX][i % LIGHTING_MAX];
                 c = Client_setup.t_char[i / LIGHTING_MAX][i % LIGHTING_MAX];
                 break;
@@ -4375,11 +4011,9 @@ int Send_target_closest(int mode)
 int Send_cast(int book, int spell, int dir)
 {
     int n;
-    byte starting = 1;
 
-    n = Packet_printf(&wbuf, "%b%hd%hd%c%b", (unsigned)PKT_SPELL, book, spell, dir,
-        (unsigned)starting);
-    if (n <= 0) return n;
+    if ((n = Packet_printf(&wbuf, "%b%hd%hd%c", (unsigned)PKT_SPELL, book, spell, dir)) <= 0)
+        return n;
 
     return 1;
 }
@@ -4394,6 +4028,17 @@ int Send_open(struct command *cmd)
         return 0;
 
     if ((n = Packet_printf(&wbuf, "%b%c", (unsigned)PKT_OPEN, dir)) <= 0)
+        return n;
+
+    return 1;
+}
+
+
+int Send_pray(int book, int spell, int dir)
+{
+    int n;
+
+    if ((n = Packet_printf(&wbuf, "%b%hd%hd%c", (unsigned)PKT_PRAY, book, spell, dir)) <= 0)
         return n;
 
     return 1;
@@ -4451,6 +4096,18 @@ int Send_read(struct command *cmd)
     if (n != CMD_OK) return 0;
 
     if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_READ, obj->oidx)) <= 0)
+        return n;
+
+    return 1;
+}
+
+
+int Send_search(struct command *cmd)
+{
+    int n;
+    byte starting = 1;
+
+    if ((n = Packet_printf(&wbuf, "%b%b", (unsigned)PKT_SEARCH, (unsigned)starting)) <= 0)
         return n;
 
     return 1;
@@ -4847,18 +4504,11 @@ int Send_map(byte mode)
 }
 
 
-int Send_toggle_stealth(struct command *cmd)
+int Send_toggle_search(struct command *cmd)
 {
     int n;
 
-    /* Non rogues */
-    if (!player_has(player, PF_STEALTH_MODE))
-    {
-        c_msg_print("You are not skilled enough.");
-        return 0;
-    }
-
-    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_STEALTH_MODE)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_SEARCH_MODE)) <= 0)
         return n;
 
     return 1;
@@ -4905,7 +4555,7 @@ int Send_gain(struct command *cmd)
         /* Prompt */ "Study which book? ",
         /* Error */ "You cannot learn any new spells from the books you have.",
         /* Filter */ obj_can_study,
-        /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS) != CMD_OK)
+        /* Choice */ USE_INVEN | USE_FLOOR) != CMD_OK)
     {
         return 0;
     }
@@ -5076,14 +4726,25 @@ int Send_observe(struct command *cmd)
 }
 
 
-int Send_store_examine(int item, bool describe)
+int Send_store_examine(int item)
 {
     int n;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%b", (unsigned)PKT_STORE_EXAMINE, item,
-        (unsigned)describe)) <= 0)
-    {
+    if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_STORE_EXAMINE, item)) <= 0)
         return n;
+
+    return 1;
+}
+
+
+int Send_pass(const char *newpass)
+{
+    int n;
+
+    if (newpass && strlen(newpass))
+    {
+        if ((n = Packet_printf(&wbuf, "%b%s", (unsigned)PKT_CHANGEPASS, newpass)) <= 0)
+            return n;
     }
 
     return 1;
@@ -5108,9 +4769,8 @@ int Send_alter(struct command *cmd)
 int Send_fire_at_nearest(void)
 {
     int n;
-    byte starting = 1;
 
-    if ((n = Packet_printf(&wbuf, "%b%b", (unsigned)PKT_FIRE_AT_NEAREST, (unsigned)starting)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_FIRE_AT_NEAREST)) <= 0)
         return n;
 
     return 1;
@@ -5187,17 +4847,6 @@ int Send_fountain(int item)
 }
 
 
-int Send_time(void)
-{
-    int n;
-
-    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_TIME)) <= 0)
-        return n;
-
-    return 1;
-}
-
-
 int Send_objlist(void)
 {
     int n;
@@ -5231,6 +4880,24 @@ int Send_toggle_ignore(void)
 }
 
 
+/* Use an item */
+static int need_dir_use(struct object *obj)
+{
+    /* Check for direction */
+    /* Hack -- potions of Dragon Breath can be aimed when aware */
+    if (item_tester_hook_fire(player, obj)) return DIR_UNKNOWN;
+    if (tval_is_edible(obj)) return DIR_SKIP;
+    if (tval_is_potion(obj)) return need_dir(obj);
+    if (tval_is_scroll(obj)) return DIR_SKIP;
+    if (tval_is_staff(obj)) return DIR_SKIP;
+    if (tval_is_wand(obj)) return DIR_UNKNOWN;
+    if (tval_is_rod(obj)) return need_dir(obj);
+    if (obj_is_activatable(player, obj)) return need_dir(obj);
+
+    return DIR_SKIP;
+}
+
+
 int Send_use_any(struct command *cmd)
 {
     int n;
@@ -5247,7 +4914,7 @@ int Send_use_any(struct command *cmd)
         return 0;
     }
 
-    dir = need_dir(obj);
+    dir = need_dir_use(obj);
 
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
         return 0;
@@ -5376,7 +5043,7 @@ int Send_options(bool settings)
     /* Send each option */
     for (i = 0; i < OPT_MAX; i++)
     {
-        n = Packet_printf(&wbuf, "%c", (int)player->opts.opt[i]);
+        n = Packet_printf(&wbuf, "%c", (int)Client_setup.options[i]);
         if (n <= 0)
             return n;
     }
@@ -5418,11 +5085,11 @@ int Send_msg(const char *message)
 }
 
 
-int Send_item(int item, int curse)
+int Send_item(int item)
 {
     int n;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%hd", (unsigned)PKT_ITEM, item, curse)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_ITEM, item)) <= 0)
         return n;
 
     return 1;
@@ -5570,7 +5237,7 @@ int Send_ignore(void)
     /* Quality ignoring */
     for (i = ITYPE_NONE; i < ITYPE_MAX; i++)
     {
-        n = Packet_printf(&wbuf, "%b", (unsigned)player->opts.ignore_lvl[i]);
+        n = Packet_printf(&wbuf, "%b", (unsigned)player->other.ignore_lvl[i]);
         if (n <= 0)
             return n;
     }
@@ -5612,24 +5279,6 @@ int Send_history(int line, const char *hist)
 }
 
 
-int Send_autoinscriptions(void)
-{
-    int i, n;
-
-    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_AUTOINSCR)) <= 0)
-        return n;
-
-    for (i = 0; i < z_info->k_max; i++)
-    {
-        n = Packet_printf(&wbuf, "%s", Client_setup.note_aware[i]);
-        if (n <= 0)
-            return n;
-    }
-
-    return 1;
-}
-
-
 /*** Commands ***/
 
 
@@ -5645,7 +5294,7 @@ int textui_spell_browse(struct command *cmd)
         /* Prompt */ "Browse which book? ",
         /* Error */ "You have no book you can browse.",
         /* Filter */ obj_can_browse,
-        /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS) != CMD_OK)
+        /* Choice */ USE_INVEN | USE_FLOOR) != CMD_OK)
     {
         return 0;
     }
@@ -5673,7 +5322,7 @@ int cmd_cast(struct command *cmd)
         /* Prompt */ "Use which book? ",
         /* Error */ "You have no books you can use.",
         /* Filter */ obj_can_cast_from,
-        /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS);
+        /* Choice */ USE_INVEN | USE_FLOOR);
 
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
@@ -5682,7 +5331,13 @@ int cmd_cast(struct command *cmd)
     Send_track_object(book->oidx);
 
     spell = textui_obj_cast(book->info_xtra.bidx, &dir);
-    if (spell != -1) Send_cast(book->oidx, spell, dir);
+    if (spell != -1)
+    {
+        if (player->clazz->magic.spell_realm->index == REALM_PIOUS)
+            Send_pray(book->oidx, spell, dir);
+        else
+            Send_cast(book->oidx, spell, dir);
+    }
     return 1;
 }
 
@@ -5698,7 +5353,7 @@ int cmd_project(struct command *cmd)
         /* Prompt */ "Use which book? ",
         /* Error */ "You have no books you can use.",
         /* Filter */ obj_can_cast_from,
-        /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS) != CMD_OK)
+        /* Choice */ USE_INVEN | USE_FLOOR) != CMD_OK)
     {
         return 0;
     }
@@ -5707,7 +5362,13 @@ int cmd_project(struct command *cmd)
     Send_track_object(book->oidx);
 
     spell = textui_obj_project(book->info_xtra.bidx, &dir);
-    if (spell != -1) Send_cast(book->oidx, spell, dir);
+    if (spell != -1)
+    {
+        if (player->clazz->magic.spell_realm->index == REALM_PIOUS)
+            Send_pray(book->oidx, spell, dir);
+        else
+            Send_cast(book->oidx, spell, dir);
+    }
     return 1;
 }
 
@@ -5755,7 +5416,7 @@ int Net_packet(void)
         cur_type = (*rbuf.ptr & 0xFF);
 
         /* Paranoia */
-        if ((cur_type <= PKT_UNDEFINED) || (cur_type >= PKT_MAX)) cur_type = PKT_UNDEFINED;
+        if ((cur_type < PKT_UNDEFINED) || (cur_type >= PKT_MAX)) cur_type = PKT_UNDEFINED;
 
         old_ptr = rbuf.ptr;
         if ((result = (*receive_tbl[cur_type])()) <= 0)
@@ -5789,6 +5450,21 @@ int Net_packet(void)
         }
         prev_type = cur_type;
     }
+    return 0;
+}
+
+
+/*
+ * Send the first packet to the server with our name,
+ * nick and display contained in it.
+ */
+int Net_verify()
+{
+    int i;
+
+    /* There are 6 char/attr streams, go through all of them */
+    for (i = 0; i < 6; i++) Send_verify(i);
+
     return 0;
 }
 

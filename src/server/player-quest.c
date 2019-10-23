@@ -3,7 +3,7 @@
  * Purpose: All quest-related code
  *
  * Copyright (c) 2013 Angband developers
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -99,7 +99,7 @@ static errr run_parse_quest(struct parser *p)
 static errr finish_parse_quest(struct parser *p)
 {
     struct quest *quest, *next = NULL;
-    int count;
+    int count = 0;
 
     /* Scan the list for the max id */
     z_info->quest_max = 0;
@@ -112,13 +112,12 @@ static errr finish_parse_quest(struct parser *p)
 
     /* Allocate the direct access list and copy the data to it */
     quests = mem_zalloc(z_info->quest_max * sizeof(*quest));
-    count = z_info->quest_max - 1;
-    for (quest = parser_priv(p); quest; quest = next, count--)
+    for (quest = parser_priv(p); quest; quest = next, count++)
     {
         memcpy(&quests[count], quest, sizeof(*quest));
         quests[count].index = count;
         next = quest->next;
-        if (count < z_info->quest_max - 1) quests[count].next = &quests[count + 1];
+        if (next) quests[count].next = &quests[count + 1];
         else quests[count].next = NULL;
         mem_free(quest);
     }
@@ -172,75 +171,69 @@ bool is_quest(int level)
  * This is necessary to put the player, which will lose all true artifacts (and probably end up
  * half-naked), in safety.
  */
-static void crumble_angband(struct player *p, struct chunk *c, struct loc *grid)
+static void crumble_angband(struct player *p, struct chunk *c, int fy, int fx)
 {
-    int k, j;
+    int y, x, k, j;
     int notice[MAX_PLAYERS];
     int count = 0;
-    struct loc begin, end;
-    struct loc_iterator iter;
-
-    loc_init(&begin, p->grid.x - 50, p->grid.y - 50);
-    loc_init(&end, p->grid.x + 50, p->grid.y + 50);
-    loc_iterator_first(&iter, &begin, &end);
 
     /* Huge area of effect */
-    do
+    for (y = p->py - 50; y <= p->py + 50; y++)
     {
-        /* Skip illegal grids */
-        if (!square_in_bounds_fully(c, &iter.cur)) continue;
-
-        /* Extract the distance */
-        k = distance(&p->grid, &iter.cur);
-
-        /* Stay in the circle of death */
-        if (k > 50) continue;
-
-        /* Lose room and vault */
-        sqinfo_off(square(c, &iter.cur)->info, SQUARE_ROOM);
-        sqinfo_off(square(c, &iter.cur)->info, SQUARE_VAULT);
-        sqinfo_off(square(c, &iter.cur)->info, SQUARE_NO_TELEPORT);
-        if (square_ispitfloor(c, &iter.cur)) square_clear_feat(c, &iter.cur);
-
-        /* Lose light */
-        square_unglow(c, &iter.cur);
-        square_forget_all(c, &iter.cur);
-        square_light_spot(c, &iter.cur);
-
-        /* Hack -- notice player */
-        if (square(c, &iter.cur)->mon < 0)
+        for (x = p->px - 50; x <= p->px + 50; x++)
         {
-            /* Notice the player later */
-            notice[count] = 0 - square(c, &iter.cur)->mon;
-            count++;
+            /* Skip illegal grids */
+            if (!square_in_bounds_fully(c, y, x)) continue;
 
-            /* Do not hurt this grid */
-            continue;
-        }
+            /* Extract the distance */
+            k = distance(p->py, p->px, y, x);
 
-        /* Hack -- skip the epicenter */
-        if (player_is_at(p, &iter.cur)) continue;
+            /* Stay in the circle of death */
+            if (k > 50) continue;
 
-        /* Hack -- skip Morgoth (he will be removed later) */
-        if (loc_eq(&iter.cur, grid)) continue;
+            /* Lose room and vault */
+            sqinfo_off(c->squares[y][x].info, SQUARE_ROOM);
+            sqinfo_off(c->squares[y][x].info, SQUARE_VAULT);
+            sqinfo_off(c->squares[y][x].info, SQUARE_NO_TELEPORT);
+            if (square_ispitfloor(c, y, x)) square_clear_feat(c, y, x);
 
-        /* Delete the monster (if any) */
-        delete_monster(c, &iter.cur);
-        if (square_ispitfloor(c, &iter.cur)) square_clear_feat(c, &iter.cur);
+            /* Lose light */
+            square_unglow(c, y, x);
+            square_light_spot(c, y, x);
 
-        /* Don't remove stairs */
-        if (square_isstairs(c, &iter.cur)) continue;
+            /* Hack -- notice player */
+            if (c->squares[y][x].mon < 0)
+            {
+                /* Notice the player later */
+                notice[count] = 0 - c->squares[y][x].mon;
+                count++;
 
-        /* Destroy any grid that isn't a permanent wall */
-        if (!square_isperm(c, &iter.cur))
-        {
-            /* Delete objects */
-            square_forget_pile_all(c, &iter.cur);
-            square_excise_pile(c, &iter.cur);
-            square_destroy(c, &iter.cur);
+                /* Do not hurt this grid */
+                continue;
+            }
+
+            /* Hack -- skip the epicenter */
+            if ((y == p->py) && (x == p->px)) continue;
+
+            /* Hack -- skip Morgoth (he will be removed later) */
+            if ((y == fy) && (x == fx)) continue;
+
+            /* Delete the monster (if any) */
+            delete_monster(c, y, x);
+            if (square_ispitfloor(c, y, x)) square_clear_feat(c, y, x);
+
+            /* Don't remove stairs */
+            if (square_isstairs(c, y, x)) continue;
+
+            /* Destroy any grid that isn't a permanent wall */
+            if (!square_isperm(c, y, x))
+            {
+                /* Delete objects */
+                square_excise_pile(c, y, x);
+                square_destroy(c, y, x);
+            }
         }
     }
-    while (loc_iterator_next(&iter));
 
     /* Hack -- update players */
     for (j = 0; j < count; j++)
@@ -251,7 +244,10 @@ static void crumble_angband(struct player *p, struct chunk *c, struct loc *grid)
         msg(player, "The ground shakes violently as the fortress of Angband starts to crumble down...");
 
         /* Fully update the visuals */
-        player->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
+        player->upkeep->update |= (PU_FORGET_VIEW | PU_UPDATE_VIEW | PU_MONSTERS);
+
+        /* Fully update the flow */
+        player->upkeep->update |= (PU_FORGET_FLOW | PU_UPDATE_FLOW);
 
         /* Redraw */
         player->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
@@ -271,7 +267,7 @@ int quest_check(struct player *p, struct chunk *c, const struct monster *m)
     if (m->race->base != lookup_monster_base("Morgoth")) return -1;
 
     /* A bad day for evil... */
-    crumble_angband(p, c, &((struct monster *)m)->grid);
+    crumble_angband(p, c, m->fy, m->fx);
 
     /* Total winners */
     for (i = 1; i <= NumPlayers; i++)
@@ -289,7 +285,7 @@ int quest_check(struct player *p, struct chunk *c, const struct monster *m)
             struct object *obj = player->gear, *next;
 
             /* Total winner */
-            player->total_winner = 1;
+            player->total_winner = true;
 
             /* Redraw the "title" */
             player->upkeep->redraw |= (PR_TITLE);
@@ -297,7 +293,7 @@ int quest_check(struct player *p, struct chunk *c, const struct monster *m)
             /* Congratulations */
             msg(player, "*** CONGRATULATIONS ***");
             msg(player, "You have won the game!");
-            msg(player, "You may retire when you are ready.");
+            msg(player, "You may retire (commit suicide) when you are ready.");
 
             /* Know inventory and home items upon victory */
             death_knowledge(player);
@@ -394,7 +390,8 @@ void start_quest(struct player *p)
     for (i = 1; i < z_info->r_max; i++)
     {
         race = &r_info[i];
-        if (monster_is_unique(race) || (race->level < 1) || (race->level > z_info->max_depth - 1) ||
+        if (rf_has(race->flags, RF_UNIQUE) ||
+            (race->level < 1) || (race->level > z_info->max_depth - 1) ||
             (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters) ||
             (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters)) continue;
         if (race->level < min) min = race->level;
@@ -410,7 +407,8 @@ void start_quest(struct player *p)
     {
         race = &r_info[randint1(z_info->r_max - 1)];
     }
-    while ((race->level < min_depth) || (race->level > max_depth) || monster_is_unique(race) ||
+    while ((race->level < min_depth) || (race->level > max_depth) ||
+        rf_has(race->flags, RF_UNIQUE) ||
         (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters) ||
         (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters));
 

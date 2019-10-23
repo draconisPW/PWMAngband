@@ -3,7 +3,7 @@
  * Purpose: Player utility functions
  *
  * Copyright (c) 2011 The Angband Developers. See COPYING.
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -34,37 +34,23 @@
 int dungeon_get_next_level(struct player *p, int dlev, int added)
 {
     int target_level, i;
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
 
     /* Get target level */
     target_level = dlev + added * z_info->stair_skip;
 
     /* Don't allow levels below max */
     if (target_level > z_info->max_depth - 1) target_level = z_info->max_depth - 1;
-    if (target_level > w_ptr->max_depth - 1) target_level = w_ptr->max_depth - 1;
 
-    /* Don't allow levels above the surface */
-    /* PWMAngband: check minimum depth of current dungeon */
-    if (target_level < w_ptr->min_depth)
-    {
-        /* Going down */
-        if (added > 0) target_level = w_ptr->min_depth;
-
-        /* Going up */
-        else target_level = 0;
-    }
+    /* Don't allow levels above the town */
+    if (target_level < 0) target_level = 0;
 
     /* Check intermediate levels for quests */
     for (i = dlev; i <= target_level; i++)
     {
-        struct worldpos wpos;
-
         if (is_quest_active(p, i)) return i;
 
-        wpos_init(&wpos, &p->wpos.grid, i);
-
         /* Hack -- stop on special levels */
-        if ((i > dlev) && special_level(&wpos)) return i;
+        if ((i > dlev) && special_level(i)) return i;
     }
 
     return target_level;
@@ -74,8 +60,7 @@ int dungeon_get_next_level(struct player *p, int dlev, int added)
 /*
  * Change dungeon level - e.g. by going up stairs or with WoR
  */
-void dungeon_change_level(struct player *p, struct chunk *c, struct worldpos *new_wpos,
-    byte new_level_method)
+void dungeon_change_level(struct player *p, struct chunk *c, int new_depth, byte new_level_method)
 {
     /* Paranoia */
     if (!c)
@@ -85,33 +70,36 @@ void dungeon_change_level(struct player *p, struct chunk *c, struct worldpos *ne
     }
 
     /* Paranoia: exit manual design */
-    if (chunk_inhibit_players(&p->wpos))
-        chunk_set_player_count(&p->wpos, 1);
+    if (chunk_inhibit_players(p->depth))
+        chunk_set_player_count(p->depth, 1);
 
     /* Remove the player */
-    square_set_mon(c, &p->grid, 0);
+    c->squares[p->py][p->px].mon = 0;
 
     /* Redraw */
-    square_light_spot(c, &p->grid);
+    square_light_spot(c, p->py, p->px);
+
+    /* Forget the view */
+    forget_view(p, c);
 
     /* One less player here */
     leave_depth(p, c);
 
     /* Adjust player energy */
-    set_energy(p, new_wpos);
+    set_energy(p, new_depth);
 
-    /* Set coordinates */
-    memcpy(&p->wpos, new_wpos, sizeof(struct worldpos));
+    /* Set depth */
+    p->depth = new_depth;
 
     /* One more player here */
-    chunk_increase_player_count(new_wpos);
+    chunk_increase_player_count(new_depth);
 
     /* Generate a new level (later) */
     p->upkeep->new_level_method = new_level_method;
     p->upkeep->redraw |= (PR_DTRAP);
 
     /* Hack -- deactivate recall for force_descend players */
-    if (((cfg_limit_stairs == 3) || OPT(p, birth_force_descend)) && p->word_recall)
+    if (((cfg_limit_stairs == 3) || OPT_P(p, birth_force_descend)) && p->word_recall)
     {
         p->word_recall = 0;
         msg(p, "A tension leaves the air around you...");
@@ -124,15 +112,11 @@ void dungeon_change_level(struct player *p, struct chunk *c, struct worldpos *ne
 /*
  * Decreases players hit points and sets death flag if necessary
  */
-bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physical,
-    const char *died_flavor)
+bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physical)
 {
     int old_chp = p->chp;
-    int warning = (p->mhp * p->opts.hitpoint_warn / 10);
+    int warning = (p->mhp * p->other.hitpoint_warn / 10);
     int old_num = get_player_num(p);
-
-    /* Undisturbed rest */
-    bool nodisturb = ((p->upkeep->resting == REST_COMPLETE_NODISTURB) && (p->chp > warning));
 
     /* Paranoia */
     if (p->is_dead) return true;
@@ -141,7 +125,7 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     if (p->k_idx) aware_player(p, p);
 
     /* Disturb */
-    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 1);
+    if (strcmp(hit_from, "fading")) disturb(p, 1);
 
     /* Hack -- apply "invulnerability" */
     if (p->timed[TMD_INVULN] == -1)
@@ -184,17 +168,6 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     /* Hurt the player */
     p->chp -= damage;
 
-    /* Hack -- revive */
-    if (p->timed[TMD_REVIVE] && (p->chp < 0))
-    {
-        /* Avoid death once */
-        p->timed[TMD_REVIVE] = 0;
-
-        /* Heal the player */
-        p->chp = p->mhp;
-        p->chp_frac = 0;
-    }
-
     /* Hack -- redraw picture */
     redraw_picture(p, old_num);
 
@@ -204,28 +177,20 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     /* Dead player */
     if (p->chp < 0)
     {
-        /* Benefit of extreme bloodlust */
-        if (p->timed[TMD_BLOODLUST] > 48)
-            msg(p, "Your lust for blood keeps you alive!");
-        else
-        {
-            /* Note cause of death */
-            my_strcpy(p->died_from, hit_from, sizeof(p->died_from));
-            my_strcpy(p->died_flavor, died_flavor, sizeof(p->died_flavor));
+        /* Note cause of death */
+        my_strcpy(p->died_from, hit_from, sizeof(p->died_from));
 
-            /* Record the original (pre-ghost) cause of death */
-            if (p->ghost != 1) player_death_info(p, hit_from);
+        /* Record the original (pre-ghost) cause of death */
+        if (p->ghost != 1) player_death_info(p, hit_from);
 
-            /* No longer a winner */
-            p->total_winner = 0;
-            p->upkeep->redraw |= (PR_TITLE);
+        /* No longer a winner */
+        p->total_winner = false;
 
-            /* Note death */
-            p->is_dead = true;
+        /* Note death */
+        p->is_dead = true;
 
-            /* Dead */
-            return true;
-        }
+        /* Dead */
+        return true;
     }
 
     /* Hitpoint warning */
@@ -240,7 +205,6 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     }
 
     /* Alive */
-    p->died_flavor[0] = '\0';
     return false;
 }
 
@@ -248,7 +212,7 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
 /*
  * Regenerate hit points
  */
-void player_regen_hp(struct player *p, struct chunk *c)
+void player_regen_hp(struct player *p)
 {
     s32b new_chp, new_chp_frac;
     int old_chp, percent = 0;
@@ -265,7 +229,7 @@ void player_regen_hp(struct player *p, struct chunk *c)
 
     /* Various things speed up regeneration */
     if (player_of_has(p, OF_REGEN)) percent *= 2;
-    if (player_resting_can_regenerate(p)) percent *= 2;
+    if (p->searching || player_resting_can_regenerate(p)) percent *= 2;
     if (p->timed[TMD_REGEN]) percent *= 3;
 
     /* Some things slow it down */
@@ -277,7 +241,6 @@ void player_regen_hp(struct player *p, struct chunk *c)
     if (p->timed[TMD_STUN]) percent = 0;
     if (p->timed[TMD_CUT]) percent = 0;
     if (player_undead(p)) percent = 0;
-    if ((p->timed[TMD_WRAITHFORM] == -1) && !square_ispassable(c, &p->grid)) percent = 0;
 
     /* But Biofeedback always helps */
     if (p->timed[TMD_BIOFEEDBACK])
@@ -313,8 +276,8 @@ void player_regen_hp(struct player *p, struct chunk *c)
 
         /* Redraw */
         p->upkeep->redraw |= (PR_HP);
-        equip_learn_flag(p, OF_REGEN);
-        equip_learn_flag(p, OF_IMPAIR_HP);
+        equip_notice_flag(p, OF_REGEN);
+        equip_notice_flag(p, OF_IMPAIR_HP);
     }
 }
 
@@ -336,7 +299,7 @@ void player_regen_mana(struct player *p)
 
     /* Various things speed up regeneration */
     if (player_of_has(p, OF_REGEN)) percent *= 2;
-    if (player_resting_can_regenerate(p)) percent *= 2;
+    if (p->searching || player_resting_can_regenerate(p)) percent *= 2;
 
     /* Some things slow it down */
     if (player_of_has(p, OF_IMPAIR_MANA)) percent /= 2;
@@ -371,8 +334,8 @@ void player_regen_mana(struct player *p)
 
         /* Redraw */
         p->upkeep->redraw |= (PR_MANA);
-        equip_learn_flag(p, OF_REGEN);
-        equip_learn_flag(p, OF_IMPAIR_MANA);
+        equip_notice_flag(p, OF_REGEN);
+        equip_notice_flag(p, OF_IMPAIR_MANA);
     }
 }
 
@@ -391,7 +354,7 @@ void player_update_light(struct player *p)
         bool burn_fuel = true;
 
         /* Turn off the wanton burning of light during the day outside of the dungeon */
-        if ((p->wpos.depth == 0) && is_daytime())
+        if ((p->depth <= 0) && is_daytime())
             burn_fuel = false;
 
         /* If the light has the NO_FUEL flag, well... */
@@ -447,172 +410,6 @@ void player_update_light(struct player *p)
 
 
 /*
- * Have random bad stuff happen to the player from over-exertion
- *
- * This function uses the PY_EXERT_* flags
- */
-void player_over_exert(struct player *p, int flag, int chance, int amount)
-{
-    /* CON damage */
-    if ((flag & PY_EXERT_CON) && (randint0(100) < chance))
-    {
-        /* Hack - only permanent with high chance (no-mana casting) */
-        bool perm = ((randint0(100) < chance / 2) && (chance >= 50));
-
-        msg(p, "You have damaged your health!");
-        player_stat_dec(p, STAT_CON, perm);
-    }
-
-    /* Fainting */
-    if ((flag & PY_EXERT_FAINT) && (randint0(100) < chance))
-    {
-        msg(p, "You faint from the effort!");
-
-        /* Bypass free action */
-        player_inc_timed(p, TMD_PARALYZED, randint1(amount), true, false);
-    }
-
-    /* Scrambled stats */
-    if ((flag & PY_EXERT_SCRAMBLE) && (randint0(100) < chance))
-        player_inc_timed(p, TMD_SCRAMBLE, randint1(amount), true, true);
-
-    /* Cut damage */
-    if ((flag & PY_EXERT_CUT) && (randint0(100) < chance))
-    {
-        msg(p, "Wounds appear on your body!");
-        player_inc_timed(p, TMD_CUT, randint1(amount), true, false);
-    }
-
-    /* Confusion */
-    if ((flag & PY_EXERT_CONF) && (randint0(100) < chance))
-        player_inc_timed(p, TMD_CONFUSED, randint1(amount), true, true);
-
-    /* Hallucination */
-    if ((flag & PY_EXERT_HALLU) && (randint0(100) < chance))
-        player_inc_timed(p, TMD_IMAGE, randint1(amount), true, true);
-
-    /* Slowing */
-    if ((flag & PY_EXERT_SLOW) && (randint0(100) < chance))
-    {
-        msg(p, "You feel suddenly lethargic.");
-        player_inc_timed(p, TMD_SLOW, randint1(amount), true, false);
-    }
-
-    /* HP */
-    if ((flag & PY_EXERT_HP) && (randint0(100) < chance))
-    {
-        const char *pself = player_self(p);
-        char df[160];
-
-        msg(p, "You cry out in sudden pain!");
-        strnfmt(df, sizeof(df), "over-exerted %s", pself);
-        take_hit(p, randint1(amount), "over-exertion", false, df);
-    }
-}
-
-
-/*
- * Use mana
- */
-void use_mana(struct player *p)
-{
-    int old_num = get_player_num(p);
-
-    /* Sufficient mana? */
-    if (p->spell_cost <= p->csp)
-    {
-        /* Use some mana */
-        p->csp -= p->spell_cost;
-    }
-    else
-    {
-        int oops = p->spell_cost - p->csp;
-
-        /* No mana left */
-        p->csp = 0;
-        p->csp_frac = 0;
-
-        /* Over-exert the player */
-        player_over_exert(p, PY_EXERT_FAINT, 100, 5 * oops + 1);
-        player_over_exert(p, PY_EXERT_CON, 50, 0);
-    }
-
-    /* Hack -- redraw picture */
-    redraw_picture(p, old_num);
-
-    /* Redraw mana */
-    p->upkeep->redraw |= (PR_MANA);
-}
-
-
-/*
- * See how much damage the player will take from damaging terrain
- */
-int player_check_terrain_damage(struct player *p, struct chunk *c)
-{
-    int dam_taken = 0;
-
-    if (player_passwall(p)) return 0;
-
-    if (square_isfiery(c, &p->grid))
-    {
-        int base_dam = 100 + randint1(100);
-        int res = p->state.el_info[ELEM_FIRE].res_level;
-
-        /* Fire damage */
-        dam_taken = adjust_dam(p, ELEM_FIRE, base_dam, RANDOMISE, res);
-
-        /* Levitation makes one lightfooted. */
-        if (player_of_has(p, OF_FEATHER)) dam_taken /= 2;
-    }
-    else if (square_islava(c, &p->grid))
-    {
-        int damage = p->mhp / 100 + randint1(3);
-
-        /* Fire damage */
-        dam_taken = adjust_dam(p, PROJ_FIRE, damage, RANDOMISE, 0);
-    }
-    else if (square_iswater(c, &p->grid) && !can_swim(p))
-    {
-        /* Drowning damage */
-        dam_taken = p->mhp / 100 + randint1(3);
-
-        /* Levitation prevents drowning */
-        if (player_of_has(p, OF_FEATHER)) dam_taken = 0;
-    }
-    else if (square_isnether(c, &p->grid))
-    {
-        /* Draining damage */
-        dam_taken = p->mhp / 100 + randint1(3);
-    }
-
-    return dam_taken;
-}
-
-
-/*
- * Terrain damages the player
- */
-void player_take_terrain_damage(struct player *p, struct chunk *c)
-{
-    int dam_taken = player_check_terrain_damage(p, c);
-    struct feature *feat = square_feat(c, &p->grid);
-
-    if (!dam_taken) return;
-
-    msg(p, feat->hurt_msg);
-
-    /* Damage the player */
-    if (!take_hit(p, dam_taken, feat->die_msg, false, feat->died_flavor))
-    {
-        /* Damage the inventory */
-        if (square_isfiery(c, &p->grid)) inven_damage(p, PROJ_FIRE, dam_taken);
-        else if (square_islava(c, &p->grid)) inven_damage(p, PROJ_FIRE, MIN(dam_taken * 5, 300));
-    }
-}
-
-
-/*
  * Apply confusion, if needed, to a direction
  *
  * Display a message and return true if direction changes.
@@ -622,7 +419,7 @@ bool player_confuse_dir(struct player *p, int *dp)
     int dir = *dp;
 
     /* Random direction */
-    if (p->timed[TMD_CONFUSED] && ((dir == DIR_TARGET) || magik(75)))
+    if (p->timed[TMD_CONFUSED] && ((dir == 5) || magik(75)))
         dir = ddd[randint0(8)];
 
     if (*dp != dir)
@@ -646,8 +443,6 @@ bool player_resting_is_special(s16b count)
         case REST_COMPLETE:
         case REST_ALL_POINTS:
         case REST_SOME_POINTS:
-        case REST_MORNING:
-        case REST_COMPLETE_NODISTURB:
             return true;
     }
 
@@ -754,53 +549,34 @@ void player_resting_step_turn(struct player *p)
  */
 void player_resting_complete_special(struct player *p)
 {
-    bool done = false;
-
-    if (!player_resting_is_special(p->upkeep->resting)) return;
-
     /* Complete resting */
-    switch (p->upkeep->resting)
+    if (player_resting_is_special(p->upkeep->resting))
     {
-        case REST_ALL_POINTS:
+        if (p->upkeep->resting == REST_ALL_POINTS)
         {
+            /* Stop resting */
             if ((p->chp == p->mhp) && (p->csp == p->msp))
-                done = true;
-            break;
+                disturb(p, 0);
         }
-        case REST_COMPLETE:
-        case REST_COMPLETE_NODISTURB:
+        else if (p->upkeep->resting == REST_COMPLETE)
         {
+            /* Stop resting */
             if ((p->chp == p->mhp) && (p->csp == p->msp) && !p->timed[TMD_BLIND] &&
                 !p->timed[TMD_CONFUSED] && !p->timed[TMD_POISONED] && !p->timed[TMD_AFRAID] &&
                 !p->timed[TMD_TERROR] && !p->timed[TMD_STUN] && !p->timed[TMD_CUT] &&
                 !p->timed[TMD_SLOW] && !p->timed[TMD_PARALYZED] && !p->timed[TMD_IMAGE] &&
                 !p->word_recall && !p->deep_descent)
             {
-                done = true;
+                disturb(p, 0);
             }
-            break;
         }
-        case REST_SOME_POINTS:
+        else if (p->upkeep->resting == REST_SOME_POINTS)
         {
+            /* Stop resting */
             if ((p->chp == p->mhp) || (p->csp == p->msp))
-                done = true;
-            break;
-        }
-        case REST_MORNING: 
-        {
-            /* We need to be careful: this is only called every ten "scaled" turns... */
-            int time = move_energy(p->wpos.depth) / (10 * time_factor(p, chunk_get(&p->wpos)));
-
-            int after_dawn = (turn.turn % (10L * z_info->day_length));
-
-            if ((after_dawn >= 0) && (after_dawn < time))
-                done = true;
-            break;
+                disturb(p, 0);
         }
     }
-
-    /* Stop resting */
-    if (done) disturb(p, 0);
 }
 
 
@@ -840,7 +616,7 @@ bool player_is_immune(struct player *p, int element)
  */
 bool player_can_cast(struct player *p, bool show_msg)
 {
-    if (!p->clazz->magic.total_spells)
+    if (p->clazz->magic.spell_realm->index == REALM_NONE)
     {
         if (show_msg) msg(p, "You cannot pray or produce magics.");
         return false;
@@ -880,7 +656,7 @@ static int scan_items(struct player *p, struct object **item_list, size_t item_m
     int floor_num;
     int i;
     size_t item_num = 0;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     for (i = 0; ((i < z_info->pack_size) && (item_num < item_max)); i++)
     {
@@ -910,7 +686,7 @@ static bool spell_okay_to_study(struct player *p, int spell_index)
     if (p->spell_flags[spell_index] & PY_SPELL_FORGOTTEN) return false;
     if (!(p->spell_flags[spell_index] & PY_SPELL_LEARNED)) return (spell->slevel <= p->lev);
     if (!(p->spell_flags[spell_index] & PY_SPELL_WORKED)) return false;
-    return (streq(spell->realm->name, "elemental"));
+    return (p->clazz->magic.spell_realm->index == REALM_ELEM);
 }
 
 
@@ -938,7 +714,7 @@ bool player_book_has_unlearned_spells(struct player *p)
     item_num = scan_items(p, item_list, item_max, obj_can_browse);
     for (i = 0; i < item_num; i++)
     {
-        const struct class_book *book = player_object_to_book(p, item_list[i]);
+        const struct class_book *book = object_to_book(p, item_list[i]);
 
         if (!book) continue;
 
@@ -957,6 +733,16 @@ bool player_book_has_unlearned_spells(struct player *p)
 
     mem_free(item_list);
     return false;
+}
+
+
+/*
+ * Extract a "direction" which will move one step from the player location
+ * towards the given "target" location (or "5" if no motion necessary).
+ */
+int coords_to_dir(struct player *p, int y, int x)
+{
+    return (motion_dir(p->py, p->px, y, x));
 }
 
 
@@ -986,8 +772,8 @@ void disturb(struct player *p, int stop_search)
     /*if (p->dm_flags & DM_NEVER_DISTURB) return;*/
 
     /* Cancel repeated commands */
+    p->search_request = 0;
     p->digging_request = 0;
-    p->firing_request = 0;
 
     /* Cancel Resting */
     if (player_is_resting(p))
@@ -999,22 +785,22 @@ void disturb(struct player *p, int stop_search)
     /* Cancel running */
     if (p->upkeep->running) cancel_running(p);
 
-    /* Cancel stealth mode if requested */
-    if (stop_search && p->stealthy)
+    /* Cancel searching if requested */
+    if (stop_search && p->searching)
     {
-        p->stealthy = false;
+        p->searching = false;
         p->upkeep->update |= (PU_BONUS);
         p->upkeep->redraw |= (PR_STATE);
     }
 
     /* Get out of icky screen if requested */
-    if (stop_search && p->screen_save_depth && OPT(p, disturb_icky))
+    if (stop_search && p->screen_save_depth && OPT_P(p, disturb_icky))
         Send_term_info(p, NTERM_HOLD, 1);
 
     /* Cancel looking around if requested */
     if (stop_search &&
-        (((p->offset_grid.y != p->old_offset_grid.y) && (p->old_offset_grid.y != -1)) ||
-        ((p->offset_grid.x != p->old_offset_grid.x) && (p->old_offset_grid.x != -1))))
+        (((p->offset_y != p->offset_y_old) && (p->offset_y_old != -1)) ||
+        ((p->offset_x != p->offset_x_old) && (p->offset_x_old != -1))))
     {
         /* Cancel input */
         Send_term_info(p, NTERM_HOLD, 0);
@@ -1022,55 +808,6 @@ void disturb(struct player *p, int stop_search)
         /* Stop locating */
         do_cmd_locate(p, 0);
     }
-}
-
-
-/*
- * Search for traps or secret doors
- */
-void search(struct player *p, struct chunk *c)
-{
-    struct loc begin, end;
-    struct loc_iterator iter;
-
-    /* Various conditions mean no searching */
-    if (p->timed[TMD_BLIND] || no_light(p) || p->timed[TMD_CONFUSED] || p->timed[TMD_IMAGE])
-        return;
-
-    /* Paranoia */
-    if (loc_is_zero(&p->grid)) return;
-
-    loc_init(&begin, p->grid.x - 1, p->grid.y - 1);
-    loc_init(&end, p->grid.x + 1, p->grid.y + 1);
-    loc_iterator_first(&iter, &begin, &end);
-
-    /* Search the nearby grids, which are always in bounds */
-    do
-    {
-        struct object *obj;
-
-        /* Secret doors */
-        if (square_issecretdoor(c, &iter.cur))
-        {
-            msg(p, "You have found a secret door.");
-            place_closed_door(c, &iter.cur);
-            disturb(p, 0);
-        }
-
-        /* Traps on chests */
-        for (obj = square_object(c, &iter.cur); obj; obj = obj->next)
-        {
-            if (object_is_known(p, obj) || !is_trapped_chest(obj)) continue;
-
-            object_notice_everything_aux(p, obj, true, false);
-            if (!ignore_item_ok(p, obj))
-            {
-                msg(p, "You have discovered a trap on the chest!");
-                disturb(p, 0);
-            }
-        }
-    }
-    while (loc_iterator_next(&iter));
 }
 
 
@@ -1138,7 +875,7 @@ bool hp_player(struct player *p, int num)
 
     if (player_undead(p))
     {
-        take_hit(p, num, "a bad healing medicine", false, "was killed by a bad healing medicine");
+        take_hit(p, num, "a bad healing medicine", false);
         return true;
     }
 
@@ -1168,18 +905,18 @@ int get_player_num(struct player *p)
 void redraw_picture(struct player *p, int old_num)
 {
     int new_num;
-    struct source who_body;
-    struct source *who = &who_body;
+    struct actor who_body;
+    struct actor *who = &who_body;
 
     /* Figure out of if the player's "number" has changed */
     new_num = get_player_num(p);
 
     /* If so then refresh everyone's view of this player */
     if (new_num != old_num)
-        square_light_spot(chunk_get(&p->wpos), &p->grid);
+        square_light_spot(chunk_get(p->depth), p->py, p->px);
 
     /* Update health bars */
-    source_player(who, 0, p);
+    ACTOR_PLAYER(who, 0, p);
     update_health(who);
 }
 
@@ -1197,7 +934,7 @@ void current_clear(struct player *p)
 #define ANCHOR_RADIUS   12
 
 
-bool check_st_anchor(struct worldpos *wpos, struct loc *grid)
+bool check_st_anchor(int depth, int y, int x)
 {
     int i;
 
@@ -1205,11 +942,11 @@ bool check_st_anchor(struct worldpos *wpos, struct loc *grid)
     {
         struct player *q = player_get(i);
 
-        /* Skip players not on this level */
-        if (!wpos_eq(&q->wpos, wpos)) continue;
+        /* Skip players not on this depth */
+        if (q->depth != depth) continue;
 
         /* Skip players too far */
-        if (distance(&q->grid, grid) > ANCHOR_RADIUS) continue;
+        if (distance(q->py, q->px, y, x) > ANCHOR_RADIUS) continue;
 
         if (!q->timed[TMD_ANCHOR]) continue;
 
@@ -1223,17 +960,50 @@ bool check_st_anchor(struct worldpos *wpos, struct loc *grid)
 
 static const char *dragon_format[6][2] =
 {
-    {"baby %s dragon", "baby %s drake"},
-    {"young %s dragon", "young %s drake"},
-    {"mature %s dragon", "mature %s drake"},
-    {"ancient %s dragon", "great %s drake"},
-    {"great %s wyrm", "Great Wyrm of %s"},
-    {"ancient %s wyrm", "Ancient Wyrm of %s"}
+    {"Baby %s dragon", "Baby %s drake"},
+    {"Young %s dragon", "Young %s drake"},
+    {"Mature %s dragon", "Mature %s drake"},
+    {"Ancient %s dragon", "Great %s drake"},
+    {"Great %s Wyrm", "Great Wyrm of %s"},
+    {"Ancient %s Wyrm", "Ancient Wyrm of %s"}
 };
 
 
-static void get_dragon_name(int lvl_idx, struct dragon_breed *dn, char *name, size_t len)
+struct dragon_name
 {
+    const char *d_name;
+    byte d_fmt;
+    const char *w_name;
+    byte w_fmt;
+    byte commonness;
+};
+
+
+static struct dragon_name dragon_names[] =
+{
+    {"blue", 0, "Storm", 0, 6},
+    {"white", 0, "Ice", 0, 6},
+    {"green", 0, "Swamp", 0, 6},
+    {"black", 0, "Bile", 0, 5},
+    {"red", 0, "Hell", 0, 5},
+    {"gold", 0, "Thunder", 1, 5},
+    {"silver", 0, "Radiance", 1, 5},
+    {"shadow", 1, "Shadow", 0, 4},
+    {"crystal", 1, "Crystal", 0, 4},
+    {"ethereal", 1, "Ethereal", 0, 4},
+    {"water", 0, "the Deep", 1, 4},
+    {"chaos", 1, "Chaos", 1, 3},
+    {"law", 1, "Law", 1, 3},
+    {"multi-hued", 0, "Many Colours", 1, 2},
+    {"balance", 1, "Balance", 1, 2},
+    {"power", 0, "Power", 1, 1}
+};
+
+
+static void get_dragon_name(int lvl_idx, int form_idx, char *name, size_t len)
+{
+    struct dragon_name *dn = &dragon_names[form_idx];
+
     /* Dragon */
     if (lvl_idx < 4)
         strnfmt(name, len, dragon_format[lvl_idx][dn->d_fmt], dn->d_name);
@@ -1244,59 +1014,60 @@ static void get_dragon_name(int lvl_idx, struct dragon_breed *dn, char *name, si
 }
 
 
-static struct monster_race *get_dragon_race(int lvl_idx, struct dragon_breed *dn)
+static struct monster_race *get_dragon_race(int lvl_idx, int form_idx)
 {
     char name[NORMAL_WID];
 
     /* Name */
-    get_dragon_name(lvl_idx, dn, name, sizeof(name));
+    get_dragon_name(lvl_idx, form_idx, name, sizeof(name));
 
     return get_race(name);
 }
 
 
-struct dragon_breed *get_dragon_form(struct monster_race *race)
+static int get_dragon_form(struct monster_race *race)
 {
-    int lvl_idx;
+    int lvl_idx, form_idx;
     char name[NORMAL_WID];
-    struct dragon_breed *dn;
 
     for (lvl_idx = 0; lvl_idx < 6; lvl_idx++)
     {
-        for (dn = breeds; dn; dn = dn->next)
+        for (form_idx = 0; form_idx < N_ELEMENTS(dragon_names); form_idx++)
         {
             /* Name */
-            get_dragon_name(lvl_idx, dn, name, sizeof(name));
+            get_dragon_name(lvl_idx, form_idx, name, sizeof(name));
 
-            if (streq(race->name, name)) return dn;
+            if (streq(race->name, name)) return form_idx;
         }
     }
 
-    return NULL;
+    return -1;
 }
 
 
 static struct monster_race *get_dragon_random(void)
 {
-    int i, options = 0;
-    struct dragon_breed *dn, *choice;
+    int form_idx = 0, i, j;
+    int options = 0;
 
-    for (dn = breeds; dn; dn = dn->next)
+    for (i = 0; i < N_ELEMENTS(dragon_names); i++)
     {
-        for (i = 0; i < dn->commonness; i++)
+        struct dragon_name *dn = &dragon_names[i];
+
+        for (j = 0; j < dn->commonness; j++)
         {
-            if (one_in_(++options)) choice = dn;
+            if (one_in_(++options)) form_idx = i;
         }
     }
 
-    return get_dragon_race(0, choice);
+    return get_dragon_race(0, form_idx);
 }
 
 
 void poly_dragon(struct player *p, bool msg)
 {
     struct monster_race *race = NULL;
-    struct monster_race *race_newborn = get_race("newborn dragon");
+    struct monster_race *race_newborn = get_race("Newborn dragon");
 
     /* Character birth */
     if (!p->poly_race) race = race_newborn;
@@ -1306,33 +1077,22 @@ void poly_dragon(struct player *p, bool msg)
 
     /* Random choice of race at level 5 */
     else if ((p->lev == 5) && (p->poly_race == race_newborn))
-    {
-        struct dragon_breed *dn;
-
         race = get_dragon_random();
-
-        /* Dragon breed */
-        dn = get_dragon_form(race);
-
-        /* Apply experience penalty */
-        p->expfact = p->expfact * dn->r_exp / 100;
-    }
 
     /* New form */
     else
     {
-        int lvl_idx;
-        struct dragon_breed *dn;
+        int lvl_idx, form_idx;
 
         /* Level index */
         if (p->lev == PY_MAX_LEVEL) lvl_idx = 5;
         else lvl_idx = (p->lev - 5) / 10;
 
-        /* Dragon breed */
-        dn = get_dragon_form(p->poly_race);
+        /* Form index */
+        form_idx = get_dragon_form(p->poly_race);
 
         /* New form */
-        race = get_dragon_race(lvl_idx, dn);
+        race = get_dragon_race(lvl_idx, form_idx);
     }
 
     /* Polymorph into that dragon */
@@ -1343,10 +1103,10 @@ void poly_dragon(struct player *p, bool msg)
 void poly_bat(struct player *p, int chance, char *killer)
 {
     char buf[MSG_LEN];
-    struct monster_race *race_fruit_bat = get_race("fruit bat");
+    struct monster_race *race_fruit_bat = get_race("Fruit bat");
 
     /* Not in fruit bat mode! */
-    if (OPT(p, birth_fruit_bat))
+    if (OPT_P(p, birth_fruit_bat))
     {
         msg(p, "Nothing happens.");
         return;
@@ -1355,8 +1115,11 @@ void poly_bat(struct player *p, int chance, char *killer)
     if (p->poly_race != race_fruit_bat)
     {
         /* Attempt a saving throw */
-        if (p->ghost || player_has(p, PF_DRAGON) || CHANCE(p->state.skills[SKILL_SAVE], chance))
+        if (p->ghost || player_has(p, PF_DRAGON) ||
+            CHANCE(p->state.skills[SKILL_SAVE], chance))
+        {
             msg(p, "You resist the effects!");
+        }
         else
         {
             char desc[NORMAL_WID];
@@ -1381,27 +1144,30 @@ void poly_bat(struct player *p, int chance, char *killer)
 }
 
 
-void drain_mana(struct player *p, struct source *who, int drain, bool seen)
+void drain_mana(struct player *p, struct actor *who, int drain, bool seen)
 {
     char m_name[NORMAL_WID];
     int old_num = get_player_num(p);
 
-    /* Get the monster name (or "it") */
-    if (who->monster)
-        monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_STANDARD);
-
-    /* Get the player name (or "it") */
-    else if (who->player && !who->trap)
+    if (who->mon)
+    {
+        /* Get the monster name (or "it") */
+        monster_desc(p, m_name, sizeof(m_name), who->mon, MDESC_STANDARD);
+    }
+    else
+    {
+        /* Get the player name (or "it") */
         player_desc(p, m_name, sizeof(m_name), who->player, true);
+    }
 
     if (!p->csp)
     {
         msg(p, "The draining fails.");
-        if (who->monster) update_smart_learn(who->monster, p, 0, PF_NO_MANA, -1);
+        update_smart_learn(who->mon, p, 0, PF_NO_MANA, -1);
         return;
     }
 
-    /* Drain the given amount if the player has that many, or all of them */
+    /* Full drain */
     if (drain >= p->csp)
     {
         drain = p->csp;
@@ -1409,17 +1175,22 @@ void drain_mana(struct player *p, struct source *who, int drain, bool seen)
         p->csp_frac = 0;
         player_clear_timed(p, TMD_MANASHIELD, true);
     }
+
+    /* Partial drain */
     else
         p->csp -= drain;
 
     /* Hack -- redraw picture */
     redraw_picture(p, old_num);
 
+    /* Redraw mana */
+    p->upkeep->redraw |= (PR_MANA);
+
     /* Heal the monster */
-    if (who->monster && (who->monster->hp < who->monster->maxhp))
+    if (who->mon && (who->mon->hp < who->mon->maxhp))
     {
-        who->monster->hp += (6 * drain);
-        if (who->monster->hp > who->monster->maxhp) who->monster->hp = who->monster->maxhp;
+        who->mon->hp += (6 * drain);
+        if (who->mon->hp > who->mon->maxhp) who->mon->hp = who->mon->maxhp;
 
         /* Redraw (later) if needed */
         update_health(who);
@@ -1429,14 +1200,11 @@ void drain_mana(struct player *p, struct source *who, int drain, bool seen)
     }
 
     /* Heal the player */
-    else if (who->player && !who->trap && hp_player(who->player, drain * 6))
+    else if (who->player && hp_player(who->player, drain * 6))
     {
         /* Special message */
         if (seen) msg(p, "%s appears healthier.", m_name);
     }
-
-    /* Redraw mana */
-    p->upkeep->redraw |= (PR_MANA);
 }
 
 
@@ -1445,42 +1213,52 @@ void drain_mana(struct player *p, struct source *who, int drain, bool seen)
  */
 void recall_player(struct player *p, struct chunk *c)
 {
+    int new_depth = p->recall_depth, new_world_x = p->world_x, new_world_y = p->world_y;
     byte new_level_method;
     const char *msg_self, *msg_others;
 
-    /* From dungeon to surface */
-    if (p->wpos.depth > 0)
+    /* From dungeon to town */
+    if (p->depth > 0)
     {
         /* Messages */
         msg_self = "You feel yourself yanked upwards!";
         msg_others = " is yanked upwards!";
 
         /* New location */
-        wpos_init(&p->recall_wpos, &p->wpos.grid, 0);
+        new_depth = 0;
         new_level_method = LEVEL_RAND;
     }
 
-    /* Nowhere to go */
-    else if (wpos_eq(&p->recall_wpos, &p->wpos))
+    /* From wilderness to town */
+    else if (p->depth < 0)
     {
-        msg(p, "A tension leaves the air around you...");
-        msg_misc(p, "'s charged aura disappears...");
-        p->upkeep->redraw |= (PR_STATE);
-        return;
+        /* Messages */
+        msg_self = "You feel yourself yanked sideways!";
+        msg_others = " is yanked sideways!";
+
+        /* New location */
+        new_depth = 0;
+        new_world_x = 0;
+        new_world_y = 0;
+        new_level_method = LEVEL_OUTSIDE_RAND;
     }
 
-    /* From surface to dungeon */
-    else if (p->recall_wpos.depth > 0)
+    /* From town to wilderness */
+    else if (p->recall_depth < 0)
     {
-        /* Winner-only/shallow dungeons */
-        if (forbid_entrance_weak(p) || forbid_entrance_strong(p))
-        {
-            msg(p, "A tension leaves the air around you...");
-            msg_misc(p, "'s charged aura disappears...");
-            p->upkeep->redraw |= (PR_STATE);
-            return;
-        }
+        /* Messages */
+        msg_self = "You feel yourself yanked sideways!";
+        msg_others = " is yanked sideways!";
 
+        /* New location */
+        new_world_x = wild_info[new_depth].world_x;
+        new_world_y = wild_info[new_depth].world_y;
+        new_level_method = LEVEL_OUTSIDE_RAND;
+    }
+
+    /* From town to dungeon */
+    else if (p->recall_depth > 0)
+    {
         /* Messages */
         msg_self = "You feel yourself yanked downwards!";
         msg_others = " is yanked downwards!";
@@ -1489,19 +1267,17 @@ void recall_player(struct player *p, struct chunk *c)
         new_level_method = LEVEL_RAND;
     }
 
-    /* From wilderness to wilderness */
+    /* From town to town */
     else
     {
-        /* Messages */
-        msg_self = "You feel yourself yanked sideways!";
-        msg_others = " is yanked sideways!";
-
-        /* New location */
-        new_level_method = LEVEL_OUTSIDE_RAND;
+        msg(p, "A tension leaves the air around you...");
+        msg_misc(p, "'s charged aura disappears...");
+        p->upkeep->redraw |= (PR_STATE);
+        return;
     }
 
     /* Hack -- DM redesigning the level */
-    if (chunk_inhibit_players(&p->recall_wpos))
+    if (chunk_inhibit_players(new_depth))
     {
         msg(p, "A tension leaves the air around you...");
         msg_misc(p, "'s charged aura disappears...");
@@ -1517,9 +1293,11 @@ void recall_player(struct player *p, struct chunk *c)
     msg_misc(p, msg_others);
 
     /* Change location */
-    dungeon_change_level(p, c, &p->recall_wpos, new_level_method);
+    dungeon_change_level(p, c, new_depth, new_level_method);
 
     /* Hack -- replace the player */
+    p->world_x = new_world_x;
+    p->world_y = new_world_y;
     p->arena_num = -1;
 
     /* Redraw the state (later) */
@@ -1543,12 +1321,6 @@ int player_digest(struct player *p)
     if (player_of_has(p, OF_REGEN)) i += 30;
     if (p->timed[TMD_REGEN]) i += 30;
 
-    /* Invisibility consumes a lot of food */
-    if (p->timed[TMD_INVIS]) i += 30;
-
-    /* Wraithform consumes a lot of food */
-    if (p->timed[TMD_WRAITHFORM]) i += 30;
-
     /* Slow digestion takes less food */
     if (player_of_has(p, OF_SLOW_DIGEST)) i /= 5;
 
@@ -1562,285 +1334,33 @@ int player_digest(struct player *p)
 void use_energy(struct player *p)
 {
     /* Take a turn */
-    p->energy -= move_energy(p->wpos.depth);
+    p->energy -= move_energy(p->depth);
 
     /* Paranoia */
     if (p->energy < 0) p->energy = 0;
 }
 
 
-/*
- * Check for nearby players/monsters and attack the current target.
- */
-bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
-{
-    int i, n = 0;
-    bool found = false, done = false;
-    struct source *health_who = &p->upkeep->health_who;
-    struct source who_body;
-    struct source *who = &who_body;
-    struct loc target, targets[8];
-    s16b target_dir, targets_dir[8];
-    struct object *weapon = equipped_item_by_slot_name(p, "weapon");
-    struct object *launcher = (bypass_inscription? NULL: equipped_item_by_slot_name(p, "shooting"));
-
-    /* Hack -- shoppers don't auto-retaliate */
-    if (in_store(p)) return false;
-
-    /* The dungeon master does not auto-retaliate */
-    if (p->dm_flags & DM_MONSTER_FRIEND) return false;
-
-    /* Not while confused or afraid */
-    if (p->timed[TMD_CONFUSED] || player_of_has(p, OF_AFRAID)) return false;
-
-    /* Don't auto-retalitate with commands queued */
-    if (get_connection(p->conn)->q.len > 0) return false;
-
-    /* Check preventive inscription '^O' */
-    if (check_prevent_inscription(p, INSCRIPTION_RETALIATE) && !bypass_inscription) return false;
-
-    /* Check melee weapon inscription '!O' */
-    if (weapon && object_prevent_inscription(p, weapon, INSCRIPTION_RETALIATE, false) &&
-        !bypass_inscription)
-    {
-        return false;
-    }
-
-    /* Try to find valid targets around us */
-    for (i = 0; i < 8; i++)
-    {
-        bool hostile, visible, mimicking;
-
-        /* Current location */
-        loc_sum(&target, &p->grid, &ddgrid_ddd[i]);
-        target_dir = ddd[i];
-
-        /* Paranoia */
-        if (!square_in_bounds_fully(c, &target)) continue;
-
-        /* Nobody here */
-        if (!square(c, &target)->mon) continue;
-
-        square_actor(c, &target, who);
-
-        /* Target info */
-        if (who->player)
-        {
-            hostile = pvp_check(p, who->player, PVP_CHECK_BOTH, true, square(c, &target)->feat);
-            visible = player_is_visible(p, who->idx);
-            mimicking = (who->player->k_idx != 0);
-        }
-        else
-        {
-            hostile = pvm_check(p, who->monster);
-            visible = monster_is_visible(p, who->idx);
-            mimicking = monster_is_camouflaged(who->monster);
-        }
-
-        /* If hostile and visible, it's a fair target (except hidden mimics) */
-        if (hostile && visible && !mimicking)
-        {
-            loc_copy(&targets[n], &target);
-            targets_dir[n] = target_dir;
-            n++;
-        }
-    }
-
-    /* No valid target around */
-    if (!n) return false;
-
-    /* If there's a current target, attack it (always) */
-    if (!source_null(health_who))
-    {
-        for (i = 0; i < n; i++)
-        {
-            /* Current location */
-            loc_copy(&target, &targets[i]);
-            target_dir = targets_dir[i];
-
-            /* Not the current target */
-            square_actor(c, &target, who);
-            if (!source_equal(health_who, who)) continue;
-
-            /* Current target found */
-            found = true;
-            break;
-        }
-    }
-
-    /* If there's at least one valid target around, attack one (active auto-retaliator only) */
-    if ((OPT(p, active_auto_retaliator) || bypass_inscription) && !found)
-    {
-        /* Choose randomly */
-        i = randint0(n);
-        loc_copy(&target, &targets[i]);
-        target_dir = targets_dir[i];
-        square_actor(c, &target, who);
-        found = true;
-    }
-
-    /* No current target */
-    if (!found) return false;
-
-    /* Check if we can retaliate with launcher */
-    if (launcher && object_match_inscription(p, launcher, INSCRIPTION_RETALIATE))
-    {
-        struct object *ammo = NULL;
-
-        /* Find first eligible ammo in the quiver */
-        for (i = 0; i < z_info->quiver_size; i++)
-        {
-            if (!p->upkeep->quiver[i]) continue;
-            if (p->upkeep->quiver[i]->tval != p->state.ammo_tval) continue;
-            ammo = p->upkeep->quiver[i];
-            break;
-        }
-
-        /* Require usable ammo */
-        if (ammo)
-            done = do_cmd_fire(p, target_dir, ammo->oidx);
-        else
-            msg(p, "You have no ammunition in the quiver to fire.");
-    }
-
-    /* Attack the current target */
-    if (!done)
-    {
-        py_attack(p, c, &target);
-
-        /* Take a turn */
-        use_energy(p);
-    }
-
-    return true;
-}
-
-
-/*
- * Check if player has enough energy to act
- *
- * real_command: true if checking for a real command, false if just checking for idle players
- */
-bool has_energy(struct player *p, bool real_command)
+bool has_energy(struct player *p)
 {
     /* Check if we have enough energy */
-    if (p->energy < move_energy(p->wpos.depth)) return false;
-
-    /* Occasional attack instead for bloodlust-affected characters */
-    if (real_command && (randint0(200) < p->timed[TMD_BLOODLUST]))
-    {
-        struct chunk *c = chunk_get(&p->wpos);
-
-        if (auto_retaliate(p, c, true)) return false;
-    }
-
-    return true;
+    return (p->energy >= move_energy(p->depth));
 }
 
 
-void set_energy(struct player *p, struct worldpos *wpos)
+void set_energy(struct player *p, int depth)
 {
     /* Set player energy */
-    if (wpos_eq(&p->wpos, wpos))
-        p->energy = move_energy(p->wpos.depth);
+    if (depth == p->depth)
+        p->energy = move_energy(depth);
 
     /* Adjust player energy to new depth */
     else
     {
-        p->energy = p->energy * move_energy(wpos->depth) / move_energy(p->wpos.depth);
+        p->energy = p->energy * move_energy(depth) / move_energy(p->depth); 
 
         /* Paranoia */
         if (p->energy < 0) p->energy = 0;
-        if (p->energy > move_energy(wpos->depth)) p->energy = move_energy(wpos->depth);
+        if (p->energy > move_energy(depth)) p->energy = move_energy(depth);
     }
-}
-
-
-bool player_is_at(struct player *p, struct loc *grid)
-{
-    return loc_eq(grid, &p->grid);
-}
-
-
-struct player_race *lookup_player_race(const char *name)
-{
-    struct player_race *r;
-
-    for (r = races; r; r = r->next)
-    {
-        if (streq(r->name, name)) break;
-    }
-
-    return r;
-}
-
-
-bool forbid_entrance_weak(struct player *p)
-{
-    struct location *dungeon = get_dungeon(&p->wpos);
-
-    return (dungeon && df_has(dungeon->flags, DF_WINNERS_ONLY) && !(p->total_winner || is_dm_p(p)));
-}
-
-
-bool forbid_entrance_strong(struct player *p)
-{
-    struct location *dungeon = get_dungeon(&p->wpos);
-
-    return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
-}
-
-
-/*
- * Player is in the player's field of view
- */
-bool player_is_in_view(struct player *p, int p_idx)
-{
-    return mflag_has(p->pflag[p_idx], MFLAG_VIEW);
-}
-
-
-/*
- * Player is visible to the player
- */
-bool player_is_visible(struct player *p, int p_idx)
-{
-    return mflag_has(p->pflag[p_idx], MFLAG_VISIBLE);
-}
-
-
-/*
- * Player is invisible
- */
-bool player_is_invisible(struct player *q)
-{
-    return (q->timed[TMD_INVIS] != 0);
-}
-
-
-/*
- * Player is not invisible
- */
-bool player_is_not_invisible(struct player *q)
-{
-    return (!q->timed[TMD_INVIS] && !q->k_idx);
-}
-
-
-/*
- * Player lives
- */
-bool player_is_living(struct player *q)
-{
-    return (!q->is_dead);
-}
-
-
-/*
- * Check if the player is immune from traps
- */
-bool player_is_trapsafe(struct player *p)
-{
-    if (p->timed[TMD_TRAPSAFE]) return true;
-    return false;
 }

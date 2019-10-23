@@ -3,7 +3,7 @@
  * Purpose: Object generation functions
  *
  * Copyright (c) 1987-2007 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -56,14 +56,17 @@ static byte get_artifact_rarity(s32b value, struct object_kind *kind)
 }
 
 
-/*
- * Initialize object allocation info
- */
-static void alloc_init_objects(void)
+static void init_obj_make(void)
 {
-    int item, lev;
+    int i, item, lev;
     int k_max = z_info->k_max;
-    int i;
+    alloc_entry *table;
+    struct ego_item *ego;
+    s16b *num;
+    s16b *aux;
+    int *money_svals;
+
+    /*** Initialize object allocation info ***/
 
     /* Allocate and wipe */
     obj_alloc = mem_zalloc((z_info->max_obj_depth + 1) * k_max * sizeof(byte));
@@ -72,7 +75,7 @@ static void alloc_init_objects(void)
     obj_total_great = mem_zalloc(z_info->max_depth * sizeof(u32b));
 
     /* Init allocation data */
-    for (item = 0; item < k_max; item++)
+    for (item = 1; item < k_max; item++)
     {
         const struct object_kind *kind = &k_info[item];
         int min = kind->alloc_min;
@@ -99,54 +102,46 @@ static void alloc_init_objects(void)
     }
 
     /* Hack -- automatically compute art rarities for PWMAngband's artifacts */
-    for (i = 0; i < z_info->a_max; i++)
+    for (i = ART_MAX_STATIC + 1; i < z_info->a_max; i++)
     {
         struct artifact *art = &a_info[i];
-        struct object *fake;
+        struct object *fake = object_new();
         s32b value;
 
-        /* PWMAngband artifacts don't have a rarity */
-        if (art->alloc_prob) continue;
+        /* Ignore "empty" artifacts */
+        if (!art->tval) continue;
 
         /* Create a "forged" artifact */
-        if (!make_fake_artifact(&fake, art)) continue;
+        if (!make_fake_artifact(fake, art)) continue;
 
         /* Get the value */
-        value = (s32b)object_value_real(NULL, fake, 1);
+        value = object_value_real(NULL, fake, 1);
 
         /* Allocation probability */
         art->alloc_prob = get_artifact_rarity(value, fake->kind);
 
         object_delete(&fake);
     }
-}
 
+    /*** Initialize ego-item allocation info ***/
 
-/*
- * Initialize ego-item allocation info
- *
- * The ego allocation probabilities table (alloc_ego_table) is sorted in
- * order of minimum depth. Precisely why, I'm not sure! But that is what
- * the code below is doing with the arrays 'num' and 'level_total'.
- */
-static void alloc_init_egos(void)
-{
-    int *num = mem_zalloc(z_info->max_depth * sizeof(int));
-    int *level_total = mem_zalloc(z_info->max_depth * sizeof(int));
-    int i;
+    num = mem_zalloc(z_info->max_depth * sizeof(s16b));
+    aux = mem_zalloc(z_info->max_depth * sizeof(s16b));
 
-    for (i = 0; i < z_info->e_max; i++)
+    /* Scan the ego items */
+    for (i = 1; i < z_info->e_max; i++)
     {
-        struct ego_item *ego = &e_info[i];
+        /* Get the i'th ego item */
+        ego = &e_info[i];
 
         /* Legal items */
-        if (ego->alloc_prob)
+        if (ego->rarity)
         {
             /* Count the entries */
             alloc_ego_size++;
 
             /* Group by level */
-            num[ego->alloc_min]++;
+            num[ego->level]++;
         }
     }
 
@@ -160,46 +155,48 @@ static void alloc_init_egos(void)
     /* Allocate the alloc_ego_table */
     alloc_ego_table = mem_zalloc(alloc_ego_size * sizeof(alloc_entry));
 
+    /* Access the table entry */
+    table = alloc_ego_table;
+
     /* Scan the ego items */
-    for (i = 0; i < z_info->e_max; i++)
+    for (i = 1; i < z_info->e_max; i++)
     {
-        struct ego_item *ego = &e_info[i];
+        /* Get the i'th ego item */
+        ego = &e_info[i];
 
         /* Count valid pairs */
-        if (ego->alloc_prob)
+        if (ego->rarity)
         {
-            int min_level = ego->alloc_min;
+            int p, x, y, z;
+
+            /* Extract the base level */
+            x = ego->level;
+
+            /* Extract the base probability */
+            p = (100 / ego->rarity);
 
             /* Skip entries preceding our locale */
-            int y = ((min_level > 0)? num[min_level - 1]: 0);
+            y = ((x > 0)? num[x - 1]: 0);
 
             /* Skip previous entries at this locale */
-            int z = y + level_total[min_level];
+            z = y + aux[x];
 
             /* Load the entry */
-            alloc_ego_table[z].index = i;
-            alloc_ego_table[z].level = min_level;   /* Unused */
-            alloc_ego_table[z].prob1 = ego->alloc_prob;
-            alloc_ego_table[z].prob2 = ego->alloc_prob;
-            alloc_ego_table[z].prob3 = ego->alloc_prob;
+            table[z].index = i;
+            table[z].level = x;
+            table[z].prob1 = p;
+            table[z].prob2 = p;
+            table[z].prob3 = p;
 
             /* Another entry complete for this locale */
-            level_total[min_level]++;
+            aux[x]++;
         }
     }
 
-    mem_free(level_total);
+    mem_free(aux);
     mem_free(num);
-}
 
-
-/*
- * Initialize money info
- */
-static void init_money_svals(void)
-{
-    int *money_svals;
-    int i;
+    /*** Initialize money info ***/
 
     /* Count the money types and make a list */
     num_money_types = tval_sval_count("gold");
@@ -215,16 +212,7 @@ static void init_money_svals(void)
         money_type[i].name = string_make(kind->name);
         money_type[i].type = money_svals[i];
     }
-
     mem_free(money_svals);
-}
-
-
-static void init_obj_make(void)
-{
-    alloc_init_objects();
-    alloc_init_egos();
-    init_money_svals();
 }
 
 
@@ -274,17 +262,20 @@ static int get_new_attr(bitflag flags[OF_SIZE], bitflag newf[OF_SIZE])
 /*
  * Obtain extra power
  */
-static int get_new_power(bitflag flags[OF_SIZE])
+static int get_new_power(bitflag flags[OF_SIZE], int esp_flag)
 {
     int i, options = 0, flag = 0;
     bitflag newf[OF_SIZE];
 
-    create_obj_flag_mask(newf, false, OFT_PROT, OFT_MISC, OFT_MAX);
+    create_mask(newf, false, OFT_PROT, OFT_MISC, OFT_MAX);
 
     for (i = of_next(newf, FLAG_START); i != FLAG_END; i = of_next(newf, i + 1))
     {
         /* Skip this one if the flag is already present */
         if (of_has(flags, i)) continue;
+
+        /* Skip ESP power if no extra ESP power can be added */
+        if ((i == OF_ESP_POWER) && !esp_flag) continue;
 
         /*
          * Each time we find a new possible option, we have a 1-in-N chance of
@@ -294,40 +285,6 @@ static int get_new_power(bitflag flags[OF_SIZE])
     }
 
     return flag;
-}
-
-
-/*
- * Get a random new base resist on an item
- */
-static int random_base_resist(struct object *obj, int *resist)
-{
-    int i, r, count = 0;
-
-    /* Count the available base resists */
-    for (i = ELEM_BASE_MIN; i < ELEM_HIGH_MIN; i++)
-    {
-        if (obj->el_info[i].res_level == 0) count++;
-    }
-
-    if (count == 0) return false;
-
-    /* Pick one */
-    r = randint0(count);
-
-    /* Find the one we picked */
-    for (i = ELEM_BASE_MIN; i < ELEM_HIGH_MIN; i++)
-    {
-        if (obj->el_info[i].res_level != 0) continue;
-        if (r == 0)
-        {
-            *resist = i;
-            return true;
-        }
-        r--;
-    }
-
-    return false;
 }
 
 
@@ -370,25 +327,30 @@ static int random_high_resist(struct object *obj, int *resist)
  */
 static void do_powers(struct object *obj, bitflag kind_flags[KF_SIZE])
 {
-    int resist = 0, pick = 0;
+    int resist = 0;
     bitflag newf[OF_SIZE];
-
-    /* Resist or power? */
-    if (kf_has(kind_flags, KF_RAND_RES_POWER)) pick = randint1(3);
 
     /* Extra powers */
     if (kf_has(kind_flags, KF_RAND_SUSTAIN))
     {
-        create_obj_flag_mask(newf, false, OFT_SUST, OFT_MAX);
+        create_mask(newf, false, OFT_SUST, OFT_MAX);
         of_on(obj->flags, get_new_attr(obj->flags, newf));
     }
-    if (kf_has(kind_flags, KF_RAND_POWER) || (pick == 1))
+    if (kf_has(kind_flags, KF_RAND_HI_RES))
+    {
+        /* Get a high resist if available, mark it as random */
+        if (random_high_resist(obj, &resist))
+        {
+            obj->el_info[resist].res_level = 1;
+            obj->el_info[resist].flags |= EL_INFO_RANDOM;
+        }
+    }
+    if (kf_has(kind_flags, KF_RAND_POWER))
     {
         int esp_flag = get_new_esp(obj->flags);
-        int power_flag = get_new_power(obj->flags);
+        int power_flag = get_new_power(obj->flags, esp_flag);
 
-        /* PWMAngband: 1/11 chance of having a random ESP */
-        if (one_in_(11) && esp_flag)
+        if ((power_flag == OF_ESP_POWER) && esp_flag)
             of_on(obj->flags, esp_flag);
         else
             of_on(obj->flags, power_flag);
@@ -399,24 +361,6 @@ static void do_powers(struct object *obj, bitflag kind_flags[KF_SIZE])
 
         if (esp_flag)
             of_on(obj->flags, esp_flag);
-    }
-    if (kf_has(kind_flags, KF_RAND_BASE_RES) || (pick > 1))
-    {
-        /* Get a base resist if available, mark it as random */
-        if (random_base_resist(obj, &resist))
-        {
-            obj->el_info[resist].res_level = 1;
-            obj->el_info[resist].flags |= EL_INFO_RANDOM;
-        }
-    }
-    if (kf_has(kind_flags, KF_RAND_HI_RES))
-    {
-        /* Get a high resist if available, mark it as random */
-        if (random_high_resist(obj, &resist))
-        {
-            obj->el_info[resist].res_level = 1;
-            obj->el_info[resist].flags |= EL_INFO_RANDOM;
-        }
     }
 }
 
@@ -435,15 +379,16 @@ static int get_power_flags(const struct object *obj, bitflag flags[OF_SIZE])
 
     /* Get power flags */
     if (kf_has(kind_flags, KF_RAND_SUSTAIN))
-        create_obj_flag_mask(flags, false, OFT_SUST, OFT_MAX);
-    if (kf_has(kind_flags, KF_RAND_POWER) || kf_has(kind_flags, KF_RAND_RES_POWER))
-        create_obj_flag_mask(flags, false, OFT_PROT, OFT_MISC, OFT_ESP, OFT_MAX);
+        create_mask(flags, false, OFT_SUST, OFT_MAX);
+    else if (kf_has(kind_flags, KF_RAND_POWER))
+    {
+        create_mask(flags, false, OFT_PROT, OFT_MISC, OFT_ESP, OFT_MAX);
+        of_off(flags, OF_ESP_POWER);
+    }
     if (kf_has(kind_flags, KF_RAND_ESP))
-        create_obj_flag_mask(flags, false, OFT_ESP, OFT_MAX);
+        create_mask(flags, false, OFT_ESP, OFT_MAX);
     
     /* Get resists */
-    if (kf_has(kind_flags, KF_RAND_BASE_RES) || kf_has(kind_flags, KF_RAND_RES_POWER))
-        return ELEM_ACID;
     if (kf_has(kind_flags, KF_RAND_HI_RES))
         return ELEM_POIS;
 
@@ -454,23 +399,15 @@ static int get_power_flags(const struct object *obj, bitflag flags[OF_SIZE])
 void init_powers(const struct object *obj, int *power, int *resist)
 {
     bitflag flags[OF_SIZE];
-    bitflag *kind_flags = (obj->ego? obj->ego->kind_flags: obj->kind->kind_flags);
 
     *resist = get_power_flags(obj, flags);
     *power = of_next(flags, FLAG_START);
-
-    /* Set extra power only for RAND_RES_POWER items */
-    if (kf_has(kind_flags, KF_RAND_RES_POWER)) *resist = -1;
 }
 
 
-void dec_power(const struct object *obj, int *power)
+static void dec_power_aux(bitflag flags[OF_SIZE], int *power)
 {
-    bitflag flags[OF_SIZE];
-    int flag, prevflag;
-
-    get_power_flags(obj, flags);
-    flag = of_next(flags, FLAG_START);
+    int flag = of_next(flags, FLAG_START), prevflag;
 
     /* Item must have an extra power */
     if (*power == FLAG_END) return;
@@ -489,13 +426,21 @@ void dec_power(const struct object *obj, int *power)
 }
 
 
+void dec_power(const struct object *obj, int *power)
+{
+    bitflag flags[OF_SIZE];
+
+    get_power_flags(obj, flags);
+    dec_power_aux(flags, power);
+}
+
+
 void dec_resist(const struct object *obj, int *resist)
 {
     /* Item must have an extra resist */
     if (*resist == -1) return;
 
     /* Min bound */
-    if (*resist == ELEM_ACID) return;
     if (*resist == ELEM_POIS) return;
 
     /* Decrease extra resist */
@@ -503,27 +448,12 @@ void dec_resist(const struct object *obj, int *resist)
 }
 
 
-void inc_power(const struct object *obj, int *power, int *resist)
+static void inc_power_aux(bitflag flags[OF_SIZE], int *power)
 {
-    bitflag flags[OF_SIZE];
     int flag;
 
-    get_power_flags(obj, flags);
-
     /* Item must have an extra power */
-    if (*power == FLAG_END)
-    {
-        bitflag *kind_flags = (obj->ego? obj->ego->kind_flags: obj->kind->kind_flags);
-
-        /* Set extra power only for RAND_RES_POWER items */
-        if (kf_has(kind_flags, KF_RAND_RES_POWER))
-        {
-            *power = of_next(flags, FLAG_START);
-            *resist = -1;
-        }
-
-        return;
-    }
+    if (*power == FLAG_END) return;
 
     /* Max bound */
     flag = of_next(flags, *power + 1);
@@ -534,25 +464,21 @@ void inc_power(const struct object *obj, int *power, int *resist)
 }
 
 
-void inc_resist(const struct object *obj, int *power, int *resist)
+void inc_power(const struct object *obj, int *power)
+{
+    bitflag flags[OF_SIZE];
+
+    get_power_flags(obj, flags);
+    inc_power_aux(flags, power);
+}
+
+
+void inc_resist(const struct object *obj, int *resist)
 {
     /* Item must have an extra resist */
-    if (*resist == -1)
-    {
-        bitflag *kind_flags = (obj->ego? obj->ego->kind_flags: obj->kind->kind_flags);
-
-        /* Set extra resist only for RAND_RES_POWER items */
-        if (kf_has(kind_flags, KF_RAND_RES_POWER))
-        {
-            *power = FLAG_END;
-            *resist = ELEM_ACID;
-        }
-
-        return;
-    }
+    if (*resist == -1) return;
 
     /* Max bound */
-    if (*resist == ELEM_COLD) return;
     if (*resist == ELEM_DISEN) return;
 
     /* Increase extra resist */
@@ -574,35 +500,76 @@ void undo_fixed_powers(struct object *obj, int power, int resist)
 }
 
 
-static const char *get_power_desc(int power)
+/*
+ * Describes a flag-name pair
+ */
+struct flag_type
 {
-    int i;
-
-    for (i = 1; i < OF_MAX; i++)
-    {
-        struct obj_property *prop = lookup_obj_property(OBJ_PROPERTY_FLAG, i);
-
-        if ((prop->subtype != OFT_SUST) && (prop->subtype != OFT_PROT) &&
-            (prop->subtype != OFT_MISC) && (prop->subtype != OFT_ESP))
-        {
-            continue;
-        }
-        if (prop->index == power) return prop->short_desc;
-    }
-
-    return "";
-}
+    int flag;
+    const char *name;
+};
 
 
-static const char *get_resist_desc(int resist)
+/* Random powers */
+static const struct flag_type power_flags[] =
 {
-    int i;
+    /* OFT_SUST */
+    {OF_SUST_STR, "Sust STR"},
+    {OF_SUST_INT, "Sust INT"},
+    {OF_SUST_WIS, "Sust WIS"},
+    {OF_SUST_DEX, "Sust DEX"},
+    {OF_SUST_CON, "Sust CON"},
 
-    for (i = 0; i < ELEM_MAX; i++)
+    /* OFT_PROT */
+    {OF_PROT_FEAR, "Fear"},
+    {OF_PROT_BLIND, "Blind"},
+    {OF_PROT_CONF, "Confu"},
+    {OF_PROT_STUN, "Stun"},
+
+    /* OFT_MISC */
+    {OF_SLOW_DIGEST, "Slow Digest"},
+    {OF_FEATHER, "Feather"},
+    {OF_REGEN, "Regen"},
+    {OF_SEE_INVIS, "See Invis"},
+    {OF_FREE_ACT, "Free Act"},
+    {OF_HOLD_LIFE, "Hold Life"},
+
+    /* OFT_ESP */
+    {OF_ESP_ANIMAL, "Esp Animal"},
+    {OF_ESP_EVIL, "Esp Evil"},
+    {OF_ESP_UNDEAD, "Esp Undead"},
+    {OF_ESP_DEMON, "Esp Demon"},
+    {OF_ESP_ORC, "Esp Orc"},
+    {OF_ESP_TROLL, "Esp Troll"},
+    {OF_ESP_GIANT, "Esp Giant"},
+    {OF_ESP_DRAGON, "Esp Dragon"},
+    {OF_ESP_ALL, "Esp All"},
+    {OF_ESP_RADIUS, "Esp Radius"}
+};
+
+
+/* Random resists */
+static const struct flag_type resist_flags[] =
+{
+    {ELEM_POIS, "Pois"},
+    {ELEM_LIGHT, "Light"},
+    {ELEM_DARK, "Dark"},
+    {ELEM_SOUND, "Sound"},
+    {ELEM_SHARD, "Shard"},
+    {ELEM_NEXUS, "Nexus"},
+    {ELEM_NETHER, "Nethr"},
+    {ELEM_CHAOS, "Chaos"},
+    {ELEM_DISEN, "Disen"}
+};
+
+
+static const char *get_flag_desc(const struct flag_type flags[], size_t size, int flag)
+{
+    size_t i;
+
+    for (i = 0; i < size; i++)
     {
-        struct obj_property *prop = lookup_obj_property(OBJ_PROPERTY_RESIST, i);
-
-        if (prop->index == resist) return prop->short_desc;
+        if (flags[i].flag == flag) return flags[i].name;
     }
 
     return "";
@@ -613,15 +580,15 @@ void get_power_descs(int power, int resist, char *buf, int len)
 {
     if (power != FLAG_END)
     {
-        my_strcpy(buf, get_power_desc(power), len);
+        my_strcpy(buf, get_flag_desc(power_flags, N_ELEMENTS(power_flags), power), len);
         if (resist != -1)
         {
             my_strcat(buf, "/", len);
-            my_strcat(buf, get_resist_desc(resist), len);
+            my_strcat(buf, get_flag_desc(resist_flags, N_ELEMENTS(resist_flags), resist), len);
         }
     }
     else if (resist != -1)
-        my_strcpy(buf, get_resist_desc(resist), len);
+        my_strcpy(buf, get_flag_desc(resist_flags, N_ELEMENTS(resist_flags), resist), len);
     else
         my_strcpy(buf, "Regular", len);
 }
@@ -632,39 +599,48 @@ void get_power_descs(int power, int resist, char *buf, int len)
  */
 static struct ego_item *ego_find_random(struct object *obj, int level)
 {
-    int i;
+    int i, ood_chance;
     long total = 0L;
     alloc_entry *table = alloc_ego_table;
+    struct ego_item *ego;
+    struct ego_poss_item *poss;
 
     /* Go through all possible ego items and find ones which fit this item */
     for (i = 0; i < alloc_ego_size; i++)
     {
-        struct ego_item *ego = &e_info[table[i].index];
-
         /* Reset any previous probability of this type being picked */
         table[i].prob3 = 0;
 
-        if (level <= ego->alloc_max)
+        if (level < table[i].level) continue;
+
+        /* Access the ego item */
+        ego = &e_info[table[i].index];
+
+        /* Enforce maximum */
+        if (level > ego->alloc_max) continue;
+
+        /* Roll for Out of Depth (ood) */
+        if (level < ego->alloc_min)
         {
-            int ood_chance = MAX(2, (ego->alloc_min - level) / 3);
+            ood_chance = MAX(2, (ego->alloc_min - level) / 3);
+            if (!one_in_(ood_chance)) continue;
+        }
 
-            if ((level >= ego->alloc_min) || one_in_(ood_chance))
+        /* XXX Ignore cursed items for now */
+        if (cursed_p(ego->flags)) continue;
+
+        /* Test if this is a legal ego item type for this object */
+        for (poss = ego->poss_items; poss; poss = poss->next)
+        {
+            if (poss->kidx == obj->kind->kidx)
             {
-                struct poss_item *poss;
-
-                for (poss = ego->poss_items; poss; poss = poss->next)
-                {
-                    if (poss->kidx == obj->kind->kidx)
-                    {
-                        table[i].prob3 = table[i].prob2;
-                        break;
-                    }
-                }
-
-                /* Total */
-                total += table[i].prob3;
+                table[i].prob3 = table[i].prob2;
+                break;
             }
         }
+
+        /* Total */
+        total += table[i].prob3;
     }
 
     if (total)
@@ -674,11 +650,13 @@ static struct ego_item *ego_find_random(struct object *obj, int level)
         for (i = 0; i < alloc_ego_size; i++)
         {
             /* Found the entry */
-            if (value < table[i].prob3) return &e_info[table[i].index];
+            if (value < table[i].prob3) break;
 
             /* Decrement */
             value = value - table[i].prob3;
         }
+
+        return &e_info[table[i].index];
     }
 
     return NULL;
@@ -721,13 +699,10 @@ void ego_apply_magic(struct object *obj, int level)
 {
     int i, x;
 
-    /* Apply extra ego bonuses (except on dark swords) */
-    if (!tval_is_dark_sword(obj))
-    {
-        obj->to_h += randcalc(obj->ego->to_h, level, RANDOMISE);
-        obj->to_d += randcalc(obj->ego->to_d, level, RANDOMISE);
-        obj->to_a += randcalc(obj->ego->to_a, level, RANDOMISE);
-    }
+    /* Apply extra ego bonuses */
+    obj->to_h += randcalc(obj->ego->to_h, level, RANDOMISE);
+    obj->to_d += randcalc(obj->ego->to_d, level, RANDOMISE);
+    obj->to_a += randcalc(obj->ego->to_a, level, RANDOMISE);
 
     /* Apply modifiers */
     for (i = 0; i < OBJ_MOD_MAX; i++)
@@ -739,10 +714,9 @@ void ego_apply_magic(struct object *obj, int level)
     /* Apply flags */
     of_union(obj->flags, obj->ego->flags);
 
-    /* Add slays, brands and curses */
-    copy_slays(&obj->slays, obj->ego->slays);
-    copy_brands(&obj->brands, obj->ego->brands);
-    copy_curses(obj, obj->ego->curses);
+    /* Add slays and brands */
+    copy_slay(&obj->slays, obj->ego->slays);
+    copy_brand(&obj->brands, obj->ego->brands);
 
     /* Add resists */
     for (i = 0; i < ELEM_MAX; i++)
@@ -762,7 +736,7 @@ void ego_apply_magic(struct object *obj, int level)
     if (obj->ego->activation)
     {
         obj->activation = obj->ego->activation;
-        memcpy(&obj->time, &obj->ego->time, sizeof(random_value));
+        obj->time = obj->ego->time;
     }
 }
 
@@ -804,12 +778,12 @@ static void make_ego_item(struct object *obj, int level)
 
 
 /*
- * Copy artifact data to a normal object.
+ * Copy artifact data to a normal object, and set various slightly hacky
+ * globals.
  */
 void copy_artifact_data(struct object *obj, const struct artifact *art)
 {
     int i;
-    struct object_kind *kind = lookup_kind(art->tval, art->sval);
 
     /* Extract the data */
     for (i = 0; i < OBJ_MOD_MAX; i++)
@@ -821,29 +795,11 @@ void copy_artifact_data(struct object *obj, const struct artifact *art)
     obj->to_h = art->to_h;
     obj->to_d = art->to_d;
     obj->weight = art->weight;
-
-    /* Activations can come from the artifact or the kind */
-    /* PWMAngband: don't add activation if NO_ACTIVATION is defined on the artifact */
-    if (art->activation)
-    {
-        obj->activation = art->activation;
-        memcpy(&obj->time, &art->time, sizeof(random_value));
-    }
-    else if (kind->activation && !of_has(art->flags, OF_NO_ACTIVATION))
-    {
-        obj->activation = kind->activation;
-        memcpy(&obj->time, &kind->time, sizeof(random_value));
-    }
-    else
-    {
-        obj->activation = NULL;
-        memset(&obj->time, 0, sizeof(random_value));
-    }
-
+    obj->activation = art->activation;
+    if (art->time.base != 0) obj->time = art->time;
     of_union(obj->flags, art->flags);
-    copy_slays(&obj->slays, art->slays);
-    copy_brands(&obj->brands, art->brands);
-    copy_curses(obj, art->curses);
+    copy_slay(&obj->slays, art->slays);
+    copy_brand(&obj->brands, art->brands);
     for (i = 0; i < ELEM_MAX; i++)
     {
         /* Take the larger of artifact and base object resist levels */
@@ -865,7 +821,7 @@ void copy_artifact_data(struct object *obj, const struct artifact *art)
  * Since this is now in no way marked as fake, we must make sure this function
  * is never used to create an actual game object
  */
-bool make_fake_artifact(struct object **obj_address, const struct artifact *artifact)
+bool make_fake_artifact(struct object *obj, struct artifact *artifact)
 {
     struct object_kind *kind;
 
@@ -877,13 +833,16 @@ bool make_fake_artifact(struct object **obj_address, const struct artifact *arti
     if (!kind) return false;
 
     /* Create the artifact */
-    *obj_address = object_new();
-    object_prep(NULL, *obj_address, kind, 0, MAXIMISE);
-    (*obj_address)->artifact = &a_info[artifact->aidx];
-    copy_artifact_data(*obj_address, artifact);
+    object_prep(NULL, obj, kind, 0, MAXIMISE);
 
-    /* Identify object to get real value */
-    object_notice_everything_aux(NULL, *obj_address, true, false);
+    /* Save the name */
+    obj->artifact = &a_info[artifact->aidx];
+
+    /* Extract the fields */
+    copy_artifact_data(obj, artifact);
+
+    /* Learn brands and slays */
+    object_know_brands_and_slays(obj);
 
     /* Success */
     return true;
@@ -922,17 +881,20 @@ static bool artifact_pass_checks(struct artifact *art, int depth)
 static struct object *make_artifact_special(struct player *p, struct chunk *c, int level)
 {
     int i;
-    struct object *new_obj = NULL;
+    struct object *new_obj;
+    bool art_ok = true;
 
     /* No artifacts, do nothing */
-    if (p && (cfg_no_artifacts || OPT(p, birth_no_artifacts))) return NULL;
+    if (p && OPT_P(p, birth_no_artifacts)) art_ok = false;
 
-    /* No artifacts in the towns or on special levels */
-    if (forbid_special(&c->wpos)) return NULL;
+    /* Winners don't generate true artifacts */
+    if (p && p->total_winner) art_ok = false;
+
+    /* No artifacts in the town or on special levels */
+    if (forbid_special(c->depth)) return false;
 
     /* Check the special artifacts */
-    /* PWMAngband: winners don't generate true artifacts */
-    if (!(p && p->total_winner))
+    if (art_ok)
     {
         for (i = 0; i < z_info->a_max; i++)
         {
@@ -956,7 +918,7 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
             if (p && (p->art_info[i] > cfg_preserve_artifacts)) continue;
 
             /* We must pass depth and rarity checks */
-            if (!artifact_pass_checks(art, c->wpos.depth)) continue;
+            if (!artifact_pass_checks(art, c->depth)) continue;
 
             /* Enforce minimum "object" level (loosely) */
             if (kind->level > level)
@@ -992,9 +954,6 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
                 else p->art_info[new_obj->artifact->aidx] += ARTS_CREATED;
             }
 
-            if (object_has_standard_to_h(new_obj)) new_obj->known->to_h = 1;
-            if (object_flavor_is_aware(p, new_obj)) object_id_set_aware(new_obj);
-
             /* Success */
             return new_obj;
         }
@@ -1007,6 +966,7 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
         {
             struct artifact *art = &a_info[i];
             struct object_kind *kind = lookup_kind(art->tval, art->sval);
+            s32b randart_seed;
 
             /* Skip "empty" artifacts */
             if (!art->name) continue;
@@ -1027,64 +987,44 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
                 if (randint0(d)) continue;
             }
 
-            /* Attempt to change the object into a random artifact */
-            if (!create_randart_drop(p, c, &new_obj, i, true)) continue;
+            /* Cannot make a randart twice */
+            if (p->randart_created[i]) continue;
 
-            if (object_has_standard_to_h(new_obj)) new_obj->known->to_h = 1;
-            if (object_flavor_is_aware(p, new_obj)) object_id_set_aware(new_obj);
+            /* Cannot generate a randart if disallowed by preservation mode  */
+            if (p->randart_info[i] > cfg_preserve_artifacts) continue;
+
+            /* Piece together a 32-bit random seed */
+            randart_seed = randint0(0xFFFF) << 16;
+            randart_seed += randint0(0xFFFF);
+
+            /* Attempt to change the object into a random artifact */
+            art = do_randart(randart_seed, &a_info[i]);
+
+            /* Skip "empty" artifacts again */
+            if (!art) continue;
+
+            /* We must pass depth and rarity checks */
+            if (!artifact_pass_checks(art, c->depth))
+            {
+                free_artifact(art);
+                continue;
+            }
+
+            /* Assign the template */
+            new_obj = object_new();
+            object_prep(p, new_obj, kind, art->alloc_min, RANDOMISE);
+
+            /* Mark the item as a random artifact */
+            make_randart(p, c, new_obj, art, randart_seed);
 
             /* Success */
+            free_artifact(art);
             return new_obj;
         }
     }
 
     /* Failure */
     return NULL;
-}
-
-
-bool create_randart_drop(struct player *p, struct chunk *c, struct object **obj_address, int a_idx,
-    bool check)
-{
-    s32b randart_seed;
-    struct artifact *art;
-
-    /* Cannot make a randart twice */
-    if (p->randart_created[a_idx]) return false;
-
-    /* Cannot generate a randart if disallowed by preservation mode */
-    if (p->randart_info[a_idx] > cfg_preserve_artifacts) return false;
-
-    /* Piece together a 32-bit random seed */
-    randart_seed = randint0(0xFFFF) << 16;
-    randart_seed += randint0(0xFFFF);
-
-    /* Attempt to change the object into a random artifact */
-    art = do_randart(randart_seed, &a_info[a_idx]);
-
-    /* Skip "empty" items */
-    if (!art) return false;
-
-    /* We must pass depth and rarity checks */
-    if (check && !artifact_pass_checks(art, c->wpos.depth))
-    {
-        free_artifact(art);
-        return false;
-    }
-
-    /* Assign the template */
-    if (*obj_address == NULL)
-    {
-        *obj_address = object_new();
-        object_prep(p, *obj_address, lookup_kind(art->tval, art->sval), art->alloc_min, RANDOMISE);
-    }
-
-    /* Mark the item as a random artifact */
-    make_randart(p, c, *obj_address, art, randart_seed);
-
-    /* Success */
-    free_artifact(art);
-    return true;
 }
 
 
@@ -1097,6 +1037,7 @@ static bool create_randart_aux(struct player *p, struct chunk *c, struct object 
     {
         struct artifact *art = &a_info[i];
         struct object_kind *kind = lookup_kind(art->tval, art->sval);
+        s32b randart_seed;
 
         /* Skip "empty" items */
         if (!art->name) continue;
@@ -1107,14 +1048,38 @@ static bool create_randart_aux(struct player *p, struct chunk *c, struct object 
         /* Skip special artifacts */
         if (kf_has(kind->kind_flags, KF_INSTA_ART)) continue;
 
+        /* Cannot make a randart twice */
+        if (p->randart_created[i]) continue;
+
+        /* Cannot generate a randart if disallowed by preservation mode  */
+        if (p->randart_info[i] > cfg_preserve_artifacts) continue;
+
         /* Must have the correct fields */
         if (art->tval != obj->tval) continue;
         if (art->sval != obj->sval) continue;
 
+        /* Piece together a 32-bit random seed */
+        randart_seed = randint0(0xFFFF) << 16;
+        randart_seed += randint0(0xFFFF);
+
         /* Attempt to change the object into a random artifact */
-        if (!create_randart_drop(p, c, &obj, i, check)) continue;
+        art = do_randart(randart_seed, &a_info[i]);
+
+        /* Skip "empty" items again */
+        if (!art) continue;
+
+        /* We must pass depth and rarity checks */
+        if (check && !artifact_pass_checks(art, c->depth))
+        {
+            free_artifact(art);
+            continue;
+        }
+
+        /* Mark the item as a random artifact */
+        make_randart(p, c, obj, art, randart_seed);
 
         /* Success */
+        free_artifact(art);
         return true;
     }
 
@@ -1135,19 +1100,25 @@ static bool create_randart_aux(struct player *p, struct chunk *c, struct object 
 static bool make_artifact(struct player *p, struct chunk *c, struct object *obj)
 {
     int i;
+    bool art_ok = true;
 
     /* Make sure birth no artifacts isn't set */
-    if (p && (cfg_no_artifacts || OPT(p, birth_no_artifacts))) return false;
+    if (p && OPT_P(p, birth_no_artifacts)) art_ok = false;
 
-    /* No artifacts in the towns or on special levels */
-    if (forbid_special(&c->wpos)) return false;
+    /* Winners don't generate true artifacts */
+    if (p && p->total_winner) art_ok = false;
+
+    /* Special handling of quest artifacts */
+    if (kf_has(obj->kind->kind_flags, KF_QUEST_ART)) art_ok = true;
+
+    /* No artifacts in the town or on special levels */
+    if (forbid_special(c->depth)) return false;
 
     /* Paranoia -- no "plural" artifacts */
     if (obj->number != 1) return false;
 
     /* Check the artifact list (skip the "specials") */
-    /* PWMAngband: winners don't generate true artifacts */
-    if (!restrict_winner(p, obj))
+    if (art_ok)
     {
         for (i = 0; !obj->artifact && (i < z_info->a_max); i++)
         {
@@ -1176,7 +1147,7 @@ static bool make_artifact(struct player *p, struct chunk *c, struct object *obj)
             if (art->sval != obj->sval) continue;
 
             /* We must pass depth and rarity checks */
-            if (!artifact_pass_checks(art, c->wpos.depth)) continue;
+            if (!artifact_pass_checks(art, c->depth)) continue;
 
             /* Mark the item as an artifact */
             obj->artifact = art;
@@ -1300,7 +1271,7 @@ void object_prep(struct player *p, struct object *obj, struct object_kind *k, in
 
     obj->effect = k->effect;
     obj->activation = k->activation;
-    memcpy(&obj->time, &k->time, sizeof(random_value));
+    obj->time = k->time;
 
     /* Default number */
     obj->number = 1;
@@ -1354,10 +1325,9 @@ void object_prep(struct player *p, struct object *obj, struct object_kind *k, in
     obj->to_d = randcalc(k->to_d, lev, rand_aspect);
     obj->to_a = randcalc(k->to_a, lev, rand_aspect);
 
-    /* Default slays, brands and curses */
-    copy_slays(&obj->slays, k->slays);
-    copy_brands(&obj->brands, k->brands);
-    copy_curses(obj, k->curses);
+    /* Default slays and brands */
+    copy_slay(&obj->slays, k->slays);
+    copy_brand(&obj->brands, k->brands);
 
     /* Default resists */
     for (i = 0; i < ELEM_MAX; i++)
@@ -1394,11 +1364,13 @@ int apply_magic(struct player *p, struct chunk *c, struct object *obj, int lev,
     s16b power = 0;
 
     /* Chance of being `good` and `great` */
-    int good_chance = MIN(z_info->good_obj + lev, 100);
-    int great_chance = z_info->ego_obj;
+    int good_chance = MIN(33 + lev, 100);
+    int great_chance = 30;
 
-    /* Normal magic ammo are always +0 +0 (not a "good" drop) */
-    if (tval_is_ammo(obj) && of_has(obj->flags, OF_AMMO_MAGIC)) return ((good || great)? -1: 0);
+    /* Magic ammo are always +0 +0 (not a "good" drop) */
+    if (magic_ammo_p(obj)) return ((good || great)? -1: 0);
+
+    if (lev >= z_info->max_depth) lev = z_info->max_depth - 1;
 
     /* Roll for "good" */
     if (good || magik(good_chance))
@@ -1434,23 +1406,11 @@ int apply_magic(struct player *p, struct chunk *c, struct object *obj, int lev,
     /* Try to make an ego item */
     if (power == 2) make_ego_item(obj, lev);
 
-    /* Give it a chance to be cursed */
-    if (one_in_(20) && tval_is_wearable(obj))
-        lev = append_object_curse(obj, lev, obj->tval);
-    if (lev >= z_info->max_depth) lev = z_info->max_depth - 1;
-
     /* Apply magic */
-    if (tval_is_tool(obj) || tval_is_mstaff(obj) || tval_is_dark_sword(obj))
+    if (tval_is_tool(obj) || tval_is_mstaff(obj))
     {
         /* Not a "great" drop */
         if (great && !obj->ego) return -1;
-
-        if (tval_is_dark_sword(obj))
-        {
-            apply_magic_weapon(obj, lev, power);
-            obj->to_h = 0;
-            obj->to_d = 0;
-        }
 
         /* Not a "good" drop */
         if (good && !obj->ego) return -1;
@@ -1551,7 +1511,11 @@ bool kind_is_good(const struct object_kind *kind)
         case TV_ROCK:
         case TV_BOLT:
         case TV_ARROW:
-        case TV_SHOT: return true;
+        case TV_SHOT:
+        {
+            /* Magic ammo never get good (they cannot become ego/art anyway...) */
+            return !kf_has(kind->kind_flags, KF_AMMO_MAGIC);
+        }
 
         /* Light sources */
         case TV_LIGHT: return true;
@@ -1576,7 +1540,7 @@ static struct object_kind *get_obj_num_by_kind(int level, bool good, int tval)
     ind = level * z_info->k_max;
 
     /* Get new total */
-    for (item = 0; item < (size_t)z_info->k_max; item++)
+    for (item = 1; item < (size_t)z_info->k_max; item++)
     {
         if (k_info[item].tval == tval) total += objects[ind + item];
     }
@@ -1587,7 +1551,7 @@ static struct object_kind *get_obj_num_by_kind(int level, bool good, int tval)
     value = randint0(total);
 
     /* Pick an object */
-    for (item = 0; item < (size_t)z_info->k_max; item++)
+    for (item = 1; item < (size_t)z_info->k_max; item++)
     {
         if (k_info[item].tval == tval)
         {
@@ -1631,7 +1595,7 @@ struct object_kind *get_obj_num(int level, bool good, int tval)
     if (!good)
     {
         value = randint0(obj_total[level]);
-        for (item = 0; item < (size_t)z_info->k_max; item++)
+        for (item = 1; item < (size_t)z_info->k_max; item++)
         {
             /* Found it */
             if (value < (u32b)obj_alloc[ind + item]) break;
@@ -1643,7 +1607,7 @@ struct object_kind *get_obj_num(int level, bool good, int tval)
     else
     {
         value = randint0(obj_total_great[level]);
-        for (item = 0; item < (size_t)z_info->k_max; item++)
+        for (item = 1; item < (size_t)z_info->k_max; item++)
         {
             /* Found it */
             if (value < (u32b)obj_alloc_great[ind + item]) break;
@@ -1658,27 +1622,6 @@ struct object_kind *get_obj_num(int level, bool good, int tval)
 
     /* Return the item index */
     return &k_info[item];
-}
-
-
-/*
- * Create a fake (identified) object from a real object.
- *
- * This function should only be used to get the real value of an unidentified object.
- */
-static struct object *make_fake_object(const struct object *obj)
-{
-    /* Create the object */
-    struct object *fake = object_new();
-
-    /* Get a copy of the object */
-    object_copy(fake, obj);
-
-    /* Identify object to get real value */
-    object_notice_everything_aux(NULL, fake, true, false);
-
-    /* Success */
-    return fake;
 }
 
 
@@ -1704,7 +1647,6 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     int i;
     int tries = 1;
     bool ok = false;
-    int olvl;
 
     /* Try to make a special artifact */
     if (one_in_(good? 10: 1000))
@@ -1712,14 +1654,7 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
         new_obj = make_artifact_special(p, c, lev);
         if (new_obj)
         {
-            if (value)
-            {
-                /* PWMAngband: we use a fake (identified) object to get the real value */
-                struct object *fake = make_fake_object(new_obj);
-
-                *value = (s32b)object_value_real(p, fake, 1);
-                object_delete(&fake);
-            }
+            if (value) *value = object_value_real(p, new_obj, 1);
             return new_obj;
         }
 
@@ -1736,20 +1671,10 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     for (i = 1; i <= tries; i++)
     {
         s16b res;
-        int reroll = 3;
 
         /* Try to choose an object kind */
         kind = get_obj_num(base, good || great, tval);
         if (!kind) return NULL;
-
-        /* Reject most books the player can't read */
-        while (tval_is_book_k(kind) && !obj_kind_can_browse(p, kind) && reroll)
-        {
-            if (one_in_(5)) break;
-            reroll--;
-            kind = get_obj_num(base, good || great, tval);
-            if (!kind) return NULL;
-        }
 
         /* Make the object, prep it and apply magic */
         new_obj = object_new();
@@ -1764,9 +1689,6 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
             object_delete(&new_obj);
             continue;
         }
-
-        if (object_has_standard_to_h(new_obj)) new_obj->known->to_h = 1;
-        if (object_flavor_is_aware(p, new_obj)) object_id_set_aware(new_obj);
 
         /* We have a valid object */
         ok = true;
@@ -1783,24 +1705,15 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
             new_obj->number = randcalc(new_obj->kind->stack_size, lev, RANDOMISE);
     }
 
-    if (new_obj->number > new_obj->kind->base->max_stack)
-        new_obj->number = new_obj->kind->base->max_stack;
+    if (new_obj->number > z_info->stack_size) new_obj->number = z_info->stack_size;
 
     /* Get the value */
-    if (value)
-    {
-        /* PWMAngband: we use a fake (identified) object to get the real value */
-        struct object *fake = make_fake_object(new_obj);
-
-        *value = (s32b)object_value_real(p, fake, fake->number);
-        object_delete(&fake);
-    }
+    if (value) *value = object_value_real(p, new_obj, new_obj->number);
 
     /* Boost of 20% per level OOD for uncursed objects */
-    olvl = object_level(&c->wpos);
-    if (!new_obj->curses && (new_obj->kind->alloc_min > olvl))
+    if (!cursed_p(new_obj->flags) && (new_obj->kind->alloc_min > object_level(c->depth)))
     {
-        if (value) *value += (new_obj->kind->alloc_min - olvl) * (*value / 5);
+        if (value) *value += (new_obj->kind->alloc_min - object_level(c->depth)) * (*value / 5);
     }
 
     return new_obj;
@@ -1818,14 +1731,14 @@ void acquirement(struct player *p, struct chunk *c, int num, quark_t quark)
     while (num--)
     {
         /* Make a good (or great) object (if possible) */
-        nice_obj = make_object(p, c, object_level(&p->wpos), true, true, true, NULL, 0);
+        nice_obj = make_object(p, c, object_level(p->depth), true, true, true, NULL, 0);
         if (!nice_obj) continue;
 
-        set_origin(nice_obj, ORIGIN_ACQUIRE, p->wpos.depth, NULL);
+        set_origin(nice_obj, ORIGIN_ACQUIRE, p->depth, 0);
         if (quark > 0) nice_obj->note = quark;
 
         /* Drop the object */
-        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_FADE);
+        drop_near(p, c, nice_obj, 0, p->py, p->px, true, DROP_FADE);
     }
 }
 
@@ -1874,10 +1787,10 @@ struct object_kind *money_kind(const char *name, int value)
  */
 struct object *make_gold(struct player *p, int lev, char *coin_type)
 {
-    /* This average is 16 at dlev0, 80 at dlev40, 176 at dlev100. */
-    int avg = (16 * lev) / 10 + 16;
-    int spread = lev + 10;
-    int value = rand_spread(avg, spread);
+    /* This average is 18 at dlev0, 90 at dlev40, 198 at dlev100. */
+    s32b avg = (18 * lev) / 10 + 18;
+    s32b spread = lev + 10;
+    s32b value = rand_spread(avg, spread);
     struct object *new_gold = object_new();
 
     /* Increase the range to infinite, moving the average to 110% */
@@ -1887,11 +1800,8 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     object_prep(p, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
-    if (p && (cfg_no_selling || OPT(p, birth_no_selling)) && (p->wpos.depth > 0))
-        value *= MIN(5, p->wpos.depth);
-
-    /* Cap gold at max short (or alternatively make pvals s32b) */
-    if (value >= SHRT_MAX) value = SHRT_MAX - randint0(200);
+    if (p && OPT_P(p, birth_no_selling) && (p->depth > 0))
+        value = value * MIN(5, p->depth);
 
     new_gold->pval = value;
 
@@ -1937,11 +1847,6 @@ void fuel_default(struct object *obj)
 }
 
 
-/*
- * Create a random artifact on the spot.
- *
- * The current square must contain an unique object that is non ego, non artifact, and not cursed.
- */
 void create_randart(struct player *p, struct chunk *c)
 {
     struct object *obj;
@@ -1953,29 +1858,31 @@ void create_randart(struct player *p, struct chunk *c)
     }
 
     /* Use the first object on the floor */
-    obj = square_object(c, &p->grid);
+    obj = square_object(c, p->py, p->px);
     if (!obj)
     {
         msg(p, "There is nothing on the floor.");
         return;
     }
 
-    /* Object must be unique, non ego, non artifact, and not cursed */
-    if ((obj->number > 1) || obj->ego || obj->artifact || obj->curses)
+    /* Object must be unique, non ego, non artifact */
+    if ((obj->number > 1) || obj->ego || obj->artifact)
     {
         msg(p, "The object is not suited for artifact creation.");
         return;
     }
 
     /* Set unidentified */
-    if (obj->known) object_free(obj->known);
+    if (obj->known)
+    {
+        free_brand(obj->known->brands);
+        free_slay(obj->known->slays);
+        mem_free(obj->known);
+    }
     object_set_base_known(p, obj);
 
     if (create_randart_aux(p, c, obj, false))
     {
-        if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
-        if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
-
         /* Success */
         msg(p, "You manage to create a random artifact.");
         return;
@@ -1983,87 +1890,6 @@ void create_randart(struct player *p, struct chunk *c)
 
     /* Failure */
     msg(p, "You don't manage to create a random artifact.");
-}
-
-
-/*
- * Reroll a random artifact on the spot.
- *
- * The current square must contain an unique random artifact.
- */
-void reroll_randart(struct player *p, struct chunk *c)
-{
-    struct object *obj;
-    struct artifact *art;
-    s32b randart_seed;
-    byte origin;
-    s16b origin_depth;
-    struct monster_race *origin_race;
-
-    if (!cfg_random_artifacts)
-    {
-        msg(p, "You cannot reroll random artifacts.");
-        return;
-    }
-
-    /* Use the first object on the floor */
-    obj = square_object(c, &p->grid);
-    if (!obj)
-    {
-        msg(p, "There is nothing on the floor.");
-        return;
-    }
-
-    /* Object must be a random artifact */
-    if (!(obj->artifact && obj->randart_seed))
-    {
-        msg(p, "The object is not a random artifact.");
-        return;
-    }
-
-    /* Reroll (with same seed) */
-    art = do_randart(obj->randart_seed, obj->artifact);
-
-    /* Skip "empty" items */
-    if (!art)
-    {
-        msg(p, "You don't manage to reroll the random artifact.");
-        return;
-    }
-
-    /* Save some info for later */
-    randart_seed = obj->randart_seed;
-    origin = obj->origin;
-    origin_depth = obj->origin_depth;
-    origin_race = obj->origin_race;
-
-    /* We need to start from a clean object, so we delete the old one */
-    square_excise_object(c, &p->grid, obj);
-    object_delete(&obj);
-
-    /* Assign the template */
-    obj = object_new();
-    object_prep(p, obj, lookup_kind(art->tval, art->sval), art->alloc_min, RANDOMISE);
-    set_origin(obj, origin, origin_depth, origin_race);
-
-    /* Mark the item as a random artifact */
-    obj->artifact = &a_info[art->aidx];
-    obj->randart_seed = randart_seed;
-
-    /* Copy across all the data from the artifact struct */
-    copy_artifact_data(obj, art);
-
-    /* Mark the randart as "created" */
-    obj->creator = p->id;
-
-    /* Success */
-    free_artifact(art);
-    msg(p, "You manage to reroll the random artifact.");
-
-    if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
-    if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
-
-    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
 }
 
 

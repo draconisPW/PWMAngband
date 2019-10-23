@@ -3,7 +3,7 @@
  * Purpose: Lighting and map management functions
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -22,7 +22,7 @@
 
 
 /*
- * This function takes a grid location and extracts information the
+ * This function takes a grid location (x, y) and extracts information the
  * player is allowed to know about it, filling in the grid_data structure
  * passed in 'g'.
  *
@@ -61,13 +61,13 @@
  * shown even when the player can't "see" it.  This leads to things like
  * doors out of the player's view still change from closed to open and so on.
  */
-void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_data *g)
+void map_info(struct player *p, struct chunk *c, unsigned y, unsigned x, struct grid_data *g)
 {
     struct object *obj;
     struct player *q;
 
-    my_assert(grid->x < c->width);
-    my_assert(grid->y < c->height);
+    my_assert(x < (unsigned)c->width);
+    my_assert(y < (unsigned)c->height);
 
     /* Default "clear" values, others will be set later where appropriate. */
     g->first_obj = NULL;
@@ -76,41 +76,38 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
     g->unseen_object = false;
     g->unseen_money = false;
 
-    q = player_get(0 - square(c, grid)->mon);
+    q = player_get(0 - c->squares[y][x].mon);
 
-    g->in_view = square_isseen(p, grid);
+    g->in_view = square_isseen(p, y, x);
     g->is_player = ((q == p)? true: false);
-    g->m_idx = ((g->is_player)? 0: square(c, grid)->mon);
+    g->m_idx = ((g->is_player)? 0: c->squares[y][x].mon);
     g->hallucinate = (p->timed[TMD_IMAGE]? true: false);
+    g->trapborder = square_isdedge(p, y, x);
 
     if (g->in_view)
     {
         g->lighting = LIGHTING_LOS;
 
-        /* Darkness or torchlight */
-        if (!square_isglow(c, grid))
-        {
-            if (OPT(p, view_yellow_light))
-                g->lighting = LIGHTING_TORCH;
-        }
+        if (!square_isglow(c, y, x) && OPT_P(p, view_yellow_light))
+            g->lighting = LIGHTING_TORCH;
 
         /* Remember seen grid */
-        square_memorize(p, c, grid);
-        square_know_pile(p, c, grid);
-        square_memorize_trap(p, c, grid);
+        square_memorize(p, c, y, x);
+        floor_pile_know(p, c, y, x);
+        square_memorize_trap(p, c, y, x);
     }
-    else if (square_isknown(p, grid) && square_isglow(c, grid))
+    else if (square_isknown(p, y, x) && square_isglow(c, y, x))
         g->lighting = LIGHTING_LIT;
 
     /* Use known feature */
-    g->f_idx = square_known_feat(p, c, grid);
-    if (f_info[g->f_idx].mimic) g->f_idx = lookup_feat(f_info[g->f_idx].mimic);
+    g->f_idx = square_known_feat(p, c, y, x);
+    if (f_info[g->f_idx].mimic) g->f_idx = f_info[g->f_idx].mimic;
 
     /* Use known trap */
-    g->trap = square_known_trap(p, c, grid);
+    g->trap = square_known_trap(p, c, y, x);
 
     /* Objects */
-    for (obj = square_known_pile(p, c, grid); obj; obj = obj->next)
+    for (obj = floor_pile_known(p, c, y, x); obj; obj = obj->next)
     {
         if (obj->kind == unknown_gold_kind)
             g->unseen_money = true;
@@ -133,14 +130,14 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
     if (g->m_idx > 0)
     {
         /* If the monster isn't "visible", make sure we don't list it.*/
-        if (!monster_is_visible(p, g->m_idx)) g->m_idx = 0;
+        if (!mflag_has(p->mflag[g->m_idx], MFLAG_VISIBLE)) g->m_idx = 0;
     }
 
     /* Players */
     else if (g->m_idx < 0)
     {
         /* If the player isn't "visible", make sure we don't list it.*/
-        if (!player_is_visible(p, 0 - g->m_idx)) g->m_idx = 0;
+        if (!mflag_has(p->pflag[0 - g->m_idx], MFLAG_VISIBLE)) g->m_idx = 0;
     }
 
     /* Rare random hallucination on non-permanent walls */
@@ -154,7 +151,7 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
         else g->hallucinate = false;
     }
 
-    my_assert(g->f_idx < z_info->f_max);
+    my_assert(g->f_idx <= FEAT_HOME_CLOSED + PLAYER_STORE_GENERAL);
     if (!g->hallucinate) {my_assert((int)g->m_idx < c->mon_max);}
 }
 
@@ -188,39 +185,25 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
  * This function is called primarily from the "update_view()" function, for
  * each grid which becomes newly "see-able".
  */
-void square_note_spot_aux(struct player *p, struct chunk *c, struct loc *grid)
+void square_note_spot_aux(struct player *p, struct chunk *c, int y, int x)
 {
     /* Require "seen" flag and the current level */
-    if (!wpos_eq(&p->wpos, &c->wpos)) return;
-    if (!square_isseen(p, grid))
-    {
-        /* PWMAngband: redraw changes occured on floor items */
-        if (player_is_at(p, grid))
-        {
-            square_know_pile(p, c, grid);
-            p->upkeep->redraw |= (PR_ITEMLIST | PR_FLOOR);
-        }
-
-        return;
-    }
+    if (p->depth != c->depth) return;
+    if (!square_isseen(p, y, x)) return;
 
     /* Make the player know precisely what is on this grid */
-    square_know_pile(p, c, grid);
-
-    /* Notice traps */
-    if (square_issecrettrap(c, grid))
-        square_reveal_trap(p, grid, false, true);
+    floor_pile_know(p, c, y, x);
 
     /* Redraw */
     p->upkeep->redraw |= PR_ITEMLIST;
 
     /* Memorize this grid */
-    square_memorize(p, c, grid);
-    square_memorize_trap(p, c, grid);
+    square_memorize(p, c, y, x);
+    square_memorize_trap(p, c, y, x);
 }
 
 
-void square_note_spot(struct chunk *c, struct loc *grid)
+void square_note_spot(struct chunk *c, int y, int x)
 {
     int i;
 
@@ -233,7 +216,7 @@ void square_note_spot(struct chunk *c, struct loc *grid)
         struct player *p = player_get(i);
 
         /* Memorize interesting viewable object/features in the given grid for that player */
-        square_note_spot_aux(p, c, grid);
+        square_note_spot_aux(p, c, y, x);
     }
 }
 
@@ -243,45 +226,46 @@ void square_note_spot(struct chunk *c, struct loc *grid)
  *
  * This function should only be called on "legal" grids.
  */
-void square_light_spot_aux(struct player *p, struct chunk *cv, struct loc *grid)
+void square_light_spot_aux(struct player *p, struct chunk *cv, int y, int x)
 {
-    struct loc disp;
+    int dispx, dispy;
 
     /* Paranoia (to avoid division by zero) */
     if (!p->tile_hgt || !p->tile_wid) return;
 
     /* Redraw if on screen */
-    if (panel_contains(p, grid))
+    if (panel_contains(p, y, x))
     {
         u16b a, ta;
         char c, tc;
         struct grid_data g;
 
         /* Examine the grid */
-        map_info(p, cv, grid, &g);
+        map_info(p, cv, y, x, &g);
         grid_data_as_text(p, cv, false, &g, &a, &c, &ta, &tc);
 
-        loc_init(&disp, grid->x - p->offset_grid.x, grid->y - p->offset_grid.y + 1);
+        dispx = x - p->offset_x;
+        dispy = y - p->offset_y + 1;
 
         /* Only draw if different than buffered */
-        if ((p->scr_info[disp.y][disp.x].c != c) || (p->scr_info[disp.y][disp.x].a != a) ||
-            (p->trn_info[disp.y][disp.x].a != ta) || (p->trn_info[disp.y][disp.x].c != tc) ||
-            player_is_at(p, grid))
+        if ((p->scr_info[dispy][dispx].c != c) || (p->scr_info[dispy][dispx].a != a) ||
+            (p->trn_info[dispy][dispx].a != ta) || (p->trn_info[dispy][dispx].c != tc) ||
+            ((x == p->px) && (y == p->py)))
         {
             /* Modify internal buffer */
-            p->scr_info[disp.y][disp.x].c = c;
-            p->scr_info[disp.y][disp.x].a = a;
-            p->trn_info[disp.y][disp.x].c = tc;
-            p->trn_info[disp.y][disp.x].a = ta;
+            p->scr_info[dispy][dispx].c = c;
+            p->scr_info[dispy][dispx].a = a;
+            p->trn_info[dispy][dispx].c = tc;
+            p->trn_info[dispy][dispx].a = ta;
 
             /* Tell client to redraw this grid */
-            Send_char(p, &disp, a, c, ta, tc);
+            Send_char(p, dispx, dispy, a, c, ta, tc);
         }
     }
 }
 
 
-void square_light_spot(struct chunk *c, struct loc *grid)
+void square_light_spot(struct chunk *c, int y, int x)
 {
     int i;
 
@@ -294,10 +278,10 @@ void square_light_spot(struct chunk *c, struct loc *grid)
         struct player *p = player_get(i);
 
         /* If he's not here, skip him */
-        if (!wpos_eq(&p->wpos, &c->wpos)) continue;
+        if (p->depth != c->depth) continue;
 
         /* Actually light that spot for that player */
-        square_light_spot_aux(p, c, grid);
+        square_light_spot_aux(p, c, y, x);
     }
 }
 
@@ -320,37 +304,61 @@ static void cave_light(struct player *p, struct chunk *c, struct point_set *ps)
     /* Apply flag changes */
     for (i = 0; i < ps->n; i++)
     {
+        int y = ps->pts[i].y;
+        int x = ps->pts[i].x;
+
         /* Paranoia */
-        if (!square_in_bounds(c, &ps->pts[i].grid)) continue;
+        if (!square_in_bounds(c, y, x)) continue;
 
         /* Perma-Light */
-        sqinfo_on(square(c, &ps->pts[i].grid)->info, SQUARE_GLOW);
+        sqinfo_on(c->squares[y][x].info, SQUARE_GLOW);
+    }
+
+    /* Check everyone */
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *q = player_get(i);
+
+        /* If he's not here, skip him */
+        if (q->depth != p->depth) continue;
+
+        /* Fully update the visuals */
+        q->upkeep->update |= (PU_FORGET_VIEW | PU_UPDATE_VIEW | PU_MONSTERS);
+
+        /* Update stuff */
+        update_stuff(q, c);
     }
 
     /* Process the grids */
     for (i = 0; i < ps->n; i++)
     {
+        int y = ps->pts[i].y;
+        int x = ps->pts[i].x;
+
         /* Paranoia */
-        if (!square_in_bounds(c, &ps->pts[i].grid)) continue;
+        if (!square_in_bounds(c, y, x)) continue;
 
         /* Redraw the grid */
-        square_light_spot(c, &ps->pts[i].grid);
+        square_light_spot(c, y, x);
 
         /* Process affected monsters */
-        if (square(c, &ps->pts[i].grid)->mon > 0)
+        if (c->squares[y][x].mon > 0)
         {
             int chance = 25;
-            struct monster *mon = square_monster(c, &ps->pts[i].grid);
+            struct monster *mon = square_monster(c, y, x);
 
             /* Stupid monsters rarely wake up */
-            if (monster_is_stupid(mon->race)) chance = 10;
+            if (rf_has(mon->race->flags, RF_STUPID)) chance = 10;
 
             /* Smart monsters always wake up */
-            if (monster_is_smart(mon->race)) chance = 100;
+            if (rf_has(mon->race->flags, RF_SMART)) chance = 100;
 
             /* Sometimes monsters wake up */
             if (mon->m_timed[MON_TMD_SLEEP] && magik(chance))
-                mon_clear_timed(p, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOTIFY);
+            {
+                /* Wake up! */
+                mon_clear_timed(p, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOTIFY, false);
+            }
         }
     }
 }
@@ -371,33 +379,36 @@ static void cave_unlight(struct chunk *c, struct point_set *ps)
         struct player *p = player_get(j);
 
         /* If he's not here, skip him */
-        if (!wpos_eq(&p->wpos, &c->wpos)) continue;
+        if (p->depth != c->depth) continue;
 
         /* Apply flag changes */
         for (i = 0; i < ps->n; i++)
         {
-            struct loc grid = ps->pts[i].grid;
+            int y = ps->pts[i].y;
+            int x = ps->pts[i].x;
 
             /* Darken the grid */
-            if (!square_isbright(c, &grid))
-            {
-                sqinfo_off(square(c, &grid)->info, SQUARE_GLOW);
-
-                /* ...but dark-loving characters remember them */
-                if (player_has(p, PF_UNLIGHT))
-                    square_memorize(p, c, &grid);
-            }
+            square_unglow(c, y, x);
 
             /* Hack -- forget "boring" grids */
-            if (square_isview(p, &grid) && !square_isnormal(c, &grid))
-                square_forget(p, &grid);
+            if (square_isview(p, y, x) && !square_isnormal(c, y, x))
+                square_forget(p, y, x);
         }
+
+        /* Fully update the visuals */
+        p->upkeep->update |= (PU_FORGET_VIEW | PU_UPDATE_VIEW | PU_MONSTERS);
+
+        /* Update stuff */
+        update_stuff(p, c);
 
         /* Process the grids */
         for (i = 0; i < ps->n; i++)
         {
+            int y = ps->pts[i].y;
+            int x = ps->pts[i].x;
+
             /* Redraw the grid */
-            square_light_spot_aux(p, c, &ps->pts[i].grid);
+            square_light_spot_aux(p, c, y, x);
         }
     }
 }
@@ -406,41 +417,46 @@ static void cave_unlight(struct chunk *c, struct point_set *ps)
 /*
  * Aux function -- see below
  */
-static void cave_room_aux(struct chunk *c, struct point_set *seen, struct loc *grid)
+static void cave_room_aux(struct chunk *c, struct point_set *seen, int y, int x)
 {
-    if (point_set_contains(seen, grid)) return;
-    if (!square_in_bounds(c, grid)) return;
-    if (!square_isroom(c, grid)) return;
+    if (point_set_contains(seen, y, x)) return;
+    if (!square_in_bounds(c, y, x)) return;
+    if (!square_isroom(c, y, x)) return;
 
     /* Add it to the "seen" set */
-    add_to_point_set(seen, NULL, grid);
+    add_to_point_set(seen, NULL, y, x);
 }
 
 
-void light_room(struct player *p, struct chunk *c, struct loc *grid, bool light)
+void light_room(struct player *p, struct chunk *c, int y1, int x1, bool light)
 {
-    int i, d;
+    int i, x, y;
     struct point_set *ps;
 
     ps = point_set_new(200);
 
     /* Add the initial grid */
-    cave_room_aux(c, ps, grid);
+    cave_room_aux(c, ps, y1, x1);
 
     /* While grids are in the queue, add their neighbors */
     for (i = 0; i < ps->n; i++)
     {
+        x = ps->pts[i].x, y = ps->pts[i].y;
+
         /* Walls get lit, but stop light */
-        if (!square_isprojectable(c, &ps->pts[i].grid)) continue;
+        if (!square_isprojectable(c, y, x)) continue;
 
-        /* Spread to the adjacent grids */
-        for (d = 0; d < 8; d++)
-        {
-            struct loc adjacent;
+        /* Spread adjacent */
+        cave_room_aux(c, ps, y + 1, x);
+        cave_room_aux(c, ps, y - 1, x);
+        cave_room_aux(c, ps, y, x + 1);
+        cave_room_aux(c, ps, y, x - 1);
 
-            loc_sum(&adjacent, &ps->pts[i].grid, &ddgrid_ddd[d]);
-            cave_room_aux(c, ps, &adjacent);
-        }
+        /* Spread diagonal */
+        cave_room_aux(c, ps, y + 1, x + 1);
+        cave_room_aux(c, ps, y - 1, x - 1);
+        cave_room_aux(c, ps, y - 1, x + 1);
+        cave_room_aux(c, ps, y + 1, x - 1);
     }
 
     /* Now, lighten or darken them all at once */
@@ -448,21 +464,6 @@ void light_room(struct player *p, struct chunk *c, struct loc *grid, bool light)
     else cave_unlight(c, ps);
 
     point_set_dispose(ps);
-
-    /* Check everyone */
-    for (i = 1; i <= NumPlayers; i++)
-    {
-        struct player *q = player_get(i);
-
-        /* If he's not here, skip him */
-        if (!wpos_eq(&q->wpos, &p->wpos)) continue;
-
-        /* Fully update the visuals */
-        q->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
-
-        /* Update stuff */
-        update_stuff(q, c);
-    }
 }
 
 
@@ -474,65 +475,54 @@ void light_room(struct player *p, struct chunk *c, struct loc *grid, bool light)
  */
 void wiz_light(struct player *p, struct chunk *c, bool full)
 {
-    int i;
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int i, y, x;
 
     /* Hack -- DM has full detection */
     if (p->dm_flags & DM_SEE_LEVEL) full = true;
 
-    loc_init(&begin, 1, 1);
-    loc_init(&end, c->width - 1, c->height - 1);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Scan all grids */
-    do
+    for (y = 1; y < c->height - 1; y++)
     {
-        /* Process all non-walls */
-        if (!square_seemslikewall(c, &iter.cur))
+        for (x = 1; x < c->width - 1; x++)
         {
-            /* Scan all neighbors */
-            for (i = 0; i < 9; i++)
+            /* Process all non-walls */
+            if (!square_seemslikewall(c, y, x))
             {
-                struct loc a_grid;
-
-                loc_sum(&a_grid, &iter.cur, &ddgrid_ddd[i]);
-
-                /* Perma-light the grid */
-                sqinfo_on(square(c, &a_grid)->info, SQUARE_GLOW);
-
-                /* Memorize normal features, mark grids as processed */
-                if (square_isnormal(c, &a_grid))
+                /* Scan all neighbors */
+                for (i = 0; i < 9; i++)
                 {
-                    square_memorize(p, c, &a_grid);
-                    square_mark(p, &a_grid);
+                    int yy = y + ddy_ddd[i];
+                    int xx = x + ddx_ddd[i];
+
+                    /* Perma-light the grid */
+                    sqinfo_on(c->squares[yy][xx].info, SQUARE_GLOW);
+
+                    /* Memorize normal features, mark grids as processed */
+                    if (square_isnormal(c, yy, xx))
+                    {
+                        square_memorize(p, c, yy, xx);
+                        square_mark(p, yy, xx);
+                    }
                 }
             }
+
+            /* Memorize objects */
+            if (full) floor_pile_know(p, c, y, x);
+            else floor_pile_sense(p, c, y, x);
+
+            /* Forget unprocessed, unknown grids in the mapping area */
+            if (!square_ismark(p, y, x) && square_isnotknown(p, c, y, x))
+                square_forget(p, y, x);
         }
-
-        /* Memorize objects */
-        if (full) square_know_pile(p, c, &iter.cur);
-        else square_sense_pile(p, c, &iter.cur);
-
-        /* Forget unprocessed, unknown grids in the mapping area */
-        if (!square_ismark(p, &iter.cur) && square_isnotknown(p, c, &iter.cur))
-            square_forget(p, &iter.cur);
     }
-    while (loc_iterator_next_strict(&iter));
-
-    loc_init(&begin, 0, 0);
-    loc_init(&end, c->width, c->height);
-    loc_iterator_first(&iter, &begin, &end);
 
     /* Unmark grids */
-    do
-    {
-        square_unmark(p, &iter.cur);
-    }
-    while (loc_iterator_next_strict(&iter));
+    for (y = 0; y < c->height; y++)
+        for (x = 0; x < c->width; x++)
+            square_unmark(p, y, x);
 
     /* Fully update the visuals */
-    p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
+    p->upkeep->update |= (PU_FORGET_VIEW | PU_UPDATE_VIEW | PU_MONSTERS);
 
     /* Redraw whole map, monster list */
     p->upkeep->redraw |= (PR_MAP | PR_MONLIST | PR_ITEMLIST);
@@ -540,194 +530,262 @@ void wiz_light(struct player *p, struct chunk *c, bool full)
 
 
 /*
- * Completely darken the level, and know all objects
- *
- * This function darkens every grid in the dungeon, memorizes all
- * "objects" (or notes the existence of an object "if" full is true),
- * and memorizes all grids as with magic mapping.
+ * Forget the dungeon map (ala "Thinking of Maud...").
  */
-void wiz_dark(struct player *p, struct chunk *c, bool full)
+void wiz_dark(struct player *p)
 {
-    int i;
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x;
+    struct chunk *c = chunk_get(p->depth);
 
-    /* Hack -- DM has full detection */
-    if (p->dm_flags & DM_SEE_LEVEL) full = true;
-
-    loc_init(&begin, 1, 1);
-    loc_init(&end, c->width - 1, c->height - 1);
-    loc_iterator_first(&iter, &begin, &end);
-
-    /* Scan all grids */
-    do
+    /* Forget every grid */
+    for (y = 0; y < c->height; y++)
     {
-        /* Process all non-walls */
-        if (!square_seemslikewall(c, &iter.cur))
+        for (x = 0; x < c->width; x++)
         {
-            /* Scan all neighbors */
-            for (i = 0; i < 9; i++)
-            {
-                struct loc a_grid;
+            /* Process the grid */
+            square_forget(p, y, x);
+            square_forget_trap(p, y, x);
+            sqinfo_off(p->cave->squares[y][x].info, SQUARE_DTRAP);
+            sqinfo_off(p->cave->squares[y][x].info, SQUARE_DEDGE);
 
-                loc_sum(&a_grid, &iter.cur, &ddgrid_ddd[i]);
+            /* PWMAngband: unlight all permalit grids */
+            square_unglow(c, y, x);
 
-                /* PWMAngband: unlight the grid */
-                square_unglow(c, &a_grid);
-
-                /* Memorize normal features, mark grids as processed */
-                if (square_isnormal(c, &a_grid))
-                {
-                    square_memorize(p, c, &a_grid);
-                    square_mark(p, &a_grid);
-                }
-            }
+            /* Forget all objects */
+            floor_pile_forget(p, y, x);
         }
-
-        /* Memorize objects */
-        if (full) square_know_pile(p, c, &iter.cur);
-        else square_sense_pile(p, c, &iter.cur);
-
-        /* Forget unprocessed, unknown grids in the mapping area */
-        if (!square_ismark(p, &iter.cur) && square_isnotknown(p, c, &iter.cur))
-            square_forget(p, &iter.cur);
     }
-    while (loc_iterator_next_strict(&iter));
 
-    loc_init(&begin, 0, 0);
-    loc_init(&end, c->width, c->height);
-    loc_iterator_first(&iter, &begin, &end);
-
-    /* Unmark grids */
-    do
-    {
-        square_unmark(p, &iter.cur);
-    }
-    while (loc_iterator_next_strict(&iter));
+    /* Memorize the content of owned houses */
+    memorize_houses(p);
 
     /* Fully update the visuals */
-    p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
+    p->upkeep->update |= (PU_FORGET_VIEW | PU_UPDATE_VIEW | PU_MONSTERS);
 
-    /* Redraw whole map, monster list */
-    p->upkeep->redraw |= (PR_MAP | PR_MONLIST | PR_ITEMLIST);
+    /* Redraw */
+    p->upkeep->redraw |= (PR_MAP | PR_DTRAP | PR_MONLIST | PR_ITEMLIST);
 }
 
 
 /*
- * Light or darken the towns.
- * Also applied for wilderness and special levels.
+ * Light or Darken the town
+ * Also applied for wilderness and special levels
  */
 void cave_illuminate(struct player *p, struct chunk *c, bool daytime)
 {
-    int i;
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x, i;
 
     /* Not on random levels */
-    if (random_level(&c->wpos)) return;
+    if (random_level(c->depth)) return;
 
     /* Make sure we're not in a store */
     if (p && in_store(p)) return;
 
-    loc_init(&begin, 0, 0);
-    loc_init(&end, c->width, c->height);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Apply light or darkness */
-    do
+    for (y = 0; y < c->height; y++)
     {
-        if (square_ispermstatic(c, &iter.cur) || square_isbright(c, &iter.cur))
+        for (x = 0; x < c->width; x++)
         {
-            int d;
-            bool light = false;
-
-            /* Skip static dungeon town walls/lava squares with no surrounding floors or stairs */
-            for (d = 0; d < 9; d++)
+            if (square_ispermstatic(c, y, x) || square_isbright(c, y, x))
             {
-                /* Extract adjacent (legal) location */
-                struct loc a_grid;
+                int d;
+                bool light = false;
 
-                loc_sum(&a_grid, &iter.cur, &ddgrid_ddd[d]);
+                /* Skip static dungeon town walls/lava squares with no surrounding floors or stairs */
+                for (d = 0; d < 9; d++)
+                {
+                    /* Extract adjacent (legal) location */
+                    int yy = y + ddy_ddd[d];
+                    int xx = x + ddx_ddd[d];
 
-                /* Paranoia */
-                if (!square_in_bounds_fully(c, &a_grid)) continue;
+                    /* Paranoia */
+                    if (!square_in_bounds_fully(c, yy, xx)) continue;
 
-                /* Test */
-                if (square_isanyfloor(c, &a_grid) || square_isstairs(c, &a_grid))
-                    light = true;
+                    /* Test */
+                    if (square_isfloor(c, yy, xx) || square_isstairs(c, yy, xx))
+                        light = true;
+                }
+
+                if (!light) continue;
             }
 
-            if (!light) continue;
+            /* Only interesting grids at night */
+            square_illuminate(p, c, y, x, daytime);
         }
-
-        /* Only interesting grids at night */
-        square_illuminate(p, c, &iter.cur, daytime);
     }
-    while (loc_iterator_next_strict(&iter));
-
-    loc_iterator_first(&iter, &begin, &end);
 
     /* Light shop doorways */
-    do
+    for (y = 0; y < c->height; y++)
     {
-        if (!square_isshop(c, &iter.cur)) continue;
-
-        for (i = 0; i < 8; i++)
+        for (x = 0; x < c->width; x++)
         {
-            struct loc a_grid;
+            if (!square_isshop(c, y, x)) continue;
 
-            loc_sum(&a_grid, &iter.cur, &ddgrid_ddd[i]);
-            sqinfo_on(square(c, &a_grid)->info, SQUARE_GLOW);
-            if (p) square_memorize(p, c, &a_grid);
+            for (i = 0; i < 8; i++)
+            {
+                int yy = y + ddy_ddd[i];
+                int xx = x + ddx_ddd[i];
+
+                sqinfo_on(c->squares[yy][xx].info, SQUARE_GLOW);
+                if (p) square_memorize(p, c, yy, xx);
+            }
         }
     }
-    while (loc_iterator_next_strict(&iter));
 
     /* Fully update the visuals */
-    if (p) p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
+    if (p) p->upkeep->update |= (PU_FORGET_VIEW | PU_UPDATE_VIEW | PU_MONSTERS);
 
     /* Redraw */
     if (p) p->upkeep->redraw |= (PR_MAP | PR_MONLIST | PR_ITEMLIST);
 }
 
 
-void square_forget_all(struct chunk *c, struct loc *grid)
+/*
+ * Size of the circular queue used by "cave_update_flow()"
+ */
+#define FLOW_MAX 2048
+
+
+/*
+ * Hack -- forget the "flow" information
+ */
+void cave_forget_flow(struct player *p, struct chunk *c)
 {
-    int i;
+    int x, y;
 
-    /* Paranoia */
-    if (!c) return;
+    /* Nothing to forget */
+    if (!p->flow_save) return;
 
-    /* Check everyone */
-    for (i = 1; i <= NumPlayers; i++)
+    /* Check the entire dungeon */
+    for (y = 0; y < c->height; y++)
     {
-        struct player *p = player_get(i);
-
-        /* If he's not here, skip him */
-        if (!wpos_eq(&p->wpos, &c->wpos)) continue;
-
-        sqinfo_off(square_p(p, grid)->info, SQUARE_SEEN);
-        square_forget(p, grid);
-        square_forget_trap(p, grid);
+        for (x = 0; x < c->width; x++)
+        {
+            /* Forget the old data */
+            p->cave->squares[y][x].cost = 0;
+            p->cave->squares[y][x].when = 0;
+        }
     }
+
+    /* Start over */
+    p->flow_save = 0;
 }
 
 
-void square_forget_pile_all(struct chunk *c, struct loc *grid)
+/*
+ * Hack -- fill in the "cost" field of every grid that the player can
+ * "reach" with the number of steps needed to reach that grid.  This
+ * also yields the "distance" of the player from every grid.
+ *
+ * In addition, mark the "when" of the grids that can reach the player
+ * with the incremented value of "flow_save".
+ *
+ * Hack -- use the local "flow_y" and "flow_x" arrays as a "circular
+ * queue" of cave grids.
+ *
+ * We do not need a priority queue because the cost from grid to grid
+ * is always "one" (even along diagonals) and we process them in order.
+ */
+void cave_update_flow(struct player *p, struct chunk *c)
 {
-    int i;
+    int py = p->py;
+    int px = p->px;
+    int ty, tx;
+    int y, x;
+    int n, d;
+    int flow_n;
+    int flow_tail = 0;
+    int flow_head = 0;
+    byte flow_y[FLOW_MAX];
+    byte flow_x[FLOW_MAX];
 
-    /* Paranoia */
-    if (!c) return;
+    /*** Cycle the flow ***/
 
-    /* Check everyone */
-    for (i = 1; i <= NumPlayers; i++)
+    /* Cycle the flow */
+    if (p->flow_save++ == 255)
     {
-        struct player *p = player_get(i);
+        /* Cycle the flow */
+        for (y = 0; y < c->height; y++)
+        {
+            for (x = 0; x < c->width; x++)
+            {
+                int w = p->cave->squares[y][x].when;
 
-        /* If he's not here, skip him */
-        if (!wpos_eq(&p->wpos, &c->wpos)) continue;
+                p->cave->squares[y][x].when = ((w >= 128)? (w - 128): 0);
+            }
+        }
 
-        square_forget_pile(p, grid);
+        /* Restart */
+        p->flow_save = 128;
+    }
+
+    /* Local variable */
+    flow_n = p->flow_save;
+
+    /*** Player Grid ***/
+
+    /* Save the time-stamp */
+    p->cave->squares[py][px].when = flow_n;
+
+    /* Save the flow cost */
+    p->cave->squares[py][px].cost = 0;
+
+    /* Enqueue that entry */
+    flow_y[flow_head] = py;
+    flow_x[flow_head] = px;
+
+    /* Advance the queue */
+    ++flow_tail;
+
+    /*** Process Queue ***/
+
+    /* Now process the queue */
+    while (flow_head != flow_tail)
+    {
+        /* Extract the next entry */
+        ty = flow_y[flow_head];
+        tx = flow_x[flow_head];
+
+        /* Forget that entry (with wrap) */
+        if (++flow_head == FLOW_MAX) flow_head = 0;
+
+        /* Child cost */
+        n = p->cave->squares[ty][tx].cost + 1;
+
+        /* Hack -- limit flow depth */
+        if (n == z_info->max_flow_depth) continue;
+
+        /* Add the "children" */
+        for (d = 0; d < 8; d++)
+        {
+            int old_head = flow_tail;
+
+            /* Child location */
+            y = ty + ddy_ddd[d];
+            x = tx + ddx_ddd[d];
+            if (!square_in_bounds(c, y, x)) continue;
+
+            /* Ignore "pre-stamped" entries */
+            if (p->cave->squares[y][x].when == flow_n) continue;
+
+            /* Ignore "walls" and "rubble" */
+            if (tf_has(f_info[c->squares[y][x].feat].flags, TF_NO_FLOW)) continue;
+
+            /* Save the time-stamp */
+            p->cave->squares[y][x].when = flow_n;
+
+            /* Save the flow cost */
+            p->cave->squares[y][x].cost = n;
+
+            /* Enqueue that entry */
+            flow_y[flow_tail] = y;
+            flow_x[flow_tail] = x;
+
+            /* Advance the queue */
+            if (++flow_tail == FLOW_MAX) flow_tail = 0;
+
+            /* Hack -- overflow by forgetting new entry */
+            if (flow_tail == flow_head) flow_tail = old_head;
+        }
     }
 }

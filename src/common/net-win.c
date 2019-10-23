@@ -2,7 +2,7 @@
  * File: net-win.c
  * Purpose: Network module
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1970,9 +1970,9 @@ SocketWrite(int fd, char *buf, int size)
 } /* SocketWrite */
 
 
-const char *GetSocketErrorMessageAux(int error)
+const char *GetSocketErrorMessage(void)
 {
-    switch (error)
+    switch (wsa_errno)
     {
         case WSANOTINITIALISED: return "The socket is not initialized...";
         case WSAENETDOWN: return "The network subsystem has failed...";
@@ -1995,10 +1995,4 @@ const char *GetSocketErrorMessageAux(int error)
         case 0: return "";
         default: return "An unspecified error occured...";
     }
-}
-
-
-const char *GetSocketErrorMessage(void)
-{
-    return GetSocketErrorMessageAux(wsa_errno);
 }

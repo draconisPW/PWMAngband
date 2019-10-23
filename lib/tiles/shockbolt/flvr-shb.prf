@@ -41,7 +41,7 @@ flavor:13:0x85:0xAD
 # Garnet ring
 flavor:14:0x85:0xAE
 
-# Hematite ring
+# Granite ring
 flavor:15:0x85:0x81
 
 # Jade ring
@@ -117,7 +117,7 @@ flavor:37:0x85:0xBB
 # Silver ring
 flavor:38:0x85:0xBC
 
-# Amber ring
+# Tortoise Shell ring
 flavor:39:0x85:0xBD
 
 # Mithril ring
@@ -128,7 +128,7 @@ flavor:40:0x85:0x93
 # Jet ring
 flavor:41:0x85:0xBF
 
-# Jewelled ring
+# Engagement ring
 flavor:42:0x85:0xC0
 
 # Adamantite ring
@@ -294,16 +294,16 @@ flavor:94:0x89:0xAD
 # Bamboo staff
 flavor:95:0x89:0xAE
 
-# Silver Birch staff
+# Silver staff
 flavor:96:0x89:0xAF
 
-# Hazel staff
+# Runed staff
 flavor:97:0x89:0xB0
 
 # Golden staff
 flavor:98:0x89:0xB1
 
-# Blackthorn staff
+# Ashen staff
 flavor:99:0x89:0x97
 
 # Gnarled staff
@@ -447,7 +447,7 @@ flavor:145:0x89:0xD0
 # Nickel rod
 flavor:146:0x89:0xD1
 
-# Rusty Iron rod
+# Rusty rod
 flavor:147:0x89:0xD2
 
 # Silver rod
@@ -477,22 +477,22 @@ flavor:155:0x89:0xDA
 # Copper-Plated rod
 flavor:156:0x89:0xDB
 
-# Engraved Gold rod
+# Gold-Plated rod
 flavor:157:0x89:0xDC
 
 # Nickel-Plated rod
 flavor:158:0x89:0xDD
 
-# Silver-Gilt rod
+# Silver-Plated rod
 flavor:159:0x89:0xDE
 
-# Polished Steel rod
+# Steel-Plated rod
 flavor:160:0x89:0xDF
 
 # Tin-Plated rod
 flavor:161:0x89:0xE0
 
-# White Gold rod
+# Zinc-Plated rod
 flavor:162:0x89:0xE1
 
 # Mithril-Plated rod
@@ -513,7 +513,7 @@ flavor:167:0x89:0xE6
 # Platinum rod
 flavor:168:0x89:0xE7
 
-# Rusted Steel rod
+# Lead rod
 flavor:169:0x89:0xE8
 
 # Lead-Plated rod
@@ -525,61 +525,61 @@ flavor:171:0x89:0xEA
 # Pewter rod
 flavor:172:0x89:0xEB
 
-# Spotted mushroom
+# Blue mushroom
 flavor:173:0x82:0x8D
 
-# Rubbery mushroom
+# Black mushroom
 flavor:174:0x82:0x87
 
-# Crumbly mushroom
+# Black Spotted mushroom
 flavor:175:0x82:0x8F
 
-# Moldy mushroom
+# Brown mushroom
 flavor:176:0x82:0x97
 
-# Mottled mushroom
+# Dark Blue mushroom
 flavor:177:0x82:0x98
 
-# Firm mushroom
+# Dark Green mushroom
 flavor:178:0x82:0x8C
 
-# Woody mushroom
+# Dark Red mushroom
 flavor:179:0x82:0x8B
 
-# Smelly mushroom
+# Yellow mushroom
 flavor:180:0x82:0x92
 
 # Furry mushroom
 flavor:181:0x82:0x90
 
-# Fragile mushroom
+# Green mushroom
 flavor:182:0x82:0x95
 
-# Marbled mushroom
+# Grey mushroom
 flavor:183:0x82:0x89
 
-# Gelatinous mushroom
+# Light Blue mushroom
 flavor:184:0x82:0x96
 
-# Speckled mushroom
-flavor:185:0x82:0xAC
+# Light Green mushroom
+flavor:185:0x82:0x95
 
-# Glowing mushroom
+# Violet mushroom
 flavor:186:0x82:0x91
 
-# Striped mushroom
+# Red mushroom
 flavor:187:0x82:0x94
 
 # Slimy mushroom
 flavor:188:0x82:0x8A
 
-# Moist mushroom
+# Tan mushroom
 flavor:189:0x82:0x99
 
-# Withered mushroom
+# White mushroom
 flavor:190:0x82:0x88
 
-# Waxy mushroom
+# White Spotted mushroom
 flavor:191:0x82:0x93
 
 # Wrinkled mushroom
@@ -600,7 +600,7 @@ flavor:196:0x88:0x84
 # Blue potion
 flavor:197:0x88:0x85
 
-# Cerulean potion
+# Blue Speckled potion
 flavor:198:0x88:0x86
 
 # Black potion
@@ -609,7 +609,7 @@ flavor:199:0x88:0x80
 # Brown potion
 flavor:200:0x88:0x88
 
-# Ochre potion
+# Brown Speckled potion
 flavor:201:0x88:0xA3
 
 # Bubbling potion
@@ -630,7 +630,7 @@ flavor:206:0x88:0x92
 # Cyan potion
 flavor:207:0x88:0x90
 
-# Ultramarine potion
+# Dark Blue potion
 flavor:208:0x88:0x8F
 
 # Dark Green potion
@@ -639,19 +639,19 @@ flavor:209:0x88:0x94
 # Dark Red potion
 flavor:210:0x88:0x9E
 
-# Light Yellow potion
+# Gold Speckled potion
 flavor:211:0x88:0xB1
 
 # Green potion
 flavor:212:0x88:0x8C
 
-# Muddy potion
+# Green Speckled potion
 flavor:213:0x88:0x9B
 
 # Grey potion
 flavor:214:0x88:0x98
 
-# Vespertine potion
+# Grey Speckled potion
 flavor:215:0x88:0xB0
 
 # Hazy potion
@@ -667,7 +667,7 @@ flavor:218:0x88:0x99
 flavor:219:0x88:0x95
 
 # Magenta potion
-flavor:220:0x88:0xA8
+flavor:220:0x88:0xA9
 
 # Metallic Blue potion
 flavor:221:0x88:0x8A
@@ -693,11 +693,11 @@ flavor:227:0x88:0xA6
 # Pink potion
 flavor:228:0x88:0xA5
 
-# Light Teal potion
-flavor:229:0x88:0xAB
+# Pink Speckled potion
+flavor:229:0x88:0xB5
 
-# Light Violet potion
-flavor:230:0x88:0xA9
+# Puce potion
+flavor:230:0x88:0xA8
 
 # Purple potion
 flavor:231:0x88:0xA7
@@ -708,11 +708,11 @@ flavor:232:0x88:0xAA
 # Red potion
 flavor:233:0x88:0xB9
 
-# Teal potion
-flavor:234:0x88:0xBE
+# Red Speckled potion
+flavor:234:0x88:0xAD
 
-# Mustard Yellow potion
-flavor:235:0x88:0xB6
+# Silver Speckled potion
+flavor:235:0x88:0xAB
 
 # Smoky potion
 flavor:236:0x88:0x97
@@ -732,14 +732,14 @@ flavor:240:0x88:0x81
 # Yellow potion
 flavor:241:0x88:0xBA
 
-# Light Purple potion
+# Violet Speckled potion
 flavor:242:0x88:0xB2
 
 # Pungent potion
 flavor:243:0x88:0x89
 
-# Lavender potion
-flavor:244:0x88:0xAD
+# Clotted Red potion
+flavor:244:0x88:0x8E
 
 # Viscous Pink potion
 flavor:245:0x88:0xA4
@@ -756,8 +756,8 @@ flavor:248:0x88:0xB3
 # Coagulated Crimson potion
 flavor:249:0x88:0xB4
 
-# Light Pink potion
-flavor:250:0x88:0xB5
+# Yellow Speckled potion
+flavor:250:0x88:0xB6
 
 # Gold potion
 flavor:251:0x88:0xBB
@@ -929,8 +929,8 @@ flavor:305:0x85:0xAA
 
 # Red amulet
 # Fixed: The Lost Silmaril of Maglor
-flavor:306:0x85:0xCB
+flavor:306:0x85:0x9F
 
 # Black ring
 # Fixed: Black Ring of Power
-flavor:307:0x85:0x95
+flavor:307:0x85:0xBB

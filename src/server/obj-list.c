@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Ben Semmler
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2016 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -128,7 +128,7 @@ static bool object_list_should_ignore_object(struct player *p, struct chunk *c,
     const struct object *obj)
 {
 	/* Make sure it's on the same dungeon level */
-    if (!wpos_eq(&p->wpos, &((struct object *)obj)->wpos)) return true;
+    if (p->depth != obj->depth) return true;
 
 	if (!is_unknown(obj) && ignore_item_ok(p, obj)) return true;
 
@@ -143,79 +143,74 @@ static bool object_list_should_ignore_object(struct player *p, struct chunk *c,
  */
 void object_list_collect(struct player *p, object_list_t *list)
 {
-	int i;
-    struct chunk *c = chunk_get(&p->wpos);
-    struct loc begin, end;
-    struct loc_iterator iter;
+	int i, y, x;
+    int py = p->py;
+    int px = p->px;
+    struct chunk *c = chunk_get(p->depth);
 
 	if (!object_list_can_update(list)) return;
 
-    loc_init(&begin, 1, 1);
-    loc_init(&end, c->width, c->height);
-    loc_iterator_first(&iter, &begin, &end);
-
 	/* Scan each object in the dungeon. */
-    do
+	for (y = 1; y < c->height; y++)
     {
-        object_list_entry_t *entry;
-        int entry_index;
-        int field;
-        bool los = false;
-        struct object *obj;
-
-        obj = square_known_pile(p, c, &iter.cur);
-
-        /* Skip unfilled entries, unknown objects and monster-held objects */
-        if (!obj) continue;
-
-        /* Determine which section of the list the object entry is in */
-        los = (projectable(c, &p->grid, &iter.cur, PROJECT_NONE, true) ||
-            loc_eq(&iter.cur, &p->grid));
-        field = (los? OBJECT_LIST_SECTION_LOS: OBJECT_LIST_SECTION_NO_LOS);
-
-        for ( ; obj; obj = obj->next)
+        for (x = 1; x < c->width; x++)
         {
-            if (object_list_should_ignore_object(p, c, obj)) continue;
+            object_list_entry_t *entry;
+            int entry_index;
+            int field;
+            bool los = false;
+            struct object *obj = floor_pile_known(p, c, y, x);
 
-            /* Find or add a list entry. */
-            entry = NULL;
-            for (entry_index = 0; entry_index < (int)list->entries_size; entry_index++)
+            /* Skip unfilled entries, unknown objects and monster-held objects */
+            if (!obj) continue;
+
+            /* Determine which section of the list the object entry is in */
+            los = (projectable(c, py, px, y, x, PROJECT_NONE) || ((y == py) && (x == px)));
+            field = (los? OBJECT_LIST_SECTION_LOS: OBJECT_LIST_SECTION_NO_LOS);
+
+            for ( ; obj; obj = obj->next)
             {
-                int j;
+                if (object_list_should_ignore_object(p, c, obj)) continue;
 
-                /* We found an empty slot, so add this object here. */
-                if (list->entries[entry_index].object == NULL)
+                /* Find or add a list entry. */
+                entry = NULL;
+                for (entry_index = 0; entry_index < (int)list->entries_size; entry_index++)
                 {
-                    list->entries[entry_index].object = obj;
-                    for (j = 0; j < OBJECT_LIST_SECTION_MAX; j++)
-                        list->entries[entry_index].count[j] = 0;
-                    list->entries[entry_index].dy = iter.cur.y - p->grid.y;
-                    list->entries[entry_index].dx = iter.cur.x - p->grid.x;
-                    list->entries[entry_index].player = p;
-                    entry = &list->entries[entry_index];
-                    break;
+                    int j;
+
+                    /* We found an empty slot, so add this object here. */
+                    if (list->entries[entry_index].object == NULL)
+                    {
+                        list->entries[entry_index].object = obj;
+                        for (j = 0; j < OBJECT_LIST_SECTION_MAX; j++)
+                            list->entries[entry_index].count[j] = 0;
+                        list->entries[entry_index].dy = y - py;
+                        list->entries[entry_index].dx = x - px;
+                        list->entries[entry_index].player = p;
+                        entry = &list->entries[entry_index];
+                        break;
+                    }
+
+                    /* Use a matching object if we find one. */
+                    if (!is_unknown(obj) &&
+                        object_similar(p, obj, list->entries[entry_index].object, OSTACK_LIST))
+                    {
+                        /* We found a matching object and we'll use that. */
+                        entry = &list->entries[entry_index];
+                        break;
+                    }
                 }
 
-                /* Use a matching object if we find one. */
-                if (!is_unknown(obj) &&
-                    object_similar(p, obj, list->entries[entry_index].object, OSTACK_LIST))
-                {
-                    /* We found a matching object and we'll use that. */
-                    entry = &list->entries[entry_index];
-                    break;
-                }
+                if (entry == NULL) return;
+
+                /* We only know the number of objects we've actually seen */
+                if (!is_unknown(obj))
+                    entry->count[field] += obj->number;
+                else
+                    entry->count[field] = 1;
             }
-
-            if (entry == NULL) return;
-
-            /* We only know the number of objects we've actually seen */
-            if (!is_unknown(obj))
-                entry->count[field] += obj->number;
-            else
-                entry->count[field] = 1;
         }
-    }
-    while (loc_iterator_next_strict(&iter));
+	}
 
 	/* Collect totals for easier calculations of the list. */
 	for (i = 0; i < (int)list->entries_size; i++)
@@ -357,14 +352,25 @@ void object_list_format_name(struct player *p, const object_list_entry_t *entry,
     bool los = false;
     int field;
     byte old_number;
+    int py = p->py;
+    int px = p->px;
+    int iy;
+    int ix;
+    bool object_is_artifact;
+    bool object_name_visible;
+    bool object_known;
     bool object_is_recognized_artifact;
-    struct chunk *c = chunk_get(&p->wpos);
+    struct chunk *c = chunk_get(p->depth);
 
     if ((entry == NULL) || (entry->object == NULL) || (entry->object->kind == NULL))
         return;
 
-    object_is_recognized_artifact = (entry->object->artifact &&
-        (entry->object->known->artifact || object_is_known(p, entry->object)));
+    iy = entry->object->iy;
+    ix = entry->object->ix;
+    object_is_artifact = (entry->object->artifact != NULL);
+    object_name_visible = object_name_is_visible(entry->object);
+    object_known = object_is_known(p, entry->object);
+    object_is_recognized_artifact = (object_is_artifact && (object_name_visible || object_known));
 
     /* Hack -- these don't have a prefix when there is only one, so just pad with a space. */
     switch (entry->object->kind->tval)
@@ -383,8 +389,7 @@ void object_list_format_name(struct player *p, const object_list_entry_t *entry,
         has_singular_prefix = true;
 
     /* Work out if the object is in view */
-    los = (projectable(c, &p->grid, &entry->object->grid, PROJECT_NONE, true) ||
-        loc_eq(&entry->object->grid, &p->grid));
+    los = (projectable(c, py, px, iy, ix, PROJECT_NONE) || ((iy == py) && (ix == px)));
     field = (los? OBJECT_LIST_SECTION_LOS: OBJECT_LIST_SECTION_NO_LOS);
 
     /* Hack -- we need to set object number to total count */
