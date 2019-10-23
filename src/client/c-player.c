@@ -3,7 +3,7 @@
  * Purpose: Player information (client side)
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -41,5 +41,3 @@ s16b stat_roll[STAT_MAX + 1];
 
 /* Party mode */
 bool party_mode;
-
-struct timed_grade *timed_grades[TMD_MAX];

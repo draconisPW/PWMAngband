@@ -3,7 +3,7 @@
  * Purpose: Pref file handling code
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -43,7 +43,9 @@ struct prefs_data
 {
     bool bypass;
     bool skip;
-    struct preset *ps;
+    int mode;
+    int nrace;
+    int nclass;
 };
 
 
@@ -548,18 +550,18 @@ static enum parser_error parse_xprefs_monster(struct parser *p)
 
     parser_getsym(p, "name");
 
-    d->ps->ridx++;
-    if (d->ps->ridx == player_rmax())
+    d->nrace++;
+    if (d->nrace == MAX_XTRA_RACES)
     {
-        d->ps->ridx = 0;
-        d->ps->cidx++;
+        d->nrace = 0;
+        d->nclass++;
     }
 
     /* Hack -- default player presets */
     for (i = 0; i < MAX_SEXES; i++)
     {
-        d->ps->player_presets[i][d->ps->cidx][d->ps->ridx].a = (u16b)parser_getint(p, "attr");
-        d->ps->player_presets[i][d->ps->cidx][d->ps->ridx].c = (char)parser_getint(p, "char");
+        player_presets[d->mode][d->nclass][d->nrace][i].a = (u16b)parser_getint(p, "attr");
+        player_presets[d->mode][d->nclass][d->nrace][i].c = (char)parser_getint(p, "char");
     }
 
     return PARSE_ERROR_NONE;
@@ -576,30 +578,21 @@ static enum parser_error parse_xprefs_rf(struct parser *p)
     parser_getsym(p, "name");
 
     /* Hack -- player presets for female characters */
-    d->ps->player_presets[SEX_FEMALE][d->ps->cidx][d->ps->ridx].a = (u16b)parser_getint(p, "attr");
-    d->ps->player_presets[SEX_FEMALE][d->ps->cidx][d->ps->ridx].c = (char)parser_getint(p, "char");
+    player_presets[d->mode][d->nclass][d->nrace][SEX_FEMALE].a = (u16b)parser_getint(p, "attr");
+    player_presets[d->mode][d->nclass][d->nrace][SEX_FEMALE].c = (char)parser_getint(p, "char");
 
     return PARSE_ERROR_NONE;
 }
 
 
-static struct parser *init_parse_xprefs(struct preset *ps)
+static struct parser *init_parse_xprefs(int mode)
 {
     struct parser *p = parser_new();
     struct prefs_data *d = mem_zalloc(sizeof(struct prefs_data));
-    int sidx, cidx;
 
-    for (sidx = 0; sidx < MAX_SEXES; sidx++)
-    {
-        ps->player_presets[sidx] = mem_zalloc(player_cmax() * sizeof(cave_view_type *));
-        for (cidx = 0; cidx < player_cmax(); cidx++)
-            ps->player_presets[sidx][cidx] = mem_zalloc(player_rmax() * sizeof(cave_view_type));
-    }
-
-    ps->ridx = player_rmax() - 1;
-    ps->cidx = -1;
-
-    d->ps = ps;
+    d->mode = mode;
+    d->nrace = MAX_XTRA_RACES - 1;
+    d->nclass = -1;
 
     parser_setpriv(p, d);
     parser_reg(p, "? str expr", parse_prefs_expr);
@@ -615,7 +608,7 @@ static struct parser *init_parse_xprefs(struct preset *ps)
  *
  * Returns true if everything worked OK, false otherwise
  */
-static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const char *name)
+static bool process_pref_file_xtra_aux(int mode, const char *dir, const char *name)
 {
     char path[MSG_LEN], buf[MSG_LEN];
     ang_file *f;
@@ -636,7 +629,7 @@ static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const
     {
         char line[MSG_LEN];
 
-        p = init_parse_xprefs(ps);
+        p = init_parse_xprefs(mode);
 
         while (file_getl(f, line, sizeof(line)))
         {
@@ -651,6 +644,7 @@ static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const
         }
 
         file_close(f);
+        mem_free(parser_priv(p));
         parser_destroy(p);
     }
 
@@ -661,15 +655,14 @@ static bool process_pref_file_xtra_aux(struct preset *ps, const char *dir, const
 
 static enum parser_error parse_pprefs_p(struct parser *p)
 {
-    struct preset *ps = parser_priv(p);
-    struct preset *psnew = mem_zalloc(sizeof(struct preset));
+    int *pint = parser_priv(p);
 
-    psnew->next = ps;
+    my_assert(pint != NULL);
+
+    *pint = parser_getint(p, "mode");
 
     /* Read player presets from pref files */
-    process_pref_file_xtra_aux(psnew, parser_getsym(p, "dirname"), parser_getstr(p, "file"));
-
-    parser_setpriv(p, psnew);
+    process_pref_file_xtra_aux(*pint, parser_getsym(p, "dirname"), parser_getstr(p, "file"));
 
     return PARSE_ERROR_NONE;
 }
@@ -677,15 +670,15 @@ static enum parser_error parse_pprefs_p(struct parser *p)
 
 static enum parser_error parse_pprefs_n(struct parser *p)
 {
-    struct preset *ps = parser_priv(p);
+    int *pint = parser_priv(p);
     int idx;
 
-    my_assert(ps != NULL);
+    my_assert(pint != NULL);
 
     idx = parser_getint(p, "idx");
 
-    ps->player_numbers[idx].a = (u16b)parser_getint(p, "attr");
-    ps->player_numbers[idx].c = (char)parser_getint(p, "char");
+    player_numbers[*pint][idx].a = (u16b)parser_getint(p, "attr");
+    player_numbers[*pint][idx].c = (char)parser_getint(p, "char");
 
     return PARSE_ERROR_NONE;
 }
@@ -694,42 +687,13 @@ static enum parser_error parse_pprefs_n(struct parser *p)
 static struct parser *init_parse_pprefs(void)
 {
     struct parser *p = parser_new();
+    int *pint = mem_zalloc(sizeof(int));
 
-    parser_setpriv(p, NULL);
-    parser_reg(p, "P sym dirname str file", parse_pprefs_p);
+    parser_setpriv(p, pint);
+    parser_reg(p, "P int mode sym dirname str file", parse_pprefs_p);
     parser_reg(p, "N int idx int attr int char", parse_pprefs_n);
 
     return p;
-}
-
-
-static void finish_parse_pprefs(struct parser *p)
-{
-    struct preset *ps, *next;
-    int idx;
-
-    /* Scan the list for the max id */
-    presets_count = 0;
-    ps = parser_priv(p);
-    while (ps)
-    {
-        presets_count++;
-        ps = ps->next;
-    }
-
-    /* Allocate the direct access list and copy the data to it */
-    presets = mem_zalloc(presets_count * sizeof(*ps));
-    idx = presets_count - 1;
-    for (ps = parser_priv(p); ps; ps = next, idx--)
-    {
-        memcpy(&presets[idx], ps, sizeof(*ps));
-        next = ps->next;
-        if (idx < presets_count - 1) presets[idx].next = &presets[idx + 1];
-        else presets[idx].next = NULL;
-        mem_free(ps);
-    }
-
-    parser_destroy(p);
 }
 
 
@@ -767,7 +731,8 @@ bool process_pref_file_xtra(const char *name)
         }
 
         file_close(f);
-        finish_parse_pprefs(p);
+        mem_free(parser_priv(p));
+        parser_destroy(p);
     }
 
     /* Result */

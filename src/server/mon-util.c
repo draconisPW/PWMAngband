@@ -3,7 +3,7 @@
  * Purpose: Monster manipulation utilities.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -100,27 +100,29 @@ bool match_monster_bases(const struct monster_base *base, ...)
  * Analyse the path from player to infravision-seen monster and forget any
  * grids which would have blocked line of sight
  */
-static void path_analyse(struct player *p, struct chunk *c, struct loc *grid)
+static void path_analyse(struct player *p, struct chunk *c, int y, int x)
 {
     int path_n, i;
     struct loc path_g[256];
 
     /* Plot the path. */
-    path_n = project_path(NULL, path_g, z_info->max_range, c, &p->grid, grid, PROJECT_NONE);
+    path_n = project_path(NULL, path_g, z_info->max_range, c, p->py, p->px, y, x, PROJECT_NONE);
 
     /* Project along the path */
     for (i = 0; i < path_n; ++i)
     {
+        int ny = path_g[i].y;
+        int nx = path_g[i].x;
+
         /* Skip target */
-        if (loc_eq(&path_g[i], grid)) continue;
+        if ((ny == y) && (nx == x)) continue;
 
         /* Forget grids which would block los */
-        if (square_isprojectable(c, &path_g[i]) &&
-            !feat_is_projectable(square_p(p, &path_g[i])->feat))
+        if (square_isprojectable(c, ny, nx) && !feat_is_projectable(p->cave->squares[ny][nx].feat))
         {
-            sqinfo_off(square_p(p, &path_g[i])->info, SQUARE_SEEN);
-            square_forget(p, &path_g[i]);
-            square_light_spot_aux(p, c, &path_g[i]);
+            sqinfo_off(p->cave->squares[ny][nx].info, SQUARE_SEEN);
+            square_forget(p, ny, nx);
+            square_light_spot_aux(p, c, ny, nx);
         }
     }
 }
@@ -237,7 +239,13 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
     int d, d_esp;
     struct source who_body;
     struct source *who = &who_body;
-    struct loc grid1, grid2, grid;
+
+    /* Current location */
+    int fy, fx;
+
+    /* If still generating the level, measure distances from the middle */
+    int py = (!ht_zero(&c->generated)? p->py: c->height / 2);
+    int px = (!ht_zero(&c->generated)? p->px: c->width / 2);
 
     /* Seen at all */
     bool flag = false;
@@ -251,27 +259,22 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
     /* Basic telepathy */
     bool basic = false;
 
-    bool isDM = ((p->dm_flags & DM_SEE_MONSTERS)? true: false);
-
-    /* If still generating the level, measure distances from the middle */
-    grid.y = (!ht_zero(&c->generated)? p->grid.y: c->height / 2);
-    grid.x = (!ht_zero(&c->generated)? p->grid.x: c->width / 2);
-
     my_assert(mon != NULL);
     source_monster(who, mon);
 
     lore = get_lore(p, mon->race);
 
+    fy = mon->fy;
+    fx = mon->fx;
+
     /* Compute distance */
-    d = distance(&grid, &mon->grid);
+    d = distance(py, px, fy, fx);
 
     /* Restrict distance */
     if (d > 255) d = 255;
 
     /* PWMAngband: telepathic awareness */
-    loc_init(&grid1, grid.x / 3, grid.y);
-    loc_init(&grid2, mon->grid.x / 3, mon->grid.y);
-    d_esp = distance(&grid1, &grid2);
+    d_esp = distance(py, px / 3, fy, fx / 3);
     if (d_esp > 255) d_esp = 255;
 
     /* Find the closest player */
@@ -284,7 +287,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             p->alive && !p->is_dead && !p->upkeep->new_level_method)
         {
             /* Check if monster has LOS to the player */
-            bool new_los = los(c, &mon->grid, &grid);
+            bool new_los = los(c, fy, fx, py, px);
 
             /* Remember this player if closest */
             if (is_closest(p, mon, *blos, new_los, d, *dis_to_closest, *lowhp))
@@ -301,12 +304,13 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
     if (p->mon_det[mon->midx]) flag = true;
 
     /* Check if telepathy works */
-    if (square_isno_esp(c, &mon->grid) || square_isno_esp(c, &grid))
+    if (square_isno_esp(c, fy, fx) || square_isno_esp(c, py, px))
         telepathy_ok = false;
 
     /* Nearby */
-    if ((d <= z_info->max_sight) || !cfg_limited_esp || isDM)
+    if ((d <= z_info->max_sight) || !cfg_limited_esp)
     {
+        bool isDM = ((p->dm_flags & DM_SEE_MONSTERS)? true: false);
         bool hasESP = is_detected_m(p, mon->race->flags, d_esp);
         bool isTL = (player_has(p, PF_THUNDERLORD) &&
             (d_esp <= (p->lev * z_info->max_sight / PY_MAX_LEVEL)));
@@ -328,7 +332,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
                     flag = true;
 
                     /* Check for LOS so that MFLAG_VIEW is set later */
-                    if (square_isview(p, &mon->grid)) easy = true;
+                    if (square_isview(p, fy, fx)) easy = true;
                 }
             }
 
@@ -338,7 +342,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
                 flag = true;
 
                 /* Check for LOS so that MFLAG_VIEW is set later */
-                if (square_isview(p, &mon->grid)) easy = true;
+                if (square_isview(p, fy, fx)) easy = true;
             }
 
             /* DM has perfect ESP */
@@ -347,12 +351,12 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
                 flag = true;
 
                 /* Check for LOS so that MFLAG_VIEW is set later */
-                if (square_isview(p, &mon->grid)) easy = true;
+                if (square_isview(p, fy, fx)) easy = true;
             }
         }
 
         /* Normal line of sight and player is not blind */
-        if (square_isview(p, &mon->grid) && !p->timed[TMD_BLIND])
+        if (square_isview(p, fy, fx) && !p->timed[TMD_BLIND])
         {
             /* Use "infravision" */
             if (d <= p->state.see_infra)
@@ -369,7 +373,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             }
 
             /* Use illumination */
-            if (square_isseen(p, &mon->grid))
+            if (square_isseen(p, fy, fx))
             {
                 /* Learn it emits light */
                 rf_on(lore->flags, RF_HAS_LIGHT);
@@ -378,7 +382,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
                 rf_on(lore->flags, RF_INVISIBLE);
 
                 /* Handle invisibility */
-                if (monster_is_invisible(mon))
+                if (monster_is_invisible(mon->race))
                 {
                     /* See invisible */
                     if (player_of_has(p, OF_SEE_INVIS))
@@ -395,7 +399,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             }
 
             /* Learn about intervening squares */
-            path_analyse(p, c, &mon->grid);
+            path_analyse(p, c, fy, fx);
         }
     }
 
@@ -420,7 +424,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             mflag_on(p->mflag[mon->midx], MFLAG_VISIBLE);
 
             /* Draw the monster */
-            square_light_spot_aux(p, c, &mon->grid);
+            square_light_spot_aux(p, c, fy, fx);
 
             /* Update health bar as needed */
             update_health(who);
@@ -448,7 +452,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             mflag_off(p->mflag[mon->midx], MFLAG_VISIBLE);
 
             /* Erase the monster */
-            square_light_spot_aux(p, c, &mon->grid);
+            square_light_spot_aux(p, c, fy, fx);
 
             /* Update health bar as needed */
             update_health(who);
@@ -469,7 +473,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
 
             /* Disturb on appearance (except townies, friendlies and hidden mimics) */
             if (OPT(p, disturb_near) && (mon->level > 0) && pvm_check(p, mon) &&
-                !monster_is_camouflaged(mon) && !p->firing_request)
+                !monster_is_camouflaged(mon))
             {
                 disturb(p, 1);
             }
@@ -511,7 +515,7 @@ void update_mon(struct monster *mon, struct chunk *c, bool full)
         struct player *p = player_get(i);
 
         /* Make sure he's on the same dungeon level */
-        if (!wpos_eq(&p->wpos, &mon->wpos)) continue;
+        if (!COORDS_EQUAL(&p->wpos, &mon->wpos)) continue;
 
         update_mon_aux(p, mon, c, full, &blos, &dis_to_closest, &closest, &lowhp);
     }
@@ -628,7 +632,7 @@ bool monster_carry(struct monster *mon, struct object *obj, bool force)
     }
 
     /* Forget location */
-    loc_init(&obj->grid, 0, 0);
+    obj->iy = obj->ix = 0;
 
     /* Hack -- reset index */
     obj->oidx = 0;
@@ -648,26 +652,19 @@ bool monster_carry(struct monster *mon, struct object *obj, bool force)
 /*
  * Swap the players/monsters (if any) at two locations.
  */
-void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
+void monster_swap(struct chunk *c, int y1, int x1, int y2, int x2)
 {
     struct player *p;
     int m1, m2;
     struct monster *mon;
-    struct loc *decoy = cave_find_decoy(c);
-
-    /* Hack -- don't use grid1 and grid2 directly, they may refer to current player/monster grids */
-    struct loc from, to;
-
-    loc_copy(&from, grid1);
-    loc_copy(&to, grid2);
 
     /* Monsters */
-    m1 = square(c, &from)->mon;
-    m2 = square(c, &to)->mon;
+    m1 = c->squares[y1][x1].mon;
+    m2 = c->squares[y2][x2].mon;
 
     /* Update grids */
-    square_set_mon(c, &from, m2);
-    square_set_mon(c, &to, m1);
+    c->squares[y1][x1].mon = m2;
+    c->squares[y2][x2].mon = m1;
 
     /* Monster 1 */
     if (m1 > 0)
@@ -675,10 +672,12 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
         mon = cave_monster(c, m1);
 
         /* Hack -- save previous monster location */
-        loc_copy(&mon->old_grid, &mon->grid);
+        mon->old_fy = mon->fy;
+        mon->old_fx = mon->fx;
 
         /* Move monster */
-        loc_copy(&mon->grid, &to);
+        mon->fy = y2;
+        mon->fx = x2;
 
         /* Update monster */
         update_mon(mon, c, true);
@@ -693,14 +692,12 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
         p = player_get(0 - m1);
 
         /* Hack -- save previous player location */
-        loc_copy(&p->old_grid, &p->grid);
+        p->old_py = p->py;
+        p->old_px = p->px;
 
         /* Move player */
-        loc_copy(&p->grid, &to);
-
-        /* Decoys get destroyed if player is too far away */
-        if (!loc_is_zero(decoy) && (distance(decoy, &p->grid) > z_info->max_sight))
-            square_destroy_decoy(p, c, decoy);
+        p->py = y2;
+        p->px = x2;
 
         /* Update the trap detection status */
         p->upkeep->redraw |= (PR_DTRAP);
@@ -723,10 +720,12 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
         mon = cave_monster(c, m2); 
 
         /* Hack -- save previous monster location */
-        loc_copy(&mon->old_grid, &mon->grid);
+        mon->old_fy = mon->fy;
+        mon->old_fx = mon->fx;
 
         /* Move monster */
-        loc_copy(&mon->grid, &from);
+        mon->fy = y1;
+        mon->fx = x1;
 
         /* Update monster */
         update_mon(mon, c, true);
@@ -741,14 +740,12 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
         p = player_get(0 - m2);
 
         /* Hack -- save previous player location */
-        loc_copy(&p->old_grid, &p->grid);
+        p->old_py = p->py;
+        p->old_px = p->px;
 
         /* Move player */
-        loc_copy(&p->grid, &from);
-
-        /* Decoys get destroyed if player is too far away */
-        if (!loc_is_zero(decoy) && (distance(decoy, &p->grid) > z_info->max_sight))
-            square_destroy_decoy(p, c, decoy);
+        p->py = y1;
+        p->px = x1;
 
         /* Update the trap detection status */
         p->upkeep->redraw |= (PR_DTRAP);
@@ -766,8 +763,8 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
     }
 
     /* Redraw */
-    square_light_spot(c, &from);
-    square_light_spot(c, &to);
+    square_light_spot(c, y1, x1);
+    square_light_spot(c, y2, x2);
 }
 
 
@@ -806,7 +803,7 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
         struct object *obj = mon->mimicked_obj;
 
         /* Print a message */
-        if (p && square_isseen(p, &obj->grid))
+        if (p && square_isseen(p, obj->iy, obj->ix))
         {
             char o_name[NORMAL_WID];
 
@@ -818,7 +815,7 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
         obj->mimicking_m_idx = 0;
         mon->mimicked_obj = NULL;
 
-        square_excise_object(c, &obj->grid, obj);
+        square_excise_object(c, obj->iy, obj->ix, obj);
 
         /* Give the object to the monster if appropriate */
         /* Otherwise delete the mimicked object */
@@ -830,10 +827,11 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
     if (mon->race->base == lookup_monster_base("feature mimic"))
     {
         /* Print a message */
-        if (p) msg(p, "The %s was really a monster!", f_info[square(c, &mon->grid)->feat].name);
+        if (p)
+            msg(p, "The %s was really a monster!", f_info[c->squares[mon->fy][mon->fx].feat].name);
 
         /* Clear the feature */
-        square_set_feat(c, &mon->grid, mon->feat);
+        square_set_feat(c, mon->fy, mon->fx, mon->feat);
     }
 
     /* Update monster and item lists */
@@ -843,8 +841,8 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
         p->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
     }
 
-    square_note_spot(c, &mon->grid);
-    square_light_spot(c, &mon->grid);
+    square_note_spot(c, mon->fy, mon->fx);
+    square_light_spot(c, mon->fy, mon->fx);
 }
 
 
@@ -912,25 +910,25 @@ void update_smart_learn(struct monster *mon, struct player *p, int flag, int pfl
  * an injured monster with the same base kind in LOS and less than
  * MAX_KIN_DISTANCE away.
  */
-static struct monster *get_injured_kin(struct chunk *c, const struct monster *mon, struct loc *grid)
+static struct monster *get_injured_kin(struct chunk *c, const struct monster *mon, int x, int y)
 {
-    struct monster *kin = square_monster(c, grid);
+    struct monster *kin = square_monster(c, y, x);
 
     /* Ignore the monster itself */
-    if (loc_eq(grid, &((struct monster *)mon)->grid)) return NULL;
+    if ((y == mon->fy) && (x == mon->fx)) return NULL;
 
     /* Check kin */
     if (!kin) return NULL;
     if (kin->race->base != mon->race->base) return NULL;
 
     /* Check line of sight */
-    if (!los(c, &((struct monster *)mon)->grid, grid)) return NULL;
+    if (!los(c, mon->fy, mon->fx, y, x)) return NULL;
 
     /* Check injury */
     if (kin->hp == kin->maxhp) return NULL;
 
     /* Check distance */
-    if (distance(&((struct monster *)mon)->grid, grid) > MAX_KIN_DISTANCE) return NULL;
+    if (distance(mon->fy, mon->fx, y, x) > MAX_KIN_DISTANCE) return NULL;
 
     return kin;
 }
@@ -943,13 +941,13 @@ static struct monster *get_injured_kin(struct chunk *c, const struct monster *mo
  */
 bool find_any_nearby_injured_kin(struct chunk *c, const struct monster *mon)
 {
-    struct loc grid;
+    int y, x;
 
-    for (grid.y = mon->grid.y - MAX_KIN_RADIUS; grid.y <= mon->grid.y + MAX_KIN_RADIUS; grid.y++)
+    for (y = mon->fy - MAX_KIN_RADIUS; y <= mon->fy + MAX_KIN_RADIUS; y++)
     {
-        for (grid.x = mon->grid.x - MAX_KIN_RADIUS; grid.x <= mon->grid.x + MAX_KIN_RADIUS; grid.x++)
+        for (x = mon->fx - MAX_KIN_RADIUS; x <= mon->fx + MAX_KIN_RADIUS; x++)
         {
-            if (get_injured_kin(c, mon, &grid) != NULL) return true;
+            if (get_injured_kin(c, mon, x, y) != NULL) return true;
         }
     }
 
@@ -966,14 +964,14 @@ bool find_any_nearby_injured_kin(struct chunk *c, const struct monster *mon)
 struct monster *choose_nearby_injured_kin(struct chunk *c, const struct monster *mon)
 {
     struct set *set = set_new();
-    struct loc grid;
+    int y, x;
     struct monster *found;
 
-    for (grid.y = mon->grid.y - MAX_KIN_RADIUS; grid.y <= mon->grid.y + MAX_KIN_RADIUS; grid.y++)
+    for (y = mon->fy - MAX_KIN_RADIUS; y <= mon->fy + MAX_KIN_RADIUS; y++)
     {
-        for (grid.x = mon->grid.x - MAX_KIN_RADIUS; grid.x <= mon->grid.x + MAX_KIN_RADIUS; grid.x++)
+        for (x = mon->fx - MAX_KIN_RADIUS; x <= mon->fx + MAX_KIN_RADIUS; x++)
         {
-            struct monster *kin = get_injured_kin(c, mon, &grid);
+            struct monster *kin = get_injured_kin(c, mon, x, y);
 
             if (kin != NULL) set_add(set, kin);
         }
@@ -1102,177 +1100,198 @@ void monster_death(struct player *p, struct chunk *c, struct monster *mon)
 
 
 /*
- * Handle the consequences of the killing of a monster by the player
+ * Decreases a monster's hit points by `dam` and handle monster death.
+ *
+ * Hack -- we "delay" fear messages by passing around a "fear" flag.
+ *
+ * We announce monster death using an optional "death message" (`note`)
+ * if given, and a otherwise a generic killed/destroyed message.
+ *
+ * Returns true if the monster has been killed (and deleted).
  */
-static void player_kill_monster(struct player *p, struct chunk *c, struct source *who, int note)
+bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int dam, bool *fear,
+    int note)
 {
-    struct monster *mon = who->monster;
     struct monster_lore *lore = get_lore(p, mon->race);
     char buf[MSG_LEN];
     char logbuf[MSG_LEN];
     int i;
     const char *title = get_title(p);
     bool cheeze;
-    char m_name[NORMAL_WID];
-
-    /* Assume normal death sound */
-    int soundfx = MSG_KILL;
-
-    /* Play a special sound if the monster was unique */
-    if (monster_is_unique(mon->race))
-    {
-        if (mon->race->base == lookup_monster_base("Morgoth"))
-            soundfx = MSG_KILL_KING;
-        else
-            soundfx = MSG_KILL_UNIQUE;
-    }
-
-    /* Extract monster name */
-    monster_desc(p, m_name, sizeof(m_name), mon, MDESC_DEFAULT);
-
-    /* Death message */
-    switch (note)
-    {
-        /* Death by physical attack */
-        case -2:
-        {
-            /* Make sure to flush any monster messages first */
-            notice_stuff(p);
-
-            /* Death by physical attack -- invisible monster */
-            if (!monster_is_visible(p, mon->midx))
-            {
-                msg_format_near(p, MSG_GENERIC, " has killed %s.", m_name);
-                msgt(p, soundfx, "You have killed %s.", m_name);
-            }
-
-            /* Death by physical attack -- unusual monster */
-            else if (monster_is_destroyed(mon->race))
-            {
-                msg_format_near(p, MSG_GENERIC, " has destroyed %s.", m_name);
-                msgt(p, soundfx, "You have destroyed %s.", m_name);
-            }
-
-            /* Death by physical attack -- normal monster */
-            else
-            {
-                msg_format_near(p, MSG_GENERIC, " has slain %s.", m_name);
-                msgt(p, soundfx, "You have slain %s.", m_name);
-            }
-
-            break;
-        }
-
-        /* Death by spell attack - messages handled by project_m() */
-        case -1: break;
-
-        /* Death by ranged attack */
-        default:
-        {
-            char name[NORMAL_WID];
-
-            monster_desc(p, name, sizeof(name), mon, MDESC_CAPITAL);
-            switch (note)
-            {
-                case MON_MSG_DESTROYED:
-                    msg_format_complex_near(p, MSG_GENERIC, "%s is destroyed.", name);
-                    break;
-                default:
-                    msg_format_complex_near(p, MSG_GENERIC, "%s dies.", name);
-            }
-            add_monster_message(p, mon, note, true);
-        }
-    }
-
-    /* Take note of the killer (only the first time!) */
-    if (monster_is_unique(mon->race) && !lore->pkills)
-    {
-        /* Give credit to the killer */
-        strnfmt(buf, sizeof(buf), "%s was slain by %s %s.", mon->race->name, title, p->name);
-
-        /* Tell every player */
-        msg_broadcast(p, buf, soundfx);
-
-        /* Message for event history */
-        strnfmt(logbuf, sizeof(logbuf), "Killed %s", mon->race->name);
-
-        /* Record this kill in the event history */
-        history_add_unique(p, logbuf, HIST_SLAY_UNIQUE);
-
-        /* Give credit to party members who took part of the fight */
-        for (i = 1; i <= NumPlayers; i++)
-        {
-            struct player *q = player_get(i);
-
-            if (q == p) continue;
-
-            /* Same party, same level, helped to kill */
-            if (party_share_with(p, p->party, q) && mflag_has(q->mflag[mon->midx], MFLAG_HURT))
-            {
-                /* Message for event history */
-                strnfmt(logbuf, sizeof(logbuf), "Helped to kill %s", mon->race->name);
-
-                /* Record this kill in the event history */
-                history_add(q, logbuf, HIST_HELP_UNIQUE);
-            }
-        }
-    }
+    struct source who_body;
+    struct source *who = &who_body;
 
     /* Killing an unique multiple times is cheezy! */
     /* Adding clones here to avoid cloning/breeding abuse */
     cheeze = ((monster_is_unique(mon->race) && lore->pkills) || mon->clone);
 
-    /* Take note of the kill */
-    if (lore->pkills < SHRT_MAX)
+    /* Redraw (later) if needed */
+    source_monster(who, mon);
+    update_health(who);
+
+    /* Wake it up */
+    mon_clear_timed(p, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+    mon_clear_timed(p, mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
+
+    /* Become aware of its presence */
+    if (monster_is_camouflaged(mon)) become_aware(p, c, mon);
+
+    /* Hurt it */
+    mon->hp -= dam;
+    mflag_on(p->mflag[mon->midx], MFLAG_HURT);
+
+    /* It is dead now */
+    if (mon->hp < 0)
     {
-        /* Remember */
-        lore->pkills++;
+        char m_name[NORMAL_WID];
+
+        /* Assume normal death sound */
+        int soundfx = MSG_KILL;
+
+        /* Play a special sound if the monster was unique */
+        if (monster_is_unique(mon->race))
+        {
+            if (mon->race->base == lookup_monster_base("Morgoth"))
+                soundfx = MSG_KILL_KING;
+            else
+                soundfx = MSG_KILL_UNIQUE;
+        }
+
+        /* Extract monster name */
+        monster_desc(p, m_name, sizeof(m_name), mon, MDESC_DEFAULT);
+
+        /* Death message */
+        switch (note)
+        {
+            /* Death by physical attack */
+            case -2:
+            {
+                /* Make sure to flush any monster messages first */
+                notice_stuff(p);
+
+                /* Death by physical attack -- invisible monster */
+                if (!monster_is_visible(p, mon->midx))
+                {
+                    msg_format_near(p, MSG_GENERIC, " has killed %s.", m_name);
+                    msgt(p, soundfx, "You have killed %s.", m_name);
+                }
+
+                /* Death by physical attack -- unusual monster */
+                else if (monster_is_destroyed(mon->race))
+                {
+                    msg_format_near(p, MSG_GENERIC, " has destroyed %s.", m_name);
+                    msgt(p, soundfx, "You have destroyed %s.", m_name);
+                }
+
+                /* Death by physical attack -- normal monster */
+                else
+                {
+                    msg_format_near(p, MSG_GENERIC, " has slain %s.", m_name);
+                    msgt(p, soundfx, "You have slain %s.", m_name);
+                }
+
+                break;
+            }
+
+            /* Death by spell attack - messages handled by project_m() */
+            case -1: break;
+
+            /* Death by ranged attack */
+            default:
+            {
+                char name[NORMAL_WID];
+
+                monster_desc(p, name, sizeof(name), mon, MDESC_CAPITAL);
+                switch (note)
+                {
+                    case MON_MSG_DESTROYED:
+                        msg_format_complex_near(p, MSG_GENERIC, "%s is destroyed.", name);
+                        break;
+                    default:
+                        msg_format_complex_near(p, MSG_GENERIC, "%s dies.", name);
+                }
+                add_monster_message(p, mon, note, true);
+            }
+        }
+
+        /* Take note of the killer (only the first time!) */
+        if (monster_is_unique(mon->race) && !lore->pkills)
+        {
+            /* Give credit to the killer */
+            strnfmt(buf, sizeof(buf), "%s was slain by %s %s.", mon->race->name, title, p->name);
+
+            /* Tell every player */
+            msg_broadcast(p, buf, soundfx);
+
+            /* Message for event history */
+            strnfmt(logbuf, sizeof(logbuf), "Killed %s", mon->race->name);
+
+            /* Record this kill in the event history */
+            history_add_unique(p, logbuf, HIST_SLAY_UNIQUE);
+
+            /* Give credit to party members who took part of the fight */
+            for (i = 1; i <= NumPlayers; i++)
+            {
+                struct player *q = player_get(i);
+
+                if (q == p) continue;
+
+                /* Same party, same level, helped to kill */
+                if (party_share_with(p, p->party, q) &&
+                    mflag_has(q->mflag[mon->midx], MFLAG_HURT))
+                {
+                    /* Message for event history */
+                    strnfmt(logbuf, sizeof(logbuf), "Helped to kill %s", mon->race->name);
+
+                    /* Record this kill in the event history */
+                    history_add(q, logbuf, HIST_HELP_UNIQUE);
+                }
+            }
+        }
+
+        /* Take note of the kill */
+        if (lore->pkills < SHRT_MAX)
+        {
+            /* Remember */
+            lore->pkills++;
+        }
+
+        /* Count kills in all lives */
+        if (mon->race->lore.tkills < SHRT_MAX) mon->race->lore.tkills++;
+
+        /* Update lore and tracking */
+        lore_update(mon->race, lore);
+        monster_race_track(p->upkeep, who);
+
+        /* Should we absorb its soul? */
+        if (p->timed[TMD_SOUL] && !monster_is_nonliving(mon->race))
+        {
+            int drain = 1 + (mon->level / 2) + p->lev * 4 / 5;
+            if (drain > mon->maxhp) drain = mon->maxhp;
+            msg(p, "You absorb the life of the dying soul.");
+            hp_player_safe(p, 1 + drain / 2);
+        }
+
+        /* Cheezy kills give neither xp nor loot! */
+        if (!cheeze) monster_death(p, c, mon);
+
+        /* Redraw */
+        p->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
+
+        /* Radiate light? */
+        if (rf_has(mon->race->flags, RF_HAS_LIGHT)) update_view_all(&c->wpos, 0);
+
+        /* Delete the monster */
+        delete_monster_idx(c, mon->midx);
+
+        /* Not afraid */
+        (*fear) = false;
+
+        /* Monster is dead */
+        return true;
     }
 
-    /* Count kills in all lives */
-    if (mon->race->lore.tkills < SHRT_MAX) mon->race->lore.tkills++;
-
-    /* Update lore and tracking */
-    lore_update(mon->race, lore);
-    monster_race_track(p->upkeep, who);
-
-    /* Should we absorb its soul? */
-    if (p->timed[TMD_SOUL] && monster_is_living(mon))
-    {
-        int drain = 1 + (mon->level / 2) + p->lev * 4 / 5;
-        if (drain > mon->maxhp) drain = mon->maxhp;
-        msg(p, "You absorb the life of the dying soul.");
-        hp_player_safe(p, 1 + drain / 2);
-    }
-
-    /* Cheezy kills give neither xp nor loot! */
-    if (!cheeze) monster_death(p, c, mon);
-
-    /* Bloodlust bonus */
-    if (p->timed[TMD_BLOODLUST])
-    {
-        player_inc_timed(p, TMD_BLOODLUST, 10, false, false);
-        player_over_exert(p, PY_EXERT_CONF, 5, 3);
-        player_over_exert(p, PY_EXERT_HALLU, 5, 10);
-    }
-
-    /* Redraw */
-    p->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
-
-    /* Radiate light? */
-    if (rf_has(mon->race->flags, RF_HAS_LIGHT)) update_view_all(&c->wpos, 0);
-
-    /* Delete the monster */
-    delete_monster_idx(c, mon->midx);
-}
-
-
-/*
- * See how a monster reacts to damage
- */
-static void monster_scared_by_damage(struct player *p, struct monster *mon, int dam, bool *fear)
-{
-    /* Pain can reduce or cancel existing fear, or cause fear */
+    /* Hack -- pain cancels fear */
     if (!(*fear) && mon->m_timed[MON_TMD_FEAR] && (dam > 0))
     {
         int tmp = randint1(dam);
@@ -1316,57 +1335,6 @@ static void monster_scared_by_damage(struct player *p, struct monster *mon, int 
             mon_inc_timed(p, mon, MON_TMD_FEAR, timer, MON_TMD_FLG_NOMESSAGE | MON_TMD_FLG_NOFAIL);
         }
     }
-}
-
-
-/*
- * Decreases a monster's hit points by `dam` and handle monster death.
- *
- * Hack -- we "delay" fear messages by passing around a "fear" flag.
- *
- * We announce monster death using an optional "death message" (`note`)
- * if given, and a otherwise a generic killed/destroyed message.
- *
- * Returns true if the monster has been killed (and deleted).
- */
-bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int dam, bool *fear,
-    int note)
-{
-    struct source who_body;
-    struct source *who = &who_body;
-
-    /* Redraw (later) if needed */
-    source_monster(who, mon);
-    update_health(who);
-
-    /* Wake it up */
-    mon_clear_timed(p, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
-    mon_clear_timed(p, mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
-
-    /* Become aware of its presence */
-    if (monster_is_camouflaged(mon)) become_aware(p, c, mon);
-
-    /* No damage, we're done */
-    if (dam == 0) return false;
-
-    /* Hurt it */
-    mon->hp -= dam;
-    mflag_on(p->mflag[mon->midx], MFLAG_HURT);
-
-    /* It is dead now */
-    if (mon->hp < 0)
-    {
-        player_kill_monster(p, c, who, note);
-
-        /* Not afraid */
-        (*fear) = false;
-
-        /* Monster is dead */
-        return true;
-    }
-
-    /* Did it get frightened? */
-    monster_scared_by_damage(p, mon, dam, fear);
 
     /* Not dead yet */
     return false;
@@ -1379,20 +1347,20 @@ bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int da
 void monster_take_terrain_damage(struct chunk *c, struct monster *mon)
 {
     /* Damage the monster */
-    if (monster_hates_grid(c, mon, &mon->grid))
+    if (monster_hates_grid(c, mon, mon->fy, mon->fx))
     {
         int note_dies = MON_MSG_DIE;
 
         if (monster_is_destroyed(mon->race))
             note_dies = MON_MSG_DESTROYED;
 
-        if (square_islava(c, &mon->grid) || square_isfiery(c, &mon->grid))
+        if (square_islava(c, mon->fy, mon->fx) || square_isfiery(c, mon->fy, mon->fx))
             note_dies = MON_MSG_BURN;
 
-        if (square_iswater(c, &mon->grid))
+        if (square_iswater(c, mon->fy, mon->fx))
             note_dies = MON_MSG_DROWN;
 
-        if (square_isnether(c, &mon->grid))
+        if (square_isnether(c, mon->fy, mon->fx))
             note_dies = MON_MSG_DRAIN;
 
         project_m_monster_attack_aux(NULL, c, mon, 100 + randint1(100), note_dies);
@@ -1426,7 +1394,9 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
 {
     int d, d_esp;
     int id = get_player_index(get_connection(q->conn));
-    struct loc grid1, grid2;
+
+    /* Current location */
+    int py, px;
 
     /* Seen at all */
     bool flag = false;
@@ -1437,30 +1407,30 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
     /* ESP permitted */
     bool telepathy_ok = true;
 
-    bool isDM = ((p->dm_flags & DM_SEE_PLAYERS)? true: false);
+    py = q->py;
+    px = q->px;
 
     /* Compute distance */
-    d = distance(&q->grid, &p->grid);
+    d = distance(py, px, p->py, p->px);
 
     /* Restrict distance */
     if (d > 255) d = 255;
 
     /* PWMAngband: telepathic awareness */
-    loc_init(&grid1, q->grid.x / 3, q->grid.y);
-    loc_init(&grid2, p->grid.x / 3, p->grid.y);
-    d_esp = distance(&grid1, &grid2);
+    d_esp = distance(py, px / 3, p->py, p->px / 3);
     if (d_esp > 255) d_esp = 255;
 
     /* Detected */
     if (p->play_det[id]) flag = true;
 
     /* Check if telepathy works */
-    if (square_isno_esp(c, &q->grid) || square_isno_esp(c, &p->grid))
+    if (square_isno_esp(c, py, px) || square_isno_esp(c, p->py, p->px))
         telepathy_ok = false;
 
     /* Nearby */
-    if ((d <= z_info->max_sight) || !cfg_limited_esp || isDM)
+    if ((d <= z_info->max_sight) || !cfg_limited_esp)
     {
+        bool isDM = ((p->dm_flags & DM_SEE_PLAYERS)? true: false);
         bool hasESP = is_detected_p(p, q, d_esp);
         bool isTL = (player_has(p, PF_THUNDERLORD) &&
             (d_esp <= (p->lev * z_info->max_sight / PY_MAX_LEVEL)));
@@ -1481,7 +1451,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
                     flag = true;
 
                     /* Check for LOS so that MFLAG_VIEW is set later */
-                    if (square_isview(p, &q->grid)) easy = true;
+                    if (square_isview(p, py, px)) easy = true;
                 }
             }
 
@@ -1492,7 +1462,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
                 flag = true;
 
                 /* Check for LOS so that MFLAG_VIEW is set later */
-                if (square_isview(p, &q->grid)) easy = true;
+                if (square_isview(p, py, px)) easy = true;
             }
 
             /* DM has perfect ESP */
@@ -1502,12 +1472,12 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
                 flag = true;
 
                 /* Check for LOS so that MFLAG_VIEW is set later */
-                if (square_isview(p, &q->grid)) easy = true;
+                if (square_isview(p, py, px)) easy = true;
             }
         }
 
         /* Normal line of sight, and not blind */
-        if (square_isview(p, &q->grid) && !p->timed[TMD_BLIND])
+        if (square_isview(p, py, px) && !p->timed[TMD_BLIND])
         {
             /* Use "infravision" */
             if (d <= p->state.see_infra)
@@ -1524,10 +1494,10 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             }
 
             /* Use "illumination" */
-            if (square_isseen(p, &q->grid))
+            if (square_isseen(p, py, px))
             {
                 /* Handle "invisible" players */
-                if (q->timed[TMD_INVIS])
+                if ((q->poly_race && monster_is_invisible(q->poly_race)) || q->timed[TMD_INVIS])
                 {
                     /* See invisible */
                     if (player_of_has(p, OF_SEE_INVIS))
@@ -1546,7 +1516,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             }
 
             /* Learn about intervening squares */
-            path_analyse(p, c, &q->grid);
+            path_analyse(p, c, py, px);
         }
 
         /* Players in the same party are always visible */
@@ -1566,12 +1536,12 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             mflag_on(p->pflag[id], MFLAG_VISIBLE);
 
             /* Draw the player */
-            square_light_spot_aux(p, c, &q->grid);
+            square_light_spot_aux(p, c, py, px);
         }
         else
         {
             /* Player color may have changed! */
-            square_light_spot_aux(p, c, &q->grid);
+            square_light_spot_aux(p, c, py, px);
         }
 
         /* Efficiency -- notice multi-hued players */
@@ -1597,7 +1567,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             mflag_off(p->pflag[id], MFLAG_VISIBLE);
 
             /* Erase the player */
-            square_light_spot_aux(p, c, &q->grid);
+            square_light_spot_aux(p, c, py, px);
         }
     }
 
@@ -1611,8 +1581,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             mflag_on(p->pflag[id], MFLAG_VIEW);
 
             /* Disturb on appearance (except friendlies and hidden mimics) */
-            if (OPT(p, disturb_near) && pvp_check(p, q, PVP_CHECK_ONE, true, 0x00) && !q->k_idx &&
-                 !p->firing_request)
+            if (OPT(p, disturb_near) && pvp_check(p, q, PVP_CHECK_ONE, true, 0x00) && !q->k_idx)
             {
                 /* Disturb */
                 disturb(p, 1);
@@ -1652,7 +1621,7 @@ void update_player(struct player *q)
         struct player *p = player_get(i);
 
         /* Skip players not on this level */
-        if (!wpos_eq(&p->wpos, &q->wpos))
+        if (!COORDS_EQUAL(&p->wpos, &q->wpos))
         {
             mflag_wipe(p->pflag[id]);
             p->play_det[id] = 0;
@@ -1714,7 +1683,7 @@ void update_monlist(struct monster *mon)
     {
         struct player *p = player_get(i);
 
-        if (wpos_eq(&p->wpos, &mon->wpos))
+        if (COORDS_EQUAL(&p->wpos, &mon->wpos))
             p->upkeep->redraw |= PR_MONLIST;
     }
 }
@@ -1735,7 +1704,7 @@ void update_view_all(struct worldpos *wpos, int skip)
     {
         struct player *player = player_get(i);
 
-        if (wpos_eq(&player->wpos, wpos) && (i != skip))
+        if (COORDS_EQUAL(&player->wpos, wpos) && (i != skip))
             player->upkeep->update |= PU_UPDATE_VIEW;
     }
 }

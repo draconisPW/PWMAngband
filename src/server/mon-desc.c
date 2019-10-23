@@ -3,7 +3,7 @@
  * Purpose: Monster description
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -189,7 +189,7 @@ void monster_desc(struct player *p, char *desc, size_t max, const struct monster
     /* Unique, indefinite or definite */
     else
     {
-        bool offscreen = (p? !panel_contains(p, &((struct monster *)mon)->grid): false);
+        bool offscreen = (p? !panel_contains(p, mon->fy, mon->fx): false);
 
         if (monster_is_unique(mon->race))
         {

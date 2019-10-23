@@ -5,7 +5,7 @@
  * Copyright (c) 1997-2000 Robert A. Koeneke, James E. Wilson, Ben Harrison
  * Copyright (c) 2007 Pete Mack
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -476,7 +476,7 @@ static void ui_keymap_create(const char *title, int row)
 {
     bool done = false;
     size_t n = 0;
-    struct keypress c, esc;
+    struct keypress c;
     char tmp[MSG_LEN];
     int mode = (OPT(player, rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
     int res;
@@ -503,14 +503,6 @@ static void ui_keymap_create(const char *title, int row)
         if (is_abort(ke)) Term_event_push(&ea);
         return;
     }
-
-    memset(keymap_buffer, 0, (KEYMAP_ACTION_MAX + 1) * sizeof(struct keypress));
-
-    /* PWMAngband: always start with ESCAPE */
-    esc.type = EVT_KBRD;
-    esc.code = ESCAPE;
-    esc.mods = 0;
-    keymap_buffer[n++] = esc;
 
     /* Get an encoded action, with a default response */
     while (!done)
@@ -569,6 +561,7 @@ static void ui_keymap_create(const char *title, int row)
             {
                 if (n == KEYMAP_ACTION_MAX) continue;
 
+                if (n == 0) memset(keymap_buffer, 0, (KEYMAP_ACTION_MAX + 1) * sizeof(struct keypress));
                 keymap_buffer[n++] = kp;
                 break;
             }
@@ -1139,15 +1132,6 @@ static void do_dump_options(const char *title, int row)
 
 
 /*
- * Write autoinscriptions to a file.
- */
-static void do_dump_autoinsc(const char *title, int row)
-{
-    dump_pref_file(dump_autoinscriptions, "Dump autoinscriptions", 20);
-}
-
-
-/*
  * Load a pref file.
  */
 static void options_load_pref_file(const char *n, int row)
@@ -1593,11 +1577,15 @@ static tval_desc sval_dependent[] =
     {TV_MUSHROOM, "Mushrooms"},
     {TV_MAGIC_BOOK, "Magic Books"},
     {TV_PRAYER_BOOK, "Prayer Books"},
-    {TV_NATURE_BOOK, "Nature Books"},
+    {TV_SORCERY_BOOK, "Sorcery Books"},
     {TV_SHADOW_BOOK, "Shadow Books"},
+    {TV_HUNT_BOOK, "Hunt Books"},
     {TV_PSI_BOOK, "Psi Books"},
+    {TV_DEATH_BOOK, "Death Books"},
     {TV_ELEM_BOOK, "Elemental Books"},
-    {TV_FLASK, "Flasks of Oil"}
+    {TV_SUMMON_BOOK, "Summoning Books"}
+    /*{TV_LIGHT, "Lights"} -- PWMAngband: removed because of ego light sources */
+    /*{TV_FLASK, "Flasks of Oil"} -- PWMAngband: moved to MAngband submenu because lack of space */
 };
 
 
@@ -1607,11 +1595,13 @@ static tval_desc sval_dependent[] =
 static bool ignore_tval_extra(int tval)
 {
     /* PWMAngband: allow crops and junk to be ignored */
+    /* PWMAngband: flasks of oil moved here because lack of space on main menu */
     switch (tval)
     {
         case TV_SKELETON:
         case TV_BOTTLE:
         case TV_CORPSE:
+        case TV_FLASK:
         case TV_CROP: return true;
     }
 
@@ -1760,12 +1750,16 @@ static bool sval_menu(int tval, const char *desc)
     switch (tval)
     {
         /* Leave sorted by sval */
+        /*case TV_LIGHT:*/
         case TV_MAGIC_BOOK:
         case TV_PRAYER_BOOK:
-        case TV_NATURE_BOOK:
+        case TV_SORCERY_BOOK:
         case TV_SHADOW_BOOK:
+        case TV_HUNT_BOOK:
         case TV_PSI_BOOK:
-        case TV_ELEM_BOOK: break;
+        case TV_DEATH_BOOK:
+        case TV_ELEM_BOOK:
+        case TV_SUMMON_BOOK: break;
 
         /* Sort by name */
         default: sort(choices, n_choices, sizeof(*choices), cmp_ignore);
@@ -2059,7 +2053,6 @@ static menu_action option_actions[] =
     {0, 0, NULL, NULL},
     {0, 'l', "Load a user pref file", options_load_pref_file},
     {0, 's', "Save options to pref file", do_dump_options},
-    {0, 't', "Save autoinscriptions to pref file", do_dump_autoinsc},
     {0, 0, NULL, NULL},
     {0, 'k', "Edit keymaps (advanced)", do_cmd_keymaps},
     {0, 'v', "Edit colours (advanced)", do_cmd_colors}

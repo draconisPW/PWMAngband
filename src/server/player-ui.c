@@ -3,7 +3,7 @@
  * Purpose: Character screens and dumps
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -107,7 +107,7 @@ static void dump_buffer(ang_file *fff, int y1, int y2, int length, bool skip_emp
 static void write_character_dump(ang_file *fff, void *data)
 {
     struct player *p = (struct player *)data;
-    int i;
+    int i, x, y;
     u16b a;
     char c;
     struct store *home = p->home;
@@ -122,7 +122,6 @@ static void write_character_dump(ang_file *fff, void *data)
     bool victory = streq(p->death_info.died_from, "winner");
     bool final = (p->is_dead || !p->alive || victory);
     struct chunk *cv = chunk_get(&p->wpos);
-    struct loc grid;
 
     switch (p->psex)
     {
@@ -310,10 +309,10 @@ static void write_character_dump(ang_file *fff, void *data)
         else file_put(fff, "\n  [Scene of Death]\n\n");
 
         /* Get an in bounds area */
-        x1 = p->grid.x - 39;
-        x2 = p->grid.x + 39;
-        y1 = p->grid.y - 10;
-        y2 = p->grid.y + 10;
+        x1 = p->px - 39;
+        x2 = p->px + 39;
+        y1 = p->py - 10;
+        y2 = p->py + 10;
         if (y1 < 0)
         {
             y2 = y2 - y1;
@@ -336,16 +335,16 @@ static void write_character_dump(ang_file *fff, void *data)
         }
 
         /* Describe each row */
-        for (grid.y = y1; grid.y <= y2; grid.y++)
+        for (y = y1; y <= y2; y++)
         {
-            for (grid.x = x1; grid.x <= x2; grid.x++)
+            for (x = x1; x <= x2; x++)
             {
                 /* Get the features */
-                map_info(p, cv, &grid, &g);
+                map_info(p, cv, y, x, &g);
                 grid_data_as_text(p, cv, true, &g, &a, &c, &a, &c);
 
                 /* Hack for the player who is already dead and gone */
-                if (player_is_at(p, &grid))
+                if (player_is_at(p, y, x))
                 {
                     c = (victory? '@': '†');
                     a = COLOUR_WHITE;

@@ -3,7 +3,7 @@
  * Purpose: Text-based user interface for character creation
  *
  * Copyright (c) 1987 - 2015 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -138,20 +138,12 @@ static void choose_name(void)
 }
 
 
-static void display_password(void)
-{
-    size_t i;
-
-    for (i = 0; i < strlen(pass); i++)
-        Term_putch(15 + i, 3, COLOUR_L_BLUE, 'x');
-}
-
-
 /*
  * Choose a password
  */
 static void enter_password(void)
 {
+    size_t c;
     char tmp[NORMAL_WID];
 
     /* Prompt and ask */
@@ -186,7 +178,8 @@ static void enter_password(void)
 
     /* Redraw the password (in light blue) */
     Term_erase(15, 3, 9);
-    display_password();
+    for (c = 0; c < strlen(pass); c++)
+        Term_putch(15 + c, 3, COLOUR_L_BLUE, 'x');
 
     /* Now hash that sucker! */
     my_strcpy(stored_pass, pass, sizeof(stored_pass));
@@ -225,7 +218,7 @@ static struct menu sex_menu, race_menu, class_menu, roller_menu;
 /* Upper left column and row, width, and lower column */
 static region gender_region = {SEX_COL, TABLE_ROW, 12, MENU_ROWS};
 static region race_region = {RACE_COL, TABLE_ROW, 15, MENU_ROWS};
-static region class_region = {CLASS_COL, TABLE_ROW, 16, 0};
+static region class_region = {CLASS_COL, TABLE_ROW, 16, MENU_ROWS};
 static region roller_region = {ROLLER_COL, TABLE_ROW, 30, MENU_ROWS};
 
 
@@ -321,9 +314,16 @@ static const char *get_flag_desc(bitflag flag)
 {
     switch (flag)
     {
-        #define OF(a, b) case OF_##a: return b;
-        #include "../common/list-object-flags.h"
-        #undef OF
+        case OF_SUST_STR: return "Sustains strength";
+        case OF_SUST_DEX: return "Sustains dexterity";
+        case OF_SUST_CON: return "Sustains constitution";
+        case OF_PROT_BLIND: return "Resists blindness";
+        case OF_HOLD_LIFE: return "Sustains experience";
+        case OF_FREE_ACT: return "Resists paralysis";
+        case OF_REGEN: return "Regenerates quickly";
+        case OF_SEE_INVIS: return "Sees invisible creatures";
+        case OF_FEATHER: return "Floats just above the floor";
+        case OF_SLOW_DIGEST: return "Digests food slowly";
 
         default: return "Undocumented flag";
     }
@@ -334,35 +334,10 @@ static const char *get_resist_desc(int element)
 {
     switch (element)
     {
-        #define ELEM(a, b, c, d) case ELEM_##a: return b;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_immune_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return c;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_vuln_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return d;
-        #include "../common/list-elements.h"
-        #undef ELEM
+        case ELEM_POIS: return "Resists poison";
+        case ELEM_LIGHT: return "Resists light damage";
+        case ELEM_DARK: return "Resists darkness damage";
+        case ELEM_NEXUS: return "Resists nexus";
 
         default: return "Undocumented element";
     }
@@ -417,49 +392,17 @@ static void race_help(int i, void *db, const region *l)
 
     for (k = 1; k < OF_MAX; k++)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
         if (!of_has(r->flags, k)) continue;
-        s = get_flag_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        format_help(RACE_AUX_COL, j++, "%-30s", get_flag_desc(k));
         n_flags++;
     }
 
     for (k = 0; k < ELEM_MAX; k++)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
         if (r->el_info[k].res_level != 1) continue;
-        s = get_resist_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != 3) continue;
-        s = get_immune_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != -1) continue;
-        s = get_vuln_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        format_help(RACE_AUX_COL, j++, "%-30s", get_resist_desc(k));
         n_flags++;
     }
 
@@ -515,29 +458,14 @@ static void class_help(int i, void *db, const region *l)
             format_help(CLASS_AUX_COL, j, "%s%+3d", name, adj);
     }
 
-    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp, r->r_exp, -1);
+    skill_help(CLASS_AUX_COL, &j, r->r_skills, c->c_skills, r->r_mhp + c->c_mhp,
+        r->r_exp + c->c_exp, -1);
 
-    if (c->magic.total_spells)
+    if (c->magic.spell_realm)
     {
         char adjective[24];
-        char realm[17];
-        struct class_book *book = &c->magic.books[0];
-        int i;
 
-        my_strcpy(realm, book->realm->name, sizeof(realm));
-
-        for (i = 1; i < c->magic.num_books; i++)
-        {
-            book = &c->magic.books[i];
-
-            if (!strstr(realm, book->realm->name))
-            {
-                my_strcat(realm, "/", sizeof(realm));
-                my_strcat(realm, book->realm->name, sizeof(realm));
-            }
-        }
-
-        strnfmt(adjective, sizeof(adjective), "%s magic", realm);
+        strnfmt(adjective, sizeof(adjective), "%s magic", c->magic.spell_realm->name);
         format_help(CLASS_AUX_COL, j++, "Learns %-23s", adjective);
     }
 
@@ -549,7 +477,7 @@ static void class_help(int i, void *db, const region *l)
         if (!pf_has(c->pflags, k)) continue;
         s = get_pflag_desc(k);
         if (!s) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        format_help(CLASS_AUX_COL, j++, "%-30s", s);
         n_flags++;
     }
 
@@ -574,10 +502,10 @@ static void init_birth_menu(struct menu *menu, int n_choices, int initial_choice
     menu_init(menu, MN_SKIN_SCROLL, &birth_iter);
 
     /*
-     * A couple of behavioural flags - we want all selection letters (in case we have more than 26
-     * races or classes) and a double tap to act as a selection.
+     * A couple of behavioural flags - we want selections letters in
+     * lower case and a double tap to act as a selection.
      */
-    menu->selections = all_letters;
+    menu->selections = lower_case;
     menu->flags = MN_DBL_TAP;
 
     /* Copy across the game's suggested initial selection, etc. */
@@ -787,6 +715,9 @@ static enum birth_stage roller_command(enum birth_stage current_stage)
 
         /* Hack -- remove the fake "ghost" class */
         n--;
+
+        /* Restrict choices for Dragon race */
+        if (pf_has(player->race->pflags, PF_DRAGON)) n -= 2;
 
         /* Class menu similar to race. */
         init_birth_menu(menu, n, (player->clazz? player->clazz->cidx: 0), &class_region,
@@ -1386,7 +1317,7 @@ bool get_server_name(void)
     while (ptr - buf < bytes)
     {
         /* Check for no entry */
-        if ((*ptr == '\0') || ((*ptr == '\n') && mang_meta))
+        if (*ptr == '\0')
         {
             ptr++;
             continue;
@@ -1694,7 +1625,8 @@ void get_char_name(void)
     c_put_str(COLOUR_L_BLUE, nick, 2, 15);
 
     /* Redraw the password (in light blue) */
-    display_password();
+    for (i = 0; i < strlen(pass); i++)
+        Term_putch(15 + i, 3, COLOUR_L_BLUE, 'x');
 
     /* Display some helpful information */
     c_put_str(COLOUR_L_BLUE, "Please select your character from the list below:", 6, 1);
@@ -1726,7 +1658,7 @@ void get_char_name(void)
     }
 
     /* Check number of characters */
-    if (char_num >= max_account_chars)
+    if (char_num == MAX_ACCOUNT_CHARS)
     {
         c_put_str(COLOUR_YELLOW, "Your account is full.", 9 + char_num, 5);
         c_put_str(COLOUR_YELLOW, "You cannot create any new character with this account.",
@@ -1755,7 +1687,7 @@ void get_char_name(void)
         i = A2I(c.code);
 
         /* Check for legality */
-        if ((i > (size_t)char_num) || (i >= (size_t)max_account_chars)) continue;
+        if ((i > (size_t)char_num) || (i >= MAX_ACCOUNT_CHARS)) continue;
 
         /* Paranoia */
         if ((i == (size_t)char_num) || (char_expiry[i] > 0) || (char_expiry[i] == -1))
@@ -1783,8 +1715,8 @@ void get_char_name(void)
         /* Dump the player name */
         c_put_str(COLOUR_L_BLUE, nick, 2, 15);
 
-        /* Redraw the password (in light blue) */
-        display_password();
+        /* Enter password */
+        enter_password();
 
         /* Display actions */
         if (char_expiry[i] > 0)
@@ -1844,7 +1776,7 @@ void get_char_name(void)
         /* Choose a name */
         choose_name();
 
-        /* Redraw the password (in light blue) */
-        display_password();
+        /* Enter password */
+        enter_password();
     }
 }

@@ -3,7 +3,7 @@
  * Purpose: Character creation
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -485,7 +485,7 @@ static void get_money(struct player *p, bool no_recall)
     p->au = z_info->start_gold;
 
     /* Give double starting gold to no_recall characters */
-    if ((cfg_diving_mode == 3) || no_recall) p->au *= 2;
+    if ((cfg_diving_mode == 2) || no_recall) p->au *= 2;
 }
 
 
@@ -554,9 +554,7 @@ static void player_outfit_aux(struct player *p, struct object_kind *k, byte numb
     obj->ignore_protect = 1;
 
     /* Deduct the cost of the item from starting cash */
-    /* PWMAngband: food and light are free */
-    if (!tval_is_food_k(k) && !tval_is_light_k(k))
-        p->au -= (s32b)object_value(p, obj, obj->number);
+    p->au -= (s32b)object_value(p, obj, obj->number);
 
     /* Carry the item */
     inven_carry(p, obj, true, false);
@@ -596,55 +594,24 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
     for (si = p->clazz->start_items; si; si = si->next)
     {
         int num = rand_range(si->min, si->max);
-        struct object_kind *kind = lookup_kind(si->tval, si->sval);
 
-        my_assert(kind);
-
-        /* Without start_kit, only start with food and light */
-        if (!start_kit && !tval_is_food_k(kind) && !tval_is_light_k(kind)) continue;
+        /* Without start_kit, only start with 1 food and 1 light */
+        if (!start_kit)
+        {
+            if (!tval_is_food_k(si->kind) && !tval_is_light_k(si->kind)) continue;
+            num = 1;
+        }
 
         /* Don't give unnecessary starting equipment to no_recall characters */
-        if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
+        if (((cfg_diving_mode == 2) || no_recall) && !si->flag) continue;
 
-        player_outfit_aux(p, kind, (byte)num);
+        player_outfit_aux(p, si->kind, (byte)num);
     }
 
     /* Sanity check */
     if (p->au < 0) p->au = 0;
 
-    /*
-     * Without start_kit, start at least with the amount of gold we would need for buying
-     * the items we don't get
-     */
-    if (!start_kit)
-    {
-      int value = 0;
-
-      for (si = p->clazz->start_items; si; si = si->next)
-      {
-          struct object *obj;
-          struct object_kind *kind = lookup_kind(si->tval, si->sval);
-
-          /* Skip food and light (we get them) */
-          if (tval_is_food_k(kind) || tval_is_light_k(kind)) continue;
-
-          /* Skip starting equipment no_recall characters don't get */
-          if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
-
-          /* Prepare the item */
-          obj = object_new();
-          object_prep(p, obj, kind, 0, MINIMISE);
-          obj->number = si->min;
-          object_notice_everything_aux(p, obj, false, false);
-
-          /* Add the value */
-          value += object_value(p, obj, obj->number);
-          object_delete(&obj);
-      }
-      if (p->au < value) p->au = value;
-    }
-
-    if ((cfg_diving_mode > 1) || no_recall || is_dm_p(p)) return;
+    if (cfg_diving_mode || no_recall || is_dm_p(p)) return;
 
     /* Give the player a deed of property */
     player_outfit_aux(p, lookup_kind_by_name(TV_DEED, "Deed of Property"), 1);
@@ -684,12 +651,14 @@ static void player_outfit_dm(struct player *p)
 #endif
 
     /* All books */
-    for (i = 0; i < p->clazz->magic.num_books; i++)
+    if (p->clazz->magic.spell_realm && p->clazz->magic.spell_realm->book_noun)
     {
-        struct class_book *book = &p->clazz->magic.books[i];
+        for (i = 0; i < p->clazz->magic.num_books; i++)
+        {
+            struct class_book *book = &p->clazz->magic.books[i];
 
-        if (book->realm->book_noun)
             player_outfit_aux(p, lookup_kind(book->tval, book->sval), 1);
+        }
     }
 
     /* Other useful stuff */
@@ -698,9 +667,6 @@ static void player_outfit_dm(struct player *p)
     kind = lookup_kind_by_name(TV_POTION, "Experience");
     player_outfit_aux(p, kind, kind->base->max_stack);
     player_outfit_aux(p, lookup_kind_by_name(TV_RING, "Speed"), 2);
-
-    /* Max recall depth */
-    p->max_depth = z_info->max_depth - 1;
 
     /* A ton of gold */
     p->au = 50000000;
@@ -721,8 +687,16 @@ static void player_generate(struct player *p, byte psex, const struct player_rac
     /* Initialize the spells */
     player_spells_init(p);
 
-    /* No Dragon DMs, turn into a Human instead */
-    if (pf_has(p->race->pflags, PF_DRAGON) && is_dm_p(p)) p->race = player_id2race(0);
+    /* Restrict choices for Dragon race */
+    if (pf_has(p->race->pflags, PF_DRAGON))
+    {
+        /* No Dragon DMs, Shapechangers and Necromancers */
+        if (is_dm_p(p) || pf_has(p->clazz->pflags, PF_MONSTER_SPELLS) ||
+            pf_has(p->clazz->pflags, PF_UNDEAD_POWERS))
+        {
+            p->race = player_id2race(0);
+        }
+    }
 
     p->sex = &sex_info[p->psex];
 
@@ -730,7 +704,7 @@ static void player_generate(struct player *p, byte psex, const struct player_rac
     p->max_lev = p->lev = 1;
 
     /* Experience factor */
-    p->expfact = p->race->r_exp;
+    p->expfact = p->race->r_exp + p->clazz->c_exp;
 
     /* Hitdice */
     p->hitdie = p->race->r_mhp + p->clazz->c_mhp;
@@ -756,7 +730,7 @@ static int count_players(struct player *p)
         if (player == p) continue;
 
         /* Count */
-        if (wpos_eq(&player->wpos, &p->wpos)) count++;
+        if (COORDS_EQUAL(&player->wpos, &p->wpos)) count++;
     }
 
     return count;
@@ -773,9 +747,9 @@ static bool depth_is_valid(struct wild_type *w_ptr, int depth)
 
 static void player_setup(struct player *p, int id, u32b account, bool no_recall)
 {
-    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+    struct wild_type *w_ptr = get_wt_info_at(p->wpos.wy, p->wpos.wx);
     bool reposition = false, push_up = false;
-    int i, k, d;
+    int i, k, y, x, d;
     hturn death_turn;
     struct chunk *c;
 
@@ -788,10 +762,10 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     else if (!depth_is_valid(w_ptr, p->wpos.depth)) reposition = true;
 
     /* Default location if just starting */
-    else if (wpos_null(&p->wpos) && loc_is_zero(&p->grid)) reposition = true;
+    else if (COORDS_NULL(&p->wpos) && !p->py && !p->px) reposition = true;
 
     /* Don't allow placement inside an arena */
-    else if (pick_arena(&p->wpos, &p->grid) != -1)
+    else if (pick_arena(&p->wpos, p->py, p->px) != -1)
     {
         reposition = true;
 
@@ -805,7 +779,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         reposition = true;
 
         /* No-recall players are simply pushed up one level (should be safe) */
-        if ((cfg_diving_mode == 3) || no_recall) push_up = true;
+        if ((cfg_diving_mode == 2) || no_recall) push_up = true;
     }
 
     /*
@@ -839,17 +813,12 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
                 if (q && (p != q))
                 {
                     /* Someone in here? */
-                    if (q->player_store_num == i)
+                    if ((q->player_store_num == i) && (q->store_num == STORE_PLAYER))
                     {
-                        struct store *s = store_at(q);
+                        reposition = true;
 
-                        if (s && (s->type == STORE_PLAYER))
-                        {
-                            reposition = true;
-
-                            /* Unstatic the old level */
-                            chunk_set_player_count(&p->wpos, count_players(p));
-                        }
+                        /* Unstatic the old level */
+                        chunk_set_player_count(&p->wpos, count_players(p));
 
                         break;
                     }
@@ -870,7 +839,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         if (push_up) p->wpos.depth = dungeon_get_next_level(p, p->wpos.depth, -1);
 
         /* Put us in base town */
-        else if ((cfg_diving_mode > 1) || no_recall)
+        else if (cfg_diving_mode || no_recall)
             memcpy(&p->wpos, base_wpos(), sizeof(struct worldpos));
 
         /* Put us in starting town */
@@ -948,14 +917,15 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     if (reposition)
     {
         /* Put us in the tavern */
-        loc_copy(&p->grid, &c->join->down);
+        p->py = c->join->down.y;
+        p->px = c->join->down.x;
     }
 
     /* Be sure the player is in bounds */
-    if (!square_in_bounds_fully(c, &p->grid))
+    if (!square_in_bounds_fully(c, p->py, p->px))
     {
-        p->grid.x = MIN(MAX(p->grid.x, 1), c->width - 2);
-        p->grid.y = MIN(MAX(p->grid.y, 1), c->height - 2);
+        p->px = MIN(MAX(p->px, 1), c->width - 2);
+        p->py = MIN(MAX(p->py, 1), c->height - 2);
     }
 
     /* Pick a location */
@@ -964,32 +934,32 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     /* If no location can be found (VERY unlikely), then simply use the initial location */
     for (i = 0; i < 3000; i++)
     {
-        struct loc new_grid;
-
         /* Increase distance (try 10 times for each step) */
         d = (i + 9) / 10;
 
         /* Pick a location (skip LOS test) */
-        if (!scatter(c, &new_grid, &p->grid, d, false)) continue;
+        if (!scatter(c, &y, &x, p->py, p->px, d, false)) continue;
 
         /* Require an "empty" floor grid */
-        if (square_isemptyfloor(c, &new_grid))
+        if (square_isemptyfloor(c, y, x))
         {
             /* Set the player's location */
-            loc_copy(&p->grid, &new_grid);
+            p->py = y;
+            p->px = x;
 
             break;
         }
     }
 
     /* Hack -- set previous player location */
-    loc_copy(&p->old_grid, &p->grid);
+    p->old_py = p->py;
+    p->old_px = p->px;
 
     /* Add the player */
-    square_set_mon(c, &p->grid, 0 - id);
+    c->squares[p->py][p->px].mon = 0 - id;
 
     /* Redraw */
-    square_light_spot(c, &p->grid);
+    square_light_spot(c, p->py, p->px);
 
     /*
      * Delete him from the player name database
@@ -1009,7 +979,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     /* Set his "current activities" variables */
     current_clear(p);
     p->current_house = p->current_selling = -1;
-    loc_init(&p->old_offset_grid, -1, -1);
+    p->offset_y_old = p->offset_x_old = -1;
 
     /* Make sure his party still exists */
     if (p->party && parties[p->party].num == 0)
@@ -1047,7 +1017,7 @@ static void player_admin(struct player *p)
     p->dm_flags |= (DM___MENU | DM_CAN_MUTATE_SELF);
 #endif
 
-    if (cfg_dungeon_master && !my_stricmp(p->name, cfg_dungeon_master))
+    if (cfg_dungeon_master && !strcmp(p->name, cfg_dungeon_master))
     {
         /* All DM powers! */
         p->dm_flags = 0xFFFFFFFF;
@@ -1385,9 +1355,5 @@ u16b connection_type_ok(u16b conntype)
 {
     if (conntype == CONNTYPE_PLAYER) return CONNTYPE_PLAYER;
     if (conntype == 8202 || conntype == 8205) return CONNTYPE_CONSOLE;
-
-    /* PuTTY via Telnet */
-    if (conntype == 65531) return CONNTYPE_CONSOLE;
-
     return CONNTYPE_ERROR;
 }

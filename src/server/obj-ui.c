@@ -3,7 +3,7 @@
  * Purpose: Lists of objects and object pictures
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -72,7 +72,7 @@ static void display_item(struct player *p, struct object *obj, byte equipped)
     char o_name_terse[NORMAL_WID];
     char o_name_base[NORMAL_WID];
     int wgt;
-    s32b price = 0;
+    s32b price;
 
     memset(&info_xtra, 0, sizeof(info_xtra));
 
@@ -86,8 +86,7 @@ static void display_item(struct player *p, struct object *obj, byte equipped)
     wgt = (obj->tval? obj->weight * obj->number: 0);
 
     /* Display the price if needed */
-    if (in_store(p) && (store_at(p)->type <= STORE_XBM))
-        price = price_item(p, obj, true, obj->number);
+    price = ((in_store(p) && (p->store_num <= STORE_XBM))? price_item(p, obj, true, obj->number): 0);
 
     /* Get the info */
     get_object_info(p, obj, equipped, &info_xtra);

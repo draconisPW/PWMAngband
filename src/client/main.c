@@ -3,7 +3,7 @@
  * Purpose: Core game initialisation
  *
  * Copyright (c) 1997 Ben Harrison, and others
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -101,7 +101,7 @@ static void read_credentials(void)
 /*
  * Simple "main" function for multiple platforms.
  */
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
     bool done = false;
     WSADATA wsadata;

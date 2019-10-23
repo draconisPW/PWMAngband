@@ -3,7 +3,7 @@
  * Purpose: Player implementation
  *
  * Copyright (c) 2011 elly+angband@leptoquark.net. See COPYING.
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -195,11 +195,11 @@ static void adjust_level(struct player *p)
 
             /* Restore stats */
             source_player(who, get_player_index(get_connection(p->conn)), p);
-            effect_simple(EF_RESTORE_STAT, who, "0", STAT_STR, 0, 0, 0, 0, NULL);
-            effect_simple(EF_RESTORE_STAT, who, "0", STAT_INT, 0, 0, 0, 0, NULL);
-            effect_simple(EF_RESTORE_STAT, who, "0", STAT_WIS, 0, 0, 0, 0, NULL);
-            effect_simple(EF_RESTORE_STAT, who, "0", STAT_DEX, 0, 0, 0, 0, NULL);
-            effect_simple(EF_RESTORE_STAT, who, "0", STAT_CON, 0, 0, 0, 0, NULL);
+            effect_simple(EF_RESTORE_STAT, who, "0", STAT_STR, 0, 0, NULL);
+            effect_simple(EF_RESTORE_STAT, who, "0", STAT_INT, 0, 0, NULL);
+            effect_simple(EF_RESTORE_STAT, who, "0", STAT_WIS, 0, 0, NULL);
+            effect_simple(EF_RESTORE_STAT, who, "0", STAT_DEX, 0, 0, NULL);
+            effect_simple(EF_RESTORE_STAT, who, "0", STAT_CON, 0, 0, NULL);
 
             /* Record this event in the character history */
             if (!(p->lev % 5))
@@ -217,7 +217,7 @@ static void adjust_level(struct player *p)
     if (redraw)
     {
         /* Update some stuff */
-        p->upkeep->update |= (PU_BONUS | PU_SPELLS | PU_MONSTERS);
+        p->upkeep->update |= (PU_BONUS | PU_SPELLS);
 
         /* Redraw some stuff */
         p->upkeep->redraw |= (PR_LEV | PR_TITLE | PR_EXP | PR_STATS | PR_EQUIP | PR_SPELL | PR_PLUSSES);
@@ -275,7 +275,6 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
 
     /* Add racial flags */
     of_copy(f, p->race->flags);
-    of_union(f, p->clazz->flags);
 
     /* Some classes become immune to fear at a certain plevel */
     if (player_has(p, PF_BRAVERY_30) && (p->lev >= 30))
@@ -479,7 +478,7 @@ void player_safe_name(char *safe, size_t safelen, const char *name)
 
 void player_cave_new(struct player *p, int height, int width)
 {
-    struct loc grid;
+    int y, x;
 
     if (p->cave->allocated) player_cave_free(p);
 
@@ -489,13 +488,13 @@ void player_cave_new(struct player *p, int height, int width)
     p->cave->squares = mem_zalloc(p->cave->height * sizeof(struct player_square*));
     p->cave->noise.grids = mem_zalloc(p->cave->height * sizeof(u16b*));
     p->cave->scent.grids = mem_zalloc(p->cave->height * sizeof(u16b*));
-    for (grid.y = 0; grid.y < p->cave->height; grid.y++)
+    for (y = 0; y < p->cave->height; y++)
     {
-        p->cave->squares[grid.y] = mem_zalloc(p->cave->width * sizeof(struct player_square));
-        for (grid.x = 0; grid.x < p->cave->width; grid.x++)
-            square_p(p, &grid)->info = mem_zalloc(SQUARE_SIZE * sizeof(bitflag));
-        p->cave->noise.grids[grid.y] = mem_zalloc(p->cave->width * sizeof(u16b));
-        p->cave->scent.grids[grid.y] = mem_zalloc(p->cave->width * sizeof(u16b));
+        p->cave->squares[y] = mem_zalloc(p->cave->width * sizeof(struct player_square));
+        for (x = 0; x < p->cave->width; x++)
+            p->cave->squares[y][x].info = mem_zalloc(SQUARE_SIZE * sizeof(bitflag));
+        p->cave->noise.grids[y] = mem_zalloc(p->cave->width * sizeof(u16b));
+        p->cave->scent.grids[y] = mem_zalloc(p->cave->width * sizeof(u16b));
     }
     p->cave->allocated = true;
 }
@@ -508,7 +507,6 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
 {
     int i;
     char history[N_HIST_LINES][N_HIST_WRAP];
-    connection_t *connp = get_connection(conn);
 
     /* Free player structure */
     cleanup_player(p);
@@ -555,7 +553,6 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
 
     /* Allocate memory for dungeon flags array */
     p->obj_aware = mem_zalloc(z_info->k_max * sizeof(bool));
-    p->note_aware = mem_zalloc(z_info->k_max * sizeof(quark_t));
     p->obj_tried = mem_zalloc(z_info->k_max * sizeof(bool));
     p->kind_ignore = mem_zalloc(z_info->k_max * sizeof(byte));
     p->kind_everseen = mem_zalloc(z_info->k_max * sizeof(byte));
@@ -590,7 +587,7 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
 
     /* Allocate memory for home storage */
     p->home = mem_zalloc(sizeof(struct store));
-    memcpy(p->home, &stores[store_max - 2], sizeof(struct store));
+    memcpy(p->home, &stores[STORE_HOME], sizeof(struct store));
     p->home->stock = NULL;
 
     /* Analyze every object */
@@ -612,15 +609,10 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
     p->feeling = -1;
 
     /* Update the wilderness map */
-    if ((cfg_diving_mode > 1) || no_recall)
+    if (cfg_diving_mode || no_recall)
         wild_set_explored(p, base_wpos());
     else
-    {
         wild_set_explored(p, start_wpos());
-
-        /* On "fast" wilderness servers, we also know the location of the base town */
-        if (cfg_diving_mode == 1) wild_set_explored(p, base_wpos());
-    }
 
     /* Copy channels pointer */
     p->on_channel = Conn_get_console_channels(conn);
@@ -645,9 +637,6 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
 
     /* Initialize extra parameters */
     for (i = ITYPE_NONE; i < ITYPE_MAX; i++) p->opts.ignore_lvl[i] = IGNORE_BAD;
-
-    for (i = 0; i < z_info->k_max; i++)
-        add_autoinscription(p, i, connp->Client_setup.note_aware[i]);
 }
 
 
@@ -701,7 +690,6 @@ void cleanup_player(struct player *p)
     mem_free(p->randart_info);
     mem_free(p->randart_created);
     mem_free(p->obj_aware);
-    mem_free(p->note_aware);
     mem_free(p->obj_tried);
     mem_free(p->kind_ignore);
     mem_free(p->kind_everseen);
@@ -745,21 +733,21 @@ void cleanup_player(struct player *p)
 
 void player_cave_free(struct player *p)
 {
-    struct loc grid;
+    int y, x;
 
     if (!p->cave->allocated) return;
 
-    for (grid.y = 0; grid.y < p->cave->height; grid.y++)
+    for (y = 0; y < p->cave->height; y++)
     {
-        for (grid.x = 0; grid.x < p->cave->width; grid.x++)
+        for (x = 0; x < p->cave->width; x++)
         {
-            mem_free(square_p(p, &grid)->info);
-            square_forget_pile(p, &grid);
-            square_forget_trap(p, &grid);
+            mem_free(p->cave->squares[y][x].info);
+            square_forget_pile(p, y, x);
+            square_forget_trap(p, y, x);
         }
-        mem_free(p->cave->squares[grid.y]);
-        mem_free(p->cave->noise.grids[grid.y]);
-        mem_free(p->cave->scent.grids[grid.y]);
+        mem_free(p->cave->squares[y]);
+        mem_free(p->cave->noise.grids[y]);
+        mem_free(p->cave->scent.grids[y]);
     }
     mem_free(p->cave->squares);
     mem_free(p->cave->noise.grids);
@@ -773,8 +761,7 @@ void player_cave_free(struct player *p)
  */
 void player_cave_clear(struct player *p, bool full)
 {
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x;
 
     /* Assume no feeling */
     if (full) p->feeling = -1;
@@ -782,56 +769,52 @@ void player_cave_clear(struct player *p, bool full)
     /* Reset number of feeling squares */
     if (full) p->cave->feeling_squares = 0;
 
-    loc_init(&begin, 0, 0);
-    loc_init(&end, p->cave->width, p->cave->height);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Clear flags and flow information. */
-    do
+    for (y = 0; y < p->cave->height; y++)
     {
-        /* Erase feat */
-        square_forget(p, &iter.cur);
-
-        /* Erase object */
-        square_forget_pile(p, &iter.cur);
-
-        /* Erase trap */
-        square_forget_trap(p, &iter.cur);
-
-        /* Erase flags */
-        if (full)
-            sqinfo_wipe(square_p(p, &iter.cur)->info);
-        else
+        for (x = 0; x < p->cave->width; x++)
         {
-            /* Erase flags (no bounds checking) */
-            sqinfo_off(square_p(p, &iter.cur)->info, SQUARE_SEEN);
-            sqinfo_off(square_p(p, &iter.cur)->info, SQUARE_VIEW);
-            sqinfo_off(square_p(p, &iter.cur)->info, SQUARE_DTRAP);
-        }
+            /* Erase feat */
+            square_forget(p, y, x);
 
-        /* Erase flow */
-        if (full)
-        {
-            p->cave->noise.grids[iter.cur.y][iter.cur.x] = 0;
-            p->cave->scent.grids[iter.cur.y][iter.cur.x] = 0;
+            /* Erase object */
+            square_forget_pile(p, y, x);
+
+            /* Erase trap */
+            square_forget_trap(p, y, x);
+
+            /* Erase flags */
+            if (full)
+                sqinfo_wipe(p->cave->squares[y][x].info);
+            else
+            {
+                /* Erase flags (no bounds checking) */
+                sqinfo_off(p->cave->squares[y][x].info, SQUARE_SEEN);
+                sqinfo_off(p->cave->squares[y][x].info, SQUARE_VIEW);
+                sqinfo_off(p->cave->squares[y][x].info, SQUARE_DTRAP);
+            }
+
+            /* Erase flow */
+            if (full)
+            {
+                p->cave->noise.grids[y][x] = 0;
+                p->cave->scent.grids[y][x] = 0;
+            }
         }
     }
-    while (loc_iterator_next_strict(&iter));
 
     /* Memorize the content of owned houses */
     memorize_houses(p);
 }
 
 
-bool player_square_in_bounds(struct player *p, struct loc *grid)
+bool player_square_in_bounds(struct player *p, int y, int x)
 {
-    return ((grid->x >= 0) && (grid->x < p->cave->width) &&
-        (grid->y >= 0) && (grid->y < p->cave->height));
+    return ((x >= 0) && (x < p->cave->width) && (y >= 0) && (y < p->cave->height));
 }
 
 
-bool player_square_in_bounds_fully(struct player *p, struct loc *grid)
+bool player_square_in_bounds_fully(struct player *p, int y, int x)
 {
-    return ((grid->x > 0) && (grid->x < p->cave->width - 1) &&
-        (grid->y > 0) && (grid->y < p->cave->height - 1));
+    return ((x > 0) && (x < p->cave->width - 1) && (y > 0) && (y < p->cave->height - 1));
 }

@@ -3,7 +3,7 @@
  * Purpose: Chunk allocation and utility functions
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -84,15 +84,7 @@ s16b ddd[9] =
 
 
 /*
- * Global array for converting "keypad direction" into "offsets".
- */
-struct loc ddgrid[10] =
-{{0, 0}, {-1, 1}, {0, 1}, {1, 1}, {-1, 0}, {0, 0}, {1, 0}, {-1, -1}, {0, -1}, {1, -1}};
-
-
-/*
- * Global arrays for optimizing "ddx[ddd[i]]", "ddy[ddd[i]]" and
- * "loc(ddx[ddd[i]], ddy[ddd[i]])".
+ * Global arrays for optimizing "ddx[ddd[i]]" and "ddy[ddd[i]]"
  *
  * This means that each entry in this array corresponds to the direction
  * with the same array index in ddd[].
@@ -102,9 +94,6 @@ s16b ddx_ddd[9] =
 
 s16b ddy_ddd[9] =
 { 1, -1, 0, 0, 1, 1, -1, -1, 0 };
-
-struct loc ddgrid_ddd[9] =
-{{0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, {-1, -1}, {0, 0}};
 
 
 /*
@@ -264,45 +253,6 @@ const byte side_dirs[20][8] =
 
 
 /*
- * Given a "start" and "finish" location, extract a "direction",
- * which will move one step from the "start" towards the "finish".
- *
- * Note that we use "diagonal" motion whenever possible.
- *
- * We return "5" if no motion is needed.
- */
-int motion_dir(struct loc *start, struct loc *finish)
-{
-    /* No movement required */
-    if (loc_eq(start, finish)) return 5;
-
-    /* South or North */
-    if (start->x == finish->x) return ((start->y < finish->y)? 2: 8);
-
-    /* East or West */
-    if (start->y == finish->y) return ((start->x < finish->x)? 6: 4);
-
-    /* South-east or South-west */
-    if (start->y < finish->y) return ((start->x < finish->x)? 3: 1);
-
-    /* North-east or North-west */
-    if (start->y > finish->y) return ((start->x < finish->x)? 9: 7);
-
-    /* Paranoia */
-    return 5;
-}
-
-
-/*
- * Given a grid and a direction, extract the adjacent grid in that direction
- */
-void next_grid(struct loc *next, struct loc *grid, int dir)
-{
-    loc_sum(next, grid, &ddgrid[dir]);
-}
-
-
-/*
  * Find a terrain feature index by name
  */
 int lookup_feat(const char *name)
@@ -388,7 +338,7 @@ void set_terrain(void)
  */
 struct chunk *cave_new(int height, int width)
 {
-    struct loc grid;
+    int y, x;
     struct chunk *c = mem_zalloc(sizeof(*c));
 
     c->height = height;
@@ -397,11 +347,11 @@ struct chunk *cave_new(int height, int width)
     c->feat_count = mem_zalloc(z_info->f_max * sizeof(int));
 
     c->squares = mem_zalloc(c->height * sizeof(struct square*));
-    for (grid.y = 0; grid.y < c->height; grid.y++)
+    for (y = 0; y < c->height; y++)
     {
-        c->squares[grid.y] = mem_zalloc(c->width * sizeof(struct square));
-        for (grid.x = 0; grid.x < c->width; grid.x++)
-            square(c, &grid)->info = mem_zalloc(SQUARE_SIZE * sizeof(bitflag));
+        c->squares[y] = mem_zalloc(c->width * sizeof(struct square));
+        for (x = 0; x < c->width; x++)
+            c->squares[y][x].info = mem_zalloc(SQUARE_SIZE * sizeof(bitflag));
     }
 
     c->monsters = mem_zalloc(z_info->level_monster_max * sizeof(struct monster));
@@ -419,19 +369,19 @@ struct chunk *cave_new(int height, int width)
  */
 void cave_free(struct chunk *c)
 {
-    struct loc grid;
+    int y, x;
 
-    for (grid.y = 0; grid.y < c->height; grid.y++)
+    for (y = 0; y < c->height; y++)
     {
-        for (grid.x = 0; grid.x < c->width; grid.x++)
+        for (x = 0; x < c->width; x++)
         {
-            mem_free(square(c, &grid)->info);
-            if (square(c, &grid)->trap)
-                square_free_trap(c, &grid);
-            if (square(c, &grid)->obj)
-                object_pile_free(square(c, &grid)->obj);
+            mem_free(c->squares[y][x].info);
+            if (c->squares[y][x].trap)
+                square_free_trap(c, y, x);
+            if (c->squares[y][x].obj)
+                object_pile_free(c->squares[y][x].obj);
         }
-        mem_free(c->squares[grid.y]);
+        mem_free(c->squares[y]);
     }
     mem_free(c->squares);
 
@@ -454,30 +404,31 @@ void cave_free(struct chunk *c)
  *
  * need_los determines whether line of sight is needed
  */
-bool scatter(struct chunk *c, struct loc *place, struct loc *grid, int d, bool need_los)
+bool scatter(struct chunk *c, int *yp, int *xp, int y, int x, int d, bool need_los)
 {
+    int nx, ny;
     int tries = 0;
 
     /* Pick a location, try many times */
     while (tries < 1000)
     {
-        struct loc new_grid;
-
         /* Pick a new location */
-        rand_loc(&new_grid, grid, d, d);
+        ny = rand_spread(y, d);
+        nx = rand_spread(x, d);
         tries++;
 
         /* Ignore annoying locations */
-        if (!square_in_bounds_fully(c, &new_grid)) continue;
+        if (!square_in_bounds_fully(c, ny, nx)) continue;
 
         /* Ignore "excessively distant" locations */
-        if ((d > 1) && (distance(grid, &new_grid) > d)) continue;
+        if ((d > 1) && (distance(y, x, ny, nx) > d)) continue;
 
         /* Require "line of sight" if set */
-        if (need_los && !los(c, grid, &new_grid)) continue;
+        if (need_los && !los(c, y, x, ny, nx)) continue;
 
         /* Set the location and return */
-        loc_copy(place, &new_grid);
+        (*yp) = ny;
+        (*xp) = nx;
         return true;
     }
 
@@ -518,10 +469,11 @@ int cave_monster_count(struct chunk *c)
 /*
  * Return the number of doors/traps around (or under) the character.
  */
-int count_feats(struct player *p, struct chunk *c, struct loc *grid,
-    bool (*test)(struct chunk *c, struct loc *grid), bool under)
+int count_feats(struct player *p, struct chunk *c, int *y, int *x,
+    bool (*test)(struct chunk *c, int y, int x), bool under)
 {
     int d;
+    int xx, yy;
 
     /* Count how many matches */
     int count = 0;
@@ -529,38 +481,35 @@ int count_feats(struct player *p, struct chunk *c, struct loc *grid,
     /* Check around (and under) the character */
     for (d = 0; d < 9; d++)
     {
-        struct loc adjacent;
-
         /* If not searching under player continue */
         if ((d == 8) && !under) continue;
 
         /* Extract adjacent (legal) location */
-        loc_sum(&adjacent, &p->grid, &ddgrid_ddd[d]);
+        yy = p->py + ddy_ddd[d];
+        xx = p->px + ddx_ddd[d];
 
         /* Paranoia */
-        if (!square_in_bounds_fully(c, &adjacent)) continue;
+        if (!square_in_bounds_fully(c, yy, xx)) continue;
 
         /* Must have knowledge */
-        if (!square_isknown(p, &adjacent)) continue;
+        if (!square_isknown(p, yy, xx)) continue;
 
         /* Not looking for this feature */
-        if (!((*test)(c, &adjacent))) continue;
+        if (!((*test)(c, yy, xx))) continue;
 
         /* Count it */
         ++count;
 
         /* Remember the location of the last feature found */
-        if (grid) loc_copy(grid, &adjacent);
+        if (x && y)
+        {
+            *y = yy;
+            *x = xx;
+        }
     }
 
     /* All done */
     return count;
-}
-
-
-struct loc *cave_find_decoy(struct chunk *c)
-{
-    return &c->decoy;
 }
 
 
@@ -577,7 +526,7 @@ void update_visuals(struct worldpos *wpos)
         struct player *p = player_get(i);
 
         /* If he's not here, skip him */
-        if (!wpos_eq(&p->wpos, wpos)) continue;
+        if (!COORDS_EQUAL(&p->wpos, wpos)) continue;
 
         /* Update the visuals */
         p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
@@ -588,7 +537,7 @@ void update_visuals(struct worldpos *wpos)
 /*
  * Note changes to viewable region
  */
-void note_viewable_changes(struct worldpos *wpos, struct loc *grid)
+void note_viewable_changes(struct worldpos *wpos, int y, int x)
 {
     int i;
 
@@ -598,10 +547,10 @@ void note_viewable_changes(struct worldpos *wpos, struct loc *grid)
         struct player *p = player_get(i);
 
         /* If he's not here, skip him */
-        if (!wpos_eq(&p->wpos, wpos)) continue;
+        if (!COORDS_EQUAL(&p->wpos, wpos)) continue;
 
         /* Note changes to viewable region */
-        if (square_isview(p, grid)) p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
+        if (square_isview(p, y, x)) p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
     }
 }
 
@@ -619,7 +568,7 @@ void fully_update_flow(struct worldpos *wpos)
         struct player *p = player_get(i);
 
         /* If he's not here, skip him */
-        if (!wpos_eq(&p->wpos, wpos)) continue;
+        if (!COORDS_EQUAL(&p->wpos, wpos)) continue;
     }
 }
 
@@ -629,43 +578,43 @@ void fully_update_flow(struct worldpos *wpos)
  */
 void display_fullmap(struct player *p)
 {
-    struct loc grid;
+    int x, y;
     struct chunk *cv = chunk_get(&p->wpos);
 
     /* Dump the map */
-    for (grid.y = 0; grid.y < z_info->dungeon_hgt; grid.y++)
+    for (y = 0; y < z_info->dungeon_hgt; y++)
     {
         /* First clear the old stuff */
-        for (grid.x = 0; grid.x < z_info->dungeon_wid; grid.x++)
+        for (x = 0; x < z_info->dungeon_wid; x++)
         {
-            p->scr_info[grid.y][grid.x].c = 0;
-            p->scr_info[grid.y][grid.x].a = 0;
-            p->trn_info[grid.y][grid.x].c = 0;
-            p->trn_info[grid.y][grid.x].a = 0;
+            p->scr_info[y][x].c = 0;
+            p->scr_info[y][x].a = 0;
+            p->trn_info[y][x].c = 0;
+            p->trn_info[y][x].a = 0;
         }
 
         /* Scan the columns of row "y" */
-        for (grid.x = 0; grid.x < z_info->dungeon_wid; grid.x++)
+        for (x = 0; x < z_info->dungeon_wid; x++)
         {
             u16b a, ta;
             char c, tc;
             struct grid_data g;
 
             /* Check bounds */
-            if (!square_in_bounds(cv, &grid)) continue;
+            if (!square_in_bounds(cv, y, x)) continue;
 
             /* Determine what is there */
-            map_info(p, cv, &grid, &g);
+            map_info(p, cv, y, x, &g);
             grid_data_as_text(p, cv, false, &g, &a, &c, &ta, &tc);
 
-            p->scr_info[grid.y][grid.x].c = c;
-            p->scr_info[grid.y][grid.x].a = a;
-            p->trn_info[grid.y][grid.x].c = tc;
-            p->trn_info[grid.y][grid.x].a = ta;
+            p->scr_info[y][x].c = c;
+            p->scr_info[y][x].a = a;
+            p->trn_info[y][x].c = tc;
+            p->trn_info[y][x].a = ta;
         }
 
         /* Send that line of info */
-        Send_fullmap(p, grid.y);
+        Send_fullmap(p, y);
     }
 
     /* Reset the line counter */
@@ -719,7 +668,7 @@ void update_health(struct source *who)
 }
 
 
-static void place_feature(struct player *p, struct chunk *c, int cur_feat)
+static void place_feature(struct player *p, struct chunk *c, byte cur_feat)
 {
     /* Can only place a staircase once */
     if ((cur_feat == FEAT_LESS) && (c->join->down.y || c->join->down.x))
@@ -734,47 +683,39 @@ static void place_feature(struct player *p, struct chunk *c, int cur_feat)
     }
 
     /* Remove a staircase */
-    if (square_isupstairs(c, &p->grid))
-        square_init_join_down(c);
-    if (square_isdownstairs(c, &p->grid))
-        square_init_join_up(c);
+    if (square_isupstairs(c, p->py, p->px))
+        square_set_join_down(c, 0, 0);
+    if (square_isdownstairs(c, p->py, p->px))
+        square_set_join_up(c, 0, 0);
 
     /* Place a staircase */
-    if (cur_feat == FEAT_LESS) square_set_upstairs(c, &p->grid);
-    if (cur_feat == FEAT_MORE) square_set_downstairs(c, &p->grid);
+    if (cur_feat == FEAT_LESS) square_set_upstairs(c, p->py, p->px);
+    if (cur_feat == FEAT_MORE) square_set_downstairs(c, p->py, p->px);
 }
 
 
-static void get_rectangle(struct chunk *c, struct loc *grid0, struct loc *gridmax)
+static void get_rectangle(struct chunk *c, int y0, int x0, int *ymax, int *xmax)
 {
     int y, x;
 
     /* Find the width of the rectangle to fill */
-    for (x = grid0->x; x < gridmax->x; x++)
+    for (x = x0; x < *xmax; x++)
     {
-        struct loc grid;
-
-        loc_init(&grid, x, grid0->y);
-
         /* Require a "clean" floor grid */
-        if (!square_canputitem(c, &grid))
+        if (!square_canputitem(c, y0, x))
         {
-            if (x < gridmax->x) gridmax->x = x;
+            if (x < *xmax) *xmax = x;
             break;
         }
     }
 
     /* Find the height of the rectangle to fill */
-    for (y = grid0->y; y < gridmax->y; y++)
+    for (y = y0; y < *ymax; y++)
     {
-        struct loc grid;
-
-        loc_init(&grid, grid0->x, y);
-
         /* Require a "clean" floor grid */
-        if (!square_canputitem(c, &grid))
+        if (!square_canputitem(c, y, x0))
         {
-            if (y < gridmax->y) gridmax->y = y;
+            if (y < *ymax) *ymax = y;
             break;
         }
     }
@@ -817,7 +758,7 @@ static int get_feat_byfuzzyname(char *name)
  */
 void master_build(struct player *p, char *parms)
 {
-    static int cur_feat = 0;
+    static byte cur_feat = 0;
     struct chunk *c = chunk_get(&p->wpos);
 
     /* Paranoia -- make sure the player is on a valid level */
@@ -843,7 +784,7 @@ void master_build(struct player *p, char *parms)
             if (feat == -1) break;
             if (feat_ismetamap(feat)) break;
 
-            cur_feat = feat;
+            cur_feat = (byte)feat;
             break;
         }
 
@@ -871,22 +812,20 @@ void master_build(struct player *p, char *parms)
             /* Draw a line if we have a valid direction */
             if (dir && (dir != 5) && VALID_DIR(dir))
             {
-                struct loc grid;
-
-                loc_copy(&grid, &p->grid);
+                s16b x = p->px, y = p->py;
 
                 /* Require a "clean" floor grid */
-                while (square_canputitem(c, &grid))
+                while (square_canputitem(c, y, x))
                 {
                     /* Set feature */
-                    square_set_feat(c, &grid, cur_feat);
+                    square_set_feat(c, y, x, cur_feat);
 
                     /* Update the visuals */
                     update_visuals(&p->wpos);
 
                     /* Use the given direction */
-                    grid.x += ddx[dir];
-                    grid.y += ddy[dir];
+                    x += ddx[dir];
+                    y += ddy[dir];
                 }
             }
 
@@ -896,8 +835,10 @@ void master_build(struct player *p, char *parms)
         /* Fill Rectangle */
         case 'r':
         {
-            struct loc begin, end;
-            struct loc_iterator iter;
+            int y = p->py;
+            int x = p->px;
+            int y_max = c->height - 1;
+            int x_max = c->width - 1;
 
             /* No rectangles of staircases */
             if ((cur_feat == FEAT_LESS) || (cur_feat == FEAT_MORE)) break;
@@ -909,26 +850,24 @@ void master_build(struct player *p, char *parms)
             if (feat_ishomedoor(cur_feat)) break;
 
             /* Find the width and height of the rectangle to fill */
-            loc_copy(&begin, &p->grid);
-            loc_init(&end, c->width - 1, c->height - 1);
-            while ((begin.y < end.y) && (begin.x < end.x))
+            while ((y < y_max) && (x < x_max))
             {
-                get_rectangle(c, &begin, &end);
-                begin.y++; begin.x++;
+                get_rectangle(c, y, x, &y_max, &x_max);
+                y++; x++;
             }
-
-            loc_iterator_first(&iter, &p->grid, &end);
 
             /* Fill rectangle */
-            do
+            for (y = p->py; y < y_max; y++)
             {
-                /* Set feature */
-                square_set_feat(c, &iter.cur, cur_feat);
+                for (x = p->px; x < x_max; x++)
+                {
+                    /* Set feature */
+                    square_set_feat(c, y, x, cur_feat);
 
-                /* Update the visuals */
-                update_visuals(&p->wpos);
+                    /* Update the visuals */
+                    update_visuals(&p->wpos);
+                }
             }
-            while (loc_iterator_next_strict(&iter));
 
             break;
         }
@@ -950,44 +889,40 @@ void master_build(struct player *p, char *parms)
 }
 
 
-void fill_dirt(struct chunk *c, struct loc *grid1, struct loc *grid2)
+void fill_dirt(struct chunk *c, int y1, int x1, int y2, int x2)
 {
-    struct loc_iterator iter;
+    int y, x;
 
-    loc_iterator_first(&iter, grid1, grid2);
-
-    do
-    {
-        square_set_feat(c, &iter.cur, FEAT_LOOSE_DIRT);
-    }
-    while (loc_iterator_next(&iter));
+    for (y = y1; y <= y2; y++)
+        for (x = x1; x <= x2; x++)
+            square_set_feat(c, y, x, FEAT_LOOSE_DIRT);
 }
 
 
-void add_crop(struct chunk *c, struct loc *grid1, struct loc *grid2, int orientation)
+void add_crop(struct chunk *c, int y1, int x1, int y2, int x2, int orientation)
 {
-    struct loc_iterator iter;
+    int y, x;
 
-    loc_iterator_first(&iter, grid1, grid2);
-
-    do
+    for (y = y1; y <= y2; y++)
     {
-        /* Different orientations */
-        if ((!orientation && (iter.cur.y % 2)) || (orientation && (iter.cur.x % 2)))
+        for (x = x1; x <= x2; x++)
         {
-            /* Set to crop */
-            square_set_feat(c, &iter.cur, FEAT_CROP);
+            /* Different orientations */
+            if ((!orientation && (y % 2)) || (orientation && (x % 2)))
+            {
+                /* Set to crop */
+                square_set_feat(c, y, x, FEAT_CROP);
+            }
         }
     }
-    while (loc_iterator_next(&iter));
 }
 
 
-int add_building(struct chunk *c, struct loc *grid1, struct loc *grid2, int type)
+byte add_building(struct chunk *c, int y1, int x1, int y2, int x2, int type)
 {
-    int floor_feature = FEAT_FLOOR, wall_feature = 0, door_feature = 0;
+    byte floor_feature = FEAT_FLOOR, wall_feature = 0, door_feature = 0;
     bool lit_room = true;
-    struct loc_iterator iter;
+    int y, x;
 
     /* Select features */
     switch (type)
@@ -1019,92 +954,79 @@ int add_building(struct chunk *c, struct loc *grid1, struct loc *grid2, int type
         }
     }
 
-    loc_iterator_first(&iter, grid1, grid2);
-
     /* Build a rectangular building */
-    do
+    for (y = y1; y <= y2; y++)
     {
-        /* Clear previous contents, add "basic" wall */
-        square_set_feat(c, &iter.cur, wall_feature);
-    }
-    while (loc_iterator_next(&iter));
-
-    grid1->x++;
-    grid1->y++;
-    loc_iterator_first(&iter, grid1, grid2);
-
-    /* Make it hollow */
-    do
-    {
-        /* Fill with floor */
-        square_set_feat(c, &iter.cur, floor_feature);
-
-        /* Make it "icky" */
-        sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
-
-        /* Make it glowing */
-        if (lit_room)
+        for (x = x1; x <= x2; x++)
         {
-            sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
-            sqinfo_on(square(c, &iter.cur)->info, SQUARE_GLOW);
+            /* Clear previous contents, add "basic" wall */
+            square_set_feat(c, y, x, wall_feature);
         }
     }
-    while (loc_iterator_next_strict(&iter));
 
-    grid1->x--;
-    grid1->y--;
+    /* Make it hollow */
+    for (y = y1 + 1; y < y2; y++)
+    {
+        for (x = x1 + 1; x < x2; x++)
+        {
+            /* Fill with floor */
+            square_set_feat(c, y, x, floor_feature);
+
+            /* Make it "icky" */
+            sqinfo_on(c->squares[y][x].info, SQUARE_VAULT);
+
+            /* Make it glowing */
+            if (lit_room)
+            {
+                sqinfo_on(c->squares[y][x].info, SQUARE_ROOM);
+                sqinfo_on(c->squares[y][x].info, SQUARE_GLOW);
+            }
+        }
+    }
 
     return door_feature;
 }
 
 
-void add_moat(struct chunk *c, struct loc *grid1, struct loc *grid2, struct loc drawbridge[3])
+void add_moat(struct chunk *c, int y1, int x1, int y2, int x2, int drawbridge_y[3],
+    int drawbridge_x[3])
 {
     int y, x;
-    struct loc grid;
 
     /* North / South */
-    for (x = grid1->x - 2; x <= grid2->x + 2; x++)
+    for (x = x1 - 2; x <= x2 + 2; x++)
     {
-        loc_init(&grid, x, grid1->y - 2);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
-        loc_init(&grid, x, grid1->y - 3);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
-        loc_init(&grid, x, grid2->y + 2);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
-        loc_init(&grid, x, grid2->y + 3);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        square_set_feat(c, y1 - 2, x, FEAT_WATER);
+        sqinfo_on(c->squares[y1 - 2][x].info, SQUARE_VAULT);
+        square_set_feat(c, y1 - 3, x, FEAT_WATER);
+        sqinfo_on(c->squares[y1 - 3][x].info, SQUARE_VAULT);
+        square_set_feat(c, y2 + 2, x, FEAT_WATER);
+        sqinfo_on(c->squares[y2 + 2][x].info, SQUARE_VAULT);
+        square_set_feat(c, y2 + 3, x, FEAT_WATER);
+        sqinfo_on(c->squares[y2 + 3][x].info, SQUARE_VAULT);
     }
 
     /* East / West */
-    for (y = grid1->y - 2; y <= grid2->y + 2; y++)
+    for (y = y1 - 2; y <= y2 + 2; y++)
     {
-        loc_init(&grid, grid1->x - 2, y);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
-        loc_init(&grid, grid1->x - 3, y);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
-        loc_init(&grid, grid2->x + 2, y);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
-        loc_init(&grid, grid2->x + 3, y);
-        square_set_feat(c, &grid, FEAT_WATER);
-        sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        square_set_feat(c, y, x1 - 2, FEAT_WATER);
+        sqinfo_on(c->squares[y][x1 - 2].info, SQUARE_VAULT);
+        square_set_feat(c, y, x1 - 3, FEAT_WATER);
+        sqinfo_on(c->squares[y][x1 - 3].info, SQUARE_VAULT);
+        square_set_feat(c, y, x2 + 2, FEAT_WATER);
+        sqinfo_on(c->squares[y][x2 + 2].info, SQUARE_VAULT);
+        square_set_feat(c, y, x2 + 3, FEAT_WATER);
+        sqinfo_on(c->squares[y][x2 + 3].info, SQUARE_VAULT);
     }
-    square_set_feat(c, &drawbridge[0], FEAT_DRAWBRIDGE);
-    sqinfo_on(square(c, &drawbridge[0])->info, SQUARE_VAULT);
-    square_set_feat(c, &drawbridge[1], FEAT_DRAWBRIDGE);
-    sqinfo_on(square(c, &drawbridge[1])->info, SQUARE_VAULT);
-    square_set_feat(c, &drawbridge[2], FEAT_DRAWBRIDGE);
-    sqinfo_on(square(c, &drawbridge[2])->info, SQUARE_VAULT);
+    square_set_feat(c, drawbridge_y[0], drawbridge_x[0], FEAT_DRAWBRIDGE);
+    sqinfo_on(c->squares[drawbridge_y[0]][drawbridge_x[0]].info, SQUARE_VAULT);
+    square_set_feat(c, drawbridge_y[1], drawbridge_x[1], FEAT_DRAWBRIDGE);
+    sqinfo_on(c->squares[drawbridge_y[1]][drawbridge_x[1]].info, SQUARE_VAULT);
+    square_set_feat(c, drawbridge_y[2], drawbridge_x[2], FEAT_DRAWBRIDGE);
+    sqinfo_on(c->squares[drawbridge_y[2]][drawbridge_x[2]].info, SQUARE_VAULT);
 }
 
 
 /* Player images for graphic mode */
-struct preset *presets;
-int presets_count;
+cave_view_type player_presets[MAX_PRESETS][MAX_XTRA_CLASSES][MAX_XTRA_RACES][MAX_SEXES];
+cave_view_type player_numbers[MAX_PRESETS][8];

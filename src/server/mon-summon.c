@@ -3,7 +3,7 @@
  * Purpose: Monster summoning
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -334,16 +334,22 @@ static bool summon_specific_okay(struct monster_race *race)
 /*
  * Check to see if you can call the monster
  */
-static bool can_call_monster(struct chunk *c, struct loc *grid, struct monster *mon)
+static bool can_call_monster(struct chunk *c, int y, int x, struct monster *mon)
 {
+    int oy, ox;
+
     /* Skip dead monsters */
     if (!mon->race) return false;
 
     /* Only consider callable monsters */
     if (!summon_specific_okay(mon->race)) return false;
 
+    /* Extract monster location */
+    oy = mon->fy;
+    ox = mon->fx;
+
     /* Make sure the summoned monster is not in LOS of the summoner */
-    if (los(c, grid, &mon->grid)) return false;
+    if (los(c, y, x, oy, ox)) return false;
 
     return true;
 }
@@ -352,9 +358,10 @@ static bool can_call_monster(struct chunk *c, struct loc *grid, struct monster *
 /*
  * Calls a monster from the level and moves it to the desired spot
  */
-static int call_monster(struct chunk *c, struct loc *grid)
+static int call_monster(struct chunk *c, int y, int x)
 {
     int i, mon_count, choice;
+    int oy, ox;
     int *mon_indices;
     struct monster *mon;
 
@@ -365,7 +372,7 @@ static int call_monster(struct chunk *c, struct loc *grid)
         mon = cave_monster(c, i);
 
         /* Figure out how many good monsters there are */
-        if (can_call_monster(c, grid, mon)) mon_count++;
+        if (can_call_monster(c, y, x, mon)) mon_count++;
     }
 
     /* There were no good monsters on the level */
@@ -383,7 +390,7 @@ static int call_monster(struct chunk *c, struct loc *grid)
         mon = cave_monster(c, i);
 
         /* Save the values of the good monster */
-        if (can_call_monster(c, grid, mon))
+        if (can_call_monster(c, y, x, mon))
         {
             mon_indices[mon_count] = i;
             mon_count++;
@@ -397,8 +404,12 @@ static int call_monster(struct chunk *c, struct loc *grid)
     mon = cave_monster(c, mon_indices[choice]);
     mem_free(mon_indices);
 
+    /* Extract monster location */
+    oy = mon->fy;
+    ox = mon->fx;
+
     /* Swap the monster */
-    monster_swap(c, &mon->grid, grid);
+    monster_swap(c, oy, ox, y, x);
 
     /* Wake it up */
     mon_clear_timed(NULL, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
@@ -432,14 +443,14 @@ static int call_monster(struct chunk *c, struct loc *grid)
  *
  * Note that this function may not succeed, though this is very rare.
  */
-int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev, int type,
+int summon_specific(struct player *p, struct chunk *c, int y1, int x1, int lev, int type,
     bool delay, bool call, int chance)
 {
+    int x = 0, y = 0;
     struct monster *mon;
     struct monster_race *race;
     byte status = MSTATUS_HOSTILE, status_player = MSTATUS_SUMMONED;
     int summon_level = (monster_level(&p->wpos) + lev) / 2 + 5;
-    struct loc nearby;
 
     /* Paranoia, make sure the level is allocated */
     if (!c) return 0;
@@ -448,7 +459,7 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
     if (forbid_town(&c->wpos)) return 0;
 
     /* Look for a location, allow up to 4 squares away */
-    if (!summon_location(c, &nearby, grid, 60)) return 0;
+    if (!summon_location(c, &y, &x, y1, x1, 60)) return 0;
 
     /* Hack -- monster summoned by the player */
     if (chance) status = MSTATUS_SUMMONED;
@@ -468,7 +479,7 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
 
     /* Use the new calling scheme if requested */
     if (call && (type != summon_name_to_idx("UNIQUE")) && (type != summon_name_to_idx("WRAITH")))
-        return call_monster(c, &nearby);
+        return call_monster(c, y, x);
 
     /* Prepare allocation table */
     get_mon_num_prep(summon_specific_okay);
@@ -517,14 +528,14 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
     if (!race) return 0;
 
     /* Attempt to place the monster (awake, don't allow groups) */
-    if (!place_new_monster(p, c, &nearby, race, 0, ORIGIN_DROP_SUMMON))
+    if (!place_new_monster(p, c, y, x, race, 0, ORIGIN_DROP_SUMMON))
         return 0;
 
     /*
      * If delay, try to let the player act before the summoned monsters,
      * including slowing down faster monsters for one turn
      */
-    mon = square_monster(c, &nearby);
+    mon = square_monster(c, y, x);
     if (delay)
     {
         mon->energy = 0;
@@ -545,10 +556,10 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
  * Summon a specific race near this location.
  * Summon until we can't find a location or we have summoned size...
  */
-bool summon_specific_race_aux(struct player *p, struct chunk *c, struct loc *grid,
+bool summon_specific_race_aux(struct player *p, struct chunk *c, int y1, int x1,
     struct monster_race *race, unsigned char size, bool pet)
 {
-    int n;
+    int n, x, y;
 
     /* Handle failure */
     if (!race) return false;
@@ -562,18 +573,16 @@ bool summon_specific_race_aux(struct player *p, struct chunk *c, struct loc *gri
     /* For each monster we are summoning */
     for (n = 0; n < size; n++)
     {
-        struct loc new_grid;
-
         /* Look for a location */
-        if (!summon_location(c, &new_grid, grid, 200)) return false;
+        if (!summon_location(c, &y, &x, y1, x1, 200)) return false;
 
         /* Attempt to place the monster (awake, don't allow groups) */
-        if (!place_new_monster(p, c, &new_grid, race, 0, ORIGIN_DROP_SUMMON))
+        if (!place_new_monster(p, c, y, x, race, 0, ORIGIN_DROP_SUMMON))
             return false;
 
         if (pet)
         {
-            struct monster *mon = square_monster(c, &new_grid);
+            struct monster *mon = square_monster(c, y, x);
 
             monster_set_master(mon, p, MSTATUS_ATTACK);
         }
@@ -584,10 +593,10 @@ bool summon_specific_race_aux(struct player *p, struct chunk *c, struct loc *gri
 }
 
 
-bool summon_specific_race(struct player *p, struct chunk *c, struct loc *grid,
+bool summon_specific_race(struct player *p, struct chunk *c, int y1, int x1,
     struct monster_race *race, unsigned char size)
 {
-    return summon_specific_race_aux(p, c, grid, race, size, false);
+    return summon_specific_race_aux(p, c, y1, x1, race, size, false);
 }
 
 
@@ -595,7 +604,7 @@ bool summon_specific_race(struct player *p, struct chunk *c, struct loc *grid,
 bool summon_specific_race_somewhere(struct player *p, struct chunk *c, struct monster_race *race,
     unsigned char size)
 {
-    struct loc grid;
+    int y, x;
     int tries = 50;
 
     /* Paranoia, make sure the level is allocated */
@@ -608,10 +617,11 @@ bool summon_specific_race_somewhere(struct player *p, struct chunk *c, struct mo
     while (--tries)
     {
         /* Pick a location */
-        loc_init(&grid, randint0(c->width), randint0(c->height));
+        y = randint0(c->height);
+        x = randint0(c->width);
 
         /* Require "naked" floor grid */
-        if (!square_isempty(c, &grid)) continue;
+        if (!square_isempty(c, y, x)) continue;
 
         /* We have a valid location */
         break;
@@ -621,7 +631,7 @@ bool summon_specific_race_somewhere(struct player *p, struct chunk *c, struct mo
     if (!tries) return false;
 
     /* Attempt to place the monster */
-    if (summon_specific_race(p, c, &grid, race, size)) return true;
+    if (summon_specific_race(p, c, y, x, race, size)) return true;
     return false;
 }
 
@@ -629,7 +639,7 @@ bool summon_specific_race_somewhere(struct player *p, struct chunk *c, struct mo
 /*
  * This function is used when a group of monsters is summoned.
  */
-int summon_monster_aux(struct player *p, struct chunk *c, struct loc *grid, int flag, int rlev,
+int summon_monster_aux(struct player *p, struct chunk *c, int y, int x, int flag, int rlev,
     int max, int chance)
 {
     int count = 0, val = 0, attempts = 0;
@@ -640,7 +650,7 @@ int summon_monster_aux(struct player *p, struct chunk *c, struct loc *grid, int 
     while ((val < p->wpos.depth * rlev) && (attempts < max))
     {
         /* Get a monster */
-        temp = summon_specific(p, c, grid, rlev, flag, false, false, chance);
+        temp = summon_specific(p, c, y, x, rlev, flag, false, false, chance);
 
         val += temp * temp;
 
@@ -653,7 +663,7 @@ int summon_monster_aux(struct player *p, struct chunk *c, struct loc *grid, int 
 
     /* If the summon failed and there's a fallback type, use that */
     if ((count == 0) && (fallback_type >= 0))
-        count = summon_monster_aux(p, c, grid, fallback_type, rlev, max, 0);
+        count = summon_monster_aux(p, c, y, x, fallback_type, rlev, max, 0);
 
     return count;
 }
@@ -662,7 +672,7 @@ int summon_monster_aux(struct player *p, struct chunk *c, struct loc *grid, int 
 /*
  * Get a location for summoned monsters.
  */
-bool summon_location(struct chunk *c, struct loc *place, struct loc *grid, int tries)
+bool summon_location(struct chunk *c, int *yp, int *xp, int y1, int x1, int tries)
 {
     int i;
 
@@ -673,13 +683,13 @@ bool summon_location(struct chunk *c, struct loc *place, struct loc *grid, int t
         int d = (i / 15) + 1;
 
         /* Pick a location */
-        if (!scatter(c, place, grid, d, true)) continue;
+        if (!scatter(c, yp, xp, y1, x1, d, true)) continue;
 
         /* Require "empty" floor grid */
-        if (!square_isemptyfloor(c, place)) continue;
+        if (!square_isemptyfloor(c, *yp, *xp)) continue;
 
-        /* No summon on glyphs */
-        if (square_trap_flag(c, place, TRF_GLYPH)) continue;
+        /* No summon on glyph of warding */
+        if (square_iswarded(c, *yp, *xp)) continue;
 
         /* Okay */
         return true;

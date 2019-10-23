@@ -8,17 +8,24 @@
 
 /*** Constants ***/
 
-/* List of store types */
+/* List of store indexes */
 enum
 {
-    STORE_OTHER = 0,
-    STORE_GENERAL,
-    STORE_TEMPLE,
-    STORE_B_MARKET,
-    STORE_XBM,
-    STORE_TAVERN,
-    STORE_HOME,
-    STORE_PLAYER
+    STORE_NONE = -1,
+    STORE_GENERAL = 0,
+    STORE_ARMOR = 1,
+    STORE_WEAPON = 2,
+    STORE_TEMPLE = 3,
+    STORE_ALCHEMY = 4,
+    STORE_MAGIC = 5,
+    STORE_LIBRARY = 6,
+    STORE_B_MARKET = 7,
+    STORE_XBM = 8,
+    STORE_TAVERN = 9,
+    STORE_HOME = 10,
+    STORE_PLAYER = 11,
+
+    MAX_STORES = 12
 };
 
 /*** Types ***/
@@ -41,13 +48,6 @@ struct owner
     s32b max_cost;      /* Purse limit */
 };
 
-struct normal_entry
-{
-    struct object_kind *kind;
-    s16b rarity;
-    s16b factor;
-};
-
 /*
  * A store, with an owner, various state flags, a current stock
  * of items, and a table of items that are often purchased.
@@ -56,8 +56,7 @@ struct store
 {
     struct owner *owners;       /* Owners */
     struct owner *owner;        /* Current owner */
-    int sidx;                   /* Index */
-    int type;                   /* Type */
+    unsigned int sidx;          /* Index */
     char *name;
     struct store *next;
     s16b stock_num;             /* Stock -- number of entries */
@@ -72,7 +71,7 @@ struct store
     /* Select a number of these items to stock */
     size_t normal_size;
     size_t normal_num;
-    struct normal_entry *normal_table;
+    struct object_kind **normal_table;
 
     /* Buy these items */
     struct object_buy *buy;

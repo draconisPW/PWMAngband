@@ -17,7 +17,6 @@ extern void check_term_resize(bool main_win, int *cols, int *rows);
 extern void net_term_resize(int cols, int rows, int max_rows);
 
 /*** Sending ***/
-extern int Send_features(int lighting, int off);
 extern int Send_verify(int type);
 extern int Send_icky(void);
 extern int Send_symbol(const char *buf);
@@ -36,6 +35,7 @@ extern int Send_destroy(struct object *obj, bool des);
 extern int Send_target_closest(int mode);
 extern int Send_cast(int book, int spell, int dir);
 extern int Send_open(struct command *cmd);
+extern int Send_pray(int book, int spell, int dir);
 extern int Send_quaff(struct command *cmd);
 extern int Send_read(struct command *cmd);
 extern int Send_take_off(struct command *cmd);
@@ -69,6 +69,7 @@ extern int Send_mimic(int page, int spell, int dir);
 extern int Send_clear(void);
 extern int Send_observe(struct command *cmd);
 extern int Send_store_examine(int item, bool describe);
+extern int Send_pass(const char *newpass);
 extern int Send_alter(struct command *cmd);
 extern int Send_fire_at_nearest(void);
 extern int Send_jump(struct command *cmd);
@@ -105,7 +106,6 @@ extern int Send_ignore(void);
 extern int Send_flush(void);
 extern int Send_chan(const char *channel);
 extern int Send_history(int line, const char *hist);
-extern int Send_autoinscriptions(void);
 
 /*** Commands ***/
 extern int textui_spell_browse(struct command *cmd);
@@ -114,6 +114,7 @@ extern int cmd_project(struct command *cmd);
 
 /*** General network functions ***/
 extern int Net_packet(void);
+extern int Net_verify(void);
 extern int Net_init(int fd);
 extern void Net_cleanup(void);
 extern int Net_flush(void);

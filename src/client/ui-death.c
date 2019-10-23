@@ -3,7 +3,7 @@
  * Purpose: Handle the UI bits that happen after the character dies.
  *
  * Copyright (c) 1987 - 2007 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -71,7 +71,7 @@ void print_tomb(void)
     put_str_centred(line++, 8, 8+31, "Exp: %d", (int)player->death_info.exp);
     put_str_centred(line++, 8, 8+31, "AU: %d", (int)player->death_info.au);
     put_str_centred(line++, 8, 8+31, "Killed on Level %d (%d, %d)", player->death_info.wpos.depth,
-        player->death_info.wpos.grid.x, player->death_info.wpos.grid.y);
+        player->death_info.wpos.wx, player->death_info.wpos.wy);
     put_str_centred(line++, 8, 8+31, "by %s.", player->death_info.died_from);
 
     line++;

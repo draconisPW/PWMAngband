@@ -3,7 +3,7 @@
  * Purpose: Monster spell casting and selection
  *
  * Copyright (c) 2010-14 Chris Carr and Nick McConnell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -31,7 +31,6 @@ typedef enum
     SPELL_TAG_NONE,
     SPELL_TAG_NAME,
     SPELL_TAG_PRONOUN,
-    SPELL_TAG_TARGET,
     SPELL_TAG_KIN
 } spell_tag_t;
 
@@ -40,7 +39,6 @@ static spell_tag_t spell_tag_lookup(const char *tag)
 {
     if (strncmp(tag, "name", 4) == 0) return SPELL_TAG_NAME;
     if (strncmp(tag, "pronoun", 7) == 0) return SPELL_TAG_PRONOUN;
-    if (strncmp(tag, "target", 6) == 0) return SPELL_TAG_TARGET;
     if (strncmp(tag, "kin", 3) == 0) return SPELL_TAG_KIN;
     return SPELL_TAG_NONE;
 }
@@ -53,7 +51,7 @@ static spell_tag_t spell_tag_lookup(const char *tag)
  * the message to replace instances of {name} or {pronoun}.
  */
 static void spell_message(struct player *p, struct monster *mon, const struct monster_spell *spell,
-    bool seen, bool hits, struct monster *target_mon)
+    bool seen, bool hits, bool mvm)
 {
     char buf[MSG_LEN] = "\0";
     const char *next;
@@ -67,7 +65,6 @@ static void spell_message(struct player *p, struct monster *mon, const struct mo
     /* Get the message */
     if (!seen)
     {
-        if (target_mon) return;
         if (strong && spell->blind_message_strong)
             in_cursor = spell->blind_message_strong;
         else
@@ -118,20 +115,6 @@ static void spell_message(struct player *p, struct monster *mon, const struct mo
                     strnfcat(buf, sizeof(buf), &end, m_poss);
                     break;
                 }
-                case SPELL_TAG_TARGET:
-                {
-                    char m_name[NORMAL_WID];
-
-                    if (target_mon)
-                    {
-                        monster_desc(p, m_name, sizeof(m_name), target_mon, MDESC_TARG);
-                        strnfcat(buf, sizeof(buf), &end, m_name);
-                    }
-                    else
-                        strnfcat(buf, sizeof(buf), &end, "you");
-
-                    break;
-                }
                 case SPELL_TAG_KIN:
                 {
                     strnfcat(buf, sizeof(buf), &end,
@@ -150,8 +133,12 @@ static void spell_message(struct player *p, struct monster *mon, const struct mo
     }
     strnfcat(buf, sizeof(buf), &end, in_cursor);
 
-    /* Hack -- replace "your" by "some" */
-    if (target_mon) strrep(tmp, sizeof(tmp), buf, "your", "some");
+    /* Hack -- replace "you"/"your" by "something"/"some" */
+    if (mvm)
+    {
+        strrep(tmp, sizeof(tmp), buf, "your", "some");
+        strrep(buf, sizeof(buf), tmp, "you", "something");
+    }
 
     if (spell->msgt) msgt(p, spell->msgt, buf);
     else msg(p, buf);
@@ -202,7 +189,7 @@ static void spell_check_for_fail_rune(struct player *p, const struct monster_spe
         if (effect->index == EF_TELEPORT_LEVEL) equip_learn_element(p, ELEM_NEXUS);
 
         /* Timed effects */
-        else if (effect->index == EF_TIMED_INC) player_inc_check(p, NULL, effect->subtype, false);
+        else if (effect->index == EF_TIMED_INC) player_inc_check(p, NULL, effect->params[0], false);
 
         effect = effect->next;
     }
@@ -214,13 +201,11 @@ static void spell_check_for_fail_rune(struct player *p, const struct monster_spe
  *
  * p is the affected player
  * c is the current cave level
- * target_mon is the target monster (or NULL if targeting the player)
  * index is the monster spell flag (RSF_FOO)
  * mon is the attacking monster
  * seen is whether the player can see the monster at this moment
  */
-void do_mon_spell(struct player *p, struct chunk *c, struct monster *target_mon, int index,
-    struct monster *mon, bool seen)
+void do_mon_spell(struct player *p, struct chunk *c, int index, struct monster *mon, bool seen)
 {
     const struct monster_spell *spell = monster_spell_by_index(index);
     bool ident = false;
@@ -228,7 +213,7 @@ void do_mon_spell(struct player *p, struct chunk *c, struct monster *target_mon,
     const struct mon_spell_info *info = &mon_spell_types[index];
 
     /* Antimagic field prevents magical spells from working */
-    if (!(info->type & (RST_BREATH | RST_DIRECT | RST_MISSILE)) && check_antimagic(p, c, mon))
+    if (!(info->type & (RST_BREATH | RST_ATTACK | RST_MISSILE)) && check_antimagic(p, c, mon))
         return;
 
     /* Antisummon field prevents summoning spells from working */
@@ -242,32 +227,23 @@ void do_mon_spell(struct player *p, struct chunk *c, struct monster *target_mon,
     else
     {
         int rlev = MAX(mon->race->level, 1);
-        int accuracy = monster_effect_accuracy(mon, MON_TMD_CONF, CONF_HIT_REDUCTION);
-        struct source target_body;
-        struct source *target = &target_body;
+        int debuff = (mon->m_timed[MON_TMD_CONF]? CONF_HIT_REDUCTION: 0);
+        struct source who_body;
+        struct source *who = &who_body;
 
-        if (target_mon) source_monster(target, target_mon);
-        else source_player(target, get_player_index(get_connection(p->conn)), p);
-
-        hits = check_hit(target, spell->hit, rlev, accuracy);
+        source_player(who, get_player_index(get_connection(p->conn)), p);
+        hits = check_hit(who, spell->hit, rlev, debuff);
     }
 
     /* Tell the player what's going on */
     disturb(p, 1);
-    spell_message(p, mon, spell, seen, hits, target_mon);
+    spell_message(p, mon, spell, seen, hits, false);
 
     if (hits)
     {
-        bool save = false;
-
-        if (!target_mon)
-        {
-            if ((info->save & RSV_SKILL) && magik(p->state.skills[SKILL_SAVE])) save = true;
-            if ((info->save & RSV_UNDEAD) && resist_undead_attacks(p, mon->race)) save = true;
-        }
-
         /* Try a saving throw if available */
-        if (save)
+        if (((info->save & RSV_SKILL) && magik(p->state.skills[SKILL_SAVE])) ||
+            ((info->save & RSV_UNDEAD) && resist_undead_attacks(p, mon->race)))
         {
             msg(p, spell->save_message);
             spell_check_for_fail_rune(p, spell);
@@ -278,12 +254,12 @@ void do_mon_spell(struct player *p, struct chunk *c, struct monster *target_mon,
             struct source *who = &who_body;
 
             /* Learn about projectable attacks */
-            if (!target_mon && (info->type & (RST_BOLT | RST_BALL | RST_BREATH)))
-                update_smart_learn(mon, p, 0, 0, spell->effect->subtype);
+            if (info->type & (RST_BOLT | RST_BALL | RST_BREATH))
+                update_smart_learn(mon, p, 0, 0, spell->effect->params[0]);
 
             source_player(who, get_player_index(get_connection(p->conn)), p);
             who->monster = mon;
-            effect_do(spell->effect, who, &ident, true, 0, NULL, 0, 0, target_mon);
+            effect_do(spell->effect, who, &ident, true, 0, NULL, 0, 0, NULL);
         }
     }
 }
@@ -308,7 +284,8 @@ static bool monster_spell_is_breath(int index)
 
 static bool mon_spell_has_damage(int index)
 {
-    return ((mon_spell_types[index].type & RST_DAMAGE)? true: false);
+    return ((mon_spell_types[index].type & (RST_BOLT | RST_BALL | RST_BREATH | RST_ATTACK))?
+        true: false);
 }
 
 
@@ -404,7 +381,7 @@ void unset_spells(struct player *p, bitflag *spells, bitflag *flags, bitflag *pf
         /* First we test the elemental spells */
         if (info->type & (RST_BOLT | RST_BALL | RST_BREATH))
         {
-            int element = effect->subtype;
+            int element = effect->params[0];
             int learn_chance = el[element].res_level * (smart? 50: 25);
 
             if (magik(learn_chance)) rsf_off(spells, info->index);
@@ -415,7 +392,7 @@ void unset_spells(struct player *p, bitflag *spells, bitflag *flags, bitflag *pf
         {
             while (effect)
             {
-                int protect_flag = timed_effects[effect->subtype].fail;
+                int protect_flag = timed_effects[effect->params[0]].fail;
 
                 /* Timed effects */
                 if ((smart || !one_in_(3)) && (effect->index == EF_TIMED_INC) && protect_flag &&
@@ -512,7 +489,7 @@ static int mon_spell_dam(int index, int hp, const struct monster_race *race, asp
 {
     const struct monster_spell *spell = monster_spell_by_index(index);
 
-    if (monster_spell_is_breath(index)) return breath_dam(spell->effect->subtype, hp);
+    if (monster_spell_is_breath(index)) return breath_dam(spell->effect->params[0], hp);
     return nonhp_dam(spell, race, dam_aspect);
 }
 
@@ -595,6 +572,63 @@ void init_spells(bitflag *f)
 }
 
 
+/*
+ * Process a monster spell (MvM)
+ *
+ * p is the affected player
+ * c is the current cave level
+ * target_m_ptr is the target monster
+ * index is the monster attack flag (RSF_FOO)
+ * mon is the attacking monster
+ * seen is whether the player can see the monster at this moment
+ */
+void do_mon_spell_MvM(struct player *p, struct chunk *c, struct monster *target_m_ptr, int index,
+    struct monster *mon, bool seen)
+{
+    const struct monster_spell *spell = monster_spell_by_index(index);
+    bool ident;
+    bool hits;
+    const struct mon_spell_info *info = &mon_spell_types[index];
+
+    /* Antimagic field prevents magical spells from working */
+    if (!(info->type & (RST_BREATH | RST_ATTACK | RST_MISSILE)) && check_antimagic(p, c, mon))
+        return;
+
+    /* Antisummon field prevents summoning spells from working */
+    if ((info->type & RST_SUMMON) && check_antisummon(p, mon)) return;
+
+    /* See if it hits */
+    if (spell->hit == 100)
+        hits = true;
+    else if (spell->hit == 0)
+        hits = false;
+    else
+    {
+        int rlev = MAX(mon->race->level, 1);
+        int debuff = (mon->m_timed[MON_TMD_CONF]? CONF_HIT_REDUCTION: 0);
+        struct source target_body;
+        struct source *target = &target_body;
+
+        source_monster(target, target_m_ptr);
+        hits = check_hit(target, spell->hit, rlev, debuff);
+    }
+
+    /* Tell the player what's going on */
+    disturb(p, 1);
+    spell_message(p, mon, spell, seen, hits, true);
+
+    if (hits)
+    {
+        struct source who_body;
+        struct source *who = &who_body;
+
+        source_player(who, get_player_index(get_connection(p->conn)), p);
+        who->monster = mon;
+        effect_do(spell->effect, who, &ident, true, 0, NULL, 0, 0, target_m_ptr);
+    }
+}
+
+
 bool is_spell_summon(int index)
 {
     const struct mon_spell_info *info = &mon_spell_types[index];
@@ -608,7 +642,7 @@ int spell_effect(int index)
 {
     const struct monster_spell *spell = monster_spell_by_index(index);
 
-    return spell->effect->subtype;
+    return spell->effect->params[0];
 }
 
 

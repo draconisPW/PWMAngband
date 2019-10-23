@@ -3,7 +3,7 @@
  * Purpose: Individual saving functions
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -108,10 +108,10 @@ static void wr_item(struct object *obj)
     wr_byte(ITEM_VERSION);
 
     /* Location */
-    wr_byte(obj->grid.y);
-    wr_byte(obj->grid.x);
-    wr_s16b(obj->wpos.grid.y);
-    wr_s16b(obj->wpos.grid.x);
+    wr_byte(obj->iy);
+    wr_byte(obj->ix);
+    wr_s16b(obj->wpos.wy);
+    wr_s16b(obj->wpos.wx);
     wr_s16b(obj->wpos.depth);
 
     wr_tval_sval(obj->tval, obj->sval);
@@ -208,7 +208,6 @@ static void wr_item(struct object *obj)
     /* PWMAngband */
     wr_s32b(obj->creator);
     wr_s32b(obj->owner);
-    wr_byte(obj->level_req);
     wr_byte(obj->ignore_protect);
     wr_byte(obj->ordered);
     wr_s16b(obj->decay);
@@ -364,8 +363,8 @@ void wr_player(void *data)
     wr_s32b(p->death_info.exp);
     wr_s32b(p->death_info.au);
     wr_s16b(p->death_info.max_depth);
-    wr_s16b(p->death_info.wpos.grid.y);
-    wr_s16b(p->death_info.wpos.grid.x);
+    wr_s16b(p->death_info.wpos.wy);
+    wr_s16b(p->death_info.wpos.wx);
     wr_s16b(p->death_info.wpos.depth);
     wr_string(p->death_info.died_from);
     wr_s32b((s32b)p->death_info.time);
@@ -414,6 +413,7 @@ void wr_player(void *data)
     wr_s16b(p->food);
     wr_s32b(p->energy);
     wr_s16b(p->word_recall);
+    wr_byte(p->confusing);
     wr_byte(p->stealthy);
 
     /* Find the number of timed effects */
@@ -574,9 +574,6 @@ void wr_player_spells(void *data)
 
     /* Dump spell power */
     for (i = 0; i < p->clazz->magic.total_spells; i++) wr_byte(p->spell_power[i]);
-
-    /* Dump spell cooldown */
-    for (i = 0; i < p->clazz->magic.total_spells; i++) wr_byte(p->spell_cooldown[i]);
 }
 
 
@@ -638,18 +635,15 @@ void wr_stores(void *unused)
     int i;
 
     /* Note the stores */
-    wr_u16b(store_max);
+    wr_u16b(MAX_STORES);
 
     /* Dump the stores */
-    for (i = 0; i < store_max; i++)
+    for (i = 0; i < MAX_STORES; i++)
     {
         struct store *store = &stores[i];
 
         wr_store(store);
     }
-
-    /* Note the store orders */
-    wr_u16b(STORE_ORDERS);
 
     /* Dump the store orders */
     for (i = 0; i < STORE_ORDERS; i++) wr_string(store_orders[i]);
@@ -664,21 +658,20 @@ void wr_stores(void *unused)
 void wr_player_dungeon(void *data)
 {
     struct player *p = (struct player *)data;
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x;
     size_t i;
-    byte tmp8u, prev_char;
+    byte tmp8u;
     byte count;
-    u16b tmp16u, prev_feat;
+    byte prev_char;
 
     if (p->is_dead) return;
 
     /* Dungeon specific info follows */
-    wr_s16b(p->wpos.grid.y);
-    wr_s16b(p->wpos.grid.x);
+    wr_s16b(p->wpos.wy);
+    wr_s16b(p->wpos.wx);
     wr_s16b(p->wpos.depth);
-    wr_s16b(p->grid.y);
-    wr_s16b(p->grid.x);
+    wr_s16b(p->py);
+    wr_s16b(p->px);
     wr_u16b(p->cave->height);
     wr_u16b(p->cave->width);
 
@@ -686,53 +679,15 @@ void wr_player_dungeon(void *data)
 
     /* Note that this will induce two wasted bytes */
     count = 0;
-    prev_feat = 0;
-
-    loc_init(&begin, 0, 0);
-    loc_init(&end, p->cave->width, p->cave->height);
-    loc_iterator_first(&iter, &begin, &end);
+    prev_char = 0;
 
     /* Run length encoding of cave->squares[y][x].feat */
-    do
+    for (y = 0; y < p->cave->height; y++)
     {
-        /* Extract a byte */
-        tmp16u = square_p(p, &iter.cur)->feat;
-
-        /* If the run is broken, or too full, flush it */
-        if ((tmp16u != prev_feat) || (count == UCHAR_MAX))
+        for (x = 0; x < p->cave->width; x++)
         {
-            wr_byte(count);
-            wr_u16b(prev_feat);
-            prev_feat = tmp16u;
-            count = 1;
-        }
-
-        /* Continue the run */
-        else
-            count++;
-    }
-    while (loc_iterator_next_strict(&iter));
-
-    /* Flush the data (if any) */
-    if (count)
-    {
-        wr_byte(count);
-        wr_u16b(prev_feat);
-    }
-
-    /* Run length encoding of cave->squares[y][x].info */
-    for (i = 0; i < SQUARE_SIZE; i++)
-    {
-        count = 0;
-        prev_char = 0;
-
-        loc_iterator_first(&iter, &begin, &end);
-
-        /* Dump for each grid */
-        do
-        {
-            /* Extract the important cave->squares[y][x].info flags */
-            tmp8u = square_p(p, &iter.cur)->info[i];
+            /* Extract a byte */
+            tmp8u = p->cave->squares[y][x].feat;
 
             /* If the run is broken, or too full, flush it */
             if ((tmp8u != prev_char) || (count == UCHAR_MAX))
@@ -747,7 +702,43 @@ void wr_player_dungeon(void *data)
             else
                 count++;
         }
-        while (loc_iterator_next_strict(&iter));
+    }
+
+    /* Flush the data (if any) */
+    if (count)
+    {
+        wr_byte((byte)count);
+        wr_byte((byte)prev_char);
+    }
+
+    /* Run length encoding of cave->squares[y][x].info */
+    for (i = 0; i < SQUARE_SIZE; i++)
+    {
+        count = 0;
+        prev_char = 0;
+
+        /* Dump for each grid */
+        for (y = 0; y < p->cave->height; y++)
+        {
+            for (x = 0; x < p->cave->width; x++)
+            {
+                /* Extract the important cave->squares[y][x].info flags */
+                tmp8u = p->cave->squares[y][x].info[i];
+
+                /* If the run is broken, or too full, flush it */
+                if ((tmp8u != prev_char) || (count == UCHAR_MAX))
+                {
+                    wr_byte((byte)count);
+                    wr_byte((byte)prev_char);
+                    prev_char = tmp8u;
+                    count = 1;
+                }
+
+                /* Continue the run */
+                else
+                    count++;
+            }
+        }
 
         /* Flush the data (if any) */
         if (count)
@@ -764,21 +755,18 @@ void wr_player_dungeon(void *data)
  */
 void wr_level(void *data)
 {
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x;
     size_t i;
     byte tmp8u;
     byte count;
     byte prev_char;
-    u16b tmp16u;
-    u16b prev_feat;
     struct chunk *c = chunk_get((struct worldpos *)data);
 
     /* Dungeon specific info follows */
 
     /* Coordinates */
-    wr_s16b(c->wpos.grid.y);
-    wr_s16b(c->wpos.grid.x);
+    wr_s16b(c->wpos.wy);
+    wr_s16b(c->wpos.wx);
     wr_s16b(c->wpos.depth);
 
     /* Dungeon size */
@@ -790,61 +778,23 @@ void wr_level(void *data)
     wr_hturn(&c->generated);
 
     /* Write connector info */
-    wr_loc(&c->join->up);
-    wr_loc(&c->join->down);
-    wr_loc(&c->join->rand);
+    wr_loc(c->join->up);
+    wr_loc(c->join->down);
+    wr_loc(c->join->rand);
 
     /*** Simple "Run-Length-Encoding" of cave ***/
 
     /* Note that this will induce two wasted bytes */
     count = 0;
-    prev_feat = 0;
-
-    loc_init(&begin, 0, 0);
-    loc_init(&end, c->width, c->height);
-    loc_iterator_first(&iter, &begin, &end);
+    prev_char = 0;
 
     /* Run length encoding of cave->squares[y][x].feat */
-    do
+    for (y = 0; y < c->height; y++)
     {
-        /* Extract a byte */
-        tmp16u = square(c, &iter.cur)->feat;
-
-        /* If the run is broken, or too full, flush it */
-        if ((tmp16u != prev_feat) || (count == UCHAR_MAX))
+        for (x = 0; x < c->width; x++)
         {
-            wr_byte(count);
-            wr_u16b(prev_feat);
-            prev_feat = tmp16u;
-            count = 1;
-        }
-
-        /* Continue the run */
-        else
-            count++;
-    }
-    while (loc_iterator_next_strict(&iter));
-
-    /* Flush the data (if any) */
-    if (count)
-    {
-        wr_byte(count);
-        wr_u16b(prev_feat);
-    }
-
-    /* Run length encoding of cave->squares[y][x].info */
-    for (i = 0; i < SQUARE_SIZE; i++)
-    {
-        count = 0;
-        prev_char = 0;
-
-        loc_iterator_first(&iter, &begin, &end);
-
-        /* Dump for each grid */
-        do
-        {
-            /* Extract the important cave->squares[y][x].info flags */
-            tmp8u = square(c, &iter.cur)->info[i];
+            /* Extract a byte */
+            tmp8u = c->squares[y][x].feat;
 
             /* If the run is broken, or too full, flush it */
             if ((tmp8u != prev_char) || (count == UCHAR_MAX))
@@ -859,7 +809,43 @@ void wr_level(void *data)
             else
                 count++;
         }
-        while (loc_iterator_next_strict(&iter));
+    }
+
+    /* Flush the data (if any) */
+    if (count)
+    {
+        wr_byte((byte)count);
+        wr_byte((byte)prev_char);
+    }
+
+    /* Run length encoding of cave->squares[y][x].info */
+    for (i = 0; i < SQUARE_SIZE; i++)
+    {
+        count = 0;
+        prev_char = 0;
+
+        /* Dump for each grid */
+        for (y = 0; y < c->height; y++)
+        {
+            for (x = 0; x < c->width; x++)
+            {
+                /* Extract the important cave->squares[y][x].info flags */
+                tmp8u = c->squares[y][x].info[i];
+
+                /* If the run is broken, or too full, flush it */
+                if ((tmp8u != prev_char) || (count == UCHAR_MAX))
+                {
+                    wr_byte((byte)count);
+                    wr_byte((byte)prev_char);
+                    prev_char = tmp8u;
+                    count = 1;
+                }
+
+                /* Continue the run */
+                else
+                    count++;
+            }
+        }
 
         /* Flush the data (if any) */
         if (count)
@@ -876,18 +862,17 @@ void wr_level(void *data)
  */
 void wr_dungeon(void *unused)
 {
-    int i;
-    struct loc grid;
+    int i, x, y;
     u32b tmp32u = 0;
 
     wr_byte(SQUARE_SIZE);
 
     /* Get the number of levels to dump */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -904,11 +889,11 @@ void wr_dungeon(void *unused)
 
     /* Write the levels players are actually on - and special levels */
     /* Note that this saves the player count */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -923,11 +908,11 @@ void wr_dungeon(void *unused)
     /*** Compact ***/
 
     /* Compact the monsters */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -945,28 +930,26 @@ void wr_dungeon(void *unused)
  */
 static void wr_objects_aux(struct chunk *c)
 {
-    struct loc begin, end;
-    struct loc_iterator iter;
-
-    loc_init(&begin, 0, 0);
-    loc_init(&end, c->width, c->height);
-    loc_iterator_first(&iter, &begin, &end);
+    int y, x;
 
     /* Write the objects */
-    do
+    for (y = 0; y < c->height; y++)
     {
-        struct object *obj = square(c, &iter.cur)->obj;
-        while (obj)
+        for (x = 0; x < c->width; x++)
         {
-            wr_item(obj);
+            struct object *obj = c->squares[y][x].obj;
 
-            /* Dump known object */
-            wr_item(obj->known);
+            while (obj)
+            {
+                wr_item(obj);
 
-            obj = obj->next;
+                /* Dump known object */
+                wr_item(obj->known);
+
+                obj = obj->next;
+            }
         }
     }
-    while (loc_iterator_next_strict(&iter));
 
     /* Write a dummy record as a marker */
     wr_dummy_item();
@@ -979,30 +962,28 @@ static void wr_objects_aux(struct chunk *c)
 void wr_player_objects(void *data)
 {
     struct player *p = (struct player *)data;
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int y, x;
 
     if (p->is_dead) return;
 
-    loc_init(&begin, 0, 0);
-    loc_init(&end, p->cave->width, p->cave->height);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Write the objects */
-    do
+    for (y = 0; y < p->cave->height; y++)
     {
-        struct object *obj = square_p(p, &iter.cur)->obj;
-        while (obj)
+        for (x = 0; x < p->cave->width; x++)
         {
-            wr_item(obj);
+            struct object *obj = p->cave->squares[y][x].obj;
 
-            /* Dump known object */
-            wr_item(obj->known);
+            while (obj)
+            {
+                wr_item(obj);
 
-            obj = obj->next;
+                /* Dump known object */
+                wr_item(obj->known);
+
+                obj = obj->next;
+            }
         }
     }
-    while (loc_iterator_next_strict(&iter));
 
     /* Write a dummy record as a marker */
     wr_dummy_item();
@@ -1011,16 +992,15 @@ void wr_player_objects(void *data)
 
 void wr_objects(void *unused)
 {
-    int i;
-    struct loc grid;
+    int i, x, y;
     u32b tmp32u = 0;
 
     /* Get the number of levels to dump */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -1036,11 +1016,11 @@ void wr_objects(void *unused)
     wr_u32b(tmp32u);
 
     /* Write the objects */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -1049,8 +1029,8 @@ void wr_objects(void *unused)
                 if (c && level_keep_allocated(c))
                 {
                     /* Write the coordinates */
-                    wr_s16b(c->wpos.grid.y);
-                    wr_s16b(c->wpos.grid.x);
+                    wr_s16b(c->wpos.wy);
+                    wr_s16b(c->wpos.wx);
                     wr_s16b(c->wpos.depth);
 
                     wr_objects_aux(c);
@@ -1070,10 +1050,10 @@ static void wr_monster(const struct monster *mon)
     struct object *obj = mon->held_obj;
 
     wr_race(mon->race);
-    wr_byte(mon->grid.y);
-    wr_byte(mon->grid.x);
-    wr_s16b(mon->wpos.grid.y);
-    wr_s16b(mon->wpos.grid.x);
+    wr_byte(mon->fy);
+    wr_byte(mon->fx);
+    wr_s16b(mon->wpos.wy);
+    wr_s16b(mon->wpos.wx);
     wr_s16b(mon->wpos.depth);
     wr_s32b(mon->hp);
     wr_s32b(mon->maxhp);
@@ -1093,7 +1073,7 @@ static void wr_monster(const struct monster *mon)
     /* Mimic stuff */
     wr_byte(mon->camouflage);
     wr_s16b(mon->mimicked_k_idx);
-    wr_u16b(mon->feat);
+    wr_byte(mon->feat);
 
     /* New level-related data */
     wr_s16b(mon->ac);
@@ -1164,16 +1144,15 @@ static void wr_monsters_aux(struct chunk *c)
 
 void wr_monsters(void *unused)
 {
-    int i;
-    struct loc grid;
+    int i, x, y;
     u32b tmp32u = 0;
 
     /* Get the number of levels to dump */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -1189,11 +1168,11 @@ void wr_monsters(void *unused)
     wr_u32b(tmp32u);
 
     /* Write the monsters */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -1202,8 +1181,8 @@ void wr_monsters(void *unused)
                 if (c && level_keep_allocated(c))
                 {
                     /* Write the coordinates */
-                    wr_s16b(c->wpos.grid.y);
-                    wr_s16b(c->wpos.grid.x);
+                    wr_s16b(c->wpos.wy);
+                    wr_s16b(c->wpos.wx);
                     wr_s16b(c->wpos.depth);
 
                     wr_monsters_aux(c);
@@ -1232,8 +1211,8 @@ static void wr_trap(struct trap *trap)
     size_t i;
 
     wr_trap_kind(trap->kind);
-    wr_byte(trap->grid.y);
-    wr_byte(trap->grid.x);
+    wr_byte(trap->fy);
+    wr_byte(trap->fx);
     wr_byte(trap->power);
     wr_byte(trap->timeout);
 
@@ -1245,27 +1224,25 @@ static void wr_trap(struct trap *trap)
 void wr_player_traps(void *data)
 {
     struct player *p = (struct player *)data;
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int x, y;
     struct trap *dummy;
 
     if (p->is_dead) return;
 
-    loc_init(&begin, 0, 0);
-    loc_init(&end, p->cave->width, p->cave->height);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Write the traps */
-    do
+    for (y = 0; y < p->cave->height; y++)
     {
-        struct trap *trap = square_p(p, &iter.cur)->trap;
-        while (trap)
+        for (x = 0; x < p->cave->width; x++)
         {
-            wr_trap(trap);
-            trap = trap->next;
+            struct trap *trap = p->cave->squares[y][x].trap;
+
+            while (trap)
+            {
+                wr_trap(trap);
+                trap = trap->next;
+            }
         }
     }
-    while (loc_iterator_next_strict(&iter));
 
     /* Write a dummy record as a marker */
     dummy = mem_zalloc(sizeof(*dummy));
@@ -1276,30 +1253,28 @@ void wr_player_traps(void *data)
 
 static void wr_level_traps(struct chunk *c)
 {
-    struct loc begin, end;
-    struct loc_iterator iter;
+    int x, y;
     struct trap *dummy;
 
     /* Write the coordinates */
-    wr_s16b(c->wpos.grid.y);
-    wr_s16b(c->wpos.grid.x);
+    wr_s16b(c->wpos.wy);
+    wr_s16b(c->wpos.wx);
     wr_s16b(c->wpos.depth);
 
-    loc_init(&begin, 0, 0);
-    loc_init(&end, c->width, c->height);
-    loc_iterator_first(&iter, &begin, &end);
-
     /* Write the traps */
-    do
+    for (y = 0; y < c->height; y++)
     {
-        struct trap *trap = square(c, &iter.cur)->trap;
-        while (trap)
+        for (x = 0; x < c->width; x++)
         {
-            wr_trap(trap);
-            trap = trap->next;
+            struct trap *trap = c->squares[y][x].trap;
+
+            while (trap)
+            {
+                wr_trap(trap);
+                trap = trap->next;
+            }
         }
     }
-    while (loc_iterator_next_strict(&iter));
 
     /* Write a dummy record as a marker */
     dummy = mem_zalloc(sizeof(*dummy));
@@ -1310,18 +1285,17 @@ static void wr_level_traps(struct chunk *c)
 
 void wr_traps(void *unused)
 {
-    int i;
-    struct loc grid;
+    int i, x, y;
     u32b tmp32u = 0;
 
     wr_byte(TRF_SIZE);
 
     /* Get the number of levels to dump */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -1337,11 +1311,11 @@ void wr_traps(void *unused)
     wr_u32b(tmp32u);
 
     /* Write the traps */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             for (i = 0; i <= w_ptr->max_depth - w_ptr->min_depth; i++)
             {
@@ -1444,14 +1418,14 @@ void wr_parties(void *unused)
  */
 static void wr_house(struct house_type *house)
 {
-    wr_byte(house->grid_1.x);
-    wr_byte(house->grid_1.y);
-    wr_byte(house->grid_2.x);
-    wr_byte(house->grid_2.y);
-    wr_byte(house->door.y);
-    wr_byte(house->door.x);
-    wr_s16b(house->wpos.grid.y);
-    wr_s16b(house->wpos.grid.x);
+    wr_byte(house->x_1);
+    wr_byte(house->y_1);
+    wr_byte(house->x_2);
+    wr_byte(house->y_2);
+    wr_byte(house->door_y);
+    wr_byte(house->door_x);
+    wr_s16b(house->wpos.wy);
+    wr_s16b(house->wpos.wx);
     wr_s32b(house->price);
     wr_s32b(house->ownerid);
     wr_string(house->ownername);
@@ -1478,12 +1452,12 @@ void wr_houses(void *unused)
  */
 static void wr_arena(struct arena_type *arena)
 {
-    wr_byte(arena->grid_1.x);
-    wr_byte(arena->grid_1.y);
-    wr_byte(arena->grid_2.x);
-    wr_byte(arena->grid_2.y);
-    wr_s16b(arena->wpos.grid.y);
-    wr_s16b(arena->wpos.grid.x);
+    wr_byte(arena->x_1);
+    wr_byte(arena->y_1);
+    wr_byte(arena->x_2);
+    wr_byte(arena->y_2);
+    wr_s16b(arena->wpos.wy);
+    wr_s16b(arena->wpos.wx);
     wr_s16b(arena->wpos.depth);
 }
 
@@ -1502,17 +1476,17 @@ void wr_arenas(void *unused)
 
 void wr_wilderness(void *unused)
 {
-    struct loc grid;
+    int x, y;
 
     /* Note the size of the wilderness */
     wr_u16b(radius_wild);
 
     /* Dump the wilderness */
-    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    for (y = radius_wild; y >= 0 - radius_wild; y--)
     {
-        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        for (x = 0 - radius_wild; x <= radius_wild; x++)
         {
-            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct wild_type *w_ptr = get_wt_info_at(y, x);
 
             wr_byte((byte)w_ptr->generated);
         }

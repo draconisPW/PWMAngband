@@ -3,7 +3,7 @@
  * Purpose: Some high-level UI functions, inkey()
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -124,6 +124,9 @@ struct keypress *inkey_next = NULL;
  * If we are waiting for a keypress, and no keypress is ready, then we will
  * refresh (once) the window which was active when this function was called.
  *
+ * Note that "back-quote" is automatically converted into "escape" for
+ * convenience on machines with no "escape" key.
+ *
  * If "angband_term[0]" is not active, we will make it active during this
  * function, so that the various "main-xxx.c" files can assume that input
  * is only requested (via "Term_inkey()") when "angband_term[0]" is active.
@@ -202,6 +205,9 @@ ui_event inkey_ex(void)
 
         /* Error */
         if (ke.type == EVT_ERROR) quit(NULL);
+
+        /* Treat back-quote as escape */
+        if (ke.key.code == '`') ke.key.code = ESCAPE;
     }
 
     /* Hack -- restore the term */
@@ -1039,14 +1045,14 @@ static bool textui_get_aim_dir(int *dp)
                 /* Set new target, use target if legal */
                 case '*':
                 {
-                    if (cmd_target_interactive(TARGET_KILL | TARGET_AIM)) dir = DIR_TARGET;
+                    if (cmd_target_interactive(TARGET_KILL | TARGET_AIM)) dir = 5;
                     break;
                 }
 
                 /* Set new friendly target, use target if legal */
                 case '(':
                 {
-                    if (cmd_target_interactive(TARGET_HELP)) dir = DIR_TARGET;
+                    if (cmd_target_interactive(TARGET_HELP)) dir = 5;
                     break;
                 }
 
@@ -1054,7 +1060,7 @@ static bool textui_get_aim_dir(int *dp)
                 case '\'':
                 {
                     Send_target_closest(TARGET_KILL);
-                    dir = DIR_TARGET;
+                    dir = 5;
                     break;
                 }
 
@@ -1420,12 +1426,6 @@ byte get_dtrap(struct player *p)
 int get_diff(struct player *p)
 {
     return p->upkeep->inven_cnt;
-}
-
-
-struct timed_grade *get_grade(int i)
-{
-    return timed_grades[i];
 }
 
 

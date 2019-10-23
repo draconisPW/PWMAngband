@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Leon Marrick
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -29,9 +29,9 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
 {
     s32b total_gold = 0L;
     char name[30] = "";
+    struct object *obj = square_object(c, p->py, p->px), *next;
     int sound_msg;
     bool at_most_one = true;
-    struct object *obj = square_object(c, &p->grid), *next;
 
     /* Pick up all the ordinary gold objects */
     while (obj)
@@ -78,7 +78,7 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
         object_own(p, obj);
 
         /* Delete the gold */
-        square_excise_object(c, &p->grid, obj);
+        square_excise_object(c, p->py, p->px, obj);
         object_delete(&obj);
         obj = next;
     }
@@ -92,8 +92,7 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
         disturb(p, 0);
 
         /* Build a message */
-        strnfmt(buf, sizeof(buf), "You have found %d gold piece%s worth of ", total_gold,
-            PLURAL(total_gold));
+        strnfmt(buf, sizeof(buf), "You have found %d gold pieces worth of ", total_gold);
 
         /* One treasure type.. */
         if (at_most_one) my_strcat(buf, name, sizeof(buf));
@@ -180,7 +179,7 @@ static bool auto_pickup_okay(struct player *p, struct object *obj)
         return false;
 
     /* Restricted by choice */
-    if (obj->artifact && (cfg_no_artifacts || OPT(p, birth_no_artifacts)))
+    if (obj->artifact && OPT(p, birth_no_artifacts))
         return false;
 
     /* It can't be carried */
@@ -191,9 +190,6 @@ static bool auto_pickup_okay(struct player *p, struct object *obj)
 
     /* Restricted by choice */
     if (!is_owner(p, obj)) return false;
-
-    /* Must meet level requirement */
-    if (!has_level_req(p, obj)) return false;
 
     /* Ignore ignored items */
     if (ignore_item_ok(p, obj)) return false;
@@ -249,7 +245,7 @@ static void player_pickup_aux(struct player *p, struct chunk *c, struct object *
     /* Carry the object, prompting for number if necessary */
     if (max == obj->number)
     {
-        square_excise_object(c, &p->grid, obj);
+        square_excise_object(c, p->py, p->px, obj);
         inven_carry(p, obj, true, domsg);
     }
     else
@@ -274,14 +270,11 @@ static bool allow_pickup_object(struct player *p, struct object *obj)
         return false;
 
     /* Restricted by choice */
-    if (obj->artifact && (cfg_no_artifacts || OPT(p, birth_no_artifacts)))
+    if (obj->artifact && OPT(p, birth_no_artifacts))
         return false;
 
     /* Restricted by choice */
     if (!is_owner(p, obj)) return false;
-
-    /* Must meet level requirement */
-    if (!has_level_req(p, obj)) return false;
 
     return true;
 }
@@ -398,8 +391,11 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
         /* Perform the transaction */
         p->au -= price;
         p->upkeep->redraw |= PR_GOLD;
-        q->au += price;
-        q->upkeep->redraw |= PR_GOLD;
+        if (!OPT(q, birth_no_selling))
+        {
+            q->au += price;
+            q->upkeep->redraw |= PR_GOLD;
+        }
 
         /* Know original object */
         object_notice_everything(p, obj);
@@ -413,7 +409,8 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
 
         /* Message */
         msg(p, "You bought %s for %d gold.", o_name, price);
-        msg(q, "You sold %s for %d gold.", o_name, price);
+        if (!OPT(q, birth_no_selling))
+            msg(q, "You sold %s for %d gold.", o_name, price);
 
         /* Erase the inscription */
         obj->note = 0;
@@ -480,7 +477,7 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
     byte objs_picked_up = 0;
 
     /* Nothing else to pick up -- return */
-    if (!square_object(c, &p->grid))
+    if (!square_object(c, p->py, p->px))
     {
         mem_free(floor_list);
         return 0;
@@ -550,7 +547,7 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
             }
 
             /* Restricted by choice */
-            if (obj->artifact && (cfg_no_artifacts || OPT(p, birth_no_artifacts)))
+            if (obj->artifact && OPT(p, birth_no_artifacts))
             {
                 msg(p, "You cannot pick up that item.");
                 mem_free(floor_list);
@@ -561,14 +558,6 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
             if (!is_owner(p, obj))
             {
                 msg(p, "This item belongs to someone else!");
-                mem_free(floor_list);
-                return objs_picked_up;
-            }
-
-            /* Must meet level requirement */
-            if (!has_level_req(p, obj))
-            {
-                msg(p, "You don't have the required level!");
                 mem_free(floor_list);
                 return objs_picked_up;
             }
@@ -646,7 +635,7 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
     byte objs_picked_up = 0;
 
     /* Nothing to pick up -- return */
-    if (!square_object(c, &p->grid)) return 0;
+    if (!square_object(c, p->py, p->px)) return 0;
 
     /* Normal ghosts cannot pick things up */
     if (p->ghost && !(p->dm_flags & DM_GHOST_BODY)) return 0;
@@ -656,7 +645,7 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
     if (!(p->ghost && (pickup < 2))) player_pickup_gold(p, c);
 
     /* Scan the remaining objects */
-    obj = square_object(c, &p->grid);
+    obj = square_object(c, p->py, p->px);
     while (obj)
     {
         next = obj->next;
@@ -699,7 +688,7 @@ void do_cmd_pickup(struct player *p, int item)
     struct object *obj;
 
     /* Check item (on the floor) */
-    for (obj = square_object(c, &p->grid); obj; obj = obj->next)
+    for (obj = square_object(c, p->py, p->px); obj; obj = obj->next)
     {
         if (obj->oidx == item) break;
     }

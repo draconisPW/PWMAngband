@@ -80,7 +80,8 @@ struct trap
     struct trap_kind *kind;     /* Trap kind */
     struct trap *next;          /* Next trap in this location */
 
-    struct loc grid;            /* Location of trap */
+    byte fy;                    /* Location of trap */
+    byte fx;
 
     byte power;                 /* Power for door locks, visibility for traps */
     byte timeout;               /* Timer for disabled traps */

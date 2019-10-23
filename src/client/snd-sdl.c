@@ -5,7 +5,7 @@
  * Copyright (c) 2004 Brendon Oliver <brendon.oliver@gmail.com>
  * Copyright (c) 2007 Andi Sidwell <andi@takkaria.org>
  * Copyright (c) 2016 Graeme Russ <graeme.russ@gmail.com>
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -21,10 +21,8 @@
 
 #include "c-angband.h"
 
-#ifdef USE_SDL
-# include "..\SDL\SDL.h"
-# include "..\SDL\SDL_mixer.h"
-#endif /* USE_SDL */
+#include "..\SDL\SDL.h"
+#include "..\SDL\SDL_mixer.h"
 
 
 /* Supported file types */

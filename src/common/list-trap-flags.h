@@ -5,7 +5,7 @@
 
 /* symbol descr */
 TRF(NONE, "")
-TRF(GLYPH, "Is a glyph")
+TRF(RUNE, "Is a rune")
 TRF(TRAP, "Is a player trap")
 TRF(VISIBLE, "Is visible")
 TRF(INVISIBLE, "Is invisible")

@@ -3,7 +3,7 @@
  * Purpose: Utility functions
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -24,7 +24,6 @@
 struct object_kind *k_info;
 struct ego_item *e_info;
 struct player_race *races;
-struct dragon_breed *breeds;
 struct player_class *classes;
 struct magic_realm *realms;
 struct player_body *bodies;
@@ -346,22 +345,6 @@ int lookup_sval(int tval, const char *name)
 int lookup_sval_silent(int tval, const char *name)
 {
     return lookup_sval_aux(tval, name, true);
-}
-
-
-void object_short_name(char *buf, size_t max, const char *name)
-{
-    size_t j, k;
-    size_t len = strlen(name);
-
-    /* Copy across the name, stripping modifiers & and ~ */
-    for (j = 0, k = 0; ((j < len) && (k < max)); j++)
-    {
-        if ((j == 0) && (name[0] == '&') && (name[1] == ' ')) j += 2;
-        if (name[j] == '~') continue;
-        buf[k++] = name[j];
-    }
-    buf[k] = 0;
 }
 
 
@@ -824,19 +807,6 @@ struct player_class *player_id2class(guid id)
 }
 
 
-struct player_class *lookup_player_class(const char *name)
-{
-    struct player_class *c;
-
-    for (c = classes; c; c = c->next)
-    {
-        if (streq(c->name, name)) break;
-    }
-
-    return c;
-}
-
-
 int player_cmax(void)
 {
     int n = 0;
@@ -1180,15 +1150,4 @@ struct trap_kind *lookup_trap(const char *desc)
 
     /* Return our best match */
     return closest;
-}
-
-
-/*
- * Returns N which is the 1 in N chance for recharging to fail.
- */
-int recharge_failure_chance(const struct object *obj, int strength)
-{
-    int raw_chance = (strength + 100 - obj->kind->level - (10 * (obj->pval / obj->number))) / 15;
-
-    return ((raw_chance > 1)? raw_chance: 1);
 }

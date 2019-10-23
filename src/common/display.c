@@ -2,7 +2,7 @@
  * File: display.c
  * Purpose: Display the character on the screen or in a file
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -672,8 +672,7 @@ static struct panel *get_panel_combat(struct player *pplayer)
     panel_space(p);
     panel_line(p, COLOUR_L_BLUE, "Shoot to-dam", "%+d", dam);
     panel_line(p, COLOUR_L_BLUE, "To-hit", "%d,%+d", bth / 10, hit);
-    panel_line(p, COLOUR_L_BLUE, "Shots", "%d.%d/turn", pplayer->state.num_shots / 10,
-        pplayer->state.num_shots % 10);
+    panel_line(p, COLOUR_L_BLUE, "Shots", "%d/turn", pplayer->state.num_shots);
 
     return p;
 }
@@ -869,10 +868,75 @@ struct state_info
 };
 
 
+#define PRINT_STATE(sym, data, index, row, col) \
+{ \
+    size_t i; \
+    \
+    for (i = 0; i < N_ELEMENTS(data); i++) \
+    { \
+        if (index sym data[i].value) \
+        { \
+            if (data[i].str[0]) \
+            { \
+                put_str_hook(col, row, -1, data[i].attr, data[i].str); \
+                return data[i].len; \
+            } \
+            return 0; \
+        } \
+    } \
+}
+
+
 /*
  * Simple macro to initialize structs
  */
 #define S(s) s, sizeof(s)
+
+
+/*
+ * TMD_CUT descriptions
+ */
+static const struct state_info cut_data[] =
+{
+    { 1000, S("Mortal wound"), COLOUR_L_RED },
+    {  200, S("Deep gash"),    COLOUR_RED },
+    {  100, S("Severe cut"),   COLOUR_RED },
+    {   50, S("Nasty cut"),    COLOUR_ORANGE },
+    {   25, S("Bad cut"),      COLOUR_ORANGE },
+    {   10, S("Light cut"),    COLOUR_YELLOW },
+    {    0, S("Graze"),        COLOUR_YELLOW }
+};
+
+
+/*
+ * Print cut indicator.
+ */
+static size_t prt_cut(struct player *p, int row, int col)
+{
+    PRINT_STATE(>, cut_data, p->timed[TMD_CUT], row, col);
+    return 0;
+}
+
+
+/*
+ * TMD_STUN descriptions
+ */
+static const struct state_info stun_data[] =
+{
+    {   100, S("Knocked out"), COLOUR_RED },
+    {    50, S("Heavy stun"),  COLOUR_ORANGE },
+    {     0, S("Stun"),        COLOUR_ORANGE }
+};
+
+
+/*
+ * Print stun indicator.
+ */
+static size_t prt_stun(struct player *p, int row, int col)
+{
+    PRINT_STATE(>, stun_data, p->timed[TMD_STUN], row, col);
+    return 0;
+}
 
 
 /*
@@ -893,23 +957,66 @@ static const struct state_info hunger_data[] =
  */
 static size_t prt_hunger(struct player *p, int row, int col)
 {
-    size_t i;
-
-    for (i = 0; i < N_ELEMENTS(hunger_data); i++)
-    {
-        if (p->food < hunger_data[i].value)
-        {
-            if (hunger_data[i].str[0])
-            {
-                put_str_hook(col, row, -1, hunger_data[i].attr, hunger_data[i].str);
-                return hunger_data[i].len;
-            }
-            return 0;
-        }
-    }
-
+    PRINT_STATE(<, hunger_data, p->food, row, col);
     return 0;
 }
+
+
+/*
+ * For the various TMD_* effects
+ */
+static const struct state_info effects[] =
+{
+    { TMD_BLIND,       S("Blind"),      COLOUR_ORANGE },
+    { TMD_PARALYZED,   S("Paralyzed!"), COLOUR_RED },
+    { TMD_CONFUSED,    S("Confused"),   COLOUR_ORANGE },
+    { TMD_AFRAID,      S("Afraid"),     COLOUR_ORANGE },
+    { TMD_TERROR,      S("Terror"),     COLOUR_RED },
+    { TMD_SPRINT,      S("Sprint"),     COLOUR_L_GREEN },
+    { TMD_POISONED,    S("Poisoned"),   COLOUR_ORANGE },
+    { TMD_OPP_ACID,    S("RAcid"),      COLOUR_SLATE },
+    { TMD_OPP_ELEC,    S("RElec"),      COLOUR_BLUE },
+    { TMD_OPP_FIRE,    S("RFire"),      COLOUR_RED },
+    { TMD_OPP_COLD,    S("RCold"),      COLOUR_WHITE },
+    { TMD_OPP_POIS,    S("RPois"),      COLOUR_GREEN },
+    { TMD_OPP_CONF,    S("RConf"),      COLOUR_VIOLET },
+    { TMD_AMNESIA,     S("Amnesiac"),   COLOUR_ORANGE },
+    { TMD_SCRAMBLE,    S("Scrambled"),  COLOUR_VIOLET },
+    { TMD_IMAGE,       S("Hallu"),      COLOUR_ORANGE },
+    { TMD_PROTEVIL,    S("ProtEvil"),   COLOUR_L_GREEN },
+    { TMD_INVULN,      S("Invuln"),     COLOUR_L_GREEN },
+    { TMD_HERO,        S("Hero"),       COLOUR_L_GREEN },
+    { TMD_SHERO,       S("Berserk"),    COLOUR_L_GREEN },
+    { TMD_BOLD,        S("Bold"),       COLOUR_L_GREEN },
+    { TMD_STONESKIN,   S("Stone"),      COLOUR_L_GREEN },
+    { TMD_SHIELD,      S("Shield"),     COLOUR_L_GREEN },
+    { TMD_BLESSED,     S("Blessed"),    COLOUR_L_GREEN },
+    { TMD_SINVIS,      S("SInvis"),     COLOUR_L_GREEN },
+    { TMD_SINFRA,      S("Infra"),      COLOUR_L_GREEN },
+    { TMD_WRAITHFORM,  S("Wraith"),     COLOUR_L_GREEN },
+    { TMD_MEDITATE,    S("Medit"),      COLOUR_L_GREEN },
+    { TMD_MANASHIELD,  S("MShield"),    COLOUR_L_GREEN },
+    { TMD_INVIS,       S("Invis"),      COLOUR_L_GREEN },
+    { TMD_MIMIC,       S("Mimic"),      COLOUR_L_GREEN },
+    { TMD_TRAPSAFE,    S("TrapSafe"),   COLOUR_L_GREEN },
+    { TMD_BOWBRAND,    S("Brand"),      COLOUR_L_GREEN },
+    { TMD_ESP,         S("ESP"),        COLOUR_L_GREEN },
+    { TMD_ANCHOR,      S("Anchor"),     COLOUR_L_GREEN },
+    { TMD_PROBTRAVEL,  S("Proba"),      COLOUR_L_GREEN },
+    { TMD_ADRENALINE,  S("Adren"),      COLOUR_L_GREEN },
+    { TMD_BIOFEEDBACK, S("BioFB"),      COLOUR_L_GREEN },
+    { TMD_TOUCH,       S("Vamp"),       COLOUR_L_GREEN },
+    { TMD_SOUL,        S("Drain"),      COLOUR_L_GREEN },
+    { TMD_DEADLY,      S("TDeath"),     COLOUR_L_GREEN },
+    { TMD_EPOWER,      S("EPower"),     COLOUR_L_GREEN },
+    { TMD_ICY_AURA,    S("IcyAura"),    COLOUR_WHITE },
+    { TMD_SGRASP,      S("Brand"),      COLOUR_BLUE },
+    { TMD_FARSIGHT,    S("Farsight"),   COLOUR_L_GREEN },
+    { TMD_ZFARSIGHT,   S("Farsight"),   COLOUR_L_GREEN },
+    { TMD_REGEN,       S("Regen"),      COLOUR_L_GREEN },
+    { TMD_HARMONY,     S("Harmony"),    COLOUR_L_GREEN },
+    { TMD_ANTISUMMON,  S("NoSummon"),   COLOUR_YELLOW }
+};
 
 
 /*
@@ -919,16 +1026,12 @@ static size_t prt_tmd(struct player *p, int row, int col)
 {
     size_t i, len = 0;
 
-    for (i = 0; i < TMD_MAX; i++)
+    for (i = 0; i < N_ELEMENTS(effects); i++)
     {
-        if (p->timed[i])
+        if (p->timed[effects[i].value])
         {
-            struct timed_grade *grade = get_grade(i);
-
-            while ((p->timed[i] > grade->max) || ((p->timed[i] < 0) && grade->next))
-                grade = grade->next;
-            put_str_hook(col + len, row, -1, grade->color, grade->name);
-            len += strlen(grade->name) + 1;
+            put_str_hook(col + len, row, -1, effects[i].attr, effects[i].str);
+            len += effects[i].len;
         }
     }
 
@@ -1175,8 +1278,8 @@ typedef size_t status_f(struct player *p, int row, int col);
  */
 static status_f *status_handlers[] =
 {
-    prt_level_feeling, prt_unignore, prt_recall, prt_descent, prt_state, prt_hunger, prt_study,
-        prt_tmd, prt_dtrap
+    prt_level_feeling, prt_unignore, prt_recall, prt_descent, prt_state, prt_cut, prt_stun,
+    prt_hunger, prt_study, prt_tmd, prt_dtrap
 };
 
 

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2014 Nick McConnell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -453,7 +453,7 @@ bool inven_drop_okay(struct player *p, struct object *obj)
         (p->wpos.depth < obj->artifact->level) && !kf_has(obj->kind->kind_flags, KF_QUEST_ART))
     {
         /* Do not apply this rule to no_recall characters and DMs */
-        if ((cfg_diving_mode < 3) && !is_dm_p(p)) return false;
+        if ((cfg_diving_mode < 2) && !is_dm_p(p)) return false;
     }
 
     return true;
@@ -542,11 +542,10 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
         my_assert(pack_slots_used(p) <= z_info->pack_size);
 
         gear_insert_end(p, obj);
-        apply_autoinscription(p, obj);
 
         /* Remove cave object details */
         obj->held_m_idx = 0;
-        loc_init(&obj->grid, 0, 0);
+        obj->iy = obj->ix = 0;
         memset(&obj->wpos, 0, sizeof(struct worldpos));
 
         /* Update the inventory */
@@ -588,7 +587,7 @@ static void know_everything(struct player *p, struct chunk *c)
     struct object *obj;
 
     /* Know all objects under the player */
-    for (obj = square_object(c, &p->grid); obj; obj = obj->next)
+    for (obj = square_object(c, p->py, p->px); obj; obj = obj->next)
     {
         if (object_is_known(p, obj)) continue;
         object_know_everything(p, obj);
@@ -760,6 +759,8 @@ void inven_takeoff(struct player *p, struct object *obj)
  */
 bool inven_drop(struct player *p, struct object *obj, int amt, bool bypass_inscr)
 {
+    int py = p->py;
+    int px = p->px;
     struct object *dropped;
     bool none_left = false;
     bool quiver = false;
@@ -807,7 +808,7 @@ bool inven_drop(struct player *p, struct object *obj, int amt, bool bypass_inscr
     }
 
     /* Never drop items in wrong house */
-    if (!check_store_drop(p))
+    if (!check_store_drop(p, obj))
     {
         if (!bypass_inscr) msg(p, "You cannot drop this here.");
         return false;
@@ -841,7 +842,7 @@ bool inven_drop(struct player *p, struct object *obj, int amt, bool bypass_inscr
     msg(p, "You have %s (%c).", name, label);
 
     /* Drop it (carefully) near the player */
-    drop_near(p, chunk_get(&p->wpos), &dropped, 0, &p->grid, false,
+    drop_near(p, chunk_get(&p->wpos), &dropped, 0, py, px, false,
         (bypass_inscr? DROP_SILENT: DROP_FORBID));
 
     /* Sound for quiver objects */
@@ -964,7 +965,7 @@ void pack_overflow(struct player *p, struct chunk *c, struct object *obj)
 
     /* Excise the object and drop it (carefully) near the player */
     gear_excise_object(p, obj);
-    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+    drop_near(p, c, &obj, 0, p->py, p->px, false, DROP_FADE);
 
     /* Describe */
     msg(p, "You no longer have %s.", o_name);

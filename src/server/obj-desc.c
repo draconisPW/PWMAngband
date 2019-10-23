@@ -3,7 +3,7 @@
  * Purpose: Create object name descriptions
  *
  * Copyright (c) 1997 - 2007 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -134,25 +134,40 @@ static const char *obj_desc_get_basename(const struct object *obj, bool aware, b
             return "& Holy Book~ of Prayers #";
         }
 
-        case TV_NATURE_BOOK:
+        case TV_SORCERY_BOOK:
         {
             if (terse) return "& Book~ #";
-            return "& Book~ of Nature Magics #";
+            return "& Book~ of Sorcery #";
         }
 
         case TV_SHADOW_BOOK:
+            return "& Book~ of Shadows #";
+
+        case TV_HUNT_BOOK:
         {
             if (terse) return "& Book~ #";
-            return "& Book~ of Shadows #";
+            return "& Book~ of Hunting #";
         }
 
         case TV_PSI_BOOK:
             return "& Crystal~ #";
 
+        case TV_DEATH_BOOK:
+        {
+            if (terse) return "& Book~ #";
+            return "& Book~ of Necromancy #";
+        }
+
         case TV_ELEM_BOOK:
         {
             if (terse) return "& Spellbook~ #";
             return "& Elemental Spellbook~ #";
+        }
+
+        case TV_SUMMON_BOOK:
+        {
+            if (terse) return "& Book~ #";
+            return "& Book~ of Summoning #";
         }
     }
 
@@ -611,10 +626,7 @@ size_t object_desc(struct player *p, char *buf, size_t max, const struct object 
     }
 
     if (tval_is_money(obj))
-    {
-        return strnfmt(buf, max, "%d gold piece%s worth of %s", obj->pval, PLURAL(obj->pval),
-            obj->kind->name);
-    }
+        return strnfmt(buf, max, "%d gold pieces worth of %s", obj->pval, obj->kind->name);
 
     /* Player is valid, description is not for artifacts and object is not in a store */
     if (p && !((mode & ODESC_ARTIFACT) || (mode & ODESC_STORE)))

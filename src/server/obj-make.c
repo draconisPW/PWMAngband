@@ -3,7 +3,7 @@
  * Purpose: Object generation functions
  *
  * Copyright (c) 1987-2007 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -925,7 +925,7 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
     struct object *new_obj = NULL;
 
     /* No artifacts, do nothing */
-    if (p && (cfg_no_artifacts || OPT(p, birth_no_artifacts))) return NULL;
+    if (p && OPT(p, birth_no_artifacts)) return NULL;
 
     /* No artifacts in the towns or on special levels */
     if (forbid_special(&c->wpos)) return NULL;
@@ -1137,7 +1137,7 @@ static bool make_artifact(struct player *p, struct chunk *c, struct object *obj)
     int i;
 
     /* Make sure birth no artifacts isn't set */
-    if (p && (cfg_no_artifacts || OPT(p, birth_no_artifacts))) return false;
+    if (p && OPT(p, birth_no_artifacts)) return false;
 
     /* No artifacts in the towns or on special levels */
     if (forbid_special(&c->wpos)) return false;
@@ -1394,8 +1394,8 @@ int apply_magic(struct player *p, struct chunk *c, struct object *obj, int lev,
     s16b power = 0;
 
     /* Chance of being `good` and `great` */
-    int good_chance = MIN(z_info->good_obj + lev, 100);
-    int great_chance = z_info->ego_obj;
+    int good_chance = MIN(33 + lev, 100);
+    int great_chance = 30;
 
     /* Normal magic ammo are always +0 +0 (not a "good" drop) */
     if (tval_is_ammo(obj) && of_has(obj->flags, OF_AMMO_MAGIC)) return ((good || great)? -1: 0);
@@ -1736,20 +1736,10 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     for (i = 1; i <= tries; i++)
     {
         s16b res;
-        int reroll = 3;
 
         /* Try to choose an object kind */
         kind = get_obj_num(base, good || great, tval);
         if (!kind) return NULL;
-
-        /* Reject most books the player can't read */
-        while (tval_is_book_k(kind) && !obj_kind_can_browse(p, kind) && reroll)
-        {
-            if (one_in_(5)) break;
-            reroll--;
-            kind = get_obj_num(base, good || great, tval);
-            if (!kind) return NULL;
-        }
 
         /* Make the object, prep it and apply magic */
         new_obj = object_new();
@@ -1825,7 +1815,7 @@ void acquirement(struct player *p, struct chunk *c, int num, quark_t quark)
         if (quark > 0) nice_obj->note = quark;
 
         /* Drop the object */
-        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_FADE);
+        drop_near(p, c, &nice_obj, 0, p->py, p->px, true, DROP_FADE);
     }
 }
 
@@ -1887,7 +1877,7 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     object_prep(p, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
-    if (p && (cfg_no_selling || OPT(p, birth_no_selling)) && (p->wpos.depth > 0))
+    if (p && OPT(p, birth_no_selling) && (p->wpos.depth > 0))
         value *= MIN(5, p->wpos.depth);
 
     /* Cap gold at max short (or alternatively make pvals s32b) */
@@ -1953,7 +1943,7 @@ void create_randart(struct player *p, struct chunk *c)
     }
 
     /* Use the first object on the floor */
-    obj = square_object(c, &p->grid);
+    obj = square_object(c, p->py, p->px);
     if (!obj)
     {
         msg(p, "There is nothing on the floor.");
@@ -2007,7 +1997,7 @@ void reroll_randart(struct player *p, struct chunk *c)
     }
 
     /* Use the first object on the floor */
-    obj = square_object(c, &p->grid);
+    obj = square_object(c, p->py, p->px);
     if (!obj)
     {
         msg(p, "There is nothing on the floor.");
@@ -2038,7 +2028,7 @@ void reroll_randart(struct player *p, struct chunk *c)
     origin_race = obj->origin_race;
 
     /* We need to start from a clean object, so we delete the old one */
-    square_excise_object(c, &p->grid, obj);
+    square_excise_object(c, p->py, p->px, obj);
     object_delete(&obj);
 
     /* Assign the template */
@@ -2063,7 +2053,7 @@ void reroll_randart(struct player *p, struct chunk *c)
     if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
     if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
 
-    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+    drop_near(p, c, &obj, 0, p->py, p->px, false, DROP_FADE);
 }
 
 

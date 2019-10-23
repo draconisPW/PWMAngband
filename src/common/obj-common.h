@@ -13,7 +13,7 @@
  */
 enum
 {
-    #define ELEM(a, b, c, d) ELEM_##a,
+    #define ELEM(a) ELEM_##a,
     #include "list-elements.h"
     #undef ELEM
     ELEM_MAX
@@ -28,7 +28,7 @@ enum
 /* The object flags */
 enum
 {
-    #define OF(a, b) OF_##a,
+    #define OF(a) OF_##a,
     #include "list-object-flags.h"
     #undef OF
     OF_MAX
@@ -121,11 +121,7 @@ struct effect
     struct effect *next;
     u16b index;         /* The effect index */
     dice_t *dice;       /* Dice expression used in the effect */
-    int subtype;        /* Projection type, timed effect type, etc. */
-    int radius;         /* Radius of the effect (if it has one) */
-    int other;          /* Extra parameter to be passed to the handler */
-    int y;              /* Y coordinate or distance */
-    int x;              /* X coordinate or distance */
+    int params[3];      /* Extra parameters to be passed to the handler */
     int flag;           /* Hack -- flag for mimic spells */
     char *self_msg;     /* Message for affected player */
     char *other_msg;    /* Message for other players */
@@ -408,7 +404,6 @@ struct object_xtra
     byte owned;             /* Owned amount */
     byte stuck;             /* Stuck flag */
     byte known;             /* Known flag */
-    byte known_effect;      /* Known effect flag */
     byte sellable;          /* Sellable flag */
     byte carry;             /* Carry flag */
     byte quality_ignore;    /* Quality ignoring */
@@ -463,7 +458,7 @@ struct curse_data
  * monster's inventory.
  *
  * The "held_m_idx" field is used to indicate which monster, if any,
- * is holding the object.  Objects being held have (0, 0) as a grid.
+ * is holding the object.  Objects being held have "ix = 0" and "iy = 0".
  *
  * Note that object records are not now copied, but allocated on object
  * creation and freed on object destruction.  These records are handed
@@ -482,7 +477,8 @@ struct object
 
     s16b oidx;                          /* Item list index, if any */
 
-    struct loc grid;                    /* Position on map, or (0, 0) */
+    byte iy;                            /* Y-position on map, or zero */
+    byte ix;                            /* X-position on map, or zero */
 
     byte tval;                          /* Item type (from kind) */
     byte sval;                          /* Item sub-type (from kind) */
@@ -529,7 +525,6 @@ struct object
     s32b askprice;                      /* Item sale price (transient) */
     s32b creator;                       /* Item creator (if any) */
     s32b owner;                         /* Item owner (if any) */
-    byte level_req;                     /* Level requirement */
     byte ignore_protect;                /* Bypass auto-ignore */
     byte ordered;                       /* Item has been ordered */
     struct object_xtra info_xtra;       /* Extra information used by the client */

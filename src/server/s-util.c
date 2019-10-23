@@ -3,7 +3,7 @@
  * Purpose: Utility functions
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2018 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -359,10 +359,10 @@ byte get_dtrap(struct player *p)
     if (!random_level(&p->wpos)) return 0;
 
     /* Edge of detected area */
-    if (square_dtrap_edge(p, chunk_get(&p->wpos), &p->grid)) return 2;
+    if (square_dtrap_edge(p, chunk_get(&p->wpos), p->py, p->px)) return 2;
 
     /* Detected area (safe) */
-    if (square_isdtrap(p, &p->grid)) return 1;
+    if (square_isdtrap(p, p->py, p->px)) return 1;
 
     /* Non-detected area (watch out) */
     return 0;
@@ -372,12 +372,6 @@ byte get_dtrap(struct player *p)
 int get_diff(struct player *p)
 {
     return weight_remaining(p);
-}
-
-
-struct timed_grade *get_grade(int i)
-{
-    return timed_effects[i].grade;
 }
 
 
