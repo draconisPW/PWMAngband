@@ -1526,6 +1526,14 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
+        for (j = 0; j < OF_SIZE; j++)
+        {
+            if (Packet_printf(&connp->c, "%b", (unsigned)c->flags[j]) <= 0)
+            {
+                Destroy_connection(ind, "Send_class_struct_info write error");
+                return -1;
+            }
+        }
         if (Packet_printf(&connp->c, "%b%b%c", (unsigned)c->magic.total_spells, (unsigned)tval,
             c->magic.num_books) <= 0)
         {

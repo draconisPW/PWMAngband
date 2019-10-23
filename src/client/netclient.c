@@ -515,7 +515,7 @@ static int Receive_struct_info(void)
         case STRUCT_INFO_CLASS:
         {
             s16b c_adj, c_skills;
-            byte cidx, c_mhp, total_spells, tval, sval;
+            byte cidx, c_mhp, total_spells, tval, sval, flag;
             char num_books;
             char realm[NORMAL_WID];
 
@@ -599,6 +599,22 @@ static int Receive_struct_info(void)
                     bytes_read += 1;
 
                     c->pflags[j] = pflag;
+                }
+                for (j = 0; j < OF_SIZE; j++)
+                {
+                    if ((n = Packet_scanf(&rbuf, "%b", &flag)) <= 0)
+                    {
+                        /* Rollback the socket buffer */
+                        Sockbuf_rollback(&rbuf, bytes_read);
+
+                        /* Packet isn't complete, graceful failure */
+                        string_free(c->name);
+                        mem_free(c);
+                        return n;
+                    }
+                    bytes_read += 1;
+
+                    c->flags[j] = flag;
                 }
                 if ((n = Packet_scanf(&rbuf, "%b%b%c", &total_spells, &tval, &num_books)) <= 0)
                 {

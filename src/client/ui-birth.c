@@ -541,6 +541,18 @@ static void class_help(int i, void *db, const region *l)
         format_help(CLASS_AUX_COL, j++, "Learns %-23s", adjective);
     }
 
+    for (k = 1; k < OF_MAX; k++)
+    {
+        const char *s;
+
+        if (n_flags >= flag_space) break;
+        if (!of_has(c->flags, k)) continue;
+        s = get_flag_desc(k);
+        if (!s) continue;
+        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        n_flags++;
+    }
+
     for (k = 0; k < PF__MAX; k++)
     {
         const char *s;
