@@ -394,6 +394,7 @@ static struct store *flatten_stores(struct store *store_list)
     for (s = store_list; s; s = s->next, sidx--)
     {
         memcpy(&stores_local[sidx], s, sizeof(*s));
+        stores_local[sidx].sidx = sidx;
         stores_local[sidx].next = NULL;
     }
 
