@@ -106,8 +106,6 @@ struct player_state
     /*** PWMAngband extracted fields ***/
 
     bool cumber_shield;         /* Encumbering shield */
-    int frac_blow;              /* Blow frac (%) */
-    int frac_shot;              /* Shot frac (%) */
 };
 
 #endif /* INCLUDED_PLAYER_STATE_H */

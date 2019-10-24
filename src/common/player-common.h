@@ -797,6 +797,8 @@ struct player
     s16b mon_feeling;
     bool ladder;                    /* Hack -- add online ladder info to dump character */
     char depths[13];                /* Displayed coordinates */
+    int frac_blow;                  /* Blow frac (%) */
+    int frac_shot;                  /* Shot frac (%) */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

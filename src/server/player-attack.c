@@ -1292,10 +1292,10 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
     disturb(p, 0);
 
     /* Calculate number of blows */
-    num_blows = (p->state.num_blows + p->state.frac_blow) / 100;
+    num_blows = (p->state.num_blows + p->frac_blow) / 100;
 
     /* Calculate remainder */
-    p->state.frac_blow += (p->state.num_blows - num_blows * 100);
+    p->frac_blow = (p->state.num_blows + p->frac_blow) % 100;
 
     /* Player attempts a shield bash if they can, and if monster is visible and not too pathetic */
     if (visible && player_has(p, PF_SHIELD_BASH))
@@ -1324,13 +1324,6 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
         if (effects.blind) add_monster_message(p, mon, MON_MSG_BLIND, true);
         if (effects.para) add_monster_message(p, mon, MON_MSG_HELD, true);
     }
-
-    /* Carry over the remaining energy to the next turn */
-    p->state.frac_blow += (num_blows - blows) * 100;
-
-    /* Hack -- limit to ONE turn */
-    if (p->state.frac_blow > p->state.num_blows)
-        p->state.frac_blow = p->state.num_blows;
 }
 
 
@@ -2301,13 +2294,13 @@ bool do_cmd_fire(struct player *p, int dir, int item)
     if (p->timed[TMD_FARSIGHT]) range += (p->lev - 7) / 10;
 
     /* Calculate number of shots */
-    num_shots = (p->state.num_shots + p->state.frac_shot) / 10;
+    num_shots = (p->state.num_shots + p->frac_shot) / 10;
 
     /* Check if we have enough missiles */
     if (!magic && (num_shots > obj->number)) num_shots = obj->number;
 
     /* Calculate remainder */
-    p->state.frac_shot += (p->state.num_shots - num_shots * 10);
+    p->frac_shot = (p->state.num_shots + p->frac_shot) % 10;
 
     /* Take shots until energy runs out or monster dies */
     shots = ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
@@ -2315,13 +2308,6 @@ bool do_cmd_fire(struct player *p, int dir, int item)
 
     /* Terminate piercing */
     if (p->timed[TMD_POWERSHOT]) player_clear_timed(p, TMD_POWERSHOT, true);
-
-    /* Carry over the remaining energy to the next turn */
-    p->state.frac_shot += (num_shots - shots) * 10;
-
-    /* Hack -- limit to ONE turn */
-    if (p->state.frac_shot > p->state.num_shots)
-        p->state.frac_shot = p->state.num_shots;
 
     return ((shots > 0)? true: false);
 }
