@@ -2315,7 +2315,7 @@ static void init_windows(void)
     /* Main window */
     td = &data[0];
     memset(td, 0, sizeof(term_data));
-    td->s = version_build(VB_NAME | VB_BUILD);
+    td->s = version_build(VERSION_NAME, true);
     td->keys = MSG_LEN;
     td->rows = NORMAL_HGT;
     td->cols = NORMAL_WID;

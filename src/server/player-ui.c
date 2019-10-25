@@ -142,14 +142,14 @@ static void write_character_dump(ang_file *fff, void *data)
             "# %u|%u|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s|%s\n",
             total_points(p, p->max_exp, p->max_depth), p->au, today,
             p->name, sx, p->race->ridx, p->clazz->cidx, p->lev, p->wpos.depth,
-            p->max_lev, p->max_depth, p->death_info.died_from, version_build(VB_BASE));
+            p->max_lev, p->max_depth, p->death_info.died_from, version_build(NULL, false));
 
         /* Leave it at that for characters lower than level 20 */
         if (p->lev < 20) return;
     }
 
     /* Begin dump */
-    file_putf(fff, "  [%s Character Dump]\n\n", version_build(VB_NAME));
+    file_putf(fff, "  [%s Character Dump]\n\n", version_build(cfg_chardump_label, false));
 
     /* Display player */
     display_player_file(p, 0);

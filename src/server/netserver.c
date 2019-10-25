@@ -179,7 +179,7 @@ int Setup_net_server(void)
     plog("Report to metaserver");
     Report_to_meta(META_START);
 
-    plog_fmt("Server is running version %s", version_build(VB_BASE | VB_BUILD));
+    plog_fmt("Server is running version %s", version_build(NULL, true));
 
     return 0;
 }
@@ -1224,7 +1224,7 @@ static void show_splashscreen(void)
             {
                 ptrdiff_t pos = version_marker - buf;
 
-                strnfmt(version_marker, sizeof(buf) - pos, "%s", version_build(VB_BASE));
+                strnfmt(version_marker, sizeof(buf) - pos, "%s", version_build(NULL, false));
             }
 
             my_strcpy(&Setup.text_screen[TEXTFILE_MOTD][n * TEXTFILE__WID], buf, TEXTFILE__WID);
@@ -6023,7 +6023,7 @@ static int Enter_player(int ind)
         msg(p, "Server is no-ghost.");
 
     /* Tell the new player about the version number */
-    msgt(p, MSG_VERSION, "Server is running version %s", version_build(VB_BASE | VB_BUILD));
+    msgt(p, MSG_VERSION, "Server is running version %s", version_build(NULL, true));
 
     msg(p, "  ");
     msg(p, "   ");

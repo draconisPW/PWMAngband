@@ -68,30 +68,28 @@ u16b min_version(void)
 }
 
 
-/*
- * Name of this Angband variant
- */
-#define VERSION_NAME    "PWMAngband "
-
-
 static char version[32];
 
 
-char *version_build(int mode)
+char *version_build(const char *label, bool build)
 {
-    bool name = ((mode & VB_NAME)? true: false);
-
-    if (mode & VB_BUILD)
+    if (label && build)
     {
-        strnfmt(version, sizeof(version), "%s%d.%d.%d (%s %d)", (name? VERSION_NAME: ""),
-            VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, (beta_version()? "Beta": "Build"),
-            VERSION_EXTRA);
+        strnfmt(version, sizeof(version), "%s %d.%d.%d (%s %d)", label, VERSION_MAJOR,
+            VERSION_MINOR, VERSION_PATCH, (beta_version()? "Beta": "Build"), VERSION_EXTRA);
+    }
+    else if (label)
+    {
+        strnfmt(version, sizeof(version), "%s %d.%d.%d", label, VERSION_MAJOR, VERSION_MINOR,
+            VERSION_PATCH);
+    }
+    else if (build)
+    {
+        strnfmt(version, sizeof(version), "%d.%d.%d (%s %d)", VERSION_MAJOR, VERSION_MINOR,
+            VERSION_PATCH, (beta_version()? "Beta": "Build"), VERSION_EXTRA);
     }
     else
-    {
-        strnfmt(version, sizeof(version), "%s%d.%d.%d", (name? VERSION_NAME: ""), VERSION_MAJOR,
-            VERSION_MINOR, VERSION_PATCH);
-    }
+        strnfmt(version, sizeof(version), "%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 
     return version;
 }

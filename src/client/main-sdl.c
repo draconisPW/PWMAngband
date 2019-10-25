@@ -1180,7 +1180,7 @@ static void AboutDraw(sdl_Window *win)
         SDL_BlitSurface(mratt, NULL, win->surface, &icon);
     }
     sdl_WindowText(win, colour, 20, 150,
-        format("You are playing %s", version_build(VB_NAME | VB_BUILD)));
+        format("You are playing %s", version_build(VERSION_NAME, true)));
     sdl_WindowText(win, colour, 20, 160, "See http://www.mangband.org");
 }
 
@@ -3468,7 +3468,7 @@ static void init_morewindows(void)
     StatusBar.draw_extra = draw_statusbar;
 
     /* Don't overlap the buttons */
-    if (AppWin->w >= 720) my_strcpy(buf, version_build(VB_NAME | VB_BUILD), sizeof(buf));
+    if (AppWin->w >= 720) my_strcpy(buf, version_build(VERSION_NAME, true), sizeof(buf));
     else my_strcpy(buf, "About...", sizeof(buf));
 
     AboutSelect = sdl_ButtonBankNew(&StatusBar.buttons);
@@ -3698,7 +3698,7 @@ static void init_sdl_local(void)
 
     /* Require at least 256 colors */
     if (VideoInfo->vfmt->BitsPerPixel < 8)
-        quit_fmt("This %s port requires lots of colors.", version_build(VB_NAME | VB_BUILD));
+        quit_fmt("This %s port requires lots of colors.", version_build(VERSION_NAME, true));
 
     full_w = VideoInfo->current_w;
     full_h = VideoInfo->current_h;
@@ -3723,7 +3723,7 @@ static void init_sdl_local(void)
     }
 
     /* Set the window caption */
-    SDL_WM_SetCaption(version_build(VB_NAME | VB_BUILD), NULL);
+    SDL_WM_SetCaption(version_build(VERSION_NAME, true), NULL);
 
     /* Enable key repeating; use defaults */
     SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);

@@ -3685,7 +3685,7 @@ static int Receive_special_line(void)
 
             /* Show a general "title" + header */
             special_line_header[NTERM_WIN_OVERHEAD][60] = '\0';
-            prt(format("[%s] %60s", version_build(VB_NAME),
+            prt(format("[%s] %60s", version_build(VERSION_NAME, false),
                 special_line_header[NTERM_WIN_OVERHEAD]), 0, 0);
 
             /* Prompt (check if we have extra pages) */

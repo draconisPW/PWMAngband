@@ -59,6 +59,7 @@ bool cfg_extra_monsters = false;
 bool cfg_ghost_diving = false;
 bool cfg_console_local_only = false;
 char *cfg_load_pref_file = NULL;
+char *cfg_chardump_label = NULL;
 s16b cfg_preserve_artifacts = 3;
 bool cfg_safe_recharge = false;
 s16b cfg_party_sharelevel = -1;
@@ -3565,6 +3566,7 @@ static void unload_server_cfg(void)
     string_free(cfg_console_password);
     string_free(cfg_dungeon_master);
     string_free(cfg_load_pref_file);
+    string_free(cfg_chardump_label);
 }
 
 
@@ -3748,6 +3750,11 @@ static void set_server_option(const char *option, char *value)
     {
         string_free(cfg_load_pref_file);
         cfg_load_pref_file = string_make(value);
+    }
+    else if (!strcmp(option, "CHARDUMP_LABEL"))
+    {
+        string_free(cfg_chardump_label);
+        cfg_chardump_label = string_make(value);
     }
     else if (!strcmp(option, "PRESERVE_ARTIFACTS"))
     {

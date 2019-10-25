@@ -39,6 +39,7 @@ extern bool cfg_extra_monsters;
 extern bool cfg_ghost_diving;
 extern bool cfg_console_local_only;
 extern char *cfg_load_pref_file;
+extern char *cfg_chardump_label;
 extern s16b cfg_preserve_artifacts;
 extern bool cfg_safe_recharge;
 extern s16b cfg_party_sharelevel;
