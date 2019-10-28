@@ -1590,8 +1590,8 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     /* The dungeon master does not auto-retaliate */
     if (p->dm_flags & DM_MONSTER_FRIEND) return false;
 
-    /* Not while confused or afraid */
-    if (p->timed[TMD_CONFUSED] || player_of_has(p, OF_AFRAID)) return false;
+    /* Not while confused */
+    if (p->timed[TMD_CONFUSED]) return false;
 
     /* Don't auto-retalitate with commands queued */
     if (get_connection(p->conn)->q.len > 0) return false;
@@ -1706,6 +1706,9 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     /* Attack the current target */
     if (!done)
     {
+        /* Not while afraid */
+        if (player_of_has(p, OF_AFRAID)) return false;
+
         py_attack(p, c, &target);
 
         /* Take a turn */
