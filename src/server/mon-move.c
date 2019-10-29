@@ -1878,12 +1878,11 @@ static void monster_turn_move(struct source *who, struct chunk *c, struct monste
 
         /* Possible disturb */
         if (!who->monster && monster_is_visible(who->player, mon->midx) &&
-            monster_is_in_view(who->player, mon->midx) && OPT(who->player, disturb_near) &&
-            !who->player->firing_request)
+            monster_is_in_view(who->player, mon->midx) && OPT(who->player, disturb_near))
         {
             /* Disturb (except townies, friendlies and hidden mimics) */
             if ((mon->level > 0) && pvm_check(who->player, mon) && !monster_is_camouflaged(mon))
-                disturb(who->player, 0);
+                disturb(who->player, (who->player->firing_request? 2: 0));
         }
     }
 }

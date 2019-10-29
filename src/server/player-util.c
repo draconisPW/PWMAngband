@@ -982,12 +982,21 @@ void cancel_running(struct player *p)
  */
 void disturb(struct player *p, int stop_search)
 {
+    bool cancel_firing = true;
+
     /* Dungeon Master is never disturbed */
     /*if (p->dm_flags & DM_NEVER_DISTURB) return;*/
 
+    /* Hack -- do not cancel fire_till_kill on appearance or movement */
+    if (stop_search >= 2)
+    {
+        stop_search -= 2;
+        cancel_firing = false;
+    }
+
     /* Cancel repeated commands */
     p->digging_request = 0;
-    p->firing_request = 0;
+    if (cancel_firing) p->firing_request = 0;
 
     /* Cancel Resting */
     if (player_is_resting(p))

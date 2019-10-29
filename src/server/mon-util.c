@@ -469,9 +469,9 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
 
             /* Disturb on appearance (except townies, friendlies and hidden mimics) */
             if (OPT(p, disturb_near) && (mon->level > 0) && pvm_check(p, mon) &&
-                !monster_is_camouflaged(mon) && !p->firing_request)
+                !monster_is_camouflaged(mon))
             {
-                disturb(p, 1);
+                disturb(p, (p->firing_request? 3: 1));
             }
 
             /* Redraw */
