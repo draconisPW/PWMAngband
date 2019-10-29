@@ -1712,7 +1712,7 @@ static const struct hit_types ranged_hit_types[] =
  * logic, while using the 'attack' parameter to do work particular to each
  * kind of attack.
  */
-static int ranged_helper(struct player *p, struct object *obj, int dir, int range, int num_shots,
+static bool ranged_helper(struct player *p, struct object *obj, int dir, int range, int num_shots,
     ranged_attack attack, const struct hit_types *hit_types, int num_types, bool magic, bool pierce,
     bool ranged_effect)
 {
@@ -1724,7 +1724,7 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
     bool hit_target = false;
     struct object *missile;
     int shots = 0;
-    bool dead = false;
+    bool more = true;
     ranged_effects *effects = NULL, *current;
     struct chunk *c = chunk_get(&p->wpos);
 
@@ -1746,7 +1746,7 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
         if (taim > range)
         {
             msg(p, "Target out of range by %d squares.", taim - range);
-            return 0;
+            return false;
         }
     }
 
@@ -1760,12 +1760,14 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
     use_energy(p);
 
     /* Attack once for each legal shot */
-    while (shots < num_shots)
+    while ((shots < num_shots) && more)
     {
         struct loc ball;
         struct source who_body;
         struct source *who = &who_body;
         bool none_left = false;
+
+        more = false;
 
         loc_init(&ball, -1, -1);
 
@@ -1849,6 +1851,8 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
 
                 if (result.success)
                 {
+                    bool dead = false;
+
                     hit_target = true;
 
                     missile_learn_on_ranged_attack(p, obj);
@@ -2013,15 +2017,22 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
                         current = get_delayed_ranged_effects(&effects, who->monster);
                         current->fear = true;
                     }
-                }
-                else if (visible && !mimicking)
-                {
-                    /* Handle visible monster/player */
-                    msgt(p, MSG_MISS, "The %s misses %s.", o_name, m_name);
 
-                    /* Track this target */
-                    if (who->monster) monster_race_track(p->upkeep, who);
-                    health_track(p->upkeep, who);
+                    if (!dead) more = true;
+                }
+                else
+                {
+                    if (visible && !mimicking)
+                    {
+                        /* Handle visible monster/player */
+                        msgt(p, MSG_MISS, "The %s misses %s.", o_name, m_name);
+
+                        /* Track this target */
+                        if (who->monster) monster_race_track(p->upkeep, who);
+                        health_track(p->upkeep, who);
+                    }
+
+                    more = true;
                 }
 
                 /* Stop the missile */
@@ -2066,9 +2077,6 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
         }
 
         shots++;
-
-        /* Stop if dead */
-        if (dead && !pierce) break;
     }
 
     /* Hack -- delay messages */
@@ -2091,7 +2099,7 @@ static int ranged_helper(struct player *p, struct object *obj, int dir, int rang
         effects = current;
     }
 
-    return shots;
+    return more;
 }
 
 
@@ -2210,10 +2218,10 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
 bool do_cmd_fire(struct player *p, int dir, int item)
 {
     int range = MIN(6 + 2 * p->state.ammo_mult, z_info->max_range);
-    int num_shots, shots;
+    int num_shots;
     ranged_attack attack = make_ranged_shot;
     struct object *obj = object_from_index(p, item, true, true);
-    bool magic, pierce;
+    bool magic, pierce, more;
 
     /* Paranoia: requires an item */
     if (!obj) return false;
@@ -2303,13 +2311,13 @@ bool do_cmd_fire(struct player *p, int dir, int item)
     p->frac_shot = (p->state.num_shots + p->frac_shot) % 10;
 
     /* Take shots until energy runs out or monster dies */
-    shots = ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
+    more = ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
         (int)N_ELEMENTS(ranged_hit_types), magic, pierce, true);
 
     /* Terminate piercing */
     if (p->timed[TMD_POWERSHOT]) player_clear_timed(p, TMD_POWERSHOT, true);
 
-    return ((shots > 0)? true: false);
+    return more;
 }
 
 

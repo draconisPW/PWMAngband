@@ -1575,7 +1575,7 @@ void use_energy(struct player *p)
 bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
 {
     int i, n = 0;
-    bool found = false, done = false;
+    bool found = false;
     struct source *health_who = &p->upkeep->health_who;
     struct source who_body;
     struct source *who = &who_body;
@@ -1698,13 +1698,13 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
 
         /* Require usable ammo */
         if (ammo)
-            done = do_cmd_fire(p, target_dir, ammo->oidx);
+            do_cmd_fire(p, target_dir, ammo->oidx);
         else
             msg(p, "You have no ammunition in the quiver to fire.");
     }
 
     /* Attack the current target */
-    if (!done)
+    else
     {
         /* Not while afraid */
         if (player_of_has(p, OF_AFRAID)) return false;
