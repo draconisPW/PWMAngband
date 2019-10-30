@@ -1449,9 +1449,17 @@ int Send_race_struct_info(int ind)
                 return -1;
             }
         }
+        for (j = 1; j < OF_MAX; j++)
+        {
+            if (Packet_printf(&connp->c, "%b", (unsigned)r->flvl[j]) <= 0)
+            {
+                Destroy_connection(ind, "Send_race_struct_info write error");
+                return -1;
+            }
+        }
         for (j = 0; j < ELEM_MAX; j++)
         {
-            if (Packet_printf(&connp->c, "%hd", r->el_info[j].res_level) <= 0)
+            if (Packet_printf(&connp->c, "%hd%b", r->el_info[j].res_level, r->el_info[j].lvl) <= 0)
             {
                 Destroy_connection(ind, "Send_race_struct_info write error");
                 return -1;

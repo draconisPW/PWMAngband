@@ -214,6 +214,7 @@ struct player_race
     s16b r_adj[STAT_MAX];       /* Stat bonuses */
     s16b r_skills[SKILL_MAX];   /* Skills */
     bitflag flags[OF_SIZE];     /* Racial (object) flags */
+    byte flvl[OF_MAX];          /* Application level for racial (object) flags */
     bitflag pflags[PF_SIZE];    /* Racial (player) flags */
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */

@@ -423,6 +423,7 @@ static void race_help(int i, void *db, const region *l)
         if (!of_has(r->flags, k)) continue;
         s = get_flag_desc(k);
         if (!s) continue;
+        if (r->flvl[k] > 1) continue;
         format_help(RACE_AUX_COL, j++, "%-30s", s);
         n_flags++;
     }
@@ -435,6 +436,7 @@ static void race_help(int i, void *db, const region *l)
         if (r->el_info[k].res_level != 1) continue;
         s = get_resist_desc(k);
         if (!s) continue;
+        if (r->el_info[k].lvl > 1) continue;
         format_help(RACE_AUX_COL, j++, "%-30s", s);
         n_flags++;
     }
@@ -447,6 +449,7 @@ static void race_help(int i, void *db, const region *l)
         if (r->el_info[k].res_level != 3) continue;
         s = get_immune_desc(k);
         if (!s) continue;
+        if (r->el_info[k].lvl > 1) continue;
         format_help(RACE_AUX_COL, j++, "%-30s", s);
         n_flags++;
     }
@@ -459,6 +462,7 @@ static void race_help(int i, void *db, const region *l)
         if (r->el_info[k].res_level != -1) continue;
         s = get_vuln_desc(k);
         if (!s) continue;
+        if (r->el_info[k].lvl > 1) continue;
         format_help(RACE_AUX_COL, j++, "%-30s", s);
         n_flags++;
     }

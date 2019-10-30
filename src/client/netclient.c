@@ -385,7 +385,7 @@ static int Receive_struct_info(void)
         case STRUCT_INFO_RACE:
         {
             s16b r_adj, r_skills, r_exp, res_level;
-            byte ridx, r_mhp, infra, flag;
+            byte ridx, r_mhp, infra, flag, flvl, elvl;
 
             races = NULL;
 
@@ -484,9 +484,9 @@ static int Receive_struct_info(void)
 
                     r->flags[j] = flag;
                 }
-                for (j = 0; j < ELEM_MAX; j++)
+                for (j = 1; j < OF_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd", &res_level)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &flvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -496,9 +496,26 @@ static int Receive_struct_info(void)
                         mem_free(r);
                         return n;
                     }
-                    bytes_read += 2;
+                    bytes_read += 1;
+
+                    r->flvl[j] = flvl;
+                }
+                for (j = 0; j < ELEM_MAX; j++)
+                {
+                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &elvl)) <= 0)
+                    {
+                        /* Rollback the socket buffer */
+                        Sockbuf_rollback(&rbuf, bytes_read);
+
+                        /* Packet isn't complete, graceful failure */
+                        string_free(r->name);
+                        mem_free(r);
+                        return n;
+                    }
+                    bytes_read += 3;
 
                     r->el_info[j].res_level = res_level;
+                    r->el_info[j].lvl = elvl;
                 }
 
                 r->r_mhp = r_mhp;

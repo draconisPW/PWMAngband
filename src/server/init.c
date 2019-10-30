@@ -2014,24 +2014,21 @@ static enum parser_error parse_p_race_weight(struct parser *p)
 }
 
 
-static enum parser_error parse_p_race_obj_flags(struct parser *p)
+static enum parser_error parse_p_race_obj_flag(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
-    char *flags;
-    char *s;
+    byte level;
+    int flag;
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    if (!parser_hasval(p, "flags")) return PARSE_ERROR_NONE;
-    flags = string_make(parser_getstr(p, "flags"));
-    s = strtok(flags, " |");
-    while (s)
-    {
-        if (grab_flag(r->flags, OF_SIZE, list_obj_flag_names, s)) break;
-        s = strtok(NULL, " |");
-    }
-    string_free(flags);
 
-    return (s? PARSE_ERROR_INVALID_FLAG: PARSE_ERROR_NONE);
+    level = (byte)parser_getuint(p, "level");
+    flag = lookup_flag(list_obj_flag_names, parser_getstr(p, "flag"));
+    if (flag == FLAG_END) return PARSE_ERROR_INVALID_FLAG;
+    of_on(r->flags, flag);
+    r->flvl[flag] = level;
+
+    return PARSE_ERROR_NONE;
 }
 
 
@@ -2056,34 +2053,23 @@ static enum parser_error parse_p_race_play_flags(struct parser *p)
 }
 
 
-static enum parser_error parse_p_race_values(struct parser *p)
+static enum parser_error parse_p_race_value(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
-    char *s;
-    char *t;
+    byte level;
+    int value = 0;
+    int index = 0;
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
-    s = string_make(parser_getstr(p, "values"));
-    t = strtok(s, " |");
+    level = (byte)parser_getuint(p, "level");
+    if (grab_index_and_int(&value, &index, list_element_names, "RES_", parser_getstr(p, "value")))
+        return PARSE_ERROR_INVALID_VALUE;
 
-    while (t)
-    {
-        int value = 0;
-        int index = 0;
-        bool found = false;
+    r->el_info[index].res_level = value;
+    r->el_info[index].lvl = level;
 
-        if (!grab_index_and_int(&value, &index, list_element_names, "RES_", t))
-        {
-            found = true;
-            r->el_info[index].res_level = value;
-        }
-        if (!found) break;
-        t = strtok(NULL, " |");
-    }
-
-    string_free(s);
-    return (t? PARSE_ERROR_INVALID_VALUE: PARSE_ERROR_NONE);
+    return PARSE_ERROR_NONE;
 }
 
 
@@ -2107,9 +2093,9 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "history uint hist int b-age int m-age", parse_p_race_history);
     parser_reg(p, "height int mbht int mmht int fbht int fmht", parse_p_race_height);
     parser_reg(p, "weight int mbwt int mmwt int fbwt int fmwt", parse_p_race_weight);
-    parser_reg(p, "obj-flags ?str flags", parse_p_race_obj_flags);
+    parser_reg(p, "obj-flag uint level str flag", parse_p_race_obj_flag);
     parser_reg(p, "player-flags ?str flags", parse_p_race_play_flags);
-    parser_reg(p, "values str values", parse_p_race_values);
+    parser_reg(p, "value uint level str value", parse_p_race_value);
 
     return p;
 }

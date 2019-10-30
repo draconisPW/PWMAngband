@@ -207,6 +207,9 @@ static void adjust_level(struct player *p)
                 strnfmt(buf, sizeof(buf), "Reached level %d", p->lev);
                 history_add_unique(p, buf, HIST_GAIN_LEVEL);
             }
+
+            /* Player learns innate runes */
+            player_learn_innate(p);
         }
 
         /* Redraw */
@@ -270,37 +273,21 @@ void player_exp_lose(struct player *p, s32b amount, bool permanent)
  */
 void player_flags(struct player *p, bitflag f[OF_SIZE])
 {
+    int i;
+
     /* Clear */
     of_wipe(f);
 
     /* Add racial flags */
-    of_copy(f, p->race->flags);
+    for (i = 1; i < OF_MAX; i++)
+    {
+        if (of_has(p->race->flags, i) && (p->lev >= p->race->flvl[i])) of_on(f, i);
+    }
     of_union(f, p->clazz->flags);
 
     /* Some classes become immune to fear at a certain plevel */
     if (player_has(p, PF_BRAVERY_30) && (p->lev >= 30))
         of_on(f, OF_PROT_FEAR);
-
-    /* Ent */
-    if (player_has(p, PF_GIANT))
-    {
-        if (p->lev >= 5) of_on(f, OF_SEE_INVIS);
-        if (p->lev >= 10) of_on(f, OF_ESP_ANIMAL);
-        if (p->lev >= 15) of_on(f, OF_ESP_ORC);
-        if (p->lev >= 20) of_on(f, OF_ESP_TROLL);
-        if (p->lev >= 25) of_on(f, OF_ESP_GIANT);
-        if (p->lev >= 30) of_on(f, OF_ESP_DRAGON);
-        if (p->lev >= 35) of_on(f, OF_ESP_DEMON);
-        if (p->lev >= 40) of_on(f, OF_ESP_UNDEAD);
-        if (p->lev >= 45) of_on(f, OF_ESP_EVIL);
-        if (p->lev == PY_MAX_LEVEL) of_on(f, OF_ESP_RADIUS);
-    }
-
-    /* Thunderlord */
-    if (player_has(p, PF_THUNDERLORD))
-    {
-        if (p->lev >= 5) of_on(f, OF_ESP_DRAGON);
-    }
 
     /* Unencumbered monks get nice abilities */
     if (monk_armor_ok(p))

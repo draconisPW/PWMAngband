@@ -23,8 +23,8 @@
 # history:history:agebase:agemod
 # height:hgtmale:modhgtmale:hgtfemale:modhgtfemale
 # weight:wgtmale:modwgtmale:wgtfemale:modwgtfemale
-# obj-flags:object flags
-# values:object modifiers
+# obj-flag:level of application:object flag
+# value:level of application:object modifier
 # player-flags:racial flags
 
 # 'name' indicates the beginning of an entry.
@@ -48,11 +48,11 @@
 # 'weight' is weight info - base weight (males), mod weight (males),
 # base weight (females), mod weight (females).
 
-# 'obj-flags' is for object flags (as in src/list-obj-flags.h) that
-# races possess innately.
+# 'obj-flag' is for object flags (as in src/list-obj-flags.h) that
+# races possess innately at a certain level.
 
-# 'values' is for object modifiers which take a value that races possess
-# innately.
+# 'value' is for object modifiers which take a value that races possess
+# innately at a certain level.
 
 # 'player-flags' is for player flags (as in src/list-player-flags.h) that
 # races possess innately.
@@ -89,7 +89,7 @@ info:10:110:2
 history:4:24:16
 height:66:6:62:6
 weight:130:15:100:10
-obj-flags:SUST_DEX
+obj-flag:1:SUST_DEX
 
 name:Elf
 stats:-1:2:-1:1:-1
@@ -106,8 +106,8 @@ info:9:120:3
 history:5:75:75
 height:60:4:54:4
 weight:100:6:80:6
-obj-flags:SUST_DEX
-values:RES_LIGHT[1]
+obj-flag:1:SUST_DEX
+value:1:RES_LIGHT[1]
 
 name:Hobbit
 stats:-2:2:1:3:2
@@ -124,7 +124,7 @@ info:7:110:4
 history:10:21:12
 height:36:3:33:3
 weight:60:3:50:3
-obj-flags:HOLD_LIFE
+obj-flag:1:HOLD_LIFE
 player-flags:KNOW_MUSHROOM
 
 name:Gnome
@@ -142,7 +142,7 @@ info:8:125:4
 history:13:50:40
 height:42:3:39:3
 weight:90:6:75:3
-obj-flags:FREE_ACT
+obj-flag:1:FREE_ACT
 player-flags:KNOW_ZAPPER
 
 name:Dwarf
@@ -160,7 +160,7 @@ info:11:120:5
 history:16:35:15
 height:48:3:46:3
 weight:150:10:120:10
-obj-flags:PROT_BLIND
+obj-flag:1:PROT_BLIND
 player-flags:SEE_ORE
 
 name:Half-Orc
@@ -178,7 +178,7 @@ info:10:110:3
 history:19:11:4
 height:66:1:62:1
 weight:150:5:120:5
-values:RES_DARK[1]
+value:1:RES_DARK[1]
 player-flags:ORC
 
 name:Half-Troll
@@ -196,7 +196,8 @@ info:12:120:3
 history:21:20:10
 height:96:10:84:8
 weight:250:50:225:40
-obj-flags:SUST_STR | REGEN
+obj-flag:1:SUST_STR
+obj-flag:1:REGEN
 player-flags:TROLL
 
 name:Dunadan
@@ -214,7 +215,7 @@ info:10:180:0
 history:1:50:20
 height:82:5:78:6
 weight:190:20:180:15
-obj-flags:SUST_CON
+obj-flag:1:SUST_CON
 
 name:High-Elf
 stats:1:3:-1:3:1
@@ -231,8 +232,8 @@ info:10:200:4
 history:7:100:30
 height:90:10:82:10
 weight:190:20:180:15
-obj-flags:SEE_INVIS
-values:RES_LIGHT[1]
+obj-flag:1:SEE_INVIS
+value:1:RES_LIGHT[1]
 
 name:Kobold
 stats:-1:-1:0:2:2
@@ -249,7 +250,7 @@ info:8:115:5
 history:23:15:10
 height:38:4:36:3
 weight:70:5:60:4
-values:RES_POIS[1]
+value:1:RES_POIS[1]
 
 name:Yeek
 stats:-5:-5:-5:-5:-5
@@ -266,7 +267,7 @@ info:6:50:0
 history:1:14:6
 height:24:2:22:2
 weight:40:2:32:2
-obj-flags:FEATHER
+obj-flag:1:FEATHER
 player-flags:ANIMAL
 
 name:Ent
@@ -284,8 +285,18 @@ info:14:275:5
 history:94:255:70
 height:180:6:150:4
 weight:255:25:230:20
-obj-flags:SLOW_DIGEST
-values:RES_FIRE[-1]
+obj-flag:1:SLOW_DIGEST
+obj-flag:5:SEE_INVIS
+obj-flag:10:ESP_ANIMAL
+obj-flag:15:ESP_ORC
+obj-flag:20:ESP_TROLL
+obj-flag:25:ESP_GIANT
+obj-flag:30:ESP_DRAGON
+obj-flag:35:ESP_DEMON
+obj-flag:40:ESP_UNDEAD
+obj-flag:45:ESP_EVIL
+obj-flag:50:ESP_RADIUS
+value:1:RES_FIRE[-1]
 player-flags:GIANT
 
 name:Thunderlord
@@ -303,7 +314,12 @@ info:12:350:0
 history:89:14:6
 height:180:6:150:4
 weight:255:25:230:20
-obj-flags:FEATHER
+obj-flag:1:FEATHER
+obj-flag:5:ESP_DRAGON
+value:10:RES_FIRE[1]
+value:15:RES_COLD[1]
+value:20:RES_ACID[1]
+value:25:RES_ELEC[1]
 player-flags:THUNDERLORD
 
 name:Dragon
@@ -321,6 +337,6 @@ info:13:450:1
 history:98:255:70
 height:180:6:150:4
 weight:255:25:230:20
-obj-flags:FEATHER
-values:RES_NEXUS[1]
+obj-flag:1:FEATHER
+value:1:RES_NEXUS[1]
 player-flags:DRAGON

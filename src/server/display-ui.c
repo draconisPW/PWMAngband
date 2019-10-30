@@ -782,19 +782,16 @@ static bool is_dragon_immune(struct monster_race *race)
  */
 void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
 {
+    int i;
+
     /* Clear */
     memset(el_info, 0, ELEM_MAX * sizeof(struct element_info));
 
     /* Add racial flags */
-    memcpy(el_info, p->race->el_info, ELEM_MAX * sizeof(struct element_info));
-
-    /* Thunderlord */
-    if (player_has(p, PF_THUNDERLORD))
+    for (i = 0; i < ELEM_MAX; i++)
     {
-        if (p->lev >= 10) el_info[ELEM_FIRE].res_level = 1;
-        if (p->lev >= 15) el_info[ELEM_COLD].res_level = 1;
-        if (p->lev >= 20) el_info[ELEM_ACID].res_level = 1;
-        if (p->lev >= 25) el_info[ELEM_ELEC].res_level = 1;
+        if (p->lev >= p->race->el_info[i].lvl)
+            el_info[i].res_level = p->race->el_info[i].res_level;
     }
 
     /* Elementalist */

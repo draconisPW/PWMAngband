@@ -210,6 +210,7 @@ struct element_info
 {
     s16b res_level;
     bitflag flags;
+    byte lvl;
 };
 
 /*

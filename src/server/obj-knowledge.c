@@ -1203,15 +1203,15 @@ void player_learn_innate(struct player *p)
     /* Elements */
     for (element = 0; element < ELEM_MAX; element++)
     {
-        if (p->race->el_info[element].res_level != 0)
+        if ((p->race->el_info[element].res_level != 0) && (p->lev >= p->race->el_info[element].lvl))
             player_learn_rune(p, rune_index(RUNE_VAR_RESIST, element), false);
     }
 
     /* Flags */
-    for (flag = of_next(p->race->flags, FLAG_START); flag != FLAG_END;
-        flag = of_next(p->race->flags, flag + 1))
+    for (flag = 1; flag < OF_MAX; flag++)
     {
-        player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), false);
+        if (of_has(p->race->flags, flag) && (p->lev >= p->race->flvl[flag]))
+            player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), false);
     }
 }
 
