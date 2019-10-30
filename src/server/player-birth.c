@@ -1018,6 +1018,9 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         p->party = 0;
     }
 
+    /* Hack -- give 2 turns of invulnerability */
+    p->timed[TMD_SAFELOGIN] = 2;
+
     /* Update and redraw stuff (all of these are probably not needed...) */
 
     /* Update stuff */

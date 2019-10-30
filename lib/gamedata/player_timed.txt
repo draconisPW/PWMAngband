@@ -613,3 +613,6 @@ grade:G:10000:Flight:You grow demon wings!
 on-end:Your demon wings disappear.
 near-begin: grows demon wings.
 near-end:'s demon wings disappear.
+
+name:SAFELOGIN
+grade:G:10000:Safe:xxx

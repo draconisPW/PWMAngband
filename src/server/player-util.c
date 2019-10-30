@@ -144,7 +144,7 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 1);
 
     /* Hack -- apply "invulnerability" */
-    if (p->timed[TMD_INVULN] == -1)
+    if ((p->timed[TMD_INVULN] == -1) || p->timed[TMD_SAFELOGIN])
     {
         /* Permanent invulnerability */
         damage = 0;

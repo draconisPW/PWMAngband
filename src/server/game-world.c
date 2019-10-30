@@ -302,6 +302,14 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
         int decr = 1;
         if (!p->timed[i]) continue;
 
+        /* Special case */
+        if (i == TMD_SAFELOGIN)
+        {
+            p->timed[i]--;
+            if (!p->timed[i]) p->upkeep->redraw |= PR_STATUS;
+            continue;
+        }
+
         /* Special cases */
         switch (i)
         {
