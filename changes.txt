@@ -40,8 +40,35 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.3.0 build 4
+New features in PWMAngband 1.3.0 build 5
 ========================================
+
+Gameplay changes
+----------------
+
+PWMAngband:
+
+- Protect players with two turns of invulnerability on login
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Fix autoretaliating with missile launcher not working when afraid
+- Start from the inventory when throwing items
+- Fix speeding effect when shooting with fire_till_kill option while running
+
+Coding changes
+--------------
+
+PWMAngband:
+
+- Further simplify autoretaliating with shooter
+- Remove hardcoded player flags/elements set at certain levels
+
+Features in PWMAngband 1.3.0 build 4
+====================================
 
 Bugs fixed
 ----------
