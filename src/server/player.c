@@ -278,16 +278,12 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
     /* Clear */
     of_wipe(f);
 
-    /* Add racial flags */
+    /* Add racial/class flags */
     for (i = 1; i < OF_MAX; i++)
     {
         if (of_has(p->race->flags, i) && (p->lev >= p->race->flvl[i])) of_on(f, i);
+        if (of_has(p->clazz->flags, i) && (p->lev >= p->clazz->flvl[i])) of_on(f, i);
     }
-    of_union(f, p->clazz->flags);
-
-    /* Some classes become immune to fear at a certain plevel */
-    if (player_has(p, PF_BRAVERY_30) && (p->lev >= 30))
-        of_on(f, OF_PROT_FEAR);
 
     /* Unencumbered monks get nice abilities */
     if (monk_armor_ok(p))

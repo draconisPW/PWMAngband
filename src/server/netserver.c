@@ -1542,6 +1542,22 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
+        for (j = 1; j < OF_MAX; j++)
+        {
+            if (Packet_printf(&connp->c, "%b", (unsigned)c->flvl[j]) <= 0)
+            {
+                Destroy_connection(ind, "Send_class_struct_info write error");
+                return -1;
+            }
+        }
+        for (j = 0; j < ELEM_MAX; j++)
+        {
+            if (Packet_printf(&connp->c, "%hd%b", c->el_info[j].res_level, c->el_info[j].lvl) <= 0)
+            {
+                Destroy_connection(ind, "Send_class_struct_info write error");
+                return -1;
+            }
+        }
         if (Packet_printf(&connp->c, "%b%b%c", (unsigned)c->magic.total_spells, (unsigned)tval,
             c->magic.num_books) <= 0)
         {

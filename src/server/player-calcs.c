@@ -2534,10 +2534,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     calc_mana(p, state, update);
     calc_hitpoints(p, state, update);
 
-    /* Unlight - needs change if anything but resist is introduced for dark */
-    if (player_has(p, PF_UNLIGHT))
-        state->el_info[ELEM_DARK].res_level = 1;
-
     /* PWMAngband: display a message when a monk becomes encumbered */
     if (player_has(p, PF_MARTIAL_ARTS) && !unencumbered_monk)
         state->cumber_armor = true;

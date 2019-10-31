@@ -531,8 +531,8 @@ static int Receive_struct_info(void)
         /* Player Classes */
         case STRUCT_INFO_CLASS:
         {
-            s16b c_adj, c_skills;
-            byte cidx, c_mhp, total_spells, tval, sval, flag;
+            s16b c_adj, c_skills, res_level;
+            byte cidx, c_mhp, total_spells, tval, sval, flag, flvl, elvl;
             char num_books;
             char realm[NORMAL_WID];
 
@@ -632,6 +632,39 @@ static int Receive_struct_info(void)
                     bytes_read += 1;
 
                     c->flags[j] = flag;
+                }
+                for (j = 1; j < OF_MAX; j++)
+                {
+                    if ((n = Packet_scanf(&rbuf, "%b", &flvl)) <= 0)
+                    {
+                        /* Rollback the socket buffer */
+                        Sockbuf_rollback(&rbuf, bytes_read);
+
+                        /* Packet isn't complete, graceful failure */
+                        string_free(c->name);
+                        mem_free(c);
+                        return n;
+                    }
+                    bytes_read += 1;
+
+                    c->flvl[j] = flvl;
+                }
+                for (j = 0; j < ELEM_MAX; j++)
+                {
+                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &elvl)) <= 0)
+                    {
+                        /* Rollback the socket buffer */
+                        Sockbuf_rollback(&rbuf, bytes_read);
+
+                        /* Packet isn't complete, graceful failure */
+                        string_free(c->name);
+                        mem_free(c);
+                        return n;
+                    }
+                    bytes_read += 3;
+
+                    c->el_info[j].res_level = res_level;
+                    c->el_info[j].lvl = elvl;
                 }
                 if ((n = Packet_scanf(&rbuf, "%b%b%c", &total_spells, &tval, &num_books)) <= 0)
                 {

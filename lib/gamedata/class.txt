@@ -25,7 +25,8 @@
 # min-weight:min weight (attack info)
 # strength-multiplier:strength multiplier (attack info)
 # equip:tval:sval:min:max:no_recall
-# obj-flags:object flags
+# obj-flag:level of application:object flag
+# value:level of application:object modifier
 # player-flags:class flags
 # title:title
 # magic:spell_first:spell_weight:num_books
@@ -68,22 +69,13 @@
 # 'equip' is for starting equipment - tval of the item, sval of the item,
 # minimum amount, maximum amount, flag for no_recall characters.
 
-# 'obj-flags' is for object flags (as in src/list-obj-flags.h) that
-# classes possess innately.
+# 'obj-flag' is for object flags (as in src/list-obj-flags.h) that
+# classes possess innately at a certain level.
+
+# 'value' is for object modifiers which take a value that classes possess
+# innately at a certain level.
 
 # 'player-flags' is for class flags.
-
-# Note: MAngband supports several additional flags.
-#  ANTIMAGIC - antimagic field
-#  BACK_STAB - deal extra damage to sleeping and fleeing creatures
-#  EXTRA_MANA - extra mana
-#  EXTRA_SHOTS - more extra shots
-#  MARTIAL_ARTS - adds fighting abilities when fighting barehanded
-#  MONSTER_SPELLS - access to monster spells
-#  SPEED_BONUS - extra speed
-#  STEALING_IMPROV - better chance at stealing
-#  STEALTH_MODE - access to "Stealth Mode"
-#  UNDEAD_POWERS - undead powers
 
 # 'title' is for class titles.
 
@@ -168,7 +160,8 @@ equip:potion:Berserk Strength:1:1:0
 equip:sword:Dagger:1:1:1
 equip:soft armour:Soft Leather Armour:1:1:0
 equip:scroll:Word of Recall:1:1:0
-player-flags:BRAVERY_30 | NO_MANA | SHIELD_BASH
+obj-flag:30:PROT_FEAR
+player-flags:NO_MANA | SHIELD_BASH
 title:Rookie
 title:Soldier
 title:Swordsman
@@ -1062,6 +1055,7 @@ equip:food:Ration of Food:1:3:1
 equip:light:Wooden Torch:1:3:1
 equip:sword:Main Gauche:1:1:1
 equip:scroll:Word of Recall:1:1:0
+value:1:RES_DARK[1]
 player-flags:ZERO_FAIL | CHOOSE_SPELLS | UNLIGHT | SHAPECHANGE | UNDEAD_POWERS
 title:Acolyte
 title:Curser
@@ -1973,7 +1967,7 @@ equip:food:Ration of Food:1:3:1
 equip:light:Wooden Torch:1:3:1
 equip:sword:Cutlass:1:1:1
 equip:scroll:Word of Recall:1:1:0
-obj-flags:IMPAIR_HP
+obj-flag:1:IMPAIR_HP
 player-flags:CHOOSE_SPELLS | SHIELD_BASH
 title:Rat
 title:Bully
@@ -3081,6 +3075,10 @@ equip:food:Ration of Food:1:3:1
 equip:light:Wooden Torch:1:3:1
 equip:sword:Dagger:1:1:1
 equip:scroll:Word of Recall:1:1:0
+value:10:RES_FIRE[1]
+value:15:RES_COLD[1]
+value:20:RES_ACID[1]
+value:25:RES_ELEC[1]
 player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS | ELEMENTAL_SPELLS | EXTRA_MANA
 title:Novice
 title:Apprentice

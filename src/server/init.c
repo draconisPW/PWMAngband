@@ -2593,24 +2593,21 @@ static enum parser_error parse_class_equip(struct parser *p)
 }
 
 
-static enum parser_error parse_class_obj_flags(struct parser *p)
+static enum parser_error parse_class_obj_flag(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
-    char *flags;
-    char *s;
+    byte level;
+    int flag;
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    if (!parser_hasval(p, "flags")) return PARSE_ERROR_NONE;
-    flags = string_make(parser_getstr(p, "flags"));
-    s = strtok(flags, " |");
-    while (s)
-    {
-        if (grab_flag(c->flags, OF_SIZE, list_obj_flag_names, s)) break;
-        s = strtok(NULL, " |");
-    }
 
-    string_free(flags);
-    return (s? PARSE_ERROR_INVALID_FLAG: PARSE_ERROR_NONE);
+    level = (byte)parser_getuint(p, "level");
+    flag = lookup_flag(list_obj_flag_names, parser_getstr(p, "flag"));
+    if (flag == FLAG_END) return PARSE_ERROR_INVALID_FLAG;
+    of_on(c->flags, flag);
+    c->flvl[flag] = level;
+
+    return PARSE_ERROR_NONE;
 }
 
 
@@ -2632,6 +2629,26 @@ static enum parser_error parse_class_play_flags(struct parser *p)
 
     string_free(flags);
     return (s? PARSE_ERROR_INVALID_FLAG: PARSE_ERROR_NONE);
+}
+
+
+static enum parser_error parse_p_class_value(struct parser *p)
+{
+    struct player_class *c = parser_priv(p);
+    byte level;
+    int value = 0;
+    int index = 0;
+
+    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    level = (byte)parser_getuint(p, "level");
+    if (grab_index_and_int(&value, &index, list_element_names, "RES_", parser_getstr(p, "value")))
+        return PARSE_ERROR_INVALID_VALUE;
+
+    c->el_info[index].res_level = value;
+    c->el_info[index].lvl = level;
+
+    return PARSE_ERROR_NONE;
 }
 
 
@@ -3004,8 +3021,9 @@ static struct parser *init_parse_class(void)
     parser_reg(p, "min-weight int min-weight", parse_class_min_weight);
     parser_reg(p, "strength-multiplier int att-multiply", parse_class_str_mult);
     parser_reg(p, "equip sym tval sym sval uint min uint max uint flag", parse_class_equip);
-    parser_reg(p, "obj-flags ?str flags", parse_class_obj_flags);
+    parser_reg(p, "obj-flag uint level str flag", parse_class_obj_flag);
     parser_reg(p, "player-flags ?str flags", parse_class_play_flags);
+    parser_reg(p, "value uint level str value", parse_p_class_value);
     parser_reg(p, "title str title", parse_class_title);
     parser_reg(p, "magic uint first int weight int books", parse_class_magic);
     parser_reg(p, "book sym tval sym quality sym name uint spells str realm", parse_class_book);

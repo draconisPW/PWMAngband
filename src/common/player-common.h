@@ -320,7 +320,9 @@ struct player_class
     int x_skills[SKILL_MAX];        /* Extra skills */
     byte c_mhp;                     /* Hit-dice adjustment */
     bitflag flags[OF_SIZE];         /* (Object) flags */
+    byte flvl[OF_MAX];              /* Application level for (object) flags */
     bitflag pflags[PF_SIZE];        /* (Player) flags */
+    struct element_info el_info[ELEM_MAX];  /* Resists */
     int max_attacks;                /* Maximum possible attacks */
     int min_weight;                 /* Minimum weapon weight for calculations */
     int att_multiply;               /* Multiplier for attack calculations */

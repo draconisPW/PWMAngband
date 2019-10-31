@@ -553,6 +553,46 @@ static void class_help(int i, void *db, const region *l)
         if (!of_has(c->flags, k)) continue;
         s = get_flag_desc(k);
         if (!s) continue;
+        if (c->flvl[k] > 1) continue;
+        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        n_flags++;
+    }
+
+    for (k = 0; k < ELEM_MAX; k++)
+    {
+        const char *s;
+
+        if (n_flags >= flag_space) break;
+        if (c->el_info[k].res_level != 1) continue;
+        s = get_resist_desc(k);
+        if (!s) continue;
+        if (c->el_info[k].lvl > 1) continue;
+        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        n_flags++;
+    }
+
+    for (k = 0; k < ELEM_MAX; k++)
+    {
+        const char *s;
+
+        if (n_flags >= flag_space) break;
+        if (c->el_info[k].res_level != 3) continue;
+        s = get_immune_desc(k);
+        if (!s) continue;
+        if (c->el_info[k].lvl > 1) continue;
+        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        n_flags++;
+    }
+
+    for (k = 0; k < ELEM_MAX; k++)
+    {
+        const char *s;
+
+        if (n_flags >= flag_space) break;
+        if (c->el_info[k].res_level != -1) continue;
+        s = get_vuln_desc(k);
+        if (!s) continue;
+        if (c->el_info[k].lvl > 1) continue;
         format_help(CLASS_AUX_COL, j++, "%-33s", s);
         n_flags++;
     }

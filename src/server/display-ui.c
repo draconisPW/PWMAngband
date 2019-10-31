@@ -783,6 +783,7 @@ static bool is_dragon_immune(struct monster_race *race)
 void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
 {
     int i;
+    bool vuln[ELEM_MAX];
 
     /* Clear */
     memset(el_info, 0, ELEM_MAX * sizeof(struct element_info));
@@ -790,17 +791,26 @@ void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
     /* Add racial flags */
     for (i = 0; i < ELEM_MAX; i++)
     {
+        vuln[i] = false;
         if (p->lev >= p->race->el_info[i].lvl)
-            el_info[i].res_level = p->race->el_info[i].res_level;
+        {
+            if (p->race->el_info[i].res_level == -1)
+                vuln[i] = true;
+            else
+                el_info[i].res_level = p->race->el_info[i].res_level;
+        }
     }
 
-    /* Elementalist */
-    if (player_has(p, PF_ELEMENTAL_SPELLS))
+    /* Add class flags */
+    for (i = 0; i < ELEM_MAX; i++)
     {
-        if (p->lev >= 10) el_info[ELEM_FIRE].res_level = 1;
-        if (p->lev >= 15) el_info[ELEM_COLD].res_level = 1;
-        if (p->lev >= 20) el_info[ELEM_ACID].res_level = 1;
-        if (p->lev >= 25) el_info[ELEM_ELEC].res_level = 1;
+        if (p->lev >= p->clazz->el_info[i].lvl)
+        {
+            if (p->clazz->el_info[i].res_level == -1)
+                vuln[i] = true;
+            if (p->clazz->el_info[i].res_level > el_info[i].res_level)
+                el_info[i].res_level = p->clazz->el_info[i].res_level;
+        }
     }
 
     /* Ghost */
@@ -811,7 +821,8 @@ void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
         /* PWMAngband */
         el_info[ELEM_DARK].res_level = 1;
         el_info[ELEM_POIS].res_level = 1;
-        el_info[ELEM_COLD].res_level = 1;
+        if (el_info[ELEM_COLD].res_level < 1)
+            el_info[ELEM_COLD].res_level = 1;
         el_info[ELEM_SHARD].res_level = 1;
         el_info[ELEM_TIME].res_level = 1;
     }
@@ -820,30 +831,43 @@ void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
     if (p->poly_race)
     {
         bool dragon_immune = (player_has(p, PF_DRAGON) && is_dragon_immune(p->poly_race));
+        int res_level;
 
+        res_level = 0;
         if (rf_has(p->poly_race->flags, RF_IM_ACID))
-            el_info[ELEM_ACID].res_level = (dragon_immune? 3: 1);
+            res_level = (dragon_immune? 3: 1);
         else if (rsf_has(p->poly_race->spell_flags, RSF_BR_ACID))
-            el_info[ELEM_ACID].res_level = 1;
+            res_level = 1;
+        if (el_info[ELEM_ACID].res_level < res_level)
+            el_info[ELEM_ACID].res_level = res_level;
 
+        res_level = 0;
         if (rf_has(p->poly_race->flags, RF_IM_ELEC))
-            el_info[ELEM_ELEC].res_level = (dragon_immune? 3: 1);
+            res_level = (dragon_immune? 3: 1);
         else if (rsf_has(p->poly_race->spell_flags, RSF_BR_ELEC))
-            el_info[ELEM_ELEC].res_level = 1;
+            res_level = 1;
+        if (el_info[ELEM_ELEC].res_level < res_level)
+            el_info[ELEM_ELEC].res_level = res_level;
 
+        res_level = 0;
         if (rf_has(p->poly_race->flags, RF_IM_FIRE))
-            el_info[ELEM_FIRE].res_level = (dragon_immune? 3: 1);
+            res_level = (dragon_immune? 3: 1);
         else if (rsf_has(p->poly_race->spell_flags, RSF_BR_FIRE))
-            el_info[ELEM_FIRE].res_level = 1;
+            res_level = 1;
         else if (rf_has(p->poly_race->flags, RF_HURT_FIRE))
-            el_info[ELEM_FIRE].res_level = -1;
+            vuln[ELEM_FIRE] = true;
+        if (el_info[ELEM_FIRE].res_level < res_level)
+            el_info[ELEM_FIRE].res_level = res_level;
 
+        res_level = 0;
         if (rf_has(p->poly_race->flags, RF_IM_COLD))
-            el_info[ELEM_COLD].res_level = (dragon_immune? 3: 1);
+            res_level = (dragon_immune? 3: 1);
         else if (rsf_has(p->poly_race->spell_flags, RSF_BR_COLD))
-            el_info[ELEM_COLD].res_level = 1;
+            res_level = 1;
         else if (rf_has(p->poly_race->flags, RF_HURT_COLD))
-            el_info[ELEM_COLD].res_level = -1;
+            vuln[ELEM_COLD] = true;
+        if (el_info[ELEM_COLD].res_level < res_level)
+            el_info[ELEM_COLD].res_level = res_level;
 
         if (rf_has(p->poly_race->flags, RF_IM_POIS) || rsf_has(p->poly_race->spell_flags, RSF_BR_POIS))
             el_info[ELEM_POIS].res_level = 1;
@@ -861,6 +885,12 @@ void player_elements(struct player *p, struct element_info el_info[ELEM_MAX])
             el_info[ELEM_DISEN].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_TIME)) el_info[ELEM_TIME].res_level = 1;
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_MANA)) el_info[ELEM_MANA].res_level = 1;
+    }
+
+    for (i = 0; i < ELEM_MAX; i++)
+    {
+        if (vuln[i] && (el_info[i].res_level < 3))
+            el_info[i].res_level--;
     }
 }
 
