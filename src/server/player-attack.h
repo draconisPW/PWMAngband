@@ -11,6 +11,7 @@ struct side_effects
     bool do_poison;
     int do_stun;
     int do_cut;
+    int do_leech;
     int count;
 };
 

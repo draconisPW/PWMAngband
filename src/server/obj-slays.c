@@ -173,11 +173,18 @@ bool copy_brands(bool **dest, bool *source)
  *
  * current the list of brands the object already has
  */
-bool append_random_brand(bool **current, struct brand **brand)
+bool append_random_brand(bool **current, struct brand **brand, bool is_ammo)
 {
-    int pick = randint0(z_info->brand_max);
+    int pick;
 
-    *brand = &brands[pick];
+    /* No life leech brand on ammo */
+    do
+    {
+        pick = randint0(z_info->brand_max);
+        *brand = &brands[pick];
+    }
+    while (is_ammo && streq((*brand)->name, "life leech"));
+
     return append_brand(current, pick);
 }
 
@@ -352,7 +359,7 @@ static void improve_attack_modifier_brand(struct player *p, struct object *obj, 
     }
 
     /* Is the monster vulnerable? */
-    if (!rf_has(race->flags, b->resist_flag))
+    if (b->resist_flag && !rf_has(race->flags, b->resist_flag))
     {
         bool random_effect = false;
 
@@ -365,11 +372,12 @@ static void improve_attack_modifier_brand(struct player *p, struct object *obj, 
 
         /* Hack -- status effect */
         if (*best_mult < multiplier) effects->count = 0;
-        if (streq(b->name, "poison") || streq(b->name, "stunning") || streq(b->name, "cutting"))
+        if (streq(b->name, "poison") || streq(b->name, "stunning") || streq(b->name, "cutting") ||
+            streq(b->name, "life leech"))
         {
             if (*best_mult <= multiplier) effects->count++;
 
-            /* Choose randomly when poison, stunning and cutting are available */
+            /* Choose randomly when poison, stunning, cutting or life leech are available */
             if (*best_mult == multiplier) random_effect = one_in_(effects->count);
         }
 
@@ -395,17 +403,18 @@ static void improve_attack_modifier_brand(struct player *p, struct object *obj, 
             effects->do_poison = streq(b->name, "poison");
             effects->do_stun = (streq(b->name, "stunning")? 1: 0);
             effects->do_cut = (streq(b->name, "cutting")? 1: 0);
+            effects->do_leech = (streq(b->name, "life leech")? 1: 0);
         }
 
         /* Learn about the brand */
         if (obj) object_notice_brand(p, obj, i);
 
         /* Learn about the monster */
-        if (ml) rf_on(lore->flags, b->resist_flag);
+        if (b->resist_flag && ml) rf_on(lore->flags, b->resist_flag);
     }
 
     /* Learn about resistant monsters */
-    else if (player_knows_brand(p, i) && ml)
+    else if (b->resist_flag && player_knows_brand(p, i) && ml)
         rf_on(lore->flags, b->resist_flag);
 }
 

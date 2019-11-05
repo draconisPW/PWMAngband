@@ -16,7 +16,7 @@ extern bool append_slay(bool **current, int index);
 extern bool copy_slays(bool **dest, bool *source);
 extern bool append_brand(bool **current, int index);
 extern bool copy_brands(bool **dest, bool *source);
-extern bool append_random_brand(bool **current, struct brand **brand);
+extern bool append_random_brand(bool **current, struct brand **brand, bool is_ammo);
 extern bool append_random_slay(bool **current, struct slay **slay);
 extern int brand_count(bool *local_brands);
 extern int slay_count(bool *local_slays);

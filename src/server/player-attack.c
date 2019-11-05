@@ -303,8 +303,9 @@ static void blow_side_effects(struct player *p, struct source *target,
             player_inc_timed(target->player, TMD_POISONED, randint1(p->lev) + 5, true, true);
     }
 
-    /* Apply Shadow Touch */
-    if (p->timed[TMD_ATT_VAMP] && target->monster && monster_is_living(target->monster))
+    /* Apply Shadow Touch or life leech */
+    if ((p->timed[TMD_ATT_VAMP] || seffects->do_leech) && target->monster &&
+        monster_is_living(target->monster))
     {
         int drain = ((d_dam > target->monster->hp)? target->monster->hp: d_dam);
 
