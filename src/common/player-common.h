@@ -215,6 +215,8 @@ struct player_race
     s16b r_skills[SKILL_MAX];   /* Skills */
     bitflag flags[OF_SIZE];     /* Racial (object) flags */
     byte flvl[OF_MAX];          /* Application level for racial (object) flags */
+    bool *brands;               /* Racial brands */
+    byte *blvl;                 /* Application level for racial brands */
     bitflag pflags[PF_SIZE];    /* Racial (player) flags */
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */
@@ -321,6 +323,8 @@ struct player_class
     byte c_mhp;                     /* Hit-dice adjustment */
     bitflag flags[OF_SIZE];         /* (Object) flags */
     byte flvl[OF_MAX];              /* Application level for (object) flags */
+    bool *brands;                   /* Class brands */
+    byte *blvl;                     /* Application level for class brands */
     bitflag pflags[PF_SIZE];        /* (Player) flags */
     struct element_info el_info[ELEM_MAX];  /* Resists */
     int max_attacks;                /* Maximum possible attacks */

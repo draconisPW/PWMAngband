@@ -27,6 +27,7 @@
 # equip:tval:sval:min:max:no_recall
 # obj-flag:level of application:object flag
 # value:level of application:object modifier
+# brand:level of application:brand code
 # player-flags:class flags
 # title:title
 # magic:spell_first:spell_weight:num_books
@@ -74,6 +75,8 @@
 
 # 'value' is for object modifiers which take a value that classes possess
 # innately at a certain level.
+
+# 'brand' is for brands that classes possess innately at a certain level.
 
 # 'player-flags' is for class flags.
 

@@ -577,6 +577,25 @@ void improve_attack_modifier(struct player *p, struct object *obj, struct source
         return;
     }
 
+    /* Handle racial brands */
+    for (i = 0; i < z_info->brand_max; i++)
+    {
+        if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+        {
+            /* Notice flags for players */
+            if (who->player) equip_notice_flags(who->player, i);
+
+            improve_attack_modifier_brand(p, NULL, who, i, best_mult, effects, verb, len, range);
+        }
+        if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+        {
+            /* Notice flags for players */
+            if (who->player) equip_notice_flags(who->player, i);
+
+            improve_attack_modifier_brand(p, NULL, who, i, best_mult, effects, verb, len, range);
+        }
+    }
+
     /* Handle polymorphed players */
     if (p->poly_race)
     {

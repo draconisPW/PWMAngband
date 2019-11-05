@@ -2032,6 +2032,37 @@ static enum parser_error parse_p_race_obj_flag(struct parser *p)
 }
 
 
+static enum parser_error parse_p_race_obj_brand(struct parser *p)
+{
+    struct player_race *r = parser_priv(p);
+    byte level;
+    const char *s;
+    int i;
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    level = (byte)parser_getuint(p, "level");
+    s = parser_getstr(p, "code");
+    for (i = 0; i < z_info->brand_max; i++)
+    {
+        if (streq(s, brands[i].code)) break;
+    }
+    if (i == z_info->brand_max)
+        return PARSE_ERROR_UNRECOGNISED_BRAND;
+
+    if (!r->brands)
+    {
+        r->brands = mem_zalloc(z_info->brand_max * sizeof(bool));
+        r->blvl = mem_zalloc(z_info->brand_max * sizeof(byte));
+    }
+
+    r->brands[i] = true;
+    r->blvl[i] = level;
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_p_race_play_flags(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
@@ -2094,6 +2125,7 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "height int mbht int mmht int fbht int fmht", parse_p_race_height);
     parser_reg(p, "weight int mbwt int mmwt int fbwt int fmwt", parse_p_race_weight);
     parser_reg(p, "obj-flag uint level str flag", parse_p_race_obj_flag);
+    parser_reg(p, "brand uint level str code", parse_p_race_obj_brand);
     parser_reg(p, "player-flags ?str flags", parse_p_race_play_flags);
     parser_reg(p, "value uint level str value", parse_p_race_value);
 
@@ -2611,6 +2643,37 @@ static enum parser_error parse_class_obj_flag(struct parser *p)
 }
 
 
+static enum parser_error parse_class_obj_brand(struct parser *p)
+{
+    struct player_class *c = parser_priv(p);
+    byte level;
+    const char *s;
+    int i;
+
+    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    level = (byte)parser_getuint(p, "level");
+    s = parser_getstr(p, "code");
+    for (i = 0; i < z_info->brand_max; i++)
+    {
+        if (streq(s, brands[i].code)) break;
+    }
+    if (i == z_info->brand_max)
+        return PARSE_ERROR_UNRECOGNISED_BRAND;
+
+    if (!c->brands)
+    {
+        c->brands = mem_zalloc(z_info->brand_max * sizeof(bool));
+        c->blvl = mem_zalloc(z_info->brand_max * sizeof(byte));
+    }
+
+    c->brands[i] = true;
+    c->blvl[i] = level;
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_class_play_flags(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
@@ -3022,6 +3085,7 @@ static struct parser *init_parse_class(void)
     parser_reg(p, "strength-multiplier int att-multiply", parse_class_str_mult);
     parser_reg(p, "equip sym tval sym sval uint min uint max uint flag", parse_class_equip);
     parser_reg(p, "obj-flag uint level str flag", parse_class_obj_flag);
+    parser_reg(p, "brand uint level str code", parse_class_obj_brand);
     parser_reg(p, "player-flags ?str flags", parse_class_play_flags);
     parser_reg(p, "value uint level str value", parse_p_class_value);
     parser_reg(p, "title str title", parse_class_title);

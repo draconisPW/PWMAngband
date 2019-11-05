@@ -1198,7 +1198,7 @@ void player_learn_flag(struct player *p, int flag)
  */
 void player_learn_innate(struct player *p)
 {
-    int element, flag;
+    int element, flag, i;
 
     /* Elements */
     for (element = 0; element < ELEM_MAX; element++)
@@ -1216,6 +1216,15 @@ void player_learn_innate(struct player *p)
             player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), false);
         if (of_has(p->clazz->flags, flag) && (p->lev >= p->clazz->flvl[flag]))
             player_learn_rune(p, rune_index(RUNE_VAR_FLAG, flag), false);
+    }
+
+    /* Brands */
+    for (i = 0; i < z_info->brand_max; i++)
+    {
+        if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+            player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
+        if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+            player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
     }
 }
 

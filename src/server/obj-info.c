@@ -412,6 +412,18 @@ static bool describe_brands(struct player *p, const struct object *obj, bool ful
 
     copy_brands(&known_brands, b);
 
+    /* Handle racial/class brands */
+    if (weapon)
+    {
+        for (i = 0; i < z_info->brand_max; i++)
+        {
+            if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+                append_brand(&known_brands, i);
+            if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+                append_brand(&known_brands, i);
+        }
+    }
+
     /* Handle polymorphed players */
     if (weapon && p->poly_race)
     {
@@ -884,6 +896,18 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     copy_brands(&total_brands, obj->known->brands);
     if (ammo && known_bow)
         copy_brands(&total_brands, known_bow->brands);
+
+    /* Handle racial brands */
+    if (weapon)
+    {
+        for (i = 0; i < z_info->brand_max; i++)
+        {
+            if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+                append_brand(&total_brands, i);
+            if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+                append_brand(&total_brands, i);
+        }
+    }
 
     /* Handle polymorphed players */
     if (weapon && p->poly_race)
