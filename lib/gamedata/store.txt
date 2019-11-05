@@ -58,6 +58,7 @@ normal:food:Flask of Whisky
 normal:food:Hard Biscuit
 normal:food:Pint of Fine Ale
 normal:mushroom:Stoneskin
+normal:fortune cookie:Fortune Cookie
 normal:light:Lantern
 normal:stone:House Foundation Stone
 normal:scroll:House Creation

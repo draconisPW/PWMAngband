@@ -86,6 +86,7 @@ static const char *obj_desc_get_basename(const struct object *obj, bool aware, b
         case TV_FOOD:
         case TV_FLASK:
         case TV_CROP:
+        case TV_COOKIE:
             return obj->kind->name;
 
         case TV_CORPSE:

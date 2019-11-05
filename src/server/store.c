@@ -781,6 +781,7 @@ static void mass_produce(struct object *obj)
         case TV_FOOD:
         case TV_MUSHROOM:
         case TV_CROP:
+        case TV_COOKIE:
         case TV_FLASK:
         case TV_LIGHT:
         {
@@ -1666,6 +1667,7 @@ static byte find_inven(struct player *p, struct object *obj)
             case TV_FOOD:
             case TV_MUSHROOM:
             case TV_CROP:
+            case TV_COOKIE:
             case TV_POTION:
             case TV_SCROLL:
             {

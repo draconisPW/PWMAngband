@@ -340,6 +340,7 @@ static const grouper object_text_order[] =
     {TV_FOOD, "Food"},
     {TV_MUSHROOM, "Mushroom"},
     {TV_CROP, "Crop"},
+    {TV_COOKIE, "Fortune Cookies"},
     {TV_MAGIC_BOOK, "Magic Book"},
     {TV_PRAYER_BOOK, "Prayer Book"},
     {TV_NATURE_BOOK, "Nature Book"},

@@ -4423,3 +4423,12 @@ properties:1:5:0
 alloc:40:1 to 100
 effect:MAP_WILD
 effect-yx:22:40
+
+name:& Fortune Cookie~
+graphics:,:U
+type:fortune cookie
+properties:0:2:1
+effect:COOKIE
+effect:NOURISH
+dice:500
+desc:A biscuit containing a small piece of paper telling your fortune.

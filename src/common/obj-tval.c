@@ -64,6 +64,7 @@ bool tval_is_edible(const struct object *obj)
         case TV_FOOD:
         case TV_MUSHROOM:
         case TV_CROP:
+        case TV_COOKIE:
             return true;
         default:
             return false;
@@ -150,6 +151,7 @@ bool tval_can_have_nourishment(const struct object *obj)
         case TV_FOOD:
         case TV_MUSHROOM:
         case TV_CROP:
+        case TV_COOKIE:
         case TV_POTION:
             return true;
         default:
@@ -236,6 +238,7 @@ bool tval_is_useable(const struct object *obj)
         case TV_FOOD:
         case TV_MUSHROOM:
         case TV_CROP:
+        case TV_COOKIE:
             return true;
         default:
             return false;

@@ -216,5 +216,10 @@ name:elemental book:Elemental Book~
 graphics:light purple
 flags:HATES_FIRE | EASY_KNOW
 
+name:fortune cookie:Fortune Cookie~
+graphics:light umber
+break:100
+flags:EASY_KNOW
+
 name:gold
 graphics:yellow
