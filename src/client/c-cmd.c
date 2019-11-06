@@ -582,25 +582,302 @@ void do_cmd_help(void)
 }
 
 
-void do_cmd_message(void)
+void send_msg_chunks(char *pmsgbuf, int msglen)
 {
-    char buf[60];
-    bool ok;
-    bool refocus_chat = false;
+    char pmsg[60];
+    char nickbuf[30];
+    int offset = 0, breakpoint, nicklen;
+    char *startmsg;
 
-#if !defined(USE_GCU) && !defined(USE_SDL)
-    if (term_chat->user) refocus_chat = true;
-#endif
+    /* Send the text in chunks of 58 characters, or nearest break before 58 chars */
+    if (msglen < 58)
+    {
+        Send_msg(pmsgbuf);
+        return;
+    }
 
-    /* Hack to just change the window focus in Windows client */
-    if (refocus_chat)
-        set_chat_focus();
+    memset(nickbuf, 0, sizeof(nickbuf));
+
+    /* See if this was a privmsg, if so, pull off the nick */
+    for (startmsg = pmsgbuf; *startmsg; startmsg++)
+    {
+        if (*startmsg == ':') break;
+    }
+    if (*startmsg && (startmsg - pmsgbuf < 29))
+    {
+        my_strcpy(nickbuf, pmsgbuf, (startmsg - pmsgbuf) + 2);
+        nicklen = strlen(nickbuf);
+        startmsg += 2;
+    }
     else
     {
-        buf[0] = '\0';
-        ok = get_string("Message: ", buf, sizeof(buf));
-        if (ok && buf[0]) Send_msg(buf);
+        startmsg = pmsgbuf;
+        nicklen = 0;
     }
+
+    /* Now deal with what's left */
+    while (msglen > 0)
+    {
+        memset(pmsg, 0, sizeof(pmsg));
+
+        if (msglen < (58 - nicklen))
+            breakpoint = msglen;
+        else
+        {
+            /* Try to find a breaking char */
+            for (breakpoint = 58 - nicklen; breakpoint > 0; breakpoint--)
+            {
+                if (startmsg[offset + breakpoint] == ' ') break;
+                if (startmsg[offset + breakpoint] == ',') break;
+                if (startmsg[offset + breakpoint] == '.') break;
+                if (startmsg[offset + breakpoint] == ';') break;
+            }
+            if (!breakpoint) breakpoint = 58 - nicklen; /* nope */
+        }
+
+        /* If we pulled off a nick above, prepend it. */
+        if (nicklen) my_strcpy(pmsg, nickbuf, nicklen + 1);
+
+        /* Stash in this part of the msg */
+        strncat(pmsg, startmsg + offset, breakpoint);
+        msglen -= breakpoint;
+        offset += breakpoint;
+        Send_msg(pmsg);
+        Net_flush();
+    }
+}
+
+
+static void c_prt_last(byte attr, char *str, int y, int x, int n)
+{
+    int len = strlen(str);
+
+    if (n < len)
+        Term_putstr(x, y, n, attr, str + (len - n));
+    else
+        Term_putstr(x, y, len, attr, str);
+}
+
+
+static void c_prt_n(byte attr, char *str, int y, int x, int n)
+{
+    Term_putstr(x, y, n, attr, str);
+}
+
+
+static bool askfor_aux_msg(char *buf, int len)
+{
+    int y, x;
+    struct keypress ch;
+    int k = 0;  /* Is the end of line */
+    int l = 0;  /* Is the cursor location on line */
+    int j = 0;  /* Loop iterator */
+
+	/* Terminal width */
+	int wid = NORMAL_WID;
+
+    /* Visible length on the screen */
+	int vis_len = len;
+
+    bool done = false;
+
+    memset(&ch, 0, sizeof(ch));
+
+    /* Locate the cursor */
+    Term_locate(&x, &y);
+
+    /* The top line is "icky" */
+    topline_icky = true;
+
+    /* Paranoia -- check len */
+    if (len < 1) len = 1;
+
+    /* Paranoia -- check column */
+    if ((x < 0) || (x >= wid - 1)) x = 0;
+
+    /* Restrict the visible length */
+    if (x + vis_len > wid - 1) vis_len = wid - 1 - x;
+
+    /* Truncate the default entry */
+    buf[len] = '\0';
+
+    /* Display the default answer */
+    Term_erase(x, y, len);
+    Term_putstr(x, y, -1, COLOUR_YELLOW, buf);
+
+    /* Process input */
+    while (!done)
+    {
+        /* Place cursor */
+        if ((int)strlen(buf) > vis_len)
+        {
+            if (l > (int)strlen(buf) - vis_len)
+                Term_gotoxy(x + l + vis_len - strlen(buf), y);
+            else
+                Term_gotoxy(x, y);
+        }
+        else
+            Term_gotoxy(x + l, y);
+
+        /* Get a key */
+        ch = inkey();
+
+        /* Analyze the key */
+        switch (ch.code)
+        {
+            case ESCAPE:
+            {
+                k = 0;
+                done = true;
+                break;
+            }
+
+            case KC_ENTER:
+            {
+                buf[len] = '\0';
+                k = l = strlen(buf);
+                done = true;
+                break;
+            }
+
+            case KC_DELETE:
+            {
+                /* Move the rest of the line one back */
+                if (k > l)
+                {
+                    for (j = l + 1; j < k; j++) buf[j - 1] = buf[j];
+                    k--;
+                }
+                break;
+            }
+
+            case KC_BACKSPACE:
+            {
+                if ((k == l) && (k > 0))
+                {
+                    k--;
+                    l--;
+                }
+
+                /* Move the rest of the line one back, including char under cursor and cursor */
+                if ((k > l) && (l > 0))
+                {
+                    for (j = l; j < k; j++) buf[j - 1] = buf[j];
+                    l--;
+                    k--;
+                }
+
+                break;
+            }
+
+            case ARROW_LEFT:
+            {
+                if (l > 0) l--;
+                break;
+            }
+
+            case ARROW_RIGHT:
+            {
+                if (l < k) l++;
+                break;
+            }
+
+            default:
+            {
+                if (!isprint(ch.code))
+                {
+                    bell("Illegal edit key!");
+                    break;
+                }
+
+                /* Place character at end of line and increment k and l */
+                if (k == l)
+                {
+                    if (k < len)
+                    {
+                        buf[k++] = (char)ch.code;
+                        l++;
+                    }
+                }
+
+                /*
+                 * Place character at currect cursor position after moving
+                 * the rest of the line one step forward
+                 */
+                else if (k > l)
+                {
+                    if (k < len)
+                    {
+                        for (j = k; j >= l; j--) buf[j + 1] = buf[j];
+                        buf[l++] = (char)ch.code;
+                        k++;
+                    }
+                }
+
+                break;
+            }
+        }
+
+        /* Terminate */
+        buf[k] = '\0';
+
+        /* Update the entry */
+        Term_erase(x, y, vis_len);
+        if (k >= vis_len)
+        {
+            if (l > k - vis_len)
+                c_prt_last(COLOUR_WHITE, buf + k - vis_len, y, x, vis_len);
+            else
+                c_prt_n(COLOUR_WHITE, buf + l, y, x, vis_len);
+        }
+        else
+            c_prt(COLOUR_WHITE, buf, y, x);
+    }
+
+    /* The top line is OK now */
+    topline_icky = false;
+    Flush_queue();
+
+    /* Done */
+    return (ch.code != ESCAPE);
+}
+
+
+static bool get_string_msg(const char *prompt, char *buf, int len)
+{
+    bool res;
+
+    /* Display prompt */
+    prt(prompt, 0, 0);
+
+    /* Ask the user for a string */
+    res = askfor_aux_msg(buf, len);
+
+    /* Clear prompt */
+    prt("", 0, 0);
+
+    /* Result */
+    return (res);
+}
+
+
+void do_cmd_message(void)
+{
+    char buf[240];
+    bool ok;
+
+#if !defined(USE_GCU) && !defined(USE_SDL)
+    /* Hack to just change the window focus in Windows client */
+    if (term_chat->user)
+    {
+        set_chat_focus();
+        return;
+    }
+#endif
+
+    buf[0] = '\0';
+    ok = get_string_msg("Message: ", buf, sizeof(buf) - 1);
+    if (ok && buf[0]) send_msg_chunks(buf, strlen(buf));
 }
 
 
