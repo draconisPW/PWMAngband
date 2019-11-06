@@ -363,6 +363,18 @@ static bool describe_slays(struct player *p, const struct object *obj, bool full
 
     copy_slays(&known_slays, s);
 
+    /* Handle racial/class slays */
+    if (weapon)
+    {
+        for (i = 0; i < z_info->slay_max; i++)
+        {
+            if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+                append_slay(&known_slays, i);
+            if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+                append_slay(&known_slays, i);
+        }
+    }
+
     /* Hack -- extract temp branding */
     if (weapon)
     {
@@ -897,7 +909,7 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     if (ammo && known_bow)
         copy_brands(&total_brands, known_bow->brands);
 
-    /* Handle racial brands */
+    /* Handle racial/class brands */
     if (weapon)
     {
         for (i = 0; i < z_info->brand_max; i++)
@@ -935,6 +947,18 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     copy_slays(&total_slays, obj->known->slays);
     if (ammo && known_bow)
         copy_slays(&total_slays, known_bow->slays);
+
+    /* Handle racial/class slays */
+    if (weapon)
+    {
+        for (i = 0; i < z_info->slay_max; i++)
+        {
+            if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+                append_slay(&total_slays, i);
+            if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+                append_slay(&total_slays, i);
+        }
+    }
 
     /* Hack -- extract temp branding */
     if (weapon)

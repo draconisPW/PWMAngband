@@ -473,7 +473,7 @@ static void improve_attack_modifier_slay(struct player *p, struct object *obj, s
         }
 
         /* Learn about the slay */
-        object_notice_slay(p, obj, i);
+        if (obj) object_notice_slay(p, obj, i);
 
         /* Learn about the monster */
         if (ml) rf_on(lore->flags, s->race_flag);
@@ -577,7 +577,16 @@ void improve_attack_modifier(struct player *p, struct object *obj, struct source
         return;
     }
 
-    /* Handle racial brands */
+    /* Handle racial/class slays */
+    for (i = 0; i < z_info->slay_max; i++)
+    {
+        if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+            improve_attack_modifier_slay(p, NULL, who, i, best_mult, verb, len, range);
+        if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+            improve_attack_modifier_slay(p, NULL, who, i, best_mult, verb, len, range);
+    }
+
+    /* Handle racial/class brands */
     for (i = 0; i < z_info->brand_max; i++)
     {
         if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))

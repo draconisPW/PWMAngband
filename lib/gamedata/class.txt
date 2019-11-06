@@ -28,6 +28,7 @@
 # obj-flag:level of application:object flag
 # value:level of application:object modifier
 # brand:level of application:brand code
+# slay:level of application:slay code
 # player-flags:class flags
 # title:title
 # magic:spell_first:spell_weight:num_books
@@ -77,6 +78,8 @@
 # innately at a certain level.
 
 # 'brand' is for brands that classes possess innately at a certain level.
+
+# 'slay' is for slays that races possess innately at a certain level.
 
 # 'player-flags' is for class flags.
 

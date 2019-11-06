@@ -1226,6 +1226,15 @@ void player_learn_innate(struct player *p)
         if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
             player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
     }
+
+    /* Slays */
+    for (i = 0; i < z_info->slay_max; i++)
+    {
+        if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+            player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
+        if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+            player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
+    }
 }
 
 

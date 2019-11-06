@@ -217,6 +217,8 @@ struct player_race
     byte flvl[OF_MAX];          /* Application level for racial (object) flags */
     bool *brands;               /* Racial brands */
     byte *blvl;                 /* Application level for racial brands */
+    bool *slays;                /* Racial slays */
+    byte *slvl;                 /* Application level for racial slays */
     bitflag pflags[PF_SIZE];    /* Racial (player) flags */
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */
@@ -325,6 +327,8 @@ struct player_class
     byte flvl[OF_MAX];              /* Application level for (object) flags */
     bool *brands;                   /* Class brands */
     byte *blvl;                     /* Application level for class brands */
+    bool *slays;                    /* Class slays */
+    byte *slvl;                     /* Application level for class slays */
     bitflag pflags[PF_SIZE];        /* (Player) flags */
     struct element_info el_info[ELEM_MAX];  /* Resists */
     int max_attacks;                /* Maximum possible attacks */

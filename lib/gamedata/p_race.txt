@@ -26,6 +26,7 @@
 # obj-flag:level of application:object flag
 # value:level of application:object modifier
 # brand:level of application:brand code
+# slay:level of application:slay code
 # player-flags:racial flags
 
 # 'name' indicates the beginning of an entry.
@@ -56,6 +57,8 @@
 # innately at a certain level.
 
 # 'brand' is for brands that races possess innately at a certain level.
+
+# 'slay' is for slays that races possess innately at a certain level.
 
 # 'player-flags' is for player flags (as in src/list-player-flags.h) that
 # races possess innately.
