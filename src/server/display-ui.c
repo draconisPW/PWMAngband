@@ -2933,8 +2933,12 @@ static struct object_kind *item_kind(struct object_kind *k, int method)
     {
         struct object_kind *kind = &k_info[i];
 
-        /* Only allocated items */
-        if (kind->alloc_prob > 0) return kind;
+        /* Only allowed items */
+        if (kind->name && kind->tval && (kind->tval != TV_GOLD) &&
+            !kf_has(kind->kind_flags, KF_QUEST_ART) && !kf_has(kind->kind_flags, KF_INSTA_ART))
+        {
+            return kind;
+        }
 
         if (method == GE_IDX) break;
         if (method == GE_NEXT) i++;
