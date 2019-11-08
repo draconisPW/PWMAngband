@@ -988,6 +988,9 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     /* Add the player */
     square_set_mon(c, &p->grid, 0 - id);
 
+    /* Initialize bubble speed */
+    p->bubble_speed = NORMAL_TIME;
+
     /* Redraw */
     square_light_spot(c, &p->grid);
 

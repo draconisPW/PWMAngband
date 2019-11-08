@@ -411,13 +411,22 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
         timefactor = time_factor(p, cv);
         if (timefactor < NORMAL_TIME)
         {
-            u32b diff = (u32b)(10 + (NORMAL_TIME - timefactor));
+            u32b blink_speed = (u32b)cfg_fps;
 
-            /* Initialize bubble color */
-            if (p->bubble_colour == COLOUR_DARK) p->bubble_colour = (byte)*a;
+            /* If player has command(s) queued, blink faster */
+            if (get_connection(p->conn)->q.len > 0) blink_speed = cfg_fps / 4;
 
-            /* Switch between normal and bubble color every (10 + slowdown) turns */
-            if (ht_diff(&turn, &p->bubble_change) > diff)
+            /* Initialize bubble info */
+            if (p->bubble_speed >= NORMAL_TIME)
+            {
+                ht_copy(&p->bubble_change, &turn);
+                if (*a == COLOUR_WHITE) p->bubble_colour = COLOUR_VIOLET;
+                else p->bubble_colour = COLOUR_WHITE;
+                blink_speed = cfg_fps * 2;
+            }
+
+            /* Switch between normal and bubble color */
+            if (ht_diff(&turn, &p->bubble_change) > blink_speed)
             {
                 /* Normal -> bubble color */
                 if (p->bubble_colour == *a)
@@ -435,6 +444,8 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
             /* Use bubble color */
             *a = p->bubble_colour;
         }
+
+        p->bubble_speed = timefactor;
     }
 
     /* Hack -- highlight party leader! */
