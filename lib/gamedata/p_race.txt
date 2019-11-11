@@ -50,7 +50,7 @@
 # 'weight' is weight info - base weight (males), mod weight (males),
 # base weight (females), mod weight (females).
 
-# 'obj-flag' is for object flags (as in src/list-obj-flags.h) that
+# 'obj-flag' is for object flags (as in src/common/list-obj-flags.h) that
 # races possess innately at a certain level.
 
 # 'value' is for object modifiers which take a value that races possess
@@ -60,7 +60,7 @@
 
 # 'slay' is for slays that races possess innately at a certain level.
 
-# 'player-flags' is for player flags (as in src/list-player-flags.h) that
+# 'player-flags' is for player flags (as in src/common/list-player-flags.h) that
 # races possess innately.
 
 
