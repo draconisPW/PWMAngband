@@ -27,7 +27,7 @@
 # 'power' is the relative power of the effect for object power calculation
 
 # 'effect' is for the effect when an object is activated.
-# Fields are the name of the effect (as found in src/list-effects.h) and
+# Fields are the name of the effect (as found in list-effects.h) and
 # possibly one to three parameters to the effect.
 
 # 'effect-yx' is y and x values for an effect if necessary

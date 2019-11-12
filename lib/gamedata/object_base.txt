@@ -2,7 +2,7 @@
 
 
 # This file is used to initialize object base information for PWMAngband.
-# Object bases correspond to tvals as defined in src/list-tvals.h.
+# Object bases correspond to tvals as defined in list-tvals.h.
 
 # === Understanding object_base.txt ===
 

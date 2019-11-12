@@ -71,7 +71,7 @@
 # 'equip' is for starting equipment - tval of the item, sval of the item,
 # minimum amount, maximum amount, flag for no_recall characters.
 
-# 'obj-flag' is for object flags (as in src/list-obj-flags.h) that
+# 'obj-flag' is for object flags (as in list-object-flags.h) that
 # classes possess innately at a certain level.
 
 # 'value' is for object modifiers which take a value that classes possess
@@ -117,7 +117,7 @@
 # reference to the previous 'spell:' line.
 # PWMAngband: the sproj tells if the spell is projectable on others
 
-# 'effect' defines the spell effect (as listed in src/list-effects.h), along
+# 'effect' defines the spell effect (as listed in list-effects.h), along
 # with up to three effect parameters if needed
 
 # 'effect-yx' is y and x values for an effect if necessary
