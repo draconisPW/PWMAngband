@@ -359,7 +359,7 @@ static void improve_attack_modifier_brand(struct player *p, struct object *obj, 
     }
 
     /* Is the monster vulnerable? */
-    if (b->resist_flag && !rf_has(race->flags, b->resist_flag))
+    if (!b->resist_flag || !rf_has(race->flags, b->resist_flag))
     {
         bool random_effect = false;
 
