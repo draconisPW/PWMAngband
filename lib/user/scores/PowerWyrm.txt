@@ -1,0 +1,193 @@
+  [PWMAngband 1.3.0 Character Dump]
+
+ Name   PowerWyrm     Age             18         Self  RB  CB  EB   Best
+ Sex    Male          Height        6'2"  STR:     18  +0  +3  +0  18/30
+ Race   Human         Weight    13st 4lb  INT:     10  +0  -2  +0      8
+ Class  Warrior       Turns used:         WIS:     10  +0  -2  +0      8
+ Title  Soldier       Game           403  DEX:     17  +0  +2  +0  18/10
+ HP     26/70         Player         892  CON:     10  +0  +2  +0     12
+ SP     0/0           Active         595
+
+ Level                  6    Armor        [8,+2]    Saving Throw     25%
+ Cur Exp              114                           Stealth          Bad
+ Max Exp              114    Melee        1d4,+3    Disarm - phys.   54%
+ Adv Exp              140    To-hit        32,+4    Disarm - magic   32%
+                             Blows      3.3/turn    Magic Devices     23
+ Gold                 368                           Searching        17%
+ Burden           24.1 lb    Shoot to-dam     +0    Infravision     0 ft
+ Overweight     -131.8 lb    To-hit        27,+4    Speed         Normal
+ MaxDepth       250' (L5)    Shots      1.0/turn
+
+ You are one of several children of a Landed Knight. You are the black
+ sheep of the family. You have hazel eyes, straight brown hair, and a
+ dark complexion.
+
+Ac :.............. Nxs:..............
+El :.............. Ntr:..............
+Fi :.............. Chs:..............
+Co :.............. Dsn:..............
+Po :.............. Lev:..............
+Lt :.............. Fe :..............
+Dk :.............. Bld:..............
+Snd:.............. Cnf:..............
+Shr:.............. Stn:..............
+
+Lit:.............. Tun:..............
+Rgn:.............. Spd:..............
+ESP:.............. EA :..............
+SI :.............. XS :..............
+FA :.............. XM :..............
+HL :.............. Dig:..............
+Stl:.............. -HP:..............
+Src:.............. Afr:..............
+Inf:.............. Agg:..............
+
+Rad:..............
+Evi:..............
+Ani:..............
+Und:..............
+Dem:..............
+Orc:..............
+Tro:..............
+Gia:..............
+Dra:..............
+
+
+  [Last Messages]
+
+> You hit the gallant. (x2)
+> You have slain the gallant.
+> Welcome to level 6.
+> You see a Flask of oil.
+> You have a Flask of oil (b).
+> You hit the gallant. (x3)
+> The gallant hits you. (x2)
+> You hit the gallant.
+> You miss the gallant. (x2)
+> You hit the gallant.
+> The gallant conjures up scary horrors.
+> You fight off a sense of dread.
+> You hit the gallant. (x2)
+> You have slain the gallant.
+> You die.
+
+Killed by self-inflicted wounds.
+
+
+  [Character Equipment]
+
+a) a Dagger (1d4) (+0,+0)
+     An inheritance from your family.
+
+     Combat info:
+     3.3 blows/round.
+     With +1 STR and +0 DEX you would get 3.7 blows/round.
+     With +0 STR and +1 DEX you would get 3.5 blows/round.
+     Average damage/round: 18.3.
+
+f) a Wooden Torch (4485 turns)
+     An inheritance from your family.
+
+     Radius 1 light.
+
+g) Soft Leather Armour [8,+0]
+     An inheritance from your family.
+
+
+  [Character Quiver]
+
+
+  [Character Inventory]
+
+a) 3 Rations of Food
+
+b) a Flask of oil
+
+c) 3 Potions of Cure Light Wounds
+
+d) 3 Wooden Torches (5000 turns)
+     Radius 1 light.
+
+e) a Deed of Property
+
+
+  [Character History]
+
+Time       Depth     Level Event
+00:00:00   Town      1     Began the quest to destroy Morgoth
+00:00:05   250ft     5     Reached level 5
+00:00:06   250ft     6     Was killed by self-inflicted wounds
+
+
+  [Options]
+
+  [User interface]
+
+Use old target by default                    : no  (use_old_target)
+Always pickup items                          : no  (pickup_always)
+Always pickup items matching inventory       : yes (pickup_inven)
+Notify on object recharge                    : no  (notify_recharge)
+Show flavors in object descriptions          : no  (show_flavors)
+Center map continuously                      : no  (center_player)
+Disturb whenever viewable monster moves      : yes (disturb_near)
+Show damage player deals to monsters         : no  (show_damage)
+Color: Illuminate torchlight in yellow       : yes (view_yellow_light)
+Color: Shimmer multi-colored things          : no  (animate_flicker)
+Color: Player color indicates % hit points   : no  (hp_changes_color)
+Color: Show unique monsters in purple        : no  (purple_uniques)
+Show walls as solid blocks                   : no  (solid_walls)
+Show walls with shaded background            : no  (hybrid_walls)
+Show effective speed as multiplier           : no  (effective_speed)
+
+  [MAngband]
+
+Color: Illuminate torchlight in orange       : yes (view_orange_light)
+Use special color for party leader           : no  (highlight_leader)
+Disturb whenever map panel changes           : yes (disturb_panel)
+Get out of icky screens when disturbed       : no  (disturb_icky)
+Active auto-retaliator                       : yes (active_auto_retaliator)
+Freeze screen after detecting monsters       : yes (pause_after_detect)
+Disturb whenever monsters bash down doors    : yes (disturb_bash)
+Activate fire-till-kill mode                 : no  (fire_till_kill)
+Kick out when starving while at full hps     : no  (disturb_faint)
+Risky casting                                : no  (risky_casting)
+
+  [Birth]
+
+Force player descent                         : no  (birth_force_descend)
+Word of Recall has no effect                 : no  (birth_no_recall)
+Restrict creation of artifacts               : no  (birth_no_artifacts)
+Show level feelings                          : yes (birth_feelings)
+Increase gold drops but disable selling      : yes (birth_no_selling)
+Start with a kit of useful gear              : yes (birth_start_kit)
+Restrict the use of stores/home              : no  (birth_no_stores)
+Death is permanent                           : yes (birth_no_ghost)
+Play as a fruit bat                          : no  (birth_fruit_bat)
+
+
+  [Scene of Death]
+
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                                               
+                                                  . # ##### #                  
+                                             %# # #.#<#<#$#.# ##               
+                                             #.........†.......#               
+                                             %% # # #.#.#.#.# ##               
+                                             #.................#               
+                                             #% % #.#.#.#.#.#.##               
+                                             %................>#               
+                                             ## %.%.%.#.#.#.#.##               
+                                                % # % ##### # #                
+                                                                               
+
+250' (L5)    LF:3-?                                                             
+

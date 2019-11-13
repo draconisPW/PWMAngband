@@ -1,0 +1,1397 @@
+131119 110448 Game Restarted
+131119 110448 Initialised exit save handler.
+131119 110448 Dungeon Master Set as [DarkGod]
+131119 110448 Timer delay 13 ms timer resolution is 1 ms
+131119 110448 Initializing constants...
+131119 110448 Initializing projections...
+131119 110448 Initializing timed effects...
+131119 110448 Initializing features...
+131119 110448 Initializing wilderness feats...
+131119 110448 Initializing wilderness info...
+131119 110448 Initializing town feats...
+131119 110448 Initializing towns...
+131119 110448 Initializing dungeons...
+131119 110448 Initializing object bases...
+131119 110448 Initializing slays...
+131119 110448 Initializing brands...
+131119 110448 Initializing monster pain messages...
+131119 110448 Initializing monster bases...
+131119 110448 Initializing summons...
+131119 110448 Initializing curses...
+131119 110448 Initializing activations...
+131119 110448 Initializing objects...
+131119 110448 Initializing ego-items...
+131119 110448 Initializing history charts...
+131119 110448 Initializing bodies...
+131119 110448 Initializing player races...
+131119 110448 Initializing dragon breeds...
+131119 110448 Initializing magic realms...
+131119 110448 Initializing player classes...
+131119 110448 Initializing artifacts...
+131119 110448 Initializing object properties...
+131119 110448 Initializing object power calculations...
+131119 110448 Initializing blow methods...
+131119 110448 Initializing blow effects...
+131119 110448 Initializing monster spells...
+131119 110448 Initializing monsters...
+131119 110448 Initializing monster pits...
+131119 110448 Initializing traps...
+131119 110448 Initializing quests...
+131119 110448 Initializing flavours...
+131119 110448 Initializing socials...
+131119 110448 Initializing hints...
+131119 110448 Initializing random names...
+131119 110448 Initializing dungeon profiles...
+131119 110448 Initializing room templates...
+131119 110448 Initializing vaults...
+131119 110448 Initializing player presets...
+131119 110448 Initializing other stuff...
+131119 110448 Initializing randarts...
+131119 110448 Initializing RNG...
+131119 110448 Initialization complete
+131119 110448 Please wait...
+131119 110448 Object flavors initialized...
+131119 110448 Loading pref file: font.prf
+131119 110448 Create TCP socket...
+131119 110448 Set Non-Blocking...
+131119 110448 Report to metaserver
+131119 110448 Server is running version 1.3.0 (Build 6)
+131119 110448 Timer delay 13 ms timer resolution is 1 ms
+131119 110454 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 110455 Player Name is [PowerWyrm], id is 1
+131119 110455 PowerWyrm: Server has fast wilderness.
+131119 110455 PowerWyrm: Server is no-selling.
+131119 110455 PowerWyrm: Server is no-ghost.
+131119 110455 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 110455 PowerWyrm:   
+131119 110455 PowerWyrm:    
+131119 110455 PowerWyrm: ====================
+131119 110455 PowerWyrm:   
+131119 110455 PowerWyrm:    
+131119 110455 PowerWyrm: This seems a tame, sheltered place.
+131119 110508 PowerWyrm: You enter a maze of down staircases.
+131119 110509 New Level 300ft at (-9, 37) Ratings obj:29/mon:214
+131119 110509 PowerWyrm: This place seems reasonably safe.
+131119 110513 PowerWyrm: You enter a maze of up staircases.
+131119 110513 New Level 250ft at (-9, 37) Ratings obj:13955/mon:1474
+131119 110513 PowerWyrm: You feel nervous about this place.
+131119 110514 PowerWyrm: You enter a maze of down staircases.
+131119 110514 New Level 300ft at (-9, 37) Ratings obj:139/mon:217
+131119 110514 PowerWyrm: This place seems reasonably safe.
+131119 110515 PowerWyrm: You enter a maze of up staircases.
+131119 110515 New Level 250ft at (-9, 37) Ratings obj:5/mon:159
+131119 110515 PowerWyrm: This place seems reasonably safe.
+131119 110518 PowerWyrm: You enter a maze of down staircases.
+131119 110518 New Level 300ft at (-9, 37) Ratings obj:37/mon:233
+131119 110518 PowerWyrm: This place seems reasonably safe.
+131119 110519 PowerWyrm: You enter a maze of up staircases.
+131119 110519 New Level 250ft at (-9, 37) Ratings obj:17/mon:68
+131119 110519 PowerWyrm: This seems a tame, sheltered place.
+131119 110519 PowerWyrm: You enter a maze of down staircases.
+131119 110520 New Level 300ft at (-9, 37) Ratings obj:2/mon:139
+131119 110520 PowerWyrm: This seems a tame, sheltered place.
+131119 110523 PowerWyrm: Map sector [2,9], which is your sector.  Direction?
+131119 110523 PowerWyrm: Map sector [2,12], which is east of your sector.  Direction?
+131119 110523 PowerWyrm: Map sector [2,12], which is east of your sector.  Direction?
+131119 110523 PowerWyrm: Map sector [2,12], which is east of your sector.  Direction?
+131119 110523 PowerWyrm: Map sector [2,12], which is east of your sector.  Direction?
+131119 110524 PowerWyrm: Map sector [2,9], which is west of your sector.  Direction?
+131119 110524 PowerWyrm: Map sector [2,6], which is west of your sector.  Direction?
+131119 110524 PowerWyrm: Map sector [1,6], which is north west of your sector.  Direction?
+131119 110524 PowerWyrm: Map sector [0,6], which is north west of your sector.  Direction?
+131119 110525 PowerWyrm: Map sector [0,6], which is north west of your sector.  Direction?
+131119 110525 PowerWyrm: Map sector [0,9], which is north west of your sector.  Direction?
+131119 110525 PowerWyrm: Map sector [0,12], which is north east of your sector.  Direction?
+131119 110525 PowerWyrm: Map sector [0,12], which is north east of your sector.  Direction?
+131119 110525 PowerWyrm: Map sector [0,12], which is north east of your sector.  Direction?
+131119 110526 PowerWyrm: Map sector [1,12], which is north east of your sector.  Direction?
+131119 110526 PowerWyrm: Map sector [2,12], which is north east of your sector.  Direction?
+131119 110526 PowerWyrm: Map sector [3,12], which is south east of your sector.  Direction?
+131119 110528 PowerWyrm: You enter a maze of up staircases.
+131119 110528 Artifact the Rapier 'Forasgil' created
+131119 110528 New Level 250ft at (-9, 37) Ratings obj:1926/mon:106
+131119 110528 PowerWyrm: This seems a tame, sheltered place.
+131119 110529 PowerWyrm: You enter a maze of down staircases.
+131119 110529 New Level 300ft at (-9, 37) Ratings obj:8/mon:203
+131119 110529 PowerWyrm: This place seems reasonably safe.
+131119 110530 PowerWyrm: You enter a maze of up staircases.
+131119 110530 New Level 250ft at (-9, 37) Ratings obj:5/mon:92
+131119 110530 PowerWyrm: This seems a tame, sheltered place.
+131119 110532 PowerWyrm: There is a wall blocking your way.
+131119 110533 PowerWyrm: There is a wall in the way!
+131119 110540 PowerWyrm: You enter a maze of down staircases.
+131119 110540 New Level 300ft at (-9, 37) Ratings obj:2/mon:111
+131119 110540 PowerWyrm: This seems a tame, sheltered place.
+131119 110544 PowerWyrm: You enter a maze of down staircases.
+131119 110544 New Level 350ft at (-9, 37) Ratings obj:22/mon:74
+131119 110544 PowerWyrm: This seems a tame, sheltered place.
+131119 110544 PowerWyrm: You enter a maze of up staircases.
+131119 110544 New Level 300ft at (-9, 37) Ratings obj:27/mon:96
+131119 110544 PowerWyrm: This seems a tame, sheltered place.
+131119 110547 PowerWyrm: You hit the giant red frog.
+131119 110547 PowerWyrm: You hit the giant red frog.
+131119 110547 PowerWyrm: You miss the giant red frog.
+131119 110547 PowerWyrm: The giant red frog flees in terror!
+131119 110549 PowerWyrm: You enter a maze of down staircases.
+131119 110549 New Level 350ft at (-9, 37) Ratings obj:5/mon:311
+131119 110549 PowerWyrm: This place seems reasonably safe.
+131119 110549 PowerWyrm: You enter a maze of up staircases.
+131119 110549 New Level 300ft at (-9, 37) Ratings obj:11/mon:59
+131119 110549 PowerWyrm: This seems a tame, sheltered place.
+131119 110549 PowerWyrm: You hit the giant green frog.
+131119 110549 PowerWyrm: You hit the giant green frog.
+131119 110549 PowerWyrm: You have slain the giant green frog.
+131119 110550 PowerWyrm: You enter a maze of down staircases.
+131119 110550 New Level 350ft at (-9, 37) Ratings obj:9/mon:118
+131119 110550 PowerWyrm: This seems a tame, sheltered place.
+131119 110551 PowerWyrm: You enter a maze of up staircases.
+131119 110551 New Level 300ft at (-9, 37) Ratings obj:17/mon:255
+131119 110551 PowerWyrm: This place seems reasonably safe.
+131119 110552 PowerWyrm: You enter a maze of down staircases.
+131119 110552 New Level 350ft at (-9, 37) Ratings obj:39/mon:93
+131119 110552 PowerWyrm: This seems a tame, sheltered place.
+131119 110555 PowerWyrm: You feel the Amethyst Ring on the ground is average...
+131119 110555 PowerWyrm: You see an Amethyst Ring {??}.
+131119 110559 PowerWyrm: You have learned the rune of searching skill.
+131119 110559 PowerWyrm: You have a Ring of Searching <+3> (c).
+131119 110559 PowerWyrm: You are wearing a Ring of Searching <+3> (c).
+131119 110603 PowerWyrm: You enter a maze of down staircases.
+131119 110603 New Level 400ft at (-9, 37) Ratings obj:15/mon:1844
+131119 110603 PowerWyrm: You feel anxious about this place.
+131119 110604 PowerWyrm: You enter a maze of up staircases.
+131119 110604 New Level 350ft at (-9, 37) Ratings obj:9/mon:211
+131119 110604 PowerWyrm: This place seems reasonably safe.
+131119 110605 PowerWyrm: You enter a maze of down staircases.
+131119 110605 New Level 400ft at (-9, 37) Ratings obj:1/mon:243
+131119 110605 PowerWyrm: This place seems reasonably safe.
+131119 110605 PowerWyrm: You enter a maze of up staircases.
+131119 110605 New Level 350ft at (-9, 37) Ratings obj:21/mon:51
+131119 110605 PowerWyrm: This seems a tame, sheltered place.
+131119 110606 PowerWyrm: You enter a maze of down staircases.
+131119 110606 New Level 400ft at (-9, 37) Ratings obj:56/mon:263
+131119 110606 PowerWyrm: This place seems reasonably safe.
+131119 110607 PowerWyrm: You enter a maze of up staircases.
+131119 110607 New Level 350ft at (-9, 37) Ratings obj:4/mon:192
+131119 110607 PowerWyrm: This place seems reasonably safe.
+131119 110607 PowerWyrm: You enter a maze of down staircases.
+131119 110607 New Level 400ft at (-9, 37) Ratings obj:25/mon:241
+131119 110607 PowerWyrm: This place seems reasonably safe.
+131119 110608 PowerWyrm: You enter a maze of up staircases.
+131119 110608 New Level 350ft at (-9, 37) Ratings obj:77/mon:75
+131119 110608 PowerWyrm: This seems a tame, sheltered place.
+131119 110608 PowerWyrm: You enter a maze of down staircases.
+131119 110608 New Level 400ft at (-9, 37) Ratings obj:52544/mon:188
+131119 110608 PowerWyrm: This place seems reasonably safe.
+131119 110609 PowerWyrm: You enter a maze of up staircases.
+131119 110609 New Level 350ft at (-9, 37) Ratings obj:13/mon:186
+131119 110609 PowerWyrm: This place seems reasonably safe.
+131119 110609 PowerWyrm: You enter a maze of down staircases.
+131119 110609 New Level 400ft at (-9, 37) Ratings obj:14/mon:173
+131119 110609 PowerWyrm: This place seems reasonably safe.
+131119 110612 PowerWyrm: You enter a maze of up staircases.
+131119 110612 New Level 350ft at (-9, 37) Ratings obj:14/mon:94
+131119 110612 PowerWyrm: This seems a tame, sheltered place.
+131119 110612 PowerWyrm: You enter a maze of down staircases.
+131119 110612 New Level 400ft at (-9, 37) Ratings obj:5/mon:172
+131119 110612 PowerWyrm: This place seems reasonably safe.
+131119 110612 PowerWyrm: You have found a secret door.
+131119 110612 PowerWyrm: You have found a secret door.
+131119 110613 PowerWyrm: You enter a maze of up staircases.
+131119 110613 New Level 350ft at (-9, 37) Ratings obj:2/mon:107
+131119 110613 PowerWyrm: This seems a tame, sheltered place.
+131119 110614 PowerWyrm: You enter a maze of down staircases.
+131119 110614 New Level 400ft at (-9, 37) Ratings obj:26/mon:212
+131119 110614 PowerWyrm: This place seems reasonably safe.
+131119 110615 PowerWyrm: You enter a maze of up staircases.
+131119 110615 New Level 350ft at (-9, 37) Ratings obj:36/mon:167
+131119 110615 PowerWyrm: This place seems reasonably safe.
+131119 110615 PowerWyrm: You enter a maze of down staircases.
+131119 110615 New Level 400ft at (-9, 37) Ratings obj:13/mon:127
+131119 110615 PowerWyrm: This seems a tame, sheltered place.
+131119 110616 PowerWyrm: You enter a maze of up staircases.
+131119 110616 New Level 350ft at (-9, 37) Ratings obj:4/mon:217
+131119 110616 PowerWyrm: This place seems reasonably safe.
+131119 110617 PowerWyrm: You enter a maze of down staircases.
+131119 110617 Artifact the Dagger 'Narthanc' created
+131119 110617 New Level 400ft at (-9, 37) Ratings obj:806/mon:1071
+131119 110617 PowerWyrm: You feel nervous about this place.
+131119 110617 PowerWyrm: You enter a maze of up staircases.
+131119 110617 New Level 350ft at (-9, 37) Ratings obj:5/mon:93
+131119 110617 PowerWyrm: This seems a tame, sheltered place.
+131119 110617 PowerWyrm: You have found a secret door.
+131119 110618 PowerWyrm: You enter a maze of down staircases.
+131119 110618 New Level 400ft at (-9, 37) Ratings obj:177/mon:226
+131119 110618 PowerWyrm: This place seems reasonably safe.
+131119 110619 PowerWyrm: You enter a maze of up staircases.
+131119 110619 New Level 350ft at (-9, 37) Ratings obj:18/mon:94
+131119 110619 PowerWyrm: This seems a tame, sheltered place.
+131119 110620 PowerWyrm: You enter a maze of down staircases.
+131119 110620 New Level 400ft at (-9, 37) Ratings obj:538/mon:959
+131119 110620 PowerWyrm: You feel nervous about this place.
+131119 110620 PowerWyrm: You enter a maze of up staircases.
+131119 110620 New Level 350ft at (-9, 37) Ratings obj:91/mon:143
+131119 110620 PowerWyrm: This seems a tame, sheltered place.
+131119 110621 PowerWyrm: You enter a maze of down staircases.
+131119 110621 New Level 400ft at (-9, 37) Ratings obj:13/mon:326
+131119 110621 PowerWyrm: This place seems reasonably safe.
+131119 110622 PowerWyrm: You feel the Mage Staff on the ground is average...
+131119 110622 PowerWyrm: You see a Mage Staff (1d1) (+0,+0).
+131119 110622 PowerWyrm: You hear a door burst open!
+131119 110625 PowerWyrm: You hit the wild cat.
+131119 110625 PowerWyrm: You hit the wild cat.
+131119 110625 PowerWyrm: You have slain the wild cat.
+131119 110626 PowerWyrm: You enter a maze of up staircases.
+131119 110626 New Level 350ft at (-9, 37) Ratings obj:64/mon:175
+131119 110626 PowerWyrm: This place seems reasonably safe.
+131119 110626 PowerWyrm: You have found a secret door.
+131119 110626 PowerWyrm: You hit the large kobold.
+131119 110626 PowerWyrm: You hit the large kobold.
+131119 110626 PowerWyrm: You hit the large kobold.
+131119 110626 PowerWyrm: You hit the large kobold.
+131119 110627 PowerWyrm: The large kobold hits you.
+131119 110627 PowerWyrm: You hit the large kobold.
+131119 110627 PowerWyrm: You hit the large kobold.
+131119 110627 PowerWyrm: You hit the large kobold.
+131119 110628 PowerWyrm: The large kobold hits you.
+131119 110628 PowerWyrm: You hit the large kobold.
+131119 110628 PowerWyrm: You miss the large kobold.
+131119 110628 PowerWyrm: You hit the large kobold.
+131119 110628 PowerWyrm: The large kobold flees in terror!
+131119 110628 PowerWyrm: You hit the large kobold.
+131119 110628 PowerWyrm: You have slain the large kobold.
+131119 110628 PowerWyrm: Welcome to level 7.
+131119 110632 PowerWyrm: You miss the large kobold.
+131119 110632 PowerWyrm: You hit the large kobold.
+131119 110632 PowerWyrm: You hit the large kobold.
+131119 110634 PowerWyrm: The large kobold hits you.
+131119 110635 PowerWyrm: You hit the large kobold.
+131119 110635 PowerWyrm: You hit the large kobold.
+131119 110635 PowerWyrm: You hit the large kobold.
+131119 110636 PowerWyrm: You hear a door burst open!
+131119 110637 PowerWyrm: The large kobold hits you.
+131119 110638 PowerWyrm: You hit the large kobold.
+131119 110638 PowerWyrm: You hit the large kobold.
+131119 110638 PowerWyrm: You hit the large kobold.
+131119 110638 PowerWyrm: You hit the large kobold.
+131119 110640 PowerWyrm: The large kobold hits you.
+131119 110641 PowerWyrm: The small kobold hits you.
+131119 110641 PowerWyrm: You hit the large kobold.
+131119 110641 PowerWyrm: You hit the large kobold.
+131119 110641 PowerWyrm: You hit the large kobold.
+131119 110641 PowerWyrm: You have slain the large kobold.
+131119 110643 PowerWyrm: The small kobold hits you.
+131119 110643 PowerWyrm: You hit the small kobold.
+131119 110643 PowerWyrm: You hit the small kobold.
+131119 110643 PowerWyrm: You have slain the small kobold.
+131119 110646 PowerWyrm: You see a Bubbling Potion.
+131119 110649 PowerWyrm: The kobold archer hits you.
+131119 110649 PowerWyrm: The potion makes you vomit!
+131119 110649 PowerWyrm: You are getting faint from hunger!
+131119 110649 PowerWyrm: You are paralyzed!
+131119 110649 PowerWyrm: You see no more Potions of Salt Water.
+131119 110652 PowerWyrm: The kobold archer hits you.
+131119 110655 PowerWyrm: The kobold archer hits you.
+131119 110659 PowerWyrm: The kobold archer hits you.
+131119 110700 PowerWyrm: You can move again.
+131119 110702 PowerWyrm: The kobold archer hits you.
+131119 110702 PowerWyrm: That tastes good.
+131119 110702 PowerWyrm: You are no longer hungry.
+131119 110702 PowerWyrm: You have no more Rations of Food (a).
+131119 110705 PowerWyrm: The kobold archer hits you.
+131119 110705 PowerWyrm: You feel much better.
+131119 110705 PowerWyrm: You feel bold!
+131119 110705 PowerWyrm: You feel like a killing machine!
+131119 110705 PowerWyrm: You have no more Potions of Berserk Strength (b).
+131119 110709 PowerWyrm: The kobold archer hits you.
+131119 110709 PowerWyrm: You hit the kobold archer.
+131119 110709 PowerWyrm: You hit the kobold archer.
+131119 110709 PowerWyrm: You hit the kobold archer.
+131119 110709 PowerWyrm: You hit the kobold archer.
+131119 110709 PowerWyrm: The kobold archer flees in terror!
+131119 110712 PowerWyrm: You hit the kobold archer.
+131119 110712 PowerWyrm: You have slain the kobold archer.
+131119 110712 PowerWyrm: You feel something roll beneath your feet.
+131119 110715 PowerWyrm: You have 3 Rations of Food (a).
+131119 110715 PowerWyrm: You hit the small kobold.
+131119 110715 PowerWyrm: You hit the small kobold.
+131119 110715 PowerWyrm: You have slain the small kobold.
+131119 110722 PowerWyrm: You enter a maze of down staircases.
+131119 110722 New Level 400ft at (-9, 37) Ratings obj:588/mon:155
+131119 110722 PowerWyrm: This place seems reasonably safe.
+131119 110726 PowerWyrm: You no longer feel bold.
+131119 110744 PowerWyrm: You no longer feel berserk.
+131119 110755 PowerWyrm: You have found 115 gold pieces worth of copper.
+131119 110803 PowerWyrm: You see 6 Scrolls titled "ver vehecia".
+131119 110804 PowerWyrm: You have 6 Scrolls titled "ver vehecia" (e).
+131119 110806 PowerWyrm: You have found 105 gold pieces worth of copper.
+131119 110811 PowerWyrm: The air around you starts to swirl...
+131119 110811 PowerWyrm: You have no more Scrolls of Deep Descent (d).
+131119 110813 PowerWyrm: The floor opens beneath you!
+131119 110813 New Level 650ft at (-9, 37) Ratings obj:15/mon:207
+131119 110813 PowerWyrm: This place seems reasonably safe.
+131119 110814 PowerWyrm: You hear a door burst open!
+131119 110820 PowerWyrm: The tiger claws you.
+131119 110820 PowerWyrm: The tiger claws you.
+131119 110820 PowerWyrm: The tiger bites you.
+131119 110820 PowerWyrm: You miss the tiger.
+131119 110820 PowerWyrm: You hit the tiger.
+131119 110820 PowerWyrm: You miss the tiger.
+131119 110820 PowerWyrm: You hit the tiger.
+131119 110820 PowerWyrm: The tiger claws you.
+131119 110820 PowerWyrm: The tiger claws you.
+131119 110820 PowerWyrm: The tiger bites you.
+131119 110820 PowerWyrm: *** LOW HITPOINT WARNING! ***
+131119 110822 PowerWyrm: The tiger misses you.
+131119 110822 PowerWyrm: The tiger claws you.
+131119 110822 PowerWyrm: The tiger bites you.
+131119 110822 PowerWyrm: You hit the tiger.
+131119 110822 PowerWyrm: You hit the tiger.
+131119 110822 PowerWyrm: You hit the tiger.
+131119 110824 PowerWyrm: The tiger claws you.
+131119 110824 PowerWyrm: The tiger misses you.
+131119 110824 PowerWyrm: The tiger bites you.
+131119 110825 PowerWyrm: The tiger claws you.
+131119 110825 PowerWyrm: The tiger claws you.
+131119 110825 PowerWyrm: The tiger bites you.
+131119 110826 PowerWyrm: You miss the tiger.
+131119 110826 PowerWyrm: You miss the tiger.
+131119 110826 PowerWyrm: You hit the tiger.
+131119 110827 PowerWyrm: The tiger claws you.
+131119 110827 PowerWyrm: The tiger misses you.
+131119 110827 PowerWyrm: The tiger bites you.
+131119 110829 PowerWyrm: The tiger claws you.
+131119 110829 PowerWyrm: The tiger claws you.
+131119 110829 PowerWyrm: The tiger bites you.
+131119 110829 PowerWyrm: You feel much better.
+131119 110829 PowerWyrm: You have 2 Potions of Cure Light Wounds (b).
+131119 110831 PowerWyrm: The tiger claws you.
+131119 110831 PowerWyrm: The tiger misses you.
+131119 110831 PowerWyrm: The tiger bites you.
+131119 110832 PowerWyrm: The tiger claws you.
+131119 110832 PowerWyrm: The tiger claws you.
+131119 110832 PowerWyrm: The tiger bites you.
+131119 110833 PowerWyrm: You hit the tiger.
+131119 110833 PowerWyrm: You hit the tiger.
+131119 110833 PowerWyrm: You miss the tiger.
+131119 110833 PowerWyrm: You hit the tiger.
+131119 110834 PowerWyrm: The tiger claws you.
+131119 110834 PowerWyrm: The tiger claws you.
+131119 110834 PowerWyrm: You die.
+131119 110834 Character dump successful.
+131119 110834 Character dump successful.
+131119 110834 PowerWyrm: You have been killed by a tiger.
+131119 110835 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Killed by a tiger")
+131119 110844 Shutting down.
+131119 110844 Server state save succeeded!
+131119 114345 Game Restarted
+131119 114345 Initialised exit save handler.
+131119 114345 Dungeon Master Set as [DarkGod]
+131119 114345 Timer delay 13 ms timer resolution is 1 ms
+131119 114345 Initializing constants...
+131119 114345 Initializing projections...
+131119 114345 Initializing timed effects...
+131119 114345 Initializing features...
+131119 114345 Initializing wilderness feats...
+131119 114345 Initializing wilderness info...
+131119 114345 Initializing town feats...
+131119 114345 Initializing towns...
+131119 114345 Initializing dungeons...
+131119 114345 Initializing object bases...
+131119 114345 Initializing slays...
+131119 114345 Initializing brands...
+131119 114345 Initializing monster pain messages...
+131119 114345 Initializing monster bases...
+131119 114345 Initializing summons...
+131119 114345 Initializing curses...
+131119 114345 Initializing activations...
+131119 114345 Initializing objects...
+131119 114345 Initializing ego-items...
+131119 114345 Initializing history charts...
+131119 114345 Initializing bodies...
+131119 114345 Initializing player races...
+131119 114345 Initializing dragon breeds...
+131119 114345 Initializing magic realms...
+131119 114345 Initializing player classes...
+131119 114345 Initializing artifacts...
+131119 114345 Initializing object properties...
+131119 114345 Initializing object power calculations...
+131119 114345 Initializing blow methods...
+131119 114345 Initializing blow effects...
+131119 114345 Initializing monster spells...
+131119 114345 Initializing monsters...
+131119 114345 Initializing monster pits...
+131119 114345 Initializing traps...
+131119 114345 Initializing quests...
+131119 114345 Initializing flavours...
+131119 114345 Initializing socials...
+131119 114345 Initializing hints...
+131119 114345 Initializing random names...
+131119 114345 Initializing dungeon profiles...
+131119 114345 Initializing room templates...
+131119 114345 Initializing vaults...
+131119 114345 Initializing player presets...
+131119 114345 Initializing other stuff...
+131119 114345 Initializing randarts...
+131119 114345 Initializing RNG...
+131119 114345 Initialization complete
+131119 114345 Please wait...
+131119 114345 Object flavors initialized...
+131119 114345 Loading pref file: font.prf
+131119 114345 Create TCP socket...
+131119 114345 Set Non-Blocking...
+131119 114345 Report to metaserver
+131119 114345 Server is running version 1.3.0 (Build 6)
+131119 114345 Timer delay 13 ms timer resolution is 1 ms
+131119 114355 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 114400 New Level 0ft at (-21, 20)
+131119 114400 Player Name is [PowerWyrm], id is 2
+131119 114400 PowerWyrm: Server has fast wilderness.
+131119 114400 PowerWyrm: Server is no-selling.
+131119 114400 PowerWyrm: Server is no-ghost.
+131119 114400 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 114400 PowerWyrm:   
+131119 114400 PowerWyrm:    
+131119 114400 PowerWyrm: ====================
+131119 114400 PowerWyrm:   
+131119 114400 PowerWyrm:    
+131119 114413 PowerWyrm: Inscribing a Scroll of Word of Recall.
+131119 114415 PowerWyrm: The air around you becomes charged...
+131119 114415 PowerWyrm: You have no more Scrolls of Word of Recall {#R-9,37} (c).
+131119 114418 PowerWyrm: You feel yourself yanked sideways!
+131119 114418 New Level 0ft at (-9, 37)
+131119 114419 PowerWyrm: You hit the singing, happy drunk.
+131119 114419 PowerWyrm: You have slain the singing, happy drunk.
+131119 114420 PowerWyrm: You have found 23 gold pieces worth of copper.
+131119 114429 PowerWyrm: The doors are locked.
+131119 114446 PowerWyrm: You bought 8 Potions of Cure Light Wounds {unseen} for 160 gold.
+131119 114446 PowerWyrm: You have 8 Potions of Cure Light Wounds (b).
+131119 114454 PowerWyrm: You enter a maze of down staircases.
+131119 114454 New Level 50ft at (-9, 37) Ratings obj:1/mon:33
+131119 114454 PowerWyrm: This seems a quiet, peaceful place.
+131119 114454 PowerWyrm: You enter a maze of up staircases.
+131119 114455 New Level 0ft at (-9, 37)
+131119 114455 PowerWyrm: You enter a maze of down staircases.
+131119 114455 New Level 50ft at (-9, 37) Ratings obj:42/mon:42
+131119 114455 PowerWyrm: This seems a quiet, peaceful place.
+131119 114458 PowerWyrm: You hit the fruit bat.
+131119 114458 PowerWyrm: You hit the fruit bat.
+131119 114458 PowerWyrm: You have slain the fruit bat.
+131119 114458 PowerWyrm: The white icky thing wakes up.
+131119 114502 PowerWyrm: You hit the white icky thing.
+131119 114502 PowerWyrm: You hit the white icky thing.
+131119 114502 PowerWyrm: You have slain the white icky thing.
+131119 114506 PowerWyrm: You hit the rock lizard.
+131119 114506 PowerWyrm: You hit the rock lizard. It was a good hit!
+131119 114506 PowerWyrm: You have slain the rock lizard.
+131119 114507 PowerWyrm: You enter a maze of down staircases.
+131119 114507 New Level 100ft at (-9, 37) Ratings obj:2/mon:58
+131119 114507 PowerWyrm: This seems a tame, sheltered place.
+131119 114508 PowerWyrm: You enter a maze of up staircases.
+131119 114508 New Level 50ft at (-9, 37) Ratings obj:1/mon:39
+131119 114508 PowerWyrm: This seems a quiet, peaceful place.
+131119 114508 PowerWyrm: You have found a secret door.
+131119 114510 PowerWyrm: You hit the giant white centipede.
+131119 114510 PowerWyrm: You hit the giant white centipede.
+131119 114510 PowerWyrm: You have slain the giant white centipede.
+131119 114511 PowerWyrm: You enter a maze of down staircases.
+131119 114511 New Level 100ft at (-9, 37) Ratings obj:2/mon:61
+131119 114511 PowerWyrm: This seems a tame, sheltered place.
+131119 114512 PowerWyrm: You enter a maze of up staircases.
+131119 114512 New Level 50ft at (-9, 37) Ratings obj:14/mon:33
+131119 114512 PowerWyrm: This seems a quiet, peaceful place.
+131119 114512 PowerWyrm: You enter a maze of down staircases.
+131119 114512 New Level 100ft at (-9, 37) Ratings obj:35/mon:43
+131119 114512 PowerWyrm: This seems a quiet, peaceful place.
+131119 114513 PowerWyrm: You enter a maze of up staircases.
+131119 114513 New Level 50ft at (-9, 37) Ratings obj:1/mon:27
+131119 114513 PowerWyrm: This seems a quiet, peaceful place.
+131119 114514 PowerWyrm: You enter a maze of down staircases.
+131119 114514 New Level 100ft at (-9, 37) Ratings obj:2/mon:53
+131119 114514 PowerWyrm: This seems a tame, sheltered place.
+131119 114517 PowerWyrm: You enter a maze of down staircases.
+131119 114517 New Level 150ft at (-9, 37) Ratings obj:5/mon:53
+131119 114517 PowerWyrm: This seems a tame, sheltered place.
+131119 114517 PowerWyrm: You enter a maze of up staircases.
+131119 114517 New Level 100ft at (-9, 37) Ratings obj:0/mon:60
+131119 114517 PowerWyrm: This seems a tame, sheltered place.
+131119 114517 PowerWyrm: You have found a secret door.
+131119 114518 PowerWyrm: You enter a maze of down staircases.
+131119 114518 New Level 150ft at (-9, 37) Ratings obj:3/mon:41
+131119 114518 PowerWyrm: This seems a quiet, peaceful place.
+131119 114519 PowerWyrm: You enter a maze of up staircases.
+131119 114519 New Level 100ft at (-9, 37) Ratings obj:18/mon:79
+131119 114519 PowerWyrm: This seems a tame, sheltered place.
+131119 114520 PowerWyrm: You enter a maze of down staircases.
+131119 114520 New Level 150ft at (-9, 37) Ratings obj:3/mon:64
+131119 114520 PowerWyrm: This seems a tame, sheltered place.
+131119 114525 PowerWyrm: Something moans.
+131119 114525 PowerWyrm: The draining fails.
+131119 114526 PowerWyrm: It tries to cast a spell, but fails.
+131119 114526 PowerWyrm: It tries to cast a spell, but fails.
+131119 114528 PowerWyrm: Something moans.
+131119 114528 PowerWyrm: The draining fails.
+131119 114529 PowerWyrm: Something moans.
+131119 114529 PowerWyrm: The draining fails.
+131119 114530 PowerWyrm: Something moans.
+131119 114530 PowerWyrm: The draining fails.
+131119 114530 PowerWyrm: It tries to cast a spell, but fails.
+131119 114532 PowerWyrm: The radiation eye gazes at you.
+131119 114532 PowerWyrm: You feel very weak.
+131119 114533 PowerWyrm: You hit the radiation eye.
+131119 114533 PowerWyrm: You hit the radiation eye.
+131119 114533 PowerWyrm: You hit the radiation eye.
+131119 114533 PowerWyrm: You have slain the radiation eye.
+131119 114533 PowerWyrm: Welcome to level 2.
+131119 114533 PowerWyrm: You feel less weak.
+131119 114612 PowerWyrm: I see no down staircase here.
+131119 114612 PowerWyrm: You enter a maze of up staircases.
+131119 114612 New Level 100ft at (-9, 37) Ratings obj:421/mon:40
+131119 114612 PowerWyrm: This seems a quiet, peaceful place.
+131119 114613 PowerWyrm: You enter a maze of down staircases.
+131119 114613 New Level 150ft at (-9, 37) Ratings obj:3/mon:44
+131119 114613 PowerWyrm: This seems a quiet, peaceful place.
+131119 114614 PowerWyrm: You hear a door burst open!
+131119 114617 PowerWyrm: You hear a door burst open!
+131119 114621 PowerWyrm: You see a Zinc-Plated Wand.
+131119 114623 PowerWyrm: You have a Zinc-Plated Wand (d).
+131119 114623 PowerWyrm: You miss the wild cat.
+131119 114623 PowerWyrm: You hit the wild cat.
+131119 114623 PowerWyrm: You hit the wild cat.
+131119 114623 PowerWyrm: You have slain the wild cat.
+131119 114623 PowerWyrm: Welcome to level 3.
+131119 114655 Shutting down.
+131119 114655 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Server shutdown (save succeeded)")
+131119 114655 Server state save succeeded!
+131119 114910 Game Restarted
+131119 114910 Initialised exit save handler.
+131119 114910 Dungeon Master Set as [DarkGod]
+131119 114910 Timer delay 13 ms timer resolution is 1 ms
+131119 114910 Initializing constants...
+131119 114910 Initializing projections...
+131119 114910 Initializing timed effects...
+131119 114910 Initializing features...
+131119 114910 Initializing wilderness feats...
+131119 114910 Initializing wilderness info...
+131119 114910 Initializing town feats...
+131119 114910 Initializing towns...
+131119 114910 Initializing dungeons...
+131119 114910 Initializing object bases...
+131119 114910 Initializing slays...
+131119 114910 Initializing brands...
+131119 114910 Initializing monster pain messages...
+131119 114910 Initializing monster bases...
+131119 114910 Initializing summons...
+131119 114910 Initializing curses...
+131119 114910 Initializing activations...
+131119 114910 Initializing objects...
+131119 114910 Initializing ego-items...
+131119 114910 Initializing history charts...
+131119 114910 Initializing bodies...
+131119 114910 Initializing player races...
+131119 114910 Initializing dragon breeds...
+131119 114910 Initializing magic realms...
+131119 114910 Initializing player classes...
+131119 114910 Initializing artifacts...
+131119 114910 Initializing object properties...
+131119 114910 Initializing object power calculations...
+131119 114910 Initializing blow methods...
+131119 114910 Initializing blow effects...
+131119 114910 Initializing monster spells...
+131119 114910 Initializing monsters...
+131119 114910 Initializing monster pits...
+131119 114910 Initializing traps...
+131119 114910 Initializing quests...
+131119 114910 Initializing flavours...
+131119 114910 Initializing socials...
+131119 114910 Initializing hints...
+131119 114910 Initializing random names...
+131119 114910 Initializing dungeon profiles...
+131119 114910 Initializing room templates...
+131119 114910 Initializing vaults...
+131119 114910 Initializing player presets...
+131119 114910 Initializing other stuff...
+131119 114910 Initializing randarts...
+131119 114910 Initializing RNG...
+131119 114910 Initialization complete
+131119 114910 Please wait...
+131119 114910 Object flavors initialized...
+131119 114910 Loading pref file: font.prf
+131119 114910 Create TCP socket...
+131119 114910 Set Non-Blocking...
+131119 114910 Report to metaserver
+131119 114910 Server is running version 1.3.0 (Build 6)
+131119 114910 Timer delay 13 ms timer resolution is 1 ms
+131119 114915 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 114916 Player Name is [PowerWyrm], id is 2
+131119 114916 PowerWyrm: Server has fast wilderness.
+131119 114916 PowerWyrm: Server is no-selling.
+131119 114916 PowerWyrm: Server is no-ghost.
+131119 114916 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 114916 PowerWyrm:   
+131119 114916 PowerWyrm:    
+131119 114916 PowerWyrm: ====================
+131119 114916 PowerWyrm:   
+131119 114916 PowerWyrm:    
+131119 114916 PowerWyrm: This seems a quiet, peaceful place.
+131119 114918 PowerWyrm: You enter a maze of down staircases.
+131119 114918 New Level 200ft at (-9, 37) Ratings obj:108/mon:61
+131119 114918 PowerWyrm: This seems a tame, sheltered place.
+131119 114932 PowerWyrm: The kobold shaman tries to cast a spell, but fails.
+131119 114933 PowerWyrm: You miss the kobold shaman.
+131119 114933 PowerWyrm: You hit the kobold shaman.
+131119 114933 PowerWyrm: You hit the kobold shaman.
+131119 114933 PowerWyrm: The kobold shaman flees in terror!
+131119 114933 PowerWyrm: The kobold shaman points at you and curses!
+131119 114933 PowerWyrm: *** LOW HITPOINT WARNING! ***
+131119 114933 PowerWyrm: You hit the kobold shaman.
+131119 114933 PowerWyrm: You have slain the kobold shaman.
+131119 114933 PowerWyrm: Welcome to level 4.
+131119 114942 PowerWyrm: You hit the kobold.
+131119 114942 PowerWyrm: You hit the kobold.
+131119 114942 PowerWyrm: You hit the kobold.
+131119 114942 PowerWyrm: You have slain the kobold.
+131119 114944 PowerWyrm: You hear a door burst open!
+131119 114946 PowerWyrm: You have found 84 gold pieces worth of copper.
+131119 114957 PowerWyrm: The kobold wakes up.
+131119 114959 PowerWyrm: You hit the kobold.
+131119 114959 PowerWyrm: You hit the kobold.
+131119 114959 PowerWyrm: You have slain the kobold.
+131119 115002 PowerWyrm: You hit the small kobold.
+131119 115002 PowerWyrm: You hit the small kobold.
+131119 115002 PowerWyrm: You have slain the small kobold.
+131119 115007 PowerWyrm: You feel much better.
+131119 115007 PowerWyrm: You have 7 Potions of Cure Light Wounds (b).
+131119 115008 PowerWyrm: You have 11 Potions of Cure Light Wounds (b).
+131119 115010 PowerWyrm: You have found 92 gold pieces worth of copper.
+131119 115010 PowerWyrm: The metallic blue centipede crawls on you.
+131119 115011 PowerWyrm: You hit the metallic blue centipede.
+131119 115011 PowerWyrm: You hit the metallic blue centipede.
+131119 115011 PowerWyrm: You miss the metallic blue centipede.
+131119 115011 PowerWyrm: The metallic blue centipede flees in terror!
+131119 115011 PowerWyrm: You hit the metallic blue centipede.
+131119 115011 PowerWyrm: You have slain the metallic blue centipede.
+131119 115015 PowerWyrm: The spotted mushroom patch releases spores at you.
+131119 115015 PowerWyrm: *** LOW HITPOINT WARNING! ***
+131119 115015 PowerWyrm: You are poisoned!
+131119 115018 PowerWyrm: You hit the spotted mushroom patch.
+131119 115018 PowerWyrm: You have destroyed the spotted mushroom patch.
+131119 115031 PowerWyrm: You feel much better.
+131119 115031 PowerWyrm: You have 10 Potions of Cure Light Wounds (b).
+131119 115032 PowerWyrm: You are no longer poisoned.
+131119 115032 PowerWyrm: You have found 96 gold pieces worth of copper.
+131119 115033 PowerWyrm: You feel the Rounded Pebbles on the ground are excellent...
+131119 115033 PowerWyrm: You see 21 Rounded Pebbles (1d2) (+5,+2) {??}.
+131119 115036 PowerWyrm: You have 21 Rounded Pebbles (1d2) (+5,+2) {??} (0).
+131119 115038 PowerWyrm: You hit the small kobold.
+131119 115038 PowerWyrm: You have slain the small kobold.
+131119 115039 PowerWyrm: You have found 112 gold pieces worth of copper.
+131119 115314 PowerWyrm: You enter a maze of up staircases.
+131119 115314 New Level 150ft at (-9, 37) Ratings obj:0/mon:38
+131119 115314 PowerWyrm: This seems a quiet, peaceful place.
+131119 115315 PowerWyrm: You enter a maze of down staircases.
+131119 115315 New Level 200ft at (-9, 37) Ratings obj:6/mon:124
+131119 115315 PowerWyrm: This seems a tame, sheltered place.
+131119 115318 PowerWyrm: You hear a door burst open!
+131119 115319 PowerWyrm: You hear a door burst open!
+131119 115321 PowerWyrm: You hear a door burst open!
+131119 115322 PowerWyrm: You hear a door burst open!
+131119 115322 PowerWyrm: You hear a door burst open!
+131119 115323 PowerWyrm: It slams against a door.
+131119 115324 PowerWyrm: You hear a door burst open!
+131119 115324 PowerWyrm: You miss Fang, Farmer Maggot's Dog.
+131119 115324 PowerWyrm: You miss Fang, Farmer Maggot's Dog.
+131119 115324 PowerWyrm: You hit Fang, Farmer Maggot's Dog.
+131119 115324 PowerWyrm: You hit Fang, Farmer Maggot's Dog. It was a good hit!
+131119 115324 PowerWyrm: Fang, Farmer Maggot's Dog flees in terror!
+131119 115324 PowerWyrm: Fang, Farmer Maggot's Dog bites you.
+131119 115327 PowerWyrm: You hit Fang, Farmer Maggot's Dog.
+131119 115327 PowerWyrm: You hit Fang, Farmer Maggot's Dog.
+131119 115327 PowerWyrm: You have slain Fang, Farmer Maggot's Dog.
+131119 115327 PowerWyrm: Welcome to level 5.
+131119 115332 PowerWyrm: The giant green dragon fly breathes poison.
+131119 115332 PowerWyrm: *** LOW HITPOINT WARNING! ***
+131119 115332 PowerWyrm: You are poisoned!
+131119 115333 PowerWyrm: You miss the giant green dragon fly.
+131119 115333 PowerWyrm: You miss the giant green dragon fly.
+131119 115333 PowerWyrm: You hit the giant green dragon fly.
+131119 115335 PowerWyrm: The giant green dragon fly bites you.
+131119 115335 PowerWyrm: You are more poisoned!
+131119 115336 PowerWyrm: You hit the giant green dragon fly.
+131119 115336 PowerWyrm: You hit the giant green dragon fly.
+131119 115336 PowerWyrm: You hit the giant green dragon fly.
+131119 115336 PowerWyrm: You have slain the giant green dragon fly.
+131119 115411 PowerWyrm: You enter a maze of up staircases.
+131119 115411 New Level 150ft at (-9, 37) Ratings obj:8/mon:67
+131119 115411 PowerWyrm: This seems a tame, sheltered place.
+131119 115412 PowerWyrm: The green worm mass wakes up.
+131119 115416 PowerWyrm: You hit the green worm mass.
+131119 115416 PowerWyrm: You hit the green worm mass.
+131119 115416 PowerWyrm: You hit the green worm mass.
+131119 115419 PowerWyrm: You hit the green worm mass.
+131119 115419 PowerWyrm: You have destroyed the green worm mass.
+131119 115426 PowerWyrm: You are no longer poisoned.
+131119 115431 PowerWyrm: The jackal bites you.
+131119 115432 PowerWyrm: You hit the jackal.
+131119 115432 PowerWyrm: You have slain the jackal.
+131119 115434 PowerWyrm: You hit the jackal.
+131119 115434 PowerWyrm: You have slain the jackal.
+131119 115437 PowerWyrm: You hit the jackal.
+131119 115437 PowerWyrm: You have slain the jackal.
+131119 115441 PowerWyrm: You see 3 Scrolls titled "hum grus lene".
+131119 115443 PowerWyrm: You have 3 Scrolls titled "hum grus lene" (d).
+131119 115444 PowerWyrm: The jackal bites you.
+131119 115445 PowerWyrm: You hit the jackal.
+131119 115445 PowerWyrm: You have slain the jackal.
+131119 115452 PowerWyrm: You have 12 Potions of Cure Light Wounds (b).
+131119 115457 PowerWyrm: You are full!
+131119 115457 PowerWyrm: You feel much better.
+131119 115457 PowerWyrm: You have 11 Potions of Cure Light Wounds (b).
+131119 115503 PowerWyrm: You feel much better.
+131119 115503 PowerWyrm: You have 10 Potions of Cure Light Wounds (b).
+131119 115518 PowerWyrm: You die.
+131119 115518 Character dump successful.
+131119 115518 PowerWyrm: You re-arrange your quiver.
+131119 115518 PowerWyrm: Score not registered for wizards, quitters and cheaters.
+131119 115518 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Terminated")
+131119 115521 Shutting down.
+131119 115521 Server state save succeeded!
+131119 125528 Game Restarted
+131119 125528 Initialised exit save handler.
+131119 125528 Dungeon Master Set as [DarkGod]
+131119 125528 Timer delay 13 ms timer resolution is 1 ms
+131119 125528 Initializing constants...
+131119 125528 Initializing projections...
+131119 125528 Initializing timed effects...
+131119 125528 Initializing features...
+131119 125529 Initializing wilderness feats...
+131119 125529 Initializing wilderness info...
+131119 125529 Initializing town feats...
+131119 125529 Initializing towns...
+131119 125529 Initializing dungeons...
+131119 125529 Initializing object bases...
+131119 125529 Initializing slays...
+131119 125529 Initializing brands...
+131119 125529 Initializing monster pain messages...
+131119 125529 Initializing monster bases...
+131119 125529 Initializing summons...
+131119 125529 Initializing curses...
+131119 125529 Initializing activations...
+131119 125529 Initializing objects...
+131119 125529 Initializing ego-items...
+131119 125529 Initializing history charts...
+131119 125529 Initializing bodies...
+131119 125529 Initializing player races...
+131119 125529 Initializing dragon breeds...
+131119 125529 Initializing magic realms...
+131119 125529 Initializing player classes...
+131119 125529 Initializing artifacts...
+131119 125529 Initializing object properties...
+131119 125529 Initializing object power calculations...
+131119 125529 Initializing blow methods...
+131119 125529 Initializing blow effects...
+131119 125529 Initializing monster spells...
+131119 125529 Initializing monsters...
+131119 125529 Initializing monster pits...
+131119 125529 Initializing traps...
+131119 125529 Initializing quests...
+131119 125529 Initializing flavours...
+131119 125529 Initializing socials...
+131119 125529 Initializing hints...
+131119 125529 Initializing random names...
+131119 125529 Initializing dungeon profiles...
+131119 125529 Initializing room templates...
+131119 125529 Initializing vaults...
+131119 125529 Initializing player presets...
+131119 125529 Initializing other stuff...
+131119 125529 Initializing randarts...
+131119 125529 Initializing RNG...
+131119 125529 Initialization complete
+131119 125529 Please wait...
+131119 125529 Object flavors initialized...
+131119 125529 Loading pref file: font.prf
+131119 125529 Create TCP socket...
+131119 125529 Set Non-Blocking...
+131119 125529 Report to metaserver
+131119 125529 Server is running version 1.3.0 (Build 6)
+131119 125529 Timer delay 13 ms timer resolution is 1 ms
+131119 125537 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 125544 New Level 0ft at (-21, 20)
+131119 125544 Player Name is [PowerWyrm], id is 3
+131119 125544 PowerWyrm: Server has fast wilderness.
+131119 125544 PowerWyrm: Server is no-selling.
+131119 125544 PowerWyrm: Server is no-ghost.
+131119 125544 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 125544 PowerWyrm:   
+131119 125544 PowerWyrm:    
+131119 125544 PowerWyrm: ====================
+131119 125544 PowerWyrm:   
+131119 125544 PowerWyrm:    
+131119 125552 PowerWyrm: Inscribing a Scroll of Word of Recall.
+131119 125553 PowerWyrm: The air around you becomes charged...
+131119 125553 PowerWyrm: You have no more Scrolls of Word of Recall {#R-9,37} (c).
+131119 125555 PowerWyrm: You feel yourself yanked sideways!
+131119 125555 New Level 0ft at (-9, 37)
+131119 125619 PowerWyrm: You hit the singing, happy drunk.
+131119 125619 PowerWyrm: You have slain the singing, happy drunk.
+131119 125639 PowerWyrm: Map sector [1,9], which is your sector.  Direction?
+131119 125639 PowerWyrm: Map sector [0,9], which is north of your sector.  Direction?
+131119 125639 PowerWyrm: Map sector [0,6], which is north west of your sector.  Direction?
+131119 125640 PowerWyrm: Map sector [0,3], which is north west of your sector.  Direction?
+131119 125640 PowerWyrm: Map sector [0,0], which is north west of your sector.  Direction?
+131119 125640 PowerWyrm: Map sector [1,0], which is west of your sector.  Direction?
+131119 125640 PowerWyrm: Map sector [2,0], which is south west of your sector.  Direction?
+131119 125641 PowerWyrm: Map sector [2,3], which is south west of your sector.  Direction?
+131119 125650 PowerWyrm: You hit the filthy street urchin.
+131119 125650 PowerWyrm: You have slain the filthy street urchin.
+131119 125656 PowerWyrm: You bought 5 Potions of Cure Light Wounds {unseen} for 100 gold.
+131119 125656 PowerWyrm: You have 5 Potions of Cure Light Wounds (b).
+131119 125715 PowerWyrm: Really enter the wilderness? The dungeon entrance is in the town!
+131119 125715 New Level 0ft at (-10, 37)
+131119 125718 PowerWyrm: There is a wall blocking your way.
+131119 125720 New Level 0ft at (-9, 37)
+131119 125725 PowerWyrm: You hit the scruffy little dog.
+131119 125725 PowerWyrm: You have slain the scruffy little dog.
+131119 125725 PowerWyrm: You hit the scruffy little dog.
+131119 125725 PowerWyrm: You have slain the scruffy little dog.
+131119 125734 PowerWyrm: You enter a maze of down staircases.
+131119 125734 New Level 50ft at (-9, 37) Ratings obj:2/mon:32
+131119 125734 PowerWyrm: This seems a quiet, peaceful place.
+131119 125735 PowerWyrm: You enter a maze of up staircases.
+131119 125735 New Level 0ft at (-9, 37)
+131119 125736 PowerWyrm: You enter a maze of down staircases.
+131119 125736 New Level 50ft at (-9, 37) Ratings obj:57/mon:33
+131119 125736 PowerWyrm: This seems a quiet, peaceful place.
+131119 125744 PowerWyrm: You hit the giant white centipede.
+131119 125744 PowerWyrm: You miss the giant white centipede.
+131119 125744 PowerWyrm: You miss the giant white centipede.
+131119 125744 PowerWyrm: The giant white centipede flees in terror!
+131119 125744 PowerWyrm: The giant white centipede bites you.
+131119 125744 PowerWyrm: The giant white centipede stings you.
+131119 125745 PowerWyrm: You hit the giant white centipede.
+131119 125745 PowerWyrm: You have slain the giant white centipede.
+131119 125752 PowerWyrm: You enter a maze of down staircases.
+131119 125752 New Level 100ft at (-9, 37) Ratings obj:21/mon:52
+131119 125752 PowerWyrm: This seems a tame, sheltered place.
+131119 125755 PowerWyrm: You enter a maze of down staircases.
+131119 125755 New Level 150ft at (-9, 37) Ratings obj:0/mon:54
+131119 125755 PowerWyrm: This seems a tame, sheltered place.
+131119 125756 PowerWyrm: You enter a maze of up staircases.
+131119 125757 New Level 100ft at (-9, 37) Ratings obj:7/mon:68
+131119 125757 PowerWyrm: This seems a tame, sheltered place.
+131119 125757 PowerWyrm: You enter a maze of down staircases.
+131119 125757 New Level 150ft at (-9, 37) Ratings obj:0/mon:40
+131119 125757 PowerWyrm: This seems a quiet, peaceful place.
+131119 125758 PowerWyrm: You enter a maze of up staircases.
+131119 125758 New Level 100ft at (-9, 37) Ratings obj:5/mon:71
+131119 125758 PowerWyrm: This seems a tame, sheltered place.
+131119 125758 PowerWyrm: You enter a maze of down staircases.
+131119 125758 New Level 150ft at (-9, 37) Ratings obj:22/mon:71
+131119 125758 PowerWyrm: This seems a tame, sheltered place.
+131119 125803 PowerWyrm: You enter a maze of down staircases.
+131119 125803 New Level 200ft at (-9, 37) Ratings obj:1/mon:94
+131119 125803 PowerWyrm: This seems a tame, sheltered place.
+131119 125804 PowerWyrm: You enter a maze of up staircases.
+131119 125804 New Level 150ft at (-9, 37) Ratings obj:18/mon:80
+131119 125804 PowerWyrm: This seems a tame, sheltered place.
+131119 125805 PowerWyrm: You enter a maze of down staircases.
+131119 125805 New Level 200ft at (-9, 37) Ratings obj:22/mon:106
+131119 125805 PowerWyrm: This seems a tame, sheltered place.
+131119 125811 PowerWyrm: You enter a maze of up staircases.
+131119 125811 New Level 150ft at (-9, 37) Ratings obj:14/mon:44
+131119 125811 PowerWyrm: This seems a quiet, peaceful place.
+131119 125812 PowerWyrm: You enter a maze of down staircases.
+131119 125812 New Level 200ft at (-9, 37) Ratings obj:0/mon:62
+131119 125812 PowerWyrm: This seems a tame, sheltered place.
+131119 125812 PowerWyrm: You enter a maze of up staircases.
+131119 125812 New Level 150ft at (-9, 37) Ratings obj:0/mon:53
+131119 125812 PowerWyrm: This seems a tame, sheltered place.
+131119 125813 PowerWyrm: You enter a maze of down staircases.
+131119 125813 New Level 200ft at (-9, 37) Ratings obj:32/mon:62
+131119 125813 PowerWyrm: This seems a tame, sheltered place.
+131119 125813 PowerWyrm: You enter a maze of up staircases.
+131119 125813 New Level 150ft at (-9, 37) Ratings obj:153/mon:176
+131119 125813 PowerWyrm: This place seems reasonably safe.
+131119 125813 PowerWyrm: You have found a secret door.
+131119 125814 PowerWyrm: You enter a maze of down staircases.
+131119 125814 New Level 200ft at (-9, 37) Ratings obj:7/mon:117
+131119 125814 PowerWyrm: This seems a tame, sheltered place.
+131119 125814 PowerWyrm: You have found a secret door.
+131119 125815 PowerWyrm: You enter a maze of up staircases.
+131119 125815 New Level 150ft at (-9, 37) Ratings obj:1/mon:62
+131119 125815 PowerWyrm: This seems a tame, sheltered place.
+131119 125815 PowerWyrm: You enter a maze of down staircases.
+131119 125815 New Level 200ft at (-9, 37) Ratings obj:2/mon:206
+131119 125815 PowerWyrm: This place seems reasonably safe.
+131119 125816 PowerWyrm: You enter a maze of up staircases.
+131119 125816 Artifact the Dagger 'Dethanc' created
+131119 125816 New Level 150ft at (-9, 37) Ratings obj:1931/mon:50
+131119 125816 PowerWyrm: This seems a quiet, peaceful place.
+131119 125817 PowerWyrm: You enter a maze of down staircases.
+131119 125817 New Level 200ft at (-9, 37) Ratings obj:8653/mon:86
+131119 125817 PowerWyrm: This seems a tame, sheltered place.
+131119 125817 PowerWyrm: You enter a maze of up staircases.
+131119 125818 New Level 150ft at (-9, 37) Ratings obj:14/mon:53
+131119 125818 PowerWyrm: This seems a tame, sheltered place.
+131119 125818 PowerWyrm: You enter a maze of down staircases.
+131119 125818 New Level 200ft at (-9, 37) Ratings obj:0/mon:77
+131119 125818 PowerWyrm: This seems a tame, sheltered place.
+131119 125818 PowerWyrm: You enter a maze of up staircases.
+131119 125819 New Level 150ft at (-9, 37) Ratings obj:22/mon:67
+131119 125819 PowerWyrm: This seems a tame, sheltered place.
+131119 125821 PowerWyrm: You enter a maze of down staircases.
+131119 125821 New Level 200ft at (-9, 37) Ratings obj:7/mon:143
+131119 125821 PowerWyrm: This seems a tame, sheltered place.
+131119 125821 PowerWyrm: You enter a maze of up staircases.
+131119 125821 New Level 150ft at (-9, 37) Ratings obj:14/mon:119
+131119 125821 PowerWyrm: This seems a tame, sheltered place.
+131119 125822 PowerWyrm: You enter a maze of down staircases.
+131119 125822 New Level 200ft at (-9, 37) Ratings obj:2/mon:92
+131119 125822 PowerWyrm: This seems a tame, sheltered place.
+131119 125823 PowerWyrm: You hear a door burst open!
+131119 125837 PowerWyrm: You enter a maze of down staircases.
+131119 125837 New Level 250ft at (-9, 37) Ratings obj:9/mon:72
+131119 125837 PowerWyrm: This seems a tame, sheltered place.
+131119 125838 PowerWyrm: You enter a maze of up staircases.
+131119 125838 New Level 200ft at (-9, 37) Ratings obj:2/mon:92
+131119 125838 PowerWyrm: This seems a tame, sheltered place.
+131119 125839 PowerWyrm: You enter a maze of down staircases.
+131119 125839 New Level 250ft at (-9, 37) Ratings obj:14/mon:509
+131119 125839 PowerWyrm: This place does not seem too risky.
+131119 125840 PowerWyrm: You enter a maze of up staircases.
+131119 125840 New Level 200ft at (-9, 37) Ratings obj:1/mon:84
+131119 125840 PowerWyrm: This seems a tame, sheltered place.
+131119 125840 PowerWyrm: You enter a maze of down staircases.
+131119 125840 Artifact the Shovel of the Miner created
+131119 125840 New Level 250ft at (-9, 37) Ratings obj:55/mon:137
+131119 125840 PowerWyrm: This seems a tame, sheltered place.
+131119 125845 PowerWyrm: You hit the cutpurse.
+131119 125845 PowerWyrm: You hit the cutpurse.
+131119 125845 PowerWyrm: You hit the cutpurse.
+131119 125845 PowerWyrm: You hit the cutpurse.
+131119 125845 PowerWyrm: You have slain the cutpurse.
+131119 125845 PowerWyrm: Welcome to level 2.
+131119 125845 PowerWyrm: You hit the cutpurse.
+131119 125845 PowerWyrm: You miss the cutpurse.
+131119 125845 PowerWyrm: You hit the cutpurse.
+131119 125846 PowerWyrm: The cutpurse misses you.
+131119 125846 PowerWyrm: The cutpurse misses you.
+131119 125846 PowerWyrm: You hit the cutpurse.
+131119 125846 PowerWyrm: You hit the cutpurse.
+131119 125846 PowerWyrm: You have slain the cutpurse.
+131119 125848 PowerWyrm: The cutpurse picks up 6 Blue Potions.
+131119 125848 PowerWyrm: You miss the cutpurse.
+131119 125848 PowerWyrm: You hit the cutpurse.
+131119 125848 PowerWyrm: You hit the cutpurse.
+131119 125848 PowerWyrm: You hit the cutpurse.
+131119 125848 PowerWyrm: The cutpurse flees in terror!
+131119 125900 PowerWyrm: You enter a maze of up staircases.
+131119 125900 New Level 200ft at (-9, 37) Ratings obj:0/mon:103
+131119 125900 PowerWyrm: This seems a tame, sheltered place.
+131119 125900 PowerWyrm: You enter a maze of down staircases.
+131119 125901 New Level 250ft at (-9, 37) Ratings obj:24/mon:1205
+131119 125901 PowerWyrm: You feel nervous about this place.
+131119 125901 PowerWyrm: You enter a maze of up staircases.
+131119 125901 New Level 200ft at (-9, 37) Ratings obj:1/mon:88
+131119 125901 PowerWyrm: This seems a tame, sheltered place.
+131119 125901 PowerWyrm: You enter a maze of down staircases.
+131119 125901 New Level 250ft at (-9, 37) Ratings obj:25/mon:83
+131119 125901 PowerWyrm: This seems a tame, sheltered place.
+131119 125906 PowerWyrm: You hit the cutpurse.
+131119 125906 PowerWyrm: You hit the cutpurse.
+131119 125906 PowerWyrm: You hit the cutpurse.
+131119 125906 PowerWyrm: The cutpurse flees in terror!
+131119 125909 PowerWyrm: You hit the cutpurse.
+131119 125909 PowerWyrm: You have slain the cutpurse.
+131119 125909 PowerWyrm: Welcome to level 3.
+131119 125915 PowerWyrm: You miss the kobold shaman.
+131119 125915 PowerWyrm: You hit the kobold shaman.
+131119 125915 PowerWyrm: You hit the kobold shaman.
+131119 125915 PowerWyrm: You have slain the kobold shaman.
+131119 125922 PowerWyrm: You see a Scroll titled "ver vehecia".
+131119 125925 PowerWyrm: The soldier wakes up.
+131119 125937 PowerWyrm: You hit the soldier.
+131119 125937 PowerWyrm: You hit the soldier.
+131119 125937 PowerWyrm: You hit the soldier.
+131119 125940 PowerWyrm: The soldier misses you.
+131119 125940 PowerWyrm: The soldier hits you.
+131119 125940 PowerWyrm: You miss the soldier.
+131119 125940 PowerWyrm: You hit the soldier.
+131119 125940 PowerWyrm: You hit the soldier.
+131119 125940 PowerWyrm: You have slain the soldier.
+131119 125940 PowerWyrm: Welcome to level 4.
+131119 125945 PowerWyrm: You see a Scroll titled "ver vehecia".
+131119 125951 PowerWyrm: You have found 155 gold pieces worth of copper.
+131119 125955 PowerWyrm: You see a Scroll titled "ver vehecia".
+131119 130026 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Client quit")
+131119 130030 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 130031 Player Name is [PowerWyrm], id is 3
+131119 130031 PowerWyrm: Server has fast wilderness.
+131119 130031 PowerWyrm: Server is no-selling.
+131119 130031 PowerWyrm: Server is no-ghost.
+131119 130031 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 130031 PowerWyrm:   
+131119 130031 PowerWyrm:    
+131119 130031 PowerWyrm: ====================
+131119 130031 PowerWyrm:   
+131119 130031 PowerWyrm:    
+131119 130031 PowerWyrm: This seems a tame, sheltered place.
+131119 130035 PowerWyrm: You see a Scroll titled "ver vehecia".
+131119 130038 PowerWyrm: You see a Human Skeleton.
+131119 130040 PowerWyrm: The soldier hits you.
+131119 130040 PowerWyrm: The soldier hits you.
+131119 130041 PowerWyrm: You hit the soldier.
+131119 130041 PowerWyrm: You hit the soldier.
+131119 130041 PowerWyrm: You hit the soldier.
+131119 130044 PowerWyrm: The soldier hits you.
+131119 130044 PowerWyrm: The soldier hits you.
+131119 130044 PowerWyrm: You feel much better.
+131119 130044 PowerWyrm: You have 4 Potions of Cure Light Wounds (b).
+131119 130047 PowerWyrm: The soldier hits you.
+131119 130047 PowerWyrm: The soldier hits you.
+131119 130047 PowerWyrm: You have been given a graze.
+131119 130047 PowerWyrm: You miss the soldier.
+131119 130047 PowerWyrm: You hit the soldier.
+131119 130047 PowerWyrm: You have slain the soldier.
+131119 130050 PowerWyrm: You are full!
+131119 130050 PowerWyrm: You feel much better.
+131119 130050 PowerWyrm: You are no longer bleeding.
+131119 130050 PowerWyrm: You have 3 Potions of Cure Light Wounds (b).
+131119 130054 PowerWyrm: You feel much better.
+131119 130054 PowerWyrm: You feel bold!
+131119 130054 PowerWyrm: You feel like a killing machine!
+131119 130054 PowerWyrm: You have no more Potions of Berserk Strength (c).
+131119 130054 PowerWyrm: You see a Scroll titled "ver vehecia".
+131119 130056 PowerWyrm: You enter a maze of up staircases.
+131119 130056 New Level 200ft at (-9, 37) Ratings obj:4/mon:73
+131119 130056 PowerWyrm: This seems a tame, sheltered place.
+131119 130056 PowerWyrm: You have found a secret door.
+131119 130057 PowerWyrm: You enter a maze of down staircases.
+131119 130057 New Level 250ft at (-9, 37) Ratings obj:279/mon:142
+131119 130057 PowerWyrm: This seems a tame, sheltered place.
+131119 130057 PowerWyrm: You enter a maze of up staircases.
+131119 130057 New Level 200ft at (-9, 37) Ratings obj:6/mon:77
+131119 130057 PowerWyrm: This seems a tame, sheltered place.
+131119 130100 PowerWyrm: You enter a maze of down staircases.
+131119 130100 New Level 250ft at (-9, 37) Ratings obj:4/mon:76
+131119 130100 PowerWyrm: This seems a tame, sheltered place.
+131119 130100 PowerWyrm: You enter a maze of up staircases.
+131119 130100 New Level 200ft at (-9, 37) Ratings obj:2/mon:110
+131119 130100 PowerWyrm: This seems a tame, sheltered place.
+131119 130102 PowerWyrm: You enter a maze of down staircases.
+131119 130102 New Level 250ft at (-9, 37) Ratings obj:25/mon:1464
+131119 130102 PowerWyrm: You feel nervous about this place.
+131119 130104 PowerWyrm: You see 2 Scrolls titled "dis rectemuo".
+131119 130107 PowerWyrm: You hit the kobold.
+131119 130107 PowerWyrm: You hit the kobold. It was a good hit!
+131119 130107 PowerWyrm: You have slain the kobold.
+131119 130108 PowerWyrm: You have found 70 gold pieces worth of copper.
+131119 130108 PowerWyrm: You are no longer full.
+131119 130110 PowerWyrm: You enter a maze of up staircases.
+131119 130110 New Level 200ft at (-9, 37) Ratings obj:11/mon:154
+131119 130110 PowerWyrm: This place seems reasonably safe.
+131119 130111 PowerWyrm: You enter a maze of down staircases.
+131119 130111 New Level 250ft at (-9, 37) Ratings obj:17/mon:88
+131119 130111 PowerWyrm: This seems a tame, sheltered place.
+131119 130112 PowerWyrm: You enter a maze of up staircases.
+131119 130112 New Level 200ft at (-9, 37) Ratings obj:8/mon:155
+131119 130112 PowerWyrm: This place seems reasonably safe.
+131119 130112 PowerWyrm: You enter a maze of down staircases.
+131119 130112 New Level 250ft at (-9, 37) Ratings obj:0/mon:59
+131119 130112 PowerWyrm: This seems a tame, sheltered place.
+131119 130113 PowerWyrm: You enter a maze of up staircases.
+131119 130113 Random artifact the Robe of Valen created
+131119 130113 New Level 200ft at (-9, 37) Ratings obj:4764/mon:81
+131119 130113 PowerWyrm: This seems a tame, sheltered place.
+131119 130113 PowerWyrm: You enter a maze of down staircases.
+131119 130113 New Level 250ft at (-9, 37) Ratings obj:79/mon:76
+131119 130113 PowerWyrm: This seems a tame, sheltered place.
+131119 130120 PowerWyrm: You no longer feel berserk.
+131119 130124 PowerWyrm: You enter a maze of up staircases.
+131119 130124 New Level 200ft at (-9, 37) Ratings obj:7/mon:228
+131119 130124 PowerWyrm: This place seems reasonably safe.
+131119 130124 PowerWyrm: You enter a maze of down staircases.
+131119 130124 New Level 250ft at (-9, 37) Ratings obj:7514/mon:2162
+131119 130124 PowerWyrm: You feel anxious about this place.
+131119 130125 PowerWyrm: You no longer feel bold.
+131119 130125 PowerWyrm: You enter a maze of up staircases.
+131119 130125 New Level 200ft at (-9, 37) Ratings obj:145/mon:125
+131119 130125 PowerWyrm: This seems a tame, sheltered place.
+131119 130125 PowerWyrm: You enter a maze of down staircases.
+131119 130125 New Level 250ft at (-9, 37) Ratings obj:12/mon:65
+131119 130125 PowerWyrm: This seems a tame, sheltered place.
+131119 130126 PowerWyrm: You enter a maze of up staircases.
+131119 130126 New Level 200ft at (-9, 37) Ratings obj:0/mon:108
+131119 130126 PowerWyrm: This seems a tame, sheltered place.
+131119 130127 PowerWyrm: You enter a maze of down staircases.
+131119 130127 New Level 250ft at (-9, 37) Ratings obj:12/mon:60
+131119 130127 PowerWyrm: This seems a tame, sheltered place.
+131119 130127 PowerWyrm: You have found a secret door.
+131119 130127 PowerWyrm: You enter a maze of up staircases.
+131119 130127 New Level 200ft at (-9, 37) Ratings obj:26/mon:65
+131119 130127 PowerWyrm: This seems a tame, sheltered place.
+131119 130128 PowerWyrm: You enter a maze of down staircases.
+131119 130128 New Level 250ft at (-9, 37) Ratings obj:13/mon:86
+131119 130128 PowerWyrm: This seems a tame, sheltered place.
+131119 130129 PowerWyrm: You enter a maze of up staircases.
+131119 130129 New Level 200ft at (-9, 37) Ratings obj:17/mon:134
+131119 130129 PowerWyrm: This seems a tame, sheltered place.
+131119 130129 PowerWyrm: You enter a maze of down staircases.
+131119 130129 New Level 250ft at (-9, 37) Ratings obj:3/mon:65
+131119 130129 PowerWyrm: This seems a tame, sheltered place.
+131119 130130 PowerWyrm: You enter a maze of up staircases.
+131119 130130 New Level 200ft at (-9, 37) Ratings obj:12/mon:187
+131119 130130 PowerWyrm: This place seems reasonably safe.
+131119 130130 PowerWyrm: You enter a maze of down staircases.
+131119 130130 New Level 250ft at (-9, 37) Ratings obj:9/mon:69
+131119 130130 PowerWyrm: This seems a tame, sheltered place.
+131119 130131 PowerWyrm: You enter a maze of up staircases.
+131119 130131 New Level 200ft at (-9, 37) Ratings obj:16/mon:99
+131119 130131 PowerWyrm: This seems a tame, sheltered place.
+131119 130131 PowerWyrm: You enter a maze of down staircases.
+131119 130131 New Level 250ft at (-9, 37) Ratings obj:13/mon:221
+131119 130131 PowerWyrm: This place seems reasonably safe.
+131119 130132 PowerWyrm: You feel the Wooden Torch on the ground is average...
+131119 130132 PowerWyrm: You have 3 Wooden Torches (5000 turns) (c).
+131119 130135 PowerWyrm: The yellow light wakes up.
+131119 130137 PowerWyrm: The mindbender wakes up.
+131119 130138 PowerWyrm: You hit the yellow light.
+131119 130138 PowerWyrm: You hit the yellow light.
+131119 130138 PowerWyrm: You have destroyed the yellow light.
+131119 130140 PowerWyrm: You miss the mindbender.
+131119 130140 PowerWyrm: You hit the mindbender.
+131119 130140 PowerWyrm: You hit the mindbender.
+131119 130140 PowerWyrm: The mindbender hits you.
+131119 130140 PowerWyrm: You hit the mindbender.
+131119 130140 PowerWyrm: You hit the mindbender.
+131119 130140 PowerWyrm: You hit the mindbender.
+131119 130140 PowerWyrm: The mindbender flees in terror!
+131119 130141 PowerWyrm: You hit the mindbender.
+131119 130141 PowerWyrm: You hit the mindbender.
+131119 130141 PowerWyrm: You have slain the mindbender.
+131119 130141 PowerWyrm: Welcome to level 5.
+131119 130142 PowerWyrm: You hit the kobold archer.
+131119 130142 PowerWyrm: You hit the kobold archer.
+131119 130142 PowerWyrm: You hit the kobold archer.
+131119 130142 PowerWyrm: The kobold archer hits you.
+131119 130143 PowerWyrm: You hit the kobold archer.
+131119 130143 PowerWyrm: You hit the kobold archer.
+131119 130143 PowerWyrm: You have slain the kobold archer.
+131119 130147 PowerWyrm: The gallant wakes up.
+131119 130148 PowerWyrm: You hit the gallant.
+131119 130148 PowerWyrm: You hit the gallant.
+131119 130148 PowerWyrm: You hit the gallant.
+131119 130148 PowerWyrm: You miss the gallant.
+131119 130148 PowerWyrm: The gallant hits you.
+131119 130148 PowerWyrm: The gallant hits you.
+131119 130148 PowerWyrm: *** LOW HITPOINT WARNING! ***
+131119 130148 PowerWyrm: You hit the gallant.
+131119 130148 PowerWyrm: You hit the gallant.
+131119 130148 PowerWyrm: You have slain the gallant.
+131119 130148 PowerWyrm: Welcome to level 6.
+131119 130152 PowerWyrm: You see a Flask of oil.
+131119 130156 PowerWyrm: You have a Flask of oil (b).
+131119 130200 PowerWyrm: You hit the gallant.
+131119 130200 PowerWyrm: You hit the gallant.
+131119 130200 PowerWyrm: You hit the gallant.
+131119 130202 PowerWyrm: The gallant hits you.
+131119 130202 PowerWyrm: The gallant hits you.
+131119 130203 PowerWyrm: You hit the gallant.
+131119 130203 PowerWyrm: You miss the gallant.
+131119 130203 PowerWyrm: You miss the gallant.
+131119 130203 PowerWyrm: You hit the gallant.
+131119 130205 PowerWyrm: The gallant conjures up scary horrors.
+131119 130205 PowerWyrm: You fight off a sense of dread.
+131119 130206 PowerWyrm: You hit the gallant.
+131119 130206 PowerWyrm: You hit the gallant.
+131119 130206 PowerWyrm: You have slain the gallant.
+131119 130231 PowerWyrm: You die.
+131119 130232 Character dump successful.
+131119 130232 PowerWyrm: Score not registered for wizards, quitters and cheaters.
+131119 130232 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Terminated")
+131119 130235 Shutting down.
+131119 130235 Server state save succeeded!
+131119 153905 Game Restarted
+131119 153905 Initialised exit save handler.
+131119 153905 Dungeon Master Set as [DarkGod]
+131119 153905 Timer delay 13 ms timer resolution is 1 ms
+131119 153905 Initializing constants...
+131119 153905 Initializing projections...
+131119 153905 Initializing timed effects...
+131119 153905 Initializing features...
+131119 153905 Initializing wilderness feats...
+131119 153905 Initializing wilderness info...
+131119 153905 Initializing town feats...
+131119 153905 Initializing towns...
+131119 153905 Initializing dungeons...
+131119 153905 Initializing object bases...
+131119 153905 Initializing slays...
+131119 153905 Initializing brands...
+131119 153905 Initializing monster pain messages...
+131119 153905 Initializing monster bases...
+131119 153905 Initializing summons...
+131119 153905 Initializing curses...
+131119 153905 Initializing activations...
+131119 153905 Initializing objects...
+131119 153905 Initializing ego-items...
+131119 153905 Initializing history charts...
+131119 153905 Initializing bodies...
+131119 153905 Initializing player races...
+131119 153905 Initializing dragon breeds...
+131119 153905 Initializing magic realms...
+131119 153905 Initializing player classes...
+131119 153905 Initializing artifacts...
+131119 153905 Initializing object properties...
+131119 153905 Initializing object power calculations...
+131119 153905 Initializing blow methods...
+131119 153905 Initializing blow effects...
+131119 153905 Initializing monster spells...
+131119 153905 Initializing monsters...
+131119 153905 Initializing monster pits...
+131119 153905 Initializing traps...
+131119 153905 Initializing quests...
+131119 153905 Initializing flavours...
+131119 153905 Initializing socials...
+131119 153905 Initializing hints...
+131119 153905 Initializing random names...
+131119 153905 Initializing dungeon profiles...
+131119 153905 Initializing room templates...
+131119 153906 Initializing vaults...
+131119 153906 Initializing player presets...
+131119 153906 Initializing other stuff...
+131119 153906 Initializing randarts...
+131119 153906 Initializing RNG...
+131119 153906 Initialization complete
+131119 153906 Please wait...
+131119 153906 Object flavors initialized...
+131119 153906 Loading pref file: font.prf
+131119 153906 Create TCP socket...
+131119 153906 Set Non-Blocking...
+131119 153906 Report to metaserver
+131119 153906 Server is running version 1.3.0 (Build 6)
+131119 153906 Timer delay 13 ms timer resolution is 1 ms
+131119 153917 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 153922 New Level 0ft at (-21, 20)
+131119 153922 Player Name is [PowerWyrm], id is 4
+131119 153922 PowerWyrm: Server has fast wilderness.
+131119 153922 PowerWyrm: Server is no-selling.
+131119 153922 PowerWyrm: Server is no-ghost.
+131119 153922 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 153922 PowerWyrm:   
+131119 153922 PowerWyrm:    
+131119 153922 PowerWyrm: ====================
+131119 153922 PowerWyrm:   
+131119 153922 PowerWyrm:    
+131119 153957 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Client quit")
+131119 154022 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 154023 Player Name is [PowerWyrm], id is 4
+131119 154023 PowerWyrm: Server has fast wilderness.
+131119 154023 PowerWyrm: Server is no-selling.
+131119 154023 PowerWyrm: Server is no-ghost.
+131119 154023 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 154023 PowerWyrm:   
+131119 154023 PowerWyrm:    
+131119 154023 PowerWyrm: ====================
+131119 154023 PowerWyrm:   
+131119 154023 PowerWyrm:    
+131119 154026 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Client quit")
+131119 154035 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 154040 Player Name is [PowerWyrm], id is 4
+131119 154040 PowerWyrm: Server has fast wilderness.
+131119 154040 PowerWyrm: Server is no-selling.
+131119 154040 PowerWyrm: Server is no-ghost.
+131119 154040 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 154040 PowerWyrm:   
+131119 154040 PowerWyrm:    
+131119 154040 PowerWyrm: ====================
+131119 154040 PowerWyrm:   
+131119 154040 PowerWyrm:    
+131119 154214 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 154255 Player Name is [Vampire], id is 5
+131119 154255 Vampire: Server has fast wilderness.
+131119 154255 Vampire: Server is no-selling.
+131119 154255 Vampire: Server is no-ghost.
+131119 154255 Vampire: Server is running version 1.3.0 (Build 6)
+131119 154255 Vampire:   
+131119 154255 Vampire:    
+131119 154255 Vampire: ====================
+131119 154255 Vampire:   
+131119 154255 Vampire:    
+131119 154255 PowerWyrm: Vampire begins a new game.
+131119 154935 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Client quit")
+131119 154935 Vampire: PowerWyrm has left the game.
+131119 154938 Goodbye Vampire=Builder@OFTPWIN1 ("Client quit")
+131119 155248 Shutting down.
+131119 155248 Server state save succeeded!
+131119 155843 Game Restarted
+131119 155843 Initialised exit save handler.
+131119 155843 Dungeon Master Set as [DarkGod]
+131119 155843 Timer delay 13 ms timer resolution is 1 ms
+131119 155843 Initializing constants...
+131119 155843 Initializing projections...
+131119 155843 Initializing timed effects...
+131119 155843 Initializing features...
+131119 155843 Initializing wilderness feats...
+131119 155843 Initializing wilderness info...
+131119 155843 Initializing town feats...
+131119 155843 Initializing towns...
+131119 155843 Initializing dungeons...
+131119 155843 Initializing object bases...
+131119 155843 Initializing slays...
+131119 155843 Initializing brands...
+131119 155843 Initializing monster pain messages...
+131119 155843 Initializing monster bases...
+131119 155843 Initializing summons...
+131119 155843 Initializing curses...
+131119 155843 Initializing activations...
+131119 155843 Initializing objects...
+131119 155843 Initializing ego-items...
+131119 155843 Initializing history charts...
+131119 155843 Initializing bodies...
+131119 155843 Initializing player races...
+131119 155843 Initializing dragon breeds...
+131119 155843 Initializing magic realms...
+131119 155843 Initializing player classes...
+131119 155843 Initializing artifacts...
+131119 155843 Initializing object properties...
+131119 155843 Initializing object power calculations...
+131119 155843 Initializing blow methods...
+131119 155843 Initializing blow effects...
+131119 155843 Initializing monster spells...
+131119 155843 Initializing monsters...
+131119 155844 Initializing monster pits...
+131119 155844 Initializing traps...
+131119 155844 Initializing quests...
+131119 155844 Initializing flavours...
+131119 155844 Initializing socials...
+131119 155844 Initializing hints...
+131119 155844 Initializing random names...
+131119 155844 Initializing dungeon profiles...
+131119 155844 Initializing room templates...
+131119 155844 Initializing vaults...
+131119 155844 Initializing player presets...
+131119 155844 Initializing other stuff...
+131119 155844 Initializing randarts...
+131119 155844 Initializing RNG...
+131119 155844 Initialization complete
+131119 155844 Please wait...
+131119 155844 Object flavors initialized...
+131119 155844 Loading pref file: font.prf
+131119 155844 Create TCP socket...
+131119 155844 Set Non-Blocking...
+131119 155844 Report to metaserver
+131119 155844 Server is running version 1.3.0 (Build 6)
+131119 155844 Timer delay 13 ms timer resolution is 1 ms
+131119 155852 Welcome PowerWyrm=Builder@OFTPWIN1 (10.0.2.15) (version 1306)
+131119 155855 Player Name is [PowerWyrm], id is 4
+131119 155855 PowerWyrm: Server has fast wilderness.
+131119 155855 PowerWyrm: Server is no-selling.
+131119 155855 PowerWyrm: Server is no-ghost.
+131119 155855 PowerWyrm: Server is running version 1.3.0 (Build 6)
+131119 155855 PowerWyrm:   
+131119 155855 PowerWyrm:    
+131119 155855 PowerWyrm: ====================
+131119 155855 PowerWyrm:   
+131119 155855 PowerWyrm:    
+131119 160012 Goodbye PowerWyrm=Builder@OFTPWIN1 ("Client quit")
+131119 160014 Shutting down.
+131119 160014 Server state save succeeded!
