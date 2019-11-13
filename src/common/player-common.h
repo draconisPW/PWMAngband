@@ -732,7 +732,7 @@ struct player
     byte remote_term;
     bool bubble_checked;                    /* Have we been included in a time bubble check? */
     hturn bubble_change;                    /* Server turn we last changed colour */
-    byte bubble_colour;                     /* Current warning colour for slow time bubbles */
+    bool bubble_colour;                     /* Current warning colour for slow time bubbles */
     int bubble_speed;                       /* Current speed for slow time bubbles */
     u32b blink_speed;                       /* Current blink speed for slow time bubbles */
     int arena_num;                          /* What arena this guy is in */

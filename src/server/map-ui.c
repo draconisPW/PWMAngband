@@ -388,6 +388,14 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
         if (!p->use_graphics && (*a == COLOUR_MULTI)) *a = COLOUR_VIOLET;
     }
 
+    /* Hack -- highlight party leader! */
+    if (!p->use_graphics && (q != p) && is_party_owner(p, q) && OPT(p, highlight_leader) &&
+        magik(50))
+    {
+        if (*a == COLOUR_YELLOW) *a = COLOUR_L_DARK;
+        else *a = COLOUR_YELLOW;
+    }
+
     /* Give interesting visual effects in non-graphical mode for the player */
     if (!p->use_graphics && (q == p))
     {
@@ -406,8 +414,11 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
             if (life < 3) *a = COLOUR_RED;
             show_as_number = false;
         }
+    }
 
-        /* If we are in a slow time bubble, give a visual warning */
+    /* If we are in a slow time bubble, give a visual warning */
+    if (q == p)
+    {
         timefactor = time_factor(p, cv);
         if (timefactor < NORMAL_TIME)
         {
@@ -418,8 +429,7 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
                 ht_copy(&p->bubble_change, &turn);
 
                 /* Normal -> bubble color */
-                if (*a == COLOUR_WHITE) p->bubble_colour = COLOUR_VIOLET;
-                else p->bubble_colour = COLOUR_WHITE;
+                p->bubble_colour = true;
 
                 /* Delay next blink */
                 p->blink_speed = (u32b)cfg_fps * 2;
@@ -428,43 +438,32 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
             /* Switch between normal and bubble color */
             if (ht_diff(&turn, &p->bubble_change) > p->blink_speed)
             {
-                /* Normal -> bubble color */
-                if (p->bubble_colour == *a)
-                {
-                    if (*a == COLOUR_WHITE) *a = COLOUR_VIOLET;
-                    else *a = COLOUR_WHITE;
-                }
-
                 /* Reset bubble turn */
                 ht_copy(&p->bubble_change, &turn);
 
-                /* Set bubble color */
-                /* This also handles the case bubble -> normal color */
-                p->bubble_colour = (byte)*a;
+                /* Switch bubble color */
+                p->bubble_colour = !p->bubble_colour;
 
                 /* Remove first time delay */
                 if (p->blink_speed > (u32b)cfg_fps) p->blink_speed = (u32b)cfg_fps;
             }
-
-            /* Use bubble color */
-            *a = p->bubble_colour;
         }
         else
         {
+            /* Reset bubble color */
+            p->bubble_colour = false;
+
             /* Reset blink speed */
             p->blink_speed = (u32b)cfg_fps;
         }
 
         p->bubble_speed = timefactor;
-    }
 
-    /* Hack -- highlight party leader! */
-    else
-    {
-        if (!p->use_graphics && is_party_owner(p, q) && OPT(p, highlight_leader) && magik(50))
+        /* Use bubble color */
+        if (p->bubble_colour && !p->use_graphics)
         {
-            if (*a == COLOUR_YELLOW) *a = COLOUR_L_DARK;
-            else *a = COLOUR_YELLOW;
+            if (*a == COLOUR_WHITE) *a = COLOUR_VIOLET;
+            else *a = COLOUR_WHITE;
         }
     }
 
@@ -493,6 +492,13 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
             {
                 *a = presets[mode].player_numbers[life].a;
                 *c = presets[mode].player_numbers[life].c;
+
+                /* Use bubble presets */
+                if (p->bubble_colour)
+                {
+                    *a = presets[mode].player_bubbles[life].a;
+                    *c = presets[mode].player_bubbles[life].c;
+                }
             }
         }
     }

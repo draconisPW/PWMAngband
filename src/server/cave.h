@@ -31,6 +31,7 @@ struct preset
 {
     cave_view_type **player_presets[MAX_SEXES];
     cave_view_type player_numbers[8];
+    cave_view_type player_bubbles[8];
     struct preset *next;
     int cidx, ridx;
 };

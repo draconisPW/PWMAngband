@@ -691,6 +691,22 @@ static enum parser_error parse_pprefs_n(struct parser *p)
 }
 
 
+static enum parser_error parse_pprefs_b(struct parser *p)
+{
+    struct preset *ps = parser_priv(p);
+    int idx;
+
+    my_assert(ps != NULL);
+
+    idx = parser_getint(p, "idx");
+
+    ps->player_bubbles[idx].a = (u16b)parser_getint(p, "attr");
+    ps->player_bubbles[idx].c = (char)parser_getint(p, "char");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static struct parser *init_parse_pprefs(void)
 {
     struct parser *p = parser_new();
@@ -698,6 +714,7 @@ static struct parser *init_parse_pprefs(void)
     parser_setpriv(p, NULL);
     parser_reg(p, "P sym dirname str file", parse_pprefs_p);
     parser_reg(p, "N int idx int attr int char", parse_pprefs_n);
+    parser_reg(p, "B int idx int attr int char", parse_pprefs_b);
 
     return p;
 }
