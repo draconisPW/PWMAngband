@@ -1587,6 +1587,13 @@ static void energize_player(struct player *p)
     /* Paralyzed or Knocked Out player gets no turn */
     if (p->timed[TMD_PARALYZED] || p->timed[TMD_STUN] >= 100)
         do_cmd_sleep(p);
+
+    /* Hack -- if player has energy and we are in a slow time bubble, blink faster */
+    if ((p->bubble_speed < NORMAL_TIME) && (p->blink_speed <= (u32b)cfg_fps))
+    {
+        p->blink_speed = (u32b)cfg_fps;
+        if (has_energy(p, false)) p->blink_speed = (u32b)cfg_fps / 4;
+    }
 }
 
 

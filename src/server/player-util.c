@@ -1575,9 +1575,6 @@ void use_energy(struct player *p)
 
     /* Paranoia */
     if (p->energy < 0) p->energy = 0;
-
-    /* Hack -- after player does something, reset bubble color */
-    ht_copy(&p->bubble_change, &turn);
 }
 
 

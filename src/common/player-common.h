@@ -734,6 +734,7 @@ struct player
     hturn bubble_change;                    /* Server turn we last changed colour */
     byte bubble_colour;                     /* Current warning colour for slow time bubbles */
     int bubble_speed;                       /* Current speed for slow time bubbles */
+    u32b blink_speed;                       /* Current blink speed for slow time bubbles */
     int arena_num;                          /* What arena this guy is in */
     u32b window_flag;
     bool prevents[128];                     /* Cache of "^" inscriptions */

@@ -411,22 +411,22 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
         timefactor = time_factor(p, cv);
         if (timefactor < NORMAL_TIME)
         {
-            u32b blink_speed = (u32b)cfg_fps;
-
-            /* If player has command(s) queued, blink faster */
-            if (get_connection(p->conn)->q.len > 0) blink_speed = cfg_fps / 4;
-
             /* Initialize bubble info */
             if (p->bubble_speed >= NORMAL_TIME)
             {
+                /* Reset bubble turn */
                 ht_copy(&p->bubble_change, &turn);
+
+                /* Normal -> bubble color */
                 if (*a == COLOUR_WHITE) p->bubble_colour = COLOUR_VIOLET;
                 else p->bubble_colour = COLOUR_WHITE;
-                blink_speed = cfg_fps * 2;
+
+                /* Delay next blink */
+                p->blink_speed = (u32b)cfg_fps * 2;
             }
 
             /* Switch between normal and bubble color */
-            if (ht_diff(&turn, &p->bubble_change) > blink_speed)
+            if (ht_diff(&turn, &p->bubble_change) > p->blink_speed)
             {
                 /* Normal -> bubble color */
                 if (p->bubble_colour == *a)
@@ -435,14 +435,24 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
                     else *a = COLOUR_WHITE;
                 }
 
-                /* Set bubble turn/color values */
-                /* This also handles the case bubble -> normal color */
+                /* Reset bubble turn */
                 ht_copy(&p->bubble_change, &turn);
+
+                /* Set bubble color */
+                /* This also handles the case bubble -> normal color */
                 p->bubble_colour = (byte)*a;
+
+                /* Remove first time delay */
+                if (p->blink_speed > (u32b)cfg_fps) p->blink_speed = (u32b)cfg_fps;
             }
 
             /* Use bubble color */
             *a = p->bubble_colour;
+        }
+        else
+        {
+            /* Reset blink speed */
+            p->blink_speed = (u32b)cfg_fps;
         }
 
         p->bubble_speed = timefactor;

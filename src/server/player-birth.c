@@ -990,6 +990,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
 
     /* Initialize bubble speed */
     p->bubble_speed = NORMAL_TIME;
+    p->blink_speed = (u32b)cfg_fps;
 
     /* Redraw */
     square_light_spot(c, &p->grid);
