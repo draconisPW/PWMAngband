@@ -368,9 +368,9 @@ static bool describe_slays(struct player *p, const struct object *obj, bool full
     {
         for (i = 0; i < z_info->slay_max; i++)
         {
-            if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+            if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
                 append_slay(&known_slays, i);
-            if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+            if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
                 append_slay(&known_slays, i);
         }
     }
@@ -429,9 +429,9 @@ static bool describe_brands(struct player *p, const struct object *obj, bool ful
     {
         for (i = 0; i < z_info->brand_max; i++)
         {
-            if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+            if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
                 append_brand(&known_brands, i);
-            if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+            if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
                 append_brand(&known_brands, i);
         }
     }
@@ -914,9 +914,9 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     {
         for (i = 0; i < z_info->brand_max; i++)
         {
-            if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+            if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
                 append_brand(&total_brands, i);
-            if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+            if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
                 append_brand(&total_brands, i);
         }
     }
@@ -953,9 +953,9 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     {
         for (i = 0; i < z_info->slay_max; i++)
         {
-            if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+            if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
                 append_slay(&total_slays, i);
-            if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+            if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
                 append_slay(&total_slays, i);
         }
     }

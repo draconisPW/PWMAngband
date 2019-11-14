@@ -1221,18 +1221,18 @@ void player_learn_innate(struct player *p)
     /* Brands */
     for (i = 0; i < z_info->brand_max; i++)
     {
-        if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
             player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
-        if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
             player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
     }
 
     /* Slays */
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
             player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
-        if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
             player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
     }
 }

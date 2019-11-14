@@ -1850,11 +1850,11 @@ static enum parser_error parse_p_race_stats(struct parser *p)
     struct player_race *r = parser_priv(p);
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    r->r_adj[STAT_STR] = parser_getint(p, "str");
-    r->r_adj[STAT_DEX] = parser_getint(p, "dex");
-    r->r_adj[STAT_CON] = parser_getint(p, "con");
-    r->r_adj[STAT_INT] = parser_getint(p, "int");
-    r->r_adj[STAT_WIS] = parser_getint(p, "wis");
+    r->modifiors[STAT_STR].value = parser_getint(p, "str");
+    r->modifiors[STAT_INT].value = parser_getint(p, "int");
+    r->modifiors[STAT_WIS].value = parser_getint(p, "wis");
+    r->modifiors[STAT_DEX].value = parser_getint(p, "dex");
+    r->modifiors[STAT_CON].value = parser_getint(p, "con");
 
     return PARSE_ERROR_NONE;
 }
@@ -2051,13 +2051,10 @@ static enum parser_error parse_p_race_obj_brand(struct parser *p)
         return PARSE_ERROR_UNRECOGNISED_BRAND;
 
     if (!r->brands)
-    {
-        r->brands = mem_zalloc(z_info->brand_max * sizeof(bool));
-        r->blvl = mem_zalloc(z_info->brand_max * sizeof(byte));
-    }
+        r->brands = mem_zalloc(z_info->brand_max * sizeof(struct brand_info));
 
-    r->brands[i] = true;
-    r->blvl[i] = level;
+    r->brands[i].brand = true;
+    r->brands[i].lvl = level;
 
     return PARSE_ERROR_NONE;
 }
@@ -2082,13 +2079,10 @@ static enum parser_error parse_p_race_obj_slay(struct parser *p)
         return PARSE_ERROR_UNRECOGNISED_SLAY;
 
     if (!r->slays)
-    {
-        r->slays = mem_zalloc(z_info->slay_max * sizeof(bool));
-        r->slvl = mem_zalloc(z_info->slay_max * sizeof(byte));
-    }
+        r->slays = mem_zalloc(z_info->slay_max * sizeof(struct slay_info));
 
-    r->slays[i] = true;
-    r->slvl[i] = level;
+    r->slays[i].slay = true;
+    r->slays[i].lvl = level;
 
     return PARSE_ERROR_NONE;
 }
@@ -2437,11 +2431,11 @@ static enum parser_error parse_class_stats(struct parser *p)
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
-    c->c_adj[STAT_STR] = parser_getint(p, "str");
-    c->c_adj[STAT_INT] = parser_getint(p, "int");
-    c->c_adj[STAT_WIS] = parser_getint(p, "wis");
-    c->c_adj[STAT_DEX] = parser_getint(p, "dex");
-    c->c_adj[STAT_CON] = parser_getint(p, "con");
+    c->modifiors[STAT_STR].value = parser_getint(p, "str");
+    c->modifiors[STAT_INT].value = parser_getint(p, "int");
+    c->modifiors[STAT_WIS].value = parser_getint(p, "wis");
+    c->modifiors[STAT_DEX].value = parser_getint(p, "dex");
+    c->modifiors[STAT_CON].value = parser_getint(p, "con");
 
     return PARSE_ERROR_NONE;
 }
@@ -2694,13 +2688,10 @@ static enum parser_error parse_class_obj_brand(struct parser *p)
         return PARSE_ERROR_UNRECOGNISED_BRAND;
 
     if (!c->brands)
-    {
-        c->brands = mem_zalloc(z_info->brand_max * sizeof(bool));
-        c->blvl = mem_zalloc(z_info->brand_max * sizeof(byte));
-    }
+        c->brands = mem_zalloc(z_info->brand_max * sizeof(struct brand_info));
 
-    c->brands[i] = true;
-    c->blvl[i] = level;
+    c->brands[i].brand = true;
+    c->brands[i].lvl = level;
 
     return PARSE_ERROR_NONE;
 }
@@ -2725,13 +2716,10 @@ static enum parser_error parse_class_obj_slay(struct parser *p)
         return PARSE_ERROR_UNRECOGNISED_SLAY;
 
     if (!c->slays)
-    {
-        c->slays = mem_zalloc(z_info->slay_max * sizeof(bool));
-        c->slvl = mem_zalloc(z_info->slay_max * sizeof(byte));
-    }
+        c->slays = mem_zalloc(z_info->slay_max * sizeof(struct slay_info));
 
-    c->slays[i] = true;
-    c->slvl[i] = level;
+    c->slays[i].slay = true;
+    c->slays[i].lvl = level;
 
     return PARSE_ERROR_NONE;
 }

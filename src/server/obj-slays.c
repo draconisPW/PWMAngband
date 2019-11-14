@@ -580,23 +580,23 @@ void improve_attack_modifier(struct player *p, struct object *obj, struct source
     /* Handle racial/class slays */
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (p->race->slays && p->race->slays[i] && (p->lev >= p->race->slvl[i]))
+        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
             improve_attack_modifier_slay(p, NULL, who, i, best_mult, verb, len, range);
-        if (p->clazz->slays && p->clazz->slays[i] && (p->lev >= p->clazz->slvl[i]))
+        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
             improve_attack_modifier_slay(p, NULL, who, i, best_mult, verb, len, range);
     }
 
     /* Handle racial/class brands */
     for (i = 0; i < z_info->brand_max; i++)
     {
-        if (p->race->brands && p->race->brands[i] && (p->lev >= p->race->blvl[i]))
+        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
         {
             /* Notice flags for players */
             if (who->player) equip_notice_flags(who->player, i);
 
             improve_attack_modifier_brand(p, NULL, who, i, best_mult, effects, verb, len, range);
         }
-        if (p->clazz->brands && p->clazz->brands[i] && (p->lev >= p->clazz->blvl[i]))
+        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
         {
             /* Notice flags for players */
             if (who->player) equip_notice_flags(who->player, i);

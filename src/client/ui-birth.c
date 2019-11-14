@@ -400,12 +400,12 @@ static void race_help(int i, void *db, const region *l)
     for (j = 0; j < len; j++)
     {
         const char *name = stat_names_reduced[j];
-        int adj = r->r_adj[j];
+        int adj = r->modifiors[j].value;
 
         if (j * 2 + 1 < STAT_MAX)
         {
             const char *name2 = stat_names_reduced[j + len];
-            int adj2 = r->r_adj[j + len];
+            int adj2 = r->modifiors[j + len].value;
 
             format_help(RACE_AUX_COL, j, "%s%+3d  %s%+3d", name, adj, name2, adj2);
         }
@@ -506,12 +506,12 @@ static void class_help(int i, void *db, const region *l)
     for (j = 0; j < len; j++)
     {
         const char *name = stat_names_reduced[j];
-        int adj = c->c_adj[j] + r->r_adj[j];
+        int adj = c->modifiors[j].value + r->modifiors[j].value;
 
         if (j * 2 + 1 < STAT_MAX)
         {
             const char *name2 = stat_names_reduced[j + len];
-            int adj2 = c->c_adj[j + len] + r->r_adj[j + len];
+            int adj2 = c->modifiors[j + len].value + r->modifiors[j + len].value;
 
             format_help(CLASS_AUX_COL, j, "%s%+3d  %s%+3d", name, adj, name2, adj2);
         }
@@ -989,7 +989,7 @@ static enum birth_stage point_based_command(void)
             c_put_str(COLOUR_L_GREEN, buf, 16 + i, 10);
 
             /* Race/Class bonus */
-            j = player->race->r_adj[i] + player->clazz->c_adj[i];
+            j = player->race->modifiors[i].value + player->clazz->modifiors[i].value;
 
             /* Obtain the "maximal" stat */
             m = modify_stat_value(stat_roll[i], j);

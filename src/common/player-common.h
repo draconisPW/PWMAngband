@@ -189,6 +189,24 @@ struct player_body
     struct equip_slot *slots;
 };
 
+struct brand_info
+{
+    bool brand;
+    byte lvl;
+};
+
+struct slay_info
+{
+    bool slay;
+    byte lvl;
+};
+
+struct modifier
+{
+    s16b value;
+    byte lvl;
+};
+
 /*
  * Player race info
  */
@@ -211,14 +229,12 @@ struct player_race
     int f_m_wt;                 /* Mod weight (females) */
     byte infra;                 /* Infra-vision range */
     int body;                   /* Race body */
-    s16b r_adj[STAT_MAX];       /* Stat bonuses */
+    struct modifier modifiors[OBJ_MOD_MAX]; /* Modifiers */
     s16b r_skills[SKILL_MAX];   /* Skills */
     bitflag flags[OF_SIZE];     /* Racial (object) flags */
     byte flvl[OF_MAX];          /* Application level for racial (object) flags */
-    bool *brands;               /* Racial brands */
-    byte *blvl;                 /* Application level for racial brands */
-    bool *slays;                /* Racial slays */
-    byte *slvl;                 /* Application level for racial slays */
+    struct brand_info *brands;  /* Racial brands */
+    struct slay_info *slays;    /* Racial slays */
     bitflag pflags[PF_SIZE];    /* Racial (player) flags */
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */
@@ -319,16 +335,14 @@ struct player_class
     char *name;                     /* Name */
     unsigned int cidx;              /* Index */
     char *title[PY_MAX_LEVEL / 5];  /* Titles */
-    s16b c_adj[STAT_MAX];           /* Stat modifier */
+    struct modifier modifiors[OBJ_MOD_MAX]; /* Modifiers */
     s16b c_skills[SKILL_MAX];       /* Class skills */
     int x_skills[SKILL_MAX];        /* Extra skills */
     byte c_mhp;                     /* Hit-dice adjustment */
     bitflag flags[OF_SIZE];         /* (Object) flags */
     byte flvl[OF_MAX];              /* Application level for (object) flags */
-    bool *brands;                   /* Class brands */
-    byte *blvl;                     /* Application level for class brands */
-    bool *slays;                    /* Class slays */
-    byte *slvl;                     /* Application level for class slays */
+    struct brand_info *brands;      /* Class brands */
+    struct slay_info *slays;        /* Class slays */
     bitflag pflags[PF_SIZE];        /* (Player) flags */
     struct element_info el_info[ELEM_MAX];  /* Resists */
     int max_attacks;                /* Maximum possible attacks */

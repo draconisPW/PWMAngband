@@ -2158,14 +2158,14 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         add = state->stat_add[i];
 
         /* Polymorphed players only get half adjustment from race */
-        r_adj = p->race->r_adj[i];
+        r_adj = p->race->modifiors[i].value;
         if (p->poly_race)
         {
             if (r_adj > 0) r_adj = (r_adj + 1) / 2;
             else if (r_adj < 0) r_adj = (r_adj - 1) / 2;
         }
 
-        add += (r_adj + p->clazz->c_adj[i]);
+        add += (r_adj + p->clazz->modifiors[i].value);
         state->stat_top[i] = modify_stat_value(p->stat_max[i], add);
         use = modify_stat_value(p->stat_cur[i], add);
 

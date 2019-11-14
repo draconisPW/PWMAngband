@@ -428,7 +428,7 @@ static void display_player_stat_info(struct player *p)
 
         /* Race Bonus */
         /* Polymorphed players only get half adjustment from race */
-        r_adj = p->race->r_adj[i];
+        r_adj = p->race->modifiors[i].value;
         if (p->poly_race)
         {
             if (r_adj > 0) r_adj = (r_adj + 1) / 2;
@@ -438,7 +438,7 @@ static void display_player_stat_info(struct player *p)
         put_str_hook(col + 12, row + i, -1, COLOUR_L_BLUE, buf);
 
         /* Class Bonus */
-        strnfmt(buf, sizeof(buf), "%+3d", p->clazz->c_adj[i]);
+        strnfmt(buf, sizeof(buf), "%+3d", p->clazz->modifiors[i].value);
         put_str_hook(col + 16, row + i, -1, COLOUR_L_BLUE, buf);
 
         /* Equipment Bonus */

@@ -44,9 +44,7 @@ void cleanup_p_race(void)
         next = p->next;
         string_free(p->name);
         mem_free(p->brands);
-        mem_free(p->blvl);
         mem_free(p->slays);
-        mem_free(p->slvl);
         mem_free(p);
         p = next;
     }
@@ -106,9 +104,7 @@ void cleanup_class(void)
         next = c->next;
         string_free(c->name);
         mem_free(c->brands);
-        mem_free(c->blvl);
         mem_free(c->slays);
-        mem_free(c->slvl);
         for (i = 0; i < PY_MAX_LEVEL / 5; i++) string_free(c->title[i]);
         item = c->start_items;
         while (item)

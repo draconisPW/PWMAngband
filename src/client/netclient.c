@@ -423,7 +423,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 2;
 
-                    r->r_adj[j] = r_adj;
+                    r->modifiors[j].value = r_adj;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
                 {
@@ -572,7 +572,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 2;
 
-                    c->c_adj[j] = c_adj;
+                    c->modifiors[j].value = c_adj;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
                 {
