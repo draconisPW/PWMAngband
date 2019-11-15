@@ -701,6 +701,18 @@ static void fix_objlist(struct player *p)
  */
 static void player_mods(struct player *p, int mod, bool *res, bool *vul)
 {
+    int adj;
+
+    /* Add racial modifiers */
+    adj = race_modifier(p->race, mod, p->lev, false);
+    if (adj > 0) *res = true;
+    else if (adj < 0) *vul = true;
+
+    /* Add class modifiers */
+    adj = class_modifier(p->clazz, mod, p->lev);
+    if (adj > 0) *res = true;
+    else if (adj < 0) *vul = true;
+
     switch (mod)
     {
         case OBJ_MOD_STEALTH:
@@ -746,9 +758,6 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
 
         case OBJ_MOD_SPEED:
         {
-            /* Ent: penalty to speed */
-            if (player_has(p, PF_GIANT)) *vul = true;
-
             /* Unencumbered monks get speed bonus */
             if (monk_armor_ok(p) && (p->lev >= 10)) *res = true;
 

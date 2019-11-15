@@ -400,12 +400,12 @@ static void race_help(int i, void *db, const region *l)
     for (j = 0; j < len; j++)
     {
         const char *name = stat_names_reduced[j];
-        int adj = r->modifiors[j].value;
+        int adj = race_modifier(r, j, 1, false);
 
         if (j * 2 + 1 < STAT_MAX)
         {
             const char *name2 = stat_names_reduced[j + len];
-            int adj2 = r->modifiors[j + len].value;
+            int adj2 = race_modifier(r, j + len, 1, false);
 
             format_help(RACE_AUX_COL, j, "%s%+3d  %s%+3d", name, adj, name2, adj2);
         }
@@ -494,7 +494,7 @@ static void class_help(int i, void *db, const region *l)
 {
     int j;
     size_t k;
-    struct player_class *c = player_id2class(i);
+    const struct player_class *c = player_id2class(i);
     const struct player_race *r = player->race;
     int len = (STAT_MAX + 1) / 2;
     int n_flags = 0;
@@ -506,12 +506,12 @@ static void class_help(int i, void *db, const region *l)
     for (j = 0; j < len; j++)
     {
         const char *name = stat_names_reduced[j];
-        int adj = c->modifiors[j].value + r->modifiors[j].value;
+        int adj = class_modifier(c, j, 1) + race_modifier(r, j, 1, false);
 
         if (j * 2 + 1 < STAT_MAX)
         {
             const char *name2 = stat_names_reduced[j + len];
-            int adj2 = c->modifiors[j + len].value + r->modifiors[j + len].value;
+            int adj2 = class_modifier(c, j + len, 1) + race_modifier(r, j + len, 1, false);
 
             format_help(CLASS_AUX_COL, j, "%s%+3d  %s%+3d", name, adj, name2, adj2);
         }
@@ -989,7 +989,7 @@ static enum birth_stage point_based_command(void)
             c_put_str(COLOUR_L_GREEN, buf, 16 + i, 10);
 
             /* Race/Class bonus */
-            j = player->race->modifiors[i].value + player->clazz->modifiors[i].value;
+            j = race_modifier(player->race, i, 1, false) + class_modifier(player->clazz, i, 1);
 
             /* Obtain the "maximal" stat */
             m = modify_stat_value(stat_roll[i], j);

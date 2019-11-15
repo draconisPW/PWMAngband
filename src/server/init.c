@@ -95,6 +95,18 @@ const char *list_obj_flag_names[] =
 };
 
 
+const char *obj_mods[] =
+{
+    #define STAT(a) #a,
+    #include "../common/list-stats.h"
+    #undef STAT
+    #define OBJ_MOD(a) #a,
+    #include "../common/list-object-modifiers.h"
+    #undef OBJ_MOD
+    NULL
+};
+
+
 const char *list_element_names[] =
 {
     #define ELEM(a, b, c, d) #a,
@@ -1851,10 +1863,15 @@ static enum parser_error parse_p_race_stats(struct parser *p)
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
     r->modifiors[STAT_STR].value = parser_getint(p, "str");
+    r->modifiors[STAT_STR].lvl = 1;
     r->modifiors[STAT_INT].value = parser_getint(p, "int");
+    r->modifiors[STAT_INT].lvl = 1;
     r->modifiors[STAT_WIS].value = parser_getint(p, "wis");
+    r->modifiors[STAT_WIS].lvl = 1;
     r->modifiors[STAT_DEX].value = parser_getint(p, "dex");
+    r->modifiors[STAT_DEX].lvl = 1;
     r->modifiors[STAT_CON].value = parser_getint(p, "con");
+    r->modifiors[STAT_CON].lvl = 1;
 
     return PARSE_ERROR_NONE;
 }
@@ -2113,17 +2130,29 @@ static enum parser_error parse_p_race_value(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
     byte level;
+    const char *name_and_value;
     int value = 0;
     int index = 0;
+    bool found = false;
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
     level = (byte)parser_getuint(p, "level");
-    if (grab_index_and_int(&value, &index, list_element_names, "RES_", parser_getstr(p, "value")))
-        return PARSE_ERROR_INVALID_VALUE;
+    name_and_value = parser_getstr(p, "value");
 
-    r->el_info[index].res_level = value;
-    r->el_info[index].lvl = level;
+    if (!grab_index_and_int(&value, &index, obj_mods, "", name_and_value))
+    {
+        found = true;
+        r->modifiors[index].value = value;
+        r->modifiors[index].lvl = level;
+    }
+    if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))
+    {
+        found = true;
+        r->el_info[index].res_level = value;
+        r->el_info[index].lvl = level;
+    }
+    if (!found) return PARSE_ERROR_INVALID_VALUE;
 
     return PARSE_ERROR_NONE;
 }
@@ -2432,10 +2461,15 @@ static enum parser_error parse_class_stats(struct parser *p)
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
     c->modifiors[STAT_STR].value = parser_getint(p, "str");
+    c->modifiors[STAT_STR].lvl = 1;
     c->modifiors[STAT_INT].value = parser_getint(p, "int");
+    c->modifiors[STAT_INT].lvl = 1;
     c->modifiors[STAT_WIS].value = parser_getint(p, "wis");
+    c->modifiors[STAT_WIS].lvl = 1;
     c->modifiors[STAT_DEX].value = parser_getint(p, "dex");
+    c->modifiors[STAT_DEX].lvl = 1;
     c->modifiors[STAT_CON].value = parser_getint(p, "con");
+    c->modifiors[STAT_CON].lvl = 1;
 
     return PARSE_ERROR_NONE;
 }
@@ -2750,17 +2784,29 @@ static enum parser_error parse_p_class_value(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
     byte level;
+    const char *name_and_value;
     int value = 0;
     int index = 0;
+    bool found = false;
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
     level = (byte)parser_getuint(p, "level");
-    if (grab_index_and_int(&value, &index, list_element_names, "RES_", parser_getstr(p, "value")))
-        return PARSE_ERROR_INVALID_VALUE;
+    name_and_value = parser_getstr(p, "value");
 
-    c->el_info[index].res_level = value;
-    c->el_info[index].lvl = level;
+    if (!grab_index_and_int(&value, &index, obj_mods, "", name_and_value))
+    {
+        found = true;
+        c->modifiors[index].value = value;
+        c->modifiors[index].lvl = level;
+    }
+    if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))
+    {
+        found = true;
+        c->el_info[index].res_level = value;
+        c->el_info[index].lvl = level;
+    }
+    if (!found) return PARSE_ERROR_INVALID_VALUE;
 
     return PARSE_ERROR_NONE;
 }

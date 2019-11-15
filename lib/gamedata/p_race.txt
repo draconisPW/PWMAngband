@@ -303,6 +303,7 @@ obj-flag:40:ESP_UNDEAD
 obj-flag:45:ESP_EVIL
 obj-flag:50:ESP_RADIUS
 value:1:RES_FIRE[-1]
+value:1:SPEED[-2]
 player-flags:GIANT
 
 name:Thunderlord

@@ -1196,3 +1196,30 @@ int recharge_failure_chance(const struct object *obj, int strength)
 
     return ((raw_chance > 1)? raw_chance: 1);
 }
+
+
+int race_modifier(const struct player_race *race, int mod, int lvl, bool poly)
+{
+    if (lvl >= race->modifiors[mod].lvl)
+    {
+        int adj = race->modifiors[mod].value;
+
+        /* Polymorphed players only get half adjustment from race */
+        if (poly)
+        {
+            if (adj > 0) return (adj + 1) / 2;
+            if (adj < 0) return (adj - 1) / 2;
+        }
+
+        return adj;
+    }
+
+    return 0;
+}
+
+
+int class_modifier(const struct player_class *clazz, int mod, int lvl)
+{
+    if (lvl >= clazz->modifiors[mod].lvl) return clazz->modifiors[mod].value;
+    return 0;
+}

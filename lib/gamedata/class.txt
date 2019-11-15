@@ -2172,7 +2172,8 @@ equip:food:Ration of Food:1:3:1
 equip:light:Wooden Torch:1:3:1
 equip:sword:Dagger:1:1:1
 equip:scroll:Word of Recall:1:1:0
-player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS | EXTRA_MANA
+value:1:MANA[5]
+player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS
 title:Novice
 title:Apprentice
 title:Trickster
@@ -3081,11 +3082,12 @@ equip:food:Ration of Food:1:3:1
 equip:light:Wooden Torch:1:3:1
 equip:sword:Dagger:1:1:1
 equip:scroll:Word of Recall:1:1:0
+value:1:MANA[3]
 value:10:RES_FIRE[1]
 value:15:RES_COLD[1]
 value:20:RES_ACID[1]
 value:25:RES_ELEC[1]
-player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS | ELEMENTAL_SPELLS | EXTRA_MANA
+player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS | ELEMENTAL_SPELLS
 title:Novice
 title:Apprentice
 title:Trickster

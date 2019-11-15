@@ -1116,7 +1116,7 @@ static void calc_spells(struct player *p)
  */
 static void calc_mana(struct player *p, struct player_state *state, bool update)
 {
-    int i, msp, levels, cur_wgt, max_wgt;
+    int i, msp, levels, cur_wgt, max_wgt, adj;
     struct object *obj;
     int exmsp = 0;
     s32b modifiers[OBJ_MOD_MAX];
@@ -1187,9 +1187,6 @@ static void calc_mana(struct player *p, struct player_state *state, bool update)
         msp -= ((cur_wgt - max_wgt) / 10);
     }
 
-    /* Sorcerors and elementalists get extra mana */
-    if (player_has(p, PF_EXTRA_MANA)) msp = (5 * msp) / 4;
-
     /* Get the gloves */
     obj = equipped_item_by_slot_name(p, "hands");
 
@@ -1205,6 +1202,14 @@ static void calc_mana(struct player *p, struct player_state *state, bool update)
 
     /* Extra mana capacity from weapon */
     exmsp += modifiers[OBJ_MOD_MANA];
+
+    /* Polymorphed players only get half adjustment from race */
+    adj = race_modifier(p->race, OBJ_MOD_MANA, p->lev, p->poly_race? true: false);
+
+    adj += class_modifier(p->clazz, OBJ_MOD_MANA, p->lev);
+
+    /* Extra mana capacity from race/class bonuses */
+    exmsp += adj;
 
     /* 1 point = 10% more mana */
     msp = ((10 + exmsp) * msp) / 10;
@@ -1305,7 +1310,7 @@ static void calc_hitpoints(struct player *p, struct player_state *state, bool up
  */
 static void calc_torch(struct player *p, struct player_state *state, bool update)
 {
-    int i;
+    int i, adj;
 
     /* Assume no light */
     state->cur_light = 0;
@@ -1345,6 +1350,14 @@ static void calc_torch(struct player *p, struct player_state *state, bool update
         /* Alter state->cur_light if reasonable */
         state->cur_light += amt;
     }
+
+    /* Polymorphed players only get half adjustment from race */
+    adj = race_modifier(p->race, OBJ_MOD_LIGHT, p->lev, p->poly_race? true: false);
+
+    adj += class_modifier(p->clazz, OBJ_MOD_LIGHT, p->lev);
+
+    /* Extra light from race/class bonuses */
+    state->cur_light += adj;
 
     /* Limit light */
     state->cur_light = MIN(state->cur_light, 5);
@@ -1941,15 +1954,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Add player specific pflags */
     if (!p->msp) pf_on(state->pflags, PF_NO_MANA);
 
-    /* Ent: penalty to speed (polymorphed Ents get only half penalty) */
-    if (player_has(p, PF_GIANT))
-    {
-        if (p->poly_race)
-            state->speed -= 1;
-        else
-            state->speed -= 2;
-    }
-
     /* Unencumbered monks get nice abilities */
     if (unencumbered_monk)
     {
@@ -2158,14 +2162,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         add = state->stat_add[i];
 
         /* Polymorphed players only get half adjustment from race */
-        r_adj = p->race->modifiors[i].value;
-        if (p->poly_race)
-        {
-            if (r_adj > 0) r_adj = (r_adj + 1) / 2;
-            else if (r_adj < 0) r_adj = (r_adj - 1) / 2;
-        }
+        r_adj = race_modifier(p->race, i, p->lev, p->poly_race? true: false);
 
-        add += (r_adj + p->clazz->modifiors[i].value);
+        add += (r_adj + class_modifier(p->clazz, i, p->lev));
         state->stat_top[i] = modify_stat_value(p->stat_max[i], add);
         use = modify_stat_value(p->stat_cur[i], add);
 
@@ -2187,6 +2186,41 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
 
         /* Save the new index */
         state->stat_ind[i] = ind;
+    }
+
+    /* Apply race/class modifiers */
+    for (i = STAT_MAX; i < OBJ_MOD_MAX; i++)
+    {
+        int adj;
+
+        /* Polymorphed players only get half adjustment from race */
+        adj = race_modifier(p->race, i, p->lev, p->poly_race? true: false);
+
+        adj += class_modifier(p->clazz, i, p->lev);
+
+        /* Affect stealth */
+        if (i == OBJ_MOD_STEALTH) state->skills[SKILL_STEALTH] += adj;
+
+        /* Affect searching ability (factor of five) */
+        if (i == OBJ_MOD_SEARCH) state->skills[SKILL_SEARCH] += (adj * 5);
+
+        /* Affect infravision */
+        if (i == OBJ_MOD_INFRA) state->see_infra += adj;
+
+        /* Affect digging (factor of 20) */
+        if (i == OBJ_MOD_TUNNEL) state->skills[SKILL_DIGGING] += (adj * 20);
+
+        /* Affect speed */
+        if (i == OBJ_MOD_SPEED) state->speed += adj;
+
+        /* Affect blows */
+        if (i == OBJ_MOD_BLOWS) extra_blows += adj;
+
+        /* Affect shots */
+        if (i == OBJ_MOD_SHOTS) extra_shots += adj;
+
+        /* Affect Might */
+        if (i == OBJ_MOD_MIGHT) extra_might += adj;
     }
 
     /* Unencumbered monks get extra ac for wearing very light or no armour at all */

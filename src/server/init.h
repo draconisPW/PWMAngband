@@ -57,6 +57,7 @@ extern bool cfg_no_ghost;
 extern bool cfg_ai_learn;
 
 extern const char *list_obj_flag_names[];
+extern const char *obj_mods[];
 extern const char *list_element_names[];
 
 extern errr grab_effect_data(struct parser *p, struct effect *effect);

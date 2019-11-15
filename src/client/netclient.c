@@ -385,7 +385,7 @@ static int Receive_struct_info(void)
         case STRUCT_INFO_RACE:
         {
             s16b r_adj, r_skills, r_exp, res_level;
-            byte ridx, r_mhp, infra, flag, flvl, elvl;
+            byte ridx, r_mhp, infra, flag, lvl;
 
             races = NULL;
 
@@ -409,9 +409,9 @@ static int Receive_struct_info(void)
                 r->name = string_make(name);
 
                 /* Transfer other fields here */
-                for (j = 0; j < STAT_MAX; j++)
+                for (j = 0; j < OBJ_MOD_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd", &r_adj)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%hd%b", &r_adj, &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -421,9 +421,10 @@ static int Receive_struct_info(void)
                         mem_free(r);
                         return n;
                     }
-                    bytes_read += 2;
+                    bytes_read += 3;
 
                     r->modifiors[j].value = r_adj;
+                    r->modifiors[j].lvl = lvl;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
                 {
@@ -486,7 +487,7 @@ static int Receive_struct_info(void)
                 }
                 for (j = 1; j < OF_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%b", &flvl)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -498,11 +499,11 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    r->flvl[j] = flvl;
+                    r->flvl[j] = lvl;
                 }
                 for (j = 0; j < ELEM_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &elvl)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -515,7 +516,7 @@ static int Receive_struct_info(void)
                     bytes_read += 3;
 
                     r->el_info[j].res_level = res_level;
-                    r->el_info[j].lvl = elvl;
+                    r->el_info[j].lvl = lvl;
                 }
 
                 r->r_mhp = r_mhp;
@@ -532,7 +533,7 @@ static int Receive_struct_info(void)
         case STRUCT_INFO_CLASS:
         {
             s16b c_adj, c_skills, res_level;
-            byte cidx, c_mhp, total_spells, tval, sval, flag, flvl, elvl;
+            byte cidx, c_mhp, total_spells, tval, sval, flag, lvl;
             char num_books;
             char realm[NORMAL_WID];
 
@@ -558,9 +559,9 @@ static int Receive_struct_info(void)
                 c->name = string_make(name);
 
                 /* Transfer other fields here */
-                for (j = 0; j < STAT_MAX; j++)
+                for (j = 0; j < OBJ_MOD_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd", &c_adj)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%hd%b", &c_adj, &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -570,9 +571,10 @@ static int Receive_struct_info(void)
                         mem_free(c);
                         return n;
                     }
-                    bytes_read += 2;
+                    bytes_read += 3;
 
                     c->modifiors[j].value = c_adj;
+                    c->modifiors[j].lvl = lvl;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
                 {
@@ -635,7 +637,7 @@ static int Receive_struct_info(void)
                 }
                 for (j = 1; j < OF_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%b", &flvl)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -647,11 +649,11 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    c->flvl[j] = flvl;
+                    c->flvl[j] = lvl;
                 }
                 for (j = 0; j < ELEM_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &elvl)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -664,7 +666,7 @@ static int Receive_struct_info(void)
                     bytes_read += 3;
 
                     c->el_info[j].res_level = res_level;
-                    c->el_info[j].lvl = elvl;
+                    c->el_info[j].lvl = lvl;
                 }
                 if ((n = Packet_scanf(&rbuf, "%b%b%c", &total_spells, &tval, &num_books)) <= 0)
                 {

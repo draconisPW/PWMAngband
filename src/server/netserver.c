@@ -1411,9 +1411,10 @@ int Send_race_struct_info(int ind)
         }
 
         /* Transfer other fields here */
-        for (j = 0; j < STAT_MAX; j++)
+        for (j = 0; j < OBJ_MOD_MAX; j++)
         {
-            if (Packet_printf(&connp->c, "%hd", (int)r->modifiors[j].value) <= 0)
+            if (Packet_printf(&connp->c, "%hd%b", (int)r->modifiors[j].value,
+                (unsigned)r->modifiors[j].lvl) <= 0)
             {
                 Destroy_connection(ind, "Send_race_struct_info write error");
                 return -1;
@@ -1505,9 +1506,10 @@ int Send_class_struct_info(int ind)
         }
 
         /* Transfer other fields here */
-        for (j = 0; j < STAT_MAX; j++)
+        for (j = 0; j < OBJ_MOD_MAX; j++)
         {
-            if (Packet_printf(&connp->c, "%hd", (int)c->modifiors[j].value) <= 0)
+            if (Packet_printf(&connp->c, "%hd%b", (int)c->modifiors[j].value,
+                (unsigned)c->modifiors[j].lvl) <= 0)
             {
                 Destroy_connection(ind, "Send_class_struct_info write error");
                 return -1;

@@ -21,18 +21,6 @@
 #include "s-angband.h"
 
 
-static const char *obj_mods[] =
-{
-    #define STAT(a) #a,
-    #include "../common/list-stats.h"
-    #undef STAT
-    #define OBJ_MOD(a) #a,
-    #include "../common/list-object-modifiers.h"
-    #undef OBJ_MOD
-    NULL
-};
-
-
 static const char *kind_flags[] =
 {
     #define KF(a, b) #a,
