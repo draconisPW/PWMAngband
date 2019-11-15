@@ -36,6 +36,8 @@ extern void cleanup_parser(struct file_parser *fp);
 extern int lookup_flag(const char **flag_table, const char *flag_name);
 extern errr grab_rand_value(random_value *value, const char **value_type,
     const char *name_and_value);
+extern errr grab_index_and_rand(random_value *value, int *index, const char **value_type,
+    const char *name_and_value);
 extern errr grab_int_value(int *value, const char **value_type, const char *name_and_value);
 extern errr grab_index_and_int(int *value, int *index, const char **value_type, const char *prefix,
     const char *name_and_value);

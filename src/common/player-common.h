@@ -203,7 +203,7 @@ struct slay_info
 
 struct modifier
 {
-    s16b value;
+    random_value value;
     byte lvl;
 };
 
