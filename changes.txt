@@ -40,8 +40,35 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.3.0 build 6
+New features in PWMAngband 1.3.0 build 7
 ========================================
+
+User interface
+--------------
+
+PWMAngband:
+
+- Add time bubble indicator for tile mode
+- Add LighterBlue option for mangclient_gcu.ini to make COLOUR_BLUE and COLOUR_L_BLUE lighter
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Make VAMPIRIC brand actually work
+
+Coding changes
+--------------
+
+PWMAngband:
+
+- Remove references to "src" path in lib files
+- Further improve time bubble indicator
+- Add modifiers to races/classes
+
+Features in PWMAngband 1.3.0 build 6
+====================================
 
 User interface
 --------------
