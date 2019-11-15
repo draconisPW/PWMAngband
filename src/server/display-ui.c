@@ -737,7 +737,8 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
             if (p->ghost) *res = true;
 
             /* If the race has innate infravision, set the corresponding flag */
-            if (p->race->infra > 0) *res = true;
+            if (race_modifier(p->race, OBJ_MOD_INFRA, p->lev, p->poly_race? true: false) > 0)
+                *res = true;
 
             break;
         }

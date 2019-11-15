@@ -413,7 +413,8 @@ static void race_help(int i, void *db, const region *l)
             format_help(RACE_AUX_COL, j, "%s%+3d", name, adj);
     }
 
-    skill_help(RACE_AUX_COL, &j, r->r_skills, NULL, r->r_mhp, r->r_exp, r->infra);
+    skill_help(RACE_AUX_COL, &j, r->r_skills, NULL, r->r_mhp, r->r_exp,
+        race_modifier(r, OBJ_MOD_INFRA, 1, false));
 
     for (k = 1; k < OF_MAX; k++)
     {

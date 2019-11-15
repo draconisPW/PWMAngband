@@ -1428,8 +1428,7 @@ int Send_race_struct_info(int ind)
                 return -1;
             }
         }
-        if (Packet_printf(&connp->c, "%b%hd%b", (unsigned)r->r_mhp, (int)r->r_exp,
-            (unsigned)r->infra) <= 0)
+        if (Packet_printf(&connp->c, "%b%hd", (unsigned)r->r_mhp, (int)r->r_exp) <= 0)
         {
             Destroy_connection(ind, "Send_race_struct_info write error");
             return -1;

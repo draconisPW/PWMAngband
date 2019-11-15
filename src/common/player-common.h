@@ -227,7 +227,6 @@ struct player_race
     int f_m_ht;                 /* Mod height (females)   */
     int f_b_wt;                 /* Base weight (females) */
     int f_m_wt;                 /* Mod weight (females) */
-    byte infra;                 /* Infra-vision range */
     int body;                   /* Race body */
     struct modifier modifiors[OBJ_MOD_MAX]; /* Modifiers */
     s16b r_skills[SKILL_MAX];   /* Skills */

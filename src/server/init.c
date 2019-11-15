@@ -1964,7 +1964,6 @@ static enum parser_error parse_p_race_info(struct parser *p)
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
     r->r_mhp = parser_getint(p, "mhp");
     r->r_exp = parser_getint(p, "exp");
-    r->infra = parser_getint(p, "infra");
 
     return PARSE_ERROR_NONE;
 }
@@ -2153,7 +2152,7 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "skill-melee int melee", parse_p_race_skill_melee);
     parser_reg(p, "skill-shoot int shoot", parse_p_race_skill_shoot);
     parser_reg(p, "skill-dig int dig", parse_p_race_skill_dig);
-    parser_reg(p, "info int mhp int exp int infra", parse_p_race_info);
+    parser_reg(p, "info int mhp int exp", parse_p_race_info);
     parser_reg(p, "history uint hist int b-age int m-age", parse_p_race_history);
     parser_reg(p, "height int mbht int mmht int fbht int fmht", parse_p_race_height);
     parser_reg(p, "weight int mbwt int mmwt int fbwt int fmwt", parse_p_race_weight);

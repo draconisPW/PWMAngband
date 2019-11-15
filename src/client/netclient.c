@@ -385,7 +385,7 @@ static int Receive_struct_info(void)
         case STRUCT_INFO_RACE:
         {
             s16b r_adj, r_skills, r_exp, res_level;
-            byte ridx, r_mhp, infra, flag, lvl;
+            byte ridx, r_mhp, flag, lvl;
 
             races = NULL;
 
@@ -442,7 +442,7 @@ static int Receive_struct_info(void)
 
                     r->r_skills[j] = r_skills;
                 }
-                if ((n = Packet_scanf(&rbuf, "%b%hd%b", &r_mhp, &r_exp, &infra)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%hd", &r_mhp, &r_exp)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -521,7 +521,6 @@ static int Receive_struct_info(void)
 
                 r->r_mhp = r_mhp;
                 r->r_exp = r_exp;
-                r->infra = infra;
                 r->next = races;
                 races = r;
             }

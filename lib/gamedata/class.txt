@@ -747,7 +747,6 @@ desc:Spews plasma in a long narrow cone from the player.
 ############### PRIEST ###############
 name:Priest
 color:g
-#skill-disarm:25:7
 skill-disarm-phys:34:8
 skill-disarm-magic:27:7
 skill-device:30:10
@@ -1050,7 +1049,6 @@ desc: Can be used every 200 turns.
 ############### NECROMANCER ###############
 name:Necromancer
 color:D
-#skill-disarm:30:7
 skill-disarm-phys:30:10
 skill-disarm-magic:35:12
 skill-device:36:13
@@ -1364,7 +1362,6 @@ desc: within its duration.
 ############### PALADIN ###############
 name:Paladin
 color:G
-#skill-disarm:20:7
 skill-disarm-phys:34:8
 skill-disarm-magic:27:7
 skill-device:24:10
@@ -1585,7 +1582,6 @@ desc:Teleports away each evil monster within line of sight.
 ############### ROGUE ###############
 name:Rogue
 color:z
-#skill-disarm:45:15
 skill-disarm-phys:43:11
 skill-disarm-magic:36:10
 skill-device:32:10
@@ -1796,7 +1792,6 @@ desc: This spell has no effect when used in the town.
 ############### RANGER ###############
 name:Ranger
 color:y
-#skill-disarm:30:8
 skill-disarm-phys:36:10
 skill-disarm-magic:42:10
 skill-device:32:10
@@ -2174,7 +2169,6 @@ desc: for 10+1d10 turns, but also teleports you around.
 ############### SORCEROR ###############
 name:Sorceror
 color:R
-#skill-disarm:35:8
 skill-disarm-phys:35:9
 skill-disarm-magic:50:12
 skill-device:40:15
@@ -2518,7 +2512,6 @@ desc:Shoots a radius-3 chaos ball in all eight cardinal directions.
 ############### UNBELIEVER ###############
 name:Unbeliever
 color:m
-#skill-disarm:25:10
 skill-disarm-phys:42:10
 skill-disarm-magic:21:7
 skill-device:0:0
@@ -2559,7 +2552,6 @@ title:Magicbane
 ############### ARCHER ###############
 name:Archer
 color:Y
-#skill-disarm:30:8
 skill-disarm-phys:42:10
 skill-disarm-magic:28:8
 skill-device:32:10
@@ -2715,7 +2707,6 @@ desc:Turns your missiles into explosive sonic shots.
 ############### MONK ###############
 name:Monk
 color:U
-#skill-disarm:45:15
 skill-disarm-phys:42:10
 skill-disarm-magic:28:8
 skill-device:32:11
@@ -2751,7 +2742,6 @@ title:Grand Master
 ############### TELEPATH ###############
 name:Telepath
 color:b
-#skill-disarm:30:7
 skill-disarm-phys:34:8
 skill-disarm-magic:28:8
 skill-device:30:13
@@ -3099,7 +3089,6 @@ desc: activated.
 ############### ELEMENTALIST ###############
 name:Elementalist
 color:x
-#skill-disarm:30:7
 skill-disarm-phys:35:9
 skill-disarm-magic:49:11
 skill-device:36:13
@@ -3583,7 +3572,6 @@ desc: the eight directions starting from your character.
 ############### SUMMONER ###############
 name:Summoner
 color:t
-#skill-disarm:30:7
 skill-disarm-phys:20:6
 skill-disarm-magic:20:6
 skill-device:36:13
@@ -3815,7 +3803,6 @@ desc:Prevents summoning around you for a level-dependent duration.
 ############### SHAPECHANGER ###############
 name:Shapechanger
 color:M
-#skill-disarm:25:9
 skill-disarm-phys:36:10
 skill-disarm-magic:34:8
 skill-device:35:10

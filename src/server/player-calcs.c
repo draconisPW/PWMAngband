@@ -1932,7 +1932,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     state->ammo_mult = 1;
 
     /* Extract race/class info */
-    state->see_infra = p->race->infra;
     for (i = 0; i < SKILL_MAX; i++)
         state->skills[i] = p->race->r_skills[i] + p->clazz->c_skills[i];
     player_elements(p, el_info);
