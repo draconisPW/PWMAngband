@@ -1857,26 +1857,6 @@ static enum parser_error parse_p_race_name(struct parser *p)
 }
 
 
-static enum parser_error parse_p_race_stats(struct parser *p)
-{
-    struct player_race *r = parser_priv(p);
-
-    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    r->modifiors[STAT_STR].value = parser_getint(p, "str");
-    r->modifiors[STAT_STR].lvl = 1;
-    r->modifiors[STAT_INT].value = parser_getint(p, "int");
-    r->modifiors[STAT_INT].lvl = 1;
-    r->modifiors[STAT_WIS].value = parser_getint(p, "wis");
-    r->modifiors[STAT_WIS].lvl = 1;
-    r->modifiors[STAT_DEX].value = parser_getint(p, "dex");
-    r->modifiors[STAT_DEX].lvl = 1;
-    r->modifiors[STAT_CON].value = parser_getint(p, "con");
-    r->modifiors[STAT_CON].lvl = 1;
-
-    return PARSE_ERROR_NONE;
-}
-
-
 static enum parser_error parse_p_race_skill_disarm_phys(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
@@ -2164,7 +2144,6 @@ static struct parser *init_parse_p_race(void)
 
     parser_setpriv(p, NULL);
     parser_reg(p, "name str name", parse_p_race_name);
-    parser_reg(p, "stats int str int int int wis int dex int con", parse_p_race_stats);
     parser_reg(p, "skill-disarm-phys int disarm", parse_p_race_skill_disarm_phys);
     parser_reg(p, "skill-disarm-magic int disarm", parse_p_race_skill_disarm_magic);
     parser_reg(p, "skill-device int device", parse_p_race_skill_device);
@@ -2449,27 +2428,6 @@ static enum parser_error parse_class_color(struct parser *p)
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
     c->attr = color_char_to_attr(color[0]);
-
-    return PARSE_ERROR_NONE;
-}
-
-
-static enum parser_error parse_class_stats(struct parser *p)
-{
-    struct player_class *c = parser_priv(p);
-
-    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
-
-    c->modifiors[STAT_STR].value = parser_getint(p, "str");
-    c->modifiors[STAT_STR].lvl = 1;
-    c->modifiors[STAT_INT].value = parser_getint(p, "int");
-    c->modifiors[STAT_INT].lvl = 1;
-    c->modifiors[STAT_WIS].value = parser_getint(p, "wis");
-    c->modifiors[STAT_WIS].lvl = 1;
-    c->modifiors[STAT_DEX].value = parser_getint(p, "dex");
-    c->modifiors[STAT_DEX].lvl = 1;
-    c->modifiors[STAT_CON].value = parser_getint(p, "con");
-    c->modifiors[STAT_CON].lvl = 1;
 
     return PARSE_ERROR_NONE;
 }
@@ -3166,7 +3124,6 @@ static struct parser *init_parse_class(void)
     parser_setpriv(p, NULL);
     parser_reg(p, "name str name", parse_class_name);
     parser_reg(p, "color sym color", parse_class_color);
-    parser_reg(p, "stats int str int int int wis int dex int con", parse_class_stats);
     parser_reg(p, "skill-disarm-phys int base int incr", parse_class_skill_disarm_phys);
     parser_reg(p, "skill-disarm-magic int base int incr", parse_class_skill_disarm_magic);
     parser_reg(p, "skill-device int base int incr", parse_class_skill_device);
