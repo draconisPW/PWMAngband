@@ -275,6 +275,9 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
 {
     int i;
 
+    /* Unencumbered monks get nice abilities */
+    bool restrict = (player_has(p, PF_MARTIAL_ARTS) && !monk_armor_ok(p));
+
     /* Clear */
     of_wipe(f);
 
@@ -282,23 +285,7 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
     for (i = 1; i < OF_MAX; i++)
     {
         if (of_has(p->race->flags, i) && (p->lev >= p->race->flvl[i])) of_on(f, i);
-        if (of_has(p->clazz->flags, i) && (p->lev >= p->clazz->flvl[i])) of_on(f, i);
-    }
-
-    /* Unencumbered monks get nice abilities */
-    if (monk_armor_ok(p))
-    {
-        /* Levitation at level 10 */
-        if (p->lev >= 10) of_on(f, OF_FEATHER);
-
-        /* Fear resistance at level 15 */
-        if (p->lev >= 15) of_on(f, OF_PROT_FEAR);
-
-        /* Confusion resistance at level 20 */
-        if (p->lev >= 20) of_on(f, OF_PROT_CONF);
-
-        /* Free action at level 25 */
-        if (p->lev >= 25) of_on(f, OF_FREE_ACT);
+        if (of_has(p->clazz->flags, i) && (p->lev >= p->clazz->flvl[i]) && !restrict) of_on(f, i);
     }
 
     /* Ghost */

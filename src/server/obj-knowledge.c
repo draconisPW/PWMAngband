@@ -1235,6 +1235,15 @@ void player_learn_innate(struct player *p)
         if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
             player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
     }
+
+    /* Modifiers (other than stats) */
+    for (i = STAT_MAX; i < OBJ_MOD_MAX; i++)
+    {
+        if (race_modifier(p->race, i, p->lev, false) && (p->lev >= p->race->modifiors[i].lvl))
+            player_learn_rune(p, rune_index(RUNE_VAR_MOD, i), false);
+        if (class_modifier(p->clazz, i, p->lev) && (p->lev >= p->clazz->modifiors[i].lvl))
+            player_learn_rune(p, rune_index(RUNE_VAR_MOD, i), false);
+    }
 }
 
 

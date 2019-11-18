@@ -1731,11 +1731,13 @@ void calc_inventory(struct player *p)
  * extra_blows is the number of +blows available from this object and this state
  *
  * Note: state->num_blows is now 100x the number of blows
+ *
+ * PWMAngband: extra_blows is now 10x the number of extra blows to allow +0.1bpr per level for monks
  */
 static int calc_blows(struct player *p, const struct object *obj, struct player_state *state,
     int extra_blows)
 {
-    int blows;
+    int blows = 100;
     int str_index, dex_index;
     int div;
     int blow_energy;
@@ -1743,13 +1745,7 @@ static int calc_blows(struct player *p, const struct object *obj, struct player_
     int min_weight = p->clazz->min_weight;
 
     /* Monks get special barehanded attacks */
-    if (player_has(p, PF_MARTIAL_ARTS))
-    {
-        /* Up to 5 extra blows */
-        /* Encumbered monks only get half the extra blows */
-        blows = 100 + p->lev * (monk_armor_ok(p)? 10: 5);
-    }
-    else
+    if (!player_has(p, PF_MARTIAL_ARTS))
     {
         /* Enforce a minimum "weight" (tenth pounds) */
         div = ((weight < min_weight)? min_weight: weight);
@@ -1770,7 +1766,7 @@ static int calc_blows(struct player *p, const struct object *obj, struct player_
     }
 
     /* Require at least one blow */
-    return MAX(blows + 100 * extra_blows, 100);
+    return MAX(blows + 10 * extra_blows, 100);
 }
 
 
@@ -1917,6 +1913,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     bitflag collect_f[OF_SIZE];
     bool vuln[ELEM_MAX];
     bool unencumbered_monk = monk_armor_ok(p);
+    bool restrict = (player_has(p, PF_MARTIAL_ARTS) && !unencumbered_monk);
     byte cumber_shield = 0;
     struct element_info el_info[ELEM_MAX];
     struct object *tool = equipped_item_by_slot_name(p, "tool");
@@ -1953,19 +1950,8 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Add player specific pflags */
     if (!p->msp) pf_on(state->pflags, PF_NO_MANA);
 
-    /* Unencumbered monks get nice abilities */
-    if (unencumbered_monk)
-    {
-        /* Faster every 10 levels */
-        state->speed += (p->lev) / 10;
-    }
-
     /* Ghost */
     if (p->ghost) state->see_infra += 3;
-
-    /* Rogues get speed bonus */
-    if (player_has(p, PF_SPEED_BONUS) && (p->lev >= 5))
-        state->speed += (((p->lev - 5) / 15) + 1);
 
     /* Handle polymorphed players */
     if (p->poly_race)
@@ -2037,7 +2023,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->speed += modifiers[OBJ_MOD_SPEED];
 
         /* Affect blows */
-        extra_blows += modifiers[OBJ_MOD_BLOWS];
+        extra_blows += (modifiers[OBJ_MOD_BLOWS] * 10);
 
         /* Affect shots */
         extra_shots += modifiers[OBJ_MOD_SHOTS];
@@ -2190,36 +2176,48 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Apply race/class modifiers */
     for (i = STAT_MAX; i < OBJ_MOD_MAX; i++)
     {
-        int adj;
+        int r_adj, c_adj;
 
         /* Polymorphed players only get half adjustment from race */
-        adj = race_modifier(p->race, i, p->lev, p->poly_race? true: false);
+        r_adj = race_modifier(p->race, i, p->lev, p->poly_race? true: false);
 
-        adj += class_modifier(p->clazz, i, p->lev);
+        c_adj = class_modifier(p->clazz, i, p->lev);
 
         /* Affect stealth */
-        if (i == OBJ_MOD_STEALTH) state->skills[SKILL_STEALTH] += adj;
+        if (i == OBJ_MOD_STEALTH) state->skills[SKILL_STEALTH] += (r_adj + c_adj);
 
         /* Affect searching ability (factor of five) */
-        if (i == OBJ_MOD_SEARCH) state->skills[SKILL_SEARCH] += (adj * 5);
+        if (i == OBJ_MOD_SEARCH) state->skills[SKILL_SEARCH] += ((r_adj + c_adj) * 5);
 
         /* Affect infravision */
-        if (i == OBJ_MOD_INFRA) state->see_infra += adj;
+        if (i == OBJ_MOD_INFRA) state->see_infra += (r_adj + c_adj);
 
         /* Affect digging (factor of 20) */
-        if (i == OBJ_MOD_TUNNEL) state->skills[SKILL_DIGGING] += (adj * 20);
+        if (i == OBJ_MOD_TUNNEL) state->skills[SKILL_DIGGING] += ((r_adj + c_adj) * 20);
 
         /* Affect speed */
-        if (i == OBJ_MOD_SPEED) state->speed += adj;
+        if (i == OBJ_MOD_SPEED)
+        {
+            /* Unencumbered monks get speed bonus */
+            if (restrict) c_adj = 0;
+
+            state->speed += (r_adj + c_adj);
+        }
 
         /* Affect blows */
-        if (i == OBJ_MOD_BLOWS) extra_blows += adj;
+        if (i == OBJ_MOD_BLOWS)
+        {
+            /* Encumbered monks only get half the extra blows */
+            if (restrict) c_adj /= 2;
+
+            extra_blows += (r_adj + c_adj);
+        }
 
         /* Affect shots */
-        if (i == OBJ_MOD_SHOTS) extra_shots += adj;
+        if (i == OBJ_MOD_SHOTS) extra_shots += (r_adj + c_adj);
 
         /* Affect Might */
-        if (i == OBJ_MOD_MIGHT) extra_might += adj;
+        if (i == OBJ_MOD_MIGHT) extra_might += (r_adj + c_adj);
     }
 
     /* Unencumbered monks get extra ac for wearing very light or no armour at all */
@@ -2290,7 +2288,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         s16b fx = (p->timed[TMD_ADRENALINE] - 1) / 20;
 
         if (fx >= 2) state->to_d += 8;
-        if (fx >= 3) extra_blows++;
+        if (fx >= 3) extra_blows += 10;
     }
     if (p->timed[TMD_INVULN])
         state->to_a += 100;
@@ -2376,7 +2374,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     if (p->timed[TMD_BLOODLUST])
     {
         state->to_d += p->timed[TMD_BLOODLUST] / 2;
-        extra_blows += p->timed[TMD_BLOODLUST] / 20;
+        extra_blows += p->timed[TMD_BLOODLUST] / 2;
     }
 
     /* Analyze flags - check for fear */
@@ -2418,8 +2416,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     if (p->timed[TMD_SAFE]) state->skills[SKILL_SAVE] = 100;
     state->skills[SKILL_DIGGING] += adj_str_dig[state->stat_ind[STAT_STR]];
     if (p->poly_race && rf_has(p->poly_race->flags, RF_KILL_WALL))
-        state->skills[SKILL_DIGGING] = 2000;
-    if (player_has(p, PF_ELEMENTAL_SPELLS) && (p->lev == 50))
         state->skills[SKILL_DIGGING] = 2000;
     for (i = 0; i < SKILL_MAX; i++)
         state->skills[i] += (p->clazz->x_skills[i] * p->lev / 10);
@@ -2469,21 +2465,15 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             state->num_shots += extra_shots;
             state->ammo_mult += extra_might;
 
-            /* Rangers with bows and archers are good at shooting */
-            if ((player_has(p, PF_FAST_SHOT) && (state->ammo_tval == TV_ARROW)) ||
-                player_has(p, PF_FAST_SHOTS))
-            {
+            /* Rangers with bows are good at shooting */
+            if (player_has(p, PF_FAST_SHOT) && (state->ammo_tval == TV_ARROW))
                 state->num_shots += p->lev / 3;
-            }
         }
     }
 
     /* Monks and archers are good at throwing */
-    if ((player_has(p, PF_MARTIAL_ARTS) || player_has(p, PF_FAST_SHOTS)) &&
-        (state->ammo_tval == TV_ROCK))
-    {
+    if (player_has(p, PF_FAST_THROW) && (state->ammo_tval == TV_ROCK))
         state->num_shots += p->lev / 2;
-    }
 
     /* Handle polymorphed players */
     if (p->poly_race && (rsf_has(p->poly_race->spell_flags, RSF_ARROW_X) ||

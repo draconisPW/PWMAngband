@@ -1604,8 +1604,9 @@ value:1:INT[1]
 value:1:WIS[-3]
 value:1:DEX[3]
 value:1:CON[-1]
+value:5:SPEED[1+1d15]
 player-flags:CHOOSE_SPELLS | STEAL
-player-flags:BACK_STAB | STEALING_IMPROV | SPEED_BONUS | STEALTH_MODE
+player-flags:BACK_STAB | STEALING_IMPROV | STEALTH_MODE
 title:Vagabond
 title:Cutpurse
 title:Footpad
@@ -2575,7 +2576,8 @@ value:1:STR[-2]
 value:1:INT[-2]
 value:1:WIS[2]
 value:1:DEX[2]
-player-flags:CHOOSE_SPELLS | FAST_SHOTS
+value:0:SHOTS[1d3]
+player-flags:CHOOSE_SPELLS | FAST_THROW
 title:Rock Thrower
 title:Slinger
 title:Great Slinger
@@ -2722,11 +2724,17 @@ equip:light:Wooden Torch:1:3:1
 equip:potion:Berserk Strength:1:1:0
 equip:soft armour:Soft Leather Armour:1:1:0
 equip:scroll:Word of Recall:1:1:0
+obj-flag:10:FEATHER
+obj-flag:15:PROT_FEAR
+obj-flag:20:PROT_CONF
+obj-flag:25:FREE_ACT
 value:1:STR[1]
 value:1:INT[-2]
 value:1:DEX[2]
 value:1:CON[1]
-player-flags:NO_MANA | MARTIAL_ARTS
+value:0:SPEED[1d10]
+value:0:BLOWS[1d1]
+player-flags:NO_MANA | MARTIAL_ARTS | FAST_THROW
 title:Initiate
 title:Brother
 title:Disciple
@@ -3114,6 +3122,7 @@ value:10:RES_FIRE[1]
 value:15:RES_COLD[1]
 value:20:RES_ACID[1]
 value:25:RES_ELEC[1]
+value:50:TUNNEL[100]
 player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS | ELEMENTAL_SPELLS
 title:Novice
 title:Apprentice

@@ -703,6 +703,9 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
 {
     int adj;
 
+    /* Unencumbered monks get speed bonus */
+    bool restrict = (player_has(p, PF_MARTIAL_ARTS) && !monk_armor_ok(p));
+
     /* Add racial modifiers */
     adj = race_modifier(p->race, mod, p->lev, false);
     if (adj > 0) *res = true;
@@ -710,71 +713,34 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
 
     /* Add class modifiers */
     adj = class_modifier(p->clazz, mod, p->lev);
+    if ((mod == OBJ_MOD_SPEED) && restrict) adj = 0;
     if (adj > 0) *res = true;
     else if (adj < 0) *vul = true;
 
-    switch (mod)
+    /* Handle polymorphed players */
+    if (p->poly_race)
     {
-        case OBJ_MOD_STEALTH:
+        if (mod == OBJ_MOD_STEALTH)
         {
-            /* Handle polymorphed players */
-            if (p->poly_race)
-            {
-                if ((p->poly_race->weight > 0) && (p->poly_race->weight <= 100)) *res = true;
-                else if (p->poly_race->weight > 150) *vul = true;
-            }
-
-            /* Monks get stealth bonus */
-            if (player_has(p, PF_MARTIAL_ARTS) && !player_of_has(p, OF_AGGRAVATE))
-                *res = true;
-
-            break;
+            if ((p->poly_race->weight > 0) && (p->poly_race->weight <= 100)) *res = true;
+            else if (p->poly_race->weight > 150) *vul = true;
         }
-
-        case OBJ_MOD_INFRA:
+        if (mod == OBJ_MOD_TUNNEL)
         {
-            /* Ghost */
-            if (p->ghost) *res = true;
-
-            /* If the race has innate infravision, set the corresponding flag */
-            if (race_modifier(p->race, OBJ_MOD_INFRA, p->lev, p->poly_race? true: false) > 0)
-                *res = true;
-
-            break;
+            if (rf_has(p->poly_race->flags, RF_KILL_WALL)) *res = true;
         }
-
-        case OBJ_MOD_TUNNEL:
+        if (mod == OBJ_MOD_SPEED)
         {
-            /* Handle polymorphed players */
-            if (p->poly_race && rf_has(p->poly_race->flags, RF_KILL_WALL)) *res = true;
-
-            /* Elementalists get instant tunnel at level 50 */
-            if (player_has(p, PF_ELEMENTAL_SPELLS) && (p->lev == 50)) *res = true;
-
-            /* If the race has innate digging, set the corresponding flag */
-            if (p->race->r_skills[SKILL_DIGGING] > 0) *res = true;
-
-            break;
-        }
-
-        case OBJ_MOD_SPEED:
-        {
-            /* Unencumbered monks get speed bonus */
-            if (monk_armor_ok(p) && (p->lev >= 10)) *res = true;
-
-            /* Rogues get speed bonus */
-            if (player_has(p, PF_SPEED_BONUS) && (p->lev >= 5)) *res = true;
-
-            /* Handle polymorphed players */
-            if (p->poly_race)
-            {
-                if (((p->poly_race->speed - 110) / 2) > 0) *res = true;
-                else if (((p->poly_race->speed - 110) / 2) < 0) *vul = true;
-            }
-
-            break;
+            if (((p->poly_race->speed - 110) / 2) > 0) *res = true;
+            else if (((p->poly_race->speed - 110) / 2) < 0) *vul = true;
         }
     }
+
+    /* Ghost */
+    if (p->ghost && (mod == OBJ_MOD_INFRA)) *res = true;
+
+    /* If the race has innate digging, set the corresponding flag */
+    if ((p->race->r_skills[SKILL_DIGGING] > 0) && (mod == OBJ_MOD_TUNNEL)) *res = true;
 }
 
 
