@@ -1200,13 +1200,13 @@ int recharge_failure_chance(const struct object *obj, int strength)
 
 int race_modifier(const struct player_race *race, int mod, int lvl, bool poly)
 {
-    if (lvl >= race->modifiors[mod].lvl)
+    if (lvl >= race->modifiers[mod].lvl)
     {
-        int adj = race->modifiors[mod].value.base;
-        int xadj = race->modifiors[mod].value.sides;
+        int adj = race->modifiers[mod].value.base;
+        int xadj = race->modifiers[mod].value.sides;
 
         if (xadj)
-            adj += race->modifiors[mod].value.dice * (lvl - race->modifiors[mod].lvl) / xadj;
+            adj += race->modifiers[mod].value.dice * (lvl - race->modifiers[mod].lvl) / xadj;
 
         /* Polymorphed players only get half adjustment from race */
         if (poly)
@@ -1224,13 +1224,13 @@ int race_modifier(const struct player_race *race, int mod, int lvl, bool poly)
 
 int class_modifier(const struct player_class *clazz, int mod, int lvl)
 {
-    if (lvl >= clazz->modifiors[mod].lvl)
+    if (lvl >= clazz->modifiers[mod].lvl)
     {
-        int adj = clazz->modifiors[mod].value.base;
-        int xadj = clazz->modifiors[mod].value.sides;
+        int adj = clazz->modifiers[mod].value.base;
+        int xadj = clazz->modifiers[mod].value.sides;
 
         if (xadj)
-            adj += clazz->modifiors[mod].value.dice * (lvl - clazz->modifiors[mod].lvl) / xadj;
+            adj += clazz->modifiers[mod].value.dice * (lvl - clazz->modifiers[mod].lvl) / xadj;
 
         return adj;
     }

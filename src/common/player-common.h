@@ -228,7 +228,7 @@ struct player_race
     int f_b_wt;                 /* Base weight (females) */
     int f_m_wt;                 /* Mod weight (females) */
     int body;                   /* Race body */
-    struct modifier modifiors[OBJ_MOD_MAX]; /* Modifiers */
+    struct modifier modifiers[OBJ_MOD_MAX]; /* Modifiers */
     s16b r_skills[SKILL_MAX];   /* Skills */
     bitflag flags[OF_SIZE];     /* Racial (object) flags */
     byte flvl[OF_MAX];          /* Application level for racial (object) flags */
@@ -334,7 +334,7 @@ struct player_class
     char *name;                     /* Name */
     unsigned int cidx;              /* Index */
     char *title[PY_MAX_LEVEL / 5];  /* Titles */
-    struct modifier modifiors[OBJ_MOD_MAX]; /* Modifiers */
+    struct modifier modifiers[OBJ_MOD_MAX]; /* Modifiers */
     s16b c_skills[SKILL_MAX];       /* Class skills */
     int x_skills[SKILL_MAX];        /* Extra skills */
     byte c_mhp;                     /* Hit-dice adjustment */

@@ -423,10 +423,10 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 7;
 
-                    r->modifiors[j].value.base = base;
-                    r->modifiors[j].value.dice = dice;
-                    r->modifiors[j].value.sides = sides;
-                    r->modifiors[j].lvl = lvl;
+                    r->modifiers[j].value.base = base;
+                    r->modifiers[j].value.dice = dice;
+                    r->modifiers[j].value.sides = sides;
+                    r->modifiers[j].lvl = lvl;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
                 {
@@ -574,10 +574,10 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 7;
 
-                    c->modifiors[j].value.base = base;
-                    c->modifiors[j].value.dice = dice;
-                    c->modifiors[j].value.sides = sides;
-                    c->modifiors[j].lvl = lvl;
+                    c->modifiers[j].value.base = base;
+                    c->modifiers[j].value.dice = dice;
+                    c->modifiers[j].value.sides = sides;
+                    c->modifiers[j].lvl = lvl;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
                 {

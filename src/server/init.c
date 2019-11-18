@@ -2123,10 +2123,10 @@ static enum parser_error parse_p_race_value(struct parser *p)
     if (!grab_index_and_rand(&rvalue, &index, obj_mods, name_and_value))
     {
         found = true;
-        r->modifiors[index].value.base = rvalue.base;
-        r->modifiors[index].value.dice = rvalue.dice;
-        r->modifiors[index].value.sides = rvalue.sides;
-        r->modifiors[index].lvl = level;
+        r->modifiers[index].value.base = rvalue.base;
+        r->modifiers[index].value.dice = rvalue.dice;
+        r->modifiers[index].value.sides = rvalue.sides;
+        r->modifiers[index].lvl = level;
     }
     if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))
     {
@@ -2758,10 +2758,10 @@ static enum parser_error parse_p_class_value(struct parser *p)
     if (!grab_index_and_rand(&rvalue, &index, obj_mods, name_and_value))
     {
         found = true;
-        c->modifiors[index].value.base = rvalue.base;
-        c->modifiors[index].value.dice = rvalue.dice;
-        c->modifiors[index].value.sides = rvalue.sides;
-        c->modifiors[index].lvl = level;
+        c->modifiers[index].value.base = rvalue.base;
+        c->modifiers[index].value.dice = rvalue.dice;
+        c->modifiers[index].value.sides = rvalue.sides;
+        c->modifiers[index].lvl = level;
     }
     if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))
     {
