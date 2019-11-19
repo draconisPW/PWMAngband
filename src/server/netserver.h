@@ -89,7 +89,6 @@ extern int Send_body_struct_info(int ind);
 extern int Send_socials_struct_info(int ind);
 extern int Send_kind_struct_info(int ind);
 extern int Send_ego_struct_info(int ind);
-extern int Send_hints_struct_info(int ind);
 extern int Send_rinfo_struct_info(int ind);
 extern int Send_rbinfo_struct_info(int ind);
 extern int Send_curse_struct_info(int ind);
@@ -137,8 +136,8 @@ extern int Send_floor(struct player *p, byte num, const struct object *obj,
 extern int Send_special_other(struct player *p, char *header, byte peruse, bool protect);
 extern int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number,
     byte owned, s32b price, byte tval, byte max, s16b bidx, const char *name);
-extern int Send_store_info(struct player *p, int num, char *name, char *owner, int items,
-    s32b purse);
+extern int Send_store_info(struct player *p, int num, char *name, char *owner, char *welcome,
+    int items, s32b purse);
 extern int Send_target_info(struct player *p, int x, int y, bool dble, const char *buf);
 extern int Send_sound(struct player *p, int sound);
 extern int Send_mini_map(struct player *p, int y, s16b w);

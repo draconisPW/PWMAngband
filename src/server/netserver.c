@@ -1782,50 +1782,6 @@ int Send_ego_struct_info(int ind)
 }
 
 
-int Send_hints_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    u16b max = 0;
-    struct hint *h;
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for hints info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    /* Count hints */
-    h = hints;
-    while (h)
-    {
-        max++;
-        h = h->next;
-    }
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_HINTS,
-        (unsigned)max) <= 0)
-    {
-        Destroy_connection(ind, "Send_hints_struct_info write error");
-        return -1;
-    }
-
-    h = hints;
-    while (h)
-    {
-        if (Packet_printf(&connp->c, "%s", h->hint) <= 0)
-        {
-            Destroy_connection(ind, "Send_hints_struct_info write error");
-            return -1;
-        }
-
-        h = h->next;
-    }
-
-    return 1;
-}
-
-
 int Send_rinfo_struct_info(int ind)
 {
     connection_t *connp = get_connection(ind);
@@ -2717,13 +2673,14 @@ int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number, byt
 }
 
 
-int Send_store_info(struct player *p, int num, char *name, char *owner, int items, s32b purse)
+int Send_store_info(struct player *p, int num, char *name, char *owner, char *welcome, int items,
+    s32b purse)
 {
     connection_t *connp = get_connp(p, "store info");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%s%s%hd%ld", (unsigned)PKT_STORE_INFO,
-        num, name, owner, items, purse);
+    return Packet_printf(&connp->c, "%b%hd%s%s%s%hd%ld", (unsigned)PKT_STORE_INFO,
+        num, name, owner, welcome, items, purse);
 }
 
 
@@ -6321,7 +6278,6 @@ static int Receive_play(int ind)
         Send_class_struct_info(ind);
         Send_body_struct_info(ind);
         Send_socials_struct_info(ind);
-        Send_hints_struct_info(ind);
         Send_rinfo_struct_info(ind);
         Send_rbinfo_struct_info(ind);
         Send_curse_struct_info(ind);

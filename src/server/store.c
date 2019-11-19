@@ -2026,9 +2026,101 @@ static void store_prt_gold(struct player *p)
 
 
 /*
+ * Shopkeeper welcome messages.
+ *
+ * The shopkeeper's name must come first, then the character's name.
+ */
+static const char *comment_welcome[] =
+{
+    "",
+    "%s nods to you.",
+    "%s says hello.",
+    "%s: \"See anything you like, adventurer?\"",
+    "%s: \"How may I help you, %s?\"",
+    "%s: \"Welcome back, %s.\"",
+    "%s: \"A pleasure to see you again, %s.\"",
+    "%s: \"How may I be of assistance, good %s?\"",
+    "%s: \"You do honour to my humble store, noble %s.\"",
+    "%s: \"I and my family are entirely at your service, %s.\""
+};
+
+
+/* Return a random hint from the global hints list */
+static char *random_hint(void)
+{
+    struct hint *v, *r = NULL;
+    int n;
+
+    for (v = hints, n = 1; v; v = v->next, n++)
+    {
+        if (one_in_(n)) r = v;
+    }
+
+    return r->hint;
+}
+
+
+/*
+ * The greeting a shopkeeper gives the character says a lot about his
+ * general attitude.
+ *
+ * Taken and modified from Sangband 1.0.
+ *
+ * Note that each comment_hint should have exactly one %s
+ */
+static void prt_welcome(struct player *p, char *welcome, size_t len)
+{
+    char short_name[20];
+    struct owner *proprietor = store_at(p)->owner;
+    const char *owner_name = proprietor->name;
+    int j;
+
+    if (one_in_(2)) return;
+
+    /* Get the first name of the store owner (stop before the first space) */
+    for (j = 0; owner_name[j] && owner_name[j] != ' '; j++)
+        short_name[j] = owner_name[j];
+
+    /* Truncate the name */
+    short_name[j] = '\0';
+
+    if (one_in_(3))
+        strnfmt(welcome, len, "\"%s\"", random_hint());
+    else if (p->lev > 5)
+    {
+        const char *player_name;
+
+        /* We go from level 1 - 50  */
+        size_t i = (p->lev - 1) / 5;
+
+        i = MIN(i, N_ELEMENTS(comment_welcome) - 1);
+
+        /* Get a title for the character */
+        if ((i % 2) && randint0(2)) player_name = get_title(p);
+        else if (randint0(2)) player_name = p->name;
+        else
+        {
+            switch (p->psex)
+            {
+                case SEX_MALE: player_name = "sir"; break;
+                case SEX_FEMALE: player_name = "lady"; break;
+                default: player_name = "ser"; break;
+            }
+        }
+
+        /* Balthazar says "Welcome" */
+        if (i >= 4)
+            strnfmt(welcome, len, comment_welcome[i], short_name, player_name);
+        else
+            strnfmt(welcome, len, comment_welcome[i], short_name);
+    }
+}
+
+
+/*
  * Send store (after clearing screen)
  */
-static void display_store(struct player *p)
+static void display_store(struct player *p, bool entering)
 {
     int stockcount;
     char store_name[NORMAL_WID];
@@ -2036,6 +2128,7 @@ static void display_store(struct player *p)
     s32b purse;
     spell_flags flags;
     struct store *s = store_at(p);
+    char welcome[NORMAL_WID];
 
     flags.line_attr = COLOUR_WHITE;
     flags.flag = RSF_NONE;
@@ -2079,8 +2172,13 @@ static void display_store(struct player *p)
             house_get(p->player_store_num)->ownername);
     }
 
+    /* Say a friendly hello. */
+    memset(welcome, 0, sizeof(welcome));
+    if ((s->type != STORE_HOME) && (s->type != STORE_PLAYER))
+        prt_welcome(p, welcome, sizeof(welcome));
+
     /* Send the store info */
-    Send_store_info(p, s->type, store_name, store_owner_name, stockcount, purse);
+    Send_store_info(p, s->type, store_name, store_owner_name, welcome, stockcount, purse);
 }
 
 
@@ -2435,7 +2533,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     }
 
     /* Resend the basic store info */
-    display_store(p);
+    display_store(p, false);
     store_prt_gold(p);
 
     if (store->type == STORE_PLAYER) object_delete(&obj);
@@ -2506,7 +2604,7 @@ void do_cmd_retrieve(struct player *p, int item, int amt)
     store_delete(store, obj, amt);
 
     /* Resend the basic store info */
-    display_store(p);
+    display_store(p, false);
 }
 
 
@@ -2700,7 +2798,7 @@ void do_cmd_stash(struct player *p, int item, int amt)
     home_carry(p, store, dropped);
 
     /* Resend the basic store info */
-    display_store(p);
+    display_store(p, false);
 }
 
 
@@ -2804,7 +2902,7 @@ void store_confirm(struct player *p)
     store_carry(NULL, store, sold_item);
 
     /* Resend the basic store info */
-    display_store(p);
+    display_store(p, false);
     store_prt_gold(p);
 }
 
@@ -3082,7 +3180,7 @@ void do_cmd_store(struct player *p, int pstore)
     sound(p, MSG_STORE_ENTER);
 
     /* Display the store */
-    display_store(p);
+    display_store(p, true);
 }
 
 

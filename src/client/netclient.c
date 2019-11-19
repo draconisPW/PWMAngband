@@ -948,35 +948,6 @@ static int Receive_struct_info(void)
             break;
         }
 
-        /* Hints */
-        case STRUCT_INFO_HINTS:
-        {
-            hints = NULL;
-
-            /* Fill */
-            for (i = 0; i < max; i++)
-            {
-                struct hint *h;
-
-                if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
-                {
-                    /* Rollback the socket buffer */
-                    Sockbuf_rollback(&rbuf, bytes_read);
-
-                    /* Packet isn't complete, graceful failure */
-                    return n;
-                }
-                bytes_read += strlen(name) + 1;
-
-                h = mem_zalloc(sizeof(*h));
-                h->hint = string_make(name);
-                h->next = hints;
-                hints = h;
-            }
-
-            break;
-        }
-
         /* Monster races */
         case STRUCT_INFO_RINFO:
         {
@@ -2561,8 +2532,8 @@ static int Receive_store_info(void)
     s32b max_cost;
     s16b type;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%s%s%hd%ld", &ch, &type, store_name, store_owner_name,
-        &num_items, &max_cost)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%s%s%s%hd%ld", &ch, &type, store_name, store_owner_name,
+        welcome, &num_items, &max_cost)) <= 0)
     {
         return n;
     }

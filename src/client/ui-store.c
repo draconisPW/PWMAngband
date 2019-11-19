@@ -22,26 +22,6 @@
 #include "c-angband.h"
 
 
-/*
- * Shopkeeper welcome messages.
- *
- * The shopkeeper's name must come first, then the character's name.
- */
-static const char *comment_welcome[] =
-{
-    "",
-    "%s nods to you.",
-    "%s says hello.",
-    "%s: \"See anything you like, adventurer?\"",
-    "%s: \"How may I help you, %s?\"",
-    "%s: \"Welcome back, %s.\"",
-    "%s: \"A pleasure to see you again, %s.\"",
-    "%s: \"How may I be of assistance, good %s?\"",
-    "%s: \"You do honour to my humble store, noble %s.\"",
-    "%s: \"I and my family are entirely at your service, %s.\""
-};
-
-
 /* State flags */
 #define STORE_GOLD_CHANGE      0x01
 #define STORE_FRAME_CHANGE     0x02
@@ -69,10 +49,6 @@ static bool store_command_wait = false;
 static bool leave_store;
 
 
-/* The hints array */
-struct hint *hints;
-
-
 /* The general info about the current store */
 struct store current_store;
 
@@ -81,75 +57,8 @@ struct store current_store;
 store_name *store_names;
 
 
-/* Return a random hint from the global hints list */
-static char *random_hint(void)
-{
-    struct hint *v, *r = NULL;
-    int n;
-
-    for (v = hints, n = 1; v; v = v->next, n++)
-    {
-        if (one_in_(n)) r = v;
-    }
-
-    return r->hint;
-}
-
-
-/*
- * The greeting a shopkeeper gives the character says a lot about his
- * general attitude.
- *
- * Taken and modified from Sangband 1.0.
- *
- * Note that each comment_hint should have exactly one %s
- */
-static void prt_welcome(const struct owner *proprietor)
-{
-    char short_name[20];
-    const char *owner_name = proprietor->name;
-    int j;
-
-    if (one_in_(2)) return;
-
-    /* Get the first name of the store owner (stop before the first space) */
-    for (j = 0; owner_name[j] && owner_name[j] != ' '; j++)
-        short_name[j] = owner_name[j];
-
-    /* Truncate the name */
-    short_name[j] = '\0';
-
-    if (one_in_(3))
-        prt(format("\"%s\"", random_hint()), 0, 0);
-    else if (player->lev > 5)
-    {
-        const char *player_name;
-
-        /* We go from level 1 - 50  */
-        size_t i = (player->lev - 1) / 5;
-
-        i = MIN(i, N_ELEMENTS(comment_welcome) - 1);
-
-        /* Get a title for the character */
-        if ((i % 2) && randint0(2)) player_name = title;
-        else if (randint0(2)) player_name = player->name;
-        else
-        {
-            switch (player->psex)
-            {
-                case SEX_MALE: player_name = "sir"; break;
-                case SEX_FEMALE: player_name = "lady"; break;
-                default: player_name = "ser"; break;
-            }
-        }
-
-        /* Balthazar says "Welcome" */
-        if (i >= 4)
-            prt(format(comment_welcome[i], short_name, player_name), 0, 0);
-        else
-            prt(format(comment_welcome[i], short_name), 0, 0);
-    }
-}
+/* Welcome message */
+char welcome[NORMAL_WID];
 
 
 /*** Display code ***/
@@ -962,8 +871,7 @@ void store_enter(void)
     store_menu_init(&ctx, store);
 
     /* Say a friendly hello. */
-    if ((store->type != STORE_HOME) && (store->type != STORE_PLAYER))
-        prt_welcome(store->owner);
+    if (!STRZERO(welcome)) prt(welcome, 0, 0);
 
     menu_select(&ctx.menu, 0, false);
 

@@ -252,7 +252,7 @@ buy:potion
 store:Bookseller
 owner:15000:Yveen the Witch (Half-Elf)
 owner:20000:Narn the Short (Gnome)
-owner:25000:Lord X the Black (Human)
+owner:25000:Lord-X the Black (Human)
 owner:30000:Senya the Beautiful (High-Elf)
 slots:0:2
 turnover:0

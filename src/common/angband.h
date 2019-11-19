@@ -42,7 +42,6 @@
 #include "datafile.h"
 #include "display.h"
 #include "guid.h"
-#include "hint.h"
 #include "md5.h"
 #include "obj-common.h"
 #include "obj-gear-common.h"

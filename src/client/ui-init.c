@@ -713,14 +713,6 @@ void cleanup_angband(void)
     cleanup_body();
     for (i = 0; soc_info && (i < z_info->soc_max); i++) string_free(soc_info[i].name);
     mem_free(soc_info);
-    while (hints)
-    {
-        struct hint *h = hints->next;
-
-        string_free(hints->hint);
-        mem_free(hints);
-        hints = h;
-    }
     for (i = 0; r_info && (i < z_info->r_max); i++) string_free(r_info[i].name);
     mem_free(r_info);
     while (rb_info)
