@@ -167,7 +167,6 @@ value:1:INT[-2]
 value:1:WIS[-2]
 value:1:DEX[2]
 value:1:CON[2]
-value:0:SPEED[1d1M20]
 player-flags:NO_MANA | SHIELD_BASH
 title:Rookie
 title:Soldier
