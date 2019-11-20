@@ -294,10 +294,19 @@ store:Expensive Black Market
 type:4
 owner:15000:Eek the Yeek (Yeek)
 owner:20000:Zak the Kobold (Kobold)
-owner:25000:Fangorn the Treebeard (Ent)
-owner:30000:Lisa the Green (Thunderlord)
+owner:25000:Fat-Pig the Snaga (Half-Orc)
+owner:30000:Lenny the Half-Witted (Human)
 slots:8:16
 turnover:9
+welcome:0:spits on the floor.
+welcome:1:curses.
+welcome:2:grunts.
+welcome:3:eyes you suspiciously.
+welcome:4:"Buy something or leave!"
+welcome:5:"Don't make me waste my time!"
+welcome:6:"Tell me if you see any thieves!"
+welcome:7:"Welcome back, %s."
+welcome:8:"A pleasure to do business with you, %s."
 
 store:Tavern
 type:5

@@ -31,10 +31,6 @@ static void store_maint(struct store *s, bool force);
  */
 
 
-/* Number of welcome messages (1 for every 5 clvl starting at clvl 6) */
-#define N_WELCOME   9
-
-
 /*
  * Maximum number of stores
  */
@@ -347,6 +343,9 @@ static enum parser_error parse_welcome(struct parser *p)
 
     /* Default welcome messages */
     if (!s) my_strcpy(comment_welcome[index], parser_getstr(p, "welcome"), NORMAL_WID);
+
+    /* Specific welcome messages */
+    else my_strcpy(s->comment_welcome[index], parser_getstr(p, "welcome"), NORMAL_WID);
 
     return PARSE_ERROR_NONE;
 }
@@ -2070,9 +2069,11 @@ static char *random_hint(void)
 static void prt_welcome(struct player *p, char *welcome, size_t len)
 {
     char short_name[20];
-    const char *owner_name = store_at(p)->owner->name;
+    struct store *s = store_at(p);
+    const char *owner_name = s->owner->name;
     int i;
     char comment_format[NORMAL_WID];
+    const char *chosen;
 
     /* Only half of the time */
     if (one_in_(2)) return;
@@ -2096,13 +2097,15 @@ static void prt_welcome(struct player *p, char *welcome, size_t len)
 
     /* Get a welcome message according to level */
     i = (p->lev - 6) / 5;
+    if (!STRZERO(s->comment_welcome[i])) chosen = s->comment_welcome[i];
+    else chosen = comment_welcome[i];
 
     /* Get format */
-    strnfmt(comment_format, NORMAL_WID, "%s%s %s", short_name,
-        ((comment_welcome[i][0] == '\"')? ":": ""), comment_welcome[i]);
+    strnfmt(comment_format, NORMAL_WID, "%s%s %s", short_name, ((chosen[0] == '\"')? ":": ""),
+        chosen);
 
     /* Get a title for the character */
-    if (strstr(comment_welcome[i], "%s"))
+    if (strstr(chosen, "%s"))
     {
         const char *player_name;
 
