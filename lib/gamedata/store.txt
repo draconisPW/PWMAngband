@@ -33,6 +33,18 @@
 # stores to this file.
 
 
+# Default welcome messages
+welcome:0:nods to you.
+welcome:1:says hello.
+welcome:2:"See anything you like, adventurer?"
+welcome:3:"How may I help you, %s?"
+welcome:4:"Welcome back, %s."
+welcome:5:"A pleasure to see you again, %s."
+welcome:6:"How may I be of assistance, %s?"
+welcome:7:"You do honour to my humble store, %s."
+welcome:8:"I and my family are entirely at your service, %s."
+
+
 # General store
 store:General Store
 type:1

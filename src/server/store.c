@@ -31,6 +31,10 @@ static void store_maint(struct store *s, bool force);
  */
 
 
+/* Number of welcome messages (1 for every 5 clvl starting at clvl 6) */
+#define N_WELCOME   9
+
+
 /*
  * Maximum number of stores
  */
@@ -56,6 +60,10 @@ struct hint *hints;
 
 /* Store orders */
 char store_orders[STORE_ORDERS][NORMAL_WID];
+
+
+/* Default welcome messages */
+static char comment_welcome[N_WELCOME][NORMAL_WID];
 
 
 /*
@@ -330,6 +338,20 @@ static enum parser_error parse_buy_flag(struct parser *p)
 }
 
 
+static enum parser_error parse_welcome(struct parser *p)
+{
+    struct store *s = parser_priv(p);
+    int index = parser_getint(p, "index");
+
+    if ((index < 0) || (index >= N_WELCOME)) return PARSE_ERROR_OUT_OF_BOUNDS;
+
+    /* Default welcome messages */
+    if (!s) my_strcpy(comment_welcome[index], parser_getstr(p, "welcome"), NORMAL_WID);
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static struct parser *init_parse_stores(void)
 {
     struct parser *p = parser_new();
@@ -344,6 +366,7 @@ static struct parser *init_parse_stores(void)
     parser_reg(p, "always sym tval ?sym sval", parse_always);
     parser_reg(p, "buy str base", parse_buy);
     parser_reg(p, "buy-flag sym flag str base", parse_buy_flag);
+    parser_reg(p, "welcome int index str welcome", parse_welcome);
 
     return p;
 }
@@ -2025,26 +2048,6 @@ static void store_prt_gold(struct player *p)
 }
 
 
-/*
- * Shopkeeper welcome messages.
- *
- * The shopkeeper's name must come first, then the character's name.
- */
-static const char *comment_welcome[] =
-{
-    "",
-    "%s nods to you.",
-    "%s says hello.",
-    "%s: \"See anything you like, adventurer?\"",
-    "%s: \"How may I help you, %s?\"",
-    "%s: \"Welcome back, %s.\"",
-    "%s: \"A pleasure to see you again, %s.\"",
-    "%s: \"How may I be of assistance, good %s?\"",
-    "%s: \"You do honour to my humble store, noble %s.\"",
-    "%s: \"I and my family are entirely at your service, %s.\""
-};
-
-
 /* Return a random hint from the global hints list */
 static char *random_hint(void)
 {
@@ -2062,58 +2065,67 @@ static char *random_hint(void)
 
 /*
  * The greeting a shopkeeper gives the character says a lot about his
- * general attitude.
- *
- * Taken and modified from Sangband 1.0.
- *
- * Note that each comment_hint should have exactly one %s
+ * general attitude (modified for PWMAngband).
  */
 static void prt_welcome(struct player *p, char *welcome, size_t len)
 {
     char short_name[20];
-    struct owner *proprietor = store_at(p)->owner;
-    const char *owner_name = proprietor->name;
-    int j;
+    const char *owner_name = store_at(p)->owner->name;
+    int i;
+    char comment_format[NORMAL_WID];
 
+    /* Only half of the time */
     if (one_in_(2)) return;
 
+    /* Get a hint */
+    if (one_in_(3))
+    {
+        strnfmt(welcome, len, "\"%s\"", random_hint());
+        return;
+    }
+
+    /* Store owner doesn't care about beginners */
+    if (p->lev <= 5) return;
+
     /* Get the first name of the store owner (stop before the first space) */
-    for (j = 0; owner_name[j] && owner_name[j] != ' '; j++)
-        short_name[j] = owner_name[j];
+    for (i = 0; owner_name[i] && owner_name[i] != ' '; i++)
+        short_name[i] = owner_name[i];
 
     /* Truncate the name */
-    short_name[j] = '\0';
+    short_name[i] = '\0';
 
-    if (one_in_(3))
-        strnfmt(welcome, len, "\"%s\"", random_hint());
-    else if (p->lev > 5)
+    /* Get a welcome message according to level */
+    i = (p->lev - 6) / 5;
+
+    /* Get format */
+    strnfmt(comment_format, NORMAL_WID, "%s%s %s", short_name,
+        ((comment_welcome[i][0] == '\"')? ":": ""), comment_welcome[i]);
+
+    /* Get a title for the character */
+    if (strstr(comment_welcome[i], "%s"))
     {
         const char *player_name;
 
-        /* We go from level 1 - 50  */
-        size_t i = (p->lev - 1) / 5;
-
-        i = MIN(i, N_ELEMENTS(comment_welcome) - 1);
-
-        /* Get a title for the character */
-        if ((i % 2) && randint0(2)) player_name = get_title(p);
-        else if (randint0(2)) player_name = p->name;
-        else
+        switch (p->psex)
         {
-            switch (p->psex)
-            {
-                case SEX_MALE: player_name = "sir"; break;
-                case SEX_FEMALE: player_name = "lady"; break;
-                default: player_name = "ser"; break;
-            }
+            case SEX_MALE: player_name = "sir"; break;
+            case SEX_FEMALE: player_name = "lady"; break;
+            default: player_name = "ser"; break;
         }
 
-        /* Balthazar says "Welcome" */
-        if (i >= 4)
-            strnfmt(welcome, len, comment_welcome[i], short_name, player_name);
-        else
-            strnfmt(welcome, len, comment_welcome[i], short_name);
+        switch (randint0(3))
+        {
+            case 0: player_name = get_title(p); break;
+            case 1: player_name = p->name; break;
+            default: break;
+        }
+
+        strnfmt(welcome, len, comment_format, player_name);
     }
+
+    /* Balthazar says "Welcome" */
+    else
+        my_strcpy(welcome, comment_format, len);
 }
 
 
