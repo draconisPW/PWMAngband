@@ -2126,6 +2126,7 @@ static enum parser_error parse_p_race_value(struct parser *p)
         r->modifiers[index].value.base = rvalue.base;
         r->modifiers[index].value.dice = rvalue.dice;
         r->modifiers[index].value.sides = rvalue.sides;
+        r->modifiers[index].value.m_bonus = rvalue.m_bonus;
         r->modifiers[index].lvl = level;
     }
     if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))
@@ -2761,6 +2762,7 @@ static enum parser_error parse_p_class_value(struct parser *p)
         c->modifiers[index].value.base = rvalue.base;
         c->modifiers[index].value.dice = rvalue.dice;
         c->modifiers[index].value.sides = rvalue.sides;
+        c->modifiers[index].value.m_bonus = rvalue.m_bonus;
         c->modifiers[index].lvl = level;
     }
     if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))

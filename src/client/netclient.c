@@ -384,7 +384,7 @@ static int Receive_struct_info(void)
         /* Player Races */
         case STRUCT_INFO_RACE:
         {
-            s16b base, dice, sides, r_skills, r_exp, res_level;
+            s16b base, dice, sides, m_bonus, r_skills, r_exp, res_level;
             byte ridx, r_mhp, flag, lvl;
 
             races = NULL;
@@ -411,7 +411,8 @@ static int Receive_struct_info(void)
                 /* Transfer other fields here */
                 for (j = 0; j < OBJ_MOD_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%b", &base, &dice, &sides, &lvl)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%b", &base, &dice, &sides, &m_bonus,
+                        &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -421,11 +422,12 @@ static int Receive_struct_info(void)
                         mem_free(r);
                         return n;
                     }
-                    bytes_read += 7;
+                    bytes_read += 9;
 
                     r->modifiers[j].value.base = base;
                     r->modifiers[j].value.dice = dice;
                     r->modifiers[j].value.sides = sides;
+                    r->modifiers[j].value.m_bonus = m_bonus;
                     r->modifiers[j].lvl = lvl;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
@@ -533,7 +535,7 @@ static int Receive_struct_info(void)
         /* Player Classes */
         case STRUCT_INFO_CLASS:
         {
-            s16b base, dice, sides, c_skills, res_level;
+            s16b base, dice, sides, m_bonus, c_skills, res_level;
             byte cidx, c_mhp, total_spells, tval, sval, flag, lvl;
             char num_books;
             char realm[NORMAL_WID];
@@ -562,7 +564,8 @@ static int Receive_struct_info(void)
                 /* Transfer other fields here */
                 for (j = 0; j < OBJ_MOD_MAX; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%b", &base, &dice, &sides, &lvl)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%b", &base, &dice, &sides, &m_bonus,
+                        &lvl)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -572,11 +575,12 @@ static int Receive_struct_info(void)
                         mem_free(c);
                         return n;
                     }
-                    bytes_read += 7;
+                    bytes_read += 9;
 
                     c->modifiers[j].value.base = base;
                     c->modifiers[j].value.dice = dice;
                     c->modifiers[j].value.sides = sides;
+                    c->modifiers[j].value.m_bonus = m_bonus;
                     c->modifiers[j].lvl = lvl;
                 }
                 for (j = 0; j < SKILL_MAX; j++)
