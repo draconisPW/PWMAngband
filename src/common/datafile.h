@@ -29,6 +29,7 @@ struct file_parser
 
 extern const char *parser_error_str[PARSE_ERROR_MAX + 1];
 
+extern void print_error_simple(const char *name, struct parser *p);
 extern errr run_parser(struct file_parser *fp);
 extern errr parse_file_quit_not_found(struct parser *p, const char *filename);
 extern errr parse_file(struct parser *p, const char *filename);

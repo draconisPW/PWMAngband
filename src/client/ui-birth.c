@@ -693,7 +693,7 @@ static void clear_question(void)
     "item, '{light green}*{/}' for a random menu item, '{light green}ESC{/}' to step back through the birth"
 
 #define BIRTH_MENU_HELPLINE5 \
-    "process, '{light green}={/}' for the birth options, or '{light green}Ctrl-X{/}' to quit."
+    "process, '{light green}={/}' for the birth options, '{light green}?{/}' for help, or '{light green}Ctrl-X{/}' to quit."
 
 /* Show the birth instructions on an otherwise blank screen */
 static void print_menu_instructions(void)
@@ -706,6 +706,140 @@ static void print_menu_instructions(void)
     text_out_e(BIRTH_MENU_HELPLINE3, 3, 0);
     text_out_e(BIRTH_MENU_HELPLINE4, 4, 0);
     text_out_e(BIRTH_MENU_HELPLINE5, 5, 0);
+}
+
+
+struct parse_help
+{
+    byte state;
+    const char *name;
+    char *text;
+};
+
+
+static enum parser_error parse_help_race(struct parser *p)
+{
+    struct parse_help *h = parser_priv(p);
+    const char *race = parser_getstr(p, "race");
+
+    if (!h) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    switch (h->state)
+    {
+        case 0: if (streq(h->name, race)) h->state = 1; break;
+        case 1: if (strcmp(h->name, race)) h->state = 2; break;
+        default: break;
+    }
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_help_class(struct parser *p)
+{
+    struct parse_help *h = parser_priv(p);
+    const char *clazz = parser_getstr(p, "class");
+
+    if (!h) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    switch (h->state)
+    {
+        case 0: if (streq(h->name, clazz)) h->state = 1; break;
+        case 1: if (strcmp(h->name, clazz)) h->state = 2; break;
+        default: break;
+    }
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_help_help(struct parser *p)
+{
+    struct parse_help *h = parser_priv(p);
+
+    if (!h) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    if (h->state == 0) return PARSE_ERROR_NONE;
+    if (h->state == 2) return PARSE_ERROR_NONE;
+
+    h->text = string_append(h->text, parser_getstr(p, "help"));
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static void menu_help(enum birth_stage current, int cursor)
+{
+    char path[MSG_LEN];
+    char buf[MSG_LEN];
+    ang_file *f;
+    errr e = 0;
+    struct parser *p;
+    struct parse_help *helper;
+
+    if ((current != BIRTH_RACE_CHOICE) && (current != BIRTH_CLASS_CHOICE)) return;
+
+    if (current == BIRTH_RACE_CHOICE)
+        path_build(path, sizeof(path), ANGBAND_DIR_CUSTOMIZE, "race.prf");
+    else
+        path_build(path, sizeof(path), ANGBAND_DIR_CUSTOMIZE, "class.prf");
+    if (!file_exists(path)) return;
+
+    f = file_open(path, MODE_READ, FTYPE_TEXT);
+    if (!f) return;
+
+    p = parser_new();
+    helper = mem_zalloc(sizeof(*helper));
+    if (current == BIRTH_RACE_CHOICE) helper->name = player_id2race(cursor)->name;
+    else helper->name = player_id2class(cursor)->name;
+    parser_setpriv(p, helper);
+    if (current == BIRTH_RACE_CHOICE) parser_reg(p, "race str race", parse_help_race);
+    else parser_reg(p, "class str class", parse_help_class);
+    parser_reg(p, "help str help", parse_help_help);
+
+    while (file_getl(f, buf, sizeof(buf)))
+    {
+        e = parser_parse(p, buf);
+        if (e != PARSE_ERROR_NONE)
+        {
+            print_error_simple(path, p);
+            break;
+        }
+    }
+    file_close(f);
+    parser_destroy(p);
+
+    if ((e == PARSE_ERROR_NONE) && (helper->text != NULL) && !STRZERO(helper->text))
+    {
+        int j, k, l, lines = 2;
+        char out_val[2000];
+
+        screen_save();
+        clear_from(0);
+
+        c_prt(COLOUR_YELLOW, helper->name, 0, 0);
+
+        memset(out_val, 0, sizeof(out_val));
+        my_strcpy(out_val, helper->text, sizeof(out_val));
+        j = strlen(out_val);
+        k = 0;
+        while (j)
+        {
+            l = strlen(&out_val[k]);
+            if (j > 75)
+            {
+                l = 75;
+                while (out_val[k + l] != ' ') l--;
+                out_val[k + l] = '\0';
+            }
+            prt(out_val + k, lines++, 2);
+            k += (l + 1);
+            j = strlen(&out_val[k]);
+        }
+
+        inkey();
+        screen_load(false);
+    }
+
+    string_free(helper->text);
+    mem_free(helper);
 }
 
 
@@ -724,7 +858,7 @@ static enum birth_stage menu_question(enum birth_stage current, struct menu *cur
     clear_question();
     Term_putstr(QUESTION_COL, QUESTION_ROW, -1, COLOUR_YELLOW, menu_data->hint);
 
-    current_menu->cmd_keys = "=*Q";
+    current_menu->cmd_keys = "?=*Q";
 
     while (next == BIRTH_RESET)
     {
@@ -781,6 +915,11 @@ static enum birth_stage menu_question(enum birth_stage current, struct menu *cur
             }
             else if (cx.key.code == KTRL('X'))
                 next = BIRTH_QUIT;
+            else if (cx.key.code == '?')
+            {
+                menu_help(current, current_menu->cursor);
+                next = current;
+            }
         }
     }
     
@@ -1606,7 +1745,7 @@ bool get_server_name(void)
                 {
                     l = 75;
                     while (out_val[k + l] != ' ') l--;
-                    out_val[l] = '\0';
+                    out_val[k + l] = '\0';
                 }
                 prt(out_val + k, lines++, (k? 4: 1));
                 k += (l + 1);

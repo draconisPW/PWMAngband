@@ -179,16 +179,6 @@ static errr finish_parse_grafmode(struct parser *p)
 }
 
 
-static void print_error(const char *name, struct parser *p)
-{
-    struct parser_state s;
-
-    parser_getstate(p, &s);
-    plog_fmt("Parse error in %s line %d column %d: %s: %s", name, s.line, s.col, s.msg,
-        parser_error_str[s.error]);
-}
-
-
 bool init_graphics_modes(void)
 {
     char buf[MSG_LEN];
@@ -218,7 +208,7 @@ bool init_graphics_modes(void)
             e = parser_parse(p, line);
             if (e != PARSE_ERROR_NONE)
             {
-                print_error(buf, p);
+                print_error_simple(buf, p);
                 break;
             }
         }

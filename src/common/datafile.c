@@ -35,6 +35,16 @@ const char *parser_error_str[PARSE_ERROR_MAX + 1] =
  */
 
 
+void print_error_simple(const char *name, struct parser *p)
+{
+    struct parser_state s;
+
+    parser_getstate(p, &s);
+    plog_fmt("Parse error in %s line %d column %d: %s: %s", name, s.line, s.col, s.msg,
+        parser_error_str[s.error]);
+}
+
+
 /*
  * More angband-specific bits of the parser
  * These require hooks into other parts of the code, and are a candidate for
