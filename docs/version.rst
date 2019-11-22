@@ -2,7 +2,7 @@ Version Information
 ===================
 
 PWMAngband 1.3.0 is based on Angband 4.1.3 and MAngband 1.x. The latest
-build for PWMAngband 1.3.0 is build 7.
+build for PWMAngband 1.3.0 is build 8.
 
 Angband information was last updated for Angband 4.1.3.
 MAngband information was last updated for MAngband 1.x.

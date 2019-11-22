@@ -40,8 +40,27 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.3.0 build 7
+New features in PWMAngband 1.3.0 build 8
 ========================================
+
+User interface
+--------------
+
+PWMAngband:
+
+- Add race/class description on character creation screen
+
+Coding changes
+--------------
+
+PWMAngband:
+
+- Un-hardcode a bunch of modifier-related stuff
+- Un-hardcode store welcome messages
+- Add a cap for race/class modifiers
+
+Features in PWMAngband 1.3.0 build 7
+====================================
 
 User interface
 --------------
