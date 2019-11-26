@@ -2166,6 +2166,7 @@ static void build_store(struct chunk *c, int n, struct loc *grid)
 
             /* Declare this to be a room */
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
+            sqinfo_on(square(c, &iter.cur)->info, SQUARE_NOTRASH);
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
         }
         while (loc_iterator_next(&iter));
@@ -3108,6 +3109,7 @@ static void build_feature(struct chunk *c, int n, int yy, int xx)
 
             /* Declare this to be a room */
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_VAULT);
+            sqinfo_on(square(c, &iter.cur)->info, SQUARE_NOTRASH);
             sqinfo_on(square(c, &iter.cur)->info, SQUARE_ROOM);
         }
         while (loc_iterator_next_strict(&iter));

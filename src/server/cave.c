@@ -1069,15 +1069,19 @@ void add_moat(struct chunk *c, struct loc *grid1, struct loc *grid2, struct loc 
         loc_init(&grid, x, grid1->y - 2);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
         loc_init(&grid, x, grid1->y - 3);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
         loc_init(&grid, x, grid2->y + 2);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
         loc_init(&grid, x, grid2->y + 3);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
     }
 
     /* East / West */
@@ -1086,22 +1090,29 @@ void add_moat(struct chunk *c, struct loc *grid1, struct loc *grid2, struct loc 
         loc_init(&grid, grid1->x - 2, y);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
         loc_init(&grid, grid1->x - 3, y);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
         loc_init(&grid, grid2->x + 2, y);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
         loc_init(&grid, grid2->x + 3, y);
         square_set_feat(c, &grid, FEAT_WATER);
         sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+        sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
     }
     square_set_feat(c, &drawbridge[0], FEAT_DRAWBRIDGE);
     sqinfo_on(square(c, &drawbridge[0])->info, SQUARE_VAULT);
+    sqinfo_on(square(c, &drawbridge[0])->info, SQUARE_NOTRASH);
     square_set_feat(c, &drawbridge[1], FEAT_DRAWBRIDGE);
     sqinfo_on(square(c, &drawbridge[1])->info, SQUARE_VAULT);
+    sqinfo_on(square(c, &drawbridge[1])->info, SQUARE_NOTRASH);
     square_set_feat(c, &drawbridge[2], FEAT_DRAWBRIDGE);
     sqinfo_on(square(c, &drawbridge[2])->info, SQUARE_VAULT);
+    sqinfo_on(square(c, &drawbridge[2])->info, SQUARE_NOTRASH);
 }
 
 

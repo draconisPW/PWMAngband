@@ -743,6 +743,17 @@ bool square_isvault(struct chunk *c, struct loc *grid)
 
 
 /*
+ * True if the square will be cleared of its trash on every dawn.
+ */
+bool square_notrash(struct chunk *c, struct loc *grid)
+{
+    my_assert(square_in_bounds(c, grid));
+
+    return sqinfo_has(square(c, grid)->info, SQUARE_NOTRASH);
+}
+
+
+/*
  * True if the square is part of a room.
  */
 bool square_isroom(struct chunk *c, struct loc *grid)

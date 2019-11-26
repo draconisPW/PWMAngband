@@ -349,6 +349,7 @@ extern bool square_isfountain(struct chunk *c, struct loc *grid);
 extern bool square_isweb(struct chunk *c, struct loc *grid);
 extern bool square_isglow(struct chunk *c, struct loc *grid);
 extern bool square_isvault(struct chunk *c, struct loc *grid);
+extern bool square_notrash(struct chunk *c, struct loc *grid);
 extern bool square_isroom(struct chunk *c, struct loc *grid);
 extern bool square_isseen(struct player *p, struct loc *grid);
 extern bool square_isview(struct player *p, struct loc *grid);

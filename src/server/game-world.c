@@ -1224,7 +1224,7 @@ static void process_various(void)
     store_update();
 
     /* Hack -- prevent wilderness monster "buildup" */
-    if (!(turn.turn % ((10L * z_info->day_length) / 2)) && !(turn.turn % (10L * z_info->day_length)))
+    if (!(turn.turn % (10L * z_info->day_length)))
     {
         struct loc grid;
 
@@ -1254,6 +1254,9 @@ static void process_various(void)
                         object_delete(&obj);
                     }
 
+                    /* Paranoia */
+                    if (!mon || !mon->race) continue;
+
                     /* Delete mimicked features */
                     if (mon->race->base == lookup_monster_base("feature mimic"))
                         square_set_feat(c, &mon->grid, mon->feat);
@@ -1261,6 +1264,53 @@ static void process_various(void)
 
                 /* Wipe the monster list */
                 wipe_mon_list(c);
+            }
+        }
+    }
+
+    /* Hack -- prevent surface levels from becoming a "trash dump" */
+    if (!(turn.turn % (10L * z_info->day_length)))
+    {
+        struct loc grid;
+
+        for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+        {
+            for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+            {
+                struct wild_type *w_ptr = get_wt_info_at(&grid);
+                struct chunk *c = w_ptr->chunk_list[0];
+                struct object *obj, *next;
+                struct loc begin, end;
+                struct loc_iterator iter;
+
+                if (!c) continue;
+
+                loc_init(&begin, 0, 0);
+                loc_init(&end, c->width, c->height);
+                loc_iterator_first(&iter, &begin, &end);
+
+                do
+                {
+                    /* Hack -- skip objects in houses */
+                    if (square_isvault(c, &iter.cur) && !square_notrash(c, &iter.cur)) continue;
+
+                    obj = square_object(c, &iter.cur);
+
+                    while (obj)
+                    {
+                        next = obj->next;
+
+                        /* Nuke object (unless it's a mimic) */
+                        if (!obj->mimicking_m_idx)
+                        {
+                            square_excise_object(c, &iter.cur, obj);
+                            object_delete(&obj);
+                        }
+
+                        obj = next;
+                    }
+                }
+                while (loc_iterator_next_strict(&iter));
             }
         }
     }

@@ -3173,6 +3173,7 @@ static void wild_town_gen_layout(struct chunk *c)
 
                 /* Declare this to be a room */
                 sqinfo_on(square(c, &grid)->info, SQUARE_VAULT);
+                sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
                 sqinfo_on(square(c, &grid)->info, SQUARE_ROOM);
 
                 /* Hack -- have everyone start in the tavern */
