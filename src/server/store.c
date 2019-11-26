@@ -157,6 +157,10 @@ static enum parser_error parse_type(struct parser *p)
 
     s->type = parser_getint(p, "type");
 
+    /* PWMAngband: the Home has half capacity if we have access to houses */
+    if ((s->type == STORE_HOME) && (cfg_diving_mode < 2))
+        s->stock_size = z_info->store_inven_max / 2;
+
     return PARSE_ERROR_NONE;
 }
 
@@ -3115,8 +3119,7 @@ void do_cmd_store(struct player *p, int pstore)
         if (store->type == STORE_TAVERN) return;
 
         /* Check if we can enter the store */
-        if (cfg_no_stores || OPT(p, birth_no_stores) ||
-            ((store->type == STORE_HOME) && (cfg_diving_mode != 2)))
+        if (cfg_no_stores || OPT(p, birth_no_stores))
         {
             msg(p, "The doors are locked.");
             return;

@@ -644,7 +644,7 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
       if (p->au < value) p->au = value;
     }
 
-    if ((cfg_diving_mode > 1) || no_recall || is_dm_p(p)) return;
+    if ((cfg_diving_mode > 0) || no_recall || is_dm_p(p)) return;
 
     /* Give the player a deed of property */
     player_outfit_aux(p, lookup_kind_by_name(TV_DEED, "Deed of Property"), 1);
