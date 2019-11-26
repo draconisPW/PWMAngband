@@ -145,6 +145,44 @@ static enum parser_error parse_profile_streamer(struct parser *p)
 }
 
 
+static enum parser_error parse_profile_stairs_up(struct parser *p)
+{
+    struct cave_profile *c = parser_priv(p);
+    dice_t *dice;
+
+    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    dice = dice_new();
+    if (!dice_parse_string(dice, parser_getstr(p, "up")))
+    {
+        dice_free(dice);
+        return PARSE_ERROR_NOT_RANDOM;
+    }
+    dice_random_value(dice, NULL, &c->up);
+    dice_free(dice);
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_profile_stairs_down(struct parser *p)
+{
+    struct cave_profile *c = parser_priv(p);
+    dice_t *dice;
+
+    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    dice = dice_new();
+    if (!dice_parse_string(dice, parser_getstr(p, "down")))
+    {
+        dice_free(dice);
+        return PARSE_ERROR_NOT_RANDOM;
+    }
+    dice_random_value(dice, NULL, &c->down);
+    dice_free(dice);
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_profile_room(struct parser *p)
 {
     struct cave_profile *c = parser_priv(p);
@@ -207,6 +245,8 @@ static struct parser *init_parse_profile(void)
     parser_reg(p, "params int block int rooms int unusual int rarity", parse_profile_params);
     parser_reg(p, "tunnel int rnd int chg int con int pen int jct", parse_profile_tunnel);
     parser_reg(p, "streamer int den int rng int mag int mc int qua int qc", parse_profile_streamer);
+    parser_reg(p, "up str up", parse_profile_stairs_up);
+    parser_reg(p, "down str down", parse_profile_stairs_down);
     parser_reg(p,
         "room sym name int rating int height int width int level int pit int rarity int cutoff",
         parse_profile_room);

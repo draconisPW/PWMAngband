@@ -67,6 +67,17 @@
  */
 
 
+static void add_stairs(struct chunk *c, int feat)
+{
+    random_value *dir;
+
+    if (feat == FEAT_MORE) dir = &((struct cave_profile *)dun->profile)->down;
+    else dir = &((struct cave_profile *)dun->profile)->up;
+
+    alloc_stairs(c, feat, dir->base + damroll(dir->dice, dir->sides));
+}
+
+
 /*
  * Check whether a square has one of the tunnelling helper flags
  *
@@ -1033,11 +1044,9 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     fill_level(c, false);
     fill_level(c, true);
 
-    /* Place 3 or 4 down stairs near some walls */
-    alloc_stairs(c, FEAT_MORE, rand_range(3, 4));
-
-    /* Place 1 or 2 up stairs near some walls */
-    alloc_stairs(c, FEAT_LESS, rand_range(1, 2));
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);
@@ -1475,9 +1484,9 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     fill_level(c, false);
     fill_level(c, true);
 
-    /* The level should have exactly one down and one up staircase */
-    alloc_stairs(c, FEAT_MORE, 1);
-    alloc_stairs(c, FEAT_LESS, 1);
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
 
     /* General amount of rubble, traps and monsters */
     k = MAX(MIN(wpos->depth / 3, 10), 2);
@@ -2077,11 +2086,9 @@ struct chunk *cavern_gen(struct player *p, struct worldpos *wpos, int min_height
     fill_level(c, false);
     fill_level(c, true);
 
-    /* Place 1-3 down stairs near some walls */
-    alloc_stairs(c, FEAT_MORE, rand_range(1, 3));
-
-    /* Place 1-2 up stairs near some walls */
-    alloc_stairs(c, FEAT_LESS, rand_range(1, 2));
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
 
     /* General amount of rubble, traps and monsters */
     k = MAX(MIN(wpos->depth / 3, 10), 2);
@@ -2715,11 +2722,9 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     fill_level(c, false);
     fill_level(c, true);
 
-    /* Place 3 or 4 down stairs near some walls */
-    alloc_stairs(c, FEAT_MORE, rand_range(3, 4));
-
-    /* Place 1 or 2 up stairs near some walls */
-    alloc_stairs(c, FEAT_LESS, rand_range(1, 2));
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);
@@ -2968,11 +2973,9 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     fill_level(c, false);
     fill_level(c, true);
 
-    /* Place 3 or 4 down stairs near some walls */
-    alloc_stairs(c, FEAT_MORE, rand_range(3, 4));
-
-    /* Place 1 or 2 up stairs near some walls */
-    alloc_stairs(c, FEAT_LESS, rand_range(1, 2));
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);
@@ -3673,11 +3676,9 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     /* Tweak floors */
     fill_level(c, true);
 
-    /* Place 3 or 4 down stairs near some walls */
-    alloc_stairs(c, FEAT_MORE, rand_range(3, 4));
-
-    /* Place 1 or 2 up stairs near some walls */
-    alloc_stairs(c, FEAT_LESS, rand_range(1, 2));
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);
