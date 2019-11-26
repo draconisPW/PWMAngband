@@ -21,6 +21,8 @@
 # died-flavor: flavored death message
 # die-msg: death message
 # resist-flag: monster race flag for resist
+# short-desc: short description -- overrides "name" when describing a feature
+# desc: long description
 
 # 'name' indicates the beginning of an entry.
 
@@ -291,6 +293,7 @@ name:lava
 graphics:#:r
 priority:25
 flags:PROJECT | FIERY | PASSABLE | NO_SCENT | BRIGHT
+short-desc:fiery pool of glowing lava
 desc:A fiery pool of glowing lava. Step in it at your peril!
 hurt-msg:The lava burns you!
 died-flavor:burned to a cinder in lava
@@ -340,6 +343,7 @@ name:water
 graphics:~:B
 priority:5
 flags:LOS | PROJECT | PASSABLE | WATER | BORING | EASY | NOTICEABLE | NO_SCENT
+short-desc:pool of water
 desc:A pool of water.
 hurt-msg:You are drowning!
 died-flavor:drowned
@@ -350,6 +354,7 @@ name:mud
 graphics:~:u
 priority:8
 flags:LOS | PROJECT | PASSABLE | BORING | EASY | NOTICEABLE
+short-desc:section of slippery mud
 desc:A section of slippery mud.
 
 name:drawbridge
@@ -374,12 +379,14 @@ name:loose dirt
 graphics:%:u
 priority:10
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | BORING | OBJECT | EASY | NOTICEABLE
+short-desc:section of loose dirt
 desc:A section of loose dirt.
 
 name:packed dirt
 graphics:.:u
 priority:3
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | DIRT | BORING | OBJECT | EASY
+short-desc:section of packed dirt
 desc:A section of packed dirt.
 
 name:safe floor
@@ -416,6 +423,7 @@ name:grass
 graphics:.:g
 priority:2
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | GRASS | BORING | OBJECT | EASY | TORCH
+short-desc:patch of grass
 desc:A patch of grass.
 
 name:crops
@@ -454,6 +462,7 @@ name:sand
 graphics:.:y
 priority:2
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH
+short-desc:section of sand
 desc:A section of sand.
 
 name:sandwall
@@ -469,6 +478,7 @@ name:ice
 graphics:.:W
 priority:2
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH
+short-desc:section of ice
 desc:A section of ice.
 
 name:ice wall
@@ -496,6 +506,7 @@ name:deep water
 graphics:~:b
 priority:10
 flags:METAMAP
+short-desc:section of deep water
 desc:A section of deep water.
 
 name:hill
@@ -754,12 +765,14 @@ name:ash
 graphics:.:s
 priority:3
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY
+short-desc:section of ash
 desc:A section of ash.
 
 name:nether mist
 graphics:.:G
 priority:5
 flags:LOS | PROJECT | PASSABLE | BORING | EASY | NOTICEABLE | NETHER | NO_SCENT
+short-desc:patch of nether mist
 desc:Some nether mist.
 hurt-msg:The mist saps your health!
 died-flavor:was sucked dry by nether mist
@@ -788,6 +801,7 @@ name:void
 graphics:.:d
 priority:3
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY
+short-desc:section of nothingness
 desc:A section of nothingness.
 
 name:glass wall

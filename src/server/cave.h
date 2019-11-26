@@ -45,6 +45,7 @@ struct preset
 struct feature
 {
     char *name;             /* Name */
+    char *shortdesc;
     char *desc;
     unsigned int fidx;      /* Index */
     struct feature *next;

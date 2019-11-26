@@ -1947,7 +1947,10 @@ int square_apparent_feat(struct player *p, struct chunk *c, struct loc *grid)
 
 const char *square_apparent_name(struct player *p, struct chunk *c, struct loc *grid)
 {
-    return f_info[square_apparent_feat(p, c, grid)].name;
+    struct feature *f = &f_info[square_apparent_feat(p, c, grid)];
+
+    if (f->shortdesc) return f->shortdesc;
+    return f->name;
 }
 
 

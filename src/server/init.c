@@ -1425,6 +1425,17 @@ static enum parser_error parse_feat_info(struct parser *p)
 }
 
 
+static enum parser_error parse_feat_shortdesc(struct parser *p)
+{
+    struct feature *f = parser_priv(p);
+
+    if (!f) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f->shortdesc = string_make(parser_getstr(p, "text"));
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_feat_desc(struct parser *p)
 {
     struct feature *f = parser_priv(p);
@@ -1494,6 +1505,7 @@ static struct parser *init_parse_feat(void)
     parser_reg(p, "priority uint priority", parse_feat_priority);
     parser_reg(p, "flags ?str flags", parse_feat_flags);
     parser_reg(p, "info int shopnum int dig", parse_feat_info);
+    parser_reg(p, "short-desc str text", parse_feat_shortdesc);
     parser_reg(p, "desc str text", parse_feat_desc);
     parser_reg(p, "hurt-msg str text", parse_feat_hurt_msg);
     parser_reg(p, "died-flavor str text", parse_feat_died_flavor);
@@ -1559,6 +1571,7 @@ static void cleanup_feat(void)
         string_free(f_info[i].hurt_msg);
         string_free(f_info[i].mimic);
         string_free(f_info[i].desc);
+        string_free(f_info[i].shortdesc);
         string_free(f_info[i].name);
     }
     mem_free(f_info);
