@@ -40,8 +40,42 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.3.0 build 8
+New features in PWMAngband 1.3.0 build 9
 ========================================
+
+User interface
+--------------
+
+PWMAngband:
+
+- Add short description to features
+
+Gameplay changes
+----------------
+
+PWMAngband:
+
+- Allow access to a half-capacity Home in normal diving mode
+- Wipe all trash on the surface every dawn
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Fix corrupted binaries
+
+Coding changes
+--------------
+
+PWMAngband:
+
+- Allow random values to have negative dice
+- Simplify birth menu code
+- Customize stair generation parameters
+
+Features in PWMAngband 1.3.0 build 8
+====================================
 
 User interface
 --------------
