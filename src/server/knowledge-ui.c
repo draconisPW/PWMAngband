@@ -2745,42 +2745,16 @@ static int affinity(struct player *p, struct monster_race *race)
 }
 
 
-static bool mimic_druid(struct player *p, struct monster_race *race)
+static bool mimic_shape(struct player_shape *shapes, struct monster_race *race, int lev)
 {
-    if ((p->lev >= 5) && streq(race->name, "cave bear")) return true;
-    if ((p->lev >= 5) && streq(race->name, "panther")) return true;
-    if ((p->lev >= 10) && streq(race->name, "grizzly bear")) return true;
-    if ((p->lev >= 10) && streq(race->name, "yeti")) return true;
-    if ((p->lev >= 15) && streq(race->name, "griffon")) return true;
-    if ((p->lev >= 15) && streq(race->name, "sasquatch")) return true;
-    if ((p->lev >= 20) && streq(race->name, "werebear")) return true;
-    if ((p->lev >= 20) && streq(race->name, "great eagle")) return true;
-    if ((p->lev >= 20) && streq(race->name, "aranea")) return true;
-    if ((p->lev >= 25) && streq(race->name, "wyvern")) return true;
-    if ((p->lev >= 25) && streq(race->name, "multi-hued hound")) return true;
-    if ((p->lev >= 30) && streq(race->name, "5-headed hydra")) return true;
-    if ((p->lev >= 30) && streq(race->name, "minotaur")) return true;
-    if ((p->lev >= 35) && streq(race->name, "7-headed hydra")) return true;
-    if ((p->lev >= 35) && streq(race->name, "plasma hound")) return true;
-    if ((p->lev >= 35) && streq(race->name, "elder aranea")) return true;
-    if ((p->lev >= 40) && streq(race->name, "11-headed hydra")) return true;
-    if ((p->lev >= 40) && streq(race->name, "giant roc")) return true;
-    if ((p->lev >= 45) && streq(race->name, "maulotaur")) return true;
-    if ((p->lev >= 45) && streq(race->name, "winged horror")) return true;
-    if ((p->lev == 50) && streq(race->name, "jabberwock")) return true;
-    if ((p->lev == 50) && streq(race->name, "aether hound")) return true;
-    return false;
-}
+    struct player_shape *shape = shapes;
 
+    while (shape)
+    {
+        if ((lev >= shape->lvl) && streq(race->name, shape->name)) return true;
+        shape = shape->next;
+    }
 
-static bool mimic_necro(struct player *p, struct monster_race *race)
-{
-    if ((p->lev >= 5) && streq(race->name, "fruit bat")) return true;
-    if ((p->lev >= 15) && streq(race->name, "vampire bat")) return true;
-    if ((p->lev >= 25) && streq(race->name, "vampire")) return true;
-    if ((p->lev >= 35) && streq(race->name, "master vampire")) return true;
-    if ((p->lev >= 45) && streq(race->name, "vampire lord")) return true;
-    if ((p->lev >= 50) && streq(race->name, "elder vampire")) return true;
     return false;
 }
 
@@ -2862,11 +2836,11 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
     {
         bool learnt;
 
-        /* Hack -- druid and necromancer */
-        if (player_has(p, PF_CHARM))
-            learnt = mimic_druid(p, race);
-        else if (player_has(p, PF_UNLIGHT))
-            learnt = mimic_necro(p, race);
+        /* Class shapes */
+        if (p->clazz->shapes)
+            learnt = mimic_shape(p->clazz->shapes, race, p->lev);
+
+        /* Regular Shapechanger */
         else
         {
             struct monster_lore *lore = get_lore(p, race);
@@ -3029,23 +3003,17 @@ void do_cmd_check_poly(struct player *p, int line)
 
         if (!ok) continue;
 
-        /* Hack -- druid and necromancer */
-        if (player_has(p, PF_CHARM))
+        /* Class shapes */
+        if (p->clazz->shapes)
         {
-            if (mimic_druid(p, race))
+            if (mimic_shape(p->clazz->shapes, race, p->lev))
             {
                 file_putf(fff, "G[%d] %s (learnt)\n", k, race->name);
                 total++;
             }
         }
-        else if (player_has(p, PF_UNLIGHT))
-        {
-            if (mimic_necro(p, race))
-            {
-                file_putf(fff, "G[%d] %s (learnt)\n", k, race->name);
-                total++;
-            }
-        }
+
+        /* Regular Shapechanger */
         else
         {
             lore = get_lore(p, race);

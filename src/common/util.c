@@ -97,6 +97,7 @@ void cleanup_class(void)
     struct start_item *item, *item_next;
     struct class_spell *spell;
     struct class_book *book;
+    struct player_shape *shape, *shape_next;
     int i, j;
 
     while (c)
@@ -126,6 +127,14 @@ void cleanup_class(void)
             mem_free(book->spells);
         }
         mem_free(c->magic.books);
+        shape = c->shapes;
+        while (shape)
+        {
+            shape_next = shape->next;
+            string_free(shape->name);
+            mem_free(shape);
+            shape = shape_next;
+        }
         mem_free(c);
         c = next;
     }
