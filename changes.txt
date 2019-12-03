@@ -9,7 +9,7 @@ Monsters
 -
 
 Game Mechanics
--
+- Monsters can whip or spit on the player from nearby
 
 Code Improvements
 -
@@ -39,11 +39,11 @@ Gameplay changes
 
 Angband 4.2.0:
 
--
+- Add LASH effect, WHIP and SPIT spells
 
 PWMAngband:
 
--
+- Add race shapes
 
 Bugs fixed
 ----------
@@ -65,7 +65,7 @@ Angband 4.2.0:
 
 PWMAngband:
 
-- 
+- Un-hardcode class shapes 
 
 Compilation
 -----------

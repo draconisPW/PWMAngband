@@ -32,6 +32,8 @@ typedef enum
     SPELL_TAG_NAME,
     SPELL_TAG_PRONOUN,
     SPELL_TAG_TARGET,
+	SPELL_TAG_TYPE,
+	SPELL_TAG_OF_TYPE,
     SPELL_TAG_KIN
 } spell_tag_t;
 
@@ -41,6 +43,8 @@ static spell_tag_t spell_tag_lookup(const char *tag)
     if (strncmp(tag, "name", 4) == 0) return SPELL_TAG_NAME;
     if (strncmp(tag, "pronoun", 7) == 0) return SPELL_TAG_PRONOUN;
     if (strncmp(tag, "target", 6) == 0) return SPELL_TAG_TARGET;
+    if (strncmp(tag, "type", 4) == 0) return SPELL_TAG_TYPE;
+    if (strncmp(tag, "of_type", 7) == 0) return SPELL_TAG_OF_TYPE;
     if (strncmp(tag, "kin", 3) == 0) return SPELL_TAG_KIN;
     return SPELL_TAG_NONE;
 }
@@ -130,6 +134,28 @@ static void spell_message(struct player *p, struct monster *mon, const struct mo
                     else
                         strnfcat(buf, sizeof(buf), &end, "you");
 
+                    break;
+                }
+                case SPELL_TAG_TYPE:
+                {
+                    /* Get the attack type (assuming lash) */
+                    int type = mon->race->blow[0].effect->lash_type;
+                    char *type_name = projections[type].lash_desc;
+
+                    strnfcat(buf, sizeof(buf), &end, type_name);
+                    break;
+                }
+                case SPELL_TAG_OF_TYPE:
+                {
+                    /* Get the attack type (assuming lash) */
+                    int type = mon->race->blow[0].effect->lash_type;
+                    char *type_name = projections[type].lash_desc;
+
+                    if (type_name)
+                    {
+                        strnfcat(buf, sizeof(buf), &end, " of ");
+                        strnfcat(buf, sizeof(buf), &end, type_name);
+                    }
                     break;
                 }
                 case SPELL_TAG_KIN:
@@ -464,8 +490,24 @@ static int nonhp_dam(const struct monster_spell *spell, const struct monster_rac
 
         memset(&rand, 0, sizeof(rand));
 
-        /* Slight hack to prevent timed effect increases being counted as damage in lore */
-        if (effect->dice && (effect->index != EF_TIMED_INC) && (effect->index != EF_PROJECT))
+        /* Lash needs special treatment bacause it depends on monster blows */
+        if (effect->index == EF_LASH)
+        {
+            int i;
+
+            /* Scan through all blows for damage */
+            for (i = 0; i < z_info->mon_blows_max; i++)
+            {
+                /* Extract the attack infomation */
+                random_value dice = race->blow[i].dice;
+
+                /* Full damage of first blow, plus half damage of others */
+                dam += randcalc(dice, race->level, RANDOMISE) / (i? 2: 1);
+            }
+        }
+
+        /* Timed effects increases don't count as damage in lore */
+        else if (effect->dice && (effect->index != EF_TIMED_INC) && (effect->index != EF_PROJECT))
         {
             dice_roll(effect->dice, NULL, &rand);
             dam += randcalc(rand, 0, dam_aspect);

@@ -3356,6 +3356,9 @@ blow:BITE:POISON:3d4
 flags:RAND_50
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD | WILD_SWAMP
+spell-freq:4
+spell-power:9
+spells:SPIT
 desc:It is a large snake with a hooded face.
 
 name:cave bear
@@ -4176,6 +4179,9 @@ blow:BITE:POISON:4d4
 flags:RAND_50
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_GRASS | WILD_WOOD | WILD_SWAMP
+spell-freq:4
+spell-power:12
+spells:SPIT
 desc:It has glistening black skin, a sleek body and highly venomous fangs.
 
 name:white wolf
@@ -5671,7 +5677,7 @@ flags:DROP_20
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:9
 spell-power:16
-spells:ARROW_2
+spells:ARROW_2 | WHIP
 drop-base:nature book:5:1:1
 friends:40:1d4:half-orc
 friends:80:2d5:warg
@@ -7656,6 +7662,9 @@ experience:85
 blow:BITE:HURT:4d5
 flags:RAND_25
 flags:DROP_CORPSE | WILD_ALL
+spell-freq:4
+spell-power:23
+spells:SPIT
 desc:It is looking for prey.
 
 name:giant silver ant
@@ -7674,6 +7683,9 @@ experience:80
 blow:BITE:ACID:4d4
 flags:RAND_25
 flags:DROP_SKELETON | WILD_ALL
+spell-freq:6
+spell-power:23
+spells:SPIT
 desc:A giant silver ant with a caustic bite and hard scales.
 
 name:dark elven warlock
@@ -8383,6 +8395,9 @@ flags:ANIMAL | WEIRD_MIND | HAS_LIGHT | LEVITATE
 flags:RAND_25
 flags:IM_FIRE
 flags:WILD_DESERT
+spell-freq:20
+spell-power:26
+spells:SPIT
 desc:It is smoking and burning with great heat.
 
 name:cave ogre
@@ -8610,6 +8625,9 @@ blow:SPIT:FIRE:4d5
 flags:HAS_LIGHT
 flags:IM_FIRE
 flags:DROP_CORPSE | WILD_VOLCANO | WILD_DESERT
+spell-freq:5
+spell-power:27
+spells:SPIT
 desc:It is a giant beetle wreathed in flames.
 
 name:creeping adamantite coins
@@ -9822,6 +9840,9 @@ blow:BITE:ELEC:5d5
 flags:RAND_25
 flags:IM_ELEC | GROUP_AI
 flags:DROP_SKELETON | WILD_ALL
+spell-freq:6
+spell-power:30
+spells:SPIT
 friends:100:4d4:Same
 desc:It is a giant ant that crackles with energy.
 
@@ -11461,6 +11482,9 @@ flags:HAS_LIGHT
 flags:KILL_BODY
 flags:IM_FIRE | GROUP_AI
 flags:DROP_SKELETON | WILD_DESERT
+spell-freq:6
+spell-power:35
+spells:SPIT
 friends:100:4d4:Same
 desc:A giant ant covered in shaggy fur. Its powerful jaws glow with heat.
 
@@ -12566,6 +12590,9 @@ blow:GAZE:PARALYZE
 flags:IM_ELEC
 flags:ATTR_FLICKER
 flags:DROP_CORPSE
+spell-freq:6
+spell-power:37
+spells:SPIT
 desc:It is a giant beetle, whose carapace shimmers with vibrant energies.
 
 name:nexus vortex
@@ -17191,7 +17218,7 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_WATER
 flags:NO_STUN | IM_NETHER
 spell-freq:2
 spell-power:62
-spells:BLIND | TELE_TO
+spells:BLIND | TELE_TO | WHIP
 spells:BA_WATE
 spells:BO_MANA | BO_WATE
 spells:BR_WATE
@@ -18857,7 +18884,7 @@ spell-power:79
 spells:CONF | SCARE
 spells:BA_FIRE
 spells:BO_PLAS
-spells:BR_FIRE | BR_PLAS
+spells:WHIP | BR_FIRE | BR_PLAS
 spells:S_DEMON | S_HI_DEMON | S_UNDEAD
 desc:Originally of the semi-divine Maiar, this evil spirit swore allegiance to
 desc: Morgoth at the beginning of time and is now one of his most terrible

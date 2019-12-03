@@ -231,6 +231,17 @@ static enum parser_error parse_projection_blind_desc(struct parser *p)
 }
 
 
+static enum parser_error parse_projection_lash_desc(struct parser *p)
+{
+    const char *desc = parser_getstr(p, "desc");
+    struct projection *projection = parser_priv(p);
+
+    if (!projection) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    projection->lash_desc = string_make(desc);
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_projection_numerator(struct parser *p)
 {
     struct projection *projection = parser_priv(p);
@@ -384,6 +395,7 @@ static struct parser *init_parse_projection(void)
     parser_reg(p, "type str type", parse_projection_type);
     parser_reg(p, "desc str desc", parse_projection_desc);
     parser_reg(p, "blind-desc str desc", parse_projection_blind_desc);
+    parser_reg(p, "lash-desc str desc", parse_projection_lash_desc);
     parser_reg(p, "numerator uint num", parse_projection_numerator);
     parser_reg(p, "denominator rand denom", parse_projection_denominator);
     parser_reg(p, "divisor uint div", parse_projection_divisor);
@@ -448,6 +460,7 @@ static void cleanup_projection(void)
         string_free(projections[idx].type);
         string_free(projections[idx].desc);
         string_free(projections[idx].blind_desc);
+        string_free(projections[idx].lash_desc);
         string_free(projections[idx].threat);
 	}
 	mem_free(projections);

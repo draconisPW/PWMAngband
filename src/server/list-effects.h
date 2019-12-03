@@ -79,6 +79,7 @@ EFFECT(GAIN_EXP, false, NULL, 1, EFINFO_CONST, "grants (up to) %s experience poi
 EFFECT(GAIN_STAT, false, NULL, 1, EFINFO_STAT, "permanently increases %s")
 EFFECT(HEAL_HP, false, "heal", 2, EFINFO_HEAL, "cures %s points of damage%s")
 EFFECT(IDENTIFY, false, NULL, 0, EFINFO_NONE, "reveals a single unknown property of a selected item")
+EFFECT(LASH, true, NULL, 2, EFINFO_LASH, "fires a beam of %s length %d, dealing damage determined by blows")
 EFFECT(LIGHT_AREA, false, NULL, 0, EFINFO_NONE, "lights up the surrounding area")
 EFFECT(LIGHT_LEVEL, false, NULL, 0, EFINFO_NONE, "completely lights up and magically maps the current level")
 EFFECT(LINE, true, "dam", 2, EFINFO_BOLTD, "creates a line of %s, inflicting %s points of damage to susceptible monsters")

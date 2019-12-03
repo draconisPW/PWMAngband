@@ -3880,7 +3880,7 @@ magic:0:400:1
 
 # Hack -- mimic realm spells
 # Spells are all put in one book, and they use RSF_XXX flags as effect flag
-book:mimic realm:xxx:xxx:65:mimic
+book:mimic realm:xxx:xxx:67:mimic
 
 spell:Shriek:0:1:1:0:0
 effect:PROJECT_LOS:MON_SPEED
@@ -3891,6 +3891,18 @@ msg_self:You make a high-pitched shriek.
 msg_other: makes a high-pitched shriek.
 desc:Awakens all nearby sleeping monsters and hastens all monsters within line
 desc: of sight (#%d).
+
+spell:Whip:0:2:2:0:0
+effect:LASH:MISSILE:2
+flag:WHIP
+msg_other: lashes with a whip.
+desc:Fires a beam, dealing damage determined by blows (#%d).
+
+spell:Spit:0:3:3:0:0
+effect:LASH:MISSILE:3
+flag:SPIT
+msg_other: spits.
+desc:Fires a beam, dealing damage determined by blows (#%d).
 
 spell:Seeker Arrow:0:0:8:0:0
 effect:BOLT:ARROW_X

@@ -42,6 +42,22 @@ lore-color-base:Orange
 message-vis:{name} makes a high-pitched shriek.
 message-invis:Something makes a high-pitched shriek.
 
+name:WHIP
+hit:100
+effect:LASH:MISSILE:2
+lore:lash you if nearby
+lore-color-base:Orange
+message-vis:{name} lashes at you with a whip{oftype}.
+message-invis:You hear a crack.
+
+name:SPIT
+hit:100
+effect:LASH:MISSILE:3
+lore:spit at you from a distance
+lore-color-base:Orange
+message-vis:{name} spits {type} at you.
+message-invis:You hear a soft sound.
+
 name:ARROW_X
 hit:50
 effect:BOLT:ARROW_X

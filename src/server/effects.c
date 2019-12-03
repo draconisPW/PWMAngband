@@ -4589,6 +4589,114 @@ static bool effect_handler_IDENTIFY(effect_handler_context_t *context)
 
 
 /*
+ * Crack a whip, or spit at the player; actually just a finite length beam
+ * Affect grids, objects, and monsters
+ * context->radius is length of beam
+ */
+static bool effect_handler_LASH(effect_handler_context_t *context)
+{
+    int dam = effect_calculate_value(context, false);
+    int rad = context->radius;
+    int flg = PROJECT_ARC | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL | PROJECT_PLAY;
+    int i, type;
+    struct loc target;
+    struct source who_body;
+    struct source *who = &who_body;
+    int diameter_of_source;
+    const struct monster_race *race = NULL;
+
+    /* Paranoia */
+    if (rad > z_info->max_range) rad = z_info->max_range;
+
+    /*
+     * Diameter of source is 10 times radius, so the effect is essentially
+     * tfull strength for its entire length.
+     */
+    diameter_of_source = rad * 10;
+
+    /* Ensure "dir" is in ddx/ddy array bounds */
+    if (!VALID_DIR(context->dir)) return false;
+
+    /* Player or monster? */
+    if (context->origin->monster)
+    {
+        source_monster(who, context->origin->monster);
+
+        /* Target player or monster? */
+        if (context->target_mon)
+            loc_copy(&target, &context->target_mon->grid);
+        else
+        {
+            struct loc *decoy = cave_find_decoy(context->cave);
+
+            if (!loc_is_zero(decoy))
+                loc_copy(&target, decoy);
+            else
+                loc_copy(&target, &context->origin->player->grid);
+            who->target = context->origin->player;
+        }
+
+        race = context->origin->monster->race;
+    }
+    else if (context->origin->player->poly_race)
+    {
+        /* Handle polymorphed players */
+        source_player(who, get_player_index(get_connection(context->origin->player->conn)),
+            context->origin->player);
+
+        /* Ask for a target if no direction given */
+        if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
+            target_get(context->origin->player, &target);
+        else
+        {
+            /* Hack -- no target available, default to random direction */
+            if (context->dir == DIR_TARGET) context->dir = 0;
+
+            /* Hack -- no direction given, default to random direction */
+            if (!context->dir) context->dir = ddd[randint0(8)];
+
+            /* Use the given direction */
+            next_grid(&target, &context->origin->player->grid, context->dir);
+        }
+
+        race = context->origin->player->poly_race;
+    }
+
+    if (!race) return false;
+
+    /* Get the type (default is PROJ_MISSILE) */
+    type = race->blow[0].effect->lash_type;
+
+    /* Scan through all blows for damage */
+    for (i = 0; i < z_info->mon_blows_max; i++)
+    {
+        /* Extract the attack infomation */
+        random_value dice = race->blow[i].dice;
+
+        /* Full damage of first blow, plus half damage of others */
+        dam += randcalc(dice, race->level, RANDOMISE) / (i? 2: 1);
+    }
+
+    /* No damaging blows */
+    if (!dam) return false;
+
+    /* Check bounds */
+    if (diameter_of_source > 250) diameter_of_source = 250;
+
+    /* Lash the target */
+    context->origin->player->current_sound = -2;
+    if (project(who, rad, context->cave, &target, dam, type, flg, 0, diameter_of_source,
+        "lashed"))
+    {
+        context->ident = true;
+    }
+    context->origin->player->current_sound = -1;
+
+    return true;
+}
+
+
+/*
  * Call light around the player
  */
 static bool effect_handler_LIGHT_AREA(effect_handler_context_t *context)
@@ -7668,6 +7776,7 @@ int effect_subtype(int index, const char *type)
         case EF_BREATH:
         case EF_DAMAGE:
         case EF_DESTRUCTION:
+        case EF_LASH:
         case EF_LINE:
         case EF_PROJECT:
         case EF_PROJECT_LOS:

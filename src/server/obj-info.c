@@ -1755,6 +1755,14 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                     break;
                 }
 
+                /* Currently no object generated lashes */
+                case EFINFO_LASH:
+                {
+                    strnfmt(desc, sizeof(desc), effect_desc(effect),
+                        projections[effect->subtype].lash_desc, effect->subtype);
+                    break;
+                }
+
                 /* Bolts that inflict status */
                 case EFINFO_BOLT:
                 {

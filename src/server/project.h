@@ -57,6 +57,7 @@ struct projection
     char *type;
     char *desc;
     char *blind_desc;
+    char *lash_desc;
     int numerator;
     random_value denominator;
     int divisor;

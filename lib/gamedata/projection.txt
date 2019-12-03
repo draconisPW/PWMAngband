@@ -6,6 +6,7 @@ name:acid
 type:element
 desc:acid
 blind-desc:are hit by acid
+lash-desc:acid
 numerator:1  
 denominator:3
 divisor:3
@@ -21,6 +22,7 @@ name:lightning
 type:element
 desc:lightning
 blind-desc:are hit by lightning
+lash-desc:lightning
 numerator:1  
 denominator:3
 divisor:3
@@ -36,6 +38,7 @@ name:fire
 type:element
 desc:fire
 blind-desc:are hit by fire
+lash-desc:fire
 numerator:1  
 denominator:3
 divisor:3
@@ -51,6 +54,7 @@ name:cold
 type:element
 desc:frost
 blind-desc:are hit by cold
+lash-desc:frost
 numerator:1  
 denominator:3
 divisor:3
@@ -66,6 +70,7 @@ name:poison
 type:element
 desc:poison
 blind-desc:are hit by poison
+lash-desc:venom
 numerator:1  
 denominator:3
 divisor:3
@@ -81,6 +86,7 @@ name:light
 type:element
 desc:light
 blind-desc:are hit by something
+lash-desc:brightness
 numerator:4  
 denominator:6+1d6
 divisor:6
@@ -96,6 +102,7 @@ name:dark
 type:element
 desc:darkness
 blind-desc:are hit by something
+lash-desc:blackness
 numerator:4  
 denominator:6+1d6
 divisor:6
@@ -111,6 +118,7 @@ name:sound
 type:element
 desc:sound
 blind-desc:are hit by noise
+lash-desc:sound
 numerator:5  
 denominator:6+1d6
 divisor:6
@@ -126,6 +134,7 @@ name:shards
 type:element
 desc:shards
 blind-desc:are hit by something sharp
+lash-desc:razors
 numerator:6  
 denominator:6+1d6
 divisor:6
@@ -141,6 +150,7 @@ name:nexus
 type:element
 desc:nexus
 blind-desc:are hit by something strange
+lash-desc:dislocation
 numerator:6  
 denominator:6+1d6
 divisor:6
@@ -156,6 +166,7 @@ name:nether
 type:element
 desc:nether
 blind-desc:are hit by something cold
+lash-desc:withering
 numerator:6  
 denominator:6+1d6
 divisor:6
@@ -172,6 +183,7 @@ name:chaos
 type:element
 desc:chaos
 blind-desc:are hit by something strange
+lash-desc:confusion
 numerator:6
 denominator:6+1d6
 divisor:6
@@ -187,6 +199,7 @@ name:disenchantment
 type:element
 desc:disenchantment
 blind-desc:are hit by something strange
+lash-desc:unmagic
 numerator:6  
 denominator:6+1d6
 divisor:6
@@ -202,6 +215,7 @@ name:time
 type:element
 desc:time
 blind-desc:are hit by something strange
+lash-desc:ruination
 numerator:6  
 denominator:6+1d6
 divisor:3
@@ -217,6 +231,7 @@ name:mana
 type:element
 desc:mana
 blind-desc:are hit by something
+lash-desc:raw magic
 numerator:6  
 denominator:6+1d6
 divisor:3
@@ -232,6 +247,7 @@ name:water
 type:element
 desc:water
 blind-desc:are hit by water
+lash-desc:water
 divisor:3
 damage-cap:300
 msgt:GENERIC
@@ -246,6 +262,7 @@ name:ice
 type:element
 desc:ice
 blind-desc:are hit by something sharp
+lash-desc:icicles
 numerator:1  
 denominator:3
 msgt:GENERIC
@@ -259,6 +276,7 @@ name:gravity
 type:element
 desc:gravity
 blind-desc:are hit by something strange
+lash-desc:gravity
 numerator:6  
 denominator:6+1d6
 divisor:3
@@ -274,6 +292,7 @@ name:inertia
 type:element
 desc:inertia
 blind-desc:are hit by something strange
+lash-desc:lassitude
 divisor:6
 damage-cap:200
 msgt:BR_INERTIA
@@ -287,6 +306,7 @@ name:force
 type:element
 desc:force
 blind-desc:are hit by something hard
+lash-desc:impact
 divisor:6
 damage-cap:200
 msgt:BR_FORCE
@@ -300,6 +320,7 @@ name:plasma
 type:element
 desc:plasma
 blind-desc:are hit by something
+lash-desc:living fire
 divisor:6
 damage-cap:150
 msgt:BR_PLASMA
@@ -313,6 +334,7 @@ name:a meteor
 type:element
 desc:meteor
 blind-desc:are hit by something
+lash-desc:meteoric iron
 msgt:GENERIC
 obvious:1
 color:Red
@@ -324,6 +346,7 @@ name:a missile
 type:element
 desc:magical energy
 blind-desc:are hit by something
+lash-desc:magical energy
 msgt:GENERIC
 obvious:1
 color:White
@@ -335,6 +358,7 @@ name:a holy orb
 type:element
 desc:holy power
 blind-desc:are hit by something
+lash-desc:holy power
 msgt:GENERIC
 obvious:1
 color:Light Dark
