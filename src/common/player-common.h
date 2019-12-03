@@ -244,6 +244,7 @@ struct player_race
     bitflag pflags[PF_SIZE];    /* Racial (player) flags */
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */
+    struct player_shape *shapes;
 };
 
 /*

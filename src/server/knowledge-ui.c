@@ -2836,9 +2836,12 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
     {
         bool learnt;
 
-        /* Class shapes */
-        if (p->clazz->shapes)
-            learnt = mimic_shape(p->clazz->shapes, race, p->lev);
+        /* Race & class shapes */
+        if (p->race->shapes || p->clazz->shapes)
+        {
+            learnt = mimic_shape(p->race->shapes, race, p->lev) ||
+                mimic_shape(p->clazz->shapes, race, p->lev);
+        }
 
         /* Regular Shapechanger */
         else
@@ -3003,10 +3006,11 @@ void do_cmd_check_poly(struct player *p, int line)
 
         if (!ok) continue;
 
-        /* Class shapes */
-        if (p->clazz->shapes)
+        /* Race & class shapes */
+        if (p->race->shapes || p->clazz->shapes)
         {
-            if (mimic_shape(p->clazz->shapes, race, p->lev))
+            if (mimic_shape(p->race->shapes, race, p->lev) ||
+                mimic_shape(p->clazz->shapes, race, p->lev))
             {
                 file_putf(fff, "G[%d] %s (learnt)\n", k, race->name);
                 total++;
