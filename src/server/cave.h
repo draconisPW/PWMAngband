@@ -277,6 +277,7 @@ extern bool feat_is_trap_holding(int feat);
 extern bool feat_is_object_holding(int feat);
 extern bool feat_is_monster_walkable(int feat);
 extern bool feat_is_shop(int feat);
+extern bool feat_is_vendor(int feat);
 extern bool feat_is_passable(int feat);
 extern bool feat_is_projectable(int feat);
 extern bool feat_is_torch(int feat);

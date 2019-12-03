@@ -54,7 +54,7 @@ Angband 4.2.0:
 
 PWMAngband:
 
--
+- Don't describe vendors as "the entrance" to that vendor
 
 Coding changes
 --------------

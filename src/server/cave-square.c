@@ -112,6 +112,15 @@ bool feat_is_shop(int feat)
 
 
 /*
+ * True if the feature is a vendor.
+ */
+bool feat_is_vendor(int feat)
+{
+    return tf_has(f_info[feat].flags, TF_VENDOR);
+}
+
+
+/*
  * True if the feature is passable by the player.
  */
 bool feat_is_passable(int feat)
