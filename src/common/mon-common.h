@@ -168,6 +168,24 @@ struct monster_friends_base
     unsigned int number_side;
 };
 
+enum monster_group_role
+{
+    MON_GROUP_INDIVIDUAL,
+    MON_GROUP_SERVANT,
+    MON_GROUP_BODYGUARD,
+    MON_GROUP_MEMBER,
+    MON_GROUP_SUMMON
+};
+
+/*
+ * Monster group info
+ */
+struct monster_group_info
+{
+    int leader;
+    enum monster_group_role role;
+};
+
 /*
  * How monsters mimic
  */
@@ -259,42 +277,44 @@ struct target
  */
 struct monster
 {
-    struct monster_race *race;
+    struct monster_race *race;              /* Monster's (current) race */
+    struct monster_race *original_race;     /* Changed monster's original race */
     int midx;
-    struct loc grid;                    /* Location on map */
-    s32b hp;                            /* Current Hit points */
-    s32b maxhp;                         /* Max Hit points */
-    s16b m_timed[MON_TMD_MAX];          /* Timed monster status effects */
-    byte mspeed;                        /* Monster "speed" */
-    s32b energy;                        /* Monster "energy" */
-    byte cdis;                          /* Current dis from player (transient) */
-    bool camouflage;                    /* Players don't know this is a monster */
-    bool handled;                       /* Monster has been processed this turn */
-    struct object *mimicked_obj;        /* Object this monster is mimicking */
-    struct object *held_obj;            /* Object being held (if any) */
-    byte attr;                          /* "attr" last used for drawing monster */
-    struct player_state known_pstate;   /* Known player state */
-    struct target target;               /* Monster target (transient) */
-    byte min_range;                     /* Minimum combat range (transient) */
-    byte best_range;                    /* How close we want to be (transient) */
+    struct loc grid;                        /* Location on map */
+    s32b hp;                                /* Current Hit points */
+    s32b maxhp;                             /* Max Hit points */
+    s16b m_timed[MON_TMD_MAX];              /* Timed monster status effects */
+    byte mspeed;                            /* Monster "speed" */
+    s32b energy;                            /* Monster "energy" */
+    byte cdis;                              /* Current dis from player (transient) */
+    bool camouflage;                        /* Players don't know this is a monster */
+    bool handled;                           /* Monster has been processed this turn */
+    struct object *mimicked_obj;            /* Object this monster is mimicking */
+    struct object *held_obj;                /* Object being held (if any) */
+    byte attr;                              /* "attr" last used for drawing monster */
+    struct player_state known_pstate;       /* Known player state */
+    struct target target;                   /* Monster target (transient) */
+    struct monster_group_info group_info;   /* Monster group details */
+    byte min_range;                         /* Minimum combat range (transient) */
+    byte best_range;                        /* How close we want to be (transient) */
 
     /* MAngband */
-    struct worldpos wpos;               /* Position on the world map */
-    struct player *closest_player;      /* The player closest to this monster (transient) */
+    struct worldpos wpos;                   /* Position on the world map */
+    struct player *closest_player;          /* The player closest to this monster (transient) */
 
     /* PWMAngband */
-    s16b ac;                            /* Armour Class */
-    struct monster_blow *blow;          /* Melee blows */
-    s16b level;                         /* Level of creature */
-    s16b master;                        /* The player controlling this monster */
-    byte lifespan;                      /* Lifespan of controlled creature */
-    byte resilient;                     /* Controlled creature is resilient */
-    byte status;                        /* Monster status: hostile, guard, follower, attacker */
-    byte clone;                         /* Monster is a clone */
-    s16b mimicked_k_idx;                /* Object kind this monster is mimicking (random mimics) */
-    byte origin;                        /* How this monster was created */
-    u16b feat;                          /* Terrain under monster (for feature mimics) */
-    struct loc old_grid;                /* Previous monster location */
+    s16b ac;                                /* Armour Class */
+    struct monster_blow *blow;              /* Melee blows */
+    s16b level;                             /* Level of creature */
+    s16b master;                            /* The player controlling this monster */
+    byte lifespan;                          /* Lifespan of controlled creature */
+    byte resilient;                         /* Controlled creature is resilient */
+    byte status;                            /* Monster status: hostile, guard, follower, attacker */
+    byte clone;                             /* Monster is a clone */
+    s16b mimicked_k_idx;                    /* Object kind this monster is mimicking (random mimics) */
+    byte origin;                            /* How this monster was created */
+    u16b feat;                              /* Terrain under monster (for feature mimics) */
+    struct loc old_grid;                    /* Previous monster location */
 };
 
 /*

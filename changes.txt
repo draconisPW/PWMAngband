@@ -32,7 +32,7 @@ Angband 4.2.0:
 
 PWMAngband:
 
--
+- Allow paragraphs in race/class descriptions
 
 Gameplay changes
 ----------------
@@ -44,6 +44,7 @@ Angband 4.2.0:
 PWMAngband:
 
 - Add race shapes
+- Add CAUTIOUS flag for monsters
 
 Bugs fixed
 ----------
