@@ -924,31 +924,49 @@ static void menu_help(enum birth_stage current, int cursor)
 
     if ((e == PARSE_ERROR_NONE) && (helper->text != NULL) && !STRZERO(helper->text))
     {
-        int j, k, l, lines = 2;
-        char out_val[2000];
+        int lines = 2;
+        char *s, *t;
 
         screen_save();
         clear_from(0);
 
         c_prt(COLOUR_YELLOW, helper->name, 0, 0);
 
-        memset(out_val, 0, sizeof(out_val));
-        my_strcpy(out_val, helper->text, sizeof(out_val));
-        j = strlen(out_val);
-        k = 0;
-        while (j)
+        /* Split description in paragraphs */
+        s = string_make(helper->text);
+        t = strtok(s, "|");
+        while (t)
         {
-            l = strlen(&out_val[k]);
-            if (j > 75)
+            char out_val[2000];
+            int j, k, l;
+
+            /* Make a rewritable string */
+            memset(out_val, 0, sizeof(out_val));
+            my_strcpy(out_val, t, sizeof(out_val));
+
+            /* Print every paragraph with word wrap */
+            j = strlen(out_val);
+            k = 0;
+            while (j)
             {
-                l = 75;
-                while (out_val[k + l] != ' ') l--;
-                out_val[k + l] = '\0';
+                l = strlen(&out_val[k]);
+                if (j > 75)
+                {
+                    l = 75;
+                    while (out_val[k + l] != ' ') l--;
+                    out_val[k + l] = '\0';
+                }
+                if (lines == 23) break;
+                prt(out_val + k, lines++, 2);
+                k += (l + 1);
+                j = strlen(&out_val[k]);
             }
-            prt(out_val + k, lines++, 2);
-            k += (l + 1);
-            j = strlen(&out_val[k]);
+
+            if (lines == 23) break;
+            prt("", lines++, 2);
+            t = strtok(NULL, "|");
         }
+        string_free(s);
 
         inkey();
         screen_load(false);
