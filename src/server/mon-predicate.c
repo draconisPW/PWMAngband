@@ -154,7 +154,7 @@ bool monster_is_visible(struct player *p, int m_idx)
  */
 bool monster_is_camouflaged(const struct monster *mon)
 {
-    return mon->camouflage;
+    return mflag_has(mon->mflag, MFLAG_CAMOUFLAGE);
 }
 
 
@@ -172,7 +172,7 @@ bool monster_is_obvious(struct player *p, int m_idx, const struct monster *mon)
  */
 bool monster_is_mimicking(const struct monster *mon)
 {
-    return (mon->camouflage && mon->mimicked_obj);
+    return (mflag_has(mon->mflag, MFLAG_CAMOUFLAGE) && mon->mimicked_obj);
 }
 
 

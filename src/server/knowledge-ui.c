@@ -2109,8 +2109,8 @@ void do_cmd_steal(struct player *p, int dir)
                 inven_carry(p, obj, true, false);
             }
 
-            /* Monster wakes */
-            mon_clear_timed(p, who->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOTIFY);
+            /* Monster wakes, may notice */
+            monster_wake(p, who->monster, true, 50);
         }
 
         /* Player hit and run */
@@ -2150,8 +2150,8 @@ void do_cmd_steal(struct player *p, int dir)
             monster_desc(p, m_name, sizeof(m_name), who->monster, MDESC_TARG);
             msg(p, "You fail to steal anything from %s.", m_name);
 
-            /* Monster wakes */
-            mon_clear_timed(p, who->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOTIFY);
+            /* Monster wakes, may notice */
+            monster_wake(p, who->monster, true, 50);
         }
     }
 

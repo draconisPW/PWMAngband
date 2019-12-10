@@ -45,6 +45,12 @@ static byte curse_max;
 
 
 /*
+ * Monster constants
+ */
+static byte mflag_size = 0;
+
+
+/*
  * Trap constants
  */
 static byte trf_size = 0;
@@ -686,7 +692,7 @@ static struct monster_race *rd_race(void)
     char race_name[NORMAL_WID];
 
     rd_string(race_name, sizeof(race_name));
-    if (race_name[0]) return lookup_monster(race_name);
+    if (strcmp(race_name, "none")) return lookup_monster(race_name);
 #else
     u16b race;
 
@@ -1432,6 +1438,7 @@ static bool rd_monster_aux(struct chunk *c, struct monster *mon, rd_item_t rd_it
         plog("Monster race no longer exists!");
         return false;
     }
+    mon->original_race = rd_race();
 
     /* Read the other information */
     rd_byte(&tmp8u);
@@ -1454,6 +1461,10 @@ static bool rd_monster_aux(struct chunk *c, struct monster *mon, rd_item_t rd_it
     for (j = 0; j < (size_t)tmp8u; j++)
         rd_s16b(&mon->m_timed[j]);
 
+    /* Read and extract the flag */
+    for (j = 0; j < (size_t)mflag_size; j++)
+        rd_byte(&mon->mflag[j]);
+
     for (j = 0; j < (size_t)of_size; j++)
         rd_byte(&mon->known_pstate.flags[j]);
 
@@ -1461,7 +1472,6 @@ static bool rd_monster_aux(struct chunk *c, struct monster *mon, rd_item_t rd_it
         rd_s16b(&mon->known_pstate.el_info[j].res_level);
 
     /* Mimic stuff */
-    rd_bool(&mon->camouflage);
     rd_s16b(&mon->mimicked_k_idx);
     rd_u16b(&mon->feat);
 
@@ -1521,6 +1531,16 @@ static bool rd_monster_aux(struct chunk *c, struct monster *mon, rd_item_t rd_it
 
         pile_insert(&mon->held_obj, obj);
     }
+
+    /* Read group info */
+    rd_u16b(&tmp16u);
+    mon->group_info[0].index = tmp16u;
+    rd_byte(&tmp8u);
+    mon->group_info[0].role = tmp8u;
+    rd_u16b(&tmp16u);
+    mon->group_info[1].index = tmp16u;
+    rd_byte(&tmp8u);
+    mon->group_info[1].role = tmp8u;
 
     return true;
 }
@@ -1593,6 +1613,16 @@ int rd_monsters(struct player *unused)
     u32b num, tmp32u;
     struct worldpos wpos;
     s16b tmp16x, tmp16y;
+
+    /* Monster temporary flags */
+    rd_byte(&mflag_size);
+
+    /* Incompatible save files */
+    if (mflag_size > MFLAG_SIZE)
+    {
+        plog_fmt("Too many (%u) monster temporary flags!", mflag_size);
+        return (-1);
+    }
 
     /* Read the number of levels to be loaded */
     rd_u32b(&tmp32u);

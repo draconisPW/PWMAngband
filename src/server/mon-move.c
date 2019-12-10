@@ -1226,6 +1226,7 @@ bool multiply_monster(struct player *p, struct chunk *c, struct monster *mon)
 {
     int i;
     bool result = false;
+    struct monster_group_info info = {0, 0};
 
     my_assert(mon);
 
@@ -1254,7 +1255,7 @@ bool multiply_monster(struct player *p, struct chunk *c, struct monster *mon)
         if (!square_isemptyfloor(c, &grid)) continue;
 
         /* Create a new monster (awake, no groups) */
-        result = place_new_monster(p, c, &grid, mon->race, MON_CLONE, ORIGIN_DROP_BREED);
+        result = place_new_monster(p, c, &grid, mon->race, MON_CLONE, &info, ORIGIN_DROP_BREED);
 
         /* Done */
         break;
@@ -2192,8 +2193,8 @@ static void monster_reduce_sleep(struct monster *mon, bool mvm)
     /* MvM or aggravation */
     if (mvm || player_of_has(p, OF_AGGRAVATE))
     {
-        /* Wake the monster */
-        mon_clear_timed(p, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOTIFY);
+        /* Wake the monster, make it aware */
+        monster_wake(p, mon, true, 100);
 
         woke_up = true;
     }
@@ -2239,6 +2240,9 @@ static bool process_monster_timed(struct monster *mon, bool mvm)
         monster_reduce_sleep(mon, mvm);
         return true;
     }
+
+    /* Awake, active monsters may become aware */
+    if (one_in_(10)) mflag_on(mon->mflag, MFLAG_AWARE);
 
     if (mon->m_timed[MON_TMD_FAST])
         mon_dec_timed(p, mon, MON_TMD_FAST, 1, 0);
@@ -2423,7 +2427,7 @@ void process_monsters(struct chunk *c, bool more_energy)
         if (!mon->race) continue;
 
         /* Ignore monsters that have already been handled */
-        if (mon->handled) continue;
+        if (mflag_has(mon->mflag, MFLAG_HANDLED)) continue;
 
         /* Skip "unconscious" monsters */
         if (mon->hp == 0) continue;
@@ -2433,7 +2437,7 @@ void process_monsters(struct chunk *c, bool more_energy)
             continue;
 
         /* Prevent reprocessing */
-        mon->handled = true;
+        mflag_on(mon->mflag, MFLAG_HANDLED);
 
         /* Regenerate hitpoints and mana every 100 "scaled" turns */
         regen = false;
@@ -2557,7 +2561,7 @@ void reset_monsters(struct chunk *c)
         monster_take_terrain_damage(c, mon);
 
         /* Monster is ready to go again */
-        mon->handled = false;
+        mflag_off(mon->mflag, MFLAG_HANDLED);
     }
 }
 

@@ -858,7 +858,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     /* Disturb the target */
     if (target->monster)
     {
-        mon_clear_timed(p, target->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+        monster_wake(p, target->monster, false, 100);
         mon_clear_timed(p, target->monster, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
     }
     else

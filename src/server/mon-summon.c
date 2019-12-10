@@ -400,8 +400,8 @@ static int call_monster(struct chunk *c, struct loc *grid)
     /* Swap the monster */
     monster_swap(c, &mon->grid, grid);
 
-    /* Wake it up */
-    mon_clear_timed(NULL, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+    /* Wake it up, make it aware */
+    monster_wake(NULL, mon, false, 100);
     mon_clear_timed(NULL, mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
 
     /* Set it's energy to 0 */
@@ -433,13 +433,14 @@ static int call_monster(struct chunk *c, struct loc *grid)
  * Note that this function may not succeed, though this is very rare.
  */
 int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev, int type,
-    bool delay, bool call, int chance)
+    bool delay, bool call, int chance, struct monster *summoner)
 {
     struct monster *mon;
     struct monster_race *race;
     byte status = MSTATUS_HOSTILE, status_player = MSTATUS_SUMMONED;
     int summon_level = (monster_level(&p->wpos) + lev) / 2 + 5;
     struct loc nearby;
+    struct monster_group_info info = {0, 0};
 
     /* Paranoia, make sure the level is allocated */
     if (!c) return 0;
@@ -516,8 +517,17 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
     /* Handle failure */
     if (!race) return 0;
 
+    /* Put summons in the group of any summoner */
+    if (summoner)
+    {
+        struct monster_group *group = summon_group(c, summoner);
+
+        info.index = group->index;
+        info.role = MON_GROUP_SUMMON;
+    }
+
     /* Attempt to place the monster (awake, don't allow groups) */
-    if (!place_new_monster(p, c, &nearby, race, 0, ORIGIN_DROP_SUMMON))
+    if (!place_new_monster(p, c, &nearby, race, 0, &info, ORIGIN_DROP_SUMMON))
         return 0;
 
     /*
@@ -549,6 +559,7 @@ bool summon_specific_race_aux(struct player *p, struct chunk *c, struct loc *gri
     struct monster_race *race, unsigned char size, bool pet)
 {
     int n;
+    struct monster_group_info info = {0, 0};
 
     /* Handle failure */
     if (!race) return false;
@@ -568,7 +579,7 @@ bool summon_specific_race_aux(struct player *p, struct chunk *c, struct loc *gri
         if (!summon_location(c, &new_grid, grid, 200)) return false;
 
         /* Attempt to place the monster (awake, don't allow groups) */
-        if (!place_new_monster(p, c, &new_grid, race, 0, ORIGIN_DROP_SUMMON))
+        if (!place_new_monster(p, c, &new_grid, race, 0, &info, ORIGIN_DROP_SUMMON))
             return false;
 
         if (pet)
@@ -630,7 +641,7 @@ bool summon_specific_race_somewhere(struct player *p, struct chunk *c, struct mo
  * This function is used when a group of monsters is summoned.
  */
 int summon_monster_aux(struct player *p, struct chunk *c, struct loc *grid, int flag, int rlev,
-    int max, int chance)
+    int max, int chance, struct monster *mon)
 {
     int count = 0, val = 0, attempts = 0;
     int temp;
@@ -640,7 +651,7 @@ int summon_monster_aux(struct player *p, struct chunk *c, struct loc *grid, int 
     while ((val < p->wpos.depth * rlev) && (attempts < max))
     {
         /* Get a monster */
-        temp = summon_specific(p, c, grid, rlev, flag, false, false, chance);
+        temp = summon_specific(p, c, grid, rlev, flag, false, false, chance, mon);
 
         val += temp * temp;
 
@@ -653,7 +664,7 @@ int summon_monster_aux(struct player *p, struct chunk *c, struct loc *grid, int 
 
     /* If the summon failed and there's a fallback type, use that */
     if ((count == 0) && (fallback_type >= 0))
-        count = summon_monster_aux(p, c, grid, fallback_type, rlev, max, 0);
+        count = summon_monster_aux(p, c, grid, fallback_type, rlev, max, 0, mon);
 
     return count;
 }

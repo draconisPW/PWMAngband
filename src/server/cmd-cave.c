@@ -458,9 +458,9 @@ static void attack_blocker(struct player *p, struct chunk *c, struct loc *grid)
         {
             become_aware(p, c, who->monster);
 
-            /* Mimic wakes up */
+            /* Mimic wakes up and becomes aware */
             if (pvm_check(p, who->monster))
-                mon_clear_timed(p, who->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+                monster_wake(p, who->monster, false, 100);
         }
         else
         {
@@ -1617,8 +1617,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
             {
                 become_aware(p, c, who->monster);
 
-                /* Mimic wakes up */
-                mon_clear_timed(p, who->monster, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+                /* Mimic wakes up and becomes aware */
+                monster_wake(p, who->monster, false, 100);
             }
             else
                 py_attack(p, c, &grid);

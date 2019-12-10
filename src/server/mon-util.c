@@ -772,6 +772,18 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
 
 
 /*
+ * Monster wakes up and possibly becomes aware of the player
+ */
+void monster_wake(struct player *p, struct monster *mon, bool notify, int aware_chance)
+{
+    int flag = (notify? MON_TMD_FLG_NOTIFY: MON_TMD_FLG_NOMESSAGE);
+
+    mon_clear_timed(p, mon, MON_TMD_SLEEP, flag);
+    if (randint0(100) < aware_chance) mflag_on(mon->mflag, MFLAG_AWARE);
+}
+
+
+/*
  * Make player fully aware of the given player.
  */
 void aware_player(struct player *p, struct player *q)
@@ -795,7 +807,7 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
 
     if (!monster_is_camouflaged(mon)) return;
 
-    mon->camouflage = false;
+    mflag_off(mon->mflag, MFLAG_CAMOUFLAGE);
 
     /* Learn about mimicry */
     if (lore && rf_has(mon->race->flags, RF_UNAWARE)) rf_on(lore->flags, RF_UNAWARE);
@@ -1339,8 +1351,8 @@ bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int da
     source_monster(who, mon);
     update_health(who);
 
-    /* Wake it up */
-    mon_clear_timed(p, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+    /* Wake it up, make it aware of the player */
+    monster_wake(p, mon, false, 100);
     mon_clear_timed(p, mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
 
     /* Become aware of its presence */

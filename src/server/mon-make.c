@@ -21,6 +21,11 @@
 #include "s-angband.h"
 
 
+/*
+ * Monster allocation tables
+ */
+
+
 static s16b alloc_race_size;
 static alloc_entry *alloc_race_table;
 
@@ -133,6 +138,11 @@ static bool clear_vis(struct player *p, struct worldpos *wpos, int m)
 
 
 /*
+ * Deleting of monsters and monster list handling
+ */
+
+
+/*
  * Deletes a monster by index.
  *
  * When a monster is deleted, all of its objects are deleted.
@@ -179,8 +189,9 @@ void delete_monster_idx(struct chunk *c, int m_idx)
         if (p->id == mon->master) p->slaves--;
     }
 
-    /* Monster is gone */
+    /* Monster is gone from square and group */
     square_set_mon(c, &mon->grid, 0);
+    monster_remove_from_groups(c, mon);
 
     /* Delete objects */
     obj = mon->held_obj;
@@ -268,6 +279,10 @@ static void compact_monsters_aux(struct chunk *c, int i1, int i2)
 
     /* Update midx */
     mon->midx = i2;
+
+    /* Update group */
+    if (!monster_group_change_index(c, i2, i1))
+        quit("Bad monster group info!");
 
     /* Repair objects being carried by monster */
     for (obj = mon->held_obj; obj; obj = obj->next)
@@ -444,8 +459,9 @@ void wipe_mon_list(struct chunk *c)
             if (p->id == mon->master) p->slaves--;
         }
 
-        /* Monster is gone from square */
+        /* Monster is gone from square and group */
         square_set_mon(c, &mon->grid, 0);
+        monster_remove_from_groups(c, mon);
 
         /* Wipe the Monster */
         mem_free(mon->blow);
@@ -475,6 +491,11 @@ void wipe_mon_list(struct chunk *c)
         health_track(p->upkeep, NULL);
     }
 }
+
+
+/*
+ * Choosing a monster and preparing a place for it in the monster list
+ */
 
 
 /*
@@ -946,6 +967,12 @@ struct monster_race *get_mon_num_poly(int level)
 
 
 /*
+ * Monster creation utilities
+ * Creating objects for monsters to carry or mimic, calculating hitpoints
+ */
+
+
+/*
  * Return the number of things dropped by a monster.
  *
  * race is the monster race.
@@ -1241,7 +1268,7 @@ void mon_create_mimicked_object(struct player *p, struct chunk *c, struct monste
         /* Clear the mimicry */
         obj->mimicking_m_idx = 0;
         mon->mimicked_obj = NULL;
-        mon->camouflage = false;
+        mflag_off(mon->mflag, MFLAG_CAMOUFLAGE);
 
         /* Give the object to the monster if appropriate */
         /* Otherwise delete the mimicked object */
@@ -1252,12 +1279,48 @@ void mon_create_mimicked_object(struct player *p, struct chunk *c, struct monste
 
 
 /*
+ * Calculates hp for a monster. This function assumes that the Rand_normal
+ * function has limits of +/- 4x std_dev. If that changes, this function
+ * will become inaccurate.
+ *
+ * race is the race of the monster in question.
+ * hp_aspect is the hp calc we want (min, max, avg, random).
+ */
+int mon_hp(const struct monster_race *race, aspect hp_aspect)
+{
+    int std_dev = (((race->avg_hp * 10) / 8) + 5) / 10;
+
+    if (race->avg_hp > 1) std_dev++;
+
+    switch (hp_aspect)
+    {
+        case MINIMISE:
+            return (race->avg_hp - (4 * std_dev));
+        case MAXIMISE:
+            return (race->avg_hp + (4 * std_dev));
+        case AVERAGE:
+            return race->avg_hp;
+        case RANDOMISE:
+            return Rand_normal(race->avg_hp, std_dev);
+    }
+
+    return 0;
+}
+
+
+/*
+ * Placement of a single monster
+ * These are the functions that actually put the monster into the world
+ */
+
+
+/*
  * Attempts to place a copy of the given monster at the given position in
  * the dungeon.
  *
  * All of the monster placement routines eventually call this function. This
  * is what actually puts the monster in the dungeon (i.e., it notifies the cave
- * and sets the monsters position). The dungeon loading code also calls this
+ * and sets the monster's position). The dungeon loading code also calls this
  * function directly.
  *
  * `origin` is the item origin to use for any monster drops (e.g. ORIGIN_DROP,
@@ -1270,6 +1333,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
 {
     s16b m_idx;
     struct monster *new_mon;
+    struct monster_group *group;
 
     /* Paranoia: cave can be NULL (wilderness) */
     if (!c) return 0;
@@ -1293,6 +1357,11 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
     /* Set the location */
     square_set_mon(c, &mon->grid, new_mon->midx);
     my_assert(square_monster(c, &mon->grid) == new_mon);
+
+    /* Assign monster to its monster group, creating the group if necessary */
+    group = monster_group_by_index(c, new_mon->group_info[0].index);
+    if (group) monster_add_to_group(new_mon, group);
+    else monster_group_start(c, new_mon, 0);
 
     /* Hack -- increase the number of clones */
     if (new_mon->race->ridx && new_mon->clone) c->num_clones++;
@@ -1363,36 +1432,6 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
 }
 
 
-/*
- * Calculates hp for a monster. This function assumes that the Rand_normal
- * function has limits of +/- 4x std_dev. If that changes, this function
- * will become inaccurate.
- *
- * race is the race of the monster in question.
- * hp_aspect is the hp calc we want (min, max, avg, random).
- */
-int mon_hp(const struct monster_race *race, aspect hp_aspect)
-{
-    int std_dev = (((race->avg_hp * 10) / 8) + 5) / 10;
-
-    if (race->avg_hp > 1) std_dev++;
-
-    switch (hp_aspect)
-    {
-        case MINIMISE:
-            return (race->avg_hp - (4 * std_dev));
-        case MAXIMISE:
-            return (race->avg_hp + (4 * std_dev));
-        case AVERAGE:
-            return race->avg_hp;
-        case RANDOMISE:
-            return Rand_normal(race->avg_hp, std_dev);
-    }
-
-    return 0;
-}
-
-
 int sleep_value(const struct monster_race *race)
 {
     if (race->sleep) return (race->sleep * 2 + randint1(race->sleep * 10));
@@ -1425,7 +1464,7 @@ int sleep_value(const struct monster_race *race)
  * mon_flag = (MON_ASLEEP, MON_CLONE)
  */
 static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc *grid,
-    struct monster_race *race, byte mon_flag, byte origin)
+    struct monster_race *race, byte mon_flag, struct monster_group_info *group_info, byte origin)
 {
     int i, mlvl;
     struct monster *mon;
@@ -1539,15 +1578,19 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
 
     /* Is this obviously a monster? (Mimics etc. aren't) */
     if (rf_has(race->flags, RF_UNAWARE))
-        mon->camouflage = true;
+        mflag_on(mon->mflag, MFLAG_CAMOUFLAGE);
     else
-        mon->camouflage = false;
+        mflag_off(mon->mflag, MFLAG_CAMOUFLAGE);
 
     /* Unique has spawned */
     race->lore.spawned = 1;
 
     /* Hack -- increase the number of clones */
     if (mon_flag & MON_CLONE) mon->clone = 1;
+
+    /* Set the group info */
+    mon->group_info[0].index = group_info->index;
+    mon->group_info[0].role = group_info->role;
 
     /* Place the monster in the dungeon */
     loc_copy(&mon->old_grid, grid);
@@ -1578,9 +1621,8 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
 
 
 /*
- * Maximum size of a group of monsters
+ * More complex monster placement routines
  */
-#define GROUP_MAX   25
 
 
 /*
@@ -1596,15 +1638,20 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
  * mon_flag = (MON_ASLEEP)
  */
 static bool place_new_monster_group(struct player *p, struct chunk *c, struct loc *grid,
-    struct monster_race *race, byte mon_flag, int total, byte origin)
+    struct monster_race *race, byte mon_flag, struct monster_group_info *group_info, int total,
+    byte origin)
 {
     int n, i;
     int loc_num;
 
     /* Locations of the placed monsters */
-    struct loc loc_list[GROUP_MAX];
+    struct loc *loc_list;
 
+    /* Sanity and bounds check */
     my_assert(race);
+    total = MIN(total, z_info->monster_group_max);
+
+    loc_list = mem_zalloc(sizeof(struct loc) * z_info->monster_group_max);
 
     /* Start on the monster */
     loc_num = 1;
@@ -1624,7 +1671,7 @@ static bool place_new_monster_group(struct player *p, struct chunk *c, struct lo
             if (!square_isemptyfloor(c, &loc_try)) continue;
 
             /* Attempt to place another monster */
-            if (place_new_monster_one(p, c, &loc_try, race, mon_flag, origin))
+            if (place_new_monster_one(p, c, &loc_try, race, mon_flag, group_info, origin))
             {
                 /* Add it to the "hack" set */
                 loc_copy(&loc_list[loc_num], &loc_try);
@@ -1634,12 +1681,9 @@ static bool place_new_monster_group(struct player *p, struct chunk *c, struct lo
     }
 
     /* Success */
+    mem_free(loc_list);
     return true;
 }
-
-
-/* Maximum distance from center for a group of monsters */
-#define GROUP_DISTANCE 5
 
 
 static struct monster_base *place_monster_base = NULL;
@@ -1670,7 +1714,7 @@ static bool place_monster_base_okay(struct monster_race *race)
  */
 static bool place_friends(struct player *p, struct chunk *c, struct loc *grid,
     struct monster_race *race, struct monster_race *friends_race, int total, byte mon_flag,
-    byte origin)
+    struct monster_group_info *group_info, byte origin)
 {
     int extra_chance;
 
@@ -1708,22 +1752,23 @@ static bool place_friends(struct player *p, struct chunk *c, struct loc *grid,
 
         /* Handle friends same as original monster */
         if (race->ridx == friends_race->ridx)
-            return place_new_monster_group(p, c, grid, race, mon_flag, total, origin);
+            return place_new_monster_group(p, c, grid, race, mon_flag, group_info, total, origin);
 
         /* Find a nearby place to put the other groups */
         for (j = 0; j < 50; j++)
         {
             struct loc new_grid;
 
-            if (!scatter(c, &new_grid, grid, GROUP_DISTANCE, false)) continue;
+            if (!scatter(c, &new_grid, grid, z_info->monster_group_dist, false)) continue;
             if (!square_isopen(c, &new_grid)) continue;
 
             /* Place the monsters */
-            success = place_new_monster_one(p, c, &new_grid, friends_race, mon_flag, origin);
+            success = place_new_monster_one(p, c, &new_grid, friends_race, mon_flag, group_info,
+                origin);
             if (total > 1)
             {
-                success = place_new_monster_group(p, c, &new_grid, friends_race, mon_flag, total,
-                    origin);
+                success = place_new_monster_group(p, c, &new_grid, friends_race, mon_flag,
+                    group_info, total, origin);
             }
 
             return success;
@@ -1750,7 +1795,7 @@ static bool place_friends(struct player *p, struct chunk *c, struct loc *grid,
  * mon_flag = (MON_ASLEEP, MON_GROUP, MON_CLONE)
  */
 bool place_new_monster(struct player *p, struct chunk *c, struct loc *grid,
-    struct monster_race *race, byte mon_flag, byte origin)
+    struct monster_race *race, byte mon_flag, struct monster_group_info *group_info, byte origin)
 {
     struct monster_friends *friends;
     struct monster_friends_base *friends_base;
@@ -1759,8 +1804,11 @@ bool place_new_monster(struct player *p, struct chunk *c, struct loc *grid,
     my_assert(c);
     my_assert(race);
 
+    /* If we don't have a group index already, make one; our first monster will be the leader */
+    if (!group_info->index) group_info->index = monster_group_index_new(c);
+
     /* Place one monster, or fail */
-    if (!place_new_monster_one(p, c, grid, race, mon_flag & ~(MON_GROUP), origin))
+    if (!place_new_monster_one(p, c, grid, race, mon_flag & ~(MON_GROUP), group_info, origin))
         return false;
 
     /* We're done unless the group flag is set */
@@ -1776,7 +1824,11 @@ bool place_new_monster(struct player *p, struct chunk *c, struct loc *grid,
         /* Calculate the base number of monsters to place */
         total = damroll(friends->number_dice, friends->number_side);
 
-        place_friends(p, c, grid, race, friends->race, total, mon_flag, origin);
+        /* Set group role */
+        group_info->role = friends->role;
+
+        /* Place them */
+        place_friends(p, c, grid, race, friends->race, total, mon_flag, group_info, origin);
     }
 
     /* Go through the friends_base flags */
@@ -1805,7 +1857,11 @@ bool place_new_monster(struct player *p, struct chunk *c, struct loc *grid,
         /* Handle failure */
         if (!friends_race) break;
 
-        place_friends(p, c, grid, race, friends_race, total, mon_flag, origin);
+        /* Set group role */
+        group_info->role = friends_base->role;
+
+        /* Place them */
+        place_friends(p, c, grid, race, friends_race, total, mon_flag, group_info, origin);
     }
 
     /* Success */
@@ -1834,10 +1890,11 @@ bool place_new_monster(struct player *p, struct chunk *c, struct loc *grid,
 bool pick_and_place_monster(struct player *p, struct chunk *c, struct loc *grid, int depth,
     byte mon_flag, byte origin)
 {
-    /* Pick a monster race */
+    /* Pick a monster race, no specified group */
     struct monster_race *race = get_mon_num(c, depth, false);
+    struct monster_group_info info = {0, 0};
 
-    if (race) return place_new_monster(p, c, grid, race, mon_flag, origin);
+    if (race) return place_new_monster(p, c, grid, race, mon_flag, &info, origin);
     return false;
 }
 

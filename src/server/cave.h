@@ -112,6 +112,8 @@ struct chunk
     u16b mon_max;
     u16b mon_cnt;
 
+    struct monster_group **monster_groups;
+
     struct connector *join;
 
     /* PWMAngband */

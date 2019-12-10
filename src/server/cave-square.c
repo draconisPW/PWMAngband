@@ -1414,7 +1414,7 @@ void square_excise_object(struct chunk *c, struct loc *grid, struct object *obj)
 
         /* Clear the mimicry */
         mon->mimicked_obj = NULL;
-        mon->camouflage = false;
+        mflag_off(mon->mflag, MFLAG_CAMOUFLAGE);
     }
 
     /* Redraw */

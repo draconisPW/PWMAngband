@@ -1533,7 +1533,17 @@ static enum parser_error parse_monster_friends(struct parser *p)
     f->number_dice = number.dice;
     f->number_side = number.sides;
     f->percent_chance = parser_getuint(p, "chance");
-    f->name = string_make(parser_getstr(p, "name"));
+    f->name = string_make(parser_getsym(p, "name"));
+    if (parser_hasval(p, "role"))
+    {
+        const char *role_name = parser_getsym(p, "role");
+
+        if (streq(role_name, "servant")) f->role = MON_GROUP_SERVANT;
+        else if (streq(role_name, "bodyguard")) f->role = MON_GROUP_BODYGUARD;
+        else return PARSE_ERROR_INVALID_MONSTER_ROLE;
+    }
+    else
+        f->role = MON_GROUP_MEMBER;
     f->next = r->friends;
     r->friends = f;
 
@@ -1553,8 +1563,18 @@ static enum parser_error parse_monster_friends_base(struct parser *p)
     f->number_dice = number.dice;
     f->number_side = number.sides;
     f->percent_chance = parser_getuint(p, "chance");
-    f->base = lookup_monster_base(parser_getstr(p, "name"));
+    f->base = lookup_monster_base(parser_getsym(p, "name"));
     if (!f->base) return PARSE_ERROR_INVALID_MONSTER_BASE;
+    if (parser_hasval(p, "role"))
+    {
+        const char *role_name = parser_getsym(p, "role");
+
+        if (streq(role_name, "servant")) f->role = MON_GROUP_SERVANT;
+        else if (streq(role_name, "bodyguard")) f->role = MON_GROUP_BODYGUARD;
+        else return PARSE_ERROR_INVALID_MONSTER_ROLE;
+    }
+    else
+        f->role = MON_GROUP_MEMBER;
 
     f->next = r->friends_base;
     r->friends_base = f;
@@ -1646,8 +1666,9 @@ static struct parser *init_parse_monster(void)
     parser_reg(p, "spells str spells", parse_monster_spells);
     parser_reg(p, "drop sym tval sym sval uint chance uint min uint max", parse_monster_drop);
     parser_reg(p, "drop-base sym tval uint chance uint min uint max", parse_monster_drop_base);
-    parser_reg(p, "friends uint chance rand number str name", parse_monster_friends);
-    parser_reg(p, "friends-base uint chance rand number str name", parse_monster_friends_base);
+    parser_reg(p, "friends uint chance rand number sym name ?sym role", parse_monster_friends);
+    parser_reg(p, "friends-base uint chance rand number sym name ?sym role",
+        parse_monster_friends_base);
     parser_reg(p, "mimic sym tval sym sval", parse_monster_mimic);
     parser_reg(p, "force-location str location", parse_monster_location);
 

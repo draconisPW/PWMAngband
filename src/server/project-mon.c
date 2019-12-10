@@ -1005,8 +1005,8 @@ static void project_monster_handler_MON_HEAL(project_monster_handler_context_t *
 
     source_monster(mon, context->mon);
 
-    /* Wake up */
-    mon_clear_timed(context->origin->player, context->mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+    /* Wake up, become aware */
+    monster_wake(context->origin->player, context->mon, false, 100);
     mon_clear_timed(context->origin->player, context->mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
 
     /* Heal */
@@ -1463,8 +1463,8 @@ bool project_m_monster_attack_aux(struct monster *attacker, struct chunk *c, str
     source_monster(origin, mon);
     update_health(origin);
 
-    /* Wake the monster up */
-    mon_clear_timed(NULL, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+    /* Wake the monster up, don't notice the player */
+    monster_wake(NULL, mon, false, 0);
     mon_clear_timed(NULL, mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
 
     /* Become aware of its presence */
@@ -1675,12 +1675,14 @@ static bool project_m_apply_side_effects(project_monster_handler_context_t *cont
         /* Handle polymorph */
         if (new_race != old_race)
         {
+            struct monster_group_info info = {0, 0};
+
             /* Report the polymorph before changing the monster */
             add_monster_message(context->origin->player, context->mon, MON_MSG_CHANGE, false);
 
             /* Delete the old monster, and return a new one */
             delete_monster_idx(context->cave, *m_idx);
-            if (place_new_monster(context->origin->player, context->cave, &grid, new_race, 0,
+            if (place_new_monster(context->origin->player, context->cave, &grid, new_race, 0, &info,
                 ORIGIN_DROP_POLY))
             {
                 *m_idx = square(context->cave, &grid)->mon;

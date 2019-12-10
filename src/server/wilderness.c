@@ -1428,6 +1428,7 @@ void wild_add_monster(struct player *p, struct chunk *c)
     int tries = 50;
     struct monster_race *race;
     struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+    struct monster_group_info info = {0, 0};
 
     /* Prepare allocation table */
     switch (w_ptr->type)
@@ -1472,7 +1473,7 @@ void wild_add_monster(struct player *p, struct chunk *c)
     if (!race) return;
 
     /* Place the monster */
-    place_new_monster(p, c, &grid, race, MON_GROUP, ORIGIN_DROP);
+    place_new_monster(p, c, &grid, race, MON_GROUP, &info, ORIGIN_DROP);
 }
 
 
@@ -2341,6 +2342,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
         if (race)
         {
             struct loc grid;
+            struct monster_group_info info = {0, 0};
 
             /* Get the owner's location */
             while (true)
@@ -2361,7 +2363,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
             }
 
             /* Place the owner */
-            place_new_monster(p, c, &grid, race, 0, ORIGIN_DROP);
+            place_new_monster(p, c, &grid, race, 0, &info, ORIGIN_DROP);
         }
     }
 
@@ -2381,6 +2383,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
         if (race)
         {
             struct loc_iterator iter;
+            struct monster_group_info info = {0, 0};
 
             loc_iterator_first(&iter, grid1, grid2);
 
@@ -2388,7 +2391,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
             do
             {
                 if (magik(50)) continue;
-                place_new_monster(p, c, &iter.cur, race, 0, ORIGIN_DROP);
+                place_new_monster(p, c, &iter.cur, race, 0, &info, ORIGIN_DROP);
             }
             while (loc_iterator_next(&iter));
         }

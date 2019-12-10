@@ -1477,6 +1477,7 @@ static void generate_new_level(struct player *p)
             for (i = 1; i < z_info->r_max; i++)
             {
                 struct monster_race *race = &r_info[i];
+                struct monster_group_info info = {0, 0};
 
                 /* The monster must be an unseen fixed encounter of this depth. */
                 if (race->lore.spawned) continue;
@@ -1485,7 +1486,7 @@ static void generate_new_level(struct player *p)
 
                 /* Pick a location and place the monster */
                 find_empty(c, &grid);
-                place_new_monster(p, c, &grid, race, MON_ASLEEP | MON_GROUP, ORIGIN_DROP);
+                place_new_monster(p, c, &grid, race, MON_ASLEEP | MON_GROUP, &info, ORIGIN_DROP);
             }
         }
     }

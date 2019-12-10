@@ -4204,11 +4204,9 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
                     /* Take damage from the quake */
                     damage = (safe_grids? damroll(4, 8): (mon->hp + 1));
 
-                    /* Monster is certainly awake */
-                    mon_clear_timed(context->origin->player, mon, MON_TMD_SLEEP,
-                        MON_TMD_FLG_NOMESSAGE);
-                    mon_clear_timed(context->origin->player, mon, MON_TMD_HOLD,
-                        MON_TMD_FLG_NOTIFY);
+                    /* Monster is certainly awake, not thinking about player */
+                    monster_wake(context->origin->player, mon, false, 0);
+                    mon_clear_timed(context->origin->player, mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
 
                     /* If the quake finished the monster off, show message */
                     if ((mon->hp < damage) && (mon->hp >= 0))
@@ -6130,7 +6128,7 @@ static bool effect_handler_SUMMON(effect_handler_context_t *context)
 
         /* Summon them */
         count = summon_monster_aux(context->origin->player, context->cave, &mon->grid, summon_type,
-            rlev + level_boost, summon_max, 0);
+            rlev + level_boost, summon_max, 0, mon);
 
         /* Summoner failed */
         if (!count) msg(context->origin->player, "But nothing comes.");
@@ -6152,7 +6150,8 @@ static bool effect_handler_SUMMON(effect_handler_context_t *context)
         for (i = 0; i < summon_max; i++)
         {
             count += summon_specific(context->origin->player, context->cave,
-                &context->origin->player->grid, mlvl + level_boost, summon_type, true, false, chance);
+                &context->origin->player->grid, mlvl + level_boost, summon_type, true, false,
+                chance, NULL);
         }
     }
 
@@ -6171,7 +6170,7 @@ static bool effect_handler_SUMMON(effect_handler_context_t *context)
         mlvl = monster_level(&context->origin->player->wpos);
         count = summon_monster_aux(context->origin->player, context->cave,
             &context->origin->player->grid, summon_type, mlvl + level_boost, summon_max,
-            context->other);
+            context->other, NULL);
     }
 
     /* Identify */
@@ -7330,11 +7329,13 @@ static bool effect_handler_WAKE(effect_handler_context_t *context)
         if (mon->race)
         {
             int radius = z_info->max_sight * 2;
+            int dist = distance(&origin, &mon->grid);
 
             /* Skip monsters too far away */
-            if ((distance(&origin, &mon->grid) < radius) && mon->m_timed[MON_TMD_SLEEP])
+            if ((dist < radius) && mon->m_timed[MON_TMD_SLEEP])
             {
-                mon_clear_timed(context->origin->player, mon, MON_TMD_SLEEP, MON_TMD_FLG_NOMESSAGE);
+                /* Monster wakes, closer means likelier to become aware */
+                monster_wake(context->origin->player, mon, false, 100 - 2 * dist);
                 woken = true;
 
                 /* XXX */

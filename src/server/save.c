@@ -444,7 +444,7 @@ void wr_ignore(void *data)
 static void wr_race(struct monster_race *race)
 {
 #ifdef SAVE_AS_STRINGS
-    wr_string(race? race->name: "");
+    wr_string(race? race->name: "none");
 #else
     wr_u16b(race? race->ridx: 0);
 #endif
@@ -1070,6 +1070,7 @@ static void wr_monster(const struct monster *mon)
     struct object *obj = mon->held_obj;
 
     wr_race(mon->race);
+    wr_race(mon->original_race);
     wr_byte(mon->grid.y);
     wr_byte(mon->grid.x);
     wr_s16b(mon->wpos.grid.y);
@@ -1084,6 +1085,9 @@ static void wr_monster(const struct monster *mon)
     for (j = 0; j < MON_TMD_MAX; j++)
         wr_s16b(mon->m_timed[j]);
 
+    for (j = 0; j < MFLAG_SIZE; j++)
+        wr_byte(mon->mflag[j]);
+
     for (j = 0; j < OF_SIZE; j++)
         wr_byte(mon->known_pstate.flags[j]);
 
@@ -1091,7 +1095,6 @@ static void wr_monster(const struct monster *mon)
         wr_s16b(mon->known_pstate.el_info[j].res_level);
 
     /* Mimic stuff */
-    wr_byte(mon->camouflage);
     wr_s16b(mon->mimicked_k_idx);
     wr_u16b(mon->feat);
 
@@ -1129,6 +1132,12 @@ static void wr_monster(const struct monster *mon)
         obj = obj->next;
     }
     wr_dummy_item();
+
+    /* Write group info */
+    wr_u16b(mon->group_info[0].index);
+    wr_byte(mon->group_info[0].role);
+    wr_u16b(mon->group_info[1].index);
+    wr_byte(mon->group_info[1].role);
 }
 
 
@@ -1167,6 +1176,8 @@ void wr_monsters(void *unused)
     int i;
     struct loc grid;
     u32b tmp32u = 0;
+
+    wr_byte(MFLAG_SIZE);
 
     /* Get the number of levels to dump */
     for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)

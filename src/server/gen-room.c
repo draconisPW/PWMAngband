@@ -2482,6 +2482,7 @@ bool build_nest(struct player *p, struct chunk *c, struct loc *centre, int ratin
     int size_vary = randint0(4);
     int height = 9;
     int width = 11 + 2 * size_vary;
+    struct monster_group_info info = {0, 0};
     struct loc begin, end;
     struct loc_iterator iter;
 
@@ -2573,7 +2574,7 @@ bool build_nest(struct player *p, struct chunk *c, struct loc *centre, int ratin
         /* Figure out what monster is being used, and place that monster */
         struct monster_race *race = what[randint0(64)];
 
-        place_new_monster(p, c, &iter.cur, race, 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &iter.cur, race, 0, &info, ORIGIN_DROP_PIT);
 
         /* Occasionally place an item, making it good 1/3 of the time */
         if (magik(alloc_obj))
@@ -2631,6 +2632,8 @@ bool build_pit(struct player *p, struct chunk *c, struct loc *centre, int rating
     int alloc_obj;
     int height = 9;
     int width = 15;
+    int group_index = 0;
+    struct monster_group_info info = {0, 0};
     struct loc begin, end, grid;
     struct loc_iterator iter;
 
@@ -2730,80 +2733,88 @@ bool build_pit(struct player *p, struct chunk *c, struct loc *centre, int rating
     /* Increase the level rating */
     c->mon_rating += (3 + dun->pit_type->ave / 20);
 
+    /* Get a group ID */
+    group_index = monster_group_index_new(c);
+
+    /* Center monster */
+    info.index = group_index;
+    info.role = MON_GROUP_NONE;
+    place_new_monster(p, c, centre, what[7], 0, &info, ORIGIN_DROP_PIT);
+
+    /* Remaining monsters are servants */
+    info.role = MON_GROUP_SERVANT;
+
     /* Top and bottom rows (middle) */
     for (x = centre->x - 3; x <= centre->x + 3; x++)
     {
         loc_init(&grid, x, centre->y - 2);
-        place_new_monster(p, c, &grid, what[0], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[0], 0, &info, ORIGIN_DROP_PIT);
         loc_init(&grid, x, centre->y + 2);
-        place_new_monster(p, c, &grid, what[0], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[0], 0, &info, ORIGIN_DROP_PIT);
     }
 
     /* Corners */
     for (x = centre->x - 5; x <= centre->x - 4; x++)
     {
         loc_init(&grid, x, centre->y - 2);
-        place_new_monster(p, c, &grid, what[1], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[1], 0, &info, ORIGIN_DROP_PIT);
         loc_init(&grid, x, centre->y + 2);
-        place_new_monster(p, c, &grid, what[1], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[1], 0, &info, ORIGIN_DROP_PIT);
     }
 
     for (x = centre->x + 4; x <= centre->x + 5; x++)
     {
         loc_init(&grid, x, centre->y - 2);
-        place_new_monster(p, c, &grid, what[1], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[1], 0, &info, ORIGIN_DROP_PIT);
         loc_init(&grid, x, centre->y + 2);
-        place_new_monster(p, c, &grid, what[1], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[1], 0, &info, ORIGIN_DROP_PIT);
     }
 
     /* Middle columns */
     for (y = centre->y - 1; y <= centre->y + 1; y++)
     {
         loc_init(&grid, centre->x - 5, y);
-        place_new_monster(p, c, &grid, what[0], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[0], 0, &info, ORIGIN_DROP_PIT);
         loc_init(&grid, centre->x + 5, y);
-        place_new_monster(p, c, &grid, what[0], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[0], 0, &info, ORIGIN_DROP_PIT);
 
         loc_init(&grid, centre->x - 4, y);
-        place_new_monster(p, c, &grid, what[1], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[1], 0, &info, ORIGIN_DROP_PIT);
         loc_init(&grid, centre->x + 4, y);
-        place_new_monster(p, c, &grid, what[1], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[1], 0, &info, ORIGIN_DROP_PIT);
 
         loc_init(&grid, centre->x - 3, y);
-        place_new_monster(p, c, &grid, what[2], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[2], 0, &info, ORIGIN_DROP_PIT);
         loc_init(&grid, centre->x + 3, y);
-        place_new_monster(p, c, &grid, what[2], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[2], 0, &info, ORIGIN_DROP_PIT);
 
         loc_init(&grid, centre->x - 2, y);
-        place_new_monster(p, c, &grid, what[3], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[3], 0, &info, ORIGIN_DROP_PIT);
         loc_init(&grid, centre->x + 2, y);
-        place_new_monster(p, c, &grid, what[3], 0, ORIGIN_DROP_PIT);
+        place_new_monster(p, c, &grid, what[3], 0, &info, ORIGIN_DROP_PIT);
     }
 
     /* Corners around the middle monster */
     loc_init(&grid, centre->x - 1, centre->y - 1);
-    place_new_monster(p, c, &grid, what[4], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[4], 0, &info, ORIGIN_DROP_PIT);
     loc_init(&grid, centre->x + 1, centre->y - 1);
-    place_new_monster(p, c, &grid, what[4], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[4], 0, &info, ORIGIN_DROP_PIT);
     loc_init(&grid, centre->x - 1, centre->y + 1);
-    place_new_monster(p, c, &grid, what[4], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[4], 0, &info, ORIGIN_DROP_PIT);
     loc_init(&grid, centre->x + 1, centre->y + 1);
-    place_new_monster(p, c, &grid, what[4], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[4], 0, &info, ORIGIN_DROP_PIT);
 
     /* Above/Below the center monster */
     loc_init(&grid, centre->x, centre->y + 1);
-    place_new_monster(p, c, &grid, what[5], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[5], 0, &info, ORIGIN_DROP_PIT);
     loc_init(&grid, centre->x, centre->y - 1);
-    place_new_monster(p, c, &grid, what[5], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[5], 0, &info, ORIGIN_DROP_PIT);
 
     /* Next to the center monster */
     loc_init(&grid, centre->x + 1, centre->y);
-    place_new_monster(p, c, &grid, what[6], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[6], 0, &info, ORIGIN_DROP_PIT);
     loc_init(&grid, centre->x - 1, centre->y);
-    place_new_monster(p, c, &grid, what[6], 0, ORIGIN_DROP_PIT);
-
-    /* Center monster */
-    place_new_monster(p, c, centre, what[7], 0, ORIGIN_DROP_PIT);
+    place_new_monster(p, c, &grid, what[6], 0, &info, ORIGIN_DROP_PIT);
 
     /* Place some objects */
     for (grid.y = centre->y - 2; grid.y <= centre->y + 2; grid.y++)

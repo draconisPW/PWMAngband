@@ -30,7 +30,7 @@
 # spells: spell type | spell type | etc
 # drop: item type : item name : percent drop chance : min : max
 # drop-base: item type : percent drop chance : min : max
-# friends: chance of friend appearing : number in xdy format : name of friend
+# friends: chance of friend appearing : number in xdy format : name of friend : role
 # desc: Description
 # mimic: tval : sval
 # force-location: location (name or coordinates)
@@ -2071,7 +2071,7 @@ blow:HIT:HURT:1d8
 blow:HIT:HURT:1d8
 flags:UNIQUE | MALE
 flags:DROP_2 | DROP_GOOD | ONLY_ITEM
-friends:80:1d7:scruffy looking hobbit
+friends:80:1d7:scruffy looking hobbit:servant
 desc:He is a sturdy hobbit who is renowned for his unusual strength and vigour.
 desc: He can prove a troublesome opponent.
 
@@ -2808,11 +2808,11 @@ blow:HIT:HURT:1d10
 blow:HIT:HURT:1d10
 flags:UNIQUE | MALE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
-friends:100:1d10:small kobold
-friends:100:1d10:kobold
-friends:100:1d3:kobold shaman
-friends:100:1d5:kobold archer
-friends:100:1d5:large kobold
+friends:100:1d10:small kobold:servant
+friends:100:1d10:kobold:servant
+friends:100:1d3:kobold shaman:servant
+friends:100:1d5:kobold archer:servant
+friends:100:1d5:large kobold:bodyguard
 desc:Strong and powerful, for a kobold.
 
 name:crypt creep
@@ -2860,11 +2860,11 @@ flags:ONLY_ITEM | DROP_1 | DROP_GOOD
 spell-freq:6
 spell-power:7
 spells:CAUSE_1 | CONF | HEAL | MISSILE
-friends:100:1d10:small kobold
-friends:100:1d10:kobold
-friends:100:1d5:kobold shaman
-friends:100:1d3:kobold archer
-friends:100:1d5:large kobold
+friends:100:1d10:small kobold:servant
+friends:100:1d10:kobold:servant
+friends:100:1d5:kobold shaman:servant
+friends:100:1d3:kobold archer:servant
+friends:100:1d5:large kobold:bodyguard
 desc:Where Mughash is the strongest of his kind, his consort Vort is the wisest:
 desc: she is her tribe's chief shamaness.
 
@@ -2918,7 +2918,7 @@ blow:HIT:HURT:1d9
 flags:UNIQUE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 friends:80:2d7:wolf
-friends:100:5d4:snaga
+friends:100:5d4:snaga:servant
 desc:A captain of a regiment of weaker orcs, Lagduf keeps his troop in order
 desc: with displays of excessive violence.
 
@@ -3612,9 +3612,9 @@ spell-freq:4
 spell-power:10
 spells:BLINK | CONF | HEAL | SLOW | TELE_TO
 spells:S_MONSTER
-friends:100:2d5:brown yeek
-friends:100:2d5:blue yeek
-friends:50:1d3:master yeek
+friends:100:2d5:brown yeek:servant
+friends:100:2d5:blue yeek:servant
+friends:50:1d3:master yeek:servant
 desc:He's just like his daddy! He knows mighty spells, but fortunately he is a
 desc: yeek.
 
@@ -3676,9 +3676,9 @@ blow:HIT:HURT:1d12
 blow:HIT:HURT:1d10
 flags:UNIQUE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
-friends:50:2d5:snaga
+friends:50:2d5:snaga:servant
 friends:80:2d7:wolf
-friends:100:5d4:hill orc
+friends:100:5d4:hill orc:servant
 desc:He is a cunning and devious orc with a chaotic nature.
 
 name:giant white tick
@@ -4269,9 +4269,9 @@ blow:HIT:HURT:1d10
 flags:UNIQUE
 flags:DROP_2 | DROP_GOOD | ONLY_ITEM
 flags:IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
-friends:50:4d4:snaga
+friends:50:4d4:snaga:servant
 friends:80:2d7:warg
-friends:100:5d4:hill orc
+friends:100:5d4:hill orc:servant
 friends:100:1d1:Bullroarer the Hobbit
 friends:100:1d1:Grishnákh, the Hill Orc
 desc:A leader of a band of raiding orcs, he picks on hobbits.
@@ -4698,9 +4698,9 @@ spell-freq:3
 spell-power:13
 spells:BLIND | BLINK | HEAL | SLOW | TPORT
 spells:S_KIN | S_MONSTER
-friends:100:2d6:brown yeek
-friends:100:2d6:blue yeek
-friends:100:2d4:master yeek
+friends:100:2d6:brown yeek:servant
+friends:100:2d6:blue yeek:servant
+friends:100:2d4:master yeek:servant
 friends:100:1d1:Orfax, Son of Boldor
 desc:A great yeek, powerful in magic and sorcery, but a yeek all the same.
 
@@ -5630,7 +5630,7 @@ blow:HIT:HURT:3d5
 flags:UNIQUE | MALE | EVIL | HAS_LIGHT
 flags:DROP_60 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
-friends:60:1d3:Easterling warrior
+friends:60:1d3:Easterling warrior:servant
 desc:A short and swarthy Easterling.
 
 name:quasit
@@ -6079,9 +6079,9 @@ spells:ARROW_2
 drop-base:nature book:5:1:1
 friends:50:1d5:wolf
 friends:50:1d5:warg
-friends-base:50:1d5:orc
-friends-base:50:1d5:orc
-friends-base:50:1d5:orc
+friends-base:50:1d5:orc:servant
+friends-base:50:1d5:orc:servant
+friends-base:50:1d5:orc:servant
 desc:An armoured orc with an air of authority.
 
 name:fire spirit
@@ -6358,9 +6358,9 @@ blow:BITE:DISEASE:4d2
 flags:UNIQUE | PWMANG_BASE
 flags:BASH_DOOR
 flags:NO_CONF | NO_SLEEP | NO_HOLD
-friends-base:100:1d5:rodent
-friends-base:75:1d5:rodent
-friends-base:50:1d5:rodent
+friends-base:100:1d5:rodent:servant
+friends-base:75:1d5:rodent:servant
+friends-base:50:1d5:rodent:servant
 desc:A massive rat. He is the leader of the pack.
 
 ### Dungeon level 19 ###
@@ -6384,8 +6384,8 @@ blow:HIT:HURT:3d5
 blow:HIT:HURT:3d5
 flags:UNIQUE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
-friends:50:3d4:snaga
-friends:100:4d4:black orc
+friends:50:3d4:snaga:servant
+friends:100:4d4:black orc:servant
 desc:He is an orc of power and great cunning, leader of the garrison at Cirith
 desc: Ungol.
 
@@ -6408,8 +6408,8 @@ blow:HIT:HURT:3d5
 blow:HIT:HURT:3d5
 flags:UNIQUE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
-friends:50:3d4:snaga
-friends:100:4d4:black orc
+friends:50:3d4:snaga:servant
+friends:100:4d4:black orc:servant
 desc:He is an orc of power and great cunning, leader of the garrison at Minas
 desc: Morgul.
 
@@ -6523,9 +6523,9 @@ blow:HIT:HURT:3d6
 blow:HIT:HURT:3d6
 flags:UNIQUE
 flags:DROP_2 | DROP_GOOD | ONLY_ITEM
-friends:50:3d4:half-orc
+friends:50:3d4:half-orc:servant
 friends:80:2d7:warg
-friends:100:4d4:uruk
+friends:100:4d4:uruk:bodyguard
 desc:A large and powerful orc, he looks just like his father. He is tall and
 desc: fast, but fortunately blessed with orcish brains.
 
@@ -6792,10 +6792,10 @@ spell-power:20
 spells:BLIND | CONF | DARKNESS | HASTE
 spells:BO_COLD | BO_FIRE
 drop-base:magic book:5:1:1
-friends:80:1d3:dark elf
-friends:70:1d2:dark elven warrior
-friends:50:1d1:dark elven mage
-friends:50:1d1:dark elven priest
+friends:80:1d3:dark elf:servant
+friends:70:1d2:dark elven warrior:servant
+friends:50:1d1:dark elven mage:servant
+friends:50:1d1:dark elven priest:servant
 desc:A dark elven figure in armour and radiating evil power.
 
 name:ranger
@@ -6879,7 +6879,7 @@ flags:MALE | EVIL | PWMANG_BASE | HAS_LIGHT
 flags:DROP_40 | DROP_1 | DROP_CORPSE
 flags:IM_ACID | IM_POIS | IM_WATER
 flags:WILD_SHORE
-friends:80:1d3:lizard man
+friends:80:1d3:lizard man:servant
 desc:A lizard-man leader.
 
 name:great eagle
@@ -6974,9 +6974,9 @@ spell-freq:5
 spell-power:20
 spells:BLIND | CONF | DRAIN_MANA | SCARE
 spells:S_KIN
-friends-base:100:1d5:icky thing
-friends-base:75:1d5:icky thing
-friends-base:50:1d5:icky thing
+friends-base:100:1d5:icky thing:servant
+friends-base:75:1d5:icky thing:servant
+friends-base:50:1d5:icky thing:servant
 desc:And you thought her offspring were icky!
 
 name:gold dragon worm
@@ -7157,10 +7157,10 @@ blow:HIT:HURT:3d5
 blow:HIT:HURT:3d5
 flags:UNIQUE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
-friends:50:3d4:half-orc
+friends:50:3d4:half-orc:servant
 friends:80:2d7:warg
 friends:50:1d3:orc captain
-friends:100:4d4:uruk
+friends:100:4d4:uruk:servant
 desc:A large and powerful orc, captain of one of Saruman's orcish regiments.
 
 name:blue dragon bat
@@ -7395,11 +7395,11 @@ blow:HIT:HURT:3d5
 flags:UNIQUE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
-friends:50:2d4:half-orc
+friends:50:2d4:half-orc:servant
 friends:80:2d5:warg
-friends:100:4d4:uruk
-friends:80:1d3:orc captain
-friends:100:1d1:Lugdush, the Uruk
+friends:100:4d4:uruk:bodyguard
+friends:80:1d3:orc captain:servant
+friends:100:1d1:Lugdush, the Uruk:servant
 desc:A strong and cunning orc warrior, the commander of Saruman's orcish horde.
 
 name:killer stag beetle
@@ -7589,10 +7589,10 @@ blow:HIT:HURT:5d5
 flags:UNIQUE | PWMANG_FIXED
 flags:DROP_2 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:FORCE_DEPTH
-friends:50:3d4:half-orc
+friends:50:3d4:half-orc:servant
 friends:80:2d7:warg
-friends:100:4d4:uruk
-friends:50:1d3:orc captain
+friends:100:4d4:uruk:bodyguard
+friends:50:1d3:orc captain:servant
 friends:100:1d1:Bolg, Son of Azog
 desc:He is also known as the King of Khazad-dûm. His ego is renowned to be
 desc: bigger than his head.
@@ -8352,7 +8352,7 @@ blow:HIT:HURT:4d6
 flags:UNIQUE | MALE | EVIL | HAS_LIGHT
 flags:DROP_60 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
-friends:60:2d3:Easterling champion
+friends:60:2d3:Easterling champion:servant
 friends:100:1d1:Ulfast, Son of Ulfang
 desc:A short and swarthy Easterling.
 
@@ -8516,10 +8516,10 @@ flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
 spell-power:26
 spells:DARKNESS
-friends:100:2d4:wolf
-friends:60:2d4:white wolf
-friends:60:2d4:warg
-friends:60:1d4:werewolf
+friends:100:2d4:wolf:servant
+friends:60:2d4:white wolf:servant
+friends:60:2d4:warg:servant
+friends:60:1d4:werewolf:servant
 desc:A great wolf-chieftain whose pack is in the service of the Dark Lord, and
 desc: whose howls strike fear into even the boldest heart.
 
@@ -8570,9 +8570,9 @@ spell-power:26
 spells:CAUSE_3 | DARKNESS | SCARE | SLOW | TRAPS
 spells:ANIM_DEAD
 spells:S_KIN | S_UNDEAD
-friends-base:100:1d5:zombie
-friends-base:75:1d5:zombie
-friends-base:50:1d5:zombie
+friends-base:100:1d5:zombie:servant
+friends-base:75:1d5:zombie:servant
+friends-base:50:1d5:zombie:servant
 desc:He is out to have revenge on those who have desecrated his tomb.
 
 ### Dungeon level 27 ###
@@ -9194,9 +9194,10 @@ spell-power:28
 spells:BLIND | BLINK | CONF | SCARE | TELE_AWAY | TELE_LEVEL
 spells:TELE_TO | TPORT
 spells:S_KIN
-friends-base:50:1d3:minor demon
-friends-base:50:1d3:minor demon
-friends-base:50:1d3:minor demon
+friends-base:50:1d3:minor demon:servant
+friends-base:50:1d3:minor demon:servant
+friends-base:50:1d3:minor demon:servant
+friends:100:2d4:imp:servant
 desc:An intensely irritating git of a monster.
 
 name:basilisk
@@ -9930,11 +9931,11 @@ flags:DROP_60 | ONLY_ITEM
 flags:MOVE_BODY
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
-friends:50:2d4:ogre
-friends:100:2d4:black ogre
-friends:100:2d4:cave ogre
-friends:50:1d2:ogre mage
-friends:50:1d2:ogre shaman
+friends:50:2d4:ogre:servant
+friends:100:2d4:black ogre:servant
+friends:100:2d4:cave ogre:servant
+friends:50:1d2:ogre mage:servant
+friends:50:1d2:ogre shaman:servant
 desc:This ogre is leader of his tribe. He sneers at you as he advances towards
 desc: you, wielding a huge club and pushing his own followers rudely aside.
 
@@ -10013,9 +10014,9 @@ spell-freq:2
 spell-power:30
 spells:BR_POIS
 spells:S_KIN
-friends-base:100:1d5:sandworm
-friends-base:75:1d5:dragon worm
-friends-base:50:1d5:dragon worm
+friends-base:100:1d5:sandworm:servant
+friends-base:75:1d5:dragon worm:servant
+friends-base:50:1d5:dragon worm:servant
 desc:Queen and Mother of the sandworms, fear her and her prolific children.
 force-location:The Sandworm Lair
 
@@ -10281,12 +10282,12 @@ blow:HIT:HURT:6d6
 blow:HIT:HURT:6d6
 flags:UNIQUE | MALE
 flags:DROP_2 | DROP_GOOD | ONLY_ITEM
-friends:100:3d3:ogre
-friends:100:3d3:black ogre
-friends:100:3d3:cave ogre
-friends:80:1d2:ogre mage
-friends:80:1d2:ogre shaman
-friends:50:1d2:ogre chieftain
+friends:100:3d3:ogre:servant
+friends:100:3d3:black ogre:servant
+friends:100:3d3:cave ogre:bodyguard
+friends:80:1d2:ogre mage:servant
+friends:80:1d2:ogre shaman:servant
+friends:50:1d2:ogre chieftain:servant
 desc:An ogre renowned for acts of surpassing cruelty, Lokkak quickly became the
 desc: leader of a large band of violent ogres.
 
@@ -10430,11 +10431,11 @@ spell-power:32
 spells:DARKNESS | HOLD | SCARE
 spells:ANIM_DEAD
 spells:S_UNDEAD
-friends-base:30:1d5:zombie
-friends-base:50:1d5:zombie
-friends-base:70:1d5:zombie
-friends:100:4d4:ghoul
-friends:50:1d2:ghast
+friends-base:30:1d5:zombie:servant
+friends-base:50:1d5:zombie:servant
+friends-base:70:1d5:zombie:servant
+friends:100:4d4:ghoul:servant
+friends:50:1d2:ghast:servant
 desc:Flesh is falling off in chunks from this decaying abomination.
 
 name:young balance drake
@@ -10683,9 +10684,9 @@ flags:IM_COLD | IM_POIS
 spell-freq:7
 spell-power:33
 spells:BOULDER
-friends-base:100:1d5:giant
-friends-base:75:1d5:giant
-friends-base:50:1d5:giant
+friends-base:100:1d5:giant:servant
+friends-base:75:1d5:giant:servant
+friends-base:50:1d5:giant:servant
 desc:Big, brawny, powerful and with a greed for gold.
 
 name:young power dragon
@@ -10959,7 +10960,7 @@ spell-freq:10
 spell-power:34
 spells:S_KIN
 friends:60:1d3:mûmak
-friends:100:3d3:Easterling champion
+friends:100:3d3:Easterling champion:bodyguard
 friends:100:1d1:Ulfast, Son of Ulfang
 friends:100:1d1:Ulwarth, Son of Ulfang
 desc:A short and swarthy Easterling dressed in black. He and his three sons once
@@ -12183,7 +12184,7 @@ spell-power:36
 spells:TELE_TO
 spells:S_MONSTERS
 friends:50:1d3:mûmak
-friends:100:2d5:Easterling champion
+friends:100:2d5:Easterling champion:bodyguard
 desc:A mighty warrior from the east, Lorgan hates everything that he cannot
 desc: control.
 
@@ -12213,8 +12214,8 @@ spells:HOLD | TPORT
 spells:BO_FIRE
 spells:S_DEMON
 drop-base:magic book:8:1:1
-friends-base:50:1d3:minor demon
-friends:100:1d1:quasit
+friends-base:50:1d3:minor demon:servant
+friends:100:1d1:quasit:servant
 desc:A figure twisted by evil standing in robes of deepest crimson.
 
 name:greater mummy
@@ -12247,9 +12248,9 @@ spells:BA_COLD | BA_POIS
 spells:BO_NETH
 spells:S_UNDEAD
 spells:ANIM_DEAD
-friends:100:2d3:mummified orc
-friends:100:2d3:mummified human
-friends:100:2d3:mummified troll
+friends:100:2d3:mummified orc:servant
+friends:100:2d3:mummified human:servant
+friends:100:2d3:mummified troll:servant
 desc:Once a powerful ruler, now an even more powerful undead menace.
 
 name:gauth
@@ -12514,12 +12515,12 @@ flags:FORCE_SLEEP
 spell-freq:2
 spell-power:37
 spells:S_KIN
-friends:100:2d6:soldier ant
-friends:60:2d3:giant silver ant
-friends:60:2d3:giant grey ant
-friends:60:2d3:giant blue ant
-friends:60:2d3:giant fire ant
-friends:100:3d3:giant army ant
+friends:100:2d6:soldier ant:servant
+friends:60:2d3:giant silver ant:servant
+friends:60:2d3:giant grey ant:servant
+friends:60:2d3:giant blue ant:servant
+friends:60:2d3:giant fire ant:servant
+friends:100:3d3:giant army ant:bodyguard
 desc:She's upset because you hurt her children.
 
 name:magma elemental
@@ -13511,8 +13512,8 @@ spell-power:40
 spells:BLIND
 spells:S_DRAGON
 drop-base:magic book:8:1:1
-friends-base:30:1d1:dragon
-friends-base:60:1d1:dragon
+friends-base:30:1d1:dragon:servant
+friends-base:60:1d1:dragon:servant
 desc:This elusive female spellcaster has a special affinity for dragons, whom
 desc: she rarely fights without.
 
@@ -13781,13 +13782,13 @@ flags:DROP_1
 flags:MOVE_BODY | TAKE_ITEM
 flags:NO_FEAR
 flags:DROP_CORPSE | DROP_SKELETON
-friends:60:2d3:forest troll
-friends:60:2d3:stone troll
-friends:60:2d3:ice troll
-friends:60:2d3:water troll
-friends:60:2d3:half-troll
-friends:60:2d3:cave troll
-friends:60:2d3:olog
+friends:60:2d3:forest troll:servant
+friends:60:2d3:stone troll:servant
+friends:60:2d3:ice troll:servant
+friends:60:2d3:water troll:servant
+friends:60:2d3:half-troll:servant
+friends:60:2d3:cave troll:servant
+friends:60:2d3:olog:servant
 desc:This troll's great strength and size have won it the place of chieftain of
 desc: its tribe. It fears nothing.
 
@@ -14165,8 +14166,8 @@ spell-power:41
 spells:BLIND | BLINK | CAUSE_3 | CAUSE_4 | CONF | BRAIN_SMASH
 spells:DRAIN_MANA | HOLD | SCARE | TELE_TO
 spells:S_UNDEAD
-friends-base:80:1d3:zombie
-friends-base:80:1d3:skeleton
+friends-base:80:1d3:zombie:servant
+friends-base:80:1d3:skeleton:servant
 desc:A skeletal form wrapped in robes. Powerful magic crackles along its bony
 desc: fingers.
 
@@ -14339,11 +14340,11 @@ flags:IM_COLD
 spell-freq:7
 spell-power:42
 spells:BOULDER
-friends:60:2d3:half-troll
-friends:60:2d3:cave troll
-friends:40:2d3:olog
-friends:30:1d2:eldrak
-friends:100:4d4:water troll
+friends:60:2d3:half-troll:servant
+friends:60:2d3:cave troll:servant
+friends:40:2d3:olog:servant
+friends:30:1d2:eldrak:servant
+friends:100:4d4:water troll:bodyguard
 desc:A massive and cruel troll of great power, drool slides caustically down his
 desc: muscular frame. Despite his bulk, he strikes with stunning speed.
 
@@ -14370,7 +14371,7 @@ spell-power:42
 spells:BLIND | BRAIN_SMASH | CAUSE_3 | CAUSE_4 | DARKNESS | DRAIN_MANA
 spells:BO_NETH
 spells:HOLD | SCARE
-friends:40:1d4:vampire
+friends:40:1d4:vampire:servant
 desc:A foul wind chills your bones as this ghastly figure approaches.
 
 name:iron lich
@@ -15681,8 +15682,8 @@ spells:CAUSE_3 | DRAIN_MANA | HEAL | HOLD | MIND_BLAST | SLOW
 spells:BA_FIRE
 spells:BO_FIRE
 spells:S_KIN | S_SPIDER
-friends:50:3d3:Mirkwood spider
-friends:100:4d4:aranea
+friends:50:3d3:Mirkwood spider:servant
+friends:100:4d4:aranea:servant
 desc:A vast, bloated arachnid, master of its brood: among the more terrible of
 desc: Ungoliant's descendants, this is a monster such as those who haunted the
 desc: dread valley of Nan Dungortheb long ago.
@@ -15867,8 +15868,8 @@ spell-power:50
 spells:CONF | SCARE
 spells:BR_FIRE
 spells:S_DEMON | S_UNDEAD
-friends:100:4d4:cave orc
-friends:100:3d4:cave troll
+friends:100:4d4:cave orc:servant
+friends:100:3d4:cave troll:servant
 desc:A huge Balrog surrounded by raging pillars of fire, this is indeed a
 desc: terrible opponent. Wielding a great whip of fire and a blazing sword, his
 desc: fury blisters your skin and melts your flesh!
@@ -17023,7 +17024,7 @@ spells:BA_ACID | BA_COLD | BA_FIRE | BA_WATE
 spells:BO_ICEE
 spells:S_ANIMAL | S_DEMON | S_HI_DRAGON | S_MONSTERS | S_UNDEAD
 spells:ANIM_DEAD
-friends:100:1d1:Wormtongue, Agent of Saruman
+friends:100:1d1:Wormtongue, Agent of Saruman:servant
 desc:Originally known as the White, Saruman fell prey to Sauron's wiles. He
 desc: seeks to emulate him and breeds orcs and trolls to fight for him. He
 desc: searches forever for the One Ring, to become a mighty Sorcerer-King of the
@@ -17256,7 +17257,7 @@ spells:TELE_TO | TPORT
 spells:BA_NETH
 spells:S_UNDEAD
 spells:ANIM_DEAD
-friends:50:2d3:dread
+friends:50:2d3:dread:servant
 desc:It is a massive form of animated death, its colour deeper than black. It
 desc: drinks in light, and space around it is twisted and torn by the weight of
 desc: its evil. It is unlife and it knows nothing but the stealing of souls and
@@ -17606,9 +17607,9 @@ spell-freq:3
 spell-power:66
 spells:TELE_TO
 spells:S_KIN
-friends:100:2d4:tiger
-friends:100:2d4:sabre-tooth tiger
-friends:100:2d4:displacer beast
+friends:100:2d4:tiger:servant
+friends:100:2d4:sabre-tooth tiger:servant
+friends:100:2d4:displacer beast:servant
 desc:Master of all things feline, the Cat Lord moves with unsurpassed stealth.
 
 ### Dungeon level 67 ###
@@ -18702,12 +18703,12 @@ spells:BA_MANA | BA_NETH
 spells:BO_MANA
 spells:S_KIN | S_MONSTERS | S_UNDEAD
 spells:ANIM_DEAD
-friends:100:2d4:dread
-friends:40:1d2:dreadmaster
-friends:10:1d2:dreadlord
-friends:100:1d4:lich
-friends:40:1d2:master lich
-friends:10:1d2:archlich
+friends:100:2d4:dread:servant
+friends:40:1d2:dreadmaster:servant
+friends:10:1d2:dreadlord:servant
+friends:100:1d4:lich:servant
+friends:40:1d2:master lich:servant
+friends:10:1d2:archlich:servant
 desc:A stench of corruption and decay surrounds this sorcerer, who has clearly
 desc: risen from the dead to continue his foul plots and schemes.
 force-location:The Paths of the Dead
@@ -18989,7 +18990,7 @@ spells:MIND_BLAST
 spells:BA_ELEC
 spells:BO_ELEC | BO_MANA
 spells:S_HI_DEMON
-friends:100:2d3:giant roc
+friends:100:2d3:giant roc:servant
 desc:A winged humanoid demon from the Planes of Hell, Pazuzu grins inhumanely at
 desc: you as he decides your fate.
 
@@ -19055,8 +19056,8 @@ spell-freq:3
 spell-power:83
 spells:SCARE
 spells:S_HOUND | S_MONSTERS
-friends:100:3d5:werewolf
-friends:100:2d4:wolf chieftain
+friends:100:3d5:werewolf:servant
+friends:100:2d4:wolf chieftain:servant
 desc:Draugluin provides Sauron with a fearsome personal guard. He is an enormous
 desc: wolf inhabited with a human spirit. He is chief of all his kind.
 
@@ -19186,9 +19187,9 @@ spell-power:85
 spells:BLIND | CONF | SCARE
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 spells:S_HI_DRAGON
-friends-base:100:1d5:ancient dragon
-friends-base:75:1d5:ancient dragon
-friends-base:50:1d5:ancient dragon
+friends-base:100:1d5:ancient dragon:servant
+friends-base:75:1d5:ancient dragon:servant
+friends-base:50:1d5:ancient dragon:servant
 desc:Usually found guarding the first plane of Hell, Tiamat is a formidable
 desc: opponent, her five heads breathing death to all who stand against her.
 
@@ -19251,12 +19252,12 @@ spell-power:87
 spells:HEAL | TELE_TO | BOULDER
 spells:BR_COLD | BR_FIRE | BR_SHAR | BR_SOUN
 spells:S_KIN | S_MONSTERS
-friends:50:1d4:cloud giant
-friends:50:1d4:storm giant
-friends:50:1d3:lesser titan
-friends:50:1d2:greater titan
-friends:100:1d1:Polyphemus, the Blind Cyclops
-friends:100:1d1:Atlas, the Titan
+friends:50:1d4:cloud giant:servant
+friends:50:1d4:storm giant:servant
+friends:50:1d3:lesser titan:servant
+friends:50:1d2:greater titan:servant
+friends:100:1d1:Polyphemus, the Blind Cyclops:servant
+friends:100:1d1:Atlas, the Titan:servant
 desc:The lord of the Titans, he has broken loose from his confinement in the
 desc: nether hells to seek revenge on the world.
 
@@ -19374,8 +19375,8 @@ spell-power:88
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE | BR_PLAS
 spells:S_HI_DEMON | S_UNDEAD
-friends:100:1d3:lesser Balrog
-friends:50:1d2:greater Balrog
+friends:100:1d3:lesser Balrog:servant
+friends:50:1d2:greater Balrog:servant
 desc:A massive form cloaked in flame. Lungorthin stares balefully at you with
 desc: eyes that smoulder red. The dungeon floor where he stands is scorched by
 desc: the heat of his body.
@@ -19729,16 +19730,16 @@ spells:BA_FIRE | BA_MANA | BA_NETH
 spells:BO_MANA
 spells:S_HI_DEMON | S_HI_UNDEAD | S_KIN | S_MONSTERS
 spells:ANIM_DEAD
-friends:50:1d3:greater mummy
-friends:50:1d3:skeleton ettin
-friends:50:1d3:night mare
-friends:30:1d2:dreadlord
-friends:40:1d2:archlich
-friends:30:1d2:nightwing
-friends:30:1d2:nightcrawler
-friends:20:1d2:nightwalker
-friends:20:1d2:bone golem
-friends:20:1d2:black reaver
+friends:50:1d3:greater mummy:servant
+friends:50:1d3:skeleton ettin:servant
+friends:50:1d3:night mare:servant
+friends:30:1d2:dreadlord:servant
+friends:40:1d2:archlich:servant
+friends:30:1d2:nightwing:servant
+friends:30:1d2:nightcrawler:servant
+friends:20:1d2:nightwalker:servant
+friends:20:1d2:bone golem:servant
+friends:20:1d2:black reaver:servant
 desc:The greatest of all undead sorcerers, even the gods once feared him. This
 desc: ancient shadow of death wilts every living thing it passes.
 
@@ -19833,12 +19834,12 @@ spell-power:95
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE | BR_PLAS
 spells:S_HI_DEMON | S_HI_UNDEAD
-friends:100:1d5:lesser Balrog
-friends:30:1d3:osyluth
-friends:30:1d3:gelugon
-friends:30:1d3:pit fiend
-friends:100:1d2:greater Balrog
-friends:100:1d1:Lungorthin, the Balrog of White Fire
+friends:100:1d5:lesser Balrog:servant
+friends:30:1d3:osyluth:servant
+friends:30:1d3:gelugon:servant
+friends:30:1d3:pit fiend:servant
+friends:100:1d2:greater Balrog:bodyguard
+friends:100:1d1:Lungorthin, the Balrog of White Fire:servant
 desc:Gothmog is the Chief Balrog in Morgoth's personal guard. He is renowned for
 desc: slaying Fëanor and Fingon, two of the High Kings of the Noldor Elves, and
 desc: has never been defeated in combat. With his whip of flame and awesome
@@ -20001,8 +20002,8 @@ spells:BA_DARK | BA_FIRE | BA_MANA | BA_NETH | BA_WATE
 spells:BO_ICEE | BO_MANA | BO_PLAS
 spells:S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_MONSTERS | S_UNIQUE | S_WRAITH
 spells:ANIM_DEAD
-friends:100:1d1:Khamûl, the Black Easterling
-friends:100:1d1:The Witch-King of Angmar
+friends:100:1d1:Khamûl, the Black Easterling:servant
+friends:100:1d1:The Witch-King of Angmar:servant
 desc:He is Morgoth's most powerful servant. Mighty in spells and enchantments,
 desc: he created the One Ring. His eyes glow with power and his gaze seeks to
 desc: destroy your soul. He has many servants, and rarely fights without them.

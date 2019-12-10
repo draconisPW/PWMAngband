@@ -419,6 +419,7 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
     struct monster_race *race = NULL;
     struct chunk *c = context->cave;
     struct loc grid;
+    struct monster_group_info info = {0, 0};
 
     /* Raise dead prohibited in towns and special levels */
     if (forbid_special(&c->wpos)) return;
@@ -512,7 +513,7 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
     if (!summon_location(c, &grid, &context->grid, 60)) return;
 
     /* Place a new monster */
-    if (place_new_monster(context->origin->player, c, &grid, race, 0, ORIGIN_DROP_SUMMON))
+    if (place_new_monster(context->origin->player, c, &grid, race, 0, &info, ORIGIN_DROP_SUMMON))
     {
         context->do_kill = true;
 

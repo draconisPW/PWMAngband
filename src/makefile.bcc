@@ -132,6 +132,7 @@ SERV_SRCS = \
   server\mon-attack.c \
   server\mon-blows.c \
   server\mon-desc.c \
+  server\mon-group.c \
   server\mon-init.c \
   server\mon-list.c \
   server\mon-list-ui.c \
@@ -258,6 +259,7 @@ SERV_OBJS = \
   server\mon-attack.obj \
   server\mon-blows.obj \
   server\mon-desc.obj \
+  server\mon-group.obj \
   server\mon-init.obj \
   server\mon-list.obj \
   server\mon-list-ui.obj \

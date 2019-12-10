@@ -40,6 +40,7 @@
 #include "mon-attack.h"
 #include "mon-blows.h"
 #include "mon-desc.h"
+#include "mon-group.h"
 #include "mon-init.h"
 #include "mon-list.h"
 #include "mon-list-ui.h"
