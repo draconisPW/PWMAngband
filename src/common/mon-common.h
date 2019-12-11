@@ -145,7 +145,7 @@ struct monster_drop
 
 enum monster_group_role
 {
-    MON_GROUP_NONE,
+    MON_GROUP_LEADER,
     MON_GROUP_SERVANT,
     MON_GROUP_BODYGUARD,
     MON_GROUP_MEMBER,
@@ -186,6 +186,13 @@ struct monster_group_info
 {
     int index;
     enum monster_group_role role;
+};
+
+enum monster_group_type
+{
+    PRIMARY_GROUP,
+    SUMMON_GROUP,
+    GROUP_MAX
 };
 
 /*
@@ -295,7 +302,7 @@ struct monster
     byte attr;                              /* "attr" last used for drawing monster */
     struct player_state known_pstate;       /* Known player state */
     struct target target;                   /* Monster target (transient) */
-    struct monster_group_info group_info[2];    /* Monster group details */
+    struct monster_group_info group_info[GROUP_MAX];    /* Monster group details */
     byte min_range;                         /* Minimum combat range (transient) */
     byte best_range;                        /* How close we want to be (transient) */
 

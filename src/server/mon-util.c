@@ -1282,7 +1282,8 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
 /*
  * See how a monster reacts to damage
  */
-static void monster_scared_by_damage(struct player *p, struct monster *mon, int dam, bool *fear)
+static void monster_scared_by_damage(struct player *p, struct chunk *c, struct monster *mon,
+    int dam, bool *fear)
 {
     /* Pain can reduce or cancel existing fear, or cause fear */
     if (!(*fear) && mon->m_timed[MON_TMD_FEAR] && (dam > 0))
@@ -1306,7 +1307,7 @@ static void monster_scared_by_damage(struct player *p, struct monster *mon, int 
     }
 
     /* Sometimes a monster gets scared by damage */
-    if (!mon->m_timed[MON_TMD_FEAR] && !rf_has(mon->race->flags, RF_NO_FEAR))
+    if (monster_can_be_scared(c, mon))
     {
         int percentage;
 
@@ -1378,7 +1379,7 @@ bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int da
     }
 
     /* Did it get frightened? */
-    monster_scared_by_damage(p, mon, dam, fear);
+    monster_scared_by_damage(p, c, mon, dam, fear);
 
     /* Not dead yet */
     return false;

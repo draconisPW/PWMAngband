@@ -1534,13 +1534,13 @@ static bool rd_monster_aux(struct chunk *c, struct monster *mon, rd_item_t rd_it
 
     /* Read group info */
     rd_u16b(&tmp16u);
-    mon->group_info[0].index = tmp16u;
+    mon->group_info[PRIMARY_GROUP].index = tmp16u;
     rd_byte(&tmp8u);
-    mon->group_info[0].role = tmp8u;
+    mon->group_info[PRIMARY_GROUP].role = tmp8u;
     rd_u16b(&tmp16u);
-    mon->group_info[1].index = tmp16u;
+    mon->group_info[SUMMON_GROUP].index = tmp16u;
     rd_byte(&tmp8u);
-    mon->group_info[1].role = tmp8u;
+    mon->group_info[SUMMON_GROUP].role = tmp8u;
 
     return true;
 }

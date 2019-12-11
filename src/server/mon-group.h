@@ -29,8 +29,9 @@ extern int monster_group_index(struct monster_group *group);
 extern struct monster_group *monster_group_by_index(struct chunk *c, int index);
 extern bool monster_group_change_index(struct chunk *c, int new_index, int old_index);
 extern struct monster_group *summon_group(struct chunk *c, struct monster *mon);
-extern void monster_group_rouse(struct chunk *c, struct monster *mon);
+extern void monster_group_rouse(struct player *p, struct chunk *c, struct monster *mon);
+extern int monster_primary_group_size(struct chunk *c, const struct monster *mon);
 extern int monster_group_leader_idx(struct monster_group *group);
-extern struct monster *monster_group_leader(struct chunk *c, struct monster_group *group);
+extern struct monster *monster_group_leader(struct chunk *c, struct monster *mon);
 
 #endif /* MON_GROUP_H */

@@ -177,6 +177,37 @@ bool monster_is_mimicking(const struct monster *mon)
 
 
 /*
+ * Monster can be frightened
+ *
+ * Note that differing group roles imply a chance of avoiding fear:
+ * - bodyguards are fearless
+ * - servants have a one in 3 chance
+ * - others have a chance depending on the size of the group
+ */
+bool monster_can_be_scared(struct chunk *c, const struct monster *mon)
+{
+    if (mon->m_timed[MON_TMD_FEAR] || rf_has(mon->race->flags, RF_NO_FEAR)) return false;
+
+    switch (mon->group_info[PRIMARY_GROUP].role)
+    {
+        case MON_GROUP_BODYGUARD: return false;
+        case MON_GROUP_SERVANT:	return (one_in_(3)? false: true);
+        default:
+        {
+            int count = monster_primary_group_size(c, mon) - 1;
+
+            while (count--)
+            {
+                if (one_in_(20)) return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
+/*
  * Monster is invisible
  */
 bool monster_is_invisible(const struct monster *mon)

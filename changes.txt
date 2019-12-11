@@ -10,6 +10,7 @@ Monsters
 
 Game Mechanics
 - Monsters can whip or spit on the player from nearby
+- Monster groups act more as a group, with leaders and sometimes bodyguards
 
 Code Improvements
 -

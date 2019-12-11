@@ -459,13 +459,18 @@ void wipe_mon_list(struct chunk *c)
             if (p->id == mon->master) p->slaves--;
         }
 
-        /* Monster is gone from square and group */
+        /* Monster is gone from square */
         square_set_mon(c, &mon->grid, 0);
-        monster_remove_from_groups(c, mon);
 
         /* Wipe the Monster */
         mem_free(mon->blow);
         memset(mon, 0, sizeof(struct monster));
+    }
+
+    /* Delete all the monster groups */
+    for (i = 1; i < z_info->level_monster_max; i++)
+    {
+        if (c->monster_groups[i]) monster_group_free(c->monster_groups[i]);
     }
 
     /* Reset "cave->mon_max" */
@@ -1359,7 +1364,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
     my_assert(square_monster(c, &mon->grid) == new_mon);
 
     /* Assign monster to its monster group, creating the group if necessary */
-    group = monster_group_by_index(c, new_mon->group_info[0].index);
+    group = monster_group_by_index(c, new_mon->group_info[PRIMARY_GROUP].index);
     if (group) monster_add_to_group(new_mon, group);
     else monster_group_start(c, new_mon, 0);
 
@@ -1589,8 +1594,8 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
     if (mon_flag & MON_CLONE) mon->clone = 1;
 
     /* Set the group info */
-    mon->group_info[0].index = group_info->index;
-    mon->group_info[0].role = group_info->role;
+    mon->group_info[PRIMARY_GROUP].index = group_info->index;
+    mon->group_info[PRIMARY_GROUP].role = group_info->role;
 
     /* Place the monster in the dungeon */
     loc_copy(&mon->old_grid, grid);
