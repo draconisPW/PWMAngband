@@ -1606,6 +1606,23 @@ static enum parser_error parse_monster_mimic(struct parser *p)
 }
 
 
+static enum parser_error parse_monster_shape(struct parser *p)
+{
+    struct monster_race *r = parser_priv(p);
+    struct monster_shape *s;
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    s = mem_zalloc(sizeof(*s));
+    s->name = string_make(parser_getstr(p, "name"));
+    s->base = lookup_monster_base(s->name);
+    s->next = r->shapes;
+    r->shapes = s;
+    r->num_shapes++;
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_monster_plural(struct parser *p)
 {
     struct monster_race *r = parser_priv(p);
@@ -1670,6 +1687,7 @@ static struct parser *init_parse_monster(void)
     parser_reg(p, "friends-base uint chance rand number sym name ?sym role",
         parse_monster_friends_base);
     parser_reg(p, "mimic sym tval sym sval", parse_monster_mimic);
+    parser_reg(p, "shape str name", parse_monster_shape);
     parser_reg(p, "force-location str location", parse_monster_location);
 
     return p;
@@ -1734,11 +1752,12 @@ static errr finish_parse_monster(struct parser *p)
         mem_free(r);
     }
 
-    /* Convert friend names into race pointers */
+    /* Convert friend and shape names into race pointers */
     for (i = 0; i < (size_t)z_info->r_max; i++)
     {
         struct monster_race *race = &r_info[i];
         struct monster_friends *f;
+        struct monster_shape *s;
 
         for (f = race->friends; f; f = f->next)
         {
@@ -1751,6 +1770,16 @@ static errr finish_parse_monster(struct parser *p)
                 quit_fmt("Couldn't find friend named '%s' for monster '%s'", f->name, race->name);
 
             string_free(f->name);
+        }
+        for (s = race->shapes; s; s = s->next)
+        {
+            if (!s->base)
+            {
+                s->race = lookup_monster(s->name);
+                if (!s->race)
+                    quit_fmt("Couldn't find shape named '%s' for monster '%s'", s->name, race->name);
+            }
+            string_free(s->name);
         }
     }
 
@@ -1782,6 +1811,7 @@ static void cleanup_monster(void)
         struct monster_friends *f = NULL;
         struct monster_friends_base *fb = NULL;
         struct monster_mimic *m = NULL;
+        struct monster_shape *s;
 
         d = r->drops;
         while (d)
@@ -1814,6 +1844,14 @@ static void cleanup_monster(void)
 
             mem_free(m);
             m = mn;
+        }
+        s = r->shapes;
+        while (s)
+        {
+            struct monster_shape *sn = s->next;
+
+            mem_free(s);
+            s = sn;
         }
         string_free(r->plural);
         string_free(r->text);

@@ -205,6 +205,17 @@ struct monster_mimic
 };
 
 /*
+ * Different shapes a monster can take
+ */
+struct monster_shape
+{
+    struct monster_shape *next;
+    char *name;
+    struct monster_race *race;
+    struct monster_base *base;
+};
+
+/*
  * Monster "lore" information
  */
 struct monster_lore
@@ -268,6 +279,8 @@ struct monster_race
     struct monster_friends *friends;
     struct monster_friends_base *friends_base;
     struct monster_mimic *mimic_kinds;
+    struct monster_shape *shapes;
+    int num_shapes;
     struct worldpos *wpos;                  /* Restrict to this location */
 };
 

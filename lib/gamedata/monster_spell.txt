@@ -823,6 +823,15 @@ lore-color-base:Orange
 message-vis:{name} raises the dead.
 message-invis:Something mumbles.
 
+name:SHAPECHANGE
+hit:100
+effect:MON_TIMED_INC:CHANGED
+dice:5+d10
+lore:change shape
+lore-color-base:Orange
+message-vis:{name} intones strange words.
+message-invis:Something mutters.
+
 name:S_KIN
 msgt:SUM_MONSTER
 hit:100

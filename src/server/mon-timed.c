@@ -141,6 +141,7 @@ static bool mon_set_timed(struct player *p, struct monster *mon, int effect_type
     struct mon_timed_effect *effect;
     bool check_resist;
     bool resisted = false;
+    bool update = false;
     int m_note = 0;
     int old_timer;
     bool visible = false;
@@ -197,7 +198,32 @@ static bool mon_set_timed(struct player *p, struct monster *mon, int effect_type
     else
     {
         mon->m_timed[effect_type] = timer;
+        update = true;
+    }
 
+    /*
+     * Print a message if there is one, if the effect allows for it, and if
+     * the monster is visible
+     */
+    if (m_note && !(flag & MON_TMD_FLG_NOMESSAGE) && (flag & MON_TMD_FLG_NOTIFY) && visible)
+        add_monster_message(p, mon, m_note, true);
+
+    /* Special case - deal with monster shapechanges */
+    if (effect_type == MON_TMD_CHANGED)
+    {
+        if (timer > old_timer)
+        {
+            if (!monster_change_shape(p, mon)) quit ("Monster shapechange failed!");
+        }
+        else if (timer == 0)
+        {
+            if (!monster_revert_shape(mon)) quit ("Monster shapechange reversion  failed!");
+        }
+    }
+
+    /* Update the visuals, as appropriate. */
+    if (update)
+    {
         if (visible)
         {
             struct source who_body;
@@ -208,15 +234,8 @@ static bool mon_set_timed(struct player *p, struct monster *mon, int effect_type
         }
 
         /* Update the visuals, as appropriate. */
-        if (effect_type == MON_TMD_SLEEP) update_monlist(mon);
+        if ((effect_type == MON_TMD_SLEEP) || (effect_type == MON_TMD_CHANGED)) update_monlist(mon);
     }
-
-    /*
-     * Print a message if there is one, if the effect allows for it, and if
-     * the monster is visible
-     */
-    if (m_note && !(flag & MON_TMD_FLG_NOMESSAGE) && (flag & MON_TMD_FLG_NOTIFY) && visible)
-        add_monster_message(p, mon, m_note, true);
 
     return !resisted;
 }

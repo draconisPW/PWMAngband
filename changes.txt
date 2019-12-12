@@ -9,6 +9,7 @@ Monsters
 -
 
 Game Mechanics
+- Monster shapechanges
 - Monsters can whip or spit on the player from nearby
 - Monster groups act more as a group, with leaders and sometimes bodyguards
 
@@ -41,6 +42,8 @@ Gameplay changes
 Angband 4.2.0:
 
 - Add LASH effect, WHIP and SPIT spells
+- Monster groups act more as a group, with leaders and sometimes bodyguards
+- Monster shapechanges
 
 PWMAngband:
 

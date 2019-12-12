@@ -699,3 +699,27 @@ bool summon_location(struct chunk *c, struct loc *place, struct loc *grid, int t
     /* Failure */
     return false;
 }
+
+
+/*
+ * Select a race for a monster shapechange from its possible summons
+ */
+struct monster_race *select_shape(struct player *p, struct monster *mon, int type)
+{
+    struct monster_race *race = NULL;
+    struct chunk *c = chunk_get(&p->wpos);
+
+    /* Save the "summon" type */
+    summon_specific_type = type;
+
+    /* Prepare allocation table */
+    get_mon_num_prep(summon_specific_okay);
+
+    /* Pick a monster */
+    race = get_mon_num(c, p->wpos.depth + 5, true);
+
+    /* Prepare allocation table */
+    get_mon_num_prep(NULL);
+
+    return race;
+}

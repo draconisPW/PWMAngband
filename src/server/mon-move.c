@@ -2362,6 +2362,9 @@ static bool process_monster_timed(struct monster *mon, bool mvm)
     if (mon->m_timed[MON_TMD_CONF])
         mon_dec_timed(p, mon, MON_TMD_CONF, 1, MON_TMD_FLG_NOTIFY);
 
+    if (mon->m_timed[MON_TMD_CHANGED])
+        mon_dec_timed(p, mon, MON_TMD_CHANGED, 1, MON_TMD_FLG_NOTIFY);
+
     if (mon->m_timed[MON_TMD_BLIND])
         mon_dec_timed(p, mon, MON_TMD_BLIND, 1, MON_TMD_FLG_NOTIFY);
 
