@@ -336,6 +336,10 @@ static void get_move_find_range(struct player *p, struct monster *mon)
     else if (mon->m_timed[MON_TMD_FEAR])
         mon->min_range = flee_range;
 
+    /* All "cautious" monsters will run away */
+    else if (rf_has(mon->race->flags, RF_CAUTIOUS))
+        mon->min_range = flee_range;
+
     else
     {
         /* Minimum distance - stay at least this far if possible */

@@ -2154,6 +2154,23 @@ static enum parser_error parse_p_race_value(struct parser *p)
 }
 
 
+static enum parser_error parse_p_race_shape(struct parser *p)
+{
+    struct player_race *r = parser_priv(p);
+    struct player_shape *shape;
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    shape = mem_zalloc(sizeof(*shape));
+    shape->next = r->shapes;
+    shape->name = string_make(parser_getstr(p, "name"));
+    shape->lvl = (byte)parser_getuint(p, "level");
+    r->shapes = shape;
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static struct parser *init_parse_p_race(void)
 {
     struct parser *p = parser_new();
@@ -2178,6 +2195,7 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "slay uint level str code", parse_p_race_obj_slay);
     parser_reg(p, "player-flags ?str flags", parse_p_race_play_flags);
     parser_reg(p, "value uint level str value", parse_p_race_value);
+    parser_reg(p, "shape uint level str name", parse_p_race_shape);
 
     return p;
 }
@@ -2790,6 +2808,23 @@ static enum parser_error parse_p_class_value(struct parser *p)
 }
 
 
+static enum parser_error parse_p_class_shape(struct parser *p)
+{
+    struct player_class *c = parser_priv(p);
+    struct player_shape *shape;
+
+    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    shape = mem_zalloc(sizeof(*shape));
+    shape->next = c->shapes;
+    shape->name = string_make(parser_getstr(p, "name"));
+    shape->lvl = (byte)parser_getuint(p, "level");
+    c->shapes = shape;
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_class_magic(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
@@ -3163,6 +3198,7 @@ static struct parser *init_parse_class(void)
     parser_reg(p, "slay uint level str code", parse_class_obj_slay);
     parser_reg(p, "player-flags ?str flags", parse_class_play_flags);
     parser_reg(p, "value uint level str value", parse_p_class_value);
+    parser_reg(p, "shape uint level str name", parse_p_class_shape);
     parser_reg(p, "title str title", parse_class_title);
     parser_reg(p, "magic uint first int weight int books", parse_class_magic);
     parser_reg(p, "book sym tval sym quality sym name uint spells str realm", parse_class_book);

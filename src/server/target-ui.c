@@ -603,7 +603,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
             s3 = (is_a_vowel(name[0])? "an ": "a ");
 
             /* Hack -- special introduction for store doors */
-            if (feat_is_shop(feat)) s3 = "the entrance to the ";
+            if (feat_is_shop(feat) && !feat_is_vendor(feat)) s3 = "the entrance to the ";
 
             /* Hack -- dungeon entrance */
             if (dungeon && square_isdownstairs(c, grid))

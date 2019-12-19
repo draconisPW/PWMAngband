@@ -497,6 +497,28 @@ value:1:STR[-2]
 value:1:WIS[3]
 value:1:DEX[-2]
 player-flags:ZERO_FAIL | CHOOSE_SPELLS | CHARM | SHAPECHANGE
+shape:5:cave bear
+shape:5:panther
+shape:10:grizzly bear
+shape:10:yeti
+shape:15:griffon
+shape:15:sasquatch
+shape:20:werebear
+shape:20:great eagle
+shape:20:aranea
+shape:25:wyvern
+shape:25:multi-hued hound
+shape:30:5-headed hydra
+shape:30:minotaur
+shape:35:7-headed hydra
+shape:35:plasma hound
+shape:35:elder aranea
+shape:40:11-headed hydra
+shape:40:giant roc
+shape:45:maulotaur
+shape:45:winged horror
+shape:50:jabberwock
+shape:50:aether hound
 title:Wanderer
 title:Tamer
 title:Nurturer
@@ -1071,6 +1093,12 @@ value:1:INT[3]
 value:1:CON[-2]
 value:1:RES_DARK[1]
 player-flags:ZERO_FAIL | CHOOSE_SPELLS | UNLIGHT | SHAPECHANGE | UNDEAD_POWERS
+shape:5:fruit bat
+shape:15:vampire bat
+shape:25:vampire
+shape:35:master vampire
+shape:45:vampire lord
+shape:50:elder vampire
 title:Acolyte
 title:Curser
 title:Dark Student

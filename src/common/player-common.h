@@ -207,6 +207,13 @@ struct modifier
     byte lvl;
 };
 
+struct player_shape
+{
+    struct player_shape *next;
+    char *name;
+    byte lvl;
+};
+
 /*
  * Player race info
  */
@@ -237,6 +244,7 @@ struct player_race
     bitflag pflags[PF_SIZE];    /* Racial (player) flags */
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */
+    struct player_shape *shapes;
 };
 
 /*
@@ -350,6 +358,7 @@ struct player_class
     struct start_item *start_items; /* Starting inventory */
     struct class_magic magic;       /* Magic spells */
     byte attr;                      /* Class color */
+    struct player_shape *shapes;
 };
 
 /*  
