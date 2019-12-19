@@ -180,15 +180,17 @@ static bool summon_possible(struct chunk *c, struct loc *grid)
  *
  * This function could be an efficiency bottleneck.
  */
-static int choose_attack_spell(bitflag *f)
+static int choose_attack_spell(bitflag *f, bool innate)
 {
     int num = 0;
     byte spells[RSF_MAX];
     int i;
 
-    /* Extract all spells: "innate", "normal", "bizarre" */
+    /* Extract spells, filtering as necessary */
     for (i = FLAG_START; i < RSF_MAX; i++)
     {
+        if (!innate && mon_spell_is_innate(i)) continue;
+        if (innate && !mon_spell_is_innate(i)) continue;
         if (rsf_has(f, i)) spells[num++] = i;
     }
 
@@ -238,6 +240,7 @@ static int get_thrown_spell(struct player *p, struct player *who, struct chunk *
 {
     int thrown_spell, failrate;
     bitflag f[RSF_SIZE];
+    bool innate;
 
     /* Check prerequisites */
     if (!monster_can_cast(c, mon, target_m_dis, grid)) return -1;
@@ -268,7 +271,8 @@ static int get_thrown_spell(struct player *p, struct player *who, struct chunk *
     if (rsf_is_empty(f)) return -1;
 
     /* Choose a spell to cast */
-    thrown_spell = choose_attack_spell(f);
+    innate = magik(mon->race->freq_innate);
+    thrown_spell = choose_attack_spell(f, innate);
 
     /* Abort if no spell was chosen */
     if (!thrown_spell) return -1;

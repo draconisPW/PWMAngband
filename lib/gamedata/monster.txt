@@ -26,11 +26,13 @@
 # flags: flag | flag | etc
 # flags-off: flag | flag | etc
 # spell-freq: spell frequency
+# innate-freq: frequency of innate attacks (among all spells)
 # spell-power: spell power
 # spells: spell type | spell type | etc
 # drop: item type : item name : percent drop chance : min : max
 # drop-base: item type : percent drop chance : min : max
-# friends: chance of friend appearing : number in xdy format : name of friend : role
+# friends: chance : number : name : ?role
+# friends-base: chance : number : name : ?role
 # desc: Description
 # mimic: tval : sval
 # force-location: location (name or coordinates)
@@ -129,15 +131,20 @@
 # every turn: if the monster is to use a melee attack, then X must be 2 or
 # greater.
 
+# 'innate-freq' is for frequency of innate ranged attacks - the chance of using
+# an innate ability instead of a non-innate ability when casting a spell.
+
 # 'spell-power' is for the relative casting strength of a spellcasting monster.
 # The default value is the same as the monster's depth, so a monster with
 # spell power greater than their depth is a particularly strong caster.
+# Note that (apart from boulder throwers) monsters with only innate attacks
+# but no spells a spell power value is not required.
 
 # 'spells' is for spell flags, which work just like regular flags.
 
-# 'drop' lines create possible drops for specific monsters. If any L lines are
-# present, the monster will drop *only* items from its L lines. Each item has
-# its percent chance rolled for individually.
+# 'drop' lines create possible drops for specific monsters. If any drop lines
+# are present, the monster will drop *only* items from its drop lines.
+# Each item has its percent chance rolled for individually.
 
 # 'drop-base' lines work as for drops, but only the object tval is specified.
 
@@ -147,6 +154,8 @@
 # deeper. All town friends will be divided by two.
 # The code places monsters from bottom up and will not place it if it can't find
 # room. For best results, places the most important friends at the bottom.
+# Using 'Same' as the name does what you would expect.
+# Some friends can have special roles; these are appended to the line end.
 
 # 'desc' is for description. As many desc: lines may be used as are needed to
 # describe the monster. Leading whitespace will be removed, and a single space
@@ -966,7 +975,7 @@ flags:IM_POIS
 flags:FORCE_SLEEP
 flags:WILD_SWAMP
 spell-freq:4
-spell-power:2
+innate-freq:100
 spells:SHRIEK
 desc:Yum! It looks quite tasty. It doesn't sound so nice, though...
 
@@ -1077,7 +1086,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_ALL
 spell-freq:12
-spell-power:2
 spells:CAUSE_1 | HEAL | SCARE
 drop-base:prayer book:5:1:1
 friends-base:20:1d3:person
@@ -1105,7 +1113,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_ALL
 spell-freq:12
-spell-power:2
 spells:BLIND | BLINK | CONF | MISSILE
 drop-base:magic book:5:1:1
 friends-base:20:1d3:person
@@ -1454,7 +1461,6 @@ flags:DROP_40 | DROP_60
 flags:RAND_25 | RAND_50 | TAKE_ITEM
 flags:HURT_LIGHT
 spell-freq:15
-spell-power:3
 spells:BLINK
 desc:It is a ghastly, ghostly form.
 
@@ -1548,7 +1554,6 @@ blow:TOUCH:EAT_LIGHT:1d3
 flags:NEVER_MOVE
 flags:IM_POIS | HURT_COLD | NO_CONF | NO_SLEEP
 spell-freq:15
-spell-power:3
 spells:DRAIN_MANA
 desc:It is a large pile of silver flesh that sucks all light from its
 desc: surroundings.
@@ -1570,7 +1575,6 @@ blow:TOUCH:POISON:1d3
 flags:NEVER_MOVE
 flags:HURT_LIGHT | IM_POIS | HURT_COLD | NO_CONF | NO_SLEEP
 spell-freq:15
-spell-power:3
 spells:DRAIN_MANA
 desc:It's a large pile of yellow flesh.
 
@@ -1700,7 +1704,6 @@ flags:NEVER_MOVE
 flags:HURT_LIGHT | NO_FEAR
 flags:DROP_CORPSE
 spell-freq:11
-spell-power:3
 spells:DRAIN_MANA
 desc:A disembodied eye, crackling with energy.
 
@@ -1721,7 +1724,6 @@ blow:HIT:HURT:1d8
 flags:DROP_40
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:3
 spells:CAUSE_1 | CONF | HEAL | MISSILE
 drop-base:magic book:5:1:1
 drop-base:prayer book:5:1:1
@@ -1762,13 +1764,13 @@ weight:140
 experience:18
 blow:HIT:HURT:1d5
 blow:HIT:HURT:1d5
-flags:MALE | HAS_LIGHT | ARCHER
+flags:MALE | HAS_LIGHT
 flags:DROP_60
 flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD
 spell-freq:3
-spell-power:4
+innate-freq:50
 spells:ARROW_1 | MISSILE
 drop-base:nature book:3:1:1
 friends-base:20:1d3:person
@@ -1797,7 +1799,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_ALL
 spell-freq:9
-spell-power:4
 spells:CAUSE_1 | SCARE
 drop-base:prayer book:3:1:1
 friends-base:20:1d3:person
@@ -1824,8 +1825,8 @@ flags:HAS_LIGHT
 flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
-spell-freq:3
-spell-power:4
+spell-freq:4
+innate-freq:50
 spells:ARROW_2 | HEAL_KIN
 friends-base:20:1d3:person
 friends-base:40:1d3:person
@@ -1939,10 +1940,10 @@ rarity:1
 weight:90
 experience:20
 blow:HIT:HURT:1d9
-flags:DROP_40 | ARCHER
+flags:DROP_40
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spell-power:4
+innate-freq:100
 spells:ARROW_2
 drop-base:nature book:5:1:1
 friends-base:30:1d2:kobold
@@ -2044,7 +2045,6 @@ flags:OPEN_DOOR
 flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:WILD_ALL
 spell-freq:9
-spell-power:4
 spells:BLIND | CONF | SCARE | SLOW
 drop-base:psi book:5:1:1
 friends-base:20:1d3:person
@@ -2223,7 +2223,6 @@ flags:HURT_LIGHT | IM_DISEN | NO_FEAR
 flags:ATTR_MULTI
 flags:DROP_CORPSE
 spell-freq:9
-spell-power:5
 spells:DRAIN_MANA
 desc:A disembodied eye, crackling with magic.
 
@@ -2280,7 +2279,7 @@ blow:BITE:COLD:1d6
 flags:IM_COLD
 flags:WILD_WASTE | WILD_GLACIER
 spell-freq:10
-spell-power:5
+innate-freq:100
 spells:BR_COLD
 desc:It is a large fly that drips frost.
 
@@ -2302,7 +2301,7 @@ flags:RAND_25
 flags:IM_POIS
 flags:WILD_SWAMP
 spell-freq:10
-spell-power:5
+innate-freq:100
 spells:BR_POIS
 desc:A vast, foul-smelling dragonfly.
 
@@ -2475,7 +2474,7 @@ flags:NEVER_BLOW | RAND_25
 flags:IM_ACID
 flags:WILD_SWAMP
 spell-freq:10
-spell-power:6
+innate-freq:100
 spells:BR_ACID
 desc:The size of a large bird, this fly drips caustic acid.
 
@@ -2497,7 +2496,7 @@ flags:RAND_25
 flags:IM_FIRE | NO_STUN
 flags:WILD_MOUNTAIN
 spell-freq:10
-spell-power:6
+innate-freq:100
 spells:BR_SOUN
 desc:Large beating wings support this dazzling insect. A loud buzzing noise
 desc: pervades the air.
@@ -2546,7 +2545,7 @@ flags:DROP_CORPSE
 flags:KILL_ITEM | KILL_BODY
 flags:WILD_ALL
 spell-freq:10
-spell-power:6
+innate-freq:100
 spells:BR_ACID
 desc:It is slowly making its way towards you, eating everything in its path...
 
@@ -2629,7 +2628,6 @@ flags:NEVER_MOVE
 flags:HURT_LIGHT | NO_FEAR
 flags:DROP_CORPSE
 spell-freq:7
-spell-power:7
 spells:DRAIN_MANA
 desc:A disembodied eye, bloodshot and nasty.
 
@@ -2742,7 +2740,6 @@ blow:TOUCH:LOSE_WIS
 flags:DROP_40 | DROP_60
 flags:RAND_50 | TAKE_ITEM
 spell-freq:15
-spell-power:7
 spells:DRAIN_MANA | TPORT
 desc:It is almost insubstantial.
 
@@ -2767,7 +2764,6 @@ flags:HURT_LIGHT
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:10
-spell-power:7
 spells:CONF | DARKNESS
 desc:An elven figure with jet black skin and white hair, his eyes are large and
 desc: twisted with evil.
@@ -2834,7 +2830,6 @@ flags:PWMANG_BASE
 flags:RAND_25 | OPEN_DOOR | BASH_DOOR
 flags:HURT_LIGHT
 spell-freq:10
-spell-power:7
 spells:CAUSE_1
 spells:S_UNDEAD
 friends:100:4d4:Same
@@ -2858,7 +2853,6 @@ blow:HIT:HURT:1d10
 flags:UNIQUE | FEMALE | PWMANG_BASE | HAS_LIGHT | MOVE_BODY
 flags:ONLY_ITEM | DROP_1 | DROP_GOOD
 spell-freq:6
-spell-power:7
 spells:CAUSE_1 | CONF | HEAL | MISSILE
 friends:100:1d10:small kobold:servant
 friends:100:1d10:kobold:servant
@@ -2891,7 +2885,6 @@ flags:DROP_1 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:8
 spells:HEAL | SLOW | TRAPS
 spells:BA_POIS
 spells:BO_COLD
@@ -2959,7 +2952,7 @@ flags:IM_FIRE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | WILD_DESERT
 spell-freq:9
-spell-power:8
+innate-freq:100
 spells:BR_FIRE
 desc:A large black and yellow lizard. You'd better run away!
 
@@ -3154,7 +3147,6 @@ blow:CRAWL:ACID:2d4
 flags:EMPTY_MIND
 flags:DROP_CORPSE
 spell-freq:11
-spell-power:9
 spells:DRAIN_MANA
 desc:It is a strange, slimy, icky creature.
 
@@ -3219,7 +3211,6 @@ flags:HURT_LIGHT
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
-spell-power:9
 spells:BLINK | CAUSE_1 | MISSILE
 drop-base:magic book:5:1:1
 drop-base:prayer book:5:1:1
@@ -3245,7 +3236,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC
 flags:DROP_CORPSE
 spell-freq:12
-spell-power:9
+innate-freq:100
 spells:BR_ELEC
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale blue.
@@ -3270,7 +3261,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD
 flags:DROP_CORPSE | WILD_GLACIER
 spell-freq:12
-spell-power:9
+innate-freq:100
 spells:BR_COLD
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale white.
@@ -3295,7 +3286,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS
 flags:DROP_CORPSE
 spell-freq:12
-spell-power:9
+innate-freq:100
 spells:BR_POIS
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a sickly green.
@@ -3357,7 +3348,7 @@ flags:RAND_50
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD | WILD_SWAMP
 spell-freq:4
-spell-power:9
+innate-freq:100
 spells:SPIT
 desc:It is a large snake with a hooded face.
 
@@ -3487,7 +3478,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID
 flags:DROP_CORPSE
 spell-freq:12
-spell-power:10
+innate-freq:100
 spells:BR_ACID
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a dull black.
@@ -3512,7 +3503,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE
 flags:DROP_CORPSE | WILD_DESERT
 spell-freq:12
-spell-power:10
+innate-freq:100
 spells:BR_FIRE
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale red.
@@ -3536,7 +3527,7 @@ flags:DROP_40 | DROP_1 | ONLY_GOLD
 flags:OPEN_DOOR | BASH_DOOR | NO_STUN
 flags:DROP_CORPSE
 spell-freq:12
-spell-power:10
+innate-freq:100
 spells:BR_SOUN
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale gold.
@@ -3582,7 +3573,6 @@ flags:HURT_LIGHT
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:10
 spells:BLIND | CONF | DARKNESS | MISSILE
 spells:BA_POIS
 drop-base:magic book:10:1:1
@@ -3609,7 +3599,6 @@ flags:UNIQUE | MALE | EVIL | SMART
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:10
 spells:BLINK | CONF | HEAL | SLOW | TELE_TO
 spells:S_MONSTER
 friends:100:2d5:brown yeek:servant
@@ -3731,7 +3720,6 @@ flags:EMPTY_MIND | STUPID
 flags:IM_DISEN
 flags:ATTR_MULTI
 spell-freq:11
-spell-power:10
 spells:DRAIN_MANA
 desc:It is a strange glowing growth on the dungeon floor.
 
@@ -3752,7 +3740,6 @@ blow:HIT:HURT:1d8
 flags:OPEN_DOOR | BASH_DOOR
 flags:NO_FEAR | LEVITATE
 spell-freq:3
-spell-power:10
 spells:BLINK | TELE_TO
 desc:It is a fast-moving demon that blinks quickly in and out of existence; no
 desc: other demon matches its teleporting mastery.
@@ -3966,7 +3953,7 @@ flags:DROP_40 | DROP_1 | ONLY_GOLD | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:NO_SLEEP | IM_COLD | NO_SLOW
 spell-freq:12
-spell-power:10
+innate-freq:100
 spells:BR_COLD | BR_INER
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale silver.
@@ -3991,7 +3978,6 @@ flags:HURT_LIGHT
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:10
 spells:BLIND | CONF | DARKNESS | MISSILE
 spells:BO_COLD
 spells:S_UNDEAD
@@ -4058,7 +4044,6 @@ flags:DROP_60
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:4
-spell-power:11
 spells:BLINK | DARKNESS
 spells:BO_COLD
 spells:S_MONSTER
@@ -4084,7 +4069,7 @@ blow:BITE:HURT:1d6
 flags:DROP_40 | DROP_1 | ONLY_GOLD | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 spell-freq:12
-spell-power:11
+innate-freq:100
 spells:BR_DARK | BR_LIGHT
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale orange.
@@ -4107,7 +4092,7 @@ blow:BITE:HURT:1d6
 flags:DROP_40 | DROP_1 | ONLY_GOLD | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 spell-freq:12
-spell-power:11
+innate-freq:100
 spells:BR_SHAR
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale brown.
@@ -4132,7 +4117,7 @@ flags:DROP_40 | DROP_1 | ONLY_GOLD
 flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
 flags:IM_NETHER
 spell-freq:12
-spell-power:11
+innate-freq:100
 spells:BR_NETH
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale green.
@@ -4156,7 +4141,7 @@ flags:DROP_40 | DROP_1 | ONLY_GOLD | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_WATER
 spell-freq:12
-spell-power:11
+innate-freq:100
 spells:BR_WATE
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales a pale watery blue.
@@ -4180,7 +4165,7 @@ flags:RAND_50
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_GRASS | WILD_WOOD | WILD_SWAMP
 spell-freq:4
-spell-power:12
+innate-freq:100
 spells:SPIT
 desc:It has glistening black skin, a sleek body and highly venomous fangs.
 
@@ -4225,7 +4210,6 @@ flags:HAS_LIGHT
 flags:NEVER_MOVE
 flags:HURT_LIGHT | HURT_COLD | IM_POIS | NO_CONF | NO_SLEEP
 spell-freq:11
-spell-power:12
 spells:DRAIN_MANA
 desc:Yum! It looks quite tasty. It is a pulsing mound of glowing flesh.
 
@@ -4295,7 +4279,6 @@ flags:DROP_40
 flags:FORCE_SLEEP
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:12
 spells:BLIND | BLINK | SLOW | TPORT
 spells:BA_POIS
 spells:S_MONSTER
@@ -4322,7 +4305,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spell-power:12
 spells:CAUSE_2 | HEAL | SCARE
 spells:S_MONSTER
 drop-base:prayer book:8:1:1
@@ -4352,7 +4334,6 @@ flags:HURT_LIGHT
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:12
 spells:BLIND | CAUSE_2 | CONF | DARKNESS | HEAL
 drop-base:prayer book:8:1:1
 desc:A dark elven figure, dressed all in black, chanting curses and waiting to
@@ -4450,7 +4431,6 @@ flags:DROP_40 | DROP_60
 flags:RAND_25
 flags:FORCE_SLEEP
 spell-freq:15
-spell-power:12
 spells:SCARE | TPORT
 desc:A ghostly apparition that shrieks horribly.
 
@@ -4578,7 +4558,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_DISEN | NO_CONF
 flags:ATTR_MULTI
 spell-freq:12
-spell-power:12
+innate-freq:100
 spells:BR_CHAO | BR_DISE
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales shimmering many colours.
@@ -4602,7 +4582,7 @@ flags:DROP_40 | DROP_1 | ONLY_GOLD | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 spell-freq:12
-spell-power:12
+innate-freq:100
 spells:BR_SHAR | BR_SOUN
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales shimmering blue.
@@ -4630,7 +4610,7 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 flags:ATTR_MULTI
 flags:DROP_CORPSE
 spell-freq:12
-spell-power:13
+innate-freq:100
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales shimmering with hints of many different colours.
@@ -4655,7 +4635,6 @@ flags:IM_POIS
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
-spell-power:13
 spells:CAUSE_1 | CONF | DARKNESS
 desc:A dark elven torso merged with the bloated form of a giant spider.
 
@@ -4695,7 +4674,6 @@ flags:UNIQUE | MALE | EVIL | SMART
 flags:DROP_60 | DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:13
 spells:BLIND | BLINK | HEAL | SLOW | TPORT
 spells:S_KIN | S_MONSTER
 friends:100:2d6:brown yeek:servant
@@ -4763,7 +4741,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spell-power:13
 spells:BLIND | BLINK | CONF | DARKNESS | HASTE | HOLD
 spells:SLOW | TPORT
 drop-base:magic book:8:1:1
@@ -4793,7 +4770,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD
 spell-freq:3
-spell-power:13
 spells:BLIND | BLINK | HASTE | HOLD | SLOW
 spells:BO_ELEC | BO_FIRE | SHAPECHANGE
 spells:S_ANIMAL
@@ -4819,7 +4795,7 @@ flags:DROP_20
 flags:HURT_LIGHT
 flags:DROP_CORPSE | DROP_SKELETON | WILD_ALL
 spell-freq:9
-spell-power:13
+innate-freq:100
 spells:ARROW_2
 drop-base:nature book:5:1:1
 friends:20:1d2:cave troll
@@ -4908,7 +4884,7 @@ flags:DROP_40 | DROP_1 | ONLY_GOLD | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_STUN | NO_CONF | NO_CUT
 spell-freq:12
-spell-power:13
+innate-freq:100
 spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales shimmering purple.
@@ -4977,7 +4953,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:14
 spells:BLIND | CONF | SCARE
 desc:It is a strange, slimy, icky creature, with rudimentary intelligence, but
 desc: evil cunning. It hungers for food, and you look tasty.
@@ -5069,7 +5044,7 @@ flags:MULTIPLY | EVIL | PWMANG_BASE
 flags:NEVER_MOVE
 flags:IM_POIS
 spell-freq:7
-spell-power:14
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_LIGHT
 desc:A chaotic mass of pulsating flesh, mouths and eyes.
@@ -5094,7 +5069,7 @@ flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 flags:NO_STUN | NO_CONF | NO_SLEEP | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:12
-spell-power:14
+innate-freq:100
 spells:BR_ACID | BR_ELEC | BR_FIRE | BR_COLD | BR_POIS | BR_NETH | BR_LIGHT
 spells:BR_SOUN | BR_CHAO | BR_DISE | BR_NEXU | BR_TIME | BR_INER | BR_GRAV
 spells:BR_SHAR | BR_PLAS | BR_WALL | BR_MANA | BR_WATE | BR_DARK
@@ -5125,7 +5100,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:9
-spell-power:15
 spells:BLINK | CAUSE_2
 spells:BA_POIS
 spells:BO_COLD
@@ -5175,7 +5149,6 @@ flags:HAS_LIGHT
 flags:NEVER_MOVE
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:15
 spells:BLINK | DARKNESS | SCARE | SLOW
 desc:Yum! It looks quite tasty. It seems to glow with an unusual light.
 
@@ -5220,7 +5193,7 @@ flags:BASH_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:15
+innate-freq:100
 spells:BR_LIGHT
 friends:100:2d7:Same
 desc:A brilliant canine form whose light hurts your eyes, even at this distance.
@@ -5245,7 +5218,7 @@ flags:BASH_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:15
+innate-freq:100
 spells:BR_DARK
 friends:100:2d7:Same
 desc:A hole in the air in the shape of a huge hound. No light falls upon its
@@ -5460,7 +5433,6 @@ flags:RAND_25 | OPEN_DOOR
 flags:IM_POIS | IM_COLD | IM_WATER
 flags-off:HURT_COLD
 spell-freq:8
-spell-power:15
 spells:CONF | DARKNESS | HEAL | HOLD
 spells:BO_COLD
 desc:A giant snake-like figure with a woman's torso, talented in magic.
@@ -5653,7 +5625,6 @@ flags:DROP_1 | ONLY_ITEM
 flags:RAND_25 | BASH_DOOR
 flags:FORCE_SLEEP
 spell-freq:10
-spell-power:16
 spells:BLIND | BLINK | CONF | SCARE | TELE_LEVEL | TELE_TO
 spells:TPORT
 desc:The chaotic evil master's favourite pet.
@@ -5676,7 +5647,7 @@ blow:HIT:HURT:3d5
 flags:DROP_20
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:9
-spell-power:16
+innate-freq:100
 spells:ARROW_2 | WHIP
 drop-base:nature book:5:1:1
 friends:40:1d4:half-orc
@@ -5723,7 +5694,7 @@ blow:CLAW:HURT:1d4
 flags:GROUP_AI
 flags:DROP_CORPSE | WILD_ALL
 spell-freq:8
-spell-power:16
+innate-freq:100
 spells:SHRIEK
 friends:100:3d3:Same
 desc:A type of crow, specially bred by the forces of evil as spies; their
@@ -5817,7 +5788,6 @@ flags:DROP_1 | ONLY_ITEM
 flags:RAND_25 | BASH_DOOR
 flags:FORCE_SLEEP
 spell-freq:10
-spell-power:17
 spells:BLIND | BLINK | CONF | SCARE | TELE_LEVEL | TELE_TO
 spells:TPORT
 desc:The lawful evil master's favourite pet.
@@ -5866,7 +5836,6 @@ flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:17
 spells:BLIND | CAUSE_2 | CONF | HEAL | MIND_BLAST
 desc:The friend and companion of the dwarven king Thrór, he went mad with grief
 desc: after Thrór's death at the hands of Azog the Orc. With torn beard and
@@ -5891,7 +5860,6 @@ flags:DROP_2
 flags:OPEN_DOOR | MOVE_BODY
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:11
-spell-power:17
 spells:SCARE
 desc:A strange reptilian hybrid with two heads, guarding its hoard.
 
@@ -5974,7 +5942,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP
 flags:WILD_MOUNTAIN
 spell-freq:11
-spell-power:17
 spells:CONF | SCARE
 desc:It will eat you if you cannot answer its riddle.
 
@@ -6074,7 +6041,7 @@ blow:HIT:HURT:3d5
 flags:DROP_60
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:9
-spell-power:18
+innate-freq:100
 spells:ARROW_2
 drop-base:nature book:5:1:1
 friends:50:1d5:wolf
@@ -6126,7 +6093,7 @@ flags:IM_FIRE | HURT_COLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_DESERT
 spell-freq:10
-spell-power:18
+innate-freq:100
 spells:BR_FIRE
 friends:100:2d7:Same
 desc:Flames lick at its feet and its tongue is a blade of fire. You can feel a
@@ -6153,7 +6120,7 @@ flags:IM_COLD | HURT_FIRE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_GLACIER
 spell-freq:10
-spell-power:18
+innate-freq:100
 spells:BR_COLD
 friends:100:2d7:Same
 desc:A hound as tall as a man, this creature appears to be composed of angular
@@ -6181,7 +6148,7 @@ flags:IM_ELEC
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:10
-spell-power:18
+innate-freq:100
 spells:BR_ELEC
 friends:100:2d7:Same
 desc:Saint Elmo's Fire forms a ghostly halo around this hound, and sparks sting
@@ -6205,7 +6172,6 @@ blow:HIT:HURT:2d3
 blow:HIT:HURT:2d3
 flags:HURT_COLD
 spell-freq:6
-spell-power:18
 spells:BO_COLD
 spells:BLIND | CAUSE_2 | CONF | SCARE
 desc:A strange creature that disguises itself as a discarded potion bottle to
@@ -6234,7 +6200,6 @@ blow:BITE:HURT:1d8
 flags:RAND_25 | BASH_DOOR | GROUP_AI | ATTR_FLICKER
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:4
-spell-power:18
 spells:BLINK | TELE_TO
 friends:100:2d7:Same
 desc:A strange magical member of the canine race, its form seems to shimmer and
@@ -6259,7 +6224,7 @@ flags:DROP_60 | ONLY_GOLD
 flags:OPEN_DOOR | BASH_DOOR
 flags:WILD_SWAMP
 spell-freq:4
-spell-power:18
+innate-freq:100
 spells:SHRIEK
 friends:60:1d1:giant fruit fly
 desc:A pile of rotting vegetation that slides towards you with a disgusting
@@ -6284,7 +6249,6 @@ flags:NEVER_MOVE
 flags:HURT_LIGHT | NO_FEAR
 flags:DROP_CORPSE
 spell-freq:7
-spell-power:18
 spells:HOLD | TELE_TO
 desc:A huge disembodied eye. As you stare into the black nothingness of its
 desc: pupil, you feel your will and vitality draining away, and are unable to do
@@ -6307,7 +6271,6 @@ blow:HIT:HURT:2d3
 blow:HIT:HURT:2d3
 flags:PWMANG_BASE
 spell-freq:6
-spell-power:18
 spells:CAUSE_1
 spells:BLIND | CONF | SCARE
 spells:BO_COLD | BO_FIRE
@@ -6332,7 +6295,6 @@ blow:HIT:CONFUSE:2d3
 blow:HIT:PARALYZE:2d3
 flags:PWMANG_BASE
 spell-freq:6
-spell-power:18
 spells:BLIND | CAUSE_2 | CONF | SCARE
 spells:BO_COLD
 desc:A strange creature that disguises itself as a door to lure unsuspecting
@@ -6468,7 +6430,7 @@ blow:BITE:POISON:2d2
 flags:EVIL
 flags:WILD_SWAMP
 spell-freq:12
-spell-power:19
+innate-freq:100
 spells:SHRIEK
 desc:Believed to be an evil relative of the cricket, this creature gets its name
 desc: from its incessant squeaking, which can best be described as "neek-breek,
@@ -6494,7 +6456,6 @@ blow:CRUSH:HURT:3d6
 flags:DROP_40 | NO_SLEEP | NO_CONF | WEIRD_MIND | HURT_FIRE | PWMANG_BASE
 flags:IM_WATER | IM_COLD | NEVER_MOVE | WILD_ONLY | WILD_WOOD
 spell-freq:9
-spell-power:19
 spells:BLINK | TELE_TO
 desc:A very strong near-sentient tree, which has become hostile to other living
 desc: things.
@@ -6548,7 +6509,6 @@ flags:ANIMAL | WEIRD_MIND | ATTR_FLICKER
 flags:IM_POIS | GROUP_AI
 flags:DROP_SKELETON | WILD_WOOD
 spell-freq:5
-spell-power:20
 spells:BLINK | TELE_TO
 friends:100:2d7:Same
 desc:A spider that never seems quite there. Everywhere you look it is just
@@ -6573,7 +6533,6 @@ flags:DROP_3
 flags:OPEN_DOOR | MOVE_BODY
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:9
-spell-power:20
 spells:SCARE
 desc:A strange reptilian hybrid with three heads, guarding its hoard.
 
@@ -6598,7 +6557,7 @@ flags:BASH_DOOR
 flags:FORCE_SLEEP | NO_CUT
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:10
-spell-power:20
+innate-freq:100
 spells:BR_SHAR
 friends:100:2d7:Same
 desc:A beautiful crystalline shape does not disguise the danger this hound
@@ -6626,7 +6585,7 @@ flags:IM_POIS | LEVITATE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:10
-spell-power:20
+innate-freq:100
 spells:BR_POIS
 friends:100:2d7:Same
 desc:Swirling vapours surround this beast as it floats towards you, seemingly
@@ -6676,7 +6635,7 @@ flags:IM_ACID
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:10
-spell-power:20
+innate-freq:100
 spells:BR_ACID
 friends:100:2d7:Same
 desc:Liquid footprints follow this hound as it pads around the dungeon. An acrid
@@ -6703,7 +6662,7 @@ flags:IM_FIRE | LEVITATE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | WILD_MOUNTAIN | WILD_DESERT
 spell-freq:10
-spell-power:20
+innate-freq:100
 spells:BR_FIRE
 desc:It is a strange concoction of goat, lion and dragon, with the heads of all
 desc: three beasts.
@@ -6721,7 +6680,6 @@ rarity:1
 weight:0
 experience:250
 spell-freq:4
-spell-power:20
 spells:BLINK
 spells:S_MONSTER
 desc:It is a strange pulsing mound of flesh.
@@ -6788,7 +6746,6 @@ flags:HURT_LIGHT
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:20
 spells:BLIND | CONF | DARKNESS | HASTE
 spells:BO_COLD | BO_FIRE
 drop-base:magic book:5:1:1
@@ -6817,7 +6774,7 @@ flags:DROP_1
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:4
-spell-power:20
+innate-freq:17
 spells:ARROW_2 | BLINK | MISSILE
 spells:BO_COLD | BO_ELEC
 spells:S_ANIMAL
@@ -6849,7 +6806,6 @@ flags:DROP_1
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:4
-spell-power:20
 spells:BLIND | CAUSE_2 | HEAL | SCARE | SLOW
 drop-base:prayer book:5:1:1
 friends:50:1d1:Easterling champion
@@ -6941,7 +6897,7 @@ blow:HIT:HURT:8d5
 flags:PWMANG_BASE | HAS_LIGHT
 flags:DROP_CORPSE | DROP_SKELETON | DROP_20
 spell-freq:8
-spell-power:20
+innate-freq:100
 spells:ARROW_1
 drop-base:nature book:5:1:1
 friends:40:1d4:half-orc
@@ -6971,7 +6927,6 @@ flags:ONLY_ITEM | DROP_1 | DROP_GOOD
 flags:TAKE_ITEM | OPEN_DOOR | BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 spell-freq:5
-spell-power:20
 spells:BLIND | CONF | DRAIN_MANA | SCARE
 spells:S_KIN
 friends-base:100:1d5:icky thing:servant
@@ -6996,7 +6951,7 @@ blow:CLAW:HURT:3d3
 blow:BITE:HURT:3d5
 flags:NO_STUN | PWMANG_BASE
 spell-freq:6
-spell-power:20
+innate-freq:100
 spells:BR_SOUN
 desc:You thought dragons used eggs, but this worm has the scales, and the bad
 desc: breath, and the fiery eyes, of a real dragon. You can feel the air itself
@@ -7019,7 +6974,7 @@ blow:CLAW:HURT:3d3
 blow:BITE:HURT:3d5
 flags:IM_ELEC | PWMANG_BASE
 spell-freq:6
-spell-power:20
+innate-freq:100
 spells:BR_ELEC
 desc:You thought dragons used eggs, but this worm has the scales, and the bad
 desc: breath, and the fiery eyes, of a real dragon. Sparks fly from its jaws.
@@ -7041,7 +6996,7 @@ blow:CLAW:HURT:3d3
 blow:BITE:HURT:3d5
 flags:IM_COLD | PWMANG_BASE
 spell-freq:6
-spell-power:20
+innate-freq:100
 spells:BR_COLD
 desc:You thought dragons used eggs, but this worm has the scales, and the bad
 desc: breath, and the fiery eyes, of a real dragon. Its breath condenses in the
@@ -7064,7 +7019,7 @@ blow:CLAW:HURT:3d3
 blow:BITE:HURT:3d5
 flags:IM_POIS | PWMANG_BASE
 spell-freq:6
-spell-power:20
+innate-freq:100
 spells:BR_POIS
 desc:You thought dragons used eggs, but this worm has the scales, and the bad
 desc: breath, and the fiery eyes, of a real dragon. You can smell foul gases on
@@ -7087,7 +7042,7 @@ blow:CLAW:HURT:3d3
 blow:BITE:HURT:3d5
 flags:IM_ACID | PWMANG_BASE
 spell-freq:6
-spell-power:20
+innate-freq:100
 spells:BR_ACID
 desc:You thought dragons used eggs, but this worm has the scales, and the bad
 desc: breath, and the fiery eyes, of a real dragon. Acidic drool drips from its
@@ -7110,7 +7065,7 @@ blow:CLAW:HURT:3d3
 blow:BITE:HURT:3d5
 flags:IM_FIRE | PWMANG_BASE
 spell-freq:6
-spell-power:20
+innate-freq:100
 spells:BR_FIRE
 desc:You thought dragons used eggs, but this worm has the scales, and the bad
 desc: breath, and the fiery eyes, of a real dragon. Smoke comes from its mouth.
@@ -7181,7 +7136,7 @@ flags:IM_ELEC
 flags:FORCE_SLEEP
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:21
+innate-freq:100
 spells:BR_ELEC
 desc:It is a glowing blue bat with a sharp tail.
 
@@ -7204,7 +7159,6 @@ blow:HIT:HURT:2d3
 blow:HIT:HURT:2d3
 flags:HURT_FIRE
 spell-freq:5
-spell-power:21
 spells:BO_FIRE
 spells:S_MONSTER
 spells:BLIND | CAUSE_2 | CONF | SCARE
@@ -7235,7 +7189,7 @@ flags:HAS_LIGHT
 flags:IM_FIRE | HURT_COLD
 flags:NO_STUN | WILD_VOLCANO | WILD_DESERT
 spell-freq:6
-spell-power:21
+innate-freq:100
 spells:BR_FIRE
 desc:A whirling maelstrom of fire.
 
@@ -7256,7 +7210,7 @@ blow:ENGULF:ACID:3d3
 flags:IM_ACID | IM_WATER
 flags:NO_STUN
 spell-freq:6
-spell-power:21
+innate-freq:100
 spells:BR_ACID
 desc:A caustic spinning whirlpool of water.
 
@@ -7278,7 +7232,7 @@ flags:IM_COLD | HURT_FIRE
 flags:NO_STUN
 flags:WILD_GLACIER
 spell-freq:6
-spell-power:21
+innate-freq:100
 spells:BR_COLD
 desc:A twisting whirlpool of frost.
 
@@ -7300,7 +7254,7 @@ flags:HAS_LIGHT | ATTR_FLICKER
 flags:IM_ELEC
 flags:NO_STUN
 spell-freq:6
-spell-power:21
+innate-freq:100
 spells:BR_ELEC
 desc:A shimmering tornado of air, sparks crackle along its length.
 
@@ -7341,7 +7295,6 @@ blow:HIT:HURT:2d3
 blow:HIT:HURT:2d3
 flags:PWMANG_BASE
 spell-freq:5
-spell-power:21
 spells:CAUSE_2
 spells:S_MONSTER
 spells:BLIND | CONF | SCARE
@@ -7439,7 +7392,6 @@ flags:IM_COLD | IM_FIRE | IM_POIS
 flags:FORCE_SLEEP
 flags:NO_STUN
 spell-freq:7
-spell-power:22
 spells:SLOW
 desc:It is a massive metal statue that moves steadily towards you.
 
@@ -7542,7 +7494,6 @@ flags:DROP_40
 flags:RAND_50 | OPEN_DOOR | BASH_DOOR | KILL_BODY | TAKE_ITEM
 flags:IM_POIS | HURT_COLD
 spell-freq:11
-spell-power:23
 spells:DRAIN_MANA
 desc:It is a strangely moving puddle.
 
@@ -7643,7 +7594,7 @@ flags:IM_FIRE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | WILD_DESERT
 spell-freq:4
-spell-power:23
+innate-freq:100
 spells:BR_FIRE
 desc:It is a sharp-tailed bat, wreathed in fire.
 
@@ -7663,7 +7614,7 @@ blow:BITE:HURT:4d5
 flags:RAND_25
 flags:DROP_CORPSE | WILD_ALL
 spell-freq:4
-spell-power:23
+innate-freq:100
 spells:SPIT
 desc:It is looking for prey.
 
@@ -7684,7 +7635,7 @@ blow:BITE:ACID:4d4
 flags:RAND_25
 flags:DROP_SKELETON | WILD_ALL
 spell-freq:6
-spell-power:23
+innate-freq:100
 spells:SPIT
 desc:A giant silver ant with a caustic bite and hard scales.
 
@@ -7707,7 +7658,6 @@ flags:ONLY_ITEM | DROP_1 | DROP_CORPSE | DROP_SKELETON
 flags:HURT_LIGHT
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:23
 spells:CONF | DARKNESS | MISSILE
 spells:BO_MANA
 drop-base:magic book:5:1:1
@@ -7753,7 +7703,7 @@ blow:BITE:HURT:3d5
 flags:IM_ELEC | IM_FIRE | IM_ACID | IM_COLD | IM_POIS | PWMANG_BASE
 flags:ATTR_MULTI
 spell-freq:6
-spell-power:23
+innate-freq:100
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 desc:You thought dragons used eggs, but this worm has the scales, and the bad
 desc: breath, and the fiery eyes, of a real dragon. Its scales shimmer with
@@ -7780,7 +7730,6 @@ flags:DROP_40 | DROP_60
 flags:RAND_25 | OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP | LEVITATE
 spell-freq:10
-spell-power:24
 spells:DRAIN_MANA | SCARE
 desc:It is a ghostly apparition with a humanoid form.
 
@@ -7805,7 +7754,6 @@ flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:IM_COLD | IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:24
 spells:HEAL | SLOW
 spells:BO_FIRE
 desc:One of the last of the Petty-Dwarves. Ibun is a tricky sorcerous little
@@ -7832,7 +7780,6 @@ flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:IM_COLD | IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:24
 spells:HEAL | SLOW
 spells:BO_FIRE
 desc:One of the last of the Petty-Dwarves. Khîm is a tricky sorcerous little
@@ -7858,7 +7805,6 @@ flags:DROP_3
 flags:OPEN_DOOR | MOVE_BODY
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:7
-spell-power:24
 spells:SCARE
 desc:A strange reptilian hybrid with four heads, guarding its hoard.
 
@@ -7922,7 +7868,6 @@ flags:OPEN_DOOR
 flags:IM_ELEC | IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:24
 spells:CONF | SLOW
 friends:100:1d1:Angamaitë of Umbar
 desc:A Black Númenorean with a blacker heart.
@@ -7949,7 +7894,6 @@ flags:OPEN_DOOR
 flags:IM_ELEC | IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:24
 spells:CONF | SLOW
 friends:100:1d1:Sangahyando of Umbar
 desc:A Black Númenorean who hates the men of the west.
@@ -7972,7 +7916,6 @@ flags:FEMALE
 flags:DROP_1
 flags:RAND_50 | TAKE_ITEM
 spell-freq:15
-spell-power:24
 spells:DRAIN_MANA | TPORT
 desc:It is a ghostly woman's form that wails mournfully.
 
@@ -8040,7 +7983,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:WILD_ALL
 spell-freq:3
-spell-power:24
 spells:BLIND | BLINK | CONF | HOLD | MIND_BLAST | SLOW
 spells:S_MONSTER
 drop-base:psi book:10:1:1
@@ -8091,7 +8033,7 @@ flags:DROP_40
 flags:OPEN_DOOR
 flags:DROP_CORPSE | DROP_SKELETON | WILD_MOUNTAIN
 spell-freq:10
-spell-power:25
+innate-freq:100
 spells:BOULDER
 friends:60:1d7:wolf
 friends:80:1d3:Same
@@ -8118,7 +8060,6 @@ flags:HURT_ROCK | IM_COLD | IM_FIRE | IM_POIS
 flags:FORCE_SLEEP
 flags:NO_STUN
 spell-freq:4
-spell-power:25
 spells:CONF | SLOW
 spells:BO_ACID
 desc:A stumpy figure carved from stone, with glittering eyes, this sentinel
@@ -8145,7 +8086,6 @@ flags:HURT_LIGHT | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:6
-spell-power:25
 spells:CONF | DARKNESS | HEAL
 spells:S_ANIMAL | S_MONSTER | S_SPIDER
 drop-base:nature book:8:1:1
@@ -8277,7 +8217,6 @@ flags:NEVER_MOVE
 flags:IM_POIS | IM_ACID | HURT_FIRE | IM_WATER
 flags:FORCE_SLEEP | FORCE_DEPTH
 spell-freq:10
-spell-power:25
 spells:HOLD | TELE_TO
 desc:The ancient grey willow tree, ruler of the Old Forest. He despises
 desc: trespassers in his territory. "...a huge willow-tree, old and hoary.
@@ -8310,7 +8249,6 @@ flags:HURT_LIGHT | NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:26
 spells:BLINK | CAUSE_1 | DARKNESS | MISSILE | SCARE
 drop-base:prayer book:5:1:1
 desc:A troll who is so bright he knows how to read.
@@ -8396,7 +8334,7 @@ flags:RAND_25
 flags:IM_FIRE
 flags:WILD_DESERT
 spell-freq:20
-spell-power:26
+innate-freq:100
 spells:SPIT
 desc:It is smoking and burning with great heat.
 
@@ -8441,7 +8379,6 @@ flags:DROP_1
 flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP | LEVITATE
 spell-freq:8
-spell-power:26
 spells:CAUSE_2 | DARKNESS | SCARE
 desc:It is a tangible but ghostly form made of white fog.
 
@@ -8466,7 +8403,6 @@ flags:DROP_2
 flags:IM_ACID | HAS_LIGHT
 flags:NO_STUN
 spell-freq:3
-spell-power:26
 spells:BLIND | CONF | SCARE
 desc:One of the first children of Eru, human-like in form but painfully
 desc: beautiful to look upon. You can think of no reason that a servant of Eru
@@ -8514,7 +8450,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_FEAR
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
-spell-power:26
 spells:DARKNESS
 friends:100:2d4:wolf:servant
 friends:60:2d4:white wolf:servant
@@ -8541,7 +8476,6 @@ blow:BITE:DISEASE:1d6
 flags:DROP_40
 flags:HURT_LIGHT
 spell-freq:9
-spell-power:26
 spells:HOLD | SCARE
 friends:100:4d4:Same
 desc:Flesh is falling off in chunks from this decaying abomination.
@@ -8566,7 +8500,6 @@ flags:UNIQUE | MALE | PWMANG_BASE
 flags:ONLY_ITEM | DROP_60 | DROP_GOOD
 flags:NO_FEAR
 spell-freq:5
-spell-power:26
 spells:CAUSE_3 | DARKNESS | SCARE | SLOW | TRAPS
 spells:ANIM_DEAD
 spells:S_KIN | S_UNDEAD
@@ -8600,7 +8533,6 @@ flags:NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:IM_DISEN
 spell-freq:6
-spell-power:27
 spells:HEAL | SCARE
 spells:BA_ACID
 spells:BO_ACID
@@ -8626,7 +8558,7 @@ flags:HAS_LIGHT
 flags:IM_FIRE
 flags:DROP_CORPSE | WILD_VOLCANO | WILD_DESERT
 spell-freq:5
-spell-power:27
+innate-freq:100
 spells:SPIT
 desc:It is a giant beetle wreathed in flames.
 
@@ -8698,7 +8630,7 @@ flags:NO_CONF | NO_SLEEP | NO_STUN
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:27
+innate-freq:100
 spells:BR_SOUN
 friends:100:2d7:Same
 desc:A blurry canine form which seems to be moving as fast as the eye can
@@ -8726,7 +8658,7 @@ flags:IM_NEXUS | NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:27
+innate-freq:100
 spells:BR_NEXU
 friends:100:2d7:Same
 desc:A locus of conflicting points coalesce to form the vague shape of a huge
@@ -8753,7 +8685,6 @@ flags:DROP_1
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:4
-spell-power:27
 spells:HEAL | HOLD | TRAPS
 spells:BA_COLD
 spells:S_MONSTER
@@ -8779,7 +8710,6 @@ blow:BITE:EXP_20:2d6
 blow:BITE:EXP_20:2d6
 flags:DROP_40 | DROP_1
 spell-freq:9
-spell-power:27
 spells:CAUSE_2 | DARKNESS | MIND_BLAST | TELE_TO
 spells:HOLD | SCARE
 desc:It is a humanoid with an aura of power. You notice a sharp set of front
@@ -8806,7 +8736,7 @@ flags:IM_FIRE | LEVITATE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | WILD_DESERT
 spell-freq:8
-spell-power:27
+innate-freq:100
 spells:BR_FIRE
 desc:The result of evil experiments, this travesty of nature should never be
 desc: alive. It has three heads - goat, dragon and gorgon - all attached to a
@@ -8832,7 +8762,6 @@ flags:IM_POIS
 flags:FORCE_SLEEP
 flags:NO_STUN
 spell-freq:3
-spell-power:27
 spells:BO_ELEC
 desc:A man-shaped form of living lightning, sparks and shocks crackle all over
 desc: this madly capering figure, as it leaps and whirls around and about you.
@@ -8857,7 +8786,6 @@ flags:DROP_60 | ONLY_ITEM
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:27
 spells:CAUSE_2 | HOLD | SCARE | TPORT | TRAPS
 spells:BO_FIRE
 spells:S_MONSTER
@@ -8928,7 +8856,7 @@ flags:NEVER_MOVE
 flags:IM_FIRE | NO_FEAR
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:27
+innate-freq:12
 spells:CONF | HASTE | HOLD | SHRIEK | TRAPS
 spells:BA_ELEC | BA_FIRE | BA_POIS
 desc:This creature looks like a pillar of rock. However, a closer inspection
@@ -8997,7 +8925,7 @@ flags:OPEN_DOOR
 flags:IM_COLD
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WASTE | WILD_MOUNTAIN | WILD_GLACIER
 spell-freq:10
-spell-power:28
+innate-freq:100
 spells:BOULDER
 friends:60:1d7:cold hound
 friends:80:1d3:Same
@@ -9025,7 +8953,6 @@ flags:OPEN_DOOR
 flags:NO_CONF | NO_SLEEP | IM_POIS
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:28
 spells:BLIND | DARKNESS | HEAL | MIND_BLAST
 drop-base:prayer book:8:1:1
 desc:A wraithly snake-like form with the torso of a beautiful woman, it is the
@@ -9052,7 +8979,6 @@ flags:MOVE_BODY
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:5
-spell-power:28
 spells:SCARE
 spells:BA_POIS
 desc:A strange reptilian hybrid with five heads dripping venom.
@@ -9078,7 +9004,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
-spell-power:28
 spells:BLIND | CAUSE_3 | DARKNESS | SCARE
 drop-base:shadow book:8:1:1
 friends:50:1d1:master rogue
@@ -9109,7 +9034,6 @@ flags:UNIQUE | MALE | EVIL | HAS_LIGHT
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 spell-freq:10
-spell-power:28
 spells:S_KIN
 desc:An evil and cunning man from the East. Having once sworn allegiance to the
 desc: sons of Fëanor, it was Uldor's treachery that turned the tide of the
@@ -9135,7 +9059,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spell-power:28
 spells:BLIND | CONF | HASTE | TELE_TO | TPORT
 spells:BO_COLD | BO_ELEC | BO_FIRE
 spells:S_MONSTER
@@ -9163,7 +9086,6 @@ flags:NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP
 flags:DROP_CORPSE
 spell-freq:8
-spell-power:28
 spells:BLIND | BRAIN_SMASH | FORGET | HOLD | MIND_BLAST | SCARE
 drop-base:psi book:5:1:1
 desc:A humanoid form with a gruesome head, tentacular mouth, and piercing eyes.
@@ -9190,7 +9112,6 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:RAND_25 | BASH_DOOR
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:28
 spells:BLIND | BLINK | CONF | SCARE | TELE_AWAY | TELE_LEVEL
 spells:TELE_TO | TPORT
 spells:S_KIN
@@ -9222,7 +9143,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:DROP_CORPSE | WILD_MOUNTAIN
 spell-freq:8
-spell-power:28
+innate-freq:100
 spells:BR_POIS
 desc:A vile reptile that preys on unsuspecting travellers. Its eyes stare deeply
 desc: at you and your soul starts to wilt!
@@ -9274,7 +9195,7 @@ flags:RAND_25 | BASH_DOOR | MOVE_BODY
 flags:IM_POIS
 flags:DROP_CORPSE
 spell-freq:8
-spell-power:28
+innate-freq:67
 spells:SCARE
 spells:BR_DARK | BR_POIS
 friends:100:2d7:Same
@@ -9300,7 +9221,6 @@ flags:NO_FEAR | NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP | SPIRIT
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:28
 spells:CAUSE_2 | FORGET | HOLD | SLOW
 desc:A lesser relative of the beholder: a globular body with a large toothy
 desc: mouth, a large central eye, and four smaller eyes on stalks protruding
@@ -9327,7 +9247,6 @@ flags:UNIQUE | MALE | SMART | SPIRIT
 flags:DROP_2 | DROP_GOOD | ONLY_ITEM
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:28
 spells:SHAPECHANGE
 friends:100:2d3:cave bear
 friends:100:2d3:grizzly bear
@@ -9379,7 +9298,6 @@ flags:DROP_CORPSE | DROP_SKELETON | DROP_1
 flags:OPEN_DOOR
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:28
 spells:BLIND | CAUSE_2 | FORGET | HOLD | MIND_BLAST
 spells:S_MONSTER
 friends:50:1d1:Easterling champion
@@ -9430,7 +9348,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC
 flags:DROP_CORPSE | WILD_WOOD | WILD_MOUNTAIN
 spell-freq:10
-spell-power:28
+innate-freq:50
 spells:SCARE
 spells:BR_ELEC
 desc:It has a form that legends are made of. Its still-tender scales are a deep
@@ -9456,7 +9374,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD
 flags:DROP_CORPSE | WILD_WASTE | WILD_MOUNTAIN | WILD_GLACIER
 spell-freq:10
-spell-power:28
+innate-freq:50
 spells:SCARE
 spells:BR_COLD
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -9482,7 +9400,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS
 flags:DROP_CORPSE | WILD_SWAMP | WILD_MOUNTAIN
 spell-freq:10
-spell-power:28
+innate-freq:50
 spells:SCARE
 spells:BR_POIS
 desc:It has a form that legends are made of. Its still-tender scales are a deep
@@ -9510,7 +9428,6 @@ flags:UNDEAD | PWMANG_EXTRA | EVIL
 flags:IM_FIRE | IM_ELEC | IM_POIS | IM_ACID
 flags:NO_SLEEP | NO_STUN
 spell-freq:15
-spell-power:28
 spells:S_DEMON
 desc:Often found in graveyards.
 
@@ -9536,7 +9453,7 @@ flags:UNDEAD | PWMANG_EXTRA
 flags:IM_FIRE | IM_ELEC | IM_POIS | IM_ACID
 flags:NO_SLEEP | NO_STUN
 spell-freq:15
-spell-power:28
+innate-freq:100
 spells:SHRIEK
 desc:Often found in graveyards.
 
@@ -9606,7 +9523,6 @@ blow:HIT:POISON:3d4
 blow:HIT:POISON:3d4
 blow:HIT:POISON:3d4
 spell-freq:4
-spell-power:29
 spells:BO_ACID | BO_COLD | BO_ELEC | BO_FIRE
 spells:S_MONSTER
 spells:BLIND | CAUSE_2 | CONF | SCARE
@@ -9637,7 +9553,6 @@ blow:HIT:POISON:3d4
 blow:HIT:POISON:3d4
 flags:PWMANG_BASE
 spell-freq:4
-spell-power:29
 spells:CAUSE_3 | FORGET
 spells:BO_ACID | BO_ELEC
 spells:S_MONSTER
@@ -9666,7 +9581,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID
 flags:DROP_CORPSE | WILD_SWAMP
 spell-freq:10
-spell-power:29
+innate-freq:50
 spells:SCARE
 spells:BR_ACID
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -9691,7 +9606,7 @@ flags:DROP_2
 flags:OPEN_DOOR | BASH_DOOR | NO_STUN
 flags:DROP_CORPSE | WILD_MOUNTAIN
 spell-freq:10
-spell-power:29
+innate-freq:50
 spells:SCARE
 spells:BR_SOUN
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -9718,7 +9633,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE
 flags:DROP_CORPSE | WILD_MOUNTAIN | WILD_VOLCANO | WILD_DESERT
 spell-freq:10
-spell-power:29
+innate-freq:50
 spells:SCARE
 spells:BR_FIRE
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -9743,7 +9658,7 @@ flags:DROP_2 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:NO_SLEEP | IM_COLD | NO_SLOW
 spell-freq:10
-spell-power:29
+innate-freq:50
 spells:SCARE
 spells:BR_COLD | BR_INER
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -9774,7 +9689,7 @@ flags:OPEN_DOOR
 flags:IM_FIRE
 flags:DROP_CORPSE | DROP_SKELETON | WILD_VOLCANO | WILD_DESERT
 spell-freq:8
-spell-power:30
+innate-freq:100
 spells:BOULDER
 friends:60:1d7:fire hound
 friends:80:1d3:Same
@@ -9844,7 +9759,7 @@ flags:BASH_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | WILD_WOOD
 spell-freq:5
-spell-power:30
+innate-freq:100
 spells:ARROW_4
 desc:It is a winged lion's body with a human torso and a tail covered in vicious
 desc: spikes.
@@ -9867,7 +9782,7 @@ flags:RAND_25
 flags:IM_ELEC | GROUP_AI
 flags:DROP_SKELETON | WILD_ALL
 spell-freq:6
-spell-power:30
+innate-freq:100
 spells:SPIT
 friends:100:4d4:Same
 desc:It is a giant ant that crackles with energy.
@@ -9912,7 +9827,6 @@ flags:DROP_1 | ONLY_ITEM
 flags:RAND_25 | OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP | LEVITATE
 spell-freq:8
-spell-power:30
 spells:CAUSE_3 | DARKNESS | SCARE
 desc:It is a ghostly form with eyes that haunt you.
 
@@ -9982,7 +9896,6 @@ blow:BITE:LOSE_CON:2d4
 flags:DROP_40
 flags:HURT_LIGHT
 spell-freq:7
-spell-power:30
 spells:HOLD | SCARE
 friends:20:1d3:zombified kobold
 friends:20:1d3:zombified orc
@@ -10036,7 +9949,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:NO_CONF
 flags:FORCE_DEPTH
 spell-freq:2
-spell-power:30
+innate-freq:50
 spells:BR_POIS
 spells:S_KIN
 friends-base:100:1d5:sandworm:servant
@@ -10080,7 +9993,7 @@ blow:BITE:HURT:3d7
 flags:DROP_CORPSE | DROP_2
 flags:OPEN_DOOR | BASH_DOOR
 spell-freq:10
-spell-power:30
+innate-freq:50
 spells:SCARE
 spells:BR_DARK | BR_LIGHT
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -10105,7 +10018,7 @@ flags:HAS_LIGHT
 flags:DROP_CORPSE | DROP_2
 flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 spell-freq:10
-spell-power:30
+innate-freq:50
 spells:SCARE
 spells:BR_SHAR
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -10131,7 +10044,7 @@ flags:DROP_2
 flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
 flags:IM_NETHER
 spell-freq:10
-spell-power:30
+innate-freq:50
 spells:SCARE
 spells:BR_NETH
 desc:It has a form that legends are made of. Its still-tender scales are a
@@ -10157,7 +10070,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_WATER
 flags:DROP_CORPSE | WILD_SHORE
 spell-freq:10
-spell-power:30
+innate-freq:50
 spells:SCARE
 spells:BR_WATE
 desc:It has a form that legends are made of. Its still-tender scales are a deep
@@ -10185,7 +10098,6 @@ flags:DROP_40 | DROP_1
 flags:RAND_25 | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:15
-spell-power:31
 spells:BLIND | DRAIN_MANA | HOLD
 desc:You don't believe in it. But it believes in you...
 
@@ -10231,7 +10143,7 @@ flags:IM_POIS | IM_ACID
 flags:FORCE_SLEEP
 flags:WILD_WOOD
 spell-freq:8
-spell-power:31
+innate-freq:100
 spells:BR_POIS
 desc:A bull-like creature whose skin is made of steel plates. Watch out for its
 desc: deadly breath!
@@ -10256,7 +10168,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_DISEN | NO_CONF
 flags:ATTR_MULTI
 spell-freq:10
-spell-power:31
+innate-freq:50
 spells:SCARE
 spells:BR_CHAO | BR_DISE
 desc:It has a form that legends are made of. Its still-tender scales are
@@ -10281,7 +10193,7 @@ flags:DROP_2 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 spell-freq:10
-spell-power:31
+innate-freq:50
 spells:SCARE
 spells:BR_SHAR | BR_SOUN
 desc:It has a form that legends are made of. Its still-tender scales are
@@ -10330,7 +10242,6 @@ weight:0
 experience:300
 flags:IM_NEXUS
 spell-freq:1
-spell-power:32
 spells:BLINK | TELE_AWAY
 desc:It is a very unstable, strange pulsing mound of flesh.
 
@@ -10376,7 +10287,6 @@ blow:HIT:CONFUSE:1d4
 flags:NEVER_MOVE
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:32
 spells:FORGET
 desc:A mass of green vegetation. You don't remember seeing anything like it
 desc: before.
@@ -10402,7 +10312,7 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 flags:ATTR_MULTI
 flags:DROP_CORPSE
 spell-freq:10
-spell-power:32
+innate-freq:50
 spells:SCARE
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 desc:It has a form that legends are made of. Beautiful scales of shimmering and
@@ -10452,7 +10362,6 @@ flags:DROP_40 | DROP_1
 flags:HURT_LIGHT
 flags:FORCE_SLEEP
 spell-freq:7
-spell-power:32
 spells:DARKNESS | HOLD | SCARE
 spells:ANIM_DEAD
 spells:S_UNDEAD
@@ -10482,7 +10391,7 @@ flags:DROP_2 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_STUN | NO_CONF | NO_CUT
 spell-freq:10
-spell-power:32
+innate-freq:50
 spells:SCARE
 spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 desc:It has a form that legends are made of. Its still-tender scales are
@@ -10508,7 +10417,7 @@ flags:DROP_40
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON | WILD_MOUNTAIN
 spell-freq:5
-spell-power:33
+innate-freq:100
 spells:BOULDER
 friends:60:1d7:earth hound
 friends:80:1d3:Same
@@ -10563,7 +10472,6 @@ flags:IM_ACID | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:6
-spell-power:33
 spells:HEAL
 spells:S_ANIMAL | S_SPIDER
 drop-base:nature book:10:1:1
@@ -10590,7 +10498,6 @@ flags:DROP_40
 flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP | LEVITATE
 spell-freq:8
-spell-power:33
 spells:CAUSE_2 | DARKNESS | HOLD | SCARE
 friends:100:4d4:Same
 desc:It is a ghostly nightmare of an entity.
@@ -10634,7 +10541,6 @@ flags:DROP_2 | ONLY_ITEM
 flags:RAND_25 | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:15
-spell-power:33
 spells:BLIND | DRAIN_MANA | HOLD
 desc:A shadowy form clutches at you from the darkness. A powerful undead
 desc: creature with a deadly touch.
@@ -10659,7 +10565,6 @@ flags:IM_ACID | IM_ELEC | IM_FIRE | HURT_COLD
 flags:FORCE_SLEEP
 flags:WILD_VOLCANO | WILD_DESERT
 spell-freq:6
-spell-power:33
 spells:BO_FIRE
 desc:It is a towering inferno of flames.
 
@@ -10683,7 +10588,6 @@ flags:RAND_25 | BASH_DOOR | KILL_BODY | KILL_ITEM
 flags:IM_ACID | IM_COLD | IM_FIRE | IM_WATER
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:33
 spells:BO_COLD
 desc:It is a towering tempest of water.
 
@@ -10707,7 +10611,7 @@ flags:ONLY_ITEM | DROP_2 | DROP_GOOD
 flags:TAKE_ITEM | OPEN_DOOR
 flags:IM_COLD | IM_POIS
 spell-freq:7
-spell-power:33
+innate-freq:100
 spells:BOULDER
 friends-base:100:1d5:giant:servant
 friends-base:75:1d5:giant:servant
@@ -10735,7 +10639,7 @@ flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 flags:NO_STUN | NO_CONF | NO_SLEEP | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:10
-spell-power:33
+innate-freq:50
 spells:SCARE
 spells:BR_ACID | BR_ELEC | BR_FIRE | BR_COLD | BR_POIS | BR_NETH | BR_LIGHT
 spells:BR_SOUN | BR_CHAO | BR_DISE | BR_NEXU | BR_TIME | BR_INER | BR_GRAV
@@ -10765,7 +10669,6 @@ flags:MOVE_BODY
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:5
-spell-power:33
 spells:SCARE
 spells:BA_POIS
 desc:A strange reptilian hybrid with six heads dripping venom.
@@ -10794,7 +10697,6 @@ flags:DROP_2
 flags:IM_COLD | IM_FIRE | HAS_LIGHT
 flags:NO_STUN
 spell-freq:3
-spell-power:34
 spells:BLIND | CONF | HASTE | HEAL | SCARE
 desc:One of the first children of Eru. Its body shines with glorious light, but
 desc: its face is stern as it looks down at you.
@@ -10844,7 +10746,7 @@ flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:MOVE_BODY | TAKE_ITEM
 flags:HURT_ROCK | HURT_LIGHT | IM_COLD
 spell-freq:7
-spell-power:34
+innate-freq:100
 spells:BOULDER
 friends:100:1d1:Tom the Stone Troll
 friends:100:1d1:Bill the Stone Troll
@@ -10872,7 +10774,7 @@ flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:MOVE_BODY | TAKE_ITEM
 flags:HURT_ROCK | HURT_LIGHT | IM_COLD
 spell-freq:7
-spell-power:34
+innate-freq:100
 spells:BOULDER
 friends:100:1d1:Bert the Stone Troll
 friends:100:1d1:Tom the Stone Troll
@@ -10900,7 +10802,7 @@ flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:MOVE_BODY | TAKE_ITEM
 flags:HURT_ROCK | HURT_LIGHT | IM_COLD
 spell-freq:7
-spell-power:34
+innate-freq:100
 spells:BOULDER
 friends:100:1d1:Bert the Stone Troll
 friends:100:1d1:Bill the Stone Troll
@@ -10926,7 +10828,6 @@ flags:DROP_2 | ONLY_ITEM
 flags:RAND_25 | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:15
-spell-power:34
 spells:BLIND | DRAIN_MANA | HOLD
 desc:A phantasmal shrieking spirit. Its wail drives the intense cold of pure
 desc: evil deep within your body.
@@ -10953,7 +10854,7 @@ flags:DROP_2
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:6
-spell-power:34
+innate-freq:33
 spells:ARROW_2 | BLINK | TRAPS
 drop-base:shadow book:5:1:1
 friends:50:1d1:black knight
@@ -10982,7 +10883,6 @@ flags:DROP_2 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 flags:FORCE_DEPTH
 spell-freq:10
-spell-power:34
 spells:S_KIN
 friends:60:1d3:mûmak
 friends:100:3d3:Easterling champion:bodyguard
@@ -11013,7 +10913,6 @@ blow:TOUCH:LOSE_DEX:2d8
 flags:DROP_1
 flags:HURT_LIGHT
 spell-freq:4
-spell-power:34
 spells:BLIND | BLINK | CAUSE_3 | DRAIN_MANA | HOLD | BRAIN_SMASH
 spells:SCARE | SLOW | TELE_AWAY | TELE_TO
 friends-base:70:1d3:skeleton
@@ -11058,7 +10957,6 @@ flags:PASS_WALL | KILL_BODY | KILL_ITEM
 flags:HURT_ROCK | IM_COLD | IM_ELEC | IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:34
 spells:BO_ACID
 desc:It is a towering form composed of rock with fists of awesome power.
 
@@ -11082,7 +10980,6 @@ flags:RAND_25 | BASH_DOOR | KILL_BODY | KILL_ITEM
 flags:IM_ACID | IM_COLD | IM_ELEC
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:34
 spells:BO_ELEC
 desc:It is a towering tornado of winds.
 
@@ -11131,7 +11028,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_WASTE | WILD_MOUNTAIN | WILD_GLACIER
 spell-freq:8
-spell-power:34
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_COLD
 friends:50:1d4:baby white dragon
@@ -11158,7 +11055,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_WOOD | WILD_MOUNTAIN
 spell-freq:8
-spell-power:34
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_ELEC
 friends:50:1d4:baby blue dragon
@@ -11185,7 +11082,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_WOOD | WILD_MOUNTAIN
 spell-freq:8
-spell-power:34
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_POIS
 friends:50:1d4:baby green dragon
@@ -11231,7 +11128,7 @@ flags:DROP_40 | ONLY_GOLD
 flags:IM_POIS | IM_COLD | IM_ELEC | HURT_ROCK | HURT_LIGHT
 flags:WILD_WASTE | WILD_MOUNTAIN
 spell-freq:12
-spell-power:34
+innate-freq:100
 spells:BR_ELEC | BR_FIRE
 friends:100:2d7:Same
 desc:A weird demon creature with a stone-like skin.
@@ -11254,7 +11151,7 @@ flags:ONLY_ITEM | DROP_2 | DROP_GOOD
 flags:TAKE_ITEM
 flags:IM_FIRE
 spell-freq:6
-spell-power:34
+innate-freq:20
 spells:CONF | HOLD | MIND_BLAST | SCARE
 spells:BR_FIRE
 desc:He is back from the grave for vengeance on those who burnt him. He has no
@@ -11353,7 +11250,7 @@ flags:NO_CONF | NO_SLEEP | LEVITATE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:35
+innate-freq:100
 spells:BR_GRAV
 friends:100:2d7:Same
 desc:Unfettered by the usual constraints of gravity, these unnatural creatures
@@ -11405,7 +11302,7 @@ flags:NO_CONF | NO_SLEEP | NO_SLOW
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:35
+innate-freq:100
 spells:BR_INER
 friends:100:2d7:Same
 desc:Bizarrely, this hound seems to be hardly moving at all, yet it approaches
@@ -11433,7 +11330,7 @@ flags:NO_CONF | NO_SLEEP | NO_STUN
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:35
+innate-freq:100
 spells:BR_WALL
 friends:100:2d7:Same
 desc:A deep brown shape is visible before you, its canine form strikes you with
@@ -11459,7 +11356,6 @@ flags:DROP_2 | ONLY_ITEM
 flags:RAND_25 | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:15
-spell-power:35
 spells:BLIND | CONF | DRAIN_MANA | HOLD
 spells:BO_NETH
 friends:100:2d5:Same
@@ -11509,7 +11405,7 @@ flags:KILL_BODY
 flags:IM_FIRE | GROUP_AI
 flags:DROP_SKELETON | WILD_DESERT
 spell-freq:6
-spell-power:35
+innate-freq:100
 spells:SPIT
 friends:100:4d4:Same
 desc:A giant ant covered in shaggy fur. Its powerful jaws glow with heat.
@@ -11533,7 +11429,6 @@ blow:BUTT:CONFUSE:4d4
 blow:SPIT:BLIND:4d4
 flags:DROP_2
 spell-freq:5
-spell-power:35
 spells:BA_POIS
 spells:S_MONSTER
 spells:BLIND | CAUSE_2 | CONF | SCARE
@@ -11570,7 +11465,7 @@ flags:NEVER_MOVE
 flags:HURT_ROCK | HURT_LIGHT | IM_COLD | IM_FIRE | IM_POIS
 flags:NO_STUN
 spell-freq:6
-spell-power:35
+innate-freq:14
 spells:CONF | DRAIN_MANA | HOLD | MIND_BLAST | SHRIEK
 spells:S_MONSTER | S_MONSTERS
 desc:A figure carved from stone, with three vulture faces whose eyes glow with a
@@ -11594,7 +11489,6 @@ blow:HIT:POISON:4d4
 blow:HIT:POISON:4d4
 flags:PWMANG_BASE
 spell-freq:3
-spell-power:35
 spells:CAUSE_4 | FORGET
 spells:BA_POIS
 spells:BO_ACID | BO_ELEC
@@ -11622,7 +11516,6 @@ flags:INVISIBLE | PWMANG_BASE | EVIL | COLD_BLOOD | MALE | MULTIPLY
 flags:RAND_25 | TAKE_ITEM
 flags:HURT_LIGHT
 spell-freq:6
-spell-power:35
 spells:BLINK | CAUSE_1 | TELE_TO | TPORT
 desc:This little creature has a fiendish gleam in its eyes.
 
@@ -11647,7 +11540,6 @@ flags:TAKE_ITEM | RAND_25
 flags:IM_COLD
 flags:FORCE_SLEEP
 spell-freq:15
-spell-power:35
 spells:BLIND | DRAIN_MANA | FORGET | SCARE
 spells:BO_COLD
 desc:A phantasmal apparition with no head.
@@ -11669,8 +11561,8 @@ blow:HIT:HURT:2d6
 flags:SMART | EVIL | PWMANG_BASE | MALE | HAS_LIGHT
 flags:DROP_CORPSE | DROP_SKELETON | DROP_60
 flags:IM_POIS | IM_COLD
-spell-freq:3
-spell-power:35
+spell-freq:4
+innate-freq:100
 spells:ARROW_2
 drop-base:nature book:10:1:1
 friends:100:4d4:Same
@@ -11696,7 +11588,6 @@ flags:SMART | UNIQUE | PWMANG_BASE | PWMANG_FIXED | LEVITATE
 flags:DROP_2 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:FORCE_DEPTH
 spell-freq:4
-spell-power:35
 spells:CAUSE_3 | HOLD | SCARE
 spells:BA_NETH
 desc:He has lived in the Barrow-Downs for centuries after his first death at the
@@ -11725,7 +11616,6 @@ flags:MALE | SMART | PWMANG_BASE
 flags:DROP_1
 flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_POIS
 spell-freq:9
-spell-power:35
 spells:DARKNESS | FORGET | HEAL | TELE_TO | TPORT
 desc:A daemon with a form of handsome man, he visits you while asleep and...
 
@@ -11749,7 +11639,6 @@ flags:FEMALE | SMART | PWMANG_BASE
 flags:DROP_1
 flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_POIS
 spell-freq:9
-spell-power:35
 spells:DARKNESS | FORGET | HEAL | TELE_TO | TPORT
 desc:A daemon with a form of beautiful woman, she visits you while asleep and...
 
@@ -11774,7 +11663,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_MOUNTAIN | WILD_VOLCANO | WILD_DESERT
 spell-freq:8
-spell-power:35
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_FIRE
 friends:50:1d4:baby red dragon
@@ -11801,7 +11690,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:NO_CONF | NO_SLEEP | NO_STUN
 flags:DROP_CORPSE | WILD_MOUNTAIN
 spell-freq:8
-spell-power:35
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_SOUN
 friends:50:1d4:baby gold dragon
@@ -11828,7 +11717,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_SWAMP | WILD_MOUNTAIN
 spell-freq:8
-spell-power:35
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_ACID
 friends:50:1d4:baby black dragon
@@ -11854,7 +11743,7 @@ flags:DROP_4 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:NO_CONF | NO_SLEEP | IM_COLD | NO_SLOW
 spell-freq:8
-spell-power:35
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_COLD | BR_INER
 friends:50:1d4:baby silver dragon
@@ -11905,7 +11794,7 @@ flags:OPEN_DOOR | TAKE_ITEM
 flags:IM_ELEC
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
-spell-power:36
+innate-freq:100
 spells:BOULDER
 friends:60:1d7:energy hound
 friends:80:1d3:Same
@@ -11930,7 +11819,6 @@ blow:BITE:EXP_40:3d6
 blow:BITE:EXP_40:3d6
 flags:DROP_4
 spell-freq:6
-spell-power:36
 spells:CAUSE_3 | CONF | DARKNESS | MIND_BLAST
 spells:TELE_TO
 spells:BO_NETH
@@ -11959,7 +11847,6 @@ flags:IM_ACID | IM_COLD | IM_FIRE
 flags:FORCE_SLEEP
 flags:WILD_SHORE | WILD_SWAMP
 spell-freq:5
-spell-power:36
 spells:BA_ACID
 spells:BO_ACID
 desc:It is a towering mass of filth, an eyesore of ooze.
@@ -11982,7 +11869,6 @@ flags:BASH_DOOR | KILL_BODY | KILL_ITEM
 flags:IM_COLD | IM_ELEC | IM_FIRE
 flags:FORCE_SLEEP | LEVITATE
 spell-freq:5
-spell-power:36
 spells:DARKNESS
 spells:BO_FIRE
 desc:It is a towering blackened form, crackling with heat.
@@ -12027,7 +11913,6 @@ blow:CLAW:LOSE_WIS:1d10
 flags:DROP_1 | ONLY_ITEM
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:36
 spells:SLOW | TELE_TO
 spells:BO_NETH
 desc:A mighty spirit of darkness of vaguely humanoid form. Razor-edged claws
@@ -12053,7 +11938,6 @@ blow:CLAW:LOSE_WIS:1d10
 flags:DROP_1 | ONLY_ITEM
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:36
 spells:FORGET
 desc:An unholy creature of darkness, the aura emanating from this evil being
 desc: saps your very soul.
@@ -12077,7 +11961,6 @@ flags:DROP_40 | DROP_60
 flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP
 spell-freq:7
-spell-power:36
 spells:CAUSE_3 | DARKNESS | HOLD | SCARE
 desc:A tangible but ghostly form, made of grey fog. The air around it feels
 desc: deathly cold.
@@ -12146,7 +12029,6 @@ flags:OPEN_DOOR | BASH_DOOR | TAKE_ITEM
 flags:IM_POIS | NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:36
 spells:BA_FIRE
 spells:BO_FIRE
 spells:S_DEMON
@@ -12172,7 +12054,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spell-power:36
 spells:BLIND | CAUSE_3 | HASTE | HOLD | SCARE | TELE_TO
 spells:TPORT
 spells:BO_NETH
@@ -12205,7 +12086,6 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF
 flags:NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:36
 spells:TELE_TO
 spells:S_MONSTERS
 friends:50:1d3:mûmak
@@ -12234,7 +12114,6 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | IM_NEXUS | IM_NETHER
 spell-freq:2
-spell-power:36
 spells:HOLD | TPORT
 spells:BO_FIRE
 spells:S_DEMON
@@ -12266,7 +12145,6 @@ flags:MOVE_BODY | TAKE_ITEM
 flags:IM_ACID | IM_ELEC | NO_FEAR
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:36
 spells:BLIND | CAUSE_3 | DARKNESS | DRAIN_MANA | FORGET | HASTE
 spells:HEAL | MIND_BLAST | SCARE
 spells:BA_COLD | BA_POIS
@@ -12299,7 +12177,6 @@ flags:BASH_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE
 spell-freq:5
-spell-power:36
 spells:CAUSE_2 | DRAIN_MANA | HOLD | TELE_AWAY
 spells:BA_COLD
 spells:BO_ELEC
@@ -12327,7 +12204,6 @@ flags:DROP_40 | DROP_60
 flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:FORCE_SLEEP
 spell-freq:7
-spell-power:36
 spells:CAUSE_3 | CONF | DARKNESS | SCARE
 desc:Back from the grave, to wreak vengeance upon the living. A skeletal figure
 desc: wearing a black robe, with eyes that burn with undying hatred.
@@ -12351,7 +12227,6 @@ flags:PASS_WALL
 flags:IM_POIS | IM_COLD | IM_ACID | NO_SLEEP | NO_CONF | NO_STUN
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:36
 spells:BLINK | DARKNESS
 spells:S_DEMON
 desc:An ugly demon with insect-like extremities and large bulbous eyes.
@@ -12376,7 +12251,7 @@ flags:DROP_4
 flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
 flags:NO_CONF | NO_SLEEP | IM_NETHER
 spell-freq:8
-spell-power:36
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_NETH
 friends:50:1d4:baby ethereal drake
@@ -12404,7 +12279,7 @@ flags:DROP_4 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:NO_CONF | NO_SLEEP
 spell-freq:8
-spell-power:36
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_DARK | BR_LIGHT
 friends:50:1d4:baby shadow drake
@@ -12432,7 +12307,7 @@ flags:DROP_4 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:NO_CONF | NO_SLEEP | NO_CUT
 spell-freq:8
-spell-power:36
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_SHAR
 friends:50:1d4:baby crystal drake
@@ -12460,7 +12335,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_WATER | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_SHORE
 spell-freq:8
-spell-power:36
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_WATE
 friends:50:1d4:baby water dragon
@@ -12490,7 +12365,6 @@ flags:IM_ACID | IM_COLD | IM_ELEC | HURT_FIRE
 flags:FORCE_SLEEP
 flags:WILD_GLACIER
 spell-freq:5
-spell-power:37
 spells:BA_COLD
 spells:BO_ICEE
 desc:It is a towering glacier of ice.
@@ -12538,7 +12412,6 @@ flags:OPEN_DOOR | GROUP_AI
 flags:NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:37
 spells:S_KIN
 friends:100:2d6:soldier ant:servant
 friends:60:2d3:giant silver ant:servant
@@ -12569,7 +12442,6 @@ flags:IM_ACID | IM_ELEC | IM_FIRE | HURT_COLD
 flags:FORCE_SLEEP
 flags:WILD_VOLCANO
 spell-freq:7
-spell-power:37
 spells:BA_FIRE
 spells:BO_PLAS
 desc:It is a towering glowing form of molten hate.
@@ -12617,7 +12489,7 @@ flags:IM_ELEC
 flags:ATTR_FLICKER
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:37
+innate-freq:100
 spells:SPIT
 desc:It is a giant beetle, whose carapace shimmers with vibrant energies.
 
@@ -12639,7 +12511,7 @@ flags:RAND_25
 flags:IM_NEXUS
 flags:NO_STUN
 spell-freq:6
-spell-power:37
+innate-freq:100
 spells:BR_NEXU
 desc:A maelstrom of potent magical energy.
 
@@ -12663,7 +12535,7 @@ flags:RAND_25
 flags:IM_ELEC | IM_FIRE | IM_PLASMA
 flags:NO_STUN
 spell-freq:6
-spell-power:37
+innate-freq:100
 spells:BR_PLAS
 desc:A whirlpool of intense flame, charring the stones at your feet.
 
@@ -12704,7 +12576,7 @@ experience:800
 blow:ENGULF:HURT:6d6
 flags:NO_STUN | NO_CUT
 spell-freq:4
-spell-power:37
+innate-freq:100
 spells:BR_SHAR
 desc:A howling blast of razor-sharp mountain fragments, kept intact by perilous
 desc: magics.
@@ -12729,7 +12601,6 @@ flags:PWMANG_BASE
 flags:DROP_1
 flags:HURT_LIGHT
 spell-freq:3
-spell-power:37
 spells:BLINK | CAUSE_3 | DRAIN_MANA | TELE_AWAY | TELE_LEVEL | TELE_TO
 spells:BRAIN_SMASH
 friends-base:70:1d3:skeleton
@@ -12755,7 +12626,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_DISEN | NO_CONF | NO_SLEEP
 flags:ATTR_MULTI
 spell-freq:8
-spell-power:37
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_CHAO | BR_DISE
 friends:50:1d4:baby chaos drake
@@ -12782,7 +12653,7 @@ flags:DROP_4 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_CONF | NO_SLEEP | NO_STUN | NO_CUT
 spell-freq:8
-spell-power:37
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_SHAR | BR_SOUN
 friends:50:1d4:baby law drake
@@ -12813,7 +12684,6 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE
 flags:FORCE_SLEEP
 flags:WILD_SWAMP
 spell-freq:2
-spell-power:38
 spells:BLINK | CAUSE_2 | CONF | TPORT
 desc:A strange ball of glowing light. It disappears and reappears and seems to
 desc: draw you to it. You seem somehow compelled to stand still and watch its
@@ -12841,7 +12711,7 @@ flags:NO_SLEEP
 flags:ATTR_MULTI
 flags:DROP_CORPSE
 spell-freq:8
-spell-power:38
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 friends:50:1d4:baby multi-hued dragon
@@ -12870,7 +12740,6 @@ flags:IM_COLD
 flags:FORCE_SLEEP
 flags:IM_NETHER
 spell-freq:5
-spell-power:38
 spells:BLIND | CAUSE_3 | SCARE
 spells:BO_NETH
 spells:S_MONSTERS
@@ -12901,7 +12770,6 @@ flags:DROP_2 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:38
 spells:HEAL | TRAPS
 spells:BO_COLD | BO_ELEC | BO_FIRE | BO_ICEE
 desc:A Black Númenorean who usurped the throne of Gondor, he is treacherous and
@@ -12924,7 +12792,7 @@ blow:ENGULF:TIME:5d5
 flags:RAND_25
 flags:NO_STUN
 spell-freq:6
-spell-power:38
+innate-freq:100
 spells:BR_TIME
 desc:You haven't seen it yet.
 
@@ -12947,7 +12815,7 @@ flags:HAS_LIGHT | ATTR_FLICKER
 flags:RAND_25
 flags:NO_STUN
 spell-freq:4
-spell-power:38
+innate-freq:100
 spells:SHRIEK
 spells:BR_LIGHT
 desc:A strange pillar of shining light that hurts your eyes. Its shape changes
@@ -12974,7 +12842,6 @@ flags:DROP_3 | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP | LEVITATE
 spell-freq:6
-spell-power:38
 spells:CAUSE_3 | HOLD | SCARE
 spells:BO_NETH
 friends-base:50:1d3:wraith
@@ -13001,7 +12868,6 @@ flags:DROP_2 | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP | LEVITATE
 spell-freq:7
-spell-power:38
 spells:BLIND | CAUSE_3 | HOLD | SCARE
 spells:BO_NETH
 desc:A figure that seems made of void, its strangely human shape is cloaked in
@@ -13026,7 +12892,6 @@ flags:FEMALE
 flags:DROP_40
 flags:IM_FIRE | IM_POIS
 spell-freq:7
-spell-power:38
 spells:BLIND | CONF
 spells:BO_FIRE
 desc:It is a lesser demon of female form; however, she takes little time to show
@@ -13077,7 +12942,6 @@ flags:HURT_LIGHT | IM_POIS
 flags:FORCE_SLEEP
 flags:DROP_SKELETON
 spell-freq:6
-spell-power:38
 spells:CAUSE_3 | HOLD | MISSILE | SLOW
 spells:BO_FIRE
 friends:50:2d3:Mirkwood spider
@@ -13103,7 +12967,7 @@ flags:DROP_4 | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_CONF | NO_SLEEP | NO_STUN | NO_CUT
 spell-freq:8
-spell-power:38
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 friends:50:1d4:baby balance drake
@@ -13136,7 +13000,6 @@ flags:MOVE_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | HAS_LIGHT
 flags:NO_STUN
 spell-freq:3
-spell-power:39
 spells:BLIND | HASTE | HEAL | MIND_BLAST | SCARE
 spells:BO_FIRE
 spells:S_MONSTERS
@@ -13165,7 +13028,6 @@ flags:DROP_3 | ONLY_ITEM
 flags:PASS_WALL
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:39
 spells:BLIND | CAUSE_3 | DARKNESS | MIND_BLAST | SCARE
 spells:BO_NETH
 desc:A form that hurts the eye, death permeates the air around it. As it nears
@@ -13193,7 +13055,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_NEXUS | NO_CONF | NO_CUT
 flags:NO_SLEEP | NO_STUN | NO_HOLD
 spell-freq:4
-spell-power:39
+innate-freq:100
 spells:BR_ACID | BR_COLD | BR_CHAO | BR_ELEC | BR_FIRE | BR_GRAV
 spells:BR_NEXU | BR_SHAR | BR_SOUN
 desc:A large dragon with a selection of heads, all shouting and arguing as they
@@ -13221,7 +13083,7 @@ flags:MOVE_BODY
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:5
-spell-power:39
+innate-freq:33
 spells:SCARE
 spells:BA_POIS
 spells:BR_POIS
@@ -13271,7 +13133,6 @@ blow:CLAW:LOSE_DEX:4d2
 flags:PWMANG_BASE
 flags:ONLY_ITEM | DROP_4
 spell-freq:3
-spell-power:39
 spells:BLIND | BLINK | CAUSE_3 | CAUSE_4 | CONF | BRAIN_SMASH
 spells:DRAIN_MANA | HOLD | SCARE | TELE_TO
 spells:ANIM_DEAD
@@ -13300,7 +13161,7 @@ flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 flags:NO_STUN | NO_CONF | NO_SLEEP | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:8
-spell-power:39
+innate-freq:33
 spells:CONF | SCARE
 spells:BR_ACID | BR_ELEC | BR_FIRE | BR_COLD | BR_POIS | BR_NETH | BR_LIGHT
 spells:BR_SOUN | BR_CHAO | BR_DISE | BR_NEXU | BR_TIME | BR_INER | BR_GRAV
@@ -13335,7 +13196,7 @@ flags:IM_COLD | IM_ELEC
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_MOUNTAIN
 spell-freq:8
-spell-power:40
+innate-freq:14
 spells:BLINK | CONF | SCARE | TELE_TO
 spells:BA_ELEC | BO_ELEC | BOULDER
 friends:60:1d7:energy hound
@@ -13361,7 +13222,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:40
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_ELEC
 desc:A huge draconic form. Lightning crackles along its length.
@@ -13388,7 +13249,6 @@ flags:NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP
 flags:DROP_CORPSE
 spell-freq:2
-spell-power:40
 spells:BLIND | CONF | DARKNESS | DRAIN_MANA | FORGET | MIND_BLAST
 spells:SCARE | SLOW
 spells:BO_ACID | BO_COLD | BO_ELEC | BO_FIRE
@@ -13414,7 +13274,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:40
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_COLD
 desc:A huge draconic form. Frost covers it from head to tail.
@@ -13438,7 +13298,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:40
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_POIS
 desc:A huge draconic form enveloped in clouds of poisonous vapour.
@@ -13505,7 +13365,7 @@ flags:OPEN_DOOR | MOVE_BODY
 flags:IM_FIRE
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:4
-spell-power:40
+innate-freq:33
 spells:SCARE
 spells:BO_FIRE
 spells:BR_FIRE
@@ -13533,7 +13393,6 @@ flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:2
-spell-power:40
 spells:BLIND
 spells:SHAPECHANGE | S_DRAGON
 drop-base:magic book:8:1:1
@@ -13565,7 +13424,6 @@ flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:2
-spell-power:40
 spells:BLIND | BLINK | CAUSE_3 | CONF | TELE_TO | TRAPS
 spells:BA_COLD | BA_FIRE
 spells:BO_ACID
@@ -13691,7 +13549,6 @@ flags:IM_ACID | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags-off:HURT_COLD
 spell-freq:2
-spell-power:40
 spells:CAUSE_3 | HOLD | SCARE
 spells:BA_ACID
 spells:BO_FIRE | BO_PLAS
@@ -13718,7 +13575,6 @@ blow:CRUSH:HURT:8d12
 flags:DROP_40
 flags:IM_FIRE
 spell-freq:8
-spell-power:40
 spells:BLIND | CONF
 friends:100:4d4:Same
 desc:It is a demon with a long neck and raking claws.
@@ -13744,7 +13600,6 @@ flags:PASS_WALL
 flags:IM_POIS | NO_FEAR | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:10
-spell-power:40
 spells:BLIND | CAUSE_3 | CONF | SCARE
 spells:S_DEMON
 desc:It is a demon of small stature, but its armoured frame moves with lightning
@@ -13772,7 +13627,6 @@ flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:2
-spell-power:40
 spells:BLIND | CAUSE_3 | CAUSE_4 | HEAL | HOLD
 spells:S_MONSTER | S_UNDEAD
 spells:ANIM_DEAD
@@ -13839,7 +13693,6 @@ flags:PWMANG_BASE | INVISIBLE
 flags:DROP_4
 flags:PASS_WALL
 spell-freq:6
-spell-power:40
 spells:CAUSE_3 | CONF | DARKNESS | FORGET | MIND_BLAST | TELE_TO
 spells:BO_NETH
 spells:HOLD | SCARE
@@ -13914,7 +13767,6 @@ flags:TAKE_ITEM | MOVE_BODY
 flags:IM_FIRE | IM_ELEC | IM_POIS | NO_CONF | NO_SLEEP | NO_FEAR | NO_STUN
 flags:FORCE_SLEEP | NO_HOLD
 spell-freq:2
-spell-power:40
 spells:BLIND | BLINK | BRAIN_SMASH | CONF | HEAL | HOLD | MIND_BLAST | SCARE
 spells:TELE_AWAY | TPORT
 spells:BA_COLD | BA_FIRE
@@ -13973,7 +13825,7 @@ flags:UNIQUE | PWMANG_BASE
 flags:IM_ACID | IM_FIRE | IM_ELEC | IM_COLD
 flags:IM_POIS
 spell-freq:2
-spell-power:40
+innate-freq:6
 spells:BRAIN_SMASH | CAUSE_3 | CAUSE_4 | FORGET | SHRIEK
 spells:TRAPS
 spells:BA_ACID | BA_COLD | BA_ELEC | BA_FIRE
@@ -14031,7 +13883,7 @@ flags:MOVE_BODY
 flags:IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:4
-spell-power:40
+innate-freq:33
 spells:SCARE
 spells:BA_POIS
 spells:BR_POIS
@@ -14056,7 +13908,7 @@ flags:ONLY_ITEM | DROP_1 | DROP_GOOD
 flags:IM_FIRE | REGENERATE | OPEN_DOOR | BASH_DOOR 
 flags:NO_CONF | NO_SLEEP | NO_HOLD | HAS_LIGHT | ATTR_FLICKER
 spell-freq:4
-spell-power:40
+innate-freq:33
 spells:BR_FIRE | BLINK | TELE_AWAY
 desc:A Thunderlord. Among the weaker breeds, but still dangerous.
 
@@ -14081,7 +13933,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:41
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_ACID
 desc:A huge draconic form. Pools of acid melt the floor around it.
@@ -14106,7 +13958,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:41
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE
 desc:A huge draconic form. Wisps of smoke steam from its nostrils and the
@@ -14130,7 +13982,7 @@ blow:BITE:HURT:7d9
 flags:OPEN_DOOR | BASH_DOOR | NO_STUN
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:41
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_SOUN
 desc:A huge draconic form wreathed in a nimbus of light. Its roar stuns and
@@ -14157,7 +14009,6 @@ flags:HURT_LIGHT | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:2
-spell-power:41
 spells:BLIND | BLINK | CAUSE_3 | CONF | DARKNESS | HEAL
 spells:TELE_TO
 spells:BA_COLD | BA_FIRE
@@ -14188,7 +14039,6 @@ blow:TOUCH:LOSE_DEX:2d12
 blow:TOUCH:LOSE_DEX:2d12
 flags:DROP_4 | ONLY_ITEM
 spell-freq:3
-spell-power:41
 spells:BLIND | BLINK | CAUSE_3 | CAUSE_4 | CONF | BRAIN_SMASH
 spells:DRAIN_MANA | HOLD | SCARE | TELE_TO
 spells:S_UNDEAD
@@ -14214,7 +14064,6 @@ blow:HIT:HURT:3d4
 flags:DROP_1
 flags:IM_FIRE
 spell-freq:9
-spell-power:41
 spells:BO_FIRE
 spells:S_DEMON
 friends:100:4d4:Same
@@ -14242,7 +14091,6 @@ flags:OPEN_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:41
 spells:CAUSE_3
 spells:BO_MANA | BO_WATE
 desc:This sad creature - once a mighty warrior - betrayed his former friends to
@@ -14271,8 +14119,8 @@ flags:DROP_2 | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 flags:IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:DROP_CORPSE | DROP_SKELETON
-spell-freq:4
-spell-power:41
+spell-freq:3
+innate-freq:30
 spells:ARROW_2 | ARROW_3 | ARROW_4 | BLINK | HASTE | MISSILE
 spells:BA_COLD
 spells:BO_ELEC | BO_FIRE
@@ -14307,7 +14155,7 @@ flags:DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_SLOW
 spell-freq:6
-spell-power:41
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_COLD | BR_INER
 desc:A huge draconic form wreathed in a radiance of silver. Its roar stuns and
@@ -14337,7 +14185,7 @@ flags:IM_FIRE | GROUP_AI
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:42
+innate-freq:100
 spells:BR_FIRE
 friends:100:2d5:Same
 desc:It is a giant dog that glows with heat. Flames pour from its nostrils.
@@ -14364,7 +14212,7 @@ flags:DROP_3 | DROP_GOOD | ONLY_ITEM
 flags:MOVE_BODY | TAKE_ITEM
 flags:IM_COLD
 spell-freq:7
-spell-power:42
+innate-freq:100
 spells:BOULDER
 friends:60:2d3:half-troll:servant
 friends:60:2d3:cave troll:servant
@@ -14393,7 +14241,6 @@ blow:BITE:EXP_80:4d6
 blow:BITE:EXP_80:4d6
 flags:DROP_4
 spell-freq:7
-spell-power:42
 spells:BLIND | BRAIN_SMASH | CAUSE_3 | CAUSE_4 | DARKNESS | DRAIN_MANA
 spells:BO_NETH
 spells:HOLD | SCARE
@@ -14420,7 +14267,6 @@ flags:POWERFUL | PWMANG_BASE | LEVITATE
 flags:ONLY_ITEM | DROP_40
 flags:IM_FIRE | IM_ELEC
 spell-freq:2
-spell-power:42
 spells:CAUSE_3 | DRAIN_MANA | BRAIN_SMASH
 spells:BA_COLD | BA_ELEC | BA_FIRE | BA_WATE
 spells:BO_ICEE
@@ -14449,7 +14295,7 @@ flags:INVISIBLE
 flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
 flags:IM_NETHER
 spell-freq:6
-spell-power:42
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_NETH
 desc:It is a dragon-like form wrapped in darkness. You cannot make out its true
@@ -14474,7 +14320,7 @@ flags:HAS_LIGHT
 flags:DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 spell-freq:6
-spell-power:42
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR
 desc:A huge crystalline dragon. Its claws could cut you to shreds and its teeth
@@ -14499,7 +14345,7 @@ blow:BITE:HURT:7d9
 flags:DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 spell-freq:6
-spell-power:42
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_DARK | BR_LIGHT
 desc:A huge dragon emanating from the shadow plane, this terrible dragon is a
@@ -14525,7 +14371,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_WATER
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:42
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_WATE
 desc:A huge draconic form. Water drips from its scales.
@@ -14552,7 +14398,7 @@ flags:OPEN_DOOR | MOVE_BODY
 flags:IM_FIRE
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:4
-spell-power:42
+innate-freq:25
 spells:SCARE
 spells:BA_FIRE
 spells:BO_FIRE
@@ -14582,7 +14428,6 @@ flags:RAND_25 | BASH_DOOR | KILL_BODY | KILL_ITEM
 flags:IM_ACID | IM_ELEC | IM_FIRE | HURT_COLD
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:43
 spells:BA_FIRE
 spells:BO_PLAS
 desc:A towering fire elemental, Vargo burns everything beyond recognition.
@@ -14608,7 +14453,6 @@ flags:RAND_25 | BASH_DOOR | KILL_BODY | KILL_ITEM
 flags:IM_ACID | IM_COLD | IM_FIRE | IM_WATER
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:43
 spells:BA_COLD | BA_WATE
 spells:BO_ICEE | BO_WATE
 desc:A towering water elemental, Waldern is master of all things liquid. Wave
@@ -14636,7 +14480,6 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:PASS_WALL | MOVE_BODY
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:43
 spells:BLIND | CAUSE_3 | FORGET | HOLD | SCARE
 spells:BO_ACID | BO_COLD | BO_FIRE | BO_NETH
 spells:S_MONSTER
@@ -14662,7 +14505,6 @@ blow:HIT:HURT:3d4
 flags:DROP_60
 flags:IM_FIRE
 spell-freq:9
-spell-power:43
 spells:BO_FIRE
 spells:S_DEMON
 desc:It is demon with arms and pincers, its form a true mockery of life.
@@ -14688,7 +14530,6 @@ flags:PASS_WALL | KILL_BODY | KILL_ITEM
 flags:HURT_ROCK | IM_COLD | IM_ELEC | IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:43
 spells:BA_ACID
 spells:BO_ACID
 desc:A towering stone elemental stands before you. The walls and ceiling are
@@ -14715,7 +14556,6 @@ flags:RAND_25 | BASH_DOOR | KILL_BODY | KILL_ITEM
 flags:IM_ACID | IM_COLD | IM_ELEC
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:43
 spells:BA_COLD | BA_ELEC
 spells:BO_ELEC
 desc:A towering air elemental, Ariel, the sorceress, avoids your blows with her
@@ -14744,7 +14584,7 @@ flags:NO_SLEEP
 flags:ATTR_MULTI | FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:43
+innate-freq:100
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 friends:100:2d7:Same
 desc:Shimmering in rainbow hues, this hound is beautiful and deadly.
@@ -14772,7 +14612,7 @@ flags:BASH_DOOR
 flags:IM_COLD | IM_WATER
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:43
+innate-freq:100
 spells:BR_WATE
 friends:100:2d7:Same
 desc:The sound of a hundred waterfalls rushes through your ears as a huge wave
@@ -14798,7 +14638,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_DISEN
 flags:ATTR_MULTI
 spell-freq:6
-spell-power:43
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_CHAO | BR_DISE
 desc:A huge draconic form. Its scales are shimmering many colours.
@@ -14822,7 +14662,7 @@ flags:DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 spell-freq:6
-spell-power:43
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR | BR_SOUN
 desc:A huge draconic form. Its scales are shimmering blue.
@@ -14849,7 +14689,7 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 flags:ATTR_MULTI
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:44
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 desc:A huge draconic form. Many colours ripple down its massive frame. Few live
@@ -14877,7 +14717,6 @@ flags:OPEN_DOOR | TAKE_ITEM
 flags:NO_FEAR | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | IM_NEXUS | IM_DISEN | IM_NETHER | NO_STUN
 spell-freq:4
-spell-power:44
 spells:BLIND | CAUSE_3 | CAUSE_4 | HASTE | HEAL | SCARE
 drop-base:prayer book:10:1:1
 friends:30:1d1:master thief
@@ -14914,7 +14753,7 @@ flags:OPEN_DOOR | MOVE_BODY
 flags:IM_FIRE
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:4
-spell-power:44
+innate-freq:20
 spells:SCARE
 spells:BA_FIRE
 spells:BO_FIRE | BO_PLAS
@@ -14942,7 +14781,6 @@ flags:DROP_4 | ONLY_ITEM
 flags:RAND_25 | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:9
-spell-power:44
 spells:BLIND | CAUSE_4 | CONF | DRAIN_MANA | HOLD | TELE_LEVEL
 spells:BO_NETH
 spells:S_UNDEAD
@@ -14972,7 +14810,7 @@ flags:IM_COLD | IM_FIRE | IM_POIS
 flags:NO_STUN
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:44
+innate-freq:40
 spells:ARROW_3 | BLIND | CONF | SLOW
 spells:BR_POIS
 desc:A constructed dragon, the drolem has massive strength. Powerful spells
@@ -15019,7 +14857,7 @@ flags:DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_STUN | NO_CUT
 spell-freq:6
-spell-power:44
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 desc:A huge draconic form. Its scales are shimmering purple.
@@ -15048,7 +14886,6 @@ flags:MOVE_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | NO_FEAR | SMART | HAS_LIGHT
 flags:NO_STUN
 spell-freq:6
-spell-power:45
 spells:CONF | HASTE | HEAL | TELE_AWAY
 spells:BO_MANA | BO_PLAS
 spells:S_AINU | S_MONSTERS
@@ -15068,7 +14905,6 @@ rarity:1
 weight:0
 experience:3000
 spell-freq:2
-spell-power:45
 spells:BLINK | TPORT
 spells:S_UNDEAD
 desc:It is a pulsing flesh mound that reeks of death and putrefaction.
@@ -15095,7 +14931,6 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:45
 spells:BLIND | CAUSE_3 | DARKNESS | HOLD | SCARE
 spells:BO_COLD | BO_FIRE | BO_NETH
 spells:S_MONSTERS
@@ -15123,7 +14958,7 @@ flags:POWERFUL | HAS_LIGHT
 flags:DROP_1
 flags:IM_FIRE
 spell-freq:9
-spell-power:45
+innate-freq:25
 spells:BLIND | CONF
 spells:BR_FIRE
 spells:S_DEMON
@@ -15152,7 +14987,6 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF
 flags:NO_SLEEP | NO_STUN
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:45
 spells:BRAIN_SMASH | CAUSE_4 | CONF | DRAIN_MANA | FORGET | MIND_BLAST
 spells:SLOW
 spells:BA_COLD | BA_FIRE
@@ -15177,7 +15011,6 @@ rarity:1
 weight:0
 experience:3000
 spell-freq:2
-spell-power:45
 spells:BLINK | TPORT
 spells:S_DEMON
 desc:A pile of pulsing flesh that glows with an inner hellish fire. The world
@@ -15196,7 +15029,6 @@ rarity:1
 weight:0
 experience:3000
 spell-freq:2
-spell-power:45
 spells:BLINK | TPORT
 spells:S_DRAGON
 desc:It looks like it was once a dragon corpse, now deeply infected with magical
@@ -15225,7 +15057,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS | IM_NEXUS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:DROP_CORPSE
 spell-freq:8
-spell-power:45
+innate-freq:100
 spells:BR_DARK | BR_NEXU | BR_POIS
 desc:A large basilisk, whose shape resembles that of a great wyrm.
 
@@ -15250,7 +15082,6 @@ flags:KILL_BODY
 flags:NO_FEAR | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | NO_STUN
 spell-freq:4
-spell-power:45
 spells:HASTE | SCARE
 friends:30:1d1:master thief
 friends:30:1d1:ranger chieftain
@@ -15284,7 +15115,7 @@ flags:IM_ACID | IM_COLD | IM_FIRE
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_MOUNTAIN
 spell-freq:8
-spell-power:45
+innate-freq:100
 spells:BOULDER
 desc:A gigantic ugly humanoid with but one eye and very thick skin.
 
@@ -15309,7 +15140,7 @@ flags:IM_ACID | IM_COLD | IM_POIS
 flags:NO_CONF | NO_FEAR
 flags:FORCE_DEPTH | FORCE_SLEEP
 spell-freq:5
-spell-power:45
+innate-freq:29
 spells:BA_WATE
 spells:BO_WATE | BO_ICEE
 spells:BR_POIS | BR_WATE
@@ -15339,7 +15170,6 @@ flags:ONLY_ITEM | DROP_2
 flags:KILL_WALL
 flags:NO_FEAR
 spell-freq:3
-spell-power:45
 spells:BLIND | CAUSE_3 | CONF | DRAIN_MANA | HOLD | MIND_BLAST | TELE_TO
 spells:BA_NETH | BRAIN_SMASH
 spells:ANIM_DEAD
@@ -15366,7 +15196,6 @@ flags:PASS_WALL | KILL_BODY
 flags:IM_ELEC | HURT_ROCK
 flags:FORCE_DEPTH | FORCE_SLEEP
 spell-freq:10
-spell-power:45
 spells:BA_FIRE
 spells:BO_ACID
 spells:S_KIN
@@ -15423,7 +15252,7 @@ flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 flags:NO_STUN | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:6
-spell-power:45
+innate-freq:25
 spells:BLIND | CONF | SCARE
 spells:BR_ACID | BR_ELEC | BR_FIRE | BR_COLD | BR_POIS | BR_NETH | BR_LIGHT
 spells:BR_SOUN | BR_CHAO | BR_DISE | BR_NEXU | BR_TIME | BR_INER | BR_GRAV
@@ -15449,7 +15278,7 @@ flags:ONLY_ITEM | DROP_1 | DROP_GOOD
 flags:IM_FIRE | REGENERATE | OPEN_DOOR | BASH_DOOR 
 flags:NO_CONF | NO_SLEEP | NO_HOLD | HAS_LIGHT | ATTR_FLICKER
 spell-freq:4
-spell-power:45
+innate-freq:33
 spells:BR_FIRE | TPORT | BLINK
 desc:A Thunderlord. Among the weaker breeds, but still dangerous.
 
@@ -15476,7 +15305,7 @@ flags:DROP_GOOD | ONLY_ITEM
 flags:BASH_DOOR
 flags:IM_COLD
 spell-freq:4
-spell-power:46
+innate-freq:33
 spells:CAUSE_3 | CONF
 spells:BR_COLD
 desc:An ancient and wise Dragon. Scatha has grown clever over the long years.
@@ -15503,8 +15332,8 @@ blow:HIT:EAT_GOLD:5d5
 flags:MALE | EVIL | PWMANG_BASE
 flags:DROP_2
 flags:TAKE_ITEM | OPEN_DOOR
-spell-freq:2
-spell-power:46
+spell-freq:4
+innate-freq:17
 spells:ARROW_1 | BLINK | CONF | TELE_TO | TPORT | TRAPS
 drop-base:shadow book:10:1:1
 desc:A class of its own: you are already too late to protect your possessions -
@@ -15532,7 +15361,6 @@ flags:FEMALE
 flags:DROP_1
 flags:IM_FIRE
 spell-freq:9
-spell-power:47
 spells:BLIND | CAUSE_2
 spells:S_DEMON
 desc:She is a demon of female form with many arms, each bearing deadly weapons.
@@ -15582,7 +15410,7 @@ flags:DROP_GOOD | ONLY_ITEM
 flags:BASH_DOOR
 flags:IM_FIRE
 spell-freq:4
-spell-power:47
+innate-freq:33
 spells:CAUSE_3 | CONF
 spells:BR_FIRE
 desc:A mighty ancient dragon, Itangast's form scorches your flesh. Wisps of
@@ -15610,7 +15438,7 @@ flags:OPEN_DOOR | MOVE_BODY
 flags:IM_FIRE | IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:4
-spell-power:47
+innate-freq:29
 spells:SCARE
 spells:BA_FIRE | BA_POIS
 spells:BO_FIRE | BO_PLAS
@@ -15642,7 +15470,6 @@ flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:48
 spells:BLIND | CAUSE_3 | HOLD | SCARE
 spells:BA_FIRE
 spells:BO_FIRE | BO_NETH
@@ -15673,7 +15500,7 @@ flags:DROP_1 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:BASH_DOOR
 flags:IM_FIRE
 spell-freq:4
-spell-power:48
+innate-freq:33
 spells:CAUSE_3 | CONF
 spells:BR_FIRE
 desc:Smaug is one of the Urulóki that still survive, a fire-drake of immense
@@ -15703,7 +15530,6 @@ flags:HURT_LIGHT | IM_FIRE | IM_POIS
 flags:FORCE_SLEEP
 flags:DROP_SKELETON
 spell-freq:6
-spell-power:48
 spells:CAUSE_3 | DRAIN_MANA | HEAL | HOLD | MIND_BLAST | SLOW
 spells:BA_FIRE
 spells:BO_FIRE
@@ -15733,7 +15559,7 @@ blow:BITE:EXP_40:4d6
 flags:IM_COLD | IM_POIS | IM_NETHER
 flags:WILD_WOOD | WILD_SWAMP | WILD_WASTE
 spell-freq:6
-spell-power:48
+innate-freq:100
 spells:BR_DARK | BR_NETH | BR_POIS
 desc:A terrifying sight: a winged creature greater than any bird you have ever
 desc: seen, and with no feathers on its horrid black leathery wings. Descended
@@ -15763,7 +15589,7 @@ flags:DROP_2
 flags:MOVE_BODY
 flags:IM_FIRE
 spell-freq:4
-spell-power:49
+innate-freq:25
 spells:BLIND | CONF
 spells:BR_FIRE
 spells:S_DEMON
@@ -15789,7 +15615,6 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:HURT_LIGHT | IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:49
 spells:BLIND | BLINK | CAUSE_4 | CONF | DARKNESS | HEAL
 spells:TELE_TO
 spells:BA_ACID | BA_COLD | BA_ELEC | BA_FIRE | BA_NETH
@@ -15824,7 +15649,6 @@ flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_NETHER | NO_FEAR
 flags:NO_STUN
 flags-off:TAKE_ITEM
 spell-freq:3
-spell-power:49
 spells:BLIND | CAUSE_3 | CAUSE_4 | SCARE | TELE_TO
 spells:BO_NETH
 spells:S_DEMON
@@ -15859,7 +15683,6 @@ flags:NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | NO_STUN
 spell-freq:3
-spell-power:50
 spells:HEAL
 spells:S_ANIMAL
 drop-base:nature book:8:1:1
@@ -15890,7 +15713,7 @@ flags:MOVE_BODY
 flags:IM_FIRE
 flags:FORCE_DEPTH
 spell-freq:4
-spell-power:50
+innate-freq:20
 spells:CONF | SCARE
 spells:BR_FIRE
 spells:S_DEMON | S_UNDEAD
@@ -15924,7 +15747,7 @@ flags:IM_COLD | IM_POIS
 flags:ATTR_MULTI
 flags:FORCE_DEPTH
 spell-freq:4
-spell-power:50
+innate-freq:13
 spells:BLIND | BRAIN_SMASH | CONF
 spells:BA_NETH
 spells:BO_COLD
@@ -15956,7 +15779,7 @@ flags:OPEN_DOOR | MOVE_BODY
 flags:IM_FIRE | IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:4
-spell-power:50
+innate-freq:29
 spells:SCARE
 spells:BA_FIRE | BA_POIS
 spells:BO_FIRE | BO_PLAS
@@ -15982,7 +15805,7 @@ flags:ONLY_ITEM | DROP_2 | DROP_GOOD
 flags:IM_FIRE | REGENERATE | OPEN_DOOR | BASH_DOOR 
 flags:NO_CONF | NO_SLEEP | NO_HOLD | HAS_LIGHT | ATTR_FLICKER
 spell-freq:4
-spell-power:50
+innate-freq:33
 spells:BR_FIRE | TPORT | BLINK
 desc:A Thunderlord. Beware its flame.
 
@@ -16010,7 +15833,7 @@ flags:NO_CONF | NO_SLEEP | IM_NETHER
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:51
+innate-freq:100
 spells:BR_NETH
 friends:100:2d7:Same
 desc:You feel a soul-tearing chill upon viewing this beast, a ghostly form of
@@ -16039,7 +15862,7 @@ flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:51
+innate-freq:100
 spells:BR_TIME
 friends:100:2d7:Same
 desc:You get a terrible sense of deja vu, or is it a premonition? All at once
@@ -16069,7 +15892,7 @@ flags:IM_ELEC | IM_FIRE | IM_PLASMA | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | NO_STUN
 spell-freq:5
-spell-power:51
+innate-freq:100
 spells:BR_PLAS
 friends:100:2d7:Same
 desc:The very air warps as pure elemental energy stalks towards you in the shape
@@ -16098,7 +15921,6 @@ flags:OPEN_DOOR | TAKE_ITEM
 flags:IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:51
 spells:TRAPS
 desc:He is a master of disguise, an expert of stealth, a genius at traps, and
 desc: moves with blinding speed. Check your pockets!
@@ -16124,7 +15946,7 @@ flags:DROP_1
 flags:KILL_WALL
 flags:IM_ACID | IM_COLD | IM_FIRE | IM_POIS | IM_NETHER | NO_STUN
 spell-freq:4
-spell-power:51
+innate-freq:17
 spells:BLINK | BRAIN_SMASH | CONF | HOLD
 spells:BR_NETH
 spells:S_DEMON
@@ -16150,7 +15972,7 @@ flags:TAKE_ITEM
 flags:NO_CONF | NO_SLEEP | NO_FEAR | IM_FIRE | IM_ELEC | IM_COLD | IM_POIS
 flags:NO_HOLD
 spell-freq:1
-spell-power:51
+innate-freq:50
 spells:ARROW_2 | ARROW_X | BLINK | HASTE
 desc:His skill with a bow is unsurpassed. He has been exploring the dungeon for
 desc: many years, killing everything that crossed his path.
@@ -16180,7 +16002,6 @@ flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:52
 spells:BLIND | CAUSE_3 | HOLD | SCARE
 spells:BA_ACID | BA_COLD | BA_ELEC | BA_FIRE | BA_NETH
 spells:S_UNDEAD
@@ -16210,7 +16031,6 @@ flags:OPEN_DOOR
 flags:IM_NEXUS | IM_PLASMA | IM_NETHER | IM_FIRE | IM_COLD | IM_POIS
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:52
 spells:BLIND | CAUSE_3 | SCARE
 spells:BA_FIRE | BA_NETH
 spells:BO_PLAS
@@ -16241,7 +16061,7 @@ flags:BASH_DOOR | KILL_WALL
 flags:IM_FIRE | IM_ELEC | NO_STUN
 flags:FORCE_DEPTH
 spell-freq:4
-spell-power:52
+innate-freq:67
 spells:SHRIEK | TELE_LEVEL
 spells:BR_DARK | BR_LIGHT | BR_WALL
 spells:S_KIN
@@ -16278,7 +16098,7 @@ flags:RAND_25
 flags:ATTR_MULTI
 flags:NO_STUN
 spell-freq:6
-spell-power:53
+innate-freq:100
 spells:BR_CHAO
 desc:Void, nothingness, spinning destructively.
 
@@ -16302,7 +16122,7 @@ flags:IM_DISEN
 flags:ATTR_MULTI
 flags:ANTI_MAGIC | NO_STUN
 spell-freq:6
-spell-power:53
+innate-freq:100
 spells:BR_DISE
 desc:Howling through the disintegrating dungeon, this whirlpool of Unmagic rips
 desc: the enchantments from everything it touches.
@@ -16329,7 +16149,7 @@ flags:OPEN_DOOR | MOVE_BODY
 flags:IM_FIRE | IM_POIS
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:4
-spell-power:53
+innate-freq:29
 spells:SCARE
 spells:BA_FIRE | BA_POIS
 spells:BO_FIRE | BO_PLAS
@@ -16361,7 +16181,7 @@ flags:IM_ACID | IM_ELEC | IM_FIRE | IM_POIS | IM_PLASMA | NO_CONF
 flags:NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:54
+innate-freq:43
 spells:BA_FIRE
 spells:BO_FIRE | BO_PLAS
 spells:BR_FIRE | BR_LIGHT | BR_PLAS
@@ -16388,7 +16208,6 @@ blow:TOUCH:LOSE_DEX:4d12
 blow:TOUCH:LOSE_DEX:4d12
 flags:DROP_3 | ONLY_ITEM | LEVITATE
 spell-freq:3
-spell-power:54
 spells:BLIND | BLINK | CAUSE_3 | CAUSE_4 | CONF | BRAIN_SMASH
 spells:DRAIN_MANA | FORGET | HEAL | HOLD | SCARE | TELE_TO
 spells:TPORT
@@ -16417,7 +16236,6 @@ flags:INVISIBLE
 flags:DROP_4
 flags:PASS_WALL
 spell-freq:5
-spell-power:54
 spells:BRAIN_SMASH | CAUSE_3 | CAUSE_4 | DARKNESS | DRAIN_MANA
 spells:BO_NETH
 spells:S_UNDEAD
@@ -16450,7 +16268,6 @@ flags:BASH_DOOR
 flags:IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:54
 spells:BA_FIRE
 spells:BO_PLAS
 desc:It is a belligerent minotaur with a destructive magical arsenal, armed with
@@ -16477,7 +16294,6 @@ flags:OPEN_DOOR | TAKE_ITEM
 flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:54
 spells:BLIND | BLINK | CAUSE_3 | CAUSE_4 | CONF | TELE_TO | TRAPS
 spells:BA_COLD | BA_FIRE | BA_POIS
 spells:BO_ACID
@@ -16510,7 +16326,7 @@ flags:DROP_2 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:HURT_LIGHT | IM_ACID | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_DEPTH | FORCE_SLEEP
 spell-freq:4
-spell-power:55
+innate-freq:18
 spells:BLIND | CAUSE_3 | CAUSE_4 | CONF | HEAL | SCARE
 spells:SLOW | TRAPS
 spells:BR_DARK | BR_POIS
@@ -16546,7 +16362,6 @@ flags:MOVE_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | NO_FEAR | SMART | HAS_LIGHT
 flags:NO_STUN
 spell-freq:3
-spell-power:55
 spells:BLIND | CAUSE_2 | CAUSE_4 | SCARE | TELE_TO | HEAL | MISSILE
 spells:BO_MANA
 spells:S_AINU
@@ -16575,7 +16390,7 @@ flags:ONLY_ITEM
 flags:BASH_DOOR | TAKE_ITEM
 flags:IM_COLD | IM_POIS | NO_STUN | IM_NETHER
 spell-freq:6
-spell-power:55
+innate-freq:50
 spells:CONF | SCARE
 spells:BR_COLD | BR_NETH
 desc:The skeletal form of a once-great dragon, enchanted by magic most perilous.
@@ -16604,7 +16419,7 @@ flags:BASH_DOOR
 flags:IM_ACID | IM_FIRE | IM_NEXUS
 flags:DROP_CORPSE
 spell-freq:6
-spell-power:55
+innate-freq:50
 spells:HOLD | SCARE
 spells:BR_FIRE | BR_NEXU
 desc:A mixture of dragon and basilisk, the dracolisk stares at you with deep
@@ -16632,7 +16447,6 @@ flags:OPEN_DOOR | MOVE_BODY | TAKE_ITEM
 flags:IM_ELEC | IM_FIRE | IM_POIS
 flags:FORCE_DEPTH | FORCE_SLEEP | LEVITATE
 spell-freq:6
-spell-power:55
 spells:HEAL | TELE_AWAY
 spells:S_KIN | S_MONSTERS
 desc:Last and proudest king of ancient Númenor. Corrupted by power and avarice,
@@ -16660,7 +16474,6 @@ blow:STING:POISON:5d5
 flags:DROP_1
 flags:IM_POIS
 spell-freq:10
-spell-power:55
 spells:SCARE
 spells:S_DEMON
 friends:100:4d4:Same
@@ -16692,7 +16505,7 @@ flags:OPEN_DOOR | TAKE_ITEM
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spell-power:56
+innate-freq:25
 spells:HEAL | TELE_TO | BOULDER
 spells:S_MONSTERS
 desc:It is a humanoid figure thirty feet tall that gives off an aura of power
@@ -16720,7 +16533,6 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:56
 spells:BLIND | CAUSE_3 | HOLD | SCARE
 spells:BA_FIRE | BA_NETH
 spells:S_HOUND | S_MONSTERS | S_UNDEAD
@@ -16754,7 +16566,6 @@ flags:NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | NO_STUN
 spell-freq:3
-spell-power:57
 spells:HEAL | MIND_BLAST
 spells:S_ANIMAL | S_HOUND | S_SPIDER
 drop-base:nature book:15:1:1
@@ -16779,7 +16590,6 @@ flags:SMART | ATTR_FLICKER | SPIRIT
 flags:NEVER_BLOW | NEVER_MOVE
 flags:FORCE_SLEEP
 spell-freq:1
-spell-power:57
 spells:BLIND | CAUSE_3 | CONF | DARKNESS | FORGET | SCARE
 spells:TELE_AWAY
 spells:BO_ACID | BO_COLD | BO_ELEC | BO_FIRE
@@ -16808,7 +16618,7 @@ flags:OPEN_DOOR | KILL_BODY
 flags:IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags-off:HURT_COLD
 spell-freq:3
-spell-power:57
+innate-freq:22
 spells:SCARE
 spells:BA_FIRE | BA_POIS
 spells:BO_FIRE | BO_PLAS
@@ -16868,7 +16678,7 @@ flags:BASH_DOOR
 flags:IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD | NO_STUN
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:58
+innate-freq:33
 spells:ARROW_4 | SLOW
 spells:BA_ELEC
 spells:BO_MANA | BO_PLAS
@@ -16893,7 +16703,6 @@ flags:NEVER_BLOW | NEVER_MOVE
 flags:IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:1
-spell-power:58
 spells:BRAIN_SMASH
 spells:BA_NETH
 spells:BO_MANA | BO_NETH
@@ -16925,7 +16734,7 @@ flags:PASS_WALL
 flags:NO_CONF | NO_SLEEP | NO_HOLD | IM_NETHER
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:59
+innate-freq:100
 spells:BR_NETH
 friends:100:2d7:Same
 desc:A pale green hound. Pulsing red lines and strange fluorescent light hints
@@ -16948,7 +16757,6 @@ flags:NEVER_BLOW | NEVER_MOVE
 flags:IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:1
-spell-power:59
 spells:BRAIN_SMASH | CAUSE_4 | MIND_BLAST | SLOW | TRAPS
 spells:BA_WATE
 spells:BO_NETH | BO_PLAS
@@ -16978,7 +16786,6 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF
 flags:NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:59
 spells:BLIND | BRAIN_SMASH | CAUSE_3 | CAUSE_4 | CONF | HEAL
 spells:SCARE
 spells:S_ANIMAL | S_MONSTERS
@@ -17015,7 +16822,7 @@ flags:IM_PLASMA | NO_SLOW | NO_STUN | NO_CUT
 flags:ATTR_MULTI
 flags:IM_DISEN
 spell-freq:6
-spell-power:60
+innate-freq:100
 spells:BR_ACID | BR_CHAO | BR_COLD | BR_DARK | BR_ELEC
 spells:BR_FIRE | BR_GRAV | BR_INER | BR_LIGHT | BR_NETH | BR_NEXU
 spells:BR_PLAS | BR_POIS | BR_SHAR | BR_SOUN | BR_TIME | BR_WALL
@@ -17043,7 +16850,6 @@ flags:OPEN_DOOR
 flags:IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:ATTR_MULTI | FORCE_SLEEP
 spell-freq:2
-spell-power:60
 spells:BLIND | CAUSE_4 | FORGET | HASTE | HEAL | MIND_BLAST
 spells:SCARE | TELE_AWAY | TPORT | TRAPS
 spells:BA_ACID | BA_COLD | BA_FIRE | BA_WATE
@@ -17097,7 +16903,7 @@ flags:ONLY_ITEM | DROP_2 | DROP_GOOD
 flags:IM_FIRE | REGENERATE | OPEN_DOOR | BASH_DOOR 
 flags:NO_CONF | NO_SLEEP | NO_HOLD | HAS_LIGHT | ATTR_FLICKER
 spell-freq:4
-spell-power:60
+innate-freq:50
 spells:BR_FIRE | BR_TIME | TPORT | BLINK
 desc:A Thunderlord, mightiest among the males.
 
@@ -17124,7 +16930,6 @@ flags:DROP_2 | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:61
 spells:BLIND | BRAIN_SMASH | CAUSE_4 | SCARE
 spells:BA_NETH
 spells:BO_MANA | BO_NETH
@@ -17157,7 +16962,7 @@ flags:MOVE_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_PLASMA | HAS_LIGHT
 flags:NO_STUN
 spell-freq:2
-spell-power:61
+innate-freq:22
 spells:BLIND | TELE_TO
 spells:BA_FIRE
 spells:BO_FIRE | BO_MANA | BO_PLAS
@@ -17187,7 +16992,7 @@ flags:POWERFUL
 flags:DROP_3
 flags:IM_ACID | IM_POIS
 spell-freq:6
-spell-power:61
+innate-freq:50
 spells:ARROW_4 | BLIND | CONF
 spells:BR_ACID | BR_POIS
 spells:S_DEMON
@@ -17244,7 +17049,7 @@ flags:MOVE_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_WATER
 flags:NO_STUN | IM_NETHER
 spell-freq:2
-spell-power:62
+innate-freq:25
 spells:BLIND | TELE_TO | WHIP
 spells:BA_WATE
 spells:BO_MANA | BO_WATE
@@ -17277,7 +17082,6 @@ flags:DROP_4 | ONLY_ITEM
 flags:TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:62
 spells:BLIND | BLINK | BRAIN_SMASH | CONF | DRAIN_MANA | HOLD
 spells:TELE_TO | TPORT
 spells:BA_NETH
@@ -17313,7 +17117,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:63
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_ELEC
 spells:S_DRAGON
@@ -17343,7 +17147,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:63
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_COLD
 spells:S_DRAGON
@@ -17373,7 +17177,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:63
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_POIS
 spells:S_DRAGON
@@ -17405,7 +17209,6 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:64
 spells:BLIND | CAUSE_3 | CAUSE_4 | HOLD | MIND_BLAST | SCARE
 spells:BA_COLD | BA_NETH
 spells:BO_COLD
@@ -17437,7 +17240,6 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | HAS_LIGHT
 flags:NO_STUN
 flags:FORCE_DEPTH
 spell-freq:2
-spell-power:64
 spells:BLIND | TELE_TO
 spells:BO_MANA | BO_WATE | BO_FIRE | BO_ICEE
 spells:S_AINU | S_ANIMAL | S_SPIDER | S_HOUND
@@ -17474,7 +17276,7 @@ flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:ATTR_MULTI | FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:64
+innate-freq:100
 spells:BR_CHAO
 friends:100:2d7:Same
 desc:A constantly changing canine form, this hound rushes towards you as if
@@ -17501,7 +17303,6 @@ blow:TOUCH:LOSE_DEX:8d12
 flags:DROP_4 | ONLY_ITEM
 flags:PASS_WALL
 spell-freq:3
-spell-power:64
 spells:BLINK | CAUSE_4 | DRAIN_MANA | FORGET | HEAL | BRAIN_SMASH
 spells:HOLD | SCARE | TELE_TO | TPORT
 spells:BA_NETH
@@ -17534,7 +17335,6 @@ flags:OPEN_DOOR
 flags:IM_COLD | IM_ELEC | IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_DEPTH | FORCE_SLEEP
 spell-freq:2
-spell-power:65
 spells:CAUSE_3 | HOLD | TELE_TO | TRAPS
 spells:BA_DARK | BA_FIRE | BA_MANA | BA_NETH | BA_WATE
 spells:BO_PLAS
@@ -17567,7 +17367,6 @@ flags:DROP_3
 flags:MOVE_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 spell-freq:6
-spell-power:65
 spells:SCARE
 spells:BA_COLD | BA_ELEC
 spells:BO_ICEE
@@ -17600,7 +17399,7 @@ flags:TAKE_ITEM
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spell-power:66
+innate-freq:25
 spells:HEAL | TELE_TO | BOULDER
 spells:S_MONSTERS
 desc:A forty foot tall humanoid that shakes the ground as it walks. The power
@@ -17630,7 +17429,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:66
 spells:TELE_TO
 spells:S_KIN
 friends:100:2d4:tiger:servant
@@ -17661,7 +17459,6 @@ flags:UNIQUE | FEMALE | SMART
 flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags-off:HURT_FIRE
 spell-freq:3
-spell-power:67
 spells:BLIND | BRAIN_SMASH | CAUSE_3 | CAUSE_4 | DRAIN_MANA
 spells:BA_NETH
 spells:S_HI_UNDEAD | S_KIN
@@ -17692,7 +17489,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:67
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE
 spells:S_DRAGON
@@ -17722,7 +17519,6 @@ flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE
 spell-freq:2
-spell-power:67
 spells:BLIND | BRAIN_SMASH | CONF | DRAIN_MANA | FORGET | SCARE
 spells:BA_ACID | BA_COLD | BA_DARK | BA_FIRE
 spells:BO_MANA | BO_NETH
@@ -17752,7 +17548,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:67
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_ACID
 spells:S_DRAGON
@@ -17782,7 +17578,7 @@ flags:ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR
 flags:DROP_CORPSE | NO_STUN
 spell-freq:4
-spell-power:67
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_SOUN
 spells:S_DRAGON
@@ -17812,7 +17608,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_SLOW
 spell-freq:4
-spell-power:67
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_COLD | BR_INER
 spells:S_DRAGON
@@ -17845,7 +17641,7 @@ flags:BASH_DOOR
 flags:ATTR_MULTI | FORCE_SLEEP | NO_CONF
 flags:DROP_CORPSE
 spell-freq:5
-spell-power:68
+innate-freq:50
 spells:CAUSE_4
 spells:BR_CHAO
 desc:"Beware the Jabberwock, my son! The jaws that bite, the claws that catch!"
@@ -17871,7 +17667,6 @@ flags:UNIQUE | MALE
 flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:68
 spells:BLIND | CONF | HOLD
 spells:BA_DARK | BA_NETH
 spells:S_HI_UNDEAD | S_KIN | S_WRAITH
@@ -17903,7 +17698,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_POIS | NO_STUN
 flags:FORCE_SLEEP
 spell-freq:8
-spell-power:68
 spells:BRAIN_SMASH | CAUSE_4 | DRAIN_MANA | TELE_TO
 spells:BA_NETH
 spells:S_UNDEAD
@@ -17934,7 +17728,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_NETHER
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:69
+innate-freq:13
 spells:BLIND | BRAIN_SMASH | SCARE
 spells:BA_NETH
 spells:BO_MANA | BO_NETH
@@ -17966,7 +17760,7 @@ flags:RAND_25 | KILL_BODY | KILL_ITEM
 flags:IM_ACID | IM_COLD | IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:5
-spell-power:69
+innate-freq:20
 spells:BA_ACID | BA_WATE
 spells:BO_ICEE | BO_WATE
 spells:BOULDER
@@ -17995,7 +17789,7 @@ flags:POWERFUL | REGENERATE | LEVITATE
 flags:DROP_4
 flags:IM_COLD | NO_CUT
 spell-freq:6
-spell-power:69
+innate-freq:25
 spells:HOLD | SCARE | SLOW
 spells:BA_COLD
 spells:BO_ICEE
@@ -18035,7 +17829,7 @@ flags:IM_FIRE | IM_POIS
 flags:NO_STUN
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:70
+innate-freq:33
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE | BR_POIS
 spells:S_HI_DRAGON
@@ -18066,7 +17860,7 @@ flags:ONLY_ITEM | DROP_2 | DROP_GOOD
 flags:IM_FIRE | REGENERATE | OPEN_DOOR | BASH_DOOR 
 flags:NO_CONF | NO_SLEEP | NO_HOLD | HAS_LIGHT | ATTR_FLICKER
 spell-freq:4
-spell-power:70
+innate-freq:29
 spells:BR_FIRE | BR_TIME | TPORT | BLINK | TELE_TO | TELE_AWAY | S_KIN
 desc:A Thunderlord, among the queens of their kind.
 
@@ -18086,7 +17880,6 @@ weight:0
 experience:10500
 flags:ATTR_FLICKER
 spell-freq:2
-spell-power:71
 spells:BLINK | TELE_TO
 spells:S_HI_DEMON
 desc:A massive pulsating mound of flesh, glowing with a hellish light.
@@ -18105,7 +17898,6 @@ weight:0
 experience:10500
 flags:ATTR_FLICKER
 spell-freq:2
-spell-power:71
 spells:BLINK | TELE_TO
 spells:S_HI_DRAGON
 desc:A massive mound of scaled flesh, throbbing and pulsating with multi-hued
@@ -18125,7 +17917,6 @@ weight:0
 experience:10500
 flags:ATTR_FLICKER
 spell-freq:2
-spell-power:71
 spells:BLINK | TELE_TO
 spells:S_HI_UNDEAD
 desc:A massive pile of rotting flesh. A disgusting stench fills the air as it
@@ -18152,7 +17943,7 @@ flags:ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
 flags:IM_NETHER
 spell-freq:4
-spell-power:71
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_NETH
 spells:S_DRAGON
@@ -18178,7 +17969,7 @@ flags:HAS_LIGHT | ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 spell-freq:4
-spell-power:71
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR
 spells:S_DRAGON
@@ -18204,7 +17995,7 @@ flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 spell-freq:4
-spell-power:71
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_DARK | BR_LIGHT
 spells:S_DRAGON
@@ -18233,7 +18024,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_WATER
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:71
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_WATE
 spells:S_DRAGON
@@ -18264,7 +18055,6 @@ flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:IM_ACID | IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:72
 spells:BLIND | CAUSE_3 | CAUSE_4 | HOLD | SCARE | TELE_LEVEL
 spells:BA_COLD | BA_FIRE | BA_NETH
 spells:BO_MANA
@@ -18295,7 +18085,6 @@ flags:DROP_4
 flags:KILL_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 spell-freq:5
-spell-power:72
 spells:HASTE | SCARE | SLOW
 spells:S_HI_DEMON
 desc:A giant humanoid demon wielding a massive, heavy and sharp scythe. Feared
@@ -18327,7 +18116,7 @@ flags:IM_FIRE | IM_COLD | IM_POIS
 flags:NO_CONF | NO_SLEEP | NO_HOLD | NO_FEAR
 flags:FORCE_DEPTH
 spell-freq:4
-spell-power:72
+innate-freq:33
 spells:TELE_TO | SCARE | BR_TIME | BR_FIRE
 spells:BO_MANA | S_KIN
 desc:As the Thunderlords came from afar to help the elves, Trone and his rebel
@@ -18355,7 +18144,7 @@ flags:NEVER_MOVE
 flags:IM_COLD | IM_POIS | IM_FIRE | IM_NETHER
 flags-off:HURT_FIRE
 spell-freq:8
-spell-power:72
+innate-freq:100
 spells:SHRIEK
 desc:A poisonous plant like a branched carrot, but it has a face similar to man
 desc: and it screams a deadly scream when one tries to pull it out.
@@ -18384,7 +18173,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC | IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:4
-spell-power:73
 spells:BLIND | BRAIN_SMASH | SCARE
 spells:BA_NETH
 spells:BO_MANA | BO_NETH
@@ -18416,7 +18204,6 @@ flags:BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:73
 spells:BLIND | BRAIN_SMASH | CONF | DRAIN_MANA | FORGET | SCARE
 spells:BA_ACID | BA_COLD | BA_DARK | BA_FIRE | BA_NETH
 spells:BO_MANA
@@ -18447,7 +18234,6 @@ flags:ATTR_FLICKER
 flags:DROP_2 | ONLY_ITEM
 flags:KILL_WALL
 spell-freq:3
-spell-power:74
 spells:BLIND | CAUSE_3 | CAUSE_4 | CONF | DRAIN_MANA | BRAIN_SMASH
 spells:HOLD | TELE_TO
 spells:BA_MANA | BA_NETH
@@ -18478,7 +18264,7 @@ flags:IM_NEXUS | IM_PLASMA | NO_CONF | NO_SLEEP | NO_HOLD | NO_SLOW | NO_STUN
 flags:ATTR_MULTI | FORCE_SLEEP | NO_CUT | LEVITATE
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spell-power:74
+innate-freq:100
 spells:BR_ACID | BR_CHAO | BR_COLD | BR_DARK | BR_DISE
 spells:BR_ELEC | BR_FIRE | BR_GRAV | BR_INER | BR_LIGHT | BR_NETH
 spells:BR_NEXU | BR_PLAS | BR_POIS | BR_SHAR | BR_SOUN | BR_TIME
@@ -18513,7 +18299,7 @@ flags:IM_FIRE | IM_DISEN
 flags:ATTR_MULTI
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:75
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_CHAO | BR_DISE
 spells:S_DRAGON
@@ -18544,7 +18330,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:75
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR | BR_SOUN
 spells:S_DRAGON
@@ -18573,7 +18359,7 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:HURT_LIGHT | IM_ACID | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:75
+innate-freq:20
 spells:BLIND | CONF | DARKNESS | HEAL | SCARE | SLOW
 spells:BA_DARK
 spells:BR_DARK | BR_POIS
@@ -18606,7 +18392,7 @@ flags:IM_ACID | IM_FIRE | IM_POIS
 flags:FORCE_SLEEP
 flags:NO_STUN
 spell-freq:8
-spell-power:75
+innate-freq:17
 spells:TELE_TO
 spells:BA_ELEC | BA_FIRE
 spells:BO_PLAS
@@ -18637,7 +18423,6 @@ flags:OPEN_DOOR
 flags:IM_FIRE | IM_COLD | IM_ELEC | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_DEPTH | FORCE_SLEEP
 spell-freq:2
-spell-power:75
 spells:CAUSE_4 | DRAIN_MANA | HOLD | TELE_TO | TRAPS
 spells:BA_DARK | BA_FIRE | BA_MANA | BA_NETH | BA_WATE
 spells:BO_PLAS
@@ -18665,7 +18450,6 @@ weight:0
 experience:15000
 flags:ATTR_FLICKER
 spell-freq:1
-spell-power:76
 spells:BLINK | TELE_TO
 spells:S_ANIMAL | S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_MONSTERS
 desc:A giant seething mass of flesh, overwhelming you with monster after
@@ -18694,7 +18478,7 @@ flags:HURT_ROCK | IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 flags:FORCE_SLEEP
 flags:NO_STUN
 spell-freq:5
-spell-power:76
+innate-freq:100
 spells:BOULDER
 desc:The strongest of all the Titans. Legend has it that he used to hold the sky
 desc: on his shoulders; and the mountain range that now does so is named after
@@ -18722,7 +18506,6 @@ flags:UNIQUE | MALE | PWMANG_FIXED
 flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:FORCE_DEPTH
 spell-freq:2
-spell-power:77
 spells:BLIND | BLINK | CAUSE_4 | HOLD | SCARE | BRAIN_SMASH
 spells:TELE_TO | TRAPS
 spells:BA_MANA | BA_NETH
@@ -18760,7 +18543,7 @@ flags:DROP_4
 flags:MOVE_BODY
 flags:IM_FIRE | IM_POIS
 spell-freq:5
-spell-power:77
+innate-freq:38
 spells:CAUSE_4 | SCARE
 spells:BA_FIRE
 spells:BR_CHAO | BR_FIRE | BR_POIS
@@ -18794,7 +18577,7 @@ flags:IM_FIRE | GROUP_AI
 flags:FORCE_SLEEP
 flags:DROP_CORPSE
 spell-freq:5
-spell-power:78
+innate-freq:100
 spells:BR_FIRE
 friends:100:2d5:Same
 desc:It is a giant dog that glows with heat. Flames pour from its nostrils.
@@ -18824,7 +18607,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_STUN | NO_CUT
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:79
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 spells:S_DRAGON
@@ -18856,7 +18639,7 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 flags:ATTR_MULTI
 flags:DROP_CORPSE
 spell-freq:4
-spell-power:79
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 spells:S_DRAGON
@@ -18878,7 +18661,6 @@ flags:UNIQUE
 flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:ATTR_MULTI
 spell-freq:1
-spell-power:79
 spells:S_AINU | S_ANIMAL | S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_HOUND
 spells:S_HYDRA | S_KIN | S_MONSTERS | S_SPIDER | S_UNIQUE | S_WRAITH
 desc:A gigantic seething mass of flesh, Qlzqqlzuup changes colours in front of
@@ -18907,7 +18689,7 @@ flags:MOVE_BODY
 flags:IM_ELEC | IM_FIRE | IM_POIS | IM_PLASMA
 flags:IM_NETHER
 spell-freq:3
-spell-power:79
+innate-freq:30
 spells:CONF | SCARE
 spells:BA_FIRE
 spells:BO_PLAS
@@ -18944,7 +18726,6 @@ flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:80
 spells:BLIND | BRAIN_SMASH | CAUSE_3 | HOLD | SCARE | TELE_AWAY
 spells:BA_NETH
 spells:BO_MANA
@@ -18981,7 +18762,6 @@ flags:KILL_WALL | MOVE_BODY
 flags:IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:6
-spell-power:81
 spells:S_ANIMAL | S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_MONSTERS | S_UNIQUE
 spells:S_WRAITH
 desc:The son of Eöl the Dark Elf, Maeglin is every bit as evil as his father and
@@ -19011,7 +18791,6 @@ flags:UNIQUE | MALE | INVISIBLE | LEVITATE
 flags:DROP_4 | DROP_GOOD
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 spell-freq:3
-spell-power:82
 spells:MIND_BLAST
 spells:BA_ELEC
 spells:BO_ELEC | BO_MANA
@@ -19042,7 +18821,7 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:IM_ACID | IM_FIRE | IM_ELEC | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:82
+innate-freq:9
 spells:CAUSE_4 | MIND_BLAST | SCARE
 spells:BA_ELEC | BA_WATE
 spells:BO_ELEC | BO_MANA
@@ -19079,7 +18858,6 @@ flags:RAND_25 | OPEN_DOOR | BASH_DOOR | MOVE_BODY | TAKE_ITEM
 flags:IM_POIS
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:83
 spells:SCARE
 spells:S_HOUND | S_MONSTERS
 friends:100:3d5:werewolf:servant
@@ -19110,7 +18888,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:NO_STUN | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER | NO_CUT
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:4
-spell-power:83
+innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_ACID | BR_ELEC | BR_FIRE | BR_COLD | BR_POIS | BR_NETH | BR_LIGHT
 spells:BR_SOUN | BR_CHAO | BR_DISE | BR_NEXU | BR_TIME | BR_INER | BR_GRAV
@@ -19143,7 +18921,6 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:2
-spell-power:84
 spells:BRAIN_SMASH | CAUSE_4 | SCARE | SLOW | TELE_TO
 spells:BA_NETH | BA_WATE
 spells:BO_ICEE | BO_MANA
@@ -19176,7 +18953,7 @@ flags:DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 spell-freq:3
-spell-power:85
+innate-freq:71
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 spells:S_HI_DRAGON | S_KIN
 friends:100:1d1:Kavlax the Many-Headed
@@ -19209,7 +18986,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_POIS
 flags:ATTR_FLICKER
 spell-freq:2
-spell-power:85
+innate-freq:56
 spells:BLIND | CONF | SCARE
 spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
 spells:S_HI_DRAGON
@@ -19245,7 +19022,7 @@ flags:IM_COLD | IM_FIRE | IM_DISEN | NO_CONF | NO_SLEEP | NO_HOLD
 flags:ATTR_MULTI | FORCE_SLEEP
 flags-off:HURT_COLD
 spell-freq:2
-spell-power:86
+innate-freq:100
 spells:BR_COLD | BR_DISE | BR_FIRE
 desc:The Tarrasque is a massive reptile of legend, rumoured to be unkillable and
 desc: immune to magic. Fear its anger, for its devastation is unmatched!
@@ -19274,7 +19051,7 @@ flags:MOVE_BODY | TAKE_ITEM
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_STUN | NO_CUT
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:87
+innate-freq:56
 spells:HEAL | TELE_TO | BOULDER
 spells:BR_COLD | BR_FIRE | BR_SHAR | BR_SOUN
 spells:S_KIN | S_MONSTERS
@@ -19308,7 +19085,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC
 spell-freq:3
-spell-power:87
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_ELEC
 spells:S_DRAGON | S_HI_DRAGON
@@ -19337,7 +19114,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD
 spell-freq:3
-spell-power:87
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_COLD
 spells:S_DRAGON | S_HI_DRAGON
@@ -19366,7 +19143,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_POIS
 spell-freq:3
-spell-power:87
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_POIS
 spells:S_DRAGON | S_HI_DRAGON
@@ -19397,7 +19174,7 @@ flags:DROP_4 | DROP_GOOD
 flags:MOVE_BODY
 flags:IM_FIRE | IM_PLASMA
 spell-freq:4
-spell-power:88
+innate-freq:29
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE | BR_PLAS
 spells:S_HI_DEMON | S_UNDEAD
@@ -19428,7 +19205,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:BASH_DOOR
 flags:IM_COLD | IM_ELEC | NO_STUN
 spell-freq:4
-spell-power:88
+innate-freq:43
 spells:BLIND | SCARE
 spells:BR_ELEC | BR_GRAV | BR_LIGHT
 spells:S_DRAGON | S_HI_DRAGON
@@ -19457,7 +19234,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE
 spell-freq:3
-spell-power:89
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE
 spells:S_DRAGON | S_HI_DRAGON
@@ -19486,7 +19263,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_ACID
 spell-freq:3
-spell-power:89
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_ACID
 spells:S_DRAGON | S_HI_DRAGON
@@ -19516,7 +19293,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:NO_STUN
 spell-freq:3
-spell-power:89
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SOUN
 spells:S_DRAGON | S_HI_DRAGON
@@ -19546,7 +19323,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_SLOW
 spell-freq:3
-spell-power:89
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_COLD | BR_INER
 spells:S_DRAGON | S_HI_DRAGON
@@ -19582,7 +19359,7 @@ flags:OPEN_DOOR | BASH_DOOR | KILL_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | NO_FEAR | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP | NO_STUN | NO_CUT
 spell-freq:5
-spell-power:90
+innate-freq:100
 spells:BR_COLD | BR_LIGHT | BR_SHAR | BR_SOUN
 desc:The wolfhound of the Valar, Huan has served many masters in his time, from
 desc: Celegorm son of Fëanor to Beren son of Barahir: but now he runs wild and
@@ -19612,7 +19389,7 @@ flags:OPEN_DOOR | BASH_DOOR | MOVE_BODY
 flags:IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD | IM_NETHER
 flags:FORCE_SLEEP
 spell-freq:3
-spell-power:90
+innate-freq:80
 spells:BR_DARK | BR_FIRE | BR_NETH | BR_POIS
 spells:S_HOUND
 desc:The first guard of Angband, Carcharoth, also known as 'The Red Maw', is the
@@ -19642,7 +19419,7 @@ flags:ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
 flags:IM_NETHER
 spell-freq:3
-spell-power:91
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_NETH
 spells:S_DRAGON | S_HI_DRAGON
@@ -19668,7 +19445,7 @@ flags:HAS_LIGHT | ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR | NO_CUT
 spell-freq:3
-spell-power:91
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR
 spells:S_DRAGON | S_HI_DRAGON
@@ -19694,7 +19471,7 @@ flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 spell-freq:3
-spell-power:91
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_DARK | BR_LIGHT
 spells:S_DRAGON | S_HI_DRAGON
@@ -19722,7 +19499,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_WATER
 spell-freq:3
-spell-power:91
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_WATE
 spells:S_DRAGON | S_HI_DRAGON
@@ -19750,7 +19527,6 @@ flags:UNIQUE | MALE
 flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:IM_ELEC | IM_FIRE
 spell-freq:2
-spell-power:92
 spells:BLIND | CAUSE_4 | SCARE | TPORT | BRAIN_SMASH
 spells:BA_FIRE | BA_MANA | BA_NETH
 spells:BO_MANA
@@ -19793,7 +19569,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_DISEN
 flags:ATTR_MULTI
 spell-freq:3
-spell-power:93
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_CHAO | BR_DISE
 spells:S_DRAGON | S_HI_DRAGON
@@ -19823,7 +19599,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 spell-freq:3
-spell-power:93
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR | BR_SOUN
 spells:S_DRAGON | S_HI_DRAGON
@@ -19856,7 +19632,7 @@ flags:DROP_4 | DROP_GOOD | DROP_GREAT
 flags:MOVE_BODY
 flags:IM_ELEC | IM_FIRE | IM_PLASMA
 spell-freq:3
-spell-power:95
+innate-freq:29
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE | BR_PLAS
 spells:S_HI_DEMON | S_HI_UNDEAD
@@ -19893,7 +19669,7 @@ flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_COLD | IM_FIRE | NO_STUN | IM_DISEN | NO_CUT
 spell-freq:3
-spell-power:95
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SOUN | BR_CHAO | BR_SHAR | BR_DISE
 spells:S_DRAGON | S_HI_DRAGON
@@ -19924,7 +19700,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_ACID | IM_POIS | IM_COLD | IM_ELEC
 flags:ATTR_MULTI
 spell-freq:3
-spell-power:95
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_POIS | BR_ELEC | BR_ACID | BR_FIRE | BR_COLD
 spells:S_DRAGON | S_HI_DRAGON
@@ -19957,7 +19733,7 @@ flags:OPEN_DOOR | BASH_DOOR
 flags:NO_STUN | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER | NO_CUT
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:3
-spell-power:97
+innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_ACID | BR_ELEC | BR_FIRE | BR_COLD | BR_POIS | BR_NETH | BR_LIGHT
 spells:BR_SOUN | BR_CHAO | BR_DISE | BR_NEXU | BR_TIME | BR_INER | BR_GRAV
@@ -19990,7 +19766,7 @@ flags:MOVE_BODY
 flags:IM_ELEC | IM_FIRE | IM_PLASMA
 flags:FORCE_DEPTH
 spell-freq:2
-spell-power:98
+innate-freq:50
 spells:BR_FIRE | BR_PLAS
 spells:S_HI_DEMON | S_HI_UNDEAD
 desc:A huge Balrog of devastating power, he guards the entrance to the Chambers
@@ -20022,7 +19798,6 @@ flags:IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_FEAR | NO_CONF
 flags:NO_SLEEP | NO_HOLD
 flags:FORCE_DEPTH | FORCE_SLEEP
 spell-freq:2
-spell-power:99
 spells:BLIND | BRAIN_SMASH | CAUSE_4 | SCARE | TELE_LEVEL | TPORT
 spells:BA_DARK | BA_FIRE | BA_MANA | BA_NETH | BA_WATE
 spells:BO_ICEE | BO_MANA | BO_PLAS
@@ -20060,7 +19835,6 @@ flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_DEPTH | FORCE_SLEEP
 flags:IM_NETHER | NO_STUN | IM_PLASMA | IM_DISEN
 spell-freq:3
-spell-power:100
 spells:BRAIN_SMASH
 spells:BA_MANA | BA_NETH
 spells:BO_MANA
@@ -20105,7 +19879,7 @@ flags:IM_FIRE | IM_PLASMA | IM_NETHER | NO_CONF | NO_SLEEP | NO_FEAR | IM_COLD
 flags:IM_POIS | NO_STUN | NO_HOLD
 flags:FORCE_DEPTH
 spell-freq:4
-spell-power:101
+innate-freq:50
 spells:BRAIN_SMASH | MIND_BLAST
 spells:BR_FIRE | BR_NETH
 desc:A corrupted soul who raids the world to destroy all that is living.
@@ -20153,7 +19927,7 @@ flags:PWMANG_EXTRA
 flags:NO_STUN | IM_FIRE | IM_COLD | IM_ELEC | IM_ACID
 flags:FORCE_DEPTH
 spell-freq:2
-spell-power:101
+innate-freq:100
 spells:BR_WALL
 desc:A whirling maelstrom of destruction.
 
@@ -20175,7 +19949,6 @@ flags:IM_FIRE | IM_COLD | IM_POIS | IM_PLASMA | IM_NETHER
 flags:NO_STUN
 flags:FORCE_DEPTH
 spell-freq:8
-spell-power:101
 spells:HOLD
 desc:An artificial bird completely made of hardened iron, kept in the air by
 desc: magical forces.
@@ -20203,7 +19976,6 @@ flags:IM_WATER | IM_PLASMA | IM_NEXUS | IM_FIRE | IM_POIS | IM_ACID
 flags:IM_NETHER | NO_STUN | IM_COLD
 flags:FORCE_DEPTH
 spell-freq:5
-spell-power:101
 spells:HEAL | TELE_TO
 spells:BA_NETH
 desc:This berserk construct made of black ore has only one purpose: destroying
@@ -20231,7 +20003,7 @@ flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:IM_FIRE | IM_ACID | IM_ELEC
 flags:FORCE_DEPTH | ATTR_MULTI
 spell-freq:2
-spell-power:124
+innate-freq:8
 spells:BA_MANA | BA_NETH
 spells:BR_DISE
 spells:S_DEMON | S_DRAGON | S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_KIN
@@ -20265,7 +20037,7 @@ flags:PWMANG_EXTRA
 flags:NO_STUN | IM_FIRE | IM_COLD | IM_ELEC | IM_ACID | IM_NETHER
 flags:FORCE_DEPTH
 spell-freq:2
-spell-power:101
+innate-freq:100
 spells:BR_NETH
 desc:A whirling anomaly of nether mists that will drain your life force.
 force-location:The Nether Realm
@@ -20403,7 +20175,6 @@ flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_NETHER
 flags:NO_FEAR | NO_STUN
 flags:FORCE_DEPTH | ATTR_MULTI
 spell-freq:2
-spell-power:125
 spells:BLIND | CAUSE_1 | CAUSE_2 | FORGET | HASTE | HEAL | MIND_BLAST
 spells:TELE_TO | TPORT | TRAPS
 spells:BA_FIRE | BA_MANA | BA_NETH | BA_WATE
@@ -20439,7 +20210,6 @@ flags:IM_WATER | IM_PLASMA | IM_NEXUS | NO_CONF | NO_SLEEP | NO_FEAR | NO_STUN
 flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_POIS | IM_NETHER | NO_HOLD
 flags:FORCE_DEPTH
 spell-freq:2
-spell-power:126
 spells:BLIND | BRAIN_SMASH | CAUSE_3 | CAUSE_4 | CONF | FORGET | HASTE | HEAL
 spells:HOLD | SLOW | TELE_TO | TPORT
 spells:BA_DARK | BA_MANA | BA_NETH | BA_WATE
@@ -20585,7 +20355,7 @@ blow:CLAW:POISON:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:102
+innate-freq:50
 spells:BR_POIS | BA_POIS
 desc:A ghostly apparition with a toxic aura.
 force-location:Utumno, Portal to the Void
@@ -20611,7 +20381,7 @@ flags:PWMANG_EXTRA
 flags:IM_ACID
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:102
+innate-freq:33
 spells:BR_ACID | BA_ACID | BO_ACID
 desc:A ghostly apparition with an acidic aura.
 force-location:Utumno, Portal to the Void
@@ -20637,7 +20407,7 @@ flags:PWMANG_EXTRA
 flags:IM_ELEC
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:102
+innate-freq:33
 spells:BR_ELEC | BA_ELEC | BO_ELEC
 desc:A ghostly apparition with an electric aura.
 force-location:Utumno, Portal to the Void
@@ -20663,7 +20433,7 @@ flags:PWMANG_EXTRA
 flags:IM_FIRE
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:102
+innate-freq:33
 spells:BR_FIRE | BA_FIRE | BO_FIRE
 desc:A ghostly apparition with a fiery aura.
 force-location:Utumno, Portal to the Void
@@ -20688,7 +20458,7 @@ blow:CLAW:COLD:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:102
+innate-freq:33
 spells:BR_COLD | BA_COLD | BO_COLD
 desc:A ghostly apparition with a chilling aura.
 force-location:Utumno, Portal to the Void
@@ -20713,7 +20483,7 @@ blow:CLAW:CONFUSE:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:109
+innate-freq:8
 spells:SHRIEK | DRAIN_MANA | MIND_BLAST | BRAIN_SMASH | SCARE | BLIND | CONF
 spells:TELE_TO | DARKNESS | TRAPS | FORGET | ANIM_DEAD
 desc:A ghostly apparition ready to annoy you.
@@ -20739,7 +20509,6 @@ blow:CLAW:PARALYZE:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:109
 spells:SLOW | HOLD | HASTE
 desc:A ghostly apparition moving with haste.
 force-location:Utumno, Portal to the Void
@@ -20764,7 +20533,7 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:109
+innate-freq:83
 spells:ARROW_X | ARROW_1 | ARROW_2 | ARROW_3 | ARROW_4 | BOULDER | MISSILE
 desc:A ghostly apparition ready for ranged combat.
 force-location:Utumno, Portal to the Void
@@ -20789,7 +20558,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:109
 spells:CAUSE_1 | CAUSE_2 | CAUSE_3 | CAUSE_4
 desc:A ghostly apparition that will drag you to your doom.
 force-location:Utumno, Portal to the Void
@@ -20814,7 +20582,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:109
 spells:HEAL | HEAL_KIN
 desc:A ghostly apparition ready to help its kin against you.
 force-location:Utumno, Portal to the Void
@@ -20839,7 +20606,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:109
 spells:BLINK | TPORT | TELE_AWAY | TELE_LEVEL
 desc:A ghostly apparition that never stays in place.
 force-location:Utumno, Portal to the Void
@@ -20864,7 +20630,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:116
 spells:S_KIN | S_MONSTER | S_MONSTERS | S_UNIQUE
 desc:A ghostly apparition with many friends.
 force-location:Utumno, Portal to the Void
@@ -20889,7 +20654,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:116
 spells:S_ANIMAL | S_SPIDER | S_HOUND | S_HYDRA
 desc:A ghostly apparition with many friends of nature.
 force-location:Utumno, Portal to the Void
@@ -20914,7 +20678,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:116
 spells:S_AINU
 desc:A ghostly apparition with many friends from the heavens.
 force-location:Utumno, Portal to the Void
@@ -20939,7 +20702,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:116
 spells:S_DEMON | S_HI_DEMON
 desc:A ghostly apparition with many demonic friends.
 force-location:Utumno, Portal to the Void
@@ -20964,7 +20726,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:116
 spells:S_UNDEAD | S_HI_UNDEAD | S_WRAITH
 desc:A ghostly apparition with many undead friends.
 force-location:Utumno, Portal to the Void
@@ -20989,7 +20750,6 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:116
 spells:S_DRAGON | S_HI_DRAGON
 desc:A ghostly apparition with many draconic friends.
 force-location:Utumno, Portal to the Void
@@ -21015,7 +20775,7 @@ flags:PWMANG_EXTRA
 flags:IM_NETHER
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:33
 spells:BR_NETH | BA_NETH | BO_NETH
 desc:A ghostly apparition from the Nether Realm.
 force-location:Utumno, Portal to the Void
@@ -21041,7 +20801,7 @@ flags:PWMANG_EXTRA
 flags:IM_WATER
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:33
 spells:BR_WATE | BA_WATE | BO_WATE
 desc:A ghostly apparition from the abyss world.
 force-location:Utumno, Portal to the Void
@@ -21066,7 +20826,7 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:33
 spells:BR_MANA | BA_MANA | BO_MANA
 desc:A ghostly apparition with an intense magical aura.
 force-location:Utumno, Portal to the Void
@@ -21092,7 +20852,7 @@ flags:PWMANG_EXTRA
 flags:IM_FIRE | IM_DISEN
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:100
 spells:BR_DISE
 desc:A ghostly apparition ready to ruin your belongings.
 force-location:Utumno, Portal to the Void
@@ -21118,7 +20878,7 @@ flags:PWMANG_EXTRA
 flags:IM_FIRE
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:100
 spells:BR_CHAO
 desc:A ghostly apparition ready to wreck havoc.
 force-location:Utumno, Portal to the Void
@@ -21143,7 +20903,7 @@ blow:CLAW:TIME:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:100
 spells:BR_TIME
 desc:A ghostly apparition that seems out of time.
 force-location:Utumno, Portal to the Void
@@ -21168,7 +20928,7 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:67
 spells:BR_LIGHT | BR_DARK | BA_DARK
 desc:A ghostly apparition that stands between light and darkness.
 force-location:Utumno, Portal to the Void
@@ -21193,7 +20953,7 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA | NO_CUT
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:100
 spells:BR_SOUN | BR_SHAR
 desc:A ghostly apparition seeking obedience.
 force-location:Utumno, Portal to the Void
@@ -21219,7 +20979,7 @@ flags:PWMANG_EXTRA
 flags:IM_PLASMA | IM_NEXUS | NO_SLOW
 flags:FORCE_DEPTH
 spell-freq:3
-spell-power:123
+innate-freq:71
 spells:BR_NEXU | BR_INER | BR_GRAV | BR_PLAS | BR_WALL | BO_PLAS | BO_ICEE
 desc:A ghostly apparition ready to demonstrate its power.
 force-location:Utumno, Portal to the Void
@@ -21248,7 +21008,7 @@ flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | NO_FEAR
 flags:IM_NETHER | NO_STUN | IM_PLASMA | IM_DISEN
 flags:FORCE_DEPTH
 spell-freq:4
-spell-power:127
+innate-freq:11
 spells:BRAIN_SMASH | HEAL
 spells:DRAIN_MANA | TELE_TO | DARKNESS | SHRIEK
 spells:BA_MANA | BA_NETH | BA_DARK

@@ -38,5 +38,7 @@ extern bool monster_is_nonevil(const struct monster *mon);
 extern bool monster_is_living(const struct monster *mon);
 extern bool monster_has_spirit(const struct monster *mon);
 extern bool monster_has_non_innate_spells(const struct monster *mon);
+extern bool monster_loves_archery(const struct monster *mon);
+extern bool monster_breathes(const struct monster *mon);
 
 #endif /* MONSTER_PREDICATE_H */

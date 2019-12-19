@@ -1274,6 +1274,9 @@ static enum parser_error parse_monster_depth(struct parser *p)
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
     r->level = parser_getint(p, "level");
 
+    /* Level is default spell power */
+    r->spell_power = r->level;
+
     return PARSE_ERROR_NONE;
 }
 
@@ -1420,6 +1423,21 @@ static enum parser_error parse_monster_spell_freq(struct parser *p)
     if (pct < 1 || pct > 100)
         return PARSE_ERROR_INVALID_SPELL_FREQ;
     r->freq_spell = 100 / pct;
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_monster_innate_freq(struct parser *p)
+{
+    struct monster_race *r = parser_priv(p);
+    int pct;
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    pct = parser_getint(p, "freq");
+    if (pct < 1 || pct > 100)
+        return PARSE_ERROR_INVALID_SPELL_FREQ;
+    r->freq_innate = pct;
 
     return PARSE_ERROR_NONE;
 }
@@ -1679,6 +1697,7 @@ static struct parser *init_parse_monster(void)
     parser_reg(p, "flags-off ?str flags", parse_monster_flags_off);
     parser_reg(p, "desc str desc", parse_monster_desc);
     parser_reg(p, "spell-freq int freq", parse_monster_spell_freq);
+    parser_reg(p, "innate-freq int freq", parse_monster_innate_freq);
     parser_reg(p, "spell-power uint power", parse_monster_spell_power);
     parser_reg(p, "spells str spells", parse_monster_spells);
     parser_reg(p, "drop sym tval sym sval uint chance uint min uint max", parse_monster_drop);

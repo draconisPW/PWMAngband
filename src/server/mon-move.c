@@ -328,8 +328,6 @@ static void get_move_find_range(struct player *p, struct monster *mon)
     /* Monsters will run up to z_info->flee_range grids out of sight */
     int flee_range = z_info->max_sight + z_info->flee_range;
 
-    bool breathes = flags_test(mon->race->spell_flags, RSF_SIZE, RSF_BREATH_MASK, FLAG_END);
-
     /* Controlled monsters won't run away */
     if (master_in_party(mon->master, p->id))
         mon->min_range = 1;
@@ -403,13 +401,13 @@ static void get_move_find_range(struct player *p, struct monster *mon)
     mon->best_range = mon->min_range;
 
     /* Archers are quite happy at a good distance */
-    if (rf_has(mon->race->flags, RF_ARCHER)) mon->best_range += 3;
+    if (monster_loves_archery(mon)) mon->best_range += 3;
 
     if (mon->race->freq_spell > 24)
     {
         /* Breathers like point blank range */
-        if (breathes && (mon->best_range < 6) && (mon->hp > mon->maxhp / 2))
-            mon->best_range = 6;
+        if (monster_breathes(mon) && (mon->best_range < 6) && (mon->hp > mon->maxhp / 2))
+            mon->best_range = MAX(6, mon->best_range);
 
         /* Other spell casters will sit back and cast */
         else

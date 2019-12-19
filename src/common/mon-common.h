@@ -52,7 +52,8 @@ enum
     RST_ESCAPE      = 0x0200,
     RST_SUMMON      = 0x0400,
     RST_INNATE      = 0x0800,
-    RST_MISSILE     = 0x1000
+    RST_ARCHERY     = 0x1000,
+    RST_MISSILE     = 0x2000
 };
 
 #define RST_DAMAGE (RST_BOLT | RST_BALL | RST_BREATH | RST_DIRECT)
@@ -265,6 +266,7 @@ struct monster_race
     int speed;                              /* Speed (normally 110) */
     int mexp;                               /* Exp value for kill */
     int freq_spell;                         /* Spell frequency */
+    int freq_innate;                        /* Innate spell frequency */
     int spell_power;                        /* Power of spells */
     bitflag flags[RF_SIZE];                 /* Flags */
     bitflag spell_flags[RSF_SIZE];          /* Spell flags */
