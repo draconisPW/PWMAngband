@@ -36,7 +36,7 @@ Angband 4.2.0:
 
 PWMAngband:
 
-- Allow paragraphs in race/class descriptions
+-
 
 Gameplay changes
 ----------------
@@ -47,11 +47,11 @@ Angband 4.2.0:
 - Monster groups act more as a group, with leaders and sometimes bodyguards
 - Monster shapechanges
 - Innate spells and cast spells have separate frequencies
+- Tweak resist fraction and damage cap for high elements
 
 PWMAngband:
 
-- Add race shapes
-- Add CAUTIOUS flag for monsters
+-
 
 Bugs fixed
 ----------
@@ -62,7 +62,7 @@ Angband 4.2.0:
 
 PWMAngband:
 
-- Don't describe vendors as "the entrance" to that vendor
+-
 
 Coding changes
 --------------
@@ -73,7 +73,6 @@ Angband 4.2.0:
 
 PWMAngband:
 
-- Un-hardcode class shapes
 - Implement temporary monster flags (CAMOUFLAGE, AWARE, HANDLED) 
 
 Compilation
