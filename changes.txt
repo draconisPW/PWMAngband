@@ -48,6 +48,7 @@ Angband 4.2.0:
 - Monster shapechanges
 - Innate spells and cast spells have separate frequencies
 - Tweak resist fraction and damage cap for high elements
+- Add extra effects for some projection types
 
 PWMAngband:
 

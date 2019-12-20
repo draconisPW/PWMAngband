@@ -1104,6 +1104,7 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
         bool did_hit = false;
         int num_hit = 0;
         struct loc last_hit;
+        bool powerful = ((flg & PROJECT_POWER)? true: false);
 
         loc_init(&last_hit, 0, 0);
 
@@ -1116,7 +1117,7 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
 
             /* Affect the player in the grid */
             project_p(origin, distance_to_grid[i], cv, &blast_grid[i],
-                dam_at_dist[distance_to_grid[i]], typ, what, &did_hit, &was_obvious, &grid.y, &grid.x);
+                dam_at_dist[distance_to_grid[i]], typ, powerful, what, &did_hit, &was_obvious, &grid);
             if (was_obvious) notice = true;
             if (did_hit)
             {

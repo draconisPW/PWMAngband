@@ -297,7 +297,7 @@ s16b spell_chance(struct player *p, int spell_index)
     if (p->timed[TMD_STUN] > 50) chance += 25;
     else if (p->timed[TMD_STUN]) chance += 15;
 
-    /* Amnesia doubles failure change */
+    /* Amnesia doubles failure chance */
     if (p->timed[TMD_AMNESIA]) chance = 50 + chance / 2;
 
     /* Always a 5 percent chance of working */

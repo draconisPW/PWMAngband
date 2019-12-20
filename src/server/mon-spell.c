@@ -65,7 +65,7 @@ static void spell_message(struct player *p, struct monster *mon, const struct mo
     const char *tag;
     const char *in_cursor;
     size_t end = 0;
-    bool strong = (mon->race->spell_power >= 60);
+    bool strong = ((mon->race->spell_power >= 80) || monster_is_powerful(mon->race));
     char tmp[MSG_LEN];
 
     /* Get the message */
@@ -596,8 +596,9 @@ const char *mon_spell_lore_description(int index, const struct monster_race *rac
     if (mon_spell_is_valid(index))
     {
         const struct monster_spell *spell = monster_spell_by_index(index);
-        bool strong = ((race->spell_power >= 60) && spell->lore_desc_strong);
+        bool strong = ((race->spell_power >= 80) || monster_is_powerful(race));
 
+        strong = (strong && spell->lore_desc_strong);
         return (strong? spell->lore_desc_strong: spell->lore_desc);
     }
 

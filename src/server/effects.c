@@ -1210,7 +1210,17 @@ static bool effect_handler_BALL(effect_handler_context_t *context)
             CONF_RANDOM_CHANCE);
 
         source_monster(who, context->origin->monster);
-        if (monster_is_powerful(context->origin->monster->race)) rad++;
+
+        /* Powerful monster */
+        if (monster_is_powerful(context->origin->monster->race))
+        {
+            rad++;
+            flg |= PROJECT_POWER;
+        }
+
+        /* Monsters with high spell power also cast powerful ball spells */
+        if (context->origin->monster->race->spell_power >= 80) flg |= PROJECT_POWER;
+
         flg &= ~(PROJECT_STOP | PROJECT_THRU);
 
         /* Handle confusion */
@@ -1905,11 +1915,15 @@ static bool effect_handler_BREATH(effect_handler_context_t *context)
         /* Breath parameters for monsters are monster-dependent */
         dam = breath_dam(type, context->origin->monster->hp);
 
-        /* Powerful monsters' breath is now full strength at 5 grids */
+        /* Powerful monster */
         if (monster_is_powerful(context->origin->monster->race))
         {
+            /* Breath is now full strength at 5 grids */
             diameter_of_source *= 3;
             diameter_of_source /= 2;
+
+            /* Mark for effects */
+            flg |= PROJECT_POWER;
         }
 
         /* Target player or monster? */
