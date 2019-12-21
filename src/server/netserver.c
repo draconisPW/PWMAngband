@@ -3000,18 +3000,6 @@ int Send_char_info(struct player *p, byte ridx, byte cidx, byte psex)
 }
 
 
-struct birth_options
-{
-    bool force_descend;
-    bool no_recall;
-    bool no_artifacts;
-    bool feelings;
-    bool no_selling;
-    bool start_kit;
-    bool no_stores;
-    bool no_ghost;
-    bool fruit_bat;
-};
 
 
 int Send_birth_options(int ind, struct birth_options *options)

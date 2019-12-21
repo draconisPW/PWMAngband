@@ -109,7 +109,6 @@ typedef struct
     char text_screen[MAX_TEXTFILES][TEXTFILE__WID * TEXTFILE__HGT];
 } server_setup_t;
 
-extern server_setup_t Setup;
 
 /* The setting data that the client transmits to the server */
 enum
