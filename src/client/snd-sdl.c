@@ -29,7 +29,6 @@
 #  include <SDL/SDL.h>
 #  include <SDL/SDL_mixer.h>
 # endif
-#endif /* USE_SDL */
 
 
 /* Supported file types */
@@ -272,3 +271,5 @@ errr init_sound_sdl(struct sound_hooks *hooks)
     return (0);
 }
 
+
+#endif /* USE_SDL */
