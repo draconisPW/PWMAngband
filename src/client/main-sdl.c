@@ -22,9 +22,15 @@
 
 #ifdef USE_SDL
 
-#include "..\SDL\SDL.h"
-#include "..\SDL\SDL_ttf.h"
-#include "..\SDL\SDL_image.h"
+#ifdef WINDOWS
+#include "..\_SDL\SDL.h"
+#include "..\_SDL\SDL_ttf.h"
+#include "..\_SDL\SDL_image.h"
+#else
+#include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
+#include <SDL/SDL_image.h>
+#endif
 
 #define MIN_SCREEN_WIDTH    640
 #define MIN_SCREEN_HEIGHT   480

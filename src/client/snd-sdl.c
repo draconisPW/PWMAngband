@@ -22,8 +22,13 @@
 #include "c-angband.h"
 
 #ifdef USE_SDL
-# include "..\SDL\SDL.h"
-# include "..\SDL\SDL_mixer.h"
+# ifdef WINDOWS
+#  include "..\_SDL\SDL.h"
+#  include "..\_SDL\SDL_mixer.h"
+# else
+#  include <SDL/SDL.h>
+#  include <SDL/SDL_mixer.h>
+# endif
 #endif /* USE_SDL */
 
 

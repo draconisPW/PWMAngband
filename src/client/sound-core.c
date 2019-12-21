@@ -55,7 +55,9 @@ static const struct sound_module sound_modules[] =
     {"sdl", "SDL_mixer sound module", init_sound_sdl},
 #else
 # ifndef USE_GCU
+#  ifdef WINDOWS
     {"win", "Windows sound module", init_sound_win},
+#  endif
 # endif
 #endif
     {"", "", NULL}
