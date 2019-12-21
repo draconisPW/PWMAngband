@@ -169,7 +169,9 @@ static void show_version(void)
  */
 int main(int argc, char *argv[])
 {
+#ifdef WINDOWS
     WSADATA wsadata;
+#endif
     char buf[MSG_LEN];
 
     /* Setup assert hook */
@@ -184,12 +186,16 @@ int main(int argc, char *argv[])
     /* Save the "program name" */
     argv0 = argv[0];
 
+#ifdef WINDOWS
     /* Load our debugging library on Windows, to give us nice stack dumps */
     /* We use exchndl.dll from the mingw-utils package */
     LoadLibrary("exchndl.dll");
+#endif
 
+#ifdef WINDOWS
     /* Initialize WinSock */
     WSAStartup(MAKEWORD(1, 1), &wsadata);
+#endif
 
     /* Process the command line arguments */
     for (--argc, ++argv; argc > 0; --argc, ++argv)
@@ -221,8 +227,10 @@ int main(int argc, char *argv[])
     /* Tell "quit()" to call "Term_nuke()" */
     quit_aux = quit_hook;
 
+#ifdef WINDOWS
     /* Catch nasty "signals" on Windows */
     setup_exit_handler();
+#endif
 
     /* Verify the "news" file */
     path_build(buf, sizeof(buf), ANGBAND_DIR_SCREENS, "news.txt");

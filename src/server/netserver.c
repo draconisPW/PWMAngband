@@ -1134,7 +1134,9 @@ void Stop_net_server(void)
     Sockbuf_cleanup(&ibuf);
 
     /* Destroy networking */
+#ifdef WINDOWS
     free_input();
+#endif
     free_connections();
 }
 

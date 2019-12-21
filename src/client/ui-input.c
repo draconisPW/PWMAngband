@@ -1337,6 +1337,7 @@ ui_event Net_loop(errr (*inkey_handler)(ui_event*, bool, bool),
 /* Turn off the num-lock key by toggling it if it's currently on. */
 void turn_off_numlock(void)
 {
+#ifdef WINDOWS
     KEYBDINPUT k;
     INPUT inp;
     int r;
@@ -1369,6 +1370,7 @@ void turn_off_numlock(void)
     inp.ki = k;
     r = SendInput(1, &inp, sizeof(INPUT));
     if (!r) plog_fmt("SendInput error (up): %lu", GetLastError());
+#endif
 }
 
 

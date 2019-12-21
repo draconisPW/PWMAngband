@@ -52,6 +52,10 @@ static u32b last_sent = 0, last_received = 0;
 
 /* Keeps track of time in milliseconds */
 static u32b mticks = 0;
+#ifndef WINDOWS
+/* Helper variable to keep track of time on UNIX */
+static u32b ticks = 0;
+#endif
 
 
 static bool request_redraw;
@@ -101,6 +105,7 @@ int Flush_queue(void)
 /* Keep track of time in milliseconds */
 static void updateTicks(void)
 {
+#ifdef WINDOWS
     SYSTEMTIME st;
 
     /* Retrieve the current system date and time */
@@ -109,6 +114,38 @@ static void updateTicks(void)
     /* Keep track of time in milliseconds */
     mticks = ((st.wHour * 60L + st.wMinute) * 60L + st.wSecond) * 1000L + st.wMilliseconds;
 
+#else
+/* BACK-Ported update_ticks from MAngband 1.1.0: */
+// Update the current time, which is stored in 100 ms "ticks".
+// I hope that Windows systems have gettimeofday on them by default.
+// If not there should hopefully be some simmilar efficient call with the same
+// functionality. 
+// I hope this doesn't prove to be a bottleneck on some systems.  On my linux system
+// calling gettimeofday seems to be very very fast.
+	struct timeval cur_time;
+	int newticks;
+	float scale = 100000;
+	int mins,hours;
+
+	hours = time(NULL) % 86400;
+	mins = time(NULL) % 3600;
+
+	gettimeofday(&cur_time, NULL);
+
+	// Set the new ticks to the old ticks rounded down to the number of seconds.
+	newticks = ticks-(ticks%10);
+	// Find the new least significant digit of the ticks
+	newticks += cur_time.tv_usec / scale;
+
+	// Assume that it has not been more than one second since this function was last called
+	if (newticks < ticks) newticks += 10;
+	ticks = newticks;
+	/*RLS*/
+	mticks = (long)(hours*3600*100) +
+		(long)(mins*60*100) +
+		(long)(cur_time.tv_sec*100) +
+		cur_time.tv_usec/((scale/100)/10);
+#endif
     /* Wrap every day */
     if ((mticks < last_sent) || (mticks < last_received))
         last_sent = last_received = 0;

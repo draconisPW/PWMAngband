@@ -275,6 +275,7 @@ bool file_close(ang_file *f)
  */
 ang_file *file_temp(char *fname, size_t len)
 {
+#ifdef WINDOWS
     ang_file *fff;
     char prefix[] = "mng";
 

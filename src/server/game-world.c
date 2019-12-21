@@ -2432,6 +2432,7 @@ void exit_game_panic(void)
 }
 
 
+#ifdef WINDOWS
 /*
  * Windows specific replacement for signal handling
  */
@@ -2486,6 +2487,7 @@ static LONG WINAPI UnhandledExceptionFilter(struct _EXCEPTION_POINTERS* Exceptio
 
 void setup_exit_handler(void)
 {
+#ifdef WINDOWS
     /* Trap CTRL+C, Logoff, Shutdown, etc */
     if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)ctrl_handler, true))
         plog("Initialised exit save handler.");
@@ -2494,4 +2496,10 @@ void setup_exit_handler(void)
 
     /* Trap unhandled exceptions, i.e. server crashes */
     old_handler = SetUnhandledExceptionFilter(UnhandledExceptionFilter);
+#else
+//...
+#endif
 }
+
+#endif
+
