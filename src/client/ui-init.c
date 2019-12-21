@@ -592,6 +592,7 @@ void client_init(void)
 static void cleanup_player(void)
 {
     int i;
+    if (!player) return; /* Never initialised in the first place. */
 
     /* Free the things that are always initialised */
     mem_free(player->timed);
