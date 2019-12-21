@@ -57,4 +57,15 @@
 #include "store-types.h"
 #include "util.h"
 
+
+/* Horrible hack -- should we link lib math instead? */
+
+#ifndef min
+# define min(A, B) (A < B ? A : B)
+#endif
+#ifndef max
+# define max(A, B) (A > B ? A : B)
+#endif
+
+
 #endif
