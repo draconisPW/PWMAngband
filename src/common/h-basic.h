@@ -142,4 +142,9 @@ typedef struct
  */
 #define FORCEUPPER(A)  ((islower((A)))? toupper((A)): (A))
 
+
+#ifndef MSG_LEN
+# define MSG_LEN 256
+#endif
+
 #endif
