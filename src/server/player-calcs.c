@@ -1913,7 +1913,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     bitflag collect_f[OF_SIZE];
     bool vuln[ELEM_MAX];
     bool unencumbered_monk = monk_armor_ok(p);
-    bool restrict = (player_has(p, PF_MARTIAL_ARTS) && !unencumbered_monk);
+    bool restrict_ = (player_has(p, PF_MARTIAL_ARTS) && !unencumbered_monk);
     byte cumber_shield = 0;
     struct element_info el_info[ELEM_MAX];
     struct object *tool = equipped_item_by_slot_name(p, "tool");
@@ -2199,7 +2199,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         if (i == OBJ_MOD_SPEED)
         {
             /* Unencumbered monks get speed bonus */
-            if (restrict) c_adj = 0;
+            if (restrict_) c_adj = 0;
 
             state->speed += (r_adj + c_adj);
         }
@@ -2208,7 +2208,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         if (i == OBJ_MOD_BLOWS)
         {
             /* Encumbered monks only get half the extra blows */
-            if (restrict) c_adj /= 2;
+            if (restrict_) c_adj /= 2;
 
             extra_blows += (r_adj + c_adj);
         }
