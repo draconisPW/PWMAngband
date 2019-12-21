@@ -373,7 +373,7 @@ void client_init(void)
     char host_name[NORMAL_WID], trymsg[NORMAL_WID];
     u16b conntype = CONNTYPE_PLAYER;
     char buffer[NORMAL_WID];
-    DWORD nSize = NORMAL_WID;
+    size_t nSize = NORMAL_WID;
     bool done = false;
     u16b num, max;
     u32b num_name;

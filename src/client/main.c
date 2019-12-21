@@ -79,7 +79,7 @@ static void quit_hook(const char *s)
 static void read_credentials(void)
 {
     char buffer[20] = {'\0'};
-    DWORD bufferLen = sizeof(buffer);
+    size_t bufferLen = sizeof(buffer);
 
     /* Initial defaults */
     my_strcpy(nick, "PLAYER", sizeof(nick));
