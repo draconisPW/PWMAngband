@@ -22,9 +22,15 @@
 
 #ifdef USE_SDL
 
-#include "..\SDL\SDL.h"
-#include "..\SDL\SDL_ttf.h"
-#include "..\SDL\SDL_image.h"
+#ifdef WINDOWS
+#include "..\_SDL\SDL.h"
+#include "..\_SDL\SDL_ttf.h"
+#include "..\_SDL\SDL_image.h"
+#else
+#include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
+#include <SDL/SDL_image.h>
+#endif
 
 #define MIN_SCREEN_WIDTH    640
 #define MIN_SCREEN_HEIGHT   480
@@ -852,8 +858,12 @@ static errr save_prefs(void);
  */
 static void hook_plog(const char *str)
 {
+#ifdef WINDOWS
     /* Warning */
     if (str) MessageBox(NULL, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
+#else
+    printf("%s\n", str);
+#endif
 }
 
 
@@ -911,11 +921,14 @@ static void hook_quit(const char *str)
     /* Cleanup network stuff */
     Net_cleanup();
 
+#ifdef WINDOWS
     /* Cleanup WinSock */
     WSACleanup();
+#endif
 }
 
 
+#ifdef WINDOWS
 static BOOL CtrlHandler(DWORD fdwCtrlType)
 {
     switch (fdwCtrlType)
@@ -927,6 +940,7 @@ static BOOL CtrlHandler(DWORD fdwCtrlType)
             return FALSE;
     }
 }
+#endif
 
 
 static void BringToTop(void)
@@ -3887,9 +3901,11 @@ errr init_sdl(void)
     /* Activate hook */
     quit_aux = hook_quit;
 
+#ifdef WINDOWS
     /* Register a control handler */
     if (!SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, true))
         quit("Could not set control handler");
+#endif
 
     /* Paranoia */
     return (0);

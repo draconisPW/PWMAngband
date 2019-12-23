@@ -704,7 +704,7 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
     int adj;
 
     /* Unencumbered monks get speed bonus */
-    bool restrict = (player_has(p, PF_MARTIAL_ARTS) && !monk_armor_ok(p));
+    bool restrict_ = (player_has(p, PF_MARTIAL_ARTS) && !monk_armor_ok(p));
 
     /* Add racial modifiers */
     adj = race_modifier(p->race, mod, p->lev, false);
@@ -713,7 +713,7 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
 
     /* Add class modifiers */
     adj = class_modifier(p->clazz, mod, p->lev);
-    if ((mod == OBJ_MOD_SPEED) && restrict) adj = 0;
+    if ((mod == OBJ_MOD_SPEED) && restrict_) adj = 0;
     if (adj > 0) *res = true;
     else if (adj < 0) *vul = true;
 

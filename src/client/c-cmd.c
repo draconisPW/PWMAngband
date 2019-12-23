@@ -870,7 +870,9 @@ void do_cmd_message(void)
     /* Hack to just change the window focus in Windows client */
     if (term_chat->user)
     {
+#ifdef WINDOWS
         set_chat_focus();
+#endif
         return;
     }
 #endif

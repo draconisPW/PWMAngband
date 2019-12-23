@@ -276,7 +276,7 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
     int i;
 
     /* Unencumbered monks get nice abilities */
-    bool restrict = (player_has(p, PF_MARTIAL_ARTS) && !monk_armor_ok(p));
+    bool restrict_ = (player_has(p, PF_MARTIAL_ARTS) && !monk_armor_ok(p));
 
     /* Clear */
     of_wipe(f);
@@ -285,7 +285,7 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
     for (i = 1; i < OF_MAX; i++)
     {
         if (of_has(p->race->flags, i) && (p->lev >= p->race->flvl[i])) of_on(f, i);
-        if (of_has(p->clazz->flags, i) && (p->lev >= p->clazz->flvl[i]) && !restrict) of_on(f, i);
+        if (of_has(p->clazz->flags, i) && (p->lev >= p->clazz->flvl[i]) && !restrict_) of_on(f, i);
     }
 
     /* Ghost */

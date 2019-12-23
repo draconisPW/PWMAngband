@@ -22,9 +22,13 @@
 #include "c-angband.h"
 
 #ifdef USE_SDL
-# include "..\SDL\SDL.h"
-# include "..\SDL\SDL_mixer.h"
-#endif /* USE_SDL */
+# ifdef WINDOWS
+#  include "..\_SDL\SDL.h"
+#  include "..\_SDL\SDL_mixer.h"
+# else
+#  include <SDL/SDL.h>
+#  include <SDL/SDL_mixer.h>
+# endif
 
 
 /* Supported file types */
@@ -267,3 +271,5 @@ errr init_sound_sdl(struct sound_hooks *hooks)
     return (0);
 }
 
+
+#endif /* USE_SDL */

@@ -18,6 +18,8 @@
 
 #include "angband.h"
 
+#ifdef WINDOWS
+
 #ifdef TERMNET
 /* support for running clients over term, but not servers please. */
 #include "termnet.h"
@@ -2002,3 +2004,5 @@ const char *GetSocketErrorMessage(void)
 {
     return GetSocketErrorMessageAux(wsa_errno);
 }
+#endif /* WINDOWS*/ 
+

@@ -7,6 +7,54 @@
 #define INCLUDED_H_BASIC_H
 
 /*** Autodetect platform ***/
+/**
+ * Include autoconf autodetections, otherwise try to autodetect ourselves
+ */
+#ifdef HAVE_CONFIG_H
+
+# include "autoconf.h"
+
+#else
+
+/**
+ * Native MSVC compiler doesn't understand inline or snprintf
+ */
+#ifdef _MSC_VER
+#	define inline __inline
+#	define snprintf _snprintf
+#endif
+
+/**
+ * Everyone except RISC OS has fcntl.h and sys/stat.h
+ */
+#define HAVE_FCNTL_H
+#define HAVE_STAT
+
+#endif
+
+/**
+ * Extract the "WINDOWS" flag from the compiler
+ */
+# if defined(_Windows) || defined(__WINDOWS__) || \
+     defined(__WIN32__) || defined(WIN32) || \
+     defined(__WINNT__) || defined(__NT__)
+#  ifndef WINDOWS
+#   define WINDOWS
+#  endif
+# endif
+
+/**
+ * Define UNIX if our OS is UNIXy
+ */
+#if !defined(WINDOWS) && !defined(GAMEBOY) && !defined(NDS)
+# define UNIX
+
+# ifndef HAVE_DIRENT_H
+#  define HAVE_DIRENT_H
+# endif
+#endif
+
+
 
 /*
  * Using C99, assume we have stdint and stdbool
@@ -19,11 +67,18 @@
  */
 #undef PATH_SEP
 #undef PATH_SEPC
+#ifdef WINDOWS
 #define PATH_SEP "\\"
 #define PATH_SEPC '\\'
+#else
+#define PATH_SEP "/"
+#define PATH_SEPC '/'
+#endif
 
+#ifdef WINDOWS
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #define ECONNRESET WSAECONNRESET
+#endif
 
 /*
  * Include the library header files
@@ -46,11 +101,45 @@
 
 /** Other headers **/
 
+#ifdef WINDOWS
 #include <io.h>
 #include <fcntl.h>
+#endif
 
 /* Basic networking stuff */
 #include "h-net.h"
+
+/* Use various POSIX functions if available */
+#undef _GNU_SOURCE
+#define _GNU_SOURCE
+
+/** ANSI C headers **/
+#include <ctype.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <errno.h>
+#include <limits.h>
+#include <assert.h>
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
+#include <time.h>
+
+#include <wchar.h>
+#include <wctype.h>
+
+/** POSIX headers **/
+#define UNIX
+#ifdef UNIX
+# include <pwd.h>
+# include <sys/stat.h>
+# include <unistd.h>
+#endif
+
+
 
 /*
  * Define the basic game types
@@ -59,7 +148,9 @@
 typedef int errr;
 
 /* Use a char otherwise */
+#ifndef bool
 typedef char bool;
+#endif
 
 #define true    1
 #define false   0
@@ -141,5 +232,10 @@ typedef struct
  * Force a character to uppercase
  */
 #define FORCEUPPER(A)  ((islower((A)))? toupper((A)): (A))
+
+
+#ifndef MSG_LEN
+# define MSG_LEN 256
+#endif
 
 #endif

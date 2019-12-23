@@ -122,4 +122,6 @@ extern int Net_input(void);
 extern bool Net_Send(int Socket, sockbuf_t* ibuf);
 extern bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int retries);
 
-
+/* Server setup information. */
+extern server_setup_t Setup;
+

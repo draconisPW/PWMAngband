@@ -373,7 +373,7 @@ void client_init(void)
     char host_name[NORMAL_WID], trymsg[NORMAL_WID];
     u16b conntype = CONNTYPE_PLAYER;
     char buffer[NORMAL_WID];
-    DWORD nSize = NORMAL_WID;
+    size_t nSize = NORMAL_WID;
     bool done = false;
     u16b num, max;
     u32b num_name;
@@ -434,7 +434,10 @@ void client_init(void)
     if ((Socket = CreateClientSocket(server_name, server_port)) == -1)
     {
         /* Display the socket error message */
+#ifdef WINDOWS
+        /* TODO: similar function for unix */
         put_str(GetSocketErrorMessage(), 19, 1);
+#endif
 
         while (!done)
         {
@@ -480,12 +483,16 @@ void client_init(void)
     /* Clear it */
     Sockbuf_clear(&ibuf);
 
+#ifdef WINDOWS
     /* Get user name */
     if (GetUserName(buffer, &nSize))
     {
         buffer[16] = '\0';
         my_strcpy(real_name, buffer, sizeof(real_name));
     }
+#else
+    my_strcpy(real_name, "PLAYER", sizeof(real_name));
+#endif
 
     /* Put the contact info in it */
     Packet_printf(&ibuf, "%hu", (unsigned)conntype);
@@ -585,6 +592,7 @@ void client_init(void)
 static void cleanup_player(void)
 {
     int i;
+    if (!player) return; /* Never initialised in the first place. */
 
     /* Free the things that are always initialised */
     mem_free(player->timed);

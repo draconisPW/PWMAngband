@@ -180,7 +180,7 @@ static void console_read(int read_fd, int ind)
     char terminator = '\n';
     char *params;
     int i, j;
-    bool found = FALSE;
+    bool found = false;
 
     /* Get the password if not authenticated */
     if (!Conn_get_console_setting(ind, CONSOLE_AUTH))
@@ -235,7 +235,7 @@ static void console_read(int read_fd, int ind)
         if (!strncmp(buf, console_commands[i].name,
             (j = strlen(console_commands[i].name))) && (buflen <= j || buf[j] == ' '))
         {
-            found = TRUE;
+            found = true;
 
             if ((params == NULL) && (console_commands[i].min_arguments > 0))
             {
