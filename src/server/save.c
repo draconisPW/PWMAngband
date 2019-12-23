@@ -1069,6 +1069,7 @@ static void wr_monster(const struct monster *mon)
     int j;
     struct object *obj = mon->held_obj;
 
+    wr_u16b(mon->midx);
     wr_race(mon->race);
     wr_race(mon->original_race);
     wr_byte(mon->grid.y);

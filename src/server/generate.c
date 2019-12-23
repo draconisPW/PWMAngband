@@ -1156,8 +1156,8 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                     rf_has(race->flags, RF_QUESTOR));
                 bool fixed_encounter = (rf_has(race->flags, RF_PWMANG_FIXED) &&
                     (cfg_diving_mode < 2));
-                struct loc grid;
                 struct monster_group_info info = {0, 0};
+                struct loc grid;
 
                 /* The monster must be an unseen quest monster/fixed encounter of this depth. */
                 if (race->lore.spawned) continue;

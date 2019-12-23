@@ -54,17 +54,17 @@ void monster_group_free(struct monster_group *group)
  */
 static void monster_group_split(struct chunk *c, struct monster_group *group)
 {
-    struct mon_group_list_entry *list_entry = group->member_list;
+    struct mon_group_list_entry *entry;
 
     /* Keep a list of groups made for easy checking */
     int *temp = mem_zalloc(z_info->level_monster_max * sizeof(int));
     int current = 0;
 
     /* Go through the monsters in the group */
-    while (list_entry)
+    for (entry = group->member_list; entry; entry = entry->next)
     {
         int i;
-        struct monster *mon = &c->monsters[list_entry->midx];
+        struct monster *mon = &c->monsters[entry->midx];
 
         /* Check all groups to see if they contain a monster of this race */
         for (i = 0; i < current; i++)
@@ -89,13 +89,8 @@ static void monster_group_split(struct chunk *c, struct monster_group *group)
             /* Store the new index */
             temp[current++] = mon->group_info[PRIMARY_GROUP].index;
         }
-
-        list_entry = list_entry->next;
     }
 
-    /* Dispose of the old group and clean up */
-    c->monster_groups[group->index] = NULL;
-    monster_group_free(group);
     mem_free(temp);
 }
 
@@ -115,7 +110,11 @@ static void monster_group_remove_leader(struct chunk *c, struct monster *leader,
         struct monster *mon = cave_monster(c, list_entry->midx);
 
         /* Monsters of the same race can take over as leader */
-        if ((leader->race == mon->race) && !poss_leader) poss_leader = mon->midx;
+        if ((leader->race == mon->race) && !poss_leader &&
+            (mon->group_info[PRIMARY_GROUP].role != MON_GROUP_SUMMON))
+        {
+            poss_leader = mon->midx;
+        }
 
         /* Uniques always take over */
         if (rf_has(mon->race->flags, RF_UNIQUE)) poss_leader = mon->midx;
@@ -123,34 +122,36 @@ static void monster_group_remove_leader(struct chunk *c, struct monster *leader,
         list_entry = list_entry->next;
     }
 
-    /* New leader, or group fractures */
-    if (poss_leader) group->leader = poss_leader;
-    else monster_group_split(c, group);
-
-    /* Now run through again to finalise */
-    list_entry = group->member_list;
-    while (list_entry)
+    /* If no new leader, group fractures and old group is removed */
+    if (!poss_leader)
     {
-        struct monster *mon = cave_monster(c, list_entry->midx);
-
-        /* Summoned monsters make their own group */
-        if (mon->group_info[PRIMARY_GROUP].role == MON_GROUP_SUMMON)
-        {
-            /* Some monsters have a group of summons already */
-            if (mon->group_info[SUMMON_GROUP].index)
-            {
-                mon->group_info[PRIMARY_GROUP].index = mon->group_info[SUMMON_GROUP].index;
-                mon->group_info[SUMMON_GROUP].index = 0;
-            }
-            else
-                monster_group_start(c, mon, 0);
-        }
-
-        /* Record the leader */
-        if (mon->midx == poss_leader) mon->group_info[PRIMARY_GROUP].role = MON_GROUP_LEADER;
-
-        list_entry = list_entry->next;
+        monster_group_split(c, group);
+        c->monster_groups[group->index] = NULL;
+        monster_group_free(group);
     }
+
+    /* If there is a successor, appoint them and finalise changes */
+    else
+    {
+        group->leader = poss_leader;
+        list_entry = group->member_list;
+        my_assert(list_entry);
+        while (list_entry)
+        {
+            struct monster *mon = cave_monster(c, list_entry->midx);
+
+            /* Record the leader */
+            if (mon->midx == poss_leader)
+            {
+                mon->group_info[PRIMARY_GROUP].role = MON_GROUP_LEADER;
+                break;
+            }
+
+            list_entry = list_entry->next;
+        }
+    }
+
+    monster_groups_verify(c);
 }
 
 
@@ -164,7 +165,7 @@ void monster_remove_from_groups(struct chunk *c, struct monster *mon)
     struct monster_group *group;
     struct mon_group_list_entry *list_entry;
 
-    for (i = 0; i < 2; i++)
+    for (i = 0; i < GROUP_MAX; i++)
     {
         group = c->monster_groups[mon->group_info[i].index];
 
@@ -212,6 +213,8 @@ void monster_remove_from_groups(struct chunk *c, struct monster *mon)
             list_entry = list_entry->next;
         }
     }
+
+    monster_groups_verify(c);
 }
 
 
@@ -273,6 +276,65 @@ void monster_group_start(struct chunk *c, struct monster *mon, int which)
     /* Write the index to the monster's group info, make it leader */
     mon->group_info[which].index = index;
     mon->group_info[which].role = MON_GROUP_LEADER;
+}
+
+
+/*
+ * Assign a monster to a monster group
+ */
+void monster_group_assign(struct chunk *c, struct monster *mon, struct monster_group_info *info,
+    bool loading)
+{
+    int index = info[PRIMARY_GROUP].index;
+    struct monster_group *group = monster_group_by_index(c, index);
+
+    /* For newly created monsters, use the group start and add functions */
+    if (!loading)
+    {
+        if (group) monster_add_to_group(mon, group);
+        else monster_group_start(c, mon, 0);
+    }
+
+    /* For loading from a savefile, build by hand */
+    else
+    {
+        int i;
+
+        for (i = 0; i < GROUP_MAX; i++)
+        {
+            struct mon_group_list_entry *entry = mem_zalloc(sizeof(*entry));
+
+            /* Check the index */
+            index = info[i].index;
+            if (!index)
+            {
+                /* Everything should have a primary group */
+                if (i == PRIMARY_GROUP) quit_fmt("Monster %d has no group", mon->midx);
+
+                /* Plenty of things have no summon group */
+                else
+                {
+                    mem_free(entry);
+                    return;
+                }
+            }
+
+            /* Fill out the group, creating if necessary */
+            group = monster_group_by_index(c, index);
+            if (!group)
+            {
+                group = monster_group_new();
+                group->index = index;
+                c->monster_groups[index] = group;
+            }
+            if (info[i].role == MON_GROUP_LEADER) group->leader = mon->midx;
+
+            /* Add this monster */
+            entry->midx = mon->midx;
+            entry->next = group->member_list;
+            group->member_list = entry;
+        }
+    }
 }
 
 
@@ -340,13 +402,22 @@ bool monster_group_change_index(struct chunk *c, int new_index, int old_index)
  */
 struct monster_group *summon_group(struct chunk *c, struct monster *mon)
 {
-    int index = mon->group_info[SUMMON_GROUP].index;
+    int index;
 
-    /* Make a group if there isn't one already */
-    if (!index)
+    /* If the monster is leader of its primary group, return that group */
+    if (mon->group_info[PRIMARY_GROUP].role == MON_GROUP_LEADER)
+        index = mon->group_info[PRIMARY_GROUP].index;
+    else
     {
-        monster_group_start(c, mon, 1);
+        /* Get the (distinct) summon group */
         index = mon->group_info[SUMMON_GROUP].index;
+
+        /* Make a group if there isn't one already */
+        if (!index)
+        {
+            monster_group_start(c, mon, 1);
+            index = mon->group_info[SUMMON_GROUP].index;
+        }
     }
 
     return monster_group_by_index(c, index);
@@ -419,4 +490,52 @@ struct monster *monster_group_leader(struct chunk *c, struct monster *mon)
     struct monster_group *group = c->monster_groups[index];
 
     return cave_monster(c, group->leader);
+}
+
+
+/*
+ * Verify the integrity of all the monster groups
+ */
+void monster_groups_verify(struct chunk *c)
+{
+    int i;
+
+    for (i = 0; i < z_info->level_monster_max; i++)
+    {
+        if (c->monster_groups[i])
+        {
+            struct monster_group *group = c->monster_groups[i];
+            struct mon_group_list_entry *entry = group->member_list;
+
+            while (entry)
+            {
+                struct monster *mon = cave_monster(c, entry->midx);
+                struct monster_group_info *info = mon->group_info;
+
+                if (info[PRIMARY_GROUP].index != i)
+                {
+                    if (info[SUMMON_GROUP].index)
+                    {
+                        if (info[SUMMON_GROUP].index != i)
+                        {
+                            quit_fmt("Bad group index: group: %d, monster: %d", i,
+                                info[SUMMON_GROUP].index);
+                        }
+                        if (info[SUMMON_GROUP].role != MON_GROUP_LEADER)
+                        {
+                            quit_fmt("Bad monster role: group: %d, monster: %d", i,
+                                info[SUMMON_GROUP].index);
+                        }
+                    }
+                    else
+                    {
+                        quit_fmt("Bad group index: group: %d, monster: %d", i,
+                            info[PRIMARY_GROUP].index);
+                    }
+                }
+
+                entry = entry->next;
+            }
+        }
+    }
 }

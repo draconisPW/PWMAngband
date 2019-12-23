@@ -1432,6 +1432,8 @@ static bool rd_monster_aux(struct chunk *c, struct monster *mon, rd_item_t rd_it
     s16b tmp16x, tmp16y;
 
     /* Read the monster race */
+    rd_u16b(&tmp16u);
+    mon->midx = tmp16u;
     mon->race = rd_race();
     if (!mon->race)
     {
