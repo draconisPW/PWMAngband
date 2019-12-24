@@ -2004,5 +2004,5 @@ const char *GetSocketErrorMessage(void)
 {
     return GetSocketErrorMessageAux(wsa_errno);
 }
-#endif /* WINDOWS*/ 
+#endif /* WINDOWS*/
 

@@ -73,6 +73,7 @@ struct birth_options
     bool no_ghost;
     bool fruit_bat;
 };
+
 /*** Player connection/index wrappers ***/
 extern connection_t *get_connection(long idx);
 extern long get_player_index(connection_t *connp);

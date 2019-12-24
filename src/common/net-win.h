@@ -49,4 +49,3 @@ extern const char *GetSocketErrorMessage(void);
 
 #endif /* _SOCKLIB_INCLUDED */
 #endif /* WINDOWS */
-

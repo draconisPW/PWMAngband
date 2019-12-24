@@ -7,7 +7,7 @@ How to build all SDL libraries required to run the SDL client:
 - Create a \SDL directory in the same root directory as your \PWMAngband folder
 - Download and unzip SDL 1.2.15 in the \SDL directory:
 	http://www.libsdl.org/download-1.2.php
-- In \SDL\SDL-1.2.15, replace the following files by the ones in \PWMAngband\src\SDL:
+- In \SDL\SDL-1.2.15, replace the following files by the ones in \PWMAngband\src\_SDL:
 	\include\begin_code.h
 	\include\SDL_stdinc.h
 - Download and unzip FreeType 2.10.1 in the \SDL directory:

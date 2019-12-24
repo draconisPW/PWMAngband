@@ -79,4 +79,4 @@ PWMAngband:
 Compilation
 -----------
 
--
+- Restore UNIX support

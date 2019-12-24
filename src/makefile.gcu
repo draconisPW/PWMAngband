@@ -37,7 +37,7 @@ CLI_EXE = mangclient_gcu.exe
 
 CCOPTS = -Hc -tW -lGn -w8080 -w-8004 -w-8057 \
 	-D_WIN32_WINNT=0x0500 -DWINVER=0x0500 \
-	-DWIN32 -D_WINDOWS -DSTRICT -DUSE_GCU \
+	-DWIN32 -D_WINDOWS -DSTRICT -DWINDOWS -DUSE_GCU \
 	-I$(BCCDIR)\include -Icurses
 
 LDFLAGS = -L$(BCCDIR)\lib -Lcurses

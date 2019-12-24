@@ -3000,8 +3000,6 @@ int Send_char_info(struct player *p, byte ridx, byte cidx, byte psex)
 }
 
 
-
-
 int Send_birth_options(int ind, struct birth_options *options)
 {
     connection_t *connp = get_connection(ind);

@@ -80,15 +80,15 @@ static void quit_hook(const char *s)
 
 static void read_credentials(void)
 {
+#ifdef WINDOWS
     char buffer[20] = {'\0'};
-    size_t bufferLen = sizeof(buffer);
+    DWORD bufferLen = sizeof(buffer);
 
     /* Initial defaults */
     my_strcpy(nick, "PLAYER", sizeof(nick));
     my_strcpy(pass, "passwd", sizeof(pass));
     my_strcpy(real_name, "PLAYER", sizeof(real_name));
 
-#ifdef WINDOWS
     /* Get user name from Windows machine! */
     if (GetUserName(buffer, &bufferLen))
     {
@@ -99,6 +99,9 @@ static void read_credentials(void)
         my_strcpy(real_name, buffer, sizeof(real_name));
     }
 #else
+    /* Initial defaults */
+    my_strcpy(nick, "PLAYER", sizeof(nick));
+    my_strcpy(pass, "passwd", sizeof(pass));
     my_strcpy(real_name, "PLAYER", sizeof(real_name));
 #endif
 }

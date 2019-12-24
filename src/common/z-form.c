@@ -583,6 +583,9 @@ static char *format_buf[FORMAT_CYCLE_MAX] = { NULL };
 static size_t format_len[FORMAT_CYCLE_MAX] = { 0 };
 
 
+#ifdef WINDOWS
+#define VA_COPY(DST, SRC) (DST) = (SRC)
+#endif
 
 
 /*

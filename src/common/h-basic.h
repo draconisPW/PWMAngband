@@ -109,6 +109,8 @@
 /* Basic networking stuff */
 #include "h-net.h"
 
+#ifndef WINDOWS
+
 /* Use various POSIX functions if available */
 #undef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -139,7 +141,7 @@
 # include <unistd.h>
 #endif
 
-
+#endif
 
 /*
  * Define the basic game types
@@ -233,9 +235,10 @@ typedef struct
  */
 #define FORCEUPPER(A)  ((islower((A)))? toupper((A)): (A))
 
-
+#ifndef WINDOWS
 #ifndef MSG_LEN
 # define MSG_LEN 256
 #endif
+#endif
 
 #endif

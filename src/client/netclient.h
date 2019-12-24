@@ -124,4 +124,3 @@ extern bool Net_WaitReply(int Socket, sockbuf_t* ibuf, int retries);
 
 /* Server setup information. */
 extern server_setup_t Setup;
-

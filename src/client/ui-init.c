@@ -373,7 +373,9 @@ void client_init(void)
     char host_name[NORMAL_WID], trymsg[NORMAL_WID];
     u16b conntype = CONNTYPE_PLAYER;
     char buffer[NORMAL_WID];
-    size_t nSize = NORMAL_WID;
+#ifdef WINDOWS
+    DWORD nSize = NORMAL_WID;
+#endif
     bool done = false;
     u16b num, max;
     u32b num_name;
@@ -490,8 +492,6 @@ void client_init(void)
         buffer[16] = '\0';
         my_strcpy(real_name, buffer, sizeof(real_name));
     }
-#else
-    my_strcpy(real_name, "PLAYER", sizeof(real_name));
 #endif
 
     /* Put the contact info in it */

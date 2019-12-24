@@ -28,105 +28,132 @@ static char config_name[MSG_LEN];  /* Config filename */
 
 
 /*
- * Client config file handler
+ * WINDOWS specific code
  */
+
+
 #ifdef WINDOWS
-static char config_name[1024];	/* Config filename */
 void conf_init(void* param)
 {
-	char path[1024];
-	HINSTANCE hInstance = param;
+    char path[MSG_LEN];
+    HINSTANCE hInstance = param;
 
-	/* Search for file in user directory */
-	if (GetEnvironmentVariable("USERPROFILE", path, 512))
-	{
-		my_strcat(path, "\\mangclient.ini", 1024);
+    /* Search for file in user directory */
+    if (GetEnvironmentVariable("USERPROFILE", path, sizeof(path)))
+    {
+        my_strcat(path, "\\mangclient.ini", sizeof(path));
 
-		/* Ok */
-		if (file_exists(path))
-		{
-			my_strcpy(config_name, path, 1024);
-			return;
-		}
-	}
+        /* Ok */
+        if (file_exists(path))
+        {
+            my_strcpy(config_name, path, sizeof(config_name));
+            return;
+        }
+    }
 
-	/* Get full path to executable */
-	GetModuleFileName(hInstance, path, 512);
-	/* Remove ".exe" */
-	path[strlen(path) - 4] = '\0';
-	/* Remove ANGBAND_SYS suffix */
-	/* if (suffix(path, ANGBAND_SYS)) path[strlen(path) - strlen(ANGBAND_SYS)] = '\0'; */
-	if (suffix(path, "-sdl")) path[strlen(path) - 4] = '\0';
-	if (suffix(path, "-sdl2")) path[strlen(path) - 5] = '\0';
-	/* Append ".ini" */
-	my_strcpy(config_name, path, 1024);
-	my_strcat(config_name, ".ini", 1024);
+    /* Get full path to executable */
+    GetModuleFileName(hInstance, path, sizeof(path));
+    my_strcpy(path + strlen(path) - 4, ".ini", 5);
+    my_strcpy(config_name, path, sizeof(config_name));
 }
-void conf_save()
-{ }
+
+
+void conf_save(void)
+{
+}
+
+
 void conf_timer(int ticks)
-{ }
-void conf_done(void)
-{ }
-bool conf_section_exists(const char* section)
 {
-	char sections[1024];
-	int n;
-	size_t i;
-	
-	n = GetPrivateProfileSectionNames(sections, 1024, config_name);
-	if (n != 1024 - 2)
-	{
-		for (i = 0; sections[i]; i += (strlen(&sections[i]) + 1))
-			if (!my_stricmp(&sections[i], section))
-				return true;
-	}
+}
 
-	return FALSE;
-}
-const char* conf_get_string(const char* section, const char* name, const char* default_value)
-{
-	static char value[100];
-	GetPrivateProfileString(section, name, default_value,
-	                        value, 100, config_name);
-	return &value[0];
-}
-s32b conf_get_int(const char* section, const char* name, s32b default_value)
-{
-	return GetPrivateProfileInt(section, name, default_value, config_name);
-}
-void conf_set_string(const char* section, const char* name, const char* value)
-{
-	WritePrivateProfileString(section, name, value, config_name);
-}
-void conf_set_int(const char* section, const char* name, s32b value)
-{
-	char s_value[100];
-	sprintf(s_value, "%" PRId32, value);
-	WritePrivateProfileString(section, name, s_value, config_name);
-}
-/* HACK: Append section from other file */
-void conf_append_section(const char* sectionFrom, const char *sectionTo, const char* filename)
-{
-	char keys[2024];
-	char value[1024];
-	int n;
-	size_t i;
 
-	/* Get all keys */
-	n = GetPrivateProfileString(sectionFrom, NULL, NULL, keys, 2024, filename);
-	if (n != 2024 - 2)
-	{
-		for (i = 0; keys[i]; i += (strlen(&keys[i]) + 1))
-		{
-			/* Extract key */
-			GetPrivateProfileString("Sound", &keys[i], "", value, sizeof(value), filename);
-			/* MEGA-HACK: Append key to original config */
-			value[100] = '\0'; /* FIXME: change "strings" len */
-			conf_set_string(sectionTo, &keys[i], value);
-		}
-	}
+bool conf_section_exists(const char *section)
+{
+    char sections[MSG_LEN];
+    int n;
+    size_t i;
+
+    n = GetPrivateProfileSectionNames(sections, MSG_LEN, config_name);
+    if (n != MSG_LEN - 2)
+    {
+        for (i = 0; sections[i]; i += (strlen(&sections[i]) + 1))
+        {
+            if (!my_stricmp(&sections[i], section)) return true;
+        }
+    }
+
+    return false;
 }
+
+
+const char *conf_get_string(const char *section, const char *name, const char *default_value)
+{
+    static char value[100];
+
+    GetPrivateProfileString(section, name, default_value, value, 100, config_name);
+    return &value[0];
+}
+
+
+s32b conf_get_int(const char *section, const char *name, s32b default_value)
+{
+    return GetPrivateProfileInt(section, name, default_value, config_name);
+}
+
+
+void conf_set_string(const char *section, const char *name, const char *value)
+{
+    WritePrivateProfileString(section, name, value, config_name);
+}
+
+
+void conf_set_int(const char *section, const char *name, s32b value)
+{
+    char s_value[100];
+
+    strnfmt(s_value, sizeof(s_value), "%" PRId32, value);
+    WritePrivateProfileString(section, name, s_value, config_name);
+}
+
+
+/* Hack -- append section */
+void conf_append_section(const char *sectionFrom, const char *sectionTo, const char *filename)
+{
+    char keys[2 * MSG_LEN];
+    char value[MSG_LEN];
+    int n;
+    size_t i;
+
+    /* Get all keys */
+    n = GetPrivateProfileString(sectionTo, NULL, NULL, keys, 2 * MSG_LEN, filename);
+    if (n != 2 * MSG_LEN - 2)
+    {
+        for (i = 0; keys[i]; i += (strlen(&keys[i]) + 1))
+        {
+            /* Extract key */
+            GetPrivateProfileString(sectionFrom, &keys[i], "", value, sizeof(value),
+                filename);
+
+            /* Hack -- append key to original config */
+            value[100] = '\0'; /* FIXME: change "strings" len */
+            conf_set_string(sectionTo, &keys[i], value);
+        }
+    }
+}
+
+
+bool conf_exists(void)
+{
+    return file_exists(config_name);
+}
+
+
+/*
+ * LINUX specific code
+ */
+
+
 #else
 typedef struct value_conf_type value_conf_type;
 typedef struct section_conf_type section_conf_type;
@@ -591,8 +618,6 @@ void conf_append_section(const char* sectionFrom, const char *sectionTo, const c
 	}
 }
 #endif
-
-
 
 
 static int p_argc = 0;
