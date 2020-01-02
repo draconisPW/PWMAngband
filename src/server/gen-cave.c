@@ -2356,7 +2356,7 @@ static void town_gen_layout(struct player *p, struct chunk *c)
     grid.y--;
 
     /* Place a staircase */
-    square_set_downstairs(c, &grid);
+    square_set_downstairs(c, &grid, FEAT_MORE);
 
     /* Hack -- the players start on the stairs while recalling */
     square_set_join_rand(c, &grid);
@@ -3260,7 +3260,7 @@ static void build_feature(struct chunk *c, int n, int yy, int xx)
         loc_init(&grid, (x1 + x2) / 2, (y1 + y2) / 2);
 
         /* Place a staircase */
-        square_set_downstairs(c, &grid);
+        square_set_downstairs(c, &grid, FEAT_MORE);
 
         /* Hack -- the players start on the stairs while recalling */
         square_set_join_rand(c, &grid);

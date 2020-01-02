@@ -3156,10 +3156,10 @@ static void wild_town_gen_layout(struct chunk *c)
             }
 
             /* Hack -- stairs */
-            if (feat == FEAT_MORE)
+            if (tf_has(f_info[feat].flags, TF_DOWNSTAIR))
             {
                 /* Place a staircase */
-                square_set_downstairs(c, &grid);
+                square_set_downstairs(c, &grid, feat);
 
                 /* Hack -- the players start on the stairs while recalling */
                 square_set_join_rand(c, &grid);
