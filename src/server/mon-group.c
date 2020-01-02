@@ -430,7 +430,7 @@ struct monster_group *summon_group(struct chunk *c, struct monster *mon)
 void monster_group_rouse(struct player *p, struct chunk *c, struct monster *mon)
 {
     int index = mon->group_info[PRIMARY_GROUP].index;
-    struct monster_group *group = c->monster_groups[mon->group_info[index].index];
+	struct monster_group *group = c->monster_groups[index];
     struct mon_group_list_entry *entry = group->member_list;
 
     /* Not aware means don't rouse */
@@ -438,14 +438,14 @@ void monster_group_rouse(struct player *p, struct chunk *c, struct monster *mon)
 
     while (entry)
     {
-        struct monster *frnd = &c->monsters[entry->midx];
+        struct monster *friend_ = &c->monsters[entry->midx];
 
-        if (frnd->m_timed[MON_TMD_SLEEP] && los(c, &mon->grid, &frnd->grid))
+        if (friend_->m_timed[MON_TMD_SLEEP] && los(c, &mon->grid, &friend_->grid))
         {
-            int dist = distance(&mon->grid, &frnd->grid);
+            int dist = distance(&mon->grid, &friend_->grid);
 
             /* Closer means more likely to be roused */
-            if (one_in_(dist * 20)) monster_wake(p, frnd, true, 50);
+            if (one_in_(dist * 20)) monster_wake(p, friend_, true, 50);
         }
         entry = entry->next;
     }

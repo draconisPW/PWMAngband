@@ -474,7 +474,7 @@ extern void square_set_join_down(struct chunk *c, struct loc *grid);
 extern void square_init_join_rand(struct chunk *c);
 extern void square_set_join_rand(struct chunk *c, struct loc *grid);
 extern void square_set_upstairs(struct chunk *c, struct loc *grid);
-extern void square_set_downstairs(struct chunk *c, struct loc *grid);
+extern void square_set_downstairs(struct chunk *c, struct loc *grid, int feat);
 
 /* cave-view.c */
 extern int distance(struct loc *grid1, struct loc *grid2);

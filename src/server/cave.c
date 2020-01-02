@@ -744,7 +744,7 @@ static void place_feature(struct player *p, struct chunk *c, int cur_feat)
 
     /* Place a staircase */
     if (cur_feat == FEAT_LESS) square_set_upstairs(c, &p->grid);
-    if (cur_feat == FEAT_MORE) square_set_downstairs(c, &p->grid);
+    if (cur_feat == FEAT_MORE) square_set_downstairs(c, &p->grid, FEAT_MORE);
 }
 
 

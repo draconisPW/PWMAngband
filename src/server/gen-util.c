@@ -378,7 +378,7 @@ void add_down_stairs(struct chunk *c)
     cave_find(c, &grid, square_suits_down_stairs);
 
     /* Place a staircase */
-    square_set_downstairs(c, &grid);
+    square_set_downstairs(c, &grid, FEAT_MORE);
 
     /* Hack -- the players start on the stairs while recalling */
     square_set_join_rand(c, &grid);
@@ -558,7 +558,7 @@ static void place_stairs(struct chunk *c, struct loc *grid, int feat)
         if (feat == FEAT_LESS)
             square_set_upstairs(c, grid);
         if (feat == FEAT_MORE)
-            square_set_downstairs(c, grid);
+            square_set_downstairs(c, grid, FEAT_MORE);
     }
 }
 

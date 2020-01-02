@@ -2261,10 +2261,10 @@ void square_set_upstairs(struct chunk *c, struct loc *grid)
 /*
  * Set a down staircase at position (y,x)
  */
-void square_set_downstairs(struct chunk *c, struct loc *grid)
+void square_set_downstairs(struct chunk *c, struct loc *grid, int feat)
 {
     /* Clear previous contents, add down stairs */
-    square_set_feat(c, grid, FEAT_MORE);
+    square_set_feat(c, grid, feat);
 
     /* Set this to be the starting location for people going up */
     square_set_join_up(c, grid);
