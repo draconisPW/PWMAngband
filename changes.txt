@@ -40,8 +40,32 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.3.0 build 10
+New features in PWMAngband 1.3.0 build 11
 =========================================
+
+Gameplay changes
+----------------
+
+PWMAngband:
+
+- Add small racial antimagic modifier
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Fix custom stairs in towns
+
+Coding changes
+--------------
+
+PWMAngband:
+
+- Make unbeliever antimagic bonus a class modifier
+
+Features in PWMAngband 1.3.0 build 10
+=====================================
 
 User interface
 --------------
