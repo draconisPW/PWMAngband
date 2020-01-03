@@ -800,6 +800,7 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
     {
         struct player *q = player_get(i);
         struct object *obj;
+        int r_adj;
 
         /* Skip players not on this level */
         if (!wpos_eq(&q->wpos, &p->wpos)) continue;
@@ -824,6 +825,18 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
                 amchance = q->poly_race->level / 2;
                 amrad = 1 + q->poly_race->level / 20;
             }
+        }
+
+        /* Add racial modifier */
+        r_adj = race_modifier(q->race, OBJ_MOD_ANTI_MAGIC, q->lev, q->poly_race? true: false);
+        if (r_adj > 0)
+        {
+            /* Antimagic racial modifier is capped at 10% */
+            if (r_adj > 10) r_adj = 10;
+
+            /* Apply field */
+            amchance = amchance + r_adj;
+            amrad++;
         }
 
         /* Dark swords can disrupt magic attempts too */
