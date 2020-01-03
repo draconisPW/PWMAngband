@@ -2565,7 +2565,8 @@ value:1:INT[-4]
 value:1:WIS[-3]
 value:1:DEX[2]
 value:1:CON[2]
-player-flags:NO_MANA | ANTIMAGIC
+value:0:ANTI_MAGIC[1d1]
+player-flags:NO_MANA
 title:Asker
 title:Thinker
 title:Faithless

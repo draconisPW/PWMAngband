@@ -800,42 +800,34 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
     {
         struct player *q = player_get(i);
         struct object *obj;
-        int r_adj;
+        int r_adj = 0, c_adj, adj;
 
         /* Skip players not on this level */
         if (!wpos_eq(&q->wpos, &p->wpos)) continue;
 
-        /* Compute the probability of an unbeliever to disrupt any magic attempts */
-        if (player_has(q, PF_ANTIMAGIC))
-        {
-            amchance = q->lev;
-            amrad = 1 + q->lev / 10;
-        }
-        else
-        {
-            amchance = 0;
-            amrad = 0;
-        }
+        /* Handle class modifier and polymorphed players */
+        c_adj = class_modifier(q->clazz, OBJ_MOD_ANTI_MAGIC, q->lev);
+        if (c_adj < 0) c_adj = 0;
+        if (q->poly_race && rf_has(q->poly_race->flags, RF_ANTI_MAGIC))
+            r_adj = q->poly_race->level / 2;
+        adj = max(r_adj, c_adj);
 
-        /* Handle polymorphed players */
-        if (q->poly_race)
-        {
-            if (rf_has(q->poly_race->flags, RF_ANTI_MAGIC))
-            {
-                amchance = q->poly_race->level / 2;
-                amrad = 1 + q->poly_race->level / 20;
-            }
-        }
+        /* Antimagic class modifier is capped at 50% */
+        if (adj > 50) adj = 50;
+
+        /* Apply field */
+        amchance = adj;
+        amrad = 1 + adj / 10;
 
         /* Add racial modifier */
-        r_adj = race_modifier(q->race, OBJ_MOD_ANTI_MAGIC, q->lev, q->poly_race? true: false);
-        if (r_adj > 0)
+        adj = race_modifier(q->race, OBJ_MOD_ANTI_MAGIC, q->lev, q->poly_race? true: false);
+        if (adj > 0)
         {
             /* Antimagic racial modifier is capped at 10% */
-            if (r_adj > 10) r_adj = 10;
+            if (adj > 10) adj = 10;
 
             /* Apply field */
-            amchance = amchance + r_adj;
+            amchance = amchance + adj;
             amrad++;
         }
 
