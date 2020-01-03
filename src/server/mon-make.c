@@ -284,8 +284,6 @@ static void compact_monsters_aux(struct chunk *c, int i1, int i2)
     if (!monster_group_change_index(c, i2, i1))
         quit("Bad monster group info!");
 
-    monster_groups_verify(c);
-
     /* Repair objects being carried by monster */
     for (obj = mon->held_obj; obj; obj = obj->next)
         obj->held_m_idx = i2;
