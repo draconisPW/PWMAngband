@@ -7267,6 +7267,7 @@ static bool effect_handler_WIPE_AREA(effect_handler_context_t *context)
 
     loc_init(&begin, context->origin->player->grid.x - r, context->origin->player->grid.y - r);
     loc_init(&end, context->origin->player->grid.x + r, context->origin->player->grid.y + r);
+    loc_iterator_first(&iter, &begin, &end);
 
     /* Check around the epicenter */
     do
