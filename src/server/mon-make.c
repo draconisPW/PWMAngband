@@ -22,7 +22,18 @@
 
 
 /*
- * Monster allocation tables
+ * Monster race allocation
+ *
+ * Monster race allocation is done using an allocation table (see alloc.h).
+ * This table is sorted by depth. Each line of the table contains the
+ * monster race index, the monster race level, and three probabilities:
+ * - prob1 is the base probability of the race, calculated from monster.txt.
+ * - prob2 is calculated by get_mon_num_prep(), which decides whether a
+ *         monster is appropriate based on a secondary function; prob2 is
+ *         always either prob1 or 0.
+ * - prob3 is calculated by get_mon_num(), which checks whether universal
+ *         restrictions apply (for example, unique monsters can only appear
+ *         once on a given level); prob3 is always either prob2 or 0.
  */
 
 
@@ -30,13 +41,16 @@ static s16b alloc_race_size;
 static alloc_entry *alloc_race_table;
 
 
+/*
+ * Initialize monster allocation info
+ */
 static void init_race_allocs(void)
 {
     int i;
     struct monster_race *race;
     alloc_entry *table;
     s16b *num = mem_zalloc(z_info->max_depth * sizeof(s16b));
-    s16b *aux = mem_zalloc(z_info->max_depth * sizeof(s16b));
+    s16b *already_counted = mem_zalloc(z_info->max_depth * sizeof(s16b));
 
     /*** Analyze monster allocation info ***/
 
@@ -60,7 +74,7 @@ static void init_race_allocs(void)
         }
     }
 
-    /* Collect the level indexes */
+    /* Calculate the cumulative level totals */
     for (i = 1; i < z_info->max_depth; i++)
     {
         /* Group by level */
@@ -69,8 +83,6 @@ static void init_race_allocs(void)
 
     /* Paranoia */
     if (!num[0]) quit("No town monsters!");
-
-    /*** Initialize monster allocation info ***/
 
     /* Allocate the alloc_race_table */
     alloc_race_table = mem_zalloc(alloc_race_size * sizeof(alloc_entry));
@@ -84,36 +96,39 @@ static void init_race_allocs(void)
         /* Get the i'th race */
         race = &r_info[i];
 
-        /* Count valid pairs */
+        /* Count valid races */
         if (race->rarity)
         {
-            int p, x, y, z;
+            int p, lev, prev_lev_count, race_index;
 
-            /* Extract the base level */
-            x = race->level;
+            /* Extract this race's level */
+            lev = race->level;
 
             /* Extract the base probability */
             p = (100 / race->rarity);
 
-            /* Skip entries preceding our locale */
-            y = ((x > 0)? num[x - 1]: 0);
+            /* Multiply by depth factor (experimental) */
+            p *= (1 + lev / 10);
 
-            /* Skip previous entries at this locale */
-            z = y + aux[x];
+            /* Skip entries preceding this monster's level */
+            prev_lev_count = ((lev > 0)? num[lev - 1]: 0);
+
+            /* Skip entries already counted for this level */
+            race_index = prev_lev_count + already_counted[lev];
 
             /* Load the entry */
-            table[z].index = i;
-            table[z].level = x;
-            table[z].prob1 = p;
-            table[z].prob2 = p;
-            table[z].prob3 = p;
+            table[race_index].index = i;
+            table[race_index].level = lev;
+            table[race_index].prob1 = p;
+            table[race_index].prob2 = p;
+            table[race_index].prob3 = p;
 
             /* Another entry complete for this locale */
-            aux[x]++;
+            already_counted[lev]++;
         }
     }
 
-    mem_free(aux);
+    mem_free(already_counted);
     mem_free(num);
 }
 
@@ -121,6 +136,424 @@ static void init_race_allocs(void)
 static void cleanup_race_allocs(void)
 {
     mem_free(alloc_race_table);
+}
+
+
+/*
+ * Apply a monster restriction function to the monster allocation table.
+ * This way, we can use get_mon_num() to get a level-appropriate monster that
+ * satisfies certain conditions (such as belonging to a particular monster
+ * family).
+ */
+void get_mon_num_prep(bool (*get_mon_num_hook)(struct monster_race *race))
+{
+    int i;
+
+    /* Scan the allocation table */
+    for (i = 0; i < alloc_race_size; i++)
+    {
+        struct monster_race *r;
+
+        /* Get the entry */
+        alloc_entry *entry = &alloc_race_table[i];
+
+        /* Skip non-entries */
+        r = &r_info[entry->index];
+        if (!r->name)
+        {
+            entry->prob2 = 0;
+            continue;
+        }
+
+        /* Accept monsters which pass the restriction, if any */
+        if (!get_mon_num_hook || (*get_mon_num_hook)(r))
+        {
+            /* Accept this monster */
+            entry->prob2 = entry->prob1;
+        }
+
+        /* Do not use this monster */
+        else
+        {
+            /* Decline this monster */
+            entry->prob2 = 0;
+        }
+    }
+}
+
+
+/*
+ * Helper function for get_mon_num(). Scans the prepared monster allocation
+ * table and picks a random monster. Returns the index of a monster in
+ * `table`.
+ */
+static struct monster_race *get_mon_race_aux(long total, const alloc_entry *table)
+{
+    int i;
+
+    /* Pick a monster */
+    long value = randint0(total);
+
+    /* Find the monster */
+    for (i = 0; i < alloc_race_size; i++)
+    {
+        /* Found the entry */
+        if (value < table[i].prob3) break;
+
+        /* Decrement */
+        value -= table[i].prob3;
+    }
+
+    return &r_info[table[i].index];
+}
+
+
+/* Scan all players on the level and see if at least one can find the unique */
+static bool allow_unique_level(struct monster_race *race, struct worldpos *wpos)
+{
+    int i;
+
+    /* Must not have spawned */
+    if (race->lore.spawned) return false;
+
+    /* Normal uniques cannot be generated in the wilderness */
+    if (in_wild(wpos) && !special_level(wpos) && !rf_has(race->flags, RF_WILD_ONLY)) return false;
+
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *p = player_get(i);
+        struct monster_lore *lore = get_lore(p, race);
+
+        /* Is the player on the level and did he kill the unique already ? */
+        if ((is_dm_p(p) || !lore->pkills) && wpos_eq(&p->wpos, wpos))
+        {
+            /* One is enough */
+            return true;
+        }
+    }
+
+    /* Yeah but we need at least ONE */
+    return false;
+}
+
+
+/*
+ * Some dungeon types restrict the possible monsters.
+ * Return TRUE is the monster is OK and FALSE otherwise
+ */
+static bool apply_rule(struct monster_race *race, struct dun_rule *rule)
+{
+    /* No restriction */
+    if (rule->all) return true;
+
+    /* Flags match */
+    if (rf_is_inter(rule->flags, race->flags)) return true;
+
+    /* Spell flags match */
+    if (rsf_is_inter(rule->spell_flags, race->spell_flags)) return true;
+
+    /* Race symbol matches */
+    if (strchr(rule->sym, race->d_char)) return true;
+
+    /* All checks failed */
+    return false;
+}
+
+
+/*
+ * Some dungeon types restrict the possible monsters.
+ * Return the percent chance of generating a monster in a specific dungeon
+ */
+static int restrict_monster_to_dungeon(struct monster_race *race, struct worldpos *wpos)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+    int i, percents = 0;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &wpos->grid, 0);
+    dungeon = get_dungeon(&dpos);
+
+    /* No dungeon here, allow everything */
+    if (!dungeon || !wpos->depth) return 100;
+
+    /* Process all rules */
+    for (i = 0; i < 5; i++)
+    {
+        struct dun_rule *rule = &dungeon->rules[i];
+
+        /* Break if not valid */
+        if (!rule->percent) break;
+
+        /* Apply the rule */
+        if (apply_rule(race, rule)) percents += rule->percent;
+    }
+
+    /* Return percentage */
+    return percents;
+}
+
+
+/* Checks if a monster race can be generated at that location */
+static bool allow_race(struct monster_race *race, struct worldpos *wpos)
+{
+    /* Only one copy of a a unique must be around at the same time */
+    if (monster_is_unique(race) && !allow_unique_level(race, wpos))
+        return false;
+
+    /* Some monsters never appear out of depth */
+    if (rf_has(race->flags, RF_FORCE_DEPTH) && (race->level > wpos->depth))
+        return false;
+
+    /* Some monsters never appear out of their dungeon/town (wilderness) */
+    if ((cfg_diving_mode < 2) && race->wpos && !loc_eq(&race->wpos->grid, &wpos->grid))
+        return false;
+
+    /* Some monsters only appear in the wilderness */
+    if (rf_has(race->flags, RF_WILD_ONLY) && !in_wild(wpos))
+        return false;
+
+    /* Handle PWMAngband base monsters */
+    if (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters)
+        return false;
+
+    /* Handle PWMAngband extra monsters */
+    if (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters)
+        return false;
+
+    return true;
+}
+
+
+static bool limit_townies(struct chunk *c)
+{
+    int max_townies;
+
+    if (!in_town(&c->wpos)) return false;
+
+    max_townies = get_town(&c->wpos)->max_townies;
+    if (max_townies == -1) return false;
+
+    return (cave_monster_count(c) >= max_townies);
+}
+
+
+/*
+ * Chooses a monster race that seems "appropriate" to the given level
+ *
+ * This function uses the "prob2" field of the "monster allocation table",
+ * and various local information, to calculate the "prob3" field of the
+ * same table, which is then used to choose an "appropriate" monster, in
+ * a relatively efficient manner.
+ *
+ * Note that "town" monsters will *only* be created in the towns, and
+ * "normal" monsters will *never* be created in the towns.
+ *
+ * There is a small chance (1/25) of "boosting" the given depth by
+ * a small amount (up to four levels), except in the towns.
+ *
+ * It is (slightly) more likely to acquire a monster of the given level
+ * than one of a lower level. This is done by choosing several monsters
+ * appropriate to the given level and keeping the deepest one.
+ *
+ * Note that if no monsters are appropriate, then this function will
+ * fail, and return zero, but this should *almost* never happen.
+ */
+struct monster_race *get_mon_num(struct chunk *c, int level, bool summon)
+{
+    int i, p;
+    long total;
+    struct monster_race *race;
+    alloc_entry *table = alloc_race_table;
+
+    /* No monsters in the base town (no_recall servers) */
+    if ((cfg_diving_mode == 3) && in_base_town(&c->wpos)) return (0);
+
+    /* No monsters in dynamically generated towns */
+    if (dynamic_town(&c->wpos)) return (0);
+
+    /* No monsters on special towns */
+    if (special_town(&c->wpos)) return (0);
+
+    /* Limit the total number of townies */
+    if (limit_townies(c)) return (0);
+
+    /* Occasionally produce a nastier monster in the dungeon */
+    if ((c->wpos.depth > 0) && one_in_(z_info->ood_monster_chance))
+        level += MIN(level / 4 + 2, z_info->ood_monster_amount);
+
+    total = 0L;
+
+    /* Process probabilities */
+    for (i = 0; i < alloc_race_size; i++)
+    {
+        /* Monsters are sorted by depth */
+        if (table[i].level > level) break;
+
+        /* Default */
+        table[i].prob3 = 0;
+
+        /* No town monsters outside of towns */
+        if (!in_town(&c->wpos) && (table[i].level <= 0)) continue;
+
+        /* Get the chosen monster */
+        race = &r_info[table[i].index];
+
+        /* Hack -- check if monster race can be generated at that location */
+        if (!allow_race(race, &c->wpos)) continue;
+
+        /* Accept */
+        table[i].prob3 = table[i].prob2;
+
+        /* Hack -- some dungeon types restrict the possible monsters (except for summons) */
+        p = (summon? 100: restrict_monster_to_dungeon(race, &c->wpos));
+        table[i].prob3 = table[i].prob3 * p / 100;
+        if (p && table[i].prob2 && !table[i].prob3) table[i].prob3 = 1;
+
+        /* Total */
+        total += table[i].prob3;
+    }
+
+    /* No legal monsters */
+    if (total <= 0) return NULL;
+
+    /* Pick a monster */
+    race = get_mon_race_aux(total, table);
+
+    /* Always try for a "harder" monster if too weak */
+    if (race->level < (level / 2))
+    {
+        struct monster_race *old = race;
+
+        /* Pick a new monster */
+        race = get_mon_race_aux(total, table);
+
+        /* Keep the deepest one */
+        if (race->level < old->level) race = old;
+    }
+
+    /* Always try for a "harder" monster deep in the dungeon */
+    if (level >= 100)
+    {
+        struct monster_race *old = race;
+
+        /* Pick a new monster */
+        race = get_mon_race_aux(total, table);
+
+        /* Keep the deepest one */
+        if (race->level < old->level) race = old;
+    }
+
+    /* Try for a "harder" monster once (50%) or twice (10%) */
+    p = randint0(100);
+    if (p < 60)
+    {
+        struct monster_race *old = race;
+
+        /* Pick a new monster */
+        race = get_mon_race_aux(total, table);
+
+        /* Keep the deepest one */
+        if (race->level < old->level) race = old;
+    }
+
+    /* Try for a "harder" monster twice (10%) */
+    if (p < 10)
+    {
+        struct monster_race *old = race;
+
+        /* Pick a new monster */
+        race = get_mon_race_aux(total, table);
+
+        /* Keep the deepest one */
+        if (race->level < old->level) race = old;
+    }
+
+    /* Result */
+    return race;
+}
+
+
+/*
+ * Chooses a monster race for rings of polymorphing that seems "appropriate" to the given level.
+ * This function uses most of the code from get_mon_num(), except depth checks.
+ */
+struct monster_race *get_mon_num_poly(int level)
+{
+    int i, p;
+    long total;
+    struct monster_race *race;
+    alloc_entry *table = alloc_race_table;
+
+    /* Occasionally produce a nastier monster */
+    if (one_in_(z_info->ood_monster_chance))
+        level += MIN(level / 4 + 2, z_info->ood_monster_amount);
+
+    total = 0L;
+
+    /* Process probabilities */
+    for (i = 0; i < alloc_race_size; i++)
+    {
+        /* Monsters are sorted by depth */
+        if (table[i].level > level) break;
+
+        /* Default */
+        table[i].prob3 = 0;
+
+        /* Get the chosen monster */
+        race = &r_info[table[i].index];
+
+        /* Skip uniques */
+        if (monster_is_unique(race)) continue;
+
+        /* Handle PWMAngband base monsters */
+        if (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters)
+            continue;
+
+        /* Handle PWMAngband extra monsters */
+        if (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters)
+            continue;
+
+        /* Accept */
+        table[i].prob3 = table[i].prob2;
+
+        /* Total */
+        total += table[i].prob3;
+    }
+
+    /* No legal monsters */
+    if (total <= 0) return NULL;
+
+    /* Pick a monster */
+    race = get_mon_race_aux(total, table);
+
+    /* Try for a "harder" monster once (50%) or twice (10%) */
+    p = randint0(100);
+    if (p < 60)
+    {
+        struct monster_race *old = race;
+
+        /* Pick a new monster */
+        race = get_mon_race_aux(total, table);
+
+        /* Keep the deepest one */
+        if (race->level < old->level) race = old;
+    }
+
+    /* Try for a "harder" monster twice (10%) */
+    if (p < 10)
+    {
+        struct monster_race *old = race;
+
+        /* Pick a new monster */
+        race = get_mon_race_aux(total, table);
+
+        /* Keep the deepest one */
+        if (race->level < old->level) race = old;
+    }
+
+    /* Result */
+    return race;
 }
 
 
@@ -167,8 +600,8 @@ void delete_monster_idx(struct chunk *c, int m_idx)
     /* Unique is dead */
     mon->race->lore.spawned = 0;
 
-    /* Hack -- decrease the number of clones */
-    if (mon->clone) c->num_clones--;
+    /* Decrease the number of clones */
+    if (mon->clone) c->num_repro--;
 
     /* Remove him from everybody's view */
     for (i = 1; i <= NumPlayers; i++)
@@ -479,8 +912,8 @@ void wipe_mon_list(struct chunk *c)
     /* Reset "mon_cnt" */
     c->mon_cnt = 0;
 
-    /* Hack -- reset the number of clones */
-    c->num_clones = 0;
+    /* Reset the number of clones */
+    c->num_repro = 0;
 
     for (i = 1; i <= NumPlayers; i++)
     {
@@ -499,7 +932,10 @@ void wipe_mon_list(struct chunk *c)
 
 
 /*
- * Choosing a monster and preparing a place for it in the monster list
+ * Monster creation utilities:
+ *  Getting a new monster index
+ *  Creating objects for monsters to carry or mimic
+ *  Calculating hitpoints
  */
 
 
@@ -551,430 +987,6 @@ static s16b mon_pop(struct chunk *c)
     /* Try not to crash */
     return 0;
 }
-
-
-/*
- * Apply a "monster restriction function" to the "monster allocation table".
- * This way, we can use get_mon_num() to get a level-appropriate monster that
- * satisfies certain conditions (such as belonging to a particular monster
- * family).
- */
-void get_mon_num_prep(bool (*get_mon_num_hook)(struct monster_race *race))
-{
-    int i;
-
-    /* Scan the allocation table */
-    for (i = 0; i < alloc_race_size; i++)
-    {
-        struct monster_race *r;
-
-        /* Get the entry */
-        alloc_entry *entry = &alloc_race_table[i];
-
-        /* Skip non-entries */
-        r = &r_info[entry->index];
-        if (!r->name)
-        {
-            entry->prob2 = 0;
-            continue;
-        }
-
-        /* Accept monsters which pass the restriction, if any */
-        if (!get_mon_num_hook || (*get_mon_num_hook)(r))
-        {
-            /* Accept this monster */
-            entry->prob2 = entry->prob1;
-        }
-
-        /* Do not use this monster */
-        else
-        {
-            /* Decline this monster */
-            entry->prob2 = 0;
-        }
-    }
-}
-
-
-/*
- * Helper function for get_mon_num(). Scans the prepared monster allocation
- * table and picks a random monster. Returns the index of a monster in
- * `table`.
- */
-static struct monster_race *get_mon_race_aux(long total, const alloc_entry *table)
-{
-    int i;
-
-    /* Pick a monster */
-    long value = randint0(total);
-
-    /* Find the monster */
-    for (i = 0; i < alloc_race_size; i++)
-    {
-        /* Found the entry */
-        if (value < table[i].prob3) break;
-
-        /* Decrement */
-        value -= table[i].prob3;
-    }
-
-    return &r_info[table[i].index];
-}
-
-
-/* Scan all players on the level and see if at least one can find the unique */
-static bool allow_unique_level(struct monster_race *race, struct worldpos *wpos)
-{
-    int i;
-
-    /* Must not have spawned */
-    if (race->lore.spawned) return false;
-
-    /* Normal uniques cannot be generated in the wilderness */
-    if (in_wild(wpos) && !special_level(wpos) && !rf_has(race->flags, RF_WILD_ONLY)) return false;
-
-    for (i = 1; i <= NumPlayers; i++)
-    {
-        struct player *p = player_get(i);
-        struct monster_lore *lore = get_lore(p, race);
-
-        /* Is the player on the level and did he kill the unique already ? */
-        if ((is_dm_p(p) || !lore->pkills) && wpos_eq(&p->wpos, wpos))
-        {
-            /* One is enough */
-            return true;
-        }
-    }
-
-    /* Yeah but we need at least ONE */
-    return false;
-}
-
-
-/*
- * Some dungeon types restrict the possible monsters.
- * Return TRUE is the monster is OK and FALSE otherwise
- */
-static bool apply_rule(struct monster_race *race, struct dun_rule *rule)
-{
-    /* No restriction */
-    if (rule->all) return true;
-
-    /* Flags match */
-    if (rf_is_inter(rule->flags, race->flags)) return true;
-
-    /* Spell flags match */
-    if (rsf_is_inter(rule->spell_flags, race->spell_flags)) return true;
-
-    /* Race symbol matches */
-    if (strchr(rule->sym, race->d_char)) return true;
-
-    /* All checks failed */
-    return false;
-}
-
-
-/*
- * Some dungeon types restrict the possible monsters.
- * Return the percent chance of generating a monster in a specific dungeon
- */
-static int restrict_monster_to_dungeon(struct monster_race *race, struct worldpos *wpos)
-{
-    struct worldpos dpos;
-    struct location *dungeon;
-    int i, percents = 0;
-
-    /* Get the dungeon */
-    wpos_init(&dpos, &wpos->grid, 0);
-    dungeon = get_dungeon(&dpos);
-
-    /* No dungeon here, allow everything */
-    if (!dungeon || !wpos->depth) return 100;
-
-    /* Process all rules */
-    for (i = 0; i < 5; i++)
-    {
-        struct dun_rule *rule = &dungeon->rules[i];
-
-        /* Break if not valid */
-        if (!rule->percent) break;
-
-        /* Apply the rule */
-        if (apply_rule(race, rule)) percents += rule->percent;
-    }
-
-    /* Return percentage */
-    return percents;
-}
-
-
-/* Checks if a monster race can be generated at that location */
-static bool allow_race(struct monster_race *race, struct worldpos *wpos)
-{
-    /* Only one copy of a a unique must be around at the same time */
-    if (monster_is_unique(race) && !allow_unique_level(race, wpos))
-        return false;
-
-    /* Some monsters never appear out of depth */
-    if (rf_has(race->flags, RF_FORCE_DEPTH) && (race->level > wpos->depth))
-        return false;
-
-    /* Some monsters never appear out of their dungeon/town (wilderness) */
-    if ((cfg_diving_mode < 2) && race->wpos && !loc_eq(&race->wpos->grid, &wpos->grid))
-        return false;
-
-    /* Some monsters only appear in the wilderness */
-    if (rf_has(race->flags, RF_WILD_ONLY) && !in_wild(wpos))
-        return false;
-
-    /* Handle PWMAngband base monsters */
-    if (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters)
-        return false;
-
-    /* Handle PWMAngband extra monsters */
-    if (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters)
-        return false;
-
-    return true;
-}
-
-
-static bool limit_townies(struct chunk *c)
-{
-    int max_townies;
-
-    if (!in_town(&c->wpos)) return false;
-
-    max_townies = get_town(&c->wpos)->max_townies;
-    if (max_townies == -1) return false;
-
-    return (cave_monster_count(c) >= max_townies);
-}
-
-
-/*
- * Chooses a monster race that seems "appropriate" to the given level
- *
- * This function uses the "prob2" field of the "monster allocation table",
- * and various local information, to calculate the "prob3" field of the
- * same table, which is then used to choose an "appropriate" monster, in
- * a relatively efficient manner.
- *
- * Note that "town" monsters will *only* be created in the towns, and
- * "normal" monsters will *never* be created in the towns.
- *
- * There is a small chance (1/50) of "boosting" the given depth by
- * a small amount (up to four levels), except in the towns.
- *
- * It is (slightly) more likely to acquire a monster of the given level
- * than one of a lower level.  This is done by choosing several monsters
- * appropriate to the given level and keeping the "hardest" one.
- *
- * Note that if no monsters are "appropriate", then this function will
- * fail, and return zero, but this should *almost* never happen.
- */
-struct monster_race *get_mon_num(struct chunk *c, int level, bool summon)
-{
-    int i, p;
-    long total;
-    struct monster_race *race;
-    alloc_entry *table = alloc_race_table;
-
-    /* No monsters in the base town (no_recall servers) */
-    if ((cfg_diving_mode == 3) && in_base_town(&c->wpos)) return (0);
-
-    /* No monsters in dynamically generated towns */
-    if (dynamic_town(&c->wpos)) return (0);
-
-    /* No monsters on special towns */
-    if (special_town(&c->wpos)) return (0);
-
-    /* Limit the total number of townies */
-    if (limit_townies(c)) return (0);
-
-    /* Occasionally produce a nastier monster in the dungeon */
-    if ((c->wpos.depth > 0) && one_in_(z_info->ood_monster_chance))
-        level += MIN(level / 4 + 2, z_info->ood_monster_amount);
-
-    total = 0L;
-
-    /* Process probabilities */
-    for (i = 0; i < alloc_race_size; i++)
-    {
-        /* Monsters are sorted by depth */
-        if (table[i].level > level) break;
-
-        /* Default */
-        table[i].prob3 = 0;
-
-        /* No town monsters outside of towns */
-        if (!in_town(&c->wpos) && (table[i].level <= 0)) continue;
-
-        /* Get the chosen monster */
-        race = &r_info[table[i].index];
-
-        /* Hack -- check if monster race can be generated at that location */
-        if (!allow_race(race, &c->wpos)) continue;
-
-        /* Accept */
-        table[i].prob3 = table[i].prob2;
-
-        /* Hack -- some dungeon types restrict the possible monsters (except for summons) */
-        p = (summon? 100: restrict_monster_to_dungeon(race, &c->wpos));
-        table[i].prob3 = table[i].prob3 * p / 100;
-        if (p && table[i].prob2 && !table[i].prob3) table[i].prob3 = 1;
-
-        /* Total */
-        total += table[i].prob3;
-    }
-
-    /* No legal monsters */
-    if (total <= 0) return NULL;
-
-    /* Pick a monster */
-    race = get_mon_race_aux(total, table);
-
-    /* Always try for a "harder" monster if too weak */
-    if (race->level < (level / 2))
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
-
-    /* Always try for a "harder" monster deep in the dungeon */
-    if (level >= 100)
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
-
-    /* Try for a "harder" monster once (50%) or twice (10%) */
-    p = randint0(100);
-    if (p < 60)
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
-
-    /* Try for a "harder" monster twice (10%) */
-    if (p < 10)
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
-
-    /* Result */
-    return race;
-}
-
-
-/*
- * Chooses a monster race for rings of polymorphing that seems "appropriate" to the given level.
- * This function uses most of the code from get_mon_num(), except depth checks.
- */
-struct monster_race *get_mon_num_poly(int level)
-{
-    int i, p;
-    long total;
-    struct monster_race *race;
-    alloc_entry *table = alloc_race_table;
-
-    /* Occasionally produce a nastier monster */
-    if (one_in_(z_info->ood_monster_chance))
-        level += MIN(level / 4 + 2, z_info->ood_monster_amount);
-
-    total = 0L;
-
-    /* Process probabilities */
-    for (i = 0; i < alloc_race_size; i++)
-    {
-        /* Monsters are sorted by depth */
-        if (table[i].level > level) break;
-
-        /* Default */
-        table[i].prob3 = 0;
-
-        /* Get the chosen monster */
-        race = &r_info[table[i].index];
-
-        /* Skip uniques */
-        if (monster_is_unique(race)) continue;
-
-        /* Handle PWMAngband base monsters */
-        if (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters)
-            continue;
-
-        /* Handle PWMAngband extra monsters */
-        if (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters)
-            continue;
-
-        /* Accept */
-        table[i].prob3 = table[i].prob2;
-
-        /* Total */
-        total += table[i].prob3;
-    }
-
-    /* No legal monsters */
-    if (total <= 0) return NULL;
-
-    /* Pick a monster */
-    race = get_mon_race_aux(total, table);
-
-    /* Try for a "harder" monster once (50%) or twice (10%) */
-    p = randint0(100);
-    if (p < 60)
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
-
-    /* Try for a "harder" monster twice (10%) */
-    if (p < 10)
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
-
-    /* Result */
-    return race;
-}
-
-
-/*
- * Monster creation utilities
- * Creating objects for monsters to carry or mimic, calculating hitpoints
- */
 
 
 /*
@@ -1376,8 +1388,8 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
     /* Assign monster to its monster group */
     monster_group_assign(c, new_mon, info, loading);
 
-    /* Hack -- increase the number of clones */
-    if (new_mon->race->ridx && new_mon->clone) c->num_clones++;
+    /* Increase the number of clones */
+    if (new_mon->race->ridx && new_mon->clone) c->num_repro++;
 
     /* Done */
     if (!origin) return m_idx;
@@ -1586,8 +1598,8 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
     if (rf_has(race->flags, RF_FORCE_SLEEP))
         mon->energy = randint0(move_energy(0) >> 4);
 
-    /* Radiate light? */
-    if (rf_has(race->flags, RF_HAS_LIGHT)) update_view_all(&c->wpos, 0);
+    /* Affect light? */
+    if (mon->race->light != 0) update_view_all(&c->wpos, 0);
 
     /* Is this obviously a monster? (Mimics etc. aren't) */
     if (rf_has(race->flags, RF_UNAWARE))
@@ -1703,7 +1715,7 @@ static struct monster_base *place_monster_base = NULL;
 
 
 /*
- * Predicate function for get_mon_num_prep
+ * Predicate function for get_mon_num_prep()
  * Check to see if the monster race has the same base as
  * place_monster_base.
  */
@@ -2188,8 +2200,8 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
             sval = lookup_sval(TV_SKELETON, "Orc Skeleton");
         else if (mon->race->base == lookup_monster_base("person"))
             sval = lookup_sval(TV_SKELETON, "Human Skeleton");
-        else if (streq(mon->race->name, "Ettin"))
-            sval = lookup_sval(TV_SKELETON, "Ettin Skeleton");
+        else if (streq(mon->race->name, "two-headed troll"))
+            sval = lookup_sval(TV_SKELETON, "Two-headed troll Skeleton");
         else if (mon->race->base == lookup_monster_base("troll"))
             sval = lookup_sval(TV_SKELETON, "Troll Skeleton");
         else if (mon->race->level >= 15)

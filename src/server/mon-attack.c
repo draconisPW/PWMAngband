@@ -93,6 +93,10 @@ static void remove_bad_spells(struct player *p, struct monster *mon, bitflag f[R
     /* Don't teleport to if the player is already next to us */
     if (mon->cdis == 1) rsf_off(f2, RSF_TELE_TO);
 
+    /* Don't use the lash effect if the player is too far away */
+    if (mon->cdis > 2) rsf_off(f2, RSF_WHIP);
+    if (mon->cdis > 3) rsf_off(f2, RSF_SPIT);
+
     /* Update acquired knowledge */
     if (cfg_ai_learn)
     {
@@ -125,7 +129,7 @@ static void remove_bad_spells(struct player *p, struct monster *mon, bitflag f[R
         }
 
         /* Cancel out certain flags based on knowledge */
-        if (know_something) unset_spells(p, f2, ai_flags, ai_pflags, el, mon->race);
+        if (know_something) unset_spells(p, f2, ai_flags, ai_pflags, el, mon);
     }
 
     /* Use working copy of spell flags */
@@ -249,7 +253,7 @@ static int get_thrown_spell(struct player *p, struct player *who, struct chunk *
     rsf_copy(f, mon->race->spell_flags);
 
     /* Smart monsters can use "desperate" spells */
-    if (monster_is_smart(mon->race) && (mon->hp < mon->maxhp / 10) && magik(50))
+    if (monster_is_smart(mon) && (mon->hp < mon->maxhp / 10) && magik(50))
         ignore_spells(f, RST_DAMAGE | RST_INNATE | RST_MISSILE);
 
     /* Non-stupid monsters do some filtering */
@@ -322,7 +326,7 @@ static int get_thrown_spell(struct player *p, struct player *who, struct chunk *
  * them, or has spells but they will have no "useful" effect.  Note that
  * this function has been an efficiency bottleneck in the past.
  */
-bool make_attack_spell(struct source *who, struct chunk *c, struct monster *mon, int target_m_dis)
+bool make_ranged_attack(struct source *who, struct chunk *c, struct monster *mon, int target_m_dis)
 {
     struct monster_lore *lore = get_lore(who->player, mon->race);
     int thrown_spell;
@@ -499,8 +503,7 @@ bool make_attack_normal(struct monster *mon, struct source *who)
     for (ap_cnt = 0; ap_cnt < z_info->mon_blows_max; ap_cnt++)
     {
         struct loc grid;
-        bool visible = (monster_is_visible(who->player, mon->midx) ||
-            rf_has(mon->race->flags, RF_HAS_LIGHT));
+        bool visible = (monster_is_visible(who->player, mon->midx) || (mon->race->light > 0));
         bool obvious = false;
         int damage = 0;
         int do_cut = 0;

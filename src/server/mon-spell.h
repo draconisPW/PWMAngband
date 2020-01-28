@@ -36,7 +36,7 @@ extern bool test_spells(bitflag *f, int types);
 extern void set_breath(bitflag *f);
 extern void ignore_spells(bitflag *f, int types);
 extern void unset_spells(struct player *p, bitflag *spells, bitflag *flags, bitflag *pflags,
-    struct element_info *el, const struct monster_race *race);
+    struct element_info *el, const struct monster *mon);
 extern int breath_dam(int type, int hp);
 extern void create_mon_spell_mask(bitflag *f, ...);
 extern const char *mon_spell_lore_description(int index, const struct monster_race *race);

@@ -44,7 +44,7 @@ static spell_tag_t spell_tag_lookup(const char *tag)
     if (strncmp(tag, "pronoun", 7) == 0) return SPELL_TAG_PRONOUN;
     if (strncmp(tag, "target", 6) == 0) return SPELL_TAG_TARGET;
     if (strncmp(tag, "type", 4) == 0) return SPELL_TAG_TYPE;
-    if (strncmp(tag, "of_type", 7) == 0) return SPELL_TAG_OF_TYPE;
+    if (strncmp(tag, "oftype", 6) == 0) return SPELL_TAG_OF_TYPE;
     if (strncmp(tag, "kin", 3) == 0) return SPELL_TAG_KIN;
     return SPELL_TAG_NONE;
 }
@@ -410,10 +410,10 @@ void ignore_spells(bitflag *f, int types)
  * race is the monster type we're operating on
  */
 void unset_spells(struct player *p, bitflag *spells, bitflag *flags, bitflag *pflags,
-    struct element_info *el, const struct monster_race *race)
+    struct element_info *el, const struct monster *mon)
 {
     const struct mon_spell_info *info;
-    bool smart = monster_is_smart(race);
+    bool smart = monster_is_smart(mon);
 
     for (info = mon_spell_types; info->index < RSF_MAX; info++)
     {

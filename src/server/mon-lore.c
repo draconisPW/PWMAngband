@@ -536,7 +536,8 @@ static const char *lore_describe_speed(byte speed)
     {
         {130,       "incredibly quickly"},
         {120,       "very quickly"},
-        {110,       "quickly"},
+        {115,       "quickly"},
+        {110,       "fairly quickly"},
         {109,       "normal speed"},
         {99,        "slowly"},
         {89,        "very slowly"},
@@ -1223,11 +1224,23 @@ void lore_append_abilities(struct player *p, const struct monster_race *race,
         text_out_c(p, COLOUR_ORANGE, "%s breeds explosively. ", initial_pronoun);
     if (rf_has(known_flags, RF_REGENERATE))
         text_out(p, "%s regenerates quickly. ", initial_pronoun);
-    if (rf_has(known_flags, RF_HAS_LIGHT))
+
+    /* Describe light */
+    if (race->light > 1)
     {
         text_out(p, "%s illuminates %s surroundings. ", initial_pronoun,
             lore_pronoun_possessive(msex, false));
     }
+    else if (race->light == 1)
+        text_out(p, "%s is illuminated. ", initial_pronoun);
+    else if (race->light == -1)
+        text_out(p, "%s is darkened. ", initial_pronoun);
+    else if (race->light < -1)
+    {
+        text_out(p, "%s shrouds %s surroundings in darkness. ", initial_pronoun,
+            lore_pronoun_possessive(msex, false));
+    }
+
     if (rf_has(known_flags, RF_ANTI_MAGIC))
         text_out(p, "%s is surrounded by an anti-magic field. ", initial_pronoun);
     if (rf_has(known_flags, RF_LEVITATE))

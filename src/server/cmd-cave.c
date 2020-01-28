@@ -838,7 +838,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     gold = square_hasgoldvein(c, grid);
     rubble = square_isrubble(c, grid);
     tree = square_istree(c, grid);
-    web = square_isweb(c, grid);
+    web = square_iswebbed(c, grid);
 
     /* Verify legality */
     if (!do_cmd_tunnel_test(p, c, grid)) return false;
@@ -1932,6 +1932,17 @@ void do_cmd_walk(struct player *p, int dir)
     /* Get a direction (or abort) */
     if (!dir) return;
 
+    /* If we're in a web, deal with that */
+    if (square_iswebbed(c, &p->grid))
+    {
+        /* Clear the web, finish turn */
+        square_clear_feat(c, &p->grid);
+        update_visuals(&p->wpos);
+        fully_update_flow(&p->wpos);
+        use_energy(p);
+        return;
+    }
+
     /* Verify legality */
     if (!do_cmd_walk_test(p)) return;
 
@@ -1957,8 +1968,21 @@ void do_cmd_walk(struct player *p, int dir)
  */
 void do_cmd_jump(struct player *p, int dir)
 {
+    struct chunk *c = chunk_get(&p->wpos);
+
     /* Get a direction (or abort) */
     if (!dir) return;
+
+    /* If we're in a web, deal with that */
+    if (square_iswebbed(c, &p->grid))
+    {
+        /* Clear the web, finish turn */
+        square_clear_feat(c, &p->grid);
+        update_visuals(&p->wpos);
+        fully_update_flow(&p->wpos);
+        use_energy(p);
+        return;
+    }
 
     /* Verify legality */
     if (!do_cmd_walk_test(p)) return;

@@ -448,8 +448,8 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
         }
         else if (strstr(context->obj->kind->name, "Troll"))
             race = get_race("skeleton troll");
-        else if (strstr(context->obj->kind->name, "Ettin"))
-            race = get_race("skeleton ettin");
+        else if (strstr(context->obj->kind->name, "Two-headed troll"))
+            race = get_race("skeleton two-headed troll");
     }
 
     /* Humanoid corpses can be raised too */

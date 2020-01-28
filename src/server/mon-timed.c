@@ -201,25 +201,29 @@ static bool mon_set_timed(struct player *p, struct monster *mon, int effect_type
         update = true;
     }
 
+    /* Special case - deal with monster shapechanges */
+    if (effect_type == MON_TMD_CHANGED)
+    {
+        if (timer > old_timer)
+        {
+            if (!monster_change_shape(p, mon))
+            {
+                m_note = MON_MSG_SHAPE_FAIL;
+                mon->m_timed[effect_type] = old_timer;
+            }
+        }
+        else if (timer == 0)
+        {
+            if (!monster_revert_shape(p, mon)) quit("Monster shapechange reversion failed!");
+        }
+    }
+
     /*
      * Print a message if there is one, if the effect allows for it, and if
      * the monster is visible
      */
     if (m_note && !(flag & MON_TMD_FLG_NOMESSAGE) && (flag & MON_TMD_FLG_NOTIFY) && visible)
         add_monster_message(p, mon, m_note, true);
-
-    /* Special case - deal with monster shapechanges */
-    if (effect_type == MON_TMD_CHANGED)
-    {
-        if (timer > old_timer)
-        {
-            if (!monster_change_shape(p, mon)) quit ("Monster shapechange failed!");
-        }
-        else if (timer == 0)
-        {
-            if (!monster_revert_shape(mon)) quit ("Monster shapechange reversion  failed!");
-        }
-    }
 
     /* Update the visuals, as appropriate. */
     if (update)

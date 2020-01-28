@@ -135,6 +135,9 @@ static bool describe_curses(struct player *p, const struct object *obj)
         text_out(p, ".\n");
     }
 
+    /* Say if curse removal has been tried */
+    if (of_has(obj->flags, OF_FRAGILE)) text_out(p, "Attempting to uncurse it may destroy it.\n");
+
     return true;
 }
 
@@ -1325,13 +1328,13 @@ static bool describe_digger(struct player *p, const struct object *obj)
 /*
  * Gives the known light-sourcey characteristics of the given object.
  *
- * Fills in the radius of the light in `rad`, whether it uses fuel and
+ * Fills in the intensity of the light in `intensity`, whether it uses fuel and
  * how many turns light it can refuel in similar items.
  *
  * Return false if the object is not known to be a light source (which
  * includes it not actually being a light source).
  */
-static bool obj_known_light(struct player *p, const struct object *obj, int mode, int *rad,
+static bool obj_known_light(struct player *p, const struct object *obj, int mode, int *intensity,
     bool *uses_fuel, int *refuel_turns)
 {
     bool no_fuel;
@@ -1346,17 +1349,17 @@ static bool obj_known_light(struct player *p, const struct object *obj, int mode
     if (!is_light && (modifiers[OBJ_MOD_LIGHT] <= 0)) return false;
     if (modifiers[OBJ_MOD_LIGHT] && !known_light) return false;
 
-    /* Work out radius */
-    if (of_has(obj->flags, OF_LIGHT_1)) *rad = 1;
-    else if (of_has(obj->flags, OF_LIGHT_2)) *rad = 2;
-    else if (of_has(obj->flags, OF_LIGHT_3)) *rad = 3;
-    if (known_light) *rad += modifiers[OBJ_MOD_LIGHT];
+    /* Work out intensity */
+    if (of_has(obj->flags, OF_LIGHT_2)) *intensity = 2;
+    else if (of_has(obj->flags, OF_LIGHT_3)) *intensity = 3;
+    else if (of_has(obj->flags, OF_LIGHT_4)) *intensity = 4;
+    if (known_light) *intensity += modifiers[OBJ_MOD_LIGHT];
 
     /*
      * Prevent unidentified objects (especially artifact lights) from showing
-     * bad radius and refueling info.
+     * bad intensity and refueling info.
      */
-    if (*rad == 0) return false;
+    if (*intensity == 0) return false;
 
     get_known_flags(obj, mode, flags, object_flavor_is_aware(p, obj));
     no_fuel = of_has(flags, OF_NO_FUEL);
@@ -1386,18 +1389,18 @@ static bool obj_known_light(struct player *p, const struct object *obj, int mode
  */
 static bool describe_light(struct player *p, const struct object *obj, int mode)
 {
-    int rad = 0;
+    int intensity = 0;
     bool uses_fuel = false;
     int refuel_turns = 0;
     bool terse = ((mode & OINFO_TERSE)? true: false);
 
-    if (!obj_known_light(p, obj, mode, &rad, &uses_fuel, &refuel_turns))
+    if (!obj_known_light(p, obj, mode, &intensity, &uses_fuel, &refuel_turns))
         return false;
 
     if (!tval_is_light(obj)) return false;
 
-    text_out(p, "Radius ");
-    text_out_c(p, COLOUR_L_GREEN, "%d", rad);
+    text_out(p, "Intensity ");
+    text_out_c(p, COLOUR_L_GREEN, "%d", intensity);
     text_out(p, " light.");
 
     if (!uses_fuel)

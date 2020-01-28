@@ -1338,9 +1338,9 @@ static void calc_torch(struct player *p, struct player_state *state, bool update
         object_modifiers(obj, modifiers);
 
         /* Light radius - innate plus modifier */
-        if (of_has(obj->flags, OF_LIGHT_1)) amt = 1;
-        else if (of_has(obj->flags, OF_LIGHT_2)) amt = 2;
+        if (of_has(obj->flags, OF_LIGHT_2)) amt = 2;
         else if (of_has(obj->flags, OF_LIGHT_3)) amt = 3;
+        else if (of_has(obj->flags, OF_LIGHT_4)) amt = 4;
         amt += modifiers[OBJ_MOD_LIGHT];
 
         /* Lights without fuel provide no light */
@@ -2101,7 +2101,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     if (p->poly_race)
     {
         if (monster_is_stupid(p->poly_race)) state->stat_add[STAT_INT] -= 2;
-        if (monster_is_smart(p->poly_race)) state->stat_add[STAT_INT] += 2;
+        if (race_is_smart(p->poly_race)) state->stat_add[STAT_INT] += 2;
         if (p->poly_race->freq_spell == 33) state->stat_add[STAT_INT] += 1;
         if (p->poly_race->freq_spell == 50) state->stat_add[STAT_INT] += 3;
         if (p->poly_race->freq_spell == 100) state->stat_add[STAT_INT] += 5;

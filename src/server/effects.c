@@ -6977,6 +6977,7 @@ static bool effect_handler_TELEPORT_LEVEL(effect_handler_context_t *context)
 /*
  * Teleport player or target monster to a grid near the given location
  * Setting context->y and context->x treats them as y and x coordinates
+ * Setting context->subtype allows monsters to teleport toward a target.
  * Hack: setting context->other means we are about to enter an arena
  *
  * This function is slightly obsessive about correctness.
@@ -6991,7 +6992,13 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     context->ident = true;
 
     /* Where are we coming from? */
-    if (context->target_mon)
+    if (context->subtype)
+    {
+        /* Monster teleporting */
+        loc_copy(&start, &context->origin->monster->grid);
+        is_player = false;
+    }
+    else if (context->target_mon)
     {
         /* Monster being teleported */
         loc_copy(&start, &context->target_mon->grid);
@@ -7026,8 +7033,15 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     }
     else if (context->origin->monster)
     {
+        /* Monster teleporting */
+        if (context->subtype)
+        {
+            if (context->target_mon) loc_copy(&aim, &context->target_mon->grid);
+            else loc_copy(&aim, &context->origin->player->grid);
+        }
+
         /* Teleport to monster */
-        loc_copy(&aim, &context->origin->monster->grid);
+        else loc_copy(&aim, &context->origin->monster->grid);
     }
     else
     {
@@ -7368,6 +7382,51 @@ static bool effect_handler_WAKE(effect_handler_context_t *context)
 }
 
 
+/*
+ * Create a web.
+ */
+static bool effect_handler_WEB(effect_handler_context_t *context)
+{
+    int rad = 1;
+    struct monster *mon = context->origin->monster;
+    struct loc begin, end;
+    struct loc_iterator iter;
+
+    /* Player can't currently create webs */
+    if (!mon) return false;
+
+    /* Always notice */
+    context->ident = true;
+
+    /* Increase the radius for higher spell power */
+    if (mon->race->spell_power > 40) rad++;
+    if (mon->race->spell_power > 80) rad++;
+
+    loc_init(&begin, mon->grid.x - rad, mon->grid.y - rad);
+    loc_init(&end, mon->grid.x + rad, mon->grid.y + rad);
+    loc_iterator_first(&iter, &begin, &end);
+
+    /* Check within the radius for clear floor */
+    do
+    {
+        /* Skip illegal grids */
+        if (!square_in_bounds_fully(context->cave, &iter.cur)) continue;
+
+        /* Skip distant grids */
+        if (distance(&iter.cur, &mon->grid) > rad) continue;
+
+        /* Require a floor grid with no existing traps or glyphs */
+        if (!square_iswebbable(context->cave, &iter.cur)) continue;
+
+        /* Create a web */
+        square_add_web(context->cave, &iter.cur);
+    }
+    while (loc_iterator_next(&iter));
+
+    return true;
+}
+
+
 /* Wipe everything */
 static bool effect_handler_WIPE_AREA(effect_handler_context_t *context)
 {
@@ -7390,6 +7449,7 @@ static bool effect_handler_WIPE_AREA(effect_handler_context_t *context)
 
     loc_init(&begin, context->origin->player->grid.x - r, context->origin->player->grid.y - r);
     loc_init(&end, context->origin->player->grid.x + r, context->origin->player->grid.y + r);
+    loc_iterator_first(&iter, &begin, &end);
 
     /* Check around the epicenter */
     do
@@ -7874,6 +7934,13 @@ int effect_subtype(int index, const char *type)
         {
             if (streq(type, "TARGETED")) val = 1;
             else if (streq(type, "NONE")) val = 0;
+            break;
+        }
+
+        /* Allow monster teleport toward */
+        case EF_TELEPORT_TO:
+        {
+            if (streq(type, "SELF")) val = 1;
             break;
         }
 

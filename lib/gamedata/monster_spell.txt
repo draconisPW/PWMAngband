@@ -323,6 +323,15 @@ message-vis:{name} hurls a boulder.
 message-invis:You hear a grunt of exertion.
 message-miss:{name} hurls a boulder, but misses.
 
+name:WEAVE
+msgt:CREATE_TRAP
+hit:100
+effect:WEB
+lore:weave webs
+lore-color-base:Yellow
+message-vis:{name} weaves a web.
+message-invis:You hear soft rustling.
+
 name:BA_ACID
 hit:100
 effect:BALL:ACID:2
@@ -435,6 +444,39 @@ message-vis:{name} casts a ball of darkness.
 message-invis:Something mumbles loudly.
 message-vis-strong:{name} invokes a storm of darkness.
 message-invis-strong:Something chants powerfully.
+
+name:BA_LIGHT
+hit:100
+effect:BALL:LIGHT:2
+dice:$B+8d8
+expr:B:SPELL_POWER:* 4
+lore:produce balls of light
+lore-strong:invoke starbursts
+lore-color-base:Light Red
+lore-color-resist:Light Green
+message-vis:{name} casts a ball of light.
+message-invis:Something mumbles.
+message-vis-strong:{name} invokes a starburst.
+message-invis-strong:Something chants powerfully.
+
+name:STORM
+hit:100
+effect:BALL:WATER:3
+dice:50+$Dd10
+expr:D:SPELL_POWER:/ 2
+effect:BALL:ELEC:3
+dice:20+$Dd5
+expr:D:SPELL_POWER:/ 2
+effect:BALL:ICE:3
+dice:20+$Dd5
+expr:D:SPELL_POWER:/ 2
+lore:create storms
+lore-color-base:Light Red
+lore-color-resist:Orange
+message-vis:{name} creates a little storm.
+message-invis:Something gurgles.
+message-vis-strong:{name} creates a tempest of wind and water.
+message-invis-strong:Something chants fluidly.
 
 name:DRAIN_MANA
 hit:100
@@ -620,7 +662,7 @@ lore-color-resist:Yellow
 message-vis:{name} casts a bolt of plasma.
 message-invis:Something screams.
 
-name:BO_ICEE
+name:BO_ICE
 hit:100
 effect:BOLT:ICE
 dice:$B+6d6
@@ -766,8 +808,17 @@ hit:100
 effect:TELEPORT_TO
 lore:teleport to
 lore-color-base:Yellow
-message-vis:{name} commands {target} to come hither.
-message-invis:Something commands you to come hither.
+message-vis:{name} commands {target} to return.
+message-invis:Something commands you to return.
+
+name:TELE_SELF_TO
+msgt:TELEPORT
+hit:100
+effect:TELEPORT_TO:SELF
+lore:teleport toward
+lore-color-base:Yellow
+message-vis:{name} blinks toward {target}.
+message-invis:Something mutters.
 
 name:TELE_AWAY
 msgt:TELEPORT

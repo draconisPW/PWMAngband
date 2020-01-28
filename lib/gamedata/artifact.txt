@@ -92,7 +92,7 @@ info:5:10:10000
 alloc:40:5 to 100
 power:0:1d1:0:0:0
 flags:NO_FUEL
-values:LIGHT[3]
+values:LIGHT[4]
 act:ILLUMINATION
 time:10+d10
 desc:A small crystal phial containing the light of Eärendil's Star.
@@ -105,7 +105,7 @@ info:5:10:0
 alloc:0:5 to 100
 power:0:1d1:0:0:0
 flags:NO_FUEL | ESP_UNDEAD | NO_ACTIVATION
-values:LIGHT[3] | STR[-4] | INT[-4] | WIS[-4] | DEX[-4] | CON[-4]
+values:LIGHT[4] | STR[-4] | INT[-4] | WIS[-4] | DEX[-4] | CON[-4]
 desc:It appears like the Phial of Galadriel at first - but wait! It
 desc: is a cursed phial created by an evil wizard to lure adventurers
 desc: into wielding it unknowingly.
@@ -117,7 +117,7 @@ info:30:5:30000
 alloc:4:30 to 100
 power:0:1d1:0:0:0
 flags:SEE_INVIS | NO_FUEL
-values:LIGHT[3]
+values:LIGHT[4]
 act:MAPPING
 time:50+d50
 desc:The shining Star of the North, a treasured heirloom of Elendil's house.
@@ -129,7 +129,7 @@ info:50:5:50000
 alloc:2:50 to 127
 power:0:1d1:0:0:0
 flags:SEE_INVIS | HOLD_LIFE | NO_FUEL
-values:LIGHT[3] | RES_LIGHT[1] | RES_DARK[1]
+values:LIGHT[4] | RES_LIGHT[1] | RES_DARK[1]
 act:CLAIRVOYANCE
 time:50+d50
 desc:A great globe seemingly filled with moonlight, the famed Heart of the

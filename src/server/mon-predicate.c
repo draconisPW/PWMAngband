@@ -93,7 +93,7 @@ bool monster_is_stupid(const struct monster_race *race)
 /*
  * Monster is smart
  */
-bool monster_is_smart(const struct monster_race *race)
+bool race_is_smart(const struct monster_race *race)
 {
     return rf_has(race->flags, RF_SMART);
 }
@@ -222,6 +222,39 @@ bool monster_is_invisible(const struct monster *mon)
 bool monster_is_not_invisible(const struct monster *mon)
 {
     return (!monster_is_invisible(mon) && !monster_is_camouflaged(mon));
+}
+
+
+/*
+ * Monster is (or was) smart
+ */
+bool monster_is_smart(const struct monster *mon)
+{
+    if (mon->original_race && rf_has(mon->original_race->flags, RF_SMART)) return true;
+    return rf_has(mon->race->flags, RF_SMART);
+}
+
+
+/*
+ * Monster is (or was) detectable by telepathy
+ */
+bool monster_is_esp_detectable(const struct monster *mon, bool isDM)
+{
+    bitflag flags[RF_SIZE];
+
+    /* DM has perfect ESP */
+    if (isDM) return true;
+
+    rf_copy(flags, mon->race->flags);
+    if (mon->original_race) rf_inter(flags, mon->original_race->flags);
+
+    /* Empty mind, no telepathy */
+    if (rf_has(flags, RF_EMPTY_MIND)) return false;
+
+    /* Weird mind, one in ten individuals are detectable */
+    if (rf_has(flags, RF_WEIRD_MIND) && ((mon->midx % 10) != 5)) return false;
+
+    return true;
 }
 
 

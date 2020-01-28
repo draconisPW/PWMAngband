@@ -49,6 +49,6 @@ extern void update_monlist(struct monster *mon);
 extern bool resist_undead_attacks(struct player *p, struct monster_race *race);
 extern void update_view_all(struct worldpos *wpos, int skip);
 extern bool monster_change_shape(struct player *p, struct monster *mon);
-extern bool monster_revert_shape(struct monster *mon);
+extern bool monster_revert_shape(struct player *p, struct monster *mon);
 
 #endif /* MONSTER_UTILITIES_H */

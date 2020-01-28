@@ -87,7 +87,7 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
     {
         g->lighting = LIGHTING_LOS;
 
-        /* Darkness or torchlight */
+        /* Torchlight */
         if (!square_isglow(c, grid))
         {
             if (OPT(p, view_yellow_light))
@@ -346,7 +346,7 @@ static void cave_light(struct player *p, struct chunk *c, struct point_set *ps)
             if (monster_is_stupid(mon->race)) chance = 10;
 
             /* Smart monsters always wake up */
-            if (monster_is_smart(mon->race)) chance = 100;
+            if (monster_is_smart(mon)) chance = 100;
 
             /* Sometimes monsters wake up, and become aware if they do */
             if (mon->m_timed[MON_TMD_SLEEP] && magik(chance))

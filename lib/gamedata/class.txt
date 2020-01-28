@@ -4139,7 +4139,7 @@ desc:Fires a plasma bolt that always hits its target (#%d).
 
 spell:Ice Bolt:0:9:13:0:0
 effect:BOLT:ICE
-flag:BO_ICEE
+flag:BO_ICE
 dice:$B+6d6
 expr:B:PLAYER_LEVEL:+ 0
 msg_other: fires an ice bolt.

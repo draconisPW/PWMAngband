@@ -61,7 +61,7 @@ max-level:10
 flags:EMPTY
 rule:100:1
 
-# The Orc Cave (boss: Azog, King of the Uruk-Hai)
+# The Orc Cave (boss: Azog, Enemy of the Dwarves)
 name:The Orc Cave
 wpos:-14:28
 min-depth:10

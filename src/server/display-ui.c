@@ -1071,7 +1071,7 @@ static void prt_player_sust_info(struct player *p)
         boost = 0;
 
         if (monster_is_stupid(p->poly_race)) boost -= 2;
-        if (monster_is_smart(p->poly_race)) boost += 2;
+        if (race_is_smart(p->poly_race)) boost += 2;
         if (p->poly_race->freq_spell == 33) boost += 1;
         if (p->poly_race->freq_spell == 50) boost += 3;
         if (p->poly_race->freq_spell == 100) boost += 5;

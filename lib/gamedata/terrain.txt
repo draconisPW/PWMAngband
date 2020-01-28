@@ -789,13 +789,13 @@ desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
 name:web
-graphics:+:Y
+graphics:%:y
 priority:18
 flags:PASSABLE | INTERESTING | WEB
 info:0:2
-desc:Ends LOS, stops missiles, bolts, and beams, and reduces the radius of ball
-desc: spells. May dissolve or be tunnelled to normal floor, and can be walked
-desc: through by the player and monsters.
+desc:A tangle of sticky spider webs. Ends LOS, stops missiles, bolts, and beams,
+desc: and reduces the radius of ball spells. May dissolve or be tunnelled
+desc: to normal floor, and can be walked through by the player and monsters.
 
 name:void
 graphics:.:d

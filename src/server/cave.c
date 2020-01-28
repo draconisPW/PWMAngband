@@ -71,6 +71,7 @@ int FEAT_SHORE;
 int FEAT_PERM_CLEAR;
 int FEAT_HOME_OPEN;
 int FEAT_HOME_CLOSED;
+int FEAT_WEB;
 
 
 struct feature *f_info;
@@ -380,6 +381,7 @@ void set_terrain(void)
     FEAT_PERM_CLEAR = lookup_feat("border permawall");
     FEAT_HOME_OPEN = lookup_feat("open house door");
     FEAT_HOME_CLOSED = lookup_feat("closed house door");
+    FEAT_WEB = lookup_feat("web");
 }
 
 

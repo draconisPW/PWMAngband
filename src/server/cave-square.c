@@ -712,7 +712,7 @@ bool square_isfountain(struct chunk *c, struct loc *grid)
 }
 
 
-bool square_isweb(struct chunk *c, struct loc *grid)
+bool square_iswebbed(struct chunk *c, struct loc *grid)
 {
     return tf_has(f_info[square(c, grid)->feat].flags, TF_WEB);
 }
@@ -1010,7 +1010,7 @@ bool square_isdiggable(struct chunk *c, struct loc *grid)
 {
     /* PWMAngband: also include trees and webs */
     return (square_ismineral(c, grid) || square_issecretdoor(c, grid) || square_isrubble(c, grid) ||
-        square_istree(c, grid) || square_isweb(c, grid));
+        square_istree(c, grid) || square_iswebbed(c, grid));
 }
 
 
@@ -1022,6 +1022,15 @@ bool square_seemsdiggable(struct chunk *c, struct loc *grid)
 {
     return (square_isdiggable(c, grid) || square_basic_iscloseddoor(c, grid) ||
         square_isperm(c, grid) || square_ismountain(c, grid));
+}
+
+
+/*
+ * True if the square can be webbed.
+ */
+bool square_iswebbable(struct chunk *c, struct loc *grid)
+{
+    return square_isempty(c, grid);
 }
 
 
@@ -1109,6 +1118,17 @@ bool square_isfiery(struct chunk *c, struct loc *grid)
     my_assert(square_in_bounds(c, grid));
 
     return feat_is_fiery(square(c, grid)->feat);
+}
+
+
+/*
+ * True if the cave square is lit.
+ */
+bool square_islit(struct chunk *c, struct loc *grid)
+{
+    my_assert(square_in_bounds(c, grid));
+
+    return ((square_light(c, grid) > 0)? true: false);
 }
 
 
@@ -1345,6 +1365,13 @@ struct feature *square_feat(struct chunk *c, struct loc *grid)
 {
     my_assert(square_in_bounds(c, grid));
     return &f_info[square(c, grid)->feat];
+}
+
+
+int square_light(struct chunk *c, struct loc *grid)
+{
+    my_assert(square_in_bounds(c, grid));
+    return square(c, grid)->light;
 }
 
 
@@ -1763,6 +1790,12 @@ void square_add_glyph(struct chunk *c, struct loc *grid, int type)
     }
 
     place_trap(c, grid, glyph->tidx, 0);
+}
+
+
+void square_add_web(struct chunk *c, struct loc *grid)
+{
+    square_set_feat(c, grid, FEAT_WEB);
 }
 
 

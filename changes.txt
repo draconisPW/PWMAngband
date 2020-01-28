@@ -6,14 +6,25 @@ This new version has a few significant changes ported from the Angband 4.2.0
 version:
 
 Monsters
--
+- Ainur: most of these now align with one of the great Valar, and have
+  corresponding powers
+- Dragons: these have mostly been made stronger and deeper
+- Snakes: some of these are now dangerous
+- Spiders: more dangerous and deeper, with unique abilities
 
 Game Mechanics
 - Monster shapechanges
+- Variable light and darkness are created by monsters, player gear and player
+  spells, and the player has a meter to measure the light level on their
+  square
 - Monsters can whip or spit on the player from nearby
 - Monster groups act more as a group, with leaders and sometimes bodyguards
 - Innate spells (e.g. breaths) and cast spells (e.g. bolts) have separate
   frequencies
+- Deeper in the dungeon shallow monsters are less likely to appear
+- Monsters can teleport to the player
+- Spiders can weave webs
+- Monsters can have innate darkness around them
 
 Code Improvements
 -
@@ -32,7 +43,7 @@ User interface
 
 Angband 4.2.0:
 
--
+- Add line for fragility in describe_curses()
 
 PWMAngband:
 
@@ -43,12 +54,20 @@ Gameplay changes
 
 Angband 4.2.0:
 
-- Add LASH effect, WHIP and SPIT spells
+- Monsters can whip or spit on the player from nearby
 - Monster groups act more as a group, with leaders and sometimes bodyguards
 - Monster shapechanges
 - Innate spells and cast spells have separate frequencies
 - Tweak resist fraction and damage cap for high elements
 - Add extra effects for some projection types
+- Major overhaul of the monster list
+- Deeper in the dungeon shallow monsters are less likely to appear
+- Spiders can weave webs
+- Monsters can teleport to the player
+- Variable light and darkness are created by monsters, player gear and player
+  spells, and the player has a meter to measure the light level on their
+  square
+- Monsters can have innate darkness around them
 
 PWMAngband:
 
@@ -70,7 +89,7 @@ Coding changes
 
 Angband 4.2.0:
 
--
+- Tidying and documenting of monster allocation
 
 PWMAngband:
 

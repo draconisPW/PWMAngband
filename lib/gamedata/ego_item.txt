@@ -99,8 +99,9 @@
 name:of Shadows
 info:1000:10
 alloc:8:10 to 100
-type:light
-values:STEALTH[d2] | RES_LIGHT[1]
+item:light:Lantern
+item:light:Lamp
+values:STEALTH[d2] | RES_LIGHT[1] | LIGHT[-4]
 min-values:STEALTH[0]
 
 name:of Brightness

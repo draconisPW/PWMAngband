@@ -317,6 +317,9 @@ bool monster_hates_grid(struct chunk *c, struct monster *mon, struct loc *grid)
  * Calculate minimum and desired combat ranges
  *
  * Afraid monsters will set this to their maximum flight distance.
+ * Currently this is recalculated every turn - if it becomes a significant
+ * overhead it could be calculated only when something has changed (monster HP,
+ * chance of escaping, etc)
  */
 static void get_move_find_range(struct player *p, struct monster *mon)
 {
@@ -1184,11 +1187,27 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
     {
         /* We have a good move, use it */
         if (get_move_advance(who->player, c, mon, good))
+        {
             loc_diff(&grid, &mon->target.grid, &mon->grid);
+            mflag_on(mon->mflag, MFLAG_TRACKING);
+        }
 
-        /* Head blindly straight for the "player" if there's no better idea */
+        /* Try to follow someone who knows where they're going */
         else
-            loc_diff(&grid, &target, &mon->grid);
+        {
+            struct monster *tracker = group_monster_tracking(c, mon);
+
+            /* Need los? */
+            if (tracker && los(c, &mon->grid, &tracker->grid))
+                loc_diff(&grid, &tracker->grid, &mon->grid);
+
+            /* Head blindly straight for the "player" if there's no better idea */
+            else
+                loc_diff(&grid, &target, &mon->grid);
+
+            /* No longer tracking */
+            mflag_off(mon->mflag, MFLAG_TRACKING);
+        }
     }
     else
     {
@@ -1234,6 +1253,9 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
                 {
                     done = true;
                     loc_diff(&grid, &mon->target.grid, &mon->grid);
+
+                    /* No longer tracking */
+                    mflag_off(mon->mflag, MFLAG_TRACKING);
                 }
             }
         }
@@ -1254,6 +1276,9 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
                 grid.y = 0 - grid.y;
                 grid.x = 0 - grid.x;
             }
+
+            /* No longer tracking */
+            mflag_off(mon->mflag, MFLAG_TRACKING);
 
             done = true;
         }
@@ -1333,7 +1358,7 @@ bool multiply_monster(struct player *p, struct chunk *c, struct monster *mon)
     if (monster_is_unique(mon->race)) return false;
 
     /* Limit number of clones */
-    if (c->num_clones == z_info->repro_monster_max) return false;
+    if (c->num_repro == z_info->repro_monster_max) return false;
 
     /* Try up to 18 times */
     for (i = 0; i < 18; i++)
@@ -1604,7 +1629,7 @@ static bool monster_turn_attack_glyph(struct player *p, struct monster *mon, str
             msg(p, "The rune of protection is broken!");
 
         /* Break the rune */
-        square_remove_all_traps(chunk_get(&p->wpos), grid);
+        square_destroy_trap(chunk_get(&p->wpos), grid);
 
         return true;
     }
@@ -1703,7 +1728,7 @@ static bool monster_turn_try_push(struct source *who, struct chunk *c, struct mo
             if (monster_is_stupid(mon->race)) chance = 10;
 
             /* Smart monsters always retaliate */
-            if (monster_is_smart(mon->race)) chance = 100;
+            if (monster_is_smart(mon)) chance = 100;
 
             /* Sometimes monsters retaliate */
             if (magik(chance))
@@ -1740,7 +1765,7 @@ static bool monster_turn_try_push(struct source *who, struct chunk *c, struct mo
         if (monster_is_stupid(mon->race)) chance = 10;
 
         /* Smart monsters always retaliate */
-        if (monster_is_smart(mon->race)) chance = 100;
+        if (monster_is_smart(mon)) chance = 100;
 
         /* Sometimes monsters retaliate */
         if (magik(chance))
@@ -2022,9 +2047,50 @@ static void monster_turn(struct source *who, struct chunk *c, struct monster *mo
     bool stagger = false;
     bool tracking = false;
     char m_name[NORMAL_WID];
+    struct monster_lore *lore = get_lore(who->player, mon->race);
 
     /* Get the monster name */
     monster_desc(who->player, m_name, sizeof(m_name), mon, MDESC_CAPITAL | MDESC_IND_HID);
+
+    /* If we're in a web, deal with that */
+    if (square_iswebbed(c, &mon->grid))
+    {
+        /* Learn web behaviour */
+        if (monster_is_visible(who->player, mon->midx))
+        {
+            rf_on(lore->flags, RF_CLEAR_WEB);
+            rf_on(lore->flags, RF_PASS_WEB);
+        }
+
+        /* If we can pass, no need to clear */
+        if (!rf_has(mon->race->flags, RF_PASS_WEB))
+        {
+            /* Learn wall behaviour */
+            if (monster_is_visible(who->player, mon->midx))
+            {
+                rf_on(lore->flags, RF_PASS_WALL);
+                rf_on(lore->flags, RF_KILL_WALL);
+            }
+
+            /* Insubstantial monsters go right through */
+            if (rf_has(mon->race->flags, RF_PASS_WALL)) {}
+
+            /* If you can destroy a wall, you can destroy a web */
+            else if (rf_has(mon->race->flags, RF_KILL_WALL)) {}
+
+            /* Clearing costs a turn */
+            else if (rf_has(mon->race->flags, RF_CLEAR_WEB))
+            {
+                square_clear_feat(c, &mon->grid);
+                update_visuals(&who->player->wpos);
+                fully_update_flow(&who->player->wpos);
+                return;
+            }
+
+            /* Stuck */
+            else return;
+        }
+    }
 
     /* Generate monster drops */
     if (!who->monster) mon_create_drops(who->player, c, mon);
@@ -2035,10 +2101,10 @@ static void monster_turn(struct source *who, struct chunk *c, struct monster *mo
     /* Try to multiply - this can use up a turn */
     if (!who->monster && monster_turn_multiply(c, mon)) return;
 
-    /* Attempt to cast a spell (skip if non hostile) */
+    /* Attempt a ranged attack (skip if non hostile) */
     if (who->monster || pvm_check(who->player, mon))
     {
-        if (make_attack_spell(who, c, mon, target_m_dis)) return;
+        if (make_ranged_attack(who, c, mon, target_m_dis)) return;
     }
 
     /* Work out what kind of movement to use - random movement or AI */
@@ -2048,7 +2114,7 @@ static void monster_turn(struct source *who, struct chunk *c, struct monster *mo
     /* Movement */
     monster_turn_move(who, c, mon, m_name, dir, stagger, tracking, &did_something);
 
-    if (rf_has(mon->race->flags, RF_HAS_LIGHT))
+    if (mon->race->light != 0)
         who->player->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
 
     /* Hack -- get "bold" if out of options */
@@ -2699,7 +2765,7 @@ static bool player_invis(struct player *p, struct monster *mon)
     if (rf_has(mon->race->flags, RF_ORC)) mlv -= 15;
     if (rf_has(mon->race->flags, RF_TROLL)) mlv -= 10;
     if (monster_is_stupid(mon->race)) mlv /= 2;
-    if (monster_is_smart(mon->race)) mlv = (mlv * 5) / 4;
+    if (monster_is_smart(mon)) mlv = (mlv * 5) / 4;
     if (monster_is_unique(mon->race)) mlv *= 2;
     if ((p->timed[TMD_INVIS] == -1) && !p->ghost) mlv = (mlv * 7) / 10;
     if (mlv < 0) mlv = 0;

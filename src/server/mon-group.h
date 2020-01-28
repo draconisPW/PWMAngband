@@ -33,6 +33,7 @@ extern bool monster_group_change_index(struct chunk *c, int new_index, int old_i
 extern struct monster_group *summon_group(struct chunk *c, struct monster *mon);
 extern void monster_group_rouse(struct player *p, struct chunk *c, struct monster *mon);
 extern int monster_primary_group_size(struct chunk *c, const struct monster *mon);
+extern struct monster *group_monster_tracking(struct chunk *c, const struct monster *mon);
 extern int monster_group_leader_idx(struct monster_group *group);
 extern struct monster *monster_group_leader(struct chunk *c, struct monster *mon);
 extern void monster_groups_verify(struct chunk *c);

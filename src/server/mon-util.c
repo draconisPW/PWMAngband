@@ -300,7 +300,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
     /* Detected */
     if (p->mon_det[mon->midx]) flag = true;
 
-    /* Check if telepathy works */
+    /* Check if telepathy works here */
     if (square_isno_esp(c, &mon->grid) || square_isno_esp(c, &grid))
         telepathy_ok = false;
 
@@ -314,41 +314,13 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
         basic = (isDM || ((hasESP || isTL) && telepathy_ok));
 
         /* Basic telepathy */
-        if (basic)
+        if (basic && monster_is_esp_detectable(mon, isDM))
         {
-            /* Empty mind, no telepathy */
-            if (rf_has(mon->race->flags, RF_EMPTY_MIND)) {}
+            /* Detectable */
+            flag = true;
 
-            /* Weird mind, one in ten individuals are detectable */
-            else if (rf_has(mon->race->flags, RF_WEIRD_MIND))
-            {
-                if ((mon->midx % 10) == 5)
-                {
-                    /* Detectable */
-                    flag = true;
-
-                    /* Check for LOS so that MFLAG_VIEW is set later */
-                    if (square_isview(p, &mon->grid)) easy = true;
-                }
-            }
-
-            /* Normal mind, allow telepathy */
-            else
-            {
-                flag = true;
-
-                /* Check for LOS so that MFLAG_VIEW is set later */
-                if (square_isview(p, &mon->grid)) easy = true;
-            }
-
-            /* DM has perfect ESP */
-            if (isDM)
-            {
-                flag = true;
-
-                /* Check for LOS so that MFLAG_VIEW is set later */
-                if (square_isview(p, &mon->grid)) easy = true;
-            }
+            /* Check for LOS so that MFLAG_VIEW is set later */
+            if (square_isview(p, &mon->grid)) easy = true;
         }
 
         /* Normal line of sight and player is not blind */
@@ -371,9 +343,6 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             /* Use illumination */
             if (square_isseen(p, &mon->grid))
             {
-                /* Learn it emits light */
-                rf_on(lore->flags, RF_HAS_LIGHT);
-
                 /* Learn about invisibility */
                 rf_on(lore->flags, RF_INVISIBLE);
 
@@ -683,8 +652,8 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
         /* Update monster */
         update_mon(mon, c, true);
 
-        /* Radiate light? */
-        if (rf_has(mon->race->flags, RF_HAS_LIGHT)) update_view_all(&c->wpos, 0);
+        /* Affect light? */
+        if (mon->race->light != 0) update_view_all(&c->wpos, 0);
     }
 
     /* Player 1 */
@@ -731,8 +700,8 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
         /* Update monster */
         update_mon(mon, c, true);
 
-        /* Radiate light? */
-        if (rf_has(mon->race->flags, RF_HAS_LIGHT)) update_view_all(&c->wpos, 0);
+        /* Affect light? */
+        if (mon->race->light != 0) update_view_all(&c->wpos, 0);
     }
 
     /* Player 2 */
@@ -886,7 +855,7 @@ void update_smart_learn(struct monster *mon, struct player *p, int flag, int pfl
     if (monster_is_stupid(mon->race)) return;
 
     /* Not intelligent, only learn sometimes */
-    if (!monster_is_smart(mon->race) && one_in_(2)) return;
+    if (!monster_is_smart(mon) && one_in_(2)) return;
 
     /* Analyze the knowledge; fail very rarely */
     if (one_in_(100)) return;
@@ -1137,7 +1106,7 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
     if (mon->original_race)
     {
         msg(p, "A change comes over %s", m_name);
-        monster_revert_shape(mon);
+        monster_revert_shape(p, mon);
         lore = get_lore(p, mon->race);
         monster_desc(p, m_name, sizeof(m_name), mon, MDESC_DEFAULT);
     }
@@ -1280,8 +1249,8 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
     /* Redraw */
     p->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
 
-    /* Radiate light? */
-    if (rf_has(mon->race->flags, RF_HAS_LIGHT)) update_view_all(&c->wpos, 0);
+    /* Affect light? */
+    if (mon->race->light != 0) update_view_all(&c->wpos, 0);
 
     /* Delete the monster */
     delete_monster_idx(c, mon->midx);
@@ -1862,6 +1831,18 @@ bool monster_change_shape(struct player *p, struct monster *mon)
         mon->race = race;
     }
 
+    /* Emergency teleport if needed */
+    if (!monster_passes_walls(mon->race) && square_iswall(c, &mon->grid))
+    {
+        struct source origin_body;
+        struct source *origin = &origin_body;
+
+        source_player(origin, get_player_index(get_connection(p->conn)), p);
+        origin->monster = mon;
+
+        effect_simple(EF_TELEPORT, origin, "1", 0, 0, 0, 0, 0, NULL);
+    }
+
     return (mon->original_race != NULL);
 }
 
@@ -1869,12 +1850,27 @@ bool monster_change_shape(struct player *p, struct monster *mon)
 /*
  * Monster reverse shapechange
  */
-bool monster_revert_shape(struct monster *mon)
+bool monster_revert_shape(struct player *p, struct monster *mon)
 {
+    struct chunk *c = chunk_get(&p->wpos);
+
     if (mon->original_race)
     {
         mon->race = mon->original_race;
         mon->original_race = NULL;
+
+        /* Emergency teleport if needed */
+        if (!monster_passes_walls(mon->race) && square_iswall(c, &mon->grid))
+        {
+            struct source origin_body;
+            struct source *origin = &origin_body;
+
+            source_player(origin, get_player_index(get_connection(p->conn)), p);
+            origin->monster = mon;
+
+            effect_simple(EF_TELEPORT, origin, "1", 0, 0, 0, 0, 0, NULL);
+        }
+
         return true;
     }
 

@@ -75,8 +75,7 @@
 # damage and pluses to-hit, to-dam and to-ac.  The latter three numbers
 # accept randomized values.
 
-# 'alloc' is for allocation - commonness, and minimum and maximum depths
-# of occurrence.
+# 'alloc' is for allocation - frequency and range of levels found.
 
 # 'charges' is for charges (wands and staves only).  This field accepts
 # randomized values.
@@ -163,7 +162,7 @@ type:light
 properties:1:22:2
 alloc:70:1 to 40
 combat:0:1d1:0:0:0
-flags:BURNS_OUT | LIGHT_1
+flags:BURNS_OUT | LIGHT_2
 desc:A piece of wood with an oily rag wrapped around it. When lit, it will give
 desc: off a little light and much smoke.
 
@@ -173,7 +172,7 @@ type:light
 properties:5:50:35
 alloc:70:5 to 100
 combat:0:1d1:0:0:0
-flags:TAKES_FUEL | LIGHT_2 | IGNORE_FIRE
+flags:TAKES_FUEL | LIGHT_3 | IGNORE_FIRE
 desc:A brass container with a wick emerging from it, protected from draughts by
 desc: a sheet of greased paper. It can be carried by a handle.
 
@@ -4150,7 +4149,7 @@ type:light
 properties:20:70:1000
 alloc:20:20 to 100
 combat:0:1d1:0:0:0
-flags:TAKES_FUEL | LIGHT_3 | IGNORE_FIRE
+flags:TAKES_FUEL | LIGHT_4 | IGNORE_FIRE
 desc:A brass container, larger than a lantern, with a wick emerging from it,
 desc: protected from draughts by a sheet of greased paper. It can be carried by
 desc: a handle.
@@ -4282,11 +4281,11 @@ type:skeleton
 properties:30:100:0
 desc:The sorry, bony remains of some hapless troll.
 
-name:& Ettin Skeleton~
+name:& Two-headed troll Skeleton~
 graphics:~:w
 type:skeleton
 properties:33:200:0
-desc:The sorry, bony remains of some hapless ettin.
+desc:The sorry, bony remains of some hapless two-headed troll.
 
 name:Crystal Dragon Scale Mail~
 graphics:[:u
