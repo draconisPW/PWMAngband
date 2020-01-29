@@ -47,7 +47,7 @@ Angband 4.2.0:
 
 PWMAngband:
 
--
+- Remove Shockbolt tileset
 
 Gameplay changes
 ----------------

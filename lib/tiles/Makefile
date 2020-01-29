@@ -1,7 +1,7 @@
 MKPATH=../../mk/
 include $(MKPATH)buildsys.mk
 
-SUBDIRS = gervais shockbolt
+SUBDIRS = gervais
 DATA = list.txt
 
 PACKAGE = tiles
