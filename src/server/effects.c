@@ -1212,14 +1212,7 @@ static bool effect_handler_BALL(effect_handler_context_t *context)
         source_monster(who, context->origin->monster);
 
         /* Powerful monster */
-        if (monster_is_powerful(context->origin->monster->race))
-        {
-            rad++;
-            flg |= PROJECT_POWER;
-        }
-
-        /* Monsters with high spell power also cast powerful ball spells */
-        if (context->origin->monster->race->spell_power >= 80) flg |= PROJECT_POWER;
+        if (monster_is_powerful(context->origin->monster->race)) rad++;
 
         flg &= ~(PROJECT_STOP | PROJECT_THRU);
 
@@ -1921,9 +1914,6 @@ static bool effect_handler_BREATH(effect_handler_context_t *context)
             /* Breath is now full strength at 5 grids */
             diameter_of_source *= 3;
             diameter_of_source /= 2;
-
-            /* Mark for effects */
-            flg |= PROJECT_POWER;
         }
 
         /* Target player or monster? */
@@ -4508,6 +4498,19 @@ static bool effect_handler_GAIN_STAT(effect_handler_context_t *context)
 
     /* Notice */
     context->ident = true;
+
+    return true;
+}
+
+
+static bool effect_handler_GRANITE(effect_handler_context_t *context)
+{
+    struct trap *trap = context->origin->trap;
+
+    square_set_feat(context->cave, &trap->grid, FEAT_GRANITE);
+
+    context->origin->player->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
+    context->origin->player->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
 
     return true;
 }

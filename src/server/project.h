@@ -46,8 +46,7 @@
 #define PROJECT_ARC     0x0400
 #define PROJECT_PLAY    0x0800
 #define PROJECT_INFO    0x1000
-#define PROJECT_POWER   0x2000
-#define PROJECT_CONST   0x4000
+#define PROJECT_CONST   0x2000
 
 /*
  * Projection struct
@@ -115,6 +114,6 @@ extern int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, in
 extern void project_player_swap_stats(struct player *p);
 extern void project_player_time_effects(struct player *p, struct source *who);
 extern void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, int dam,
-    int typ, bool powerful, const char *what, bool *did_hit, bool *was_obvious, struct loc *newgrid);
+    int typ, int power, const char *what, bool *did_hit, bool *was_obvious, struct loc *newgrid);
 
 #endif /* PROJECT_H */

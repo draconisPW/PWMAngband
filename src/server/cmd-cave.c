@@ -1167,7 +1167,7 @@ static bool do_cmd_disarm_aux(struct player *p, struct chunk *c, struct loc *gri
     else
     {
         msg(p, "You set off the %s!", trap->kind->name);
-        move_player(p, c, dir, false, false, true);
+        move_player(p, c, dir, false, false, true, -1);
     }
 
     /* Result */
@@ -1409,7 +1409,7 @@ static void do_prob_travel(struct player *p, struct chunk *c, int dir)
  * and also handles attempting to move into walls/doors/rubble/etc.
  */
 void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool check_pickup,
-    bool force)
+    bool force, int delayed)
 {
     bool old_dtrap, new_dtrap, old_pit, new_pit;
     bool do_move = true;
@@ -1823,14 +1823,14 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     else if (square_issecrettrap(c, &grid))
     {
         disturb(p, 0);
-        hit_trap(p);
+        hit_trap(p, &p->grid, delayed);
     }
 
     /* Set off a visible trap */
     else if (square_isdisarmabletrap(c, &grid) && !trapsafe)
     {
         disturb(p, 0);
-        hit_trap(p);
+        hit_trap(p, &p->grid, delayed);
     }
 
     /* Mention fountains */
@@ -1959,7 +1959,7 @@ void do_cmd_walk(struct player *p, int dir)
     next_grid(&grid, &p->grid, dir);
 
     /* Attempt to disarm unless it's a trap and we're trapsafe */
-    move_player(p, c, dir, !(square_isdisarmabletrap(c, &grid) && trapsafe), true, false);
+    move_player(p, c, dir, !(square_isdisarmabletrap(c, &grid) && trapsafe), true, false, 0);
 }
 
 
@@ -1995,7 +1995,7 @@ void do_cmd_jump(struct player *p, int dir)
     erratic_dir(p, &dir);
 
     /* Move the player */
-    move_player(p, chunk_get(&p->wpos), dir, false, true, false);
+    move_player(p, chunk_get(&p->wpos), dir, false, true, false, 0);
 }
 
 

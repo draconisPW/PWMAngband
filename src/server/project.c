@@ -1104,7 +1104,16 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
         bool did_hit = false;
         int num_hit = 0;
         struct loc last_hit;
-        bool powerful = ((flg & PROJECT_POWER)? true: false);
+        int power = 0;
+
+        /* Set power */
+        if (origin->monster)
+        {
+            power = origin->monster->race->spell_power;
+
+            /* Breaths from powerful monsters get power effects as well */
+            if (monster_is_powerful(origin->monster->race)) power = 80;
+        }
 
         loc_init(&last_hit, 0, 0);
 
@@ -1117,7 +1126,7 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
 
             /* Affect the player in the grid */
             project_p(origin, distance_to_grid[i], cv, &blast_grid[i],
-                dam_at_dist[distance_to_grid[i]], typ, powerful, what, &did_hit, &was_obvious, &grid);
+                dam_at_dist[distance_to_grid[i]], typ, power, what, &did_hit, &was_obvious, &grid);
             if (was_obvious) notice = true;
             if (did_hit)
             {

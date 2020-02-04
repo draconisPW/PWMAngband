@@ -765,11 +765,9 @@ static void project_monster_handler_HOLY_ORB(project_monster_handler_context_t *
 }
 
 
-static void project_monster_handler_ARROW_X(project_monster_handler_context_t *context) {}
-static void project_monster_handler_ARROW_1(project_monster_handler_context_t *context) {}
-static void project_monster_handler_ARROW_2(project_monster_handler_context_t *context) {}
-static void project_monster_handler_ARROW_3(project_monster_handler_context_t *context) {}
-static void project_monster_handler_ARROW_4(project_monster_handler_context_t *context) {}
+static void project_monster_handler_SHOT(project_monster_handler_context_t *context) {}
+static void project_monster_handler_ARROW(project_monster_handler_context_t *context) {}
+static void project_monster_handler_BOLT(project_monster_handler_context_t *context) {}
 static void project_monster_handler_BOULDER(project_monster_handler_context_t *context) {}
 
 
@@ -1187,12 +1185,15 @@ static void project_monster_handler_PSI_DRAIN(project_monster_handler_context_t 
     }
 }
 
-static void project_monster_handler_CURSE(project_monster_handler_context_t *context) {}
-
-
 /* Heavy curse -- damage + cuts */
-static void project_monster_handler_CURSE2(project_monster_handler_context_t *context)
+static void project_monster_handler_CURSE(project_monster_handler_context_t *context)
 {
+    int power;
+
+    if (context->origin->monster) power = context->origin->monster->race->spell_power;
+    else power = context->origin->player->lev * 2;
+    if (power < 55) return;
+
     /* Apply bleeding */
     context->mon_timed[MON_TMD_CUT] = 5 + randint1(5);
 }

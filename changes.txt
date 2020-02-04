@@ -11,6 +11,8 @@ Monsters
 - Dragons: these have mostly been made stronger and deeper
 - Snakes: some of these are now dangerous
 - Spiders: more dangerous and deeper, with unique abilities
+- Wights/Wraiths: wights are all now shallower than wraiths, and the
+  Ringwraiths are much deeper
 
 Game Mechanics
 - Monster shapechanges
@@ -25,6 +27,8 @@ Game Mechanics
 - Monsters can teleport to the player
 - Spiders can weave webs
 - Monsters can have innate darkness around them
+- Traps added that trigger on leaving their square
+- Monster spells can have different levels depending on monster spell power
 
 Code Improvements
 -
@@ -68,6 +72,11 @@ Angband 4.2.0:
   spells, and the player has a meter to measure the light level on their
   square
 - Monsters can have innate darkness around them
+- Traps added that trigger on leaving their square
+- Monster spells can have different levels depending on monster spell power
+- Unify wounding spells
+- Unify arrow spells, add shot and bolt spells
+- Add shard balls
 
 PWMAngband:
 
@@ -82,7 +91,7 @@ Angband 4.2.0:
 
 PWMAngband:
 
--
+- Add missing Shapechanger spells
 
 Coding changes
 --------------

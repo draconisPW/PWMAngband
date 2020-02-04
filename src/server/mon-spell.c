@@ -65,24 +65,22 @@ static void spell_message(struct player *p, struct monster *mon, const struct mo
     const char *tag;
     const char *in_cursor;
     size_t end = 0;
-    bool strong = ((mon->race->spell_power >= 80) || monster_is_powerful(mon->race));
+    struct monster_spell_level *level = spell->level;
     char tmp[MSG_LEN];
+
+    /* Get the right level of message */
+    while (level->next && mon->race->spell_power >= level->next->power) level = level->next;
 
     /* Get the message */
     if (!seen)
     {
         if (target_mon) return;
-        if (strong && spell->blind_message_strong)
-            in_cursor = spell->blind_message_strong;
-        else
-            in_cursor = spell->blind_message;
+        in_cursor = level->blind_message;
     }
     else if (!hits)
-        in_cursor = spell->miss_message;
-    else if (strong && spell->message_strong)
-        in_cursor = spell->message_strong;
+        in_cursor = level->miss_message;
     else
-        in_cursor = spell->message;
+        in_cursor = level->message;
 
     next = strchr(in_cursor, '{');
     while (next)
@@ -295,7 +293,12 @@ void do_mon_spell(struct player *p, struct chunk *c, struct monster *target_mon,
         /* Try a saving throw if available */
         if (save)
         {
-            msg(p, spell->save_message);
+            struct monster_spell_level *level = spell->level;
+
+            /* Get the right level of save message */
+            while (level->next && mon->race->spell_power >= level->next->power) level = level->next;
+
+            msg(p, level->save_message);
             spell_check_for_fail_rune(p, spell);
         }
         else
@@ -596,10 +599,12 @@ const char *mon_spell_lore_description(int index, const struct monster_race *rac
     if (mon_spell_is_valid(index))
     {
         const struct monster_spell *spell = monster_spell_by_index(index);
-        bool strong = ((race->spell_power >= 80) || monster_is_powerful(race));
+        struct monster_spell_level *level = spell->level;
 
-        strong = (strong && spell->lore_desc_strong);
-        return (strong? spell->lore_desc_strong: spell->lore_desc);
+        /* Get the right level of description */
+        while (level->next && race->spell_power >= level->next->power) level = level->next;
+
+        return level->lore_desc;
     }
 
     return "";
@@ -674,8 +679,8 @@ int breath_effect(struct player *p, bitflag mon_breath[RSF_SIZE])
     spell = monster_spell_by_index(thrown_breath);
 
     /* Message */
-    msgt(p, spell->msgt, "You breathe %s.", spell->lore_desc);
-    strnfmt(buf, sizeof(buf), " breathes %s.", spell->lore_desc);
+    msgt(p, spell->msgt, "You breathe %s.", spell->level->lore_desc);
+    strnfmt(buf, sizeof(buf), " breathes %s.", spell->level->lore_desc);
     msg_misc(p, buf);
 
     return spell_effect(thrown_breath);

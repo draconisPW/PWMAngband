@@ -365,18 +365,7 @@ color:Light Dark
 pvp-flags:DAMAGE | NON_PHYS
 threat:always
 
-code:ARROW_X
-name:a seeker arrow
-type:element
-desc:magical energy
-blind-desc:are hit by something sharp
-msgt:GENERIC
-obvious:1
-color:White
-pvp-flags:DAMAGE
-threat:always
-
-code:ARROW_1
+code:SHOT
 name:a shot
 type:element
 desc:shots
@@ -387,7 +376,7 @@ color:White
 pvp-flags:DAMAGE
 threat:always
 
-code:ARROW_2
+code:ARROW
 name:an arrow
 type:element
 desc:arrows
@@ -398,21 +387,10 @@ color:White
 pvp-flags:DAMAGE
 threat:always
 
-code:ARROW_3
+code:BOLT
 name:a bolt
 type:element
 desc:bolts
-blind-desc:are hit by something sharp
-msgt:GENERIC
-obvious:1
-color:White
-pvp-flags:DAMAGE
-threat:always
-
-code:ARROW_4
-name:a missile
-type:element
-desc:missiles
 blind-desc:are hit by something sharp
 msgt:GENERIC
 obvious:1
@@ -697,14 +675,6 @@ pvp-flags:DAMAGE
 threat:living
 
 code:CURSE
-type:monster
-blind-desc:hear loud mumbling
-obvious:1
-color:White
-pvp-flags:SAVE | DAMAGE | NON_PHYS
-threat:always
-
-code:CURSE2
 type:monster
 blind-desc:hear loud mumbling
 obvious:1

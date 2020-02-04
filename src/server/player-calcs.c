@@ -2476,11 +2476,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->num_shots += p->lev / 2;
 
     /* Handle polymorphed players */
-    if (p->poly_race && (rsf_has(p->poly_race->spell_flags, RSF_ARROW_X) ||
-        rsf_has(p->poly_race->spell_flags, RSF_ARROW_1) ||
-        rsf_has(p->poly_race->spell_flags, RSF_ARROW_2) ||
-        rsf_has(p->poly_race->spell_flags, RSF_ARROW_3) ||
-        rsf_has(p->poly_race->spell_flags, RSF_ARROW_4)))
+    if (p->poly_race && (rsf_has(p->poly_race->spell_flags, RSF_SHOT) ||
+        rsf_has(p->poly_race->spell_flags, RSF_ARROW) ||
+        rsf_has(p->poly_race->spell_flags, RSF_BOLT)))
     {
         state->num_shots += 5;
     }

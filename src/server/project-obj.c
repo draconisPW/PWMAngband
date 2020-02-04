@@ -333,11 +333,9 @@ static void project_object_handler_MANA(project_object_handler_context_t *contex
 
 
 static void project_object_handler_HOLY_ORB(project_object_handler_context_t *context) {}
-static void project_object_handler_ARROW_X(project_object_handler_context_t *context) {}
-static void project_object_handler_ARROW_1(project_object_handler_context_t *context) {}
-static void project_object_handler_ARROW_2(project_object_handler_context_t *context) {}
-static void project_object_handler_ARROW_3(project_object_handler_context_t *context) {}
-static void project_object_handler_ARROW_4(project_object_handler_context_t *context) {}
+static void project_object_handler_SHOT(project_object_handler_context_t *context) {}
+static void project_object_handler_ARROW(project_object_handler_context_t *context) {}
+static void project_object_handler_BOLT(project_object_handler_context_t *context) {}
 static void project_object_handler_BOULDER(project_object_handler_context_t *context) {}
 static void project_object_handler_LIGHT_WEAK(project_object_handler_context_t *context) {}
 static void project_object_handler_DARK_WEAK(project_object_handler_context_t *context) {}
@@ -562,7 +560,6 @@ static void project_object_handler_MON_CRUSH(project_object_handler_context_t *c
 static void project_object_handler_PSI(project_object_handler_context_t *context) {}
 static void project_object_handler_PSI_DRAIN(project_object_handler_context_t *context) {}
 static void project_object_handler_CURSE(project_object_handler_context_t *context) {}
-static void project_object_handler_CURSE2(project_object_handler_context_t *context) {}
 static void project_object_handler_DRAIN(project_object_handler_context_t *context) {}
 static void project_object_handler_COMMAND(project_object_handler_context_t *context) {}
 static void project_object_handler_TELE_TO(project_object_handler_context_t *context) {}

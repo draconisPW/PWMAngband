@@ -2699,7 +2699,7 @@ effect-yx:22:40
 desc:Maps out a portion of the level around you.
 
 spell:Piercing Shots:30:11:50:50:0
-effect:BOW_BRAND:ARROW_X
+effect:BOW_BRAND:ARROW
 desc:Turns your missiles into deadly piercing shots.
 
 spell:Explosive Shots:32:12:54:55:0
@@ -3881,7 +3881,7 @@ magic:0:400:1
 
 # Hack -- mimic realm spells
 # Spells are all put in one book, and they use RSF_XXX flags as effect flag
-book:mimic realm:xxx:xxx:67:mimic
+book:mimic realm:xxx:xxx:71:mimic
 
 spell:Shriek:0:1:1:0:0
 effect:PROJECT_LOS:MON_SPEED
@@ -3905,40 +3905,29 @@ flag:SPIT
 msg_other: spits.
 desc:Fires a beam, dealing damage determined by blows (#%d).
 
-spell:Seeker Arrow:0:0:8:0:0
-effect:BOLT:ARROW_X
-flag:ARROW_X
-dice:9d6
-msg_other: fires a seeker arrow.
-desc:Fires a seeker arrow that always hits its target (#%d).
-
-spell:Shot:0:0:1:0:0
-effect:BOLT:ARROW_1
-flag:ARROW_1
-dice:1d6
+spell:Shot:0:0:6:0:0
+effect:BOLT:SHOT
+flag:SHOT
+dice:$Dd5
+expr:D:PLAYER_LEVEL:/ 8 + 1
 msg_other: fires a shot.
 desc:Fires a shot that always hits its target (#%d).
 
-spell:Arrow:0:0:3:0:0
-effect:BOLT:ARROW_2
-flag:ARROW_2
-dice:3d6
+spell:Arrow:0:0:8:0:0
+effect:BOLT:ARROW
+flag:ARROW
+dice:$Dd6
+expr:D:PLAYER_LEVEL:/ 8 + 1
 msg_other: fires an arrow.
 desc:Fires an arrow that always hits its target (#%d).
 
-spell:Bolt:0:0:5:0:0
-effect:BOLT:ARROW_3
-flag:ARROW_3
-dice:5d6
+spell:Bolt:0:0:10:0:0
+effect:BOLT:BOLT
+flag:BOLT
+dice:$Dd7
+expr:D:PLAYER_LEVEL:/ 8 + 1
 msg_other: fires a bolt.
 desc:Fires a bolt that always hits its target (#%d).
-
-spell:Missile:0:0:6:0:0
-effect:BOLT:ARROW_4
-flag:ARROW_4
-dice:7d6
-msg_other: fires a missile.
-desc:Fires a missile that always hits its target (#%d).
 
 spell:Boulder:0:0:14:0:0
 effect:BOLT:BOULDER
@@ -3947,6 +3936,12 @@ dice:$Dd12
 expr:D:PLAYER_LEVEL:/ 7 + 1
 msg_other: hurls a boulder.
 desc:Fires a boulder that always hits its target (#%d).
+
+spell:Create Webs:0:4:8:0:0
+effect:WEB
+flag:WEAVE
+msg_other: creates a web.
+desc:Creates a web (#%d).
 
 spell:Acid Ball:0:17:24:0:0
 effect:BALL:ACID:2
@@ -3980,12 +3975,21 @@ expr:S:PLAYER_LEVEL:* 3 / 2
 msg_other: fires a frost ball.
 desc:Shoots a radius-2 or radius-3 frost ball (#%d).
 
-spell:Stinking Cloud:0:3:4:0:0
+spell:Venomous Cloud:0:5:7:0:0
 effect:BALL:POIS:2
 flag:BA_POIS
-dice:12d2
-msg_other: fires a stinking cloud.
+dice:$Dd4
+expr:D:PLAYER_LEVEL:/ 2 + 3
+msg_other: fires a venomous cloud.
 desc:Shoots a radius-2 or radius-3 poison ball (#%d).
+
+spell:Shard Ball:0:9:13:0:0
+effect:BALL:SHARD:2
+flag:BA_SHAR
+dice:10+1d$S
+expr:S:PLAYER_LEVEL:* 3 / 2
+msg_other: fires a shard ball.
+desc:Shoots a radius-2 or radius-3 shard ball (#%d).
 
 spell:Nether Ball:0:20:29:0:0
 effect:BALL:NETHER:2
@@ -4019,6 +4023,22 @@ expr:B:PLAYER_LEVEL:* 5
 msg_other: invokes a darkness storm.
 desc:Shoots a radius-2 or radius-3 darkness ball (#%d).
 
+spell:Starburst:0:30:40:0:0
+effect:BALL:LIGHT:2
+flag:BA_LIGHT
+dice:$B+8d8
+expr:B:PLAYER_LEVEL:* 4
+msg_other: invokes a starburst.
+desc:Shoots a radius-2 or radius-3 light ball (#%d).
+
+spell:Storm:0:30:40:0:0
+effect:BALL:WATER:3
+flag:STORM
+dice:50+$Dd10
+expr:D:PLAYER_LEVEL:/ 2
+msg_other: invokes a tempest of water.
+desc:Shoots a radius-3 water ball (#%d).
+
 spell:Drain Mana:0:3:6:0:0
 effect:BOLT_AWARE:DRAIN_MANA
 flag:DRAIN_MANA
@@ -4044,34 +4064,14 @@ msg_other: hurls a powerful mind blast.
 desc:Fires a powerful mental blast that will damage minded creatures. This also
 desc: has a chance to blind, confuse, put to sleep or slow the target (#%d).
 
-spell:Cause Light Wounds:0:3:4:0:0
+spell:Cause Wounds:0:15:22:0:0
 effect:BOLT:CURSE
-flag:CAUSE_1
-dice:3d8
-msg_other: curses.
-desc:Cause 3d8 points of damage to its target (#%d).
-
-spell:Cause Serious Wounds:0:7:10:0:0
-effect:BOLT:CURSE
-flag:CAUSE_2
-dice:8d8
-msg_other: curses horribly.
-desc:Cause 8d8 points of damage to its target (#%d).
-
-spell:Cause Critical Wounds:0:15:22:0:0
-effect:BOLT:CURSE
-flag:CAUSE_3
-dice:10d15
+flag:WOUND
+dice:15d$S
+expr:S:PLAYER_LEVEL:/ 8 + 1
 msg_other: incants terribly.
-desc:Cause 10d15 points of damage to its target (#%d).
-
-spell:Cause Mortal Wounds:0:23:33:0:0
-effect:BOLT:CURSE2
-flag:CAUSE_4
-dice:15d15
-msg_other: screams the word 'DIE!'
-desc:Cause 15d15 points of damage to its target. This also has a chance
-desc: to cause open wounds (#%d).
+desc:Cause damage to its target. This also has a chance to cause open wounds
+desc: (#%d).
 
 spell:Acid Bolt:0:8:11:0:0
 effect:BOLT:ACID
@@ -4153,6 +4153,14 @@ expr:B:PLAYER_LEVEL:/ 3
 msg_other: fires a magic missile.
 desc:Fires a magic missile that always hits its target (#%d).
 
+spell:Nether Beam:0:16:24:0:0
+effect:BEAM:NETHER
+flag:BE_NETH
+dice:$B+5d5
+expr:B:PLAYER_LEVEL:* 2 + 30
+msg_other: hurls a lance of nether.
+desc:Fires a nether beam that always hits its target (#%d).
+
 spell:Scare:0:5:10:0:0
 effect:BOLT_AWARE:TURN_ALL
 flag:SCARE
@@ -4209,6 +4217,17 @@ msg_other: concentrates on %s wounds.
 desc:Cures a level-dependent amount of damage points, removes fear,
 desc: neutralizes poison and heals all cut damage (#%d).
 
+spell:Heal Other:0:16:32:0:1
+effect:CURE:CUT
+effect:CURE:STUN
+effect:HEAL_HP
+flag:HEAL_KIN
+dice:$B
+expr:B:PLAYER_LEVEL:* 6
+msg_other: tries to heal %s comrades.
+desc:Cures a level-dependent amount of damage points, and heals all cut and stun
+desc: damage (#%d).
+
 spell:Blink:0:2:4:0:0
 effect:TELEPORT
 flag:BLINK
@@ -4229,6 +4248,14 @@ effect:BOLT_AWARE:TELE_TO
 flag:TELE_TO
 msg_other: commands %s target to come hither.
 desc:Teleports its target next to you (#%d).
+
+spell:Teleport Self To:0:12:24:0:0
+effect:TELEPORT_TO
+flag:TELE_SELF_TO
+dice:$B
+expr:B:PLAYER_LEVEL:/ 5 + 10
+msg_other: blinks toward %s target.
+desc:Teleports you next to its target (#%d).
 
 spell:Teleport Away:0:12:24:0:0
 effect:BOLT_STATUS:AWAY_ALL:1
@@ -4413,6 +4440,24 @@ flag:S_UNIQUE
 dice:8
 msg_other: magically summons special opponents!
 desc:Attempts to summon up to eight unique monsters generated at the current
+desc: dungeon level.
+desc: This spell has no effect when used in the town (#%d).
+
+spell:Summon Abominations:0:40:50:0:0
+effect:SUMMON:ABOMINATION
+flag:S_ABOMINATION
+dice:8
+msg_other: magically summons abominations!
+desc:Attempts to summon up to eight abominations generated at the current
+desc: dungeon level.
+desc: This spell has no effect when used in the town (#%d).
+
+spell:Summon Spirits:0:40:50:0:0
+effect:SUMMON:SPIRIT
+flag:S_SPIRIT
+dice:8
+msg_other: magically summons spirits!
+desc:Attempts to summon up to eight spirits generated at the current
 desc: dungeon level.
 desc: This spell has no effect when used in the town (#%d).
 

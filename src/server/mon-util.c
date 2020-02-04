@@ -615,6 +615,22 @@ bool monster_carry(struct monster *mon, struct object *obj, bool force)
 
 
 /*
+ * Called when the player has just left grid1 for grid2.
+ */
+static void player_leaving(struct player *p, struct chunk *c, struct loc *grid1, struct loc *grid2)
+{
+    struct loc *decoy = cave_find_decoy(c);
+
+    /* Decoys get destroyed if player is too far away */
+    if (!loc_is_zero(decoy) && (distance(decoy, grid2) > z_info->max_sight))
+        square_destroy_decoy(p, c, decoy);
+
+    /* Delayed traps trigger when the player leaves */
+    hit_trap(p, grid1, 1);
+}
+
+
+/*
  * Swap the players/monsters (if any) at two locations.
  */
 void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
@@ -622,7 +638,6 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
     struct player *p;
     int m1, m2;
     struct monster *mon;
-    struct loc *decoy = cave_find_decoy(c);
 
     /* Hack -- don't use grid1 and grid2 directly, they may refer to current player/monster grids */
     struct loc from, to;
@@ -666,10 +681,7 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
 
         /* Move player */
         loc_copy(&p->grid, &to);
-
-        /* Decoys get destroyed if player is too far away */
-        if (!loc_is_zero(decoy) && (distance(decoy, &p->grid) > z_info->max_sight))
-            square_destroy_decoy(p, c, decoy);
+        player_leaving(p, c, &p->old_grid, &p->grid);
 
         /* Update the trap detection status */
         p->upkeep->redraw |= (PR_DTRAP);
@@ -714,10 +726,7 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
 
         /* Move player */
         loc_copy(&p->grid, &from);
-
-        /* Decoys get destroyed if player is too far away */
-        if (!loc_is_zero(decoy) && (distance(decoy, &p->grid) > z_info->max_sight))
-            square_destroy_decoy(p, c, decoy);
+        player_leaving(p, c, &p->old_grid, &p->grid);
 
         /* Update the trap detection status */
         p->upkeep->redraw |= (PR_DTRAP);

@@ -1678,14 +1678,11 @@ static void wipe_delayed_ranged_effects(ranged_effects **effects, struct monster
 static void missile_pict(struct player *p, const struct object *obj, struct loc *start,
     struct loc *end, byte *a, char *c)
 {
-    int arrow_type = (kf_has(obj->kind->kind_flags, KF_AMMO_NORMAL)? PROJ_ARROW_2: PROJ_ARROW_X);
-    int bolt_type = (kf_has(obj->kind->kind_flags, KF_AMMO_NORMAL)? PROJ_ARROW_3: PROJ_ARROW_4);
-
     /* Get a nice missile picture for arrows and bolts */
     if (tval_is_arrow(obj))
-        bolt_pict(p, start, end, arrow_type, a, c);
+        bolt_pict(p, start, end, PROJ_ARROW, a, c);
     else if (tval_is_bolt(obj))
-        bolt_pict(p, start, end, bolt_type, a, c);
+        bolt_pict(p, start, end, PROJ_BOLT, a, c);
     else
     {
         /* Default to object picture */
@@ -2296,7 +2293,7 @@ bool do_cmd_fire(struct player *p, int dir, int item)
     if ((dir == DIR_TARGET) && !target_okay(p)) return false;
 
     magic = of_has(obj->flags, OF_AMMO_MAGIC);
-    pierce = (has_bowbrand(p, PROJ_ARROW_X, false) ||
+    pierce = (has_bowbrand(p, PROJ_ARROW, false) ||
         (p->timed[TMD_POWERSHOT] && tval_is_sharp_missile(obj)));
 
     /* Temporary "Farsight" */

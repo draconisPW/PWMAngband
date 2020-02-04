@@ -20,7 +20,7 @@ extern bool do_cmd_tunnel(struct player *p);
 extern void do_cmd_disarm(struct player *p, int dir, bool easy);
 extern void do_cmd_alter(struct player *p, int dir);
 extern void move_player(struct player *p, struct chunk *c, int dir, bool disarm,
-    bool check_pickup, bool force);
+    bool check_pickup, bool force, int delayed);
 extern void do_cmd_walk(struct player *p, int dir);
 extern void do_cmd_jump(struct player *p, int dir);
 extern void do_cmd_run(struct player *p, int dir);

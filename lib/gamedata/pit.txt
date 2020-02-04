@@ -211,8 +211,7 @@ mon-base:humanoid
 mon-base:orc
 mon-base:person
 spell-req:MISSILE
-spell-ban:ARROW_1
-spell-ban:ARROW_2
+spell-ban:ARROW
 
 name:Archers
 room:1
@@ -223,9 +222,7 @@ mon-base:orc
 mon-base:person
 color:W
 color:D
-spell-ban:BO_NETH
-spell-ban:HASTE
-spell-ban:BA_NETH
+spell-req:ARROW
 
 name:Nagas
 room:1
@@ -255,7 +252,7 @@ alloc:1:30
 obj-rarity:0
 mon-base:humanoid
 flags-req:HURT_LIGHT
-spell-ban:CAUSE_1
+spell-ban:TPORT
 
 name:Eyes
 room:1

@@ -76,6 +76,7 @@ EFFECT(ENCHANT, false, NULL, 2, EFINFO_ENCHANT, "attempts to magically enhance %
 EFFECT(ELEM_BRAND, false, "x", 0, EFINFO_NONE, "brands your wielded melee weapon with some elements")
 EFFECT(END_INFO, false, NULL, 0, EFINFO_NONE, NULL)
 EFFECT(GAIN_EXP, false, NULL, 1, EFINFO_CONST, "grants (up to) %s experience points")
+EFFECT(GRANITE, false, NULL, 0, EFINFO_NONE, "causes a granite wall to fall behind you")
 EFFECT(GAIN_STAT, false, NULL, 1, EFINFO_STAT, "permanently increases %s")
 EFFECT(HEAL_HP, false, "heal", 2, EFINFO_HEAL, "cures %s points of damage%s")
 EFFECT(IDENTIFY, false, NULL, 0, EFINFO_NONE, "reveals a single unknown property of a selected item")

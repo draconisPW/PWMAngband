@@ -339,35 +339,21 @@ static void project_feature_handler_HOLY_ORB(project_feature_handler_context_t *
 }
 
 
-static void project_feature_handler_ARROW_X(project_feature_handler_context_t *context)
+static void project_feature_handler_SHOT(project_feature_handler_context_t *context)
 {
     /* Grid is in line of sight and player is not blind */
     if (context->line_sight && !context->is_blind) context->obvious = true;
 }
 
 
-static void project_feature_handler_ARROW_1(project_feature_handler_context_t *context)
+static void project_feature_handler_ARROW(project_feature_handler_context_t *context)
 {
     /* Grid is in line of sight and player is not blind */
     if (context->line_sight && !context->is_blind) context->obvious = true;
 }
 
 
-static void project_feature_handler_ARROW_2(project_feature_handler_context_t *context)
-{
-    /* Grid is in line of sight and player is not blind */
-    if (context->line_sight && !context->is_blind) context->obvious = true;
-}
-
-
-static void project_feature_handler_ARROW_3(project_feature_handler_context_t *context)
-{
-    /* Grid is in line of sight and player is not blind */
-    if (context->line_sight && !context->is_blind) context->obvious = true;
-}
-
-
-static void project_feature_handler_ARROW_4(project_feature_handler_context_t *context)
+static void project_feature_handler_BOLT(project_feature_handler_context_t *context)
 {
     /* Grid is in line of sight and player is not blind */
     if (context->line_sight && !context->is_blind) context->obvious = true;
@@ -721,7 +707,6 @@ static void project_feature_handler_MON_CRUSH(project_feature_handler_context_t 
 static void project_feature_handler_PSI(project_feature_handler_context_t *context) {}
 static void project_feature_handler_PSI_DRAIN(project_feature_handler_context_t *context) {}
 static void project_feature_handler_CURSE(project_feature_handler_context_t *context) {}
-static void project_feature_handler_CURSE2(project_feature_handler_context_t *context) {}
 static void project_feature_handler_DRAIN(project_feature_handler_context_t *context) {}
 static void project_feature_handler_COMMAND(project_feature_handler_context_t *context) {}
 static void project_feature_handler_TELE_TO(project_feature_handler_context_t *context) {}

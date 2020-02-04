@@ -41,18 +41,22 @@ typedef enum monster_sex monster_sex_t;
  * dangerous the attack is to the player given current state. Spells may be
  * colored green (least dangerous), yellow, orange, or red (most dangerous).
  */
-int spell_color(struct player *p, int spell_index)
+static int spell_color(struct player *p, const struct monster_race *race, int spell_index)
 {
     const struct monster_spell *spell = monster_spell_by_index(spell_index);
+    struct monster_spell_level *level = spell->level;
 
     /* No spell */
     if (!spell) return COLOUR_DARK;
 
+    /* Get the right level */
+    while (level->next && race->spell_power >= level->next->power) level = level->next;
+
     /* Unresistable spells just use the default color */
-    if (!spell->lore_attr_resist && !spell->lore_attr_immune) return spell->lore_attr;
+    if (!level->lore_attr_resist && !level->lore_attr_immune) return level->lore_attr;
 
     /* Spells with a save */
-    if (spell->save_message)
+    if (level->save_message)
     {
         /* Mixed results if the save may fail, perfect result if it can't */
         if (p->known_state.skills[SKILL_SAVE] < 100)
@@ -61,28 +65,28 @@ int spell_color(struct player *p, int spell_index)
             if (spell->effect->index == EF_TELEPORT_LEVEL)
             {
                 if (p->known_state.el_info[ELEM_NEXUS].res_level > 0)
-                    return spell->lore_attr_resist;
-                return spell->lore_attr;
+                    return level->lore_attr_resist;
+                return level->lore_attr;
             }
 
             /* Timed effects with or without damage */
-            if (spell->lore_attr_immune)
+            if (level->lore_attr_immune)
             {
                 struct effect *eff;
 
                 for (eff = spell->effect; eff; eff = eff->next)
                 {
                     if (eff->index != EF_TIMED_INC) continue;
-                    if (player_inc_check(p, NULL, eff->subtype, true)) return spell->lore_attr;
+                    if (player_inc_check(p, NULL, eff->subtype, true)) return level->lore_attr;
                 }
-                return spell->lore_attr_resist;
+                return level->lore_attr_resist;
             }
 
             /* Straight damage */
-            return spell->lore_attr;
+            return level->lore_attr;
         }
-        if (spell->lore_attr_immune) return spell->lore_attr_immune;
-        return spell->lore_attr_resist;
+        if (level->lore_attr_immune) return level->lore_attr_immune;
+        return level->lore_attr_resist;
     }
 
     /* Bolts, balls and breaths */
@@ -96,20 +100,20 @@ int spell_color(struct player *p, int spell_index)
             case ELEM_SOUND:
             {
                 if (p->known_state.el_info[ELEM_SOUND].res_level > 0)
-                    return spell->lore_attr_immune;
+                    return level->lore_attr_immune;
                 if (of_has(p->known_state.flags, OF_PROT_STUN))
-                    return spell->lore_attr_resist;
-                return spell->lore_attr;
+                    return level->lore_attr_resist;
+                return level->lore_attr;
             }
 
             /* Special case - nexus */
             case ELEM_NEXUS:
             {
                 if (p->known_state.el_info[ELEM_NEXUS].res_level > 0)
-                    return spell->lore_attr_immune;
+                    return level->lore_attr_immune;
                 if (p->known_state.skills[SKILL_SAVE] >= 100)
-                    return spell->lore_attr_resist;
-                return spell->lore_attr;
+                    return level->lore_attr_resist;
+                return level->lore_attr;
             }
 
             /* Elements that stun or confuse */
@@ -119,13 +123,13 @@ int spell_color(struct player *p, int spell_index)
             case ELEM_WATER:
             {
                 if (!of_has(p->known_state.flags, OF_PROT_STUN))
-                    return spell->lore_attr;
+                    return level->lore_attr;
                 if (!of_has(p->known_state.flags, OF_PROT_CONF) &&
                     (spell->effect->subtype == ELEM_WATER))
                 {
-                    return spell->lore_attr;
+                    return level->lore_attr;
                 }
-                return spell->lore_attr_resist;
+                return level->lore_attr_resist;
             }
 
             /* Special case - ice (PWMAngband: cold + stun) */
@@ -134,27 +138,27 @@ int spell_color(struct player *p, int spell_index)
                 if (!of_has(p->known_state.flags, OF_PROT_STUN))
                 {
                     if (p->known_state.el_info[ELEM_COLD].res_level > 0)
-                        return spell->lore_attr_resist;
-                    return spell->lore_attr;
+                        return level->lore_attr_resist;
+                    return level->lore_attr;
                 }
                 if (p->known_state.el_info[ELEM_COLD].res_level > 0)
-                    return spell->lore_attr_immune;
-                return spell->lore_attr_resist;
+                    return level->lore_attr_immune;
+                return level->lore_attr_resist;
             }
 
             /* All other elements */
             default:
             {
                 if (p->known_state.el_info[spell->effect->subtype].res_level == 3)
-                    return spell->lore_attr_immune;
+                    return level->lore_attr_immune;
                 if (p->known_state.el_info[spell->effect->subtype].res_level > 0)
-                    return spell->lore_attr_resist;
-                return spell->lore_attr;
+                    return level->lore_attr_resist;
+                return level->lore_attr;
             }
         }
     }
 
-    return spell->lore_attr;
+    return level->lore_attr;
 }
 
 
@@ -747,7 +751,7 @@ static void lore_append_spell_clause(struct player *p, bitflag *f, bool know_hp,
 
         for (spell = rsf_next(f, FLAG_START); spell; spell = rsf_next(f, spell + 1))
         {
-            int color = spell_color(p, spell);
+            int color = spell_color(p, race, spell);
             int damage = mon_spell_lore_damage(spell, race, know_hp);
 
             /* First entry starts immediately */

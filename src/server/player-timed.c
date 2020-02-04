@@ -407,7 +407,7 @@ static bool set_bow_brand(struct player *p, int v)
                     msg_misc(p, "'s missiles are covered with venom.");
                     msg(p, "Your missiles are covered with venom!");
                     break;
-                case PROJ_ARROW_X:
+                case PROJ_ARROW:
                     msg_misc(p, "'s missiles sharpen.");
                     msg(p, "Your missiles sharpen!");
                     break;

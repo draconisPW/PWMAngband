@@ -107,11 +107,9 @@ int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resis
         switch (type)
         {
             case PROJ_MISSILE:
-            case PROJ_ARROW_X:
-            case PROJ_ARROW_1:
-            case PROJ_ARROW_2:
-            case PROJ_ARROW_3:
-            case PROJ_ARROW_4:
+            case PROJ_SHOT:
+            case PROJ_ARROW:
+            case PROJ_BOLT:
             case PROJ_BOULDER:
             case PROJ_SHARD:
             case PROJ_SOUND:
@@ -293,7 +291,7 @@ typedef struct project_player_handler_context_s
     struct loc grid;
     int dam;
     int type;
-    bool powerful;
+    int power;
 
     /* Return values */
     bool obvious;
@@ -355,7 +353,7 @@ static int project_player_handler_FIRE(project_player_handler_context_t *context
     inven_damage(p, PROJ_FIRE, MIN(context->dam * 5, 300));
 
     /* Occasional side-effects for powerful fire attacks */
-    if (context->powerful)
+    if (context->power >= 80)
     {
         if (randint0(context->dam) > 500)
         {
@@ -397,7 +395,7 @@ static int project_player_handler_COLD(project_player_handler_context_t *context
     inven_damage(p, PROJ_COLD, MIN(context->dam * 5, 300));
 
     /* Occasional side-effects for powerful cold attacks */
-    if (context->powerful)
+    if (context->power >= 80)
     {
         if (randint0(context->dam) > 500)
         {
@@ -442,7 +440,7 @@ static int project_player_handler_POIS(project_player_handler_context_t *context
 
 
     /* Occasional side-effects for powerful poison attacks */
-    if (context->powerful)
+    if (context->power >= 60)
     {
         if (randint0(context->dam) > 200)
         {
@@ -510,7 +508,7 @@ static int project_player_handler_DARK(project_player_handler_context_t *context
     player_inc_timed(p, TMD_BLIND, 2 + randint1(5), true, check);
 
     /* Unresisted dark from powerful monsters is bad news */
-    if (context->powerful)
+    if (context->power >= 70)
     {
         /* Life draining */
         if (randint0(context->dam) > 100)
@@ -661,7 +659,7 @@ static int project_player_handler_NETHER(project_player_handler_context_t *conte
     player_exp_lose(p, drain, false);
 
     /* Powerful nether attacks have further side-effects */
-    if (context->powerful)
+    if (context->power >= 80)
     {
         /* Mana drain */
         if ((randint0(context->dam) > 100) && p->msp)
@@ -922,11 +920,9 @@ static int project_player_handler_METEOR(project_player_handler_context_t *conte
 static int project_player_handler_MISSILE(project_player_handler_context_t *context) {return 0;}
 static int project_player_handler_MANA(project_player_handler_context_t *context) {return 0;}
 static int project_player_handler_HOLY_ORB(project_player_handler_context_t *context) {return 0;}
-static int project_player_handler_ARROW_X(project_player_handler_context_t *context) {return 0;}
-static int project_player_handler_ARROW_1(project_player_handler_context_t *context) {return 0;}
-static int project_player_handler_ARROW_2(project_player_handler_context_t *context) {return 0;}
-static int project_player_handler_ARROW_3(project_player_handler_context_t *context) {return 0;}
-static int project_player_handler_ARROW_4(project_player_handler_context_t *context) {return 0;}
+static int project_player_handler_SHOT(project_player_handler_context_t *context) {return 0;}
+static int project_player_handler_ARROW(project_player_handler_context_t *context) {return 0;}
+static int project_player_handler_BOLT(project_player_handler_context_t *context) {return 0;}
 static int project_player_handler_BOULDER(project_player_handler_context_t *context) {return 0;}
 static int project_player_handler_LIGHT_WEAK(project_player_handler_context_t *context) {return 0;}
 static int project_player_handler_DARK_WEAK(project_player_handler_context_t *context) {return 0;}
@@ -1296,15 +1292,18 @@ static int project_player_handler_PSI_DRAIN(project_player_handler_context_t *co
     return 0;
 }
 
-static int project_player_handler_CURSE(project_player_handler_context_t *context) {return 0;}
 
-
-static int project_player_handler_CURSE2(project_player_handler_context_t *context)
+static int project_player_handler_CURSE(project_player_handler_context_t *context)
 {
     struct player *p = player_get(0 - square(context->cave, &context->grid)->mon);
+    int power;
+
+    if (context->origin->monster) power = context->origin->monster->race->spell_power;
+    else power = context->origin->player->lev * 2;
+    if (power < 55) return 0;
 
     /* Cuts */
-    player_inc_timed(p, TMD_CUT, damroll(10, 10), true, true);
+    player_inc_timed(p, TMD_CUT, damroll(power / 5 - 10, 10), true, true);
 
     return 0;
 }
@@ -1536,7 +1535,7 @@ static bool project_p_is_threat(int type)
  * We assume the player is aware of some effect, and always return "true".
  */
 void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, int dam, int typ,
-    bool powerful, const char *what, bool *did_hit, bool *was_obvious, struct loc *newgrid)
+    int power, const char *what, bool *did_hit, bool *was_obvious, struct loc *newgrid)
 {
     bool blind, seen;
     bool obvious = true;
@@ -1705,7 +1704,7 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     loc_copy(&context.grid, grid);
     context.dam = dam;
     context.type = typ;
-    context.powerful = powerful;
+    context.power = power;
     context.obvious = obvious;
 
     player_handler = player_handlers[typ];

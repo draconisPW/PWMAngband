@@ -86,7 +86,7 @@ msg:The {kind} sound{s} loud and clear...
 name:ARROW
 aim:1
 power:11
-effect:BOLT:ARROW_X
+effect:BOLT:ARROW
 dice:150
 msg_other: fires a magical arrow.
 msg:Your {kind} form{s} a magical arrow...

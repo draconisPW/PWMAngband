@@ -632,7 +632,7 @@ void run_step(struct player *p, int dir)
     use_energy(p);
 
     /* Move the player, attempts to disarm if running straight at a trap */
-    move_player(p, c, p->run_cur_dir, (dir && disarm), false, false);
+    move_player(p, c, p->run_cur_dir, (dir && disarm), false, false, 0);
 
     /* Prepare the next step */
     if (p->upkeep->running) cmd_run(p, 0);
