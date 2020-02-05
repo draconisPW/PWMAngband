@@ -1335,6 +1335,9 @@ bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int da
     struct source who_body;
     struct source *who = &who_body;
 
+    /* If it cannot die, we're done */
+    if (rf_has(mon->race->flags, RF_NO_DEATH)) return false;
+
     /* Redraw (later) if needed */
     source_monster(who, mon);
     update_health(who);

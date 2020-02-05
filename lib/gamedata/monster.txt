@@ -560,6 +560,23 @@ desc:This greedy and ill-mannered hobbit thinks she has been spoiled from a good
 desc: heritage.
 force-location:The Brandywine Bridge
 
+name:Target Dummy
+base:golem
+color:y
+speed:110
+hit-points:1
+hearing:1
+armor-class:0
+sleepiness:0
+depth:0
+rarity:1
+weight:0
+experience:0
+flags:UNIQUE | NEVER_BLOW | NEVER_MOVE | NO_DEATH
+flags:PWMANG_EXTRA | PWMANG_FIXED
+desc:An indestructible golem used for target practice.
+force-location:Carn Dûm
+
 ### Dungeon level 1 ###
 
 name:grey mold

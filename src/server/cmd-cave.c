@@ -1935,12 +1935,42 @@ void do_cmd_walk(struct player *p, int dir)
     /* If we're in a web, deal with that */
     if (square_iswebbed(c, &p->grid))
     {
+        /* Handle polymorphed players */
+        if (p->poly_race)
+        {
+            /* If we can pass, no need to clear */
+            if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
+            {
+                /* Insubstantial monsters go right through */
+                if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
+
+                /* If you can destroy a wall, you can destroy a web */
+                else if (rf_has(p->poly_race->flags, RF_KILL_WALL)) {}
+
+                /* Clearing costs a turn */
+                else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
+                {
+                    square_clear_feat(c, &p->grid);
+                    update_visuals(&p->wpos);
+                    fully_update_flow(&p->wpos);
+                    use_energy(p);
+                    return;
+                }
+
+                /* Stuck */
+                else return;
+            }
+        }
+
         /* Clear the web, finish turn */
-        square_clear_feat(c, &p->grid);
-        update_visuals(&p->wpos);
-        fully_update_flow(&p->wpos);
-        use_energy(p);
-        return;
+        else
+        {
+            square_clear_feat(c, &p->grid);
+            update_visuals(&p->wpos);
+            fully_update_flow(&p->wpos);
+            use_energy(p);
+            return;
+        }
     }
 
     /* Verify legality */
@@ -1976,12 +2006,42 @@ void do_cmd_jump(struct player *p, int dir)
     /* If we're in a web, deal with that */
     if (square_iswebbed(c, &p->grid))
     {
+        /* Handle polymorphed players */
+        if (p->poly_race)
+        {
+            /* If we can pass, no need to clear */
+            if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
+            {
+                /* Insubstantial monsters go right through */
+                if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
+
+                /* If you can destroy a wall, you can destroy a web */
+                else if (rf_has(p->poly_race->flags, RF_KILL_WALL)) {}
+
+                /* Clearing costs a turn */
+                else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
+                {
+                    square_clear_feat(c, &p->grid);
+                    update_visuals(&p->wpos);
+                    fully_update_flow(&p->wpos);
+                    use_energy(p);
+                    return;
+                }
+
+                /* Stuck */
+                else return;
+            }
+        }
+
         /* Clear the web, finish turn */
-        square_clear_feat(c, &p->grid);
-        update_visuals(&p->wpos);
-        fully_update_flow(&p->wpos);
-        use_energy(p);
-        return;
+        else
+        {
+            square_clear_feat(c, &p->grid);
+            update_visuals(&p->wpos);
+            fully_update_flow(&p->wpos);
+            use_energy(p);
+            return;
+        }
     }
 
     /* Verify legality */

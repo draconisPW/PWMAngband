@@ -7392,21 +7392,30 @@ static bool effect_handler_WEB(effect_handler_context_t *context)
 {
     int rad = 1;
     struct monster *mon = context->origin->monster;
-    struct loc begin, end;
+    struct loc begin, end, grid;
     struct loc_iterator iter;
+    int spell_power;
 
-    /* Player can't currently create webs */
-    if (!mon) return false;
+    if (mon)
+    {
+        spell_power = mon->race->spell_power;
+        loc_copy(&grid, &mon->grid);
+    }
+    else
+    {
+        spell_power = context->origin->player->lev * 2;
+        loc_copy(&grid, &context->origin->player->grid);
+    }
 
     /* Always notice */
     context->ident = true;
 
     /* Increase the radius for higher spell power */
-    if (mon->race->spell_power > 40) rad++;
-    if (mon->race->spell_power > 80) rad++;
+    if (spell_power > 40) rad++;
+    if (spell_power > 80) rad++;
 
-    loc_init(&begin, mon->grid.x - rad, mon->grid.y - rad);
-    loc_init(&end, mon->grid.x + rad, mon->grid.y + rad);
+    loc_init(&begin, grid.x - rad, grid.y - rad);
+    loc_init(&end, grid.x + rad, grid.y + rad);
     loc_iterator_first(&iter, &begin, &end);
 
     /* Check within the radius for clear floor */
@@ -7416,7 +7425,7 @@ static bool effect_handler_WEB(effect_handler_context_t *context)
         if (!square_in_bounds_fully(context->cave, &iter.cur)) continue;
 
         /* Skip distant grids */
-        if (distance(&iter.cur, &mon->grid) > rad) continue;
+        if (distance(&iter.cur, &grid) > rad) continue;
 
         /* Require a floor grid with no existing traps or glyphs */
         if (!square_iswebbable(context->cave, &iter.cur)) continue;

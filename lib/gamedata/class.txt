@@ -4033,11 +4033,17 @@ desc:Shoots a radius-2 or radius-3 light ball (#%d).
 
 spell:Storm:0:30:40:0:0
 effect:BALL:WATER:3
-flag:STORM
 dice:50+$Dd10
 expr:D:PLAYER_LEVEL:/ 2
-msg_other: invokes a tempest of water.
-desc:Shoots a radius-3 water ball (#%d).
+effect:BALL:ELEC:3
+dice:20+$Dd5
+expr:D:PLAYER_LEVEL:/ 2
+effect:BALL:ICE:3
+flag:STORM
+dice:20+$Dd5
+expr:D:PLAYER_LEVEL:/ 2
+msg_other: creates a tempest of wind and water.
+desc:Shoots a radius-3 water/lightning/ice ball (#%d).
 
 spell:Drain Mana:0:3:6:0:0
 effect:BOLT_AWARE:DRAIN_MANA
@@ -4217,10 +4223,8 @@ msg_other: concentrates on %s wounds.
 desc:Cures a level-dependent amount of damage points, removes fear,
 desc: neutralizes poison and heals all cut damage (#%d).
 
-spell:Heal Other:0:16:32:0:1
-effect:CURE:CUT
-effect:CURE:STUN
-effect:HEAL_HP
+spell:Heal Other:0:16:32:0:0
+effect:BOLT_STATUS:MON_HEAL
 flag:HEAL_KIN
 dice:$B
 expr:B:PLAYER_LEVEL:* 6
@@ -4274,8 +4278,8 @@ desc:Teleports its target 1 level up or 1 level down (chosen at random) (#%d).
 
 spell:Darkness:0:3:6:0:0
 effect:DARKEN_AREA
-flag:DARKNESS
 effect:BLAST:DARK_WEAK:3
+flag:DARKNESS
 dice:10
 msg_other: gestures in shadow.
 desc:Darkens a radius-{3} area (plus the entire room if you are currently in
