@@ -29,6 +29,7 @@
 # brand:level of application:brand code
 # slay:level of application:slay code
 # player-flags:class flags
+# shape:level of application:monster race
 # title:title
 # magic:spell_first:spell_weight:num_books
 # book:tval:quality:name:spells:realm
@@ -75,9 +76,11 @@
 
 # 'brand' is for brands that classes possess innately at a certain level.
 
-# 'slay' is for slays that races possess innately at a certain level.
+# 'slay' is for slays that classes possess innately at a certain level.
 
 # 'player-flags' is for class flags.
+
+# 'shape' is for shapes that classes can polymorph into at a certain level.
 
 # 'title' is for class titles.
 
@@ -505,14 +508,14 @@ shape:15:griffon
 shape:15:sasquatch
 shape:20:werebear
 shape:20:great eagle
-shape:20:aranea
+shape:20:abyss spider
 shape:25:wyvern
 shape:25:multi-hued hound
 shape:30:5-headed hydra
 shape:30:minotaur
 shape:35:7-headed hydra
 shape:35:plasma hound
-shape:35:elder aranea
+shape:35:ancient spider
 shape:40:11-headed hydra
 shape:40:giant roc
 shape:45:maulotaur
@@ -3995,7 +3998,7 @@ spell:Nether Ball:0:20:29:0:0
 effect:BALL:NETHER:2
 flag:BA_NETH
 dice:$B+10d10
-expr:B:PLAYER_LEVEL:+ 50
+expr:B:PLAYER_LEVEL:* 4
 msg_other: fires a nether ball.
 desc:Shoots a radius-2 or radius-3 nether ball (#%d).
 
@@ -4015,11 +4018,11 @@ expr:B:PLAYER_LEVEL:* 5
 msg_other: invokes a mana storm.
 desc:Shoots a radius-2 or radius-3 mana ball (#%d).
 
-spell:Darkness Storm:0:35:50:0:0
+spell:Darkness Storm:0:30:40:0:0
 effect:BALL:DARK:2
 flag:BA_DARK
 dice:$B+10d10
-expr:B:PLAYER_LEVEL:* 5
+expr:B:PLAYER_LEVEL:* 4
 msg_other: invokes a darkness storm.
 desc:Shoots a radius-2 or radius-3 darkness ball (#%d).
 
@@ -4033,15 +4036,15 @@ desc:Shoots a radius-2 or radius-3 light ball (#%d).
 
 spell:Storm:0:30:40:0:0
 effect:BALL:WATER:3
-dice:50+$Dd10
-expr:D:PLAYER_LEVEL:/ 2
+dice:30+$Dd5
+expr:D:PLAYER_LEVEL:/ 3
 effect:BALL:ELEC:3
 dice:20+$Dd5
-expr:D:PLAYER_LEVEL:/ 2
+expr:D:PLAYER_LEVEL:/ 3
 effect:BALL:ICE:3
 flag:STORM
 dice:20+$Dd5
-expr:D:PLAYER_LEVEL:/ 2
+expr:D:PLAYER_LEVEL:/ 3
 msg_other: creates a tempest of wind and water.
 desc:Shoots a radius-3 water/lightning/ice ball (#%d).
 
@@ -4073,8 +4076,8 @@ desc: has a chance to blind, confuse, put to sleep or slow the target (#%d).
 spell:Cause Wounds:0:15:22:0:0
 effect:BOLT:CURSE
 flag:WOUND
-dice:15d$S
-expr:S:PLAYER_LEVEL:/ 8 + 1
+dice:$Dd5
+expr:S:PLAYER_LEVEL:/ 3 * 2
 msg_other: incants terribly.
 desc:Cause damage to its target. This also has a chance to cause open wounds
 desc: (#%d).
@@ -4131,7 +4134,7 @@ spell:Mana Bolt:0:23:33:0:0
 effect:BOLT:MANA
 flag:BO_MANA
 dice:50+1d$S
-expr:S:PLAYER_LEVEL:* 7 / 2
+expr:S:PLAYER_LEVEL:* 5 / 2
 msg_other: fires a mana bolt.
 desc:Fires a mana bolt that always hits its target (#%d).
 
@@ -4158,6 +4161,14 @@ dice:$B+2d6
 expr:B:PLAYER_LEVEL:/ 3
 msg_other: fires a magic missile.
 desc:Fires a magic missile that always hits its target (#%d).
+
+spell:Lightning Beam:0:8:12:0:0
+effect:BEAM:ELEC
+flag:BE_ELEC
+dice:$B+5d5
+expr:B:PLAYER_LEVEL:* 2 + 30
+msg_other: shoots a spark of lightning.
+desc:Fires a lightning beam that always hits its target (#%d).
 
 spell:Nether Beam:0:16:24:0:0
 effect:BEAM:NETHER

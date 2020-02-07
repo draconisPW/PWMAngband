@@ -499,7 +499,7 @@ static void project_feature_handler_KILL_WALL(project_feature_handler_context_t 
         /* Fully update the flow */
         fully_update_flow(&context->cave->wpos);
     }
-    else if (square_isrock(context->cave, &grid))
+    else if (square_isrock(context->cave, &grid) || square_ismineral_other(context->cave, &grid))
     {
         /* Message */
         if (context->line_sound)

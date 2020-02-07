@@ -9,8 +9,11 @@ Monsters
 - Ainur: most of these now align with one of the great Valar, and have
   corresponding powers
 - Dragons: these have mostly been made stronger and deeper
+- Hydras: each hydra type is like the previous type with a new head and
+  attack added
 - Snakes: some of these are now dangerous
 - Spiders: more dangerous and deeper, with unique abilities
+- Trees/Ents: these are new, tough to kill enemies
 - Wights/Wraiths: wights are all now shallower than wraiths, and the
   Ringwraiths are much deeper
 
@@ -77,10 +80,11 @@ Angband 4.2.0:
 - Unify wounding spells
 - Unify arrow spells, add shot and bolt spells
 - Add shard balls
+- Add SMASH_WALL, changes to SHATTER blow effect
 
 PWMAngband:
 
--
+- Add a dummy golem in base town for target practice
 
 Bugs fixed
 ----------

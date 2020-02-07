@@ -1162,15 +1162,44 @@ static void melee_effect_handler_SHATTER(melee_effect_handler_context_t *context
         if (take_hit(context->p, context->damage, context->ddesc, false, df)) return;
     }
 
-    /* Radius 8 earthquake centered at the monster */
+    /* Earthquake centered at the monster, radius damage-determined */
     if (context->damage > 23)
     {
+        int radius = context->damage / 12;
         struct source who_body;
         struct source *who = &who_body;
 
         source_player(who, get_player_index(get_connection(context->p->conn)), context->p);
         who->monster = context->mon;
-        effect_simple(EF_EARTHQUAKE, who, "0", 0, 8, 0, 0, 0, NULL);
+        effect_simple(EF_EARTHQUAKE, who, "0", 0, radius, 0, 0, 0, NULL);
+    }
+
+    /* Chance of knockback */
+    if (context->damage > 100)
+    {
+        int value = context->damage - 100;
+
+        if (randint1(value) > 40)
+        {
+            int dist = 1 + value / 40;
+            struct source who_body;
+            struct source *who = &who_body;
+            struct loc centre;
+
+            if (context->style == TYPE_MVM)
+            {
+                source_monster(who, context->mon);
+                who->player = context->p;
+                loc_copy(&centre, &context->mon->grid);
+            }
+            else
+            {
+                source_player(who, get_player_index(get_connection(context->p->conn)), context->p);
+                loc_copy(&centre, &context->p->grid);
+            }
+
+            thrust_away(chunk_get(&context->mon->wpos), who, &centre, dist);
+        }
     }
 }
 

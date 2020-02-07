@@ -440,6 +440,7 @@ extern void square_disable_trap(struct player *p, struct chunk *c, struct loc *g
 extern void square_destroy_decoy(struct player *p, struct chunk *c, struct loc *grid);
 extern void square_tunnel_wall(struct chunk *c, struct loc *grid);
 extern void square_destroy_wall(struct chunk *c, struct loc *grid);
+extern void square_smash_wall(struct chunk *c, struct loc *grid);
 extern void square_destroy(struct chunk *c, struct loc *grid);
 extern void square_earthquake(struct chunk *c, struct loc *grid);
 extern void square_upgrade_mineral(struct chunk *c, struct loc *grid);

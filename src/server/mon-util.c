@@ -1695,15 +1695,13 @@ bool is_humanoid(const struct monster_race *race)
 
 
 /*
- * Half humanoid monsters: nagas (half snake/half human), hybrids,
- * driders (half spider/half human), human metamorphs
+ * Half humanoid monsters: nagas (half snake/half human), hybrids, human metamorphs
  */
 bool is_half_humanoid(const struct monster_race *race)
 {
     if ((race->base == lookup_monster_base("naga")) || strstr(race->name, "harpy") ||
-        strstr(race->name, "taur") || streq(race->name, "Sphinx") ||
-        streq(race->name, "Gorgon") || streq(race->name, "Drider") ||
-        strstr(race->name, "Were")) return true;
+        strstr(race->name, "taur") || streq(race->name, "sphinx") ||
+        strstr(race->name, "were")) return true;
 
     return false;
 }

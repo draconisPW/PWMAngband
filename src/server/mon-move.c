@@ -28,7 +28,7 @@
 
 
 /*
- * Find whether a PASS_WALL or KILL_WALL monster has a clear path to the player.
+ * Find whether a monster has a clear path to the player.
  *
  * This is a modified/simplified version of project_path().
  */
@@ -336,11 +336,7 @@ static void get_move_find_range(struct player *p, struct monster *mon)
         mon->min_range = 1;
 
     /* All "afraid" monsters will run away */
-    else if (mon->m_timed[MON_TMD_FEAR])
-        mon->min_range = flee_range;
-
-    /* All "cautious" monsters will run away */
-    else if (rf_has(mon->race->flags, RF_CAUTIOUS))
+    else if (mon->m_timed[MON_TMD_FEAR] || rf_has(mon->race->flags, RF_FRIGHTENED))
         mon->min_range = flee_range;
 
     /* Bodyguards don't flee */
@@ -1218,9 +1214,7 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
     /* Player */
     if (!who->monster)
     {
-        bool can_pass_walls = flags_test(mon->race->flags, RF_SIZE, RF_KILL_WALL, RF_PASS_WALL,
-            FLAG_END);
-        bool group_ai = (rf_has(mon->race->flags, RF_GROUP_AI) && !can_pass_walls);
+        bool group_ai = (rf_has(mon->race->flags, RF_GROUP_AI) && !monster_passes_walls(mon->race));
 
         /* Normal animal packs try to get the player out of corridors. */
         if (group_ai)
@@ -1505,6 +1499,7 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     {
         rf_on(lore->flags, RF_PASS_WALL);
         rf_on(lore->flags, RF_KILL_WALL);
+        rf_on(lore->flags, RF_SMASH_WALL);
     }
 
     /* Reveal (door) mimics */
@@ -1518,6 +1513,19 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
 
     /* Monster may be able to deal with walls and doors */
     if (rf_has(mon->race->flags, RF_PASS_WALL)) return true;
+    if (rf_has(mon->race->flags, RF_SMASH_WALL))
+    {
+        /* Remove the wall and much of what's nearby */
+        square_smash_wall(c, grid);
+
+        /* Note changes to viewable region */
+        note_viewable_changes(&c->wpos, grid);
+
+        /* Fully update the flow since terrain changed */
+        fully_update_flow(&c->wpos);
+
+        return true;
+    }
     if (rf_has(mon->race->flags, RF_KILL_WALL))
     {
         /* Remove the wall */
@@ -2070,13 +2078,20 @@ static void monster_turn(struct source *who, struct chunk *c, struct monster *mo
             {
                 rf_on(lore->flags, RF_PASS_WALL);
                 rf_on(lore->flags, RF_KILL_WALL);
+                rf_on(lore->flags, RF_SMASH_WALL);
             }
 
             /* Insubstantial monsters go right through */
             if (rf_has(mon->race->flags, RF_PASS_WALL)) {}
 
-            /* If you can destroy a wall, you can destroy a web */
-            else if (rf_has(mon->race->flags, RF_KILL_WALL)) {}
+            /* If you can pass through walls, you can destroy a web */
+            else if (monster_passes_walls(mon->race))
+            {
+                square_clear_feat(c, &mon->grid);
+                update_visuals(&who->player->wpos);
+                fully_update_flow(&who->player->wpos);
+                return;
+            }
 
             /* Clearing costs a turn */
             else if (rf_has(mon->race->flags, RF_CLEAR_WEB))

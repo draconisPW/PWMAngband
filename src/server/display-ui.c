@@ -727,7 +727,11 @@ static void player_mods(struct player *p, int mod, bool *res, bool *vul)
         }
         if (mod == OBJ_MOD_TUNNEL)
         {
-            if (rf_has(p->poly_race->flags, RF_KILL_WALL)) *res = true;
+            if (rf_has(p->poly_race->flags, RF_KILL_WALL) ||
+                rf_has(p->poly_race->flags, RF_SMASH_WALL))
+            {
+                *res = true;
+            }
         }
         if (mod == OBJ_MOD_SPEED)
         {

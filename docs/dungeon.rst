@@ -86,7 +86,7 @@ Monsters
 ``i``     Icky-Thing          ``I``    Insect
 ``j``     Jelly               ``J``    Snake
 ``k``     Kobold              ``K``    Killer Beetle
-``l``     (unused)            ``L``    Lich
+``l``     Trees/Ents          ``L``    Lich
 ``m``     Mold                ``M``    Multi-Headed Hydra
 ``n``     Naga                ``N``    (unused)
 ``o``     Orc                 ``O``    Ogre

@@ -68,12 +68,14 @@ flags:BASH_DOOR
 flags:HAS_LEGS
 desc:Ant
 
+# Fast, not strong, annoying
 name:bat
 glyph:b
 pain:4
 flags:ANIMAL | LEVITATE
 desc:Bat
 
+# Quickish monsters usually with some effect beyond melee
 name:bird
 glyph:B
 pain:8
@@ -127,12 +129,17 @@ flags:RAND_50 | BASH_DOOR
 flags:FORCE_SLEEP
 desc:Dragon Fly
 
+# These come in two stages:
+# 1. Motionless creatures which cause bad effects if you stand next to them
+# 2. Moving spellcasters (typically as many spells as eye-stalks) with
+#    anti-magic melee
 name:eye
 glyph:e
 pain:1
 flags:LEVITATE | CLEAR_WEB
 desc:Floating Eye
 
+# Creatures (mostly) embodying a single element, mostly with lowish HP
 name:elemental
 glyph:E
 pain:1
@@ -141,6 +148,7 @@ flags:IM_POIS | NO_FEAR | NO_CONF | NO_SLEEP
 flags:NONLIVING
 desc:Elemental
 
+# Fast moving, bash doors, hit hard in melee
 name:feline
 glyph:f
 pain:6
@@ -169,6 +177,7 @@ flags:BASH_DOOR | CLEAR_WEB
 flags:HUMANOID
 desc:Giant Humanoid
 
+# Mostly slow with lots of hitpoints and armor
 name:golem
 glyph:g
 pain:1
@@ -184,22 +193,26 @@ flags:OPEN_DOOR | BASH_DOOR | SPIRIT | CLEAR_WEB
 flags:HUMANOID
 desc:Hobbit/Elf/Dwarf
 
+# Weird legendary stuff, mostly without spells, sometimes with breath
 name:hybrid
 glyph:H
 pain:1
 flags:HAS_LEGS | CLEAR_WEB
 desc:Hybrid
 
+# Quick monsters with strong melee, the higher level ones getting fire and/or
+# poison attacks
 name:hydra
 glyph:M
 pain:4
 flags:ANIMAL
 flags:ONLY_GOLD
-flags:BASH_DOOR | CLEAR_WEB
+flags:OPEN_DOOR | BASH_DOOR | CLEAR_WEB
 flags:FORCE_SLEEP | HURT_COLD
 flags:HAS_LEGS
 desc:Hydra
 
+# Non-descript early monsters that demonstrate some stuff but are mostly filler
 name:icky thing
 glyph:i
 pain:2
@@ -214,6 +227,7 @@ flags:ANIMAL | WEIRD_MIND | MULTIPLY | LEVITATE
 flags:RAND_25 | RAND_50
 desc:Insect
 
+# Mostly non-moving creatures which touch for various effects
 name:jelly
 glyph:j
 pain:2
@@ -231,6 +245,7 @@ flags:BASH_DOOR
 flags:HAS_LEGS
 desc:Killer Beetle
 
+# Early-game equivalents of things like orcs and trolls
 name:kobold
 glyph:k
 pain:1
@@ -293,6 +308,7 @@ flags:IM_FIRE
 flags:HAS_LEGS | CLEAR_WEB
 desc:Minor Demon
 
+# Non-moving growths which release spores when stepped next to
 name:mold
 glyph:m
 pain:2
@@ -300,6 +316,7 @@ flags:NEVER_MOVE
 flags:IM_POIS | HURT_FIRE | NO_FEAR | NO_CONF | NO_SLEEP
 desc:Mold
 
+# Small (mostly) non-moving (mostly) spore-releasing-for-effect creatures
 name:mushroom
 glyph:,
 pain:2
@@ -307,6 +324,7 @@ flags:EMPTY_MIND | STUPID
 flags:HURT_FIRE | NO_FEAR | NO_CONF | NO_SLEEP
 desc:Mushroom
 
+# Female serpent-like monsters
 name:naga
 glyph:n
 pain:1
@@ -342,6 +360,7 @@ flags:BASH_DOOR | SPIRIT | CLEAR_WEB
 flags:HUMANOID
 desc:Person/Human
 
+# A grab-bag of four-legged things with no real defining quality
 name:quadruped
 glyph:q
 pain:4
@@ -349,6 +368,7 @@ flags:BASH_DOOR | CLEAR_WEB
 flags:HAS_LEGS
 desc:Quadruped
 
+# Non-moving, non-attacking summoners
 name:quylthulg
 glyph:Q
 pain:2
@@ -358,6 +378,7 @@ flags:NO_FEAR | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 desc:Quylthulg
 
+# Mostly early monsters, but later ones are dangerous. Not fast for depth
 name:reptile
 glyph:R
 pain:5
@@ -373,6 +394,10 @@ flags:ANIMAL | CLEAR_WEB
 flags:HAS_LEGS
 desc:Rodent
 
+# The non-unique skeletons break into two (early and late) groups:
+# 1. Empty minded animated skeletons with movement and melee but no spells
+# 2. Smart drujs with no movement or melee, but which have high speed and
+#    cast spells every turn
 name:skeleton
 glyph:s
 pain:9
@@ -404,6 +429,14 @@ glyph:t
 pain:4
 flags:HUMANOID | SPIRIT | CLEAR_WEB
 desc:Townsfolk
+
+# High hitpoints and armor class
+name:tree
+glyph:l
+pain:9
+flags:CLEAR_WEB | COLD_BLOOD | REGENERATE
+flags:NO_FEAR | NO_CONF | HURT_FIRE | IM_WATER
+desc:Tree/Ent
 
 # Trolls are evil, larger than human-size humanoids. They have strong melee
 # combat, and many are hurt by light. They fall roughly between ogres and
@@ -462,6 +495,7 @@ flags:COLD_BLOOD | EMPTY_MIND | CLEAR_WEB
 flags:HURT_ROCK | IM_POIS | NO_CONF | NO_SLEEP
 desc:Xorn/Xaren
 
+# Small, weak, comical humanoids
 name:yeek
 glyph:y
 pain:1

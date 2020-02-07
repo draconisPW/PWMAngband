@@ -2417,6 +2417,8 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     state->skills[SKILL_DIGGING] += adj_str_dig[state->stat_ind[STAT_STR]];
     if (p->poly_race && rf_has(p->poly_race->flags, RF_KILL_WALL))
         state->skills[SKILL_DIGGING] = 2000;
+    if (p->poly_race && rf_has(p->poly_race->flags, RF_SMASH_WALL))
+        state->skills[SKILL_DIGGING] = 2000;
     for (i = 0; i < SKILL_MAX; i++)
         state->skills[i] += (p->clazz->x_skills[i] * p->lev / 10);
     if (p->poly_race)

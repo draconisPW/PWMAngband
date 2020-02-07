@@ -140,7 +140,7 @@ static struct
     {"H",               "Hybrids"},
     {"M",               "Hydras"},
     {"i",               "Icky Things"},
-    {"lFI",             "Insects"},
+    {"FI",              "Insects"},
     {"j",               "Jellies"},
     {"K",               "Killer Beetles"},
     {"k",               "Kobolds"},
@@ -157,6 +157,7 @@ static struct
     {"S",               "Scorpions/Spiders"},
     {"s",               "Skeletons"},
     {"J",               "Snakes"},
+    {"l",               "Trees/Ents"},
     {"T",               "Trolls"},
     {"V",               "Vampires"},
     {"W",               "Wights/Wraiths"},
@@ -291,7 +292,9 @@ static void do_cmd_knowledge_monsters(struct player *p, int line)
             a = COLOUR_VIOLET;
 
         /* Display kills */
-        if (monster_is_unique(race))
+        if (!race->rarity)
+            my_strcpy(kills, "shape", sizeof(kills));
+        else if (monster_is_unique(race))
             my_strcpy(kills, (lore->pkills? " dead": "alive"), sizeof(kills));
         else
             strnfmt(kills, sizeof(kills), "%5d", lore->pkills);

@@ -1944,8 +1944,15 @@ void do_cmd_walk(struct player *p, int dir)
                 /* Insubstantial monsters go right through */
                 if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
 
-                /* If you can destroy a wall, you can destroy a web */
-                else if (rf_has(p->poly_race->flags, RF_KILL_WALL)) {}
+                /* If you can pass through walls, you can destroy a web */
+                else if (monster_passes_walls(p->poly_race))
+                {
+                    square_clear_feat(c, &p->grid);
+                    update_visuals(&p->wpos);
+                    fully_update_flow(&p->wpos);
+                    use_energy(p);
+                    return;
+                }
 
                 /* Clearing costs a turn */
                 else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
@@ -2015,8 +2022,15 @@ void do_cmd_jump(struct player *p, int dir)
                 /* Insubstantial monsters go right through */
                 if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
 
-                /* If you can destroy a wall, you can destroy a web */
-                else if (rf_has(p->poly_race->flags, RF_KILL_WALL)) {}
+                /* If you can pass through walls, you can destroy a web */
+                else if (monster_passes_walls(p->poly_race))
+                {
+                    square_clear_feat(c, &p->grid);
+                    update_visuals(&p->wpos);
+                    fully_update_flow(&p->wpos);
+                    use_energy(p);
+                    return;
+                }
 
                 /* Clearing costs a turn */
                 else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))

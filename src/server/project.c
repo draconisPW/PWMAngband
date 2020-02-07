@@ -1112,7 +1112,7 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
             power = origin->monster->race->spell_power;
 
             /* Breaths from powerful monsters get power effects as well */
-            if (monster_is_powerful(origin->monster->race)) power = 80;
+            if (monster_is_powerful(origin->monster->race)) power = MAX(power, 80);
         }
 
         loc_init(&last_hit, 0, 0);

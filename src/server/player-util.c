@@ -1410,7 +1410,7 @@ void drain_mana(struct player *p, struct source *who, int drain, bool seen)
         return;
     }
 
-    /* Drain the given amount if the player has that many, or all of them */
+    /* Drain the given amount if the player has that much, or all of it */
     if (drain >= p->csp)
     {
         drain = p->csp;

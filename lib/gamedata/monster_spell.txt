@@ -459,7 +459,7 @@ name:BA_NETH
 hit:100
 effect:BALL:NETHER:2
 dice:$B+10d10
-expr:B:SPELL_POWER:+ 50
+expr:B:SPELL_POWER:* 4
 lore:produce nether balls
 lore-color-base:Orange
 lore-color-resist:Light Green
@@ -498,7 +498,7 @@ name:BA_DARK
 hit:100
 effect:BALL:DARK:2
 dice:$B+10d10
-expr:B:SPELL_POWER:* 5
+expr:B:SPELL_POWER:* 4
 lore:produce darkness balls
 lore-color-base:Orange
 lore-color-resist:Light Green
@@ -531,14 +531,14 @@ message-invis:Something chants powerfully.
 name:STORM
 hit:100
 effect:BALL:WATER:3
-dice:50+$Dd10
-expr:D:SPELL_POWER:/ 2
+dice:30+$Dd5
+expr:D:SPELL_POWER:/ 3
 effect:BALL:ELEC:3
 dice:20+$Dd5
-expr:D:SPELL_POWER:/ 2
+expr:D:SPELL_POWER:/ 3
 effect:BALL:ICE:3
 dice:20+$Dd5
-expr:D:SPELL_POWER:/ 2
+expr:D:SPELL_POWER:/ 3
 lore:create storms
 lore-color-base:Light Red
 lore-color-resist:Orange
@@ -603,8 +603,8 @@ effect:TIMED_INC:CUT
 dice:$Dd10
 expr:D:SPELL_POWER:/ 5 - 10
 effect:DAMAGE:CURSE
-dice:15d$S
-expr:S:SPELL_POWER:/ 8 + 1
+dice:$Dd5
+expr:S:SPELL_POWER:/ 3 * 2
 lore:cause light wounds
 lore-color-base:Yellow
 lore-color-resist:Light Green
@@ -714,7 +714,7 @@ name:BO_MANA
 hit:100
 effect:BOLT:MANA
 dice:50+1d$S
-expr:S:SPELL_POWER:* 7 / 2
+expr:S:SPELL_POWER:* 5 / 2
 lore:produce mana bolts
 lore-color-base:Light Red
 lore-color-resist:Orange
@@ -754,6 +754,18 @@ lore-color-base:Yellow
 message-vis:{name} fires a magic missile.
 message-invis:Something mumbles.
 
+name:BE_ELEC
+hit:100
+effect:BEAM:ELEC
+dice:$B+5d5
+expr:B:SPELL_POWER:* 2 + 30
+lore:shoot sparks of lightning
+lore-color-base:Orange
+lore-color-resist:Yellow
+lore-color-immune:Light Green
+message-vis:{name} shoots a spark of lightning at {target}.
+message-invis:You feel a crackling in the air.
+
 name:BE_NETH
 hit:100
 effect:BEAM:NETHER
@@ -763,7 +775,13 @@ lore:hurl lances of nether
 lore-color-base:Orange
 lore-color-resist:Light Green
 message-vis:{name} hurls a lance of nether.
-message-invis:Something mumbles.
+message-invis:Something murmurs a deadly word.
+power-cutoff:80
+lore:shoot rays of death
+lore-color-base:Light Red
+lore-color-resist:Light Green
+message-vis:{name} unleashes a ray of death.
+message-invis:Something intones with deadly menace.
 
 name:SCARE
 msgt:CAST_FEAR

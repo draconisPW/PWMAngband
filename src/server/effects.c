@@ -4158,8 +4158,7 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
                 struct monster *mon = square_monster(context->cave, &grid);
 
                 /* Most monsters cannot co-exist with rock */
-                if (!rf_has(mon->race->flags, RF_KILL_WALL) &&
-                    !rf_has(mon->race->flags, RF_PASS_WALL))
+                if (!monster_passes_walls(mon->race))
                 {
                     /* Assume not safe */
                     safe_grids = 0;
