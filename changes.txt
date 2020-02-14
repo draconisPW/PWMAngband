@@ -11,6 +11,8 @@ Monsters
 - Dragons: these have mostly been made stronger and deeper
 - Hydras: each hydra type is like the previous type with a new head and
   attack added
+- People: the association of some of these with player classes has been
+  expanded to include the new classes
 - Snakes: some of these are now dangerous
 - Spiders: more dangerous and deeper, with unique abilities
 - Trees/Ents: these are new, tough to kill enemies
@@ -34,7 +36,8 @@ Game Mechanics
 - Monster spells can have different levels depending on monster spell power
 
 Code Improvements
--
+- Some font improvements
+- Many fixes to bugs and memory leaks
 
 For a full list of changes made in older versions, check the Official
 PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
@@ -51,6 +54,7 @@ User interface
 Angband 4.2.0:
 
 - Add line for fragility in describe_curses()
+- Some font improvements
 
 PWMAngband:
 
@@ -81,6 +85,9 @@ Angband 4.2.0:
 - Unify arrow spells, add shot and bolt spells
 - Add shard balls
 - Add SMASH_WALL, changes to SHATTER blow effect
+- Nerf randarts
+- Unnerf no_selling gold drops on early levels
+- Adjust first cast experience for lots of spells
 
 PWMAngband:
 
@@ -91,7 +98,7 @@ Bugs fixed
 
 Angband 4.2.0:
 
--
+- Many fixes to bugs and memory leaks
 
 PWMAngband:
 

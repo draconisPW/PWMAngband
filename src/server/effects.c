@@ -6382,7 +6382,7 @@ static bool effect_handler_TAP_UNLIFE(effect_handler_context_t *context)
         monster_desc(context->origin->player, m_name, sizeof(m_name), target_who->monster,
             MDESC_DEFAULT);
         msg(context->origin->player, "You draw power from the %s.", m_name);
-        drain = MIN(target_who->monster->hp, amount);
+        drain = MIN(target_who->monster->hp, amount) / 4;
         dead = mon_take_hit(context->origin->player, context->cave, target_who->monster, amount,
             &fear, MON_MSG_DESTROYED);
         if (!dead && monster_is_visible(context->origin->player, target_who->monster->midx))
@@ -6410,7 +6410,7 @@ static bool effect_handler_TAP_UNLIFE(effect_handler_context_t *context)
 
         /* Hurt the player */
         msg(context->origin->player, "You draw power from %s.", target_who->player->name);
-        drain = MIN(target_who->player->chp, amount);
+        drain = MIN(target_who->player->chp, amount) / 4;
         my_strcpy(killer, context->origin->player->name, sizeof(killer));
         strnfmt(df, sizeof(df), "was killed by %s", killer);
         dead = take_hit(target_who->player, amount, killer, false, df);
@@ -6618,7 +6618,7 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
     }
 
     /* Check for a no teleport curse */
-    if (context->origin->player && player_of_has(context->origin->player, OF_NO_TELEPORT))
+    if (is_player && player_of_has(context->origin->player, OF_NO_TELEPORT))
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
         msg(context->origin->player, "The teleporting attempt fails.");
@@ -6626,7 +6626,7 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
     }
 
     /* Hack -- hijack teleport in Arena */
-    if (context->origin->player && (context->origin->player->arena_num != -1))
+    if (is_player && (context->origin->player->arena_num != -1))
     {
         int arena_num = context->origin->player->arena_num;
         struct source who_body;
@@ -6832,6 +6832,13 @@ static bool effect_handler_TELEPORT_LEVEL(effect_handler_context_t *context)
 
     /* Space-time anchor */
     if (check_st_anchor(&context->origin->player->wpos, &context->origin->player->grid))
+    {
+        msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
+    /* Check for a no teleport grid */
+    if (square_isno_teleport(context->cave, &context->origin->player->grid))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
@@ -7068,21 +7075,21 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     }
 
     /* Space-time anchor */
-    if (check_st_anchor(&context->origin->player->wpos, &aim))
+    if (check_st_anchor(&context->origin->player->wpos, &start))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
         return true;
     }
 
     /* Check for a no teleport grid */
-    if (square_isno_teleport(context->cave, &aim))
+    if (square_isno_teleport(context->cave, &start))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
         return true;
     }
 
     /* Check for a no teleport curse */
-    if (player_of_has(context->origin->player, OF_NO_TELEPORT))
+    if (is_player && player_of_has(context->origin->player, OF_NO_TELEPORT))
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
         msg(context->origin->player, "The teleporting attempt fails.");

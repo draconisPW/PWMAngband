@@ -1919,7 +1919,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     struct object *tool = equipped_item_by_slot_name(p, "tool");
     int eq_to_a = 0;
 
-    create_obj_flag_mask(f2, false, OFT_ESP, OFT_MAX);
+    create_obj_flag_mask(f2, 0, OFT_ESP, OFT_MAX);
 
     /* Set various defaults */
     state->speed = 110;
@@ -2622,7 +2622,7 @@ static void update_bonuses(struct player *p)
     }
 
     /* Hack -- telepathy change */
-    create_obj_flag_mask(f, false, OFT_ESP, OFT_MAX);
+    create_obj_flag_mask(f, 0, OFT_ESP, OFT_MAX);
     for (flag = of_next(f, FLAG_START); flag != FLAG_END; flag = of_next(f, flag + 1))
     {
         if (of_has(state.flags, flag) != of_has(p->state.flags, flag))

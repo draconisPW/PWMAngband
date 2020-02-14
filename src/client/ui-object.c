@@ -1369,7 +1369,7 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
             topline_icky = true;
 
             /* Get an item choice */
-            *choice = item_menu(cmd, MAX(strlen(pmt), 15), mode);
+            *choice = item_menu(cmd, MAX((pmt? strlen(pmt): 0), 15), mode);
 
             /* Fix the top line */
             topline_icky = false;

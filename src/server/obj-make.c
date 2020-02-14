@@ -279,7 +279,7 @@ static int get_new_power(bitflag flags[OF_SIZE])
     int i, options = 0, flag = 0;
     bitflag newf[OF_SIZE];
 
-    create_obj_flag_mask(newf, false, OFT_PROT, OFT_MISC, OFT_MAX);
+    create_obj_flag_mask(newf, 0, OFT_PROT, OFT_MISC, OFT_MAX);
 
     for (i = of_next(newf, FLAG_START); i != FLAG_END; i = of_next(newf, i + 1))
     {
@@ -379,7 +379,7 @@ static void do_powers(struct object *obj, bitflag kind_flags[KF_SIZE])
     /* Extra powers */
     if (kf_has(kind_flags, KF_RAND_SUSTAIN))
     {
-        create_obj_flag_mask(newf, false, OFT_SUST, OFT_MAX);
+        create_obj_flag_mask(newf, 0, OFT_SUST, OFT_MAX);
         of_on(obj->flags, get_new_attr(obj->flags, newf));
     }
     if (kf_has(kind_flags, KF_RAND_POWER) || (pick == 1))
@@ -435,11 +435,11 @@ static int get_power_flags(const struct object *obj, bitflag flags[OF_SIZE])
 
     /* Get power flags */
     if (kf_has(kind_flags, KF_RAND_SUSTAIN))
-        create_obj_flag_mask(flags, false, OFT_SUST, OFT_MAX);
+        create_obj_flag_mask(flags, 0, OFT_SUST, OFT_MAX);
     if (kf_has(kind_flags, KF_RAND_POWER) || kf_has(kind_flags, KF_RAND_RES_POWER))
-        create_obj_flag_mask(flags, false, OFT_PROT, OFT_MISC, OFT_ESP, OFT_MAX);
+        create_obj_flag_mask(flags, 0, OFT_PROT, OFT_MISC, OFT_ESP, OFT_MAX);
     if (kf_has(kind_flags, KF_RAND_ESP))
-        create_obj_flag_mask(flags, false, OFT_ESP, OFT_MAX);
+        create_obj_flag_mask(flags, 0, OFT_ESP, OFT_MAX);
     
     /* Get resists */
     if (kf_has(kind_flags, KF_RAND_BASE_RES) || kf_has(kind_flags, KF_RAND_RES_POWER))
@@ -1888,7 +1888,7 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
 
     /* If we're playing with no_selling, increase the value */
     if (p && (cfg_no_selling || OPT(p, birth_no_selling)) && (p->wpos.depth > 0))
-        value *= MIN(5, p->wpos.depth);
+        value *= 5;
 
     /* Cap gold at max short (or alternatively make pvals s32b) */
     if (value >= SHRT_MAX) value = SHRT_MAX - randint0(200);

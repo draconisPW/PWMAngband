@@ -1404,7 +1404,7 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     object_flavor_tried(p, obj);
 
     /* Get the obvious object flags */
-    create_obj_flag_mask(obvious_mask, true, OFID_WIELD, OFT_MAX);
+    create_obj_flag_mask(obvious_mask, 1, OFID_WIELD, OFT_MAX);
 
     object_flags(obj, f);
     object_modifiers(obj, modifiers);
@@ -1434,7 +1434,7 @@ void object_learn_on_wield(struct player *p, struct object *obj)
 
     if (!obvious) return;
 
-    create_obj_flag_mask(esp_flags, false, OFT_ESP, OFT_MAX);
+    create_obj_flag_mask(esp_flags, 0, OFT_ESP, OFT_MAX);
     if (of_is_inter(f, esp_flags))
         msg(p, "Your mind feels strangely sharper!");
     if (of_has(f, OF_FREE_ACT) && of_has(obvious_mask, OF_FREE_ACT))
@@ -1768,7 +1768,7 @@ void equip_learn_after_time(struct player *p)
     bool redraw = false;
 
     /* Get the timed flags */
-    create_obj_flag_mask(timed_mask, true, OFID_TIMED, OFT_MAX);
+    create_obj_flag_mask(timed_mask, 1, OFID_TIMED, OFT_MAX);
 
     /* Attempt to learn every flag */
     for (flag = of_next(timed_mask, FLAG_START); flag != FLAG_END;
@@ -2321,18 +2321,18 @@ void object_notice_ego(struct player *p, struct object *obj)
     /* Don't learn random ego extras */
     if (kf_has(obj->ego->kind_flags, KF_RAND_SUSTAIN))
     {
-        create_obj_flag_mask(xtra_flags, false, OFT_SUST, OFT_MAX);
+        create_obj_flag_mask(xtra_flags, 0, OFT_SUST, OFT_MAX);
         of_diff(learned_flags, xtra_flags);
     }
     if (kf_has(obj->ego->kind_flags, KF_RAND_POWER) ||
         kf_has(obj->ego->kind_flags, KF_RAND_RES_POWER))
     {
-        create_obj_flag_mask(xtra_flags, false, OFT_MISC, OFT_PROT, OFT_ESP, OFT_MAX);
+        create_obj_flag_mask(xtra_flags, 0, OFT_MISC, OFT_PROT, OFT_ESP, OFT_MAX);
         of_diff(learned_flags, xtra_flags);
     }
     if (kf_has(obj->ego->kind_flags, KF_RAND_ESP))
     {
-        create_obj_flag_mask(xtra_flags, false, OFT_ESP, OFT_MAX);
+        create_obj_flag_mask(xtra_flags, 0, OFT_ESP, OFT_MAX);
         of_diff(learned_flags, xtra_flags);
     }
 

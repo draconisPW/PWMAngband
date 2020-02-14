@@ -531,7 +531,7 @@ weight:0
 experience:0
 blow:BEG
 blow:TOUCH:EAT_GOLD
-flags:UNIQUE | MALE
+flags:UNIQUE | MALE | ATTR_FLICKER
 flags:PWMANG_EXTRA | PWMANG_FIXED
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:TAKE_ITEM
@@ -555,7 +555,7 @@ weight:0
 experience:0
 blow:BEG
 blow:TOUCH:EAT_GOLD
-flags:UNIQUE | FEMALE
+flags:UNIQUE | FEMALE | ATTR_FLICKER
 flags:PWMANG_EXTRA | PWMANG_FIXED
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:TAKE_ITEM
@@ -1100,7 +1100,7 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_ALL
 spell-freq:12
-spells:WOUND | HEAL | SCARE
+spells:HEAL | SCARE
 drop-base:prayer book:5:1:1
 friends-base:20:1d3:person
 friends-base:40:1d3:person
@@ -1770,8 +1770,9 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD
 spell-freq:3
-innate-freq:50
-spells:ARROW | MISSILE
+innate-freq:75
+spells:HASTE
+spells:ARROW
 drop-base:nature book:3:1:1
 friends-base:20:1d3:person
 friends-base:40:1d3:person
@@ -1800,7 +1801,7 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_ALL
 spell-freq:9
-spells:WOUND | SCARE
+spells:HEAL
 drop-base:prayer book:3:1:1
 friends-base:20:1d3:person
 friends-base:40:1d3:person
@@ -1808,7 +1809,7 @@ friends-base:80:1d3:person
 friends:50:1d2:Same
 desc:An adventurer both devoutly religious and skillful in combat.
 
-name:healer
+name:tamer
 base:person
 color:y
 speed:110
@@ -1826,15 +1827,14 @@ blow:HIT:HURT:1d2
 flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
-spell-freq:4
-innate-freq:50
-spell-power:10
-spells:ARROW | HEAL_KIN
+spell-freq:8
+spells:HASTE | SLOW | CONF
+drop-base:nature book:5:1:1
 friends-base:20:1d3:person
 friends-base:40:1d3:person
 friends-base:80:1d3:person
 friends:50:1d2:Same
-desc:A healer of wounds.
+desc:A lover of nature.
 
 name:blue jelly
 plural:blue jellies
@@ -3028,9 +3028,9 @@ innate-freq:100
 spells:ARROW
 desc:A small orc with wide and snuffling nostrils.
 
-name:bandit
+name:ruffian
 base:person
-color:b
+color:s
 speed:110
 hit-points:36
 hearing:20
@@ -3041,17 +3041,16 @@ rarity:2
 weight:150
 experience:26
 blow:HIT:HURT:2d4
-blow:TOUCH:EAT_GOLD
+blow:HIT:HURT:2d4
 flags:MALE | EVIL
 flags:DROP_1
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD
 spell-freq:8
 innate-freq:100
-spells:SHOT
+spells:SHOT | WHIP
 drop-base:shadow book:5:1:1
-drop:scroll:Phase Door:45:1:3
-desc:He is after your cash!
+desc:An uncultured brute with a club, a sling and a whip.
 
 name:rotting corpse
 base:zombie
@@ -3824,9 +3823,10 @@ flags:DROP_CORPSE | DROP_SKELETON | WILD_GRASS | WILD_WOOD
 desc:A large black cat, stalking you with intent. It thinks you're its next
 desc: meal.
 
-name:brigand
+name:witch
+plural:witches
 base:person
-color:b
+color:P
 speed:110
 hit-points:41
 hearing:20
@@ -3834,25 +3834,21 @@ armor-class:48
 sleepiness:5
 depth:10
 rarity:2
-weight:170
 experience:35
-blow:HIT:HURT:2d4
-blow:TOUCH:EAT_ITEM
-flags:MALE | EVIL
+blow:HIT:HURT:1d6
+flags:FEMALE | EVIL
 flags:DROP_1
 flags:OPEN_DOOR | TAKE_ITEM
-flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
-innate-freq:100
-spell-power:16
-spells:SHOT
-drop-base:shadow book:10:1:1
-drop:scroll:Phase Door:70:2:6
+innate-freq:25
+spells:WHIP
+spells:WOUND | SCARE | DARKNESS
+drop-base:shadow book:5:1:1
 friends:50:1d2:illusionist
 friends:50:1d2:priest
-friends:50:1d2:Easterling warrior
+friends:50:1d2:warrior
 friends:50:1d2:Same
-desc:He is eyeing your backpack.
+desc:She is dressed in black and smells of decay.
 
 name:owlbear
 base:hybrid
@@ -4035,18 +4031,18 @@ desc:It is a shambling orcish corpse leaving behind a trail of flesh.
 
 name:gnome mage
 base:humanoid
-color:r
+color:V
 speed:110
-hit-points:32
+hit-points:52
 hearing:18
 armor-class:30
 sleepiness:20
 depth:11
 rarity:2
 weight:90
-experience:38
+experience:48
 blow:HIT:HURT:1d5
-flags:MALE | EVIL
+flags:MALE
 flags:DROP_60
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
@@ -4329,18 +4325,20 @@ weight:150
 experience:36
 blow:HIT:HURT:2d3
 blow:HIT:HURT:2d3
-flags:MALE | EVIL | SMART
+flags:MALE | SMART
 flags:DROP_60
 flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spells:WOUND | HEAL | SCARE
-spells:S_MONSTER
+spell-power:6
+spells:HEAL | SCARE | HEAL_KIN
+spells:BA_LIGHT
+spells:S_KIN
 drop-base:prayer book:8:1:1
 friends:50:1d2:brigand
 friends:50:1d2:illusionist
-friends:50:1d2:Easterling warrior
+friends:50:1d2:warrior
 friends:50:1d2:Same
 desc:A robed man, dedicated to his god.
 
@@ -4464,7 +4462,7 @@ spell-freq:15
 spells:SCARE | TPORT
 desc:A ghostly apparition that shrieks horribly.
 
-name:Easterling warrior
+name:warrior
 base:person
 color:u
 speed:110
@@ -4758,13 +4756,13 @@ spells:SLOW | TPORT
 drop-base:magic book:8:1:1
 friends:50:1d2:brigand
 friends:50:1d2:priest
-friends:50:1d2:Easterling warrior
+friends:50:1d2:warrior
 friends:50:1d2:Same
 desc:A deceptive spell caster.
 
 name:druid
 base:person
-color:G
+color:y
 speed:110
 hit-points:78
 light:2
@@ -4777,14 +4775,14 @@ weight:140
 experience:50
 blow:HIT:HURT:2d4
 blow:HIT:HURT:2d4
-flags:MALE | EVIL | SMART
+flags:MALE | SMART
 flags:DROP_1
 flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD
 spell-freq:3
-spells:BLIND | BLINK | HASTE | HOLD | SLOW
-spells:BO_ELEC | BO_FIRE | SHAPECHANGE
+spells:BLIND | HASTE | HOLD | SLOW | CONF
+spells:BO_POIS | BO_FIRE | SHAPECHANGE
 spells:S_ANIMAL
 drop-base:nature book:8:1:1
 desc:A priest devoted to Nature.
@@ -5461,7 +5459,7 @@ desc: struggles.
 
 name:positivist
 base:person
-color:u
+color:m
 speed:110
 hit-points:68
 light:2
@@ -5550,6 +5548,36 @@ desc: as it lines all four walls of the corridors it patrols. Through its
 desc: transparent jelly structure you can see treasures it has engulfed, and a
 desc: few corpses as well.
 
+name:rogue
+base:person
+color:b
+speed:115
+hit-points:62
+hearing:20
+armor-class:48
+sleepiness:5
+depth:16
+rarity:2
+weight:170
+experience:50
+blow:HIT:HURT:2d4
+blow:HIT:HURT:2d4
+blow:TOUCH:EAT_ITEM
+flags:MALE | EVIL
+flags:DROP_1
+flags:OPEN_DOOR | TAKE_ITEM
+flags:DROP_CORPSE | DROP_SKELETON
+spell-freq:8
+innate-freq:100
+spells:SHOT
+drop-base:shadow book:10:1:1
+drop:scroll:Phase Door:70:2:6
+friends:50:1d2:illusionist
+friends:50:1d2:priest
+friends:50:1d2:warrior
+friends:50:1d2:Same
+desc:He is eyeing your backpack.
+
 name:Ulfast, Son of Ulfang
 base:person
 color:U
@@ -5570,7 +5598,7 @@ blow:HIT:HURT:3d5
 flags:UNIQUE | MALE | EVIL
 flags:DROP_60 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
-friends:60:1d3:Easterling warrior:servant
+friends:60:1d3:warrior:servant
 desc:A short and swarthy Easterling.
 
 name:quasit
@@ -6042,6 +6070,37 @@ friends-base:50:1d5:orc:servant
 friends-base:50:1d5:orc:servant
 desc:An armoured orc with an air of authority.
 
+name:blackguard
+base:person
+color:s
+speed:115
+hit-points:120
+hearing:20
+armor-class:85
+sleepiness:30
+depth:18
+rarity:1
+weight:240
+experience:180
+blow:HIT:HURT:3d5
+blow:HIT:HURT:3d5
+blow:HIT:HURT:3d5
+flags:MALE | EVIL
+flags:DROP_1
+flags:OPEN_DOOR
+flags:FORCE_SLEEP
+flags:DROP_CORPSE | DROP_SKELETON
+spell-freq:12
+innate-freq:33
+spells:DARKNESS | SCARE
+spells:BOLT
+drop-base:shadow book:8:1:1
+friends:50:1d1:rogue
+friends:50:1d1:ranger
+friends:50:1d1:paladin
+desc:A hulking figure encased in deep black plate armour; he looks at you
+desc: menacingly.
+
 name:fire spirit
 base:elemental
 color:r
@@ -6455,13 +6514,14 @@ depth:20
 rarity:2
 weight:80
 experience:50
-blow:CLAW:HURT:4d10
-blow:CLAW:HURT:4d10
-blow:BITE:HURT:6d8
+blow:CLAW:HURT:2d10
+blow:CLAW:HURT:2d10
+blow:BITE:HURT:3d8
 flags:NO_FEAR
 flags:DROP_CORPSE | WILD_WOOD
-desc:A great bird of prey, with razor sharp beak and talons. It lives to rip
-desc: and tear.
+desc:A blinding whirlwind of fear and feathers. Its razor sharp beak and talons
+desc: fill its foes with terror as it seeks to rend flesh from bone with
+desc: unbridled ferocity.
 
 name:Mirkwood spider
 base:spider
@@ -6776,13 +6836,13 @@ flags:DROP_1
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:4
-innate-freq:17
-spells:ARROW | BLINK | MISSILE
-spells:BO_COLD | BO_ELEC
+innate-freq:20
+spells:ARROW | BLINK | HASTE
+spells:BO_COLD
 spells:S_ANIMAL
 drop-base:nature book:5:1:1
 friends:50:1d1:Easterling champion
-friends:50:1d1:master rogue
+friends:50:1d1:rogue
 friends:50:1d2:illusionist
 friends:50:1d2:priest
 friends:50:1d1:paladin
@@ -6802,17 +6862,17 @@ depth:20
 rarity:1
 weight:170
 experience:55
-blow:HIT:HURT:4d5
-blow:HIT:HURT:4d5
+blow:HIT:HURT:4d6
+blow:HIT:HURT:4d6
 flags:MALE
 flags:DROP_1
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:4
-spells:BLIND | WOUND | HEAL | SCARE | SLOW
+spells:HEAL | SLOW
 drop-base:prayer book:5:1:1
 friends:50:1d1:Easterling champion
-friends:50:1d1:master rogue
+friends:50:1d1:rogue
 friends:50:1d2:illusionist
 friends:50:1d2:priest
 friends:50:1d1:ranger
@@ -7096,7 +7156,7 @@ flags:MALE | ANTI_MAGIC | PWMANG_BASE
 flags:DROP_1 | DROP_CORPSE | DROP_SKELETON
 flags:OPEN_DOOR
 friends:50:1d1:Easterling champion
-friends:50:1d1:master rogue
+friends:50:1d1:rogue
 desc:A scarred warrior who moves with strange confidence.
 
 ### Dungeon level 21 ###
@@ -7529,11 +7589,11 @@ flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:6
 innate-freq:100
 spells:BOLT
-friends:50:1d1:master rogue
+friends:50:1d1:rogue
 friends:50:1d1:ranger
 friends:50:1d1:mage
 friends:50:1d1:paladin
-desc:A scarred warrior who moves with confidence.
+desc:A scarred warrior who wields an axe and moves with confidence.
 
 name:Azog, Enemy of the Dwarves
 base:orc
@@ -7566,7 +7626,7 @@ desc: for starting the War of the Dwarves and Orcs by killing Durin's heir,
 desc: Thrór.
 force-location:The Orc Cave
 
-name:master rogue
+name:brigand
 base:person
 color:b
 speed:120
@@ -7581,11 +7641,12 @@ experience:110
 blow:HIT:HURT:2d8
 blow:HIT:HURT:2d8
 blow:HIT:EAT_GOLD:4d4
+blow:HIT:EAT_ITEM:4d4
 flags:MALE | EVIL
 flags:DROP_2
 flags:OPEN_DOOR | TAKE_ITEM
 flags:DROP_CORPSE | DROP_SKELETON
-spell-freq:6
+spell-freq:4
 innate-freq:100
 spells:SHOT
 drop-base:shadow book:5:1:1
@@ -7873,7 +7934,7 @@ flags:FORCE_SLEEP
 spell-freq:4
 spells:CONF | SLOW
 friends:100:1d1:Angamaitë of Umbar
-desc:A Black Númenorean with a blacker heart.
+desc:A Black Númenórean with a blacker heart.
 
 name:Angamaitë of Umbar
 base:person
@@ -7900,7 +7961,7 @@ flags:FORCE_SLEEP
 spell-freq:4
 spells:CONF | SLOW
 friends:100:1d1:Sangahyando of Umbar
-desc:A Black Númenorean who hates the men of the west.
+desc:A Black Númenórean who hates the men of the west.
 
 name:banshee
 base:ghost
@@ -7974,7 +8035,7 @@ spells:BLIND | BLINK | CONF | HOLD | MIND_BLAST | SLOW
 spells:S_MONSTER
 drop-base:psi book:10:1:1
 friends:50:1d1:Easterling champion
-friends:50:1d1:master rogue
+friends:50:1d1:rogue
 friends:50:1d1:ranger
 friends:50:1d1:mage
 friends:50:1d1:paladin
@@ -8027,6 +8088,34 @@ friends:100:2d7:Same
 desc:Little sparks of flame that dance around you, lashing whips and cursing
 desc: horribly.
 
+name:necromancer
+base:person
+color:P
+speed:110
+hit-points:164
+hearing:20
+armor-class:55
+sleepiness:20
+depth:25
+rarity:2
+weight:160
+experience:330
+blow:HIT:HURT:2d4
+blow:HIT:HURT:2d4
+flags:MALE | EVIL | SMART
+flags:DROP_60 | ONLY_ITEM
+flags:OPEN_DOOR
+flags:FORCE_SLEEP
+flags:DROP_CORPSE | DROP_SKELETON
+spell-freq:5
+spells:BLIND | WOUND | DARKNESS | SCARE
+spells:BO_NETH
+spells:S_UNDEAD
+spells:ANIM_DEAD
+drop-base:shadow book:8:1:1
+friends-base:80:1d3:skeleton
+desc:A gaunt figure, clothed in black robes.
+
 name:hill giant
 base:giant
 color:U
@@ -8076,32 +8165,6 @@ spells:CONF | SLOW
 spells:BO_ACID
 desc:A stumpy figure carved from stone, with glittering eyes, this sentinel
 desc: strides towards you with deadly intent.
-
-name:dark elven druid
-base:humanoid
-color:G
-speed:120
-hit-points:210
-hearing:15
-armor-class:112
-sleepiness:20
-depth:25
-rarity:3
-weight:120
-experience:500
-blow:HIT:HURT:1d7
-blow:HIT:HURT:1d7
-blow:HIT:HURT:3d8
-flags:MALE | EVIL
-flags:DROP_1 | ONLY_ITEM
-flags:HURT_LIGHT | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
-flags:FORCE_SLEEP
-flags:DROP_CORPSE | DROP_SKELETON
-spell-freq:6
-spells:CONF | DARKNESS | HEAL
-spells:S_ANIMAL | S_MONSTER | S_SPIDER
-drop-base:nature book:8:1:1
-desc:A powerful dark elf, with mighty nature-controlling enchantments.
 
 name:stone troll
 base:troll
@@ -8192,7 +8255,7 @@ spells:HOLD | TELE_TO
 desc:The ancient grey willow tree, ruler of the Old Forest. He despises
 desc: trespassers in his territory. "...a huge willow-tree, old and hoary.
 desc: Enormous it looked, its sprawling branches going up like racing arms with
-desc: may long-fingered hands, its knotted and twisted trunk gaping in wide
+desc: many long-fingered hands, its knotted and twisted trunk gaping in wide
 desc: fissures that creaked faintly as the boughs moved."
 force-location:The Old Forest
 
@@ -8893,12 +8956,12 @@ flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:8
 spells:BLIND | WOUND | DARKNESS | SCARE
 drop-base:shadow book:8:1:1
-friends:50:1d1:master rogue
+friends:50:1d1:rogue
 friends:50:1d1:ranger
 friends:50:1d1:paladin
 friends:50:1d1:mage
-friends:50:1d1:ninja
-desc:He is a figure encased in deep black plate armour; he looks at you
+friends:50:1d1:southron assassin
+desc:A hulking figure encased in deep black plate armour; he looks at you
 desc: menacingly.
 
 name:Uldor the Accursed
@@ -8942,13 +9005,13 @@ weight:150
 experience:150
 blow:HIT:HURT:2d5
 blow:HIT:HURT:2d5
-flags:MALE | EVIL | SMART
+flags:MALE | SMART
 flags:DROP_1 | ONLY_ITEM
 flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spells:BLIND | CONF | HASTE | TELE_TO | TPORT
+spells:BLIND | CONF | TPORT | TELE_AWAY
 spells:BO_COLD | BO_ELEC | BO_FIRE
 spells:S_MONSTER
 drop-base:magic book:10:1:1
@@ -9170,7 +9233,7 @@ desc: seems to bite upon him.
 
 name:clairvoyant
 base:person
-color:M
+color:Y
 speed:120
 hit-points:138
 light:2
@@ -9191,10 +9254,10 @@ spell-freq:8
 spells:BLIND | WOUND | FORGET | HOLD | MIND_BLAST
 spells:S_MONSTER
 friends:50:1d1:Easterling champion
-friends:50:1d1:master rogue
+friends:50:1d1:rogue
 friends:50:1d1:mage
 friends:50:1d1:mindcrafter
-friends:50:1d1:black knight
+friends:50:1d1:blackguard
 desc:He is using his supernatural talents to bring about your destruction.
 
 name:lesser wall monster
@@ -9348,6 +9411,32 @@ spells:SHRIEK
 desc:Often found in graveyards.
 
 ### Dungeon level 29 ###
+
+name:green elf archer
+base:humanoid
+color:W
+speed:120
+hit-points:210
+hearing:15
+armor-class:112
+sleepiness:20
+depth:29
+rarity:3
+experience:500
+blow:HIT:HURT:1d7
+blow:HIT:HURT:1d7
+flags:MALE | SMART
+flags:DROP_1 | ONLY_ITEM
+flags:IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
+flags:FORCE_SLEEP
+spell-freq:3
+innate-freq:80
+spells:CONF | HEAL | BLINK
+spells:ARROW
+drop-base:nature book:8:1:1
+desc:An elf of the Land of the Seven Rivers, whose woodcraft was such that a
+desc: stranger might pass through their land from end to end and see none of
+desc: them.
 
 name:giant black scorpion
 base:spider
@@ -10286,9 +10375,9 @@ spell-freq:1
 spells:BLINK | TELE_AWAY
 desc:It is a very unstable, strange pulsing mound of flesh.
 
-name:ninja
+name:southron assassin
 base:person
-color:y
+color:M
 speed:120
 hit-points:85
 hearing:20
@@ -10308,8 +10397,8 @@ flags:NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 friends:50:1d1:master thief
 friends:50:1d1:mage
-friends:50:1d1:black knight
-desc:A humanoid clothed in black who moves with blinding speed.
+friends:50:1d1:blackguard
+desc:A man of Harad clothed in black who moves with blinding speed.
 
 name:memory moss
 base:mushroom
@@ -10440,6 +10529,33 @@ desc:It has a form that legends are made of. Its still-tender scales are
 desc: shimmering purple.
 
 ### Dungeon level 33 ###
+
+name:dark elven druid
+base:humanoid
+color:G
+speed:120
+hit-points:240
+hearing:50
+armor-class:112
+sleepiness:20
+depth:33
+rarity:3
+weight:120
+experience:600
+blow:HIT:HURT:1d7
+blow:HIT:HURT:1d7
+blow:HIT:HURT:3d8
+flags:MALE | SMART
+flags:DROP_1 | ONLY_ITEM
+flags:HURT_LIGHT | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
+flags:FORCE_SLEEP
+flags:DROP_CORPSE | DROP_SKELETON
+spell-freq:3
+spells:HASTE | CONF | DARKNESS | HEAL
+spells:SHAPECHANGE
+spells:S_ANIMAL | S_MONSTER | S_SPIDER
+drop-base:nature book:8:1:1
+desc:A powerful dark elf, with mighty nature-controlling enchantments.
 
 name:stone giant
 base:giant
@@ -10719,7 +10835,7 @@ flags:HURT_LIGHT | NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:5
-spells:BLINK | WOUND | DARKNESS | MISSILE | SCARE
+spells:BLINK | WOUND | DARKNESS | SCARE
 drop-base:prayer book:5:1:1
 desc:A troll who is so bright he knows how to read.
 
@@ -10825,9 +10941,9 @@ spell-freq:6
 innate-freq:33
 spells:SHOT | BLINK | TRAPS
 drop-base:shadow book:5:1:1
-friends:50:1d1:black knight
+friends:50:1d1:blackguard
 friends:50:1d1:mage
-friends:50:1d1:ninja
+friends:50:1d1:southron assassin
 desc:Cool and confident, fast and lithe; protect your possessions quickly!
 
 name:Ulfang the Black
@@ -11123,31 +11239,6 @@ flags:RAND_50 | OPEN_DOOR | BASH_DOOR
 flags:IM_ELEC
 desc:It is impossible to define its form but its violence is legendary.
 
-name:dagashi
-base:person
-color:y
-speed:120
-hit-points:169
-light:2
-hearing:20
-armor-class:84
-sleepiness:10
-depth:35
-rarity:4
-weight:160
-experience:500
-blow:HIT:POISON:3d4
-blow:HIT:LOSE_STR:3d4
-blow:HIT:LOSE_STR:3d4
-blow:HIT:POISON:3d4
-flags:MALE | EVIL | LEVITATE
-flags:DROP_1
-flags:OPEN_DOOR
-flags:NO_CONF | NO_SLEEP
-flags:DROP_CORPSE | DROP_SKELETON
-friends:80:1d4:ninja
-desc:A human warrior, moving with lightning speed.
-
 name:gravity hound
 base:zephyr hound
 color:W
@@ -11371,7 +11462,7 @@ desc: adventurers within reach of its venomous claws.
 
 name:malicious leprechaun
 base:humanoid
-color:M
+color:V
 speed:120
 hit-points:12
 hearing:8
@@ -11385,7 +11476,7 @@ blow:TOUCH:EAT_GOLD
 blow:TOUCH:EAT_ITEM
 flags:INVISIBLE | PWMANG_BASE | EVIL | COLD_BLOOD | MALE | MULTIPLY
 flags:RAND_25 | TAKE_ITEM
-flags:HURT_LIGHT
+flags:HURT_LIGHT | ATTR_FLICKER
 spell-freq:6
 spells:BLINK | WOUND | TELE_TO | TPORT
 desc:This little creature has a fiendish gleam in its eyes.
@@ -11417,7 +11508,7 @@ desc:A phantasmal apparition with no head.
 
 name:halfling slinger
 base:humanoid
-color:W
+color:z
 speed:110
 hit-points:238
 light:2
@@ -11753,10 +11844,11 @@ spells:BO_FIRE
 spells:S_DEMON
 desc:It is a humanoid form composed of flames and hatred.
 
-name:necromancer
+name:dúnadan of Angmar
+plural:dúnedain of Angmar
 base:person
-color:R
-speed:110
+color:P
+speed:120
 hit-points:246
 hearing:20
 armor-class:75
@@ -11773,14 +11865,15 @@ flags:OPEN_DOOR
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-spells:BLIND | WOUND | HASTE | HOLD | SCARE | TELE_TO
+spells:BLIND | WOUND | DARKNESS | HOLD | SCARE
 spells:TPORT
 spells:BO_NETH
 spells:S_UNDEAD
 spells:ANIM_DEAD
 drop-base:shadow book:8:1:1
 friends-base:80:1d3:skeleton
-desc:A gaunt figure, clothed in black robes.
+desc:A necromancer recruited to the evil realm of Angmar during the decline of
+desc: the North Kingdom.
 
 name:Lorgan, Chief of the Easterlings
 base:person
@@ -11799,7 +11892,7 @@ blow:HIT:HURT:6d6
 blow:HIT:HURT:6d6
 blow:HIT:HURT:3d8
 blow:HIT:HURT:3d8
-flags:UNIQUE | MALE | EVIL
+flags:UNIQUE | MALE | EVIL | ATTR_FLICKER
 flags:DROP_2 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | MOVE_BODY
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF
@@ -11815,7 +11908,7 @@ desc: control.
 
 name:demonologist
 base:person
-color:i
+color:R
 speed:120
 hit-points:246
 light:2
@@ -12297,7 +12390,7 @@ flags:FORCE_SLEEP
 spell-freq:2
 spells:HEAL | TRAPS
 spells:BO_COLD | BO_ELEC | BO_FIRE | BO_ICE
-desc:A Black Númenorean who usurped the throne of Gondor, he is treacherous and
+desc:A Black Númenórean who usurped the throne of Gondor, he is treacherous and
 desc: evil.
 
 name:time vortex
@@ -12423,6 +12516,34 @@ desc:A massive spider, heaving the bloated bag of its body between great
 desc: spined legs.
 
 ### Dungeon level 39 ###
+
+name:southron archer
+base:person
+color:M
+speed:120
+hit-points:209
+hearing:20
+armor-class:114
+sleepiness:10
+depth:39
+rarity:4
+weight:160
+experience:700
+blow:HIT:POISON:3d4
+blow:HIT:LOSE_STR:3d4
+blow:HIT:LOSE_STR:3d4
+blow:HIT:POISON:3d4
+flags:MALE | EVIL | LEVITATE
+flags:DROP_1
+flags:OPEN_DOOR
+flags:NO_CONF | NO_SLEEP
+flags:DROP_CORPSE | DROP_SKELETON
+spell-freq:2
+innate-freq:100
+spells:ARROW
+friends:80:1d4:southron assassin
+desc:A man of Harad clad in black and red and carrying a longbow. His quiver is
+desc: full of red feathered arrows, and carries an insignia of a black serpent.
 
 name:mature white dragon
 base:dragon
@@ -12789,7 +12910,7 @@ desc: saps your very soul.
 
 name:enchantress
 base:person
-color:i
+color:R
 speed:130
 hit-points:457
 light:2
@@ -12850,7 +12971,6 @@ drop-base:magic book:10:1:1
 friends:30:1d1:master thief
 friends:30:1d1:ranger chieftain
 friends:30:1d1:patriarch
-friends:30:1d1:knight Templar
 friends:30:1d1:berserker
 desc:A human figure in robes, he moves with magically improved speed, and his
 desc: hands are ablur with spell casting.
@@ -12984,25 +13104,23 @@ experience:1800
 blow:HIT:HURT:3d4
 blow:HIT:HURT:3d4
 blow:HIT:HURT:3d5
-flags:MALE | EVIL | SMART
+flags:MALE | SMART
 flags:DROP_2 | ONLY_ITEM
 flags:OPEN_DOOR
 flags:NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:2
-spells:BLIND | WOUND | HEAL | HOLD
-spells:S_MONSTER | S_UNDEAD
-spells:ANIM_DEAD
+spells:BLIND | HEAL | HEAL_KIN | MIND_BLAST
+spells:BA_LIGHT | BA_ELEC
+spells:S_KIN
 drop-base:prayer book:10:1:1
 friends:30:1d1:master thief
 friends:30:1d1:ranger chieftain
 friends:30:1d1:sorcerer
-friends:30:1d1:knight Templar
 friends:30:1d1:berserker
-desc:An evil priest, dressed all in black. Deadly spells hit you at an alarming
-desc: rate as his black spiked mace rains down blow after blow on your pitiful
-desc: frame.
+desc:A priest of great power, he is convinced of the righteousness of his
+desc: beliefs. Stand in his way at your peril.
 
 name:troll chieftain
 base:troll
@@ -13222,7 +13340,6 @@ flags:NO_CONF | NO_SLEEP | IM_FIRE | IM_COLD | IM_ELEC
 friends:30:1d1:master thief
 friends:30:1d1:ranger chieftain
 friends:30:1d1:patriarch
-friends:30:1d1:knight Templar
 friends:30:1d1:sorcerer
 desc:A warrior of considerable skill.
 
@@ -13530,16 +13647,14 @@ flags:OPEN_DOOR | TAKE_ITEM
 flags:IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
-innate-freq:13
-spells:ARROW | BLINK | HASTE | MISSILE
+innate-freq:17
+spells:ARROW | BLINK | HASTE | HEAL
 spells:BA_COLD
-spells:BO_ELEC | BO_FIRE
 spells:S_ANIMAL
-drop-base:magic book:8:1:1
+drop-base:nature book:8:1:1
 friends:30:1d1:master thief
 friends:30:1d1:sorcerer
 friends:30:1d1:patriarch
-friends:30:1d1:knight Templar
 friends:30:1d1:berserker
 desc:A chieftain among the Rangers. His understanding of nature gives him
 desc: powerful elemental spells to use against you, in addition to his skills as
@@ -14108,42 +14223,6 @@ friends:50:1d4:baby power dragon
 friends:50:1d2:young power dragon
 desc:A large dragon, scales shimmering red.
 
-name:knight Templar
-plural:knights Templar
-base:person
-color:w
-speed:120
-hit-points:1056
-hearing:20
-armor-class:72
-sleepiness:10
-depth:44
-rarity:2
-weight:180
-experience:2000
-blow:HIT:HURT:5d5
-blow:HIT:HURT:5d5
-blow:HIT:HURT:5d5
-flags:MALE | SMART
-flags:DROP_2 | ONLY_ITEM
-flags:OPEN_DOOR | TAKE_ITEM
-flags:NO_FEAR | NO_CONF | NO_SLEEP
-flags:DROP_CORPSE | DROP_SKELETON | IM_NEXUS | IM_DISEN | IM_NETHER | NO_STUN
-spell-freq:4
-spells:BLIND | WOUND | HASTE | HEAL | SCARE
-drop-base:prayer book:10:1:1
-friends:30:1d1:master thief
-friends:30:1d1:ranger chieftain
-friends:30:1d1:patriarch
-friends:30:1d1:sorcerer
-friends:30:1d1:berserker
-desc:It seems that the more devout the person, the more likely they are to cross
-desc: the boundary between piety and sanctimoniousness. And such is the case
-desc: with the Order of the Knights Templar; they are among the most pious and
-desc: powerful of the religious knightly orders, but noted for their
-desc: intolerance. Thus it is Morgoth's will that is unwittingly done, as the
-desc: forces of good are set against each other.
-
 name:11-headed hydra
 base:hydra
 color:R
@@ -14409,7 +14488,6 @@ spells:HASTE | SCARE
 friends:30:1d1:master thief
 friends:30:1d1:ranger chieftain
 friends:30:1d1:patriarch
-friends:30:1d1:knight Templar
 friends:30:1d1:sorcerer
 desc:Even the strongest of normal human warriors fears the Berserker - the one
 desc: who can drive himself into such a terrible battle-frenzy that he can
@@ -14604,6 +14682,40 @@ spells:BR_FIRE | TPORT | BLINK
 desc:A Thunderlord. Among the weaker breeds, but still dangerous.
 
 ### Dungeon level 46 ###
+
+name:lord of Carn Dûm
+plural:lords of Carn Dûm
+base:person
+color:i
+speed:120
+hit-points:557
+hearing:20
+armor-class:90
+sleepiness:20
+depth:46
+rarity:2
+weight:180
+experience:2100
+blow:HIT:HURT:5d4
+blow:HIT:HURT:5d4
+blow:HIT:HURT:3d5
+flags:MALE | EVIL | SMART
+flags:DROP_2 | ONLY_ITEM
+flags:OPEN_DOOR
+flags:NO_CONF | NO_SLEEP | NO_HOLD
+flags:FORCE_SLEEP
+flags:DROP_CORPSE | DROP_SKELETON
+spell-freq:2
+spells:BLIND | WOUND | HEAL | HOLD
+spells:S_MONSTER | S_UNDEAD
+drop-base:shadow book:10:1:1
+friends:30:1d1:master thief
+friends:30:1d1:ranger chieftain
+friends:30:1d1:sorcerer
+friends:30:1d1:berserker
+desc:An evil priest, dressed all in black. Deadly spells hit you at an alarming
+desc: rate as his black spiked mace rains down blow after blow on your pitiful
+desc: frame.
 
 name:vampire lord
 base:vampire
@@ -14813,7 +14925,7 @@ flags:OPEN_DOOR
 flags:IM_ACID | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 flags-off:HURT_COLD
-spell-freq:2
+spell-freq:4
 spells:WOUND | HOLD | SCARE
 spells:BA_ACID
 spells:BO_FIRE | BO_PLAS
@@ -15430,8 +15542,8 @@ flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 flags:IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
-spell-freq:6
-spells:TRAPS
+spell-freq:4
+spells:TELE_TO | TELE_SELF_TO | BLINK | TRAPS | DARKNESS | BLIND | HOLD
 desc:He is a master of disguise, an expert of stealth, a genius at traps, and
 desc: moves with blinding speed. Check your pockets!
 
@@ -16851,40 +16963,6 @@ desc: immortals and pound them to dust with his great strength.
 
 ### Dungeon level 62 ###
 
-name:Ossë, Herald of Ulmo
-base:ainu
-color:Z
-speed:130
-hit-points:6000
-hearing:40
-armor-class:204
-sleepiness:10
-depth:62
-rarity:3
-weight:0
-experience:30000
-blow:HIT:EXP_80:10d5
-blow:HIT:EXP_80:10d5
-blow:HIT:HURT:10d10
-blow:HIT:HURT:10d10
-flags:UNIQUE | MALE
-flags:DROP_4 | DROP_GOOD
-flags:MOVE_BODY
-flags:IM_ACID | IM_ELEC | IM_WATER
-flags:IM_NETHER
-spell-freq:2
-innate-freq:25
-spells:BLIND | TELE_TO | WHIP
-spells:BA_WATE
-spells:BO_MANA | BO_WATE
-spells:BR_WATE
-spells:S_AINU
-desc:Encrusted with barnacles, slimy and dripping, the Maia of the untamed
-desc: sea has dragged himself down into Angband to send you to a watery grave.
-desc: Ossë is the most powerful and heartless of Ulmo's servants and embodies
-desc: the untamed power of the ocean. Terror grows in your heart with each
-desc: squelching step of his approach.
-
 name:dreadlord
 base:ghost
 color:r
@@ -17227,6 +17305,31 @@ spells:S_DEMON
 desc:It is a demon made almost entirely out of bones. It is humanoid, but with a
 desc: large tail similar to that of a giant scorpion, and emits a foul smell of
 desc: decay and rot. They are despised even in the hells.
+
+name:Fëanorian raider
+base:humanoid
+color:M
+speed:120
+hit-points:1200
+hearing:20
+armor-class:110
+sleepiness:30
+depth:65
+rarity:2
+experience:11000
+blow:HIT:HURT:7d12
+blow:HIT:HURT:7d12
+blow:HIT:HURT:7d12
+blow:HIT:HURT:7d12
+flags:MALE | FORCE_SLEEP
+flags:ONLY_ITEM | DROP_3
+flags:MOVE_BODY
+flags:NO_FEAR | IM_ACID | IM_ELEC
+spell-freq:3
+innate-freq:100
+spells:BOLT
+desc:A veteran of the battles waged by Fëanor and his sons in pursuit of the
+desc: Silmarils, he attacks you with agility, power and cruelty.
 
 ### Dungeon level 66 ###
 
@@ -17983,6 +18086,39 @@ desc:A giant humanoid demon wielding a massive, heavy and sharp scythe. Feared
 desc: by foes and friends alike when it flies into one of its berserk rages, the
 desc: Horned Reaper will cut down anything in its path between it and you - even
 desc: the minions it has just summoned.
+
+name:Ossë, Herald of Ulmo
+base:ainu
+color:Z
+speed:130
+hit-points:6000
+hearing:40
+armor-class:204
+sleepiness:10
+depth:72
+rarity:3
+weight:0
+experience:30000
+blow:HIT:DISENCHANT:10d5
+blow:HIT:DISENCHANT:10d5
+blow:HIT:HURT:10d10
+blow:HIT:HURT:10d10
+flags:UNIQUE | MALE
+flags:DROP_4 | DROP_GOOD
+flags:MOVE_BODY
+flags:IM_ACID | IM_ELEC | IM_WATER
+spell-freq:2
+innate-freq:30
+spells:BLIND | TELE_TO | WHIP
+spells:BA_WATE | STORM
+spells:BO_MANA | BO_WATE
+spells:BR_WATE | BR_DISE
+spells:S_AINU
+desc:Encrusted with barnacles, slimy and dripping, the Maia of the untamed
+desc: sea has dragged himself down into Angband to send you to a watery grave.
+desc: Ossë is the most powerful and heartless of Ulmo's servants and embodies
+desc: the untamed power of the ocean. Terror grows in your heart with each
+desc: squelching step of his approach.
 
 name:Trone, the Rebel Thunderlord
 base:bird
@@ -18807,7 +18943,7 @@ spell-freq:4
 spells:WOUND | SCARE | BRAIN_SMASH
 spells:BLINK | TELE_SELF_TO
 spells:S_HI_DEMON
-desc:A female embodiment of rage, intent on tearing your mond and body apart.
+desc:A female embodiment of rage, intent on tearing your mind and body apart.
 
 name:Wiruin, the Maelstrom
 base:vortex

@@ -2450,9 +2450,9 @@ static bool process_monster_timed(struct monster *mon, bool mvm)
     /* Handle fear, poison, bleeding */
     monster_effects(p, mon);
 
-    /* One in __ chance of missing turn if stunned; always miss if held */
-    if (mon->m_timed[MON_TMD_STUN] && one_in_(STUN_MISS_CHANCE)) return true;
+    /* Always miss turn if held, one in STUN_MISS_CHANCE chance of missing if stunned */
     if (mon->m_timed[MON_TMD_HOLD]) return true;
+    if (mon->m_timed[MON_TMD_STUN]) return one_in_(STUN_MISS_CHANCE);
 
     return false;
 }

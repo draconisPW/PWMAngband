@@ -326,7 +326,7 @@ effect:DETECT_TREASURES
 effect-yx:22:40
 desc:Detects all treasure in the immediate area.
 
-spell:Identify Rune:11:7:25:6:0
+spell:Identify Rune:11:7:25:8:0
 effect:IDENTIFY
 desc:Reveals an unknown rune on an object.
 
@@ -341,12 +341,12 @@ book-properties:25:30:1600
 book-alloc:20:25 to 100
 book-desc:A standard arcane book with a few spells.
 
-spell:Reveal Monsters:15:6:40:6:0
+spell:Reveal Monsters:15:6:40:8:0
 effect:DETECT_MONSTERS
 effect-yx:22:40
 desc:Detects all monsters in the immediate area, for one turn only.
 
-spell:Shock Wave:16:5:40:6:0
+spell:Shock Wave:16:5:40:10:0
 effect:BALL:SOUND:2
 dice:$B
 expr:B:PLAYER_LEVEL:+ 10
@@ -355,7 +355,7 @@ desc:Shoots a radius-2 sound ball.
 desc: Apart from doing sound damage, this also has a chance to stun
 desc: each monster in the area of effect.
 
-spell:Explosion:20:10:50:10:0
+spell:Explosion:20:10:50:12:0
 effect:BALL:SHARD:2
 dice:$B
 expr:B:PLAYER_LEVEL:* 2 + 20
@@ -373,7 +373,7 @@ spell:Mana Drain:22:2:30:12:0
 effect:TAP_DEVICE
 desc:Turns wand or staff energy into mana.
 
-spell:Teleport Other:23:12:60:8:0
+spell:Teleport Other:23:12:60:12:0
 effect:BOLT_STATUS:AWAY_ALL:1
 dice:$B
 expr:B:MAX_SIGHT:* 5
@@ -402,7 +402,7 @@ desc: Sometimes a beam is fired instead that hurts each monster
 desc: in its path.
 desc: The chance to get a beam goes up with your character level.
 
-spell:Resistance:28:20:65:30:0
+spell:Resistance:28:20:65:20:0
 effect:TIMED_INC:OPP_POIS
 dice:20+1d20
 effect:TIMED_INC:OPP_COLD
@@ -1214,7 +1214,7 @@ msg_other: shifts away.
 desc:Displaces your spirit a short distance, hurting your body as it is
 desc: dragged along.
 
-spell:Command:15:14:53:4:0
+spell:Command:15:14:53:12:0
 effect:BOLT_AWARE:COMMAND
 dice:$B
 expr:B:PLAYER_LEVEL:* 2
@@ -1526,7 +1526,7 @@ desc: to-dam bonus of the same weapon.
 desc: The prayer has no effect if the weapon is an artifact, an ego item
 desc: or a worthless item.
 
-spell:Protection from Evil:22:15:50:4:0
+spell:Protection from Evil:22:15:50:5:0
 effect:TIMED_INC:PROTEVIL
 dice:$B+1d25
 expr:B:PLAYER_LEVEL:* 3
@@ -4026,11 +4026,11 @@ expr:B:PLAYER_LEVEL:* 4
 msg_other: invokes a darkness storm.
 desc:Shoots a radius-2 or radius-3 darkness ball (#%d).
 
-spell:Starburst:0:30:40:0:0
+spell:Starburst:0:9:13:0:0
 effect:BALL:LIGHT:2
 flag:BA_LIGHT
-dice:$B+8d8
-expr:B:PLAYER_LEVEL:* 4
+dice:10+1d$S
+expr:S:PLAYER_LEVEL:* 3 / 2
 msg_other: invokes a starburst.
 desc:Shoots a radius-2 or radius-3 light ball (#%d).
 

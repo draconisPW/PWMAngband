@@ -388,7 +388,7 @@ static int object_power_calculation_NUM_TYPE(void *data, int type)
         object_flags_known(power_obj, flags, calc->aware);
 
     of_wipe(f);
-    create_obj_flag_mask(f, false, type, OFT_MAX);
+    create_obj_flag_mask(f, 0, type, OFT_MAX);
     of_inter(f, flags);
     return ((of_count(f) > 1)? of_count(f): 0);
 }
@@ -414,7 +414,7 @@ static int object_power_calculation_ALL_TYPE(void *data, int type)
         object_flags_known(power_obj, flags, calc->aware);
 
     of_wipe(f);
-    create_obj_flag_mask(f, false, type, OFT_MAX);
+    create_obj_flag_mask(f, 0, type, OFT_MAX);
     return (of_is_subset(flags, f)? 1: 0);
 }
 

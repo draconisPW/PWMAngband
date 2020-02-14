@@ -224,7 +224,7 @@ static void remove_redundant_flags(bitflag flags[OF_SIZE])
     {
         bitflag f2[OF_SIZE];
 
-        create_obj_flag_mask(f2, false, OFT_ESP, OFT_MAX);
+        create_obj_flag_mask(f2, 0, OFT_ESP, OFT_MAX);
         of_diff(flags, f2);
         of_on(flags, OF_ESP_ALL);
     }

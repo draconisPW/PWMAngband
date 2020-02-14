@@ -88,7 +88,7 @@ extern struct obj_property *obj_properties;
  */
 
 extern struct obj_property *lookup_obj_property(int type, int index);
-extern void create_obj_flag_mask(bitflag *f, bool id, ...);
+extern void create_obj_flag_mask(bitflag *f, int id, ...);
 extern void flag_message(struct player *p, int flag, char *name);
 extern int sustain_flag(int stat);
 

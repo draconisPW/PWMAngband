@@ -974,7 +974,7 @@ static void count_abilities(const struct artifact *art, struct artifact_set_data
     struct object_kind *kind = lookup_kind(art->tval, art->sval);
     bitflag f2[OF_SIZE];
 
-    create_obj_flag_mask(f2, false, OFT_ESP, OFT_MAX);
+    create_obj_flag_mask(f2, 0, OFT_ESP, OFT_MAX);
 
     if (flags_test(art->flags, OF_SIZE, OF_SUST_STR, OF_SUST_INT, OF_SUST_WIS, OF_SUST_DEX,
         OF_SUST_CON, FLAG_END))
@@ -2186,7 +2186,7 @@ int get_new_esp(bitflag flags[OF_SIZE])
     /* No extra ESP power if OF_ESP_ALL is already present */
     if (of_has(flags, OF_ESP_ALL)) return 0;
 
-    create_obj_flag_mask(newf, false, OFT_ESP, OFT_MAX);
+    create_obj_flag_mask(newf, 0, OFT_ESP, OFT_MAX);
 
     for (i = of_next(newf, FLAG_START); i != FLAG_END; i = of_next(newf, i + 1))
     {
@@ -2590,7 +2590,7 @@ static void remove_contradictory(struct artifact *art)
     {
         bitflag f2[OF_SIZE];
 
-        create_obj_flag_mask(f2, false, OFT_ESP, OFT_MAX);
+        create_obj_flag_mask(f2, 0, OFT_ESP, OFT_MAX);
         of_diff(art->flags, f2);
         of_on(art->flags, OF_ESP_ALL);
     }
@@ -2751,7 +2751,7 @@ static bool design_artifact(struct artifact *art, struct artifact_set_data *data
 
     /* Choose a power for the artifact */
     int power = Rand_sample(data->avg_tv_power[art->tval], data->max_tv_power[art->tval],
-        data->min_tv_power[art->tval], 25, 30);
+        data->min_tv_power[art->tval], 20, 20);
 
     /* Choose a name */
     /* PWMAngband: easier to regenerate the name from the randart seed when needed */

@@ -2067,6 +2067,19 @@ static enum parser_error parse_pit_flags_ban(struct parser *p)
 }
 
 
+static enum parser_error parse_pit_spell_freq(struct parser *p)
+{
+    struct pit_profile *pit = parser_priv(p);
+    int pct;
+
+    if (!pit) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    pct = parser_getint(p, "freq");
+    if (pct < 1 || pct > 100) return PARSE_ERROR_INVALID_SPELL_FREQ;
+    pit->freq_spell = 100 / pct;
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_pit_spell_req(struct parser *p)
 {
     struct pit_profile *pit = parser_priv(p);
@@ -2146,6 +2159,7 @@ static struct parser *init_parse_pit(void)
     parser_reg(p, "color sym color", parse_pit_color);
     parser_reg(p, "flags-req ?str flags", parse_pit_flags_req);
     parser_reg(p, "flags-ban ?str flags", parse_pit_flags_ban);
+    parser_reg(p, "spell-freq int freq", parse_pit_spell_freq);
     parser_reg(p, "spell-req ?str spells", parse_pit_spell_req);
     parser_reg(p, "spell-ban ?str spells", parse_pit_spell_ban);
     parser_reg(p, "mon-ban sym race", parse_pit_mon_ban);

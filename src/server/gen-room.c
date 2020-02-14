@@ -826,6 +826,7 @@ bool mon_pit_hook(struct monster_race *race)
 {
     bool match_base = true;
     bool match_color = true;
+    int freq_spell = dun->pit_type->freq_spell;
 
     my_assert(dun->pit_type);
     my_assert(race);
@@ -846,6 +847,7 @@ bool mon_pit_hook(struct monster_race *race)
     if (rf_is_inter(race->flags, dun->pit_type->forbidden_flags)) return false;
     if (!rsf_is_subset(race->spell_flags, dun->pit_type->spell_flags)) return false;
     if (rsf_is_inter(race->spell_flags, dun->pit_type->forbidden_spell_flags)) return false;
+    if (race->freq_spell < freq_spell) return false;
     if (dun->pit_type->forbidden_monsters)
     {
         struct pit_forbidden_monster *monster;
