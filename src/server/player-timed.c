@@ -921,6 +921,23 @@ static bool set_harmony(struct player *p, int v)
 
 
 /*
+ * Return true if the player timed effect matches the given string
+ */
+bool player_timed_grade_eq(struct player *p, int idx, char *match)
+{
+    if (p->timed[idx])
+    {
+        struct timed_grade *grade = timed_effects[idx].grade;
+
+        while (p->timed[idx] > grade->max) grade = grade->next;
+        if (grade->name && streq(grade->name, match)) return true;
+    }
+
+    return false;
+}
+
+
+/*
  * Set "p->food", notice observable changes
  *
  * The "p->food" variable can get as large as 17000, allowing the

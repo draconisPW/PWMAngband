@@ -34,6 +34,8 @@ Game Mechanics
 - Monsters can have innate darkness around them
 - Traps added that trigger on leaving their square
 - Monster spells can have different levels depending on monster spell power
+- New mode where all races gain experience at the same rate, except for
+  humans who are faster, and high-elves who are slower
 
 Code Improvements
 - Some font improvements
@@ -88,6 +90,10 @@ Angband 4.2.0:
 - Nerf randarts
 - Unnerf no_selling gold drops on early levels
 - Adjust first cast experience for lots of spells
+- New mode where all races gain experience at the same rate, except for
+  humans who are faster, and high-elves who are slower (PWMAngband: define
+  CLASSIC_EXP_FACTOR = false in mangband.cfg to activate this mode -- yeeks
+  are still faster and ents/thunderlords/dragons are still slower)
 
 PWMAngband:
 
@@ -110,6 +116,7 @@ Coding changes
 Angband 4.2.0:
 
 - Tidying and documenting of monster allocation
+- Remove TMD_CUT_ constants
 
 PWMAngband:
 

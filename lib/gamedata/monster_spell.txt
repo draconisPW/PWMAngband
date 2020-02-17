@@ -604,7 +604,7 @@ dice:$Dd10
 expr:D:SPELL_POWER:/ 5 - 10
 effect:DAMAGE:CURSE
 dice:$Dd5
-expr:S:SPELL_POWER:/ 3 * 2
+expr:D:SPELL_POWER:/ 3 * 2
 lore:cause light wounds
 lore-color-base:Yellow
 lore-color-resist:Light Green

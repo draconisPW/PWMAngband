@@ -315,8 +315,9 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
         {
             case TMD_CUT:
             {
-                /* Hack -- check for truly "mortal" wound */
-                decr = ((p->timed[i] > TMD_CUT_DEEP)? 0: adjust);
+                /* Check for truly "mortal" wound */
+                if (player_timed_grade_eq(p, i, "Mortal Wound")) decr = 0;
+                else decr = adjust;
 
                 /* Biofeedback always helps */
                 if (p->timed[TMD_BIOFEEDBACK]) decr += decr + 10;
@@ -706,16 +707,15 @@ static void process_player_world(struct player *p, struct chunk *c)
     if (p->timed[TMD_POISONED])
         take_hit(p, 1, "poison", false, "died of blood poisoning");
 
-    /* Take damage from cuts */
+    /* Take damage from cuts, worse from serious cuts */
     if (p->timed[TMD_CUT])
     {
-        /* Mortal wound or Deep Gash */
-        if (p->timed[TMD_CUT] > TMD_CUT_SEVERE) i = 3;
-
-        /* Severe cut */
-        else if (p->timed[TMD_CUT] > TMD_CUT_NASTY) i = 2;
-
-        /* Other cuts */
+        if (player_timed_grade_eq(p, TMD_CUT, "Mortal Wound") ||
+            player_timed_grade_eq(p, TMD_CUT, "Deep Gash"))
+        {
+            i = 3;
+        }
+        else if (player_timed_grade_eq(p, TMD_CUT, "Severe Cut")) i = 2;
         else i = 1;
 
         /* Take damage */

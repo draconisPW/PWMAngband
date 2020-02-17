@@ -68,6 +68,7 @@ bool cfg_limited_esp = false;
 bool cfg_double_purse = false;
 bool cfg_level_req = true;
 s16b cfg_constant_time_factor = 5;
+bool cfg_classic_exp_factor = true;
 s16b cfg_limit_stairs = 0;
 s16b cfg_diving_mode = 0;
 bool cfg_no_artifacts = false;
@@ -1974,13 +1975,26 @@ static enum parser_error parse_p_race_skill_dig(struct parser *p)
 }
 
 
-static enum parser_error parse_p_race_info(struct parser *p)
+static enum parser_error parse_p_race_hitdie(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
     r->r_mhp = parser_getint(p, "mhp");
-    r->r_exp = parser_getint(p, "exp");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_p_race_exp(struct parser *p)
+{
+    struct player_race *r = parser_priv(p);
+    int exp = parser_getint(p, "exp");
+    int cexp = parser_getint(p, "cexp");
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    if (cfg_classic_exp_factor) r->r_exp = cexp;
+    else r->r_exp = exp;
 
     return PARSE_ERROR_NONE;
 }
@@ -1992,8 +2006,18 @@ static enum parser_error parse_p_race_history(struct parser *p)
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
     r->history = findchart(histories, parser_getuint(p, "hist"));
-    r->b_age = parser_getint(p, "b-age");
-    r->m_age = parser_getint(p, "m-age");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_p_race_age(struct parser *p)
+{
+    struct player_race *r = parser_priv(p);
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    r->b_age = parser_getint(p, "base_age");
+    r->m_age = parser_getint(p, "mod_age");
 
     return PARSE_ERROR_NONE;
 }
@@ -2190,8 +2214,10 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "skill-melee int melee", parse_p_race_skill_melee);
     parser_reg(p, "skill-shoot int shoot", parse_p_race_skill_shoot);
     parser_reg(p, "skill-dig int dig", parse_p_race_skill_dig);
-    parser_reg(p, "info int mhp int exp", parse_p_race_info);
-    parser_reg(p, "history uint hist int b-age int m-age", parse_p_race_history);
+    parser_reg(p, "hitdie int mhp", parse_p_race_hitdie);
+    parser_reg(p, "exp int exp int cexp", parse_p_race_exp);
+    parser_reg(p, "history uint hist", parse_p_race_history);
+    parser_reg(p, "age int base_age int mod_age", parse_p_race_age);
     parser_reg(p, "height int mbht int mmht int fbht int fmht", parse_p_race_height);
     parser_reg(p, "weight int mbwt int mmwt int fbwt int fmwt", parse_p_race_weight);
     parser_reg(p, "obj-flag uint level str flag", parse_p_race_obj_flag);
@@ -3967,6 +3993,8 @@ static void set_server_option(const char *option, char *value)
         if (cfg_constant_time_factor < 0) cfg_constant_time_factor = 0;
         if (cfg_constant_time_factor > MIN_TIME_SCALE) cfg_constant_time_factor = MIN_TIME_SCALE;
     }
+    else if (!strcmp(option, "CLASSIC_EXP_FACTOR"))
+        cfg_classic_exp_factor = str_to_boolean(value);
     else if (!strcmp(option, "LIMIT_STAIRS"))
     {
         cfg_limit_stairs = atoi(value);

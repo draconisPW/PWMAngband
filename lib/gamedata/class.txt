@@ -4077,7 +4077,7 @@ spell:Cause Wounds:0:15:22:0:0
 effect:BOLT:CURSE
 flag:WOUND
 dice:$Dd5
-expr:S:PLAYER_LEVEL:/ 3 * 2
+expr:D:PLAYER_LEVEL:/ 3 * 2
 msg_other: incants terribly.
 desc:Cause damage to its target. This also has a chance to cause open wounds
 desc: (#%d).
