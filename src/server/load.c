@@ -609,7 +609,6 @@ int rd_player(struct player *p)
     rd_s16b(&p->deep_descent);
 
     /* Read the flags */
-    rd_s16b(&p->food);
     rd_s32b(&p->energy);
     rd_s16b(&p->word_recall);
     rd_byte(&p->stealthy);

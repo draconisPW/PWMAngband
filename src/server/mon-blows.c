@@ -1439,7 +1439,8 @@ static void melee_effect_handler_FAMINE(melee_effect_handler_context_t *context)
         if (context->target->player && !context->target->player->ghost)
         {
             msg(context->target->player, "You have a sudden attack of hunger!");
-            player_set_food(context->target->player, context->target->player->food / 2);
+            player_set_timed(context->target->player, TMD_FOOD,
+                context->target->player->timed[TMD_FOOD] / 2, false);
         }
         return;
     }
@@ -1451,7 +1452,7 @@ static void melee_effect_handler_FAMINE(melee_effect_handler_context_t *context)
     if (!context->p->ghost)
     {
         msg(context->p, "You have a sudden attack of hunger!");
-        player_set_food(context->p, context->p->food / 2);
+        player_set_timed(context->p, TMD_FOOD, context->p->timed[TMD_FOOD] / 2, false);
         context->obvious = true;
     }
 }

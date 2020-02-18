@@ -493,7 +493,7 @@ static void digest_food(struct player *p)
     if (town_area(&p->wpos)) return;
 
     /* Digest some food */
-    player_set_food(p, p->food - player_digest(p));
+    player_dec_timed(p, TMD_FOOD, player_digest(p), false);
 }
 
 
@@ -774,7 +774,7 @@ static void process_player_world(struct player *p, struct chunk *c)
     if (!(turn.turn % time)) digest_food(p);
 
     /* Getting Faint */
-    if (p->food < PY_FOOD_FAINT)
+    if (p->timed[TMD_FOOD] < PY_FOOD_FAINT)
     {
         /* Faint occasionally */
         if (!p->timed[TMD_PARALYZED] && magik(10))
@@ -789,10 +789,10 @@ static void process_player_world(struct player *p, struct chunk *c)
     }
 
     /* Starve to death (slowly) */
-    if (p->food < PY_FOOD_STARVE)
+    if (p->timed[TMD_FOOD] < PY_FOOD_STARVE)
     {
         /* Calculate damage */
-        i = (PY_FOOD_STARVE - p->food) / 10;
+        i = (PY_FOOD_STARVE - p->timed[TMD_FOOD]) / 10;
 
         /* Take damage */
         take_hit(p, i, "starvation", false, "starved to death");

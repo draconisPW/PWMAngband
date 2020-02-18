@@ -411,7 +411,6 @@ void wr_player(void *data)
     wr_byte(p->unignoring);
     wr_s16b(p->deep_descent);
 
-    wr_s16b(p->food);
     wr_s32b(p->energy);
     wr_s16b(p->word_recall);
     wr_byte(p->stealthy);

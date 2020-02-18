@@ -34,6 +34,7 @@ Game Mechanics
 - Monsters can have innate darkness around them
 - Traps added that trigger on leaving their square
 - Monster spells can have different levels depending on monster spell power
+- The player now has a hunger meter, and food is more important
 - New mode where all races gain experience at the same rate, except for
   humans who are faster, and high-elves who are slower
 
@@ -94,6 +95,7 @@ Angband 4.2.0:
   humans who are faster, and high-elves who are slower (PWMAngband: define
   CLASSIC_EXP_FACTOR = false in mangband.cfg to activate this mode -- yeeks
   are still faster and ents/thunderlords/dragons are still slower)
+- The player now has a hunger meter, and food is more important
 
 PWMAngband:
 

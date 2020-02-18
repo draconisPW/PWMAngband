@@ -865,49 +865,6 @@ struct state_info
 
 
 /*
- * Simple macro to initialize structs
- */
-#define S(s) s, sizeof(s)
-
-
-/*
- * player->hunger descriptions
- */
-static const struct state_info hunger_data[] =
-{
-    { PY_FOOD_FAINT,   S("Faint"),  COLOUR_RED },
-    { PY_FOOD_WEAK,    S("Weak"),   COLOUR_ORANGE },
-    { PY_FOOD_ALERT,   S("Hungry"), COLOUR_YELLOW },
-    { PY_FOOD_FULL,    S(""),       COLOUR_L_GREEN },
-    { PY_FOOD_MAX + 1, S("Full"),   COLOUR_L_GREEN }
-};
-
-
-/*
- * Prints status of hunger
- */
-static size_t prt_hunger(struct player *p, int row, int col)
-{
-    size_t i;
-
-    for (i = 0; i < N_ELEMENTS(hunger_data); i++)
-    {
-        if (p->food < hunger_data[i].value)
-        {
-            if (hunger_data[i].str[0])
-            {
-                put_str_hook(col, row, -1, hunger_data[i].attr, hunger_data[i].str);
-                return hunger_data[i].len;
-            }
-            return 0;
-        }
-    }
-
-    return 0;
-}
-
-
-/*
  * Print all timed effects.
  */
 static size_t prt_tmd(struct player *p, int row, int col)
@@ -922,6 +879,7 @@ static size_t prt_tmd(struct player *p, int row, int col)
 
             while ((p->timed[i] > grade->max) || ((p->timed[i] < 0) && grade->next))
                 grade = grade->next;
+            if (streq(grade->name, "unused")) continue;
             put_str_hook(col + len, row, -1, grade->color, grade->name);
             len += strlen(grade->name) + 1;
         }
@@ -1170,8 +1128,8 @@ typedef size_t status_f(struct player *p, int row, int col);
  */
 static status_f *status_handlers[] =
 {
-    prt_level_feeling, prt_unignore, prt_recall, prt_descent, prt_state, prt_hunger, prt_study,
-        prt_tmd, prt_dtrap
+    prt_level_feeling, prt_unignore, prt_recall, prt_descent, prt_state, prt_study, prt_tmd,
+        prt_dtrap
 };
 
 

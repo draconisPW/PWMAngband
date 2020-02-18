@@ -1776,23 +1776,6 @@ static int Receive_depth(void)
 }
 
 
-static int Receive_food(void)
-{
-    int n;
-    byte ch;
-    s16b food;
-
-    if ((n = Packet_scanf(&rbuf, "%b%hd", &ch, &food)) <= 0)
-        return n;
-
-    player->food = food;
-
-    player->upkeep->redraw |= (PR_STATUS);
-
-    return 1;
-}
-
-
 static int Receive_status(void)
 {
     int n, i;

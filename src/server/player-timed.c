@@ -121,7 +121,9 @@ static enum parser_error parse_player_timed_grade(struct parser *p)
     l->color = attr;
     l->max = parser_getint(p, "max");
     l->name = string_make(parser_getsym(p, "name"));
-    l->msg = string_make(parser_getsym(p, "msg"));
+    l->up_msg = string_make(parser_getsym(p, "up_msg"));
+    if (parser_hasval(p, "down_msg"))
+        l->down_msg  = string_make(parser_getsym(p, "down_msg"));
 
     return PARSE_ERROR_NONE;
 }
@@ -226,7 +228,8 @@ static struct parser *init_parse_player_timed(void)
 
     parser_reg(p, "name str name", parse_player_timed_name);
     parser_reg(p, "desc str desc", parse_player_timed_desc);
-    parser_reg(p, "grade sym color int max sym name sym msg", parse_player_timed_grade);
+    parser_reg(p, "grade sym color int max sym name sym up_msg ?sym down_msg",
+        parse_player_timed_grade);
     parser_reg(p, "on-end str text", parse_player_timed_end_message);
     parser_reg(p, "on-increase str text", parse_player_timed_increase_message);
     parser_reg(p, "on-decrease str text", parse_player_timed_decrease_message);
@@ -265,7 +268,8 @@ static void cleanup_player_timed(void)
             struct timed_grade *next = grade->next;
 
             string_free(grade->name);
-            string_free(grade->msg);
+            string_free(grade->up_msg);
+            string_free(grade->down_msg);
             mem_free(grade);
             grade = next;
         }
@@ -486,7 +490,7 @@ static bool player_set_timed_perma(struct player *p, int idx)
     if (p->timed[idx] == 0)
     {
         msg_misc(p, effect->near_begin);
-        msgt(p, effect->msgt, current_grade->msg);
+        msgt(p, effect->msgt, current_grade->up_msg);
         notify = true;
     }
 
@@ -938,115 +942,6 @@ bool player_timed_grade_eq(struct player *p, int idx, char *match)
 
 
 /*
- * Set "p->food", notice observable changes
- *
- * The "p->food" variable can get as large as 17000, allowing the
- * addition of the most "filling" item, Elvish Waybread, which adds
- * 7500 food units, without overflowing the 32767 maximum limit.
- *
- * Perhaps we should disturb the player with various messages,
- * especially messages about hunger status changes.  XXX XXX XXX
- *
- * Digestion of food is handled in "dungeon.c", in which, normally,
- * the player digests about 20 food units per 100 game turns, more
- * when "fast", more when "regenerating", less with "slow digestion".
- */
-bool player_set_food(struct player *p, int v)
-{
-    int old_aux, new_aux;
-    bool notice = false;
-
-    p->starving = false;
-
-    /* Hack -- force good values */
-    v = MIN(v, PY_FOOD_MAX);
-    v = MAX(v, 0);
-
-    /* Current value */
-    if (p->food < PY_FOOD_FAINT) old_aux = 0;
-    else if (p->food < PY_FOOD_WEAK) old_aux = 1;
-    else if (p->food < PY_FOOD_ALERT) old_aux = 2;
-    else if (p->food < PY_FOOD_FULL) old_aux = 3;
-    else old_aux = 4;
-
-    /* New value */
-    if (v < PY_FOOD_FAINT) new_aux = 0;
-    else if (v < PY_FOOD_WEAK) new_aux = 1;
-    else if (v < PY_FOOD_ALERT) new_aux = 2;
-    else if (v < PY_FOOD_FULL) new_aux = 3;
-    else new_aux = 4;
-
-    /* Change */
-    if (new_aux != old_aux) notice = true;
-
-    /* Hack -- do not display message for ghosts */
-    if (p->ghost) old_aux = new_aux;
-
-    /* Food increase or decrease */
-    if (new_aux > old_aux)
-    {
-        switch (new_aux)
-        {
-            case 1:
-                msg(p, "You are still weak.");
-                break;
-            case 2:
-                msg(p, "You are still hungry.");
-                break;
-            case 3:
-                msg(p, "You are no longer hungry.");
-                break;
-            case 4:
-                msg(p, "You are full!");
-                break;
-        }
-    }
-    else if (new_aux < old_aux)
-    {
-        switch (new_aux)
-        {
-            case 0:
-            {
-                msgt(p, MSG_NOTICE, "You are getting faint from hunger!");
-
-                /*
-                 * If the player is at full hit points,
-                 * destroy his connection (this will hopefully prevent
-                 * people from starving while afk)
-                 */
-                if ((p->chp == p->mhp) && OPT(p, disturb_faint)) p->starving = true;
-                break;
-            }
-            case 1:
-                msgt(p, MSG_NOTICE, "You are getting weak from hunger!");
-                break;
-            case 2:
-                msgt(p, MSG_HUNGRY, "You are getting hungry.");
-                break;
-            case 3:
-                msgt(p, MSG_NOTICE, "You are no longer full.");
-                break;
-        }
-    }
-
-    /* Use the value */
-    p->food = v;
-
-    /* Nothing to notice */
-    if (!notice) return false;
-
-    /* Disturb and update */
-    disturb(p, 0);
-    p->upkeep->update |= (PU_BONUS);
-    p->upkeep->redraw |= (PR_STATUS);
-    handle_stuff(p);
-
-    /* Result */
-    return true;
-}
-
-
-/*
  * Setting, increasing, decreasing and clearing timed effects
  */
 
@@ -1139,8 +1034,18 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     if (new_grade->grade > current_grade->grade)
     {
         msg_misc(p, effect->near_begin);
-        print_custom_message(p, weapon, new_grade->msg, effect->msgt);
+        print_custom_message(p, weapon, new_grade->up_msg, effect->msgt);
         notify = true;
+    }
+    else if ((new_grade->grade < current_grade->grade) && new_grade->down_msg)
+    {
+        msg_misc(p, effect->near_begin);
+        print_custom_message(p, weapon, new_grade->down_msg, effect->msgt);
+        notify = true;
+
+        /* If the player is at full hit points and starving, destroy his connection */
+        if ((idx == TMD_FOOD) && (v < PY_FOOD_FAINT) && (p->chp == p->mhp) && OPT(p, disturb_faint))
+            p->starving = true;
     }
     else if (notify)
     {

@@ -19,6 +19,7 @@
 
 /*
  * Player food values
+ * Note: this must be the same values as the ones in player_timed.txt
  */
 #define PY_FOOD_MAX     17000   /* Food value (Bloated) */
 #define PY_FOOD_FULL    10000   /* Food value (Normal) */
@@ -143,7 +144,8 @@ struct timed_grade
     byte color;
     int max;
     char *name;
-    char *msg;
+    char *up_msg;
+    char *down_msg;
     struct timed_grade *next;
 };
 
@@ -626,7 +628,6 @@ struct player
     s16b word_recall;                           /* Word of recall counter */
     s16b deep_descent;                          /* Deep Descent counter */
     s32b energy;                                /* Current energy */
-    s16b food;                                  /* Current nutrition */
     byte unignoring;                            /* Player doesn't hide ignored items */
     byte *spell_flags;                          /* Spell flags */
     byte *spell_order;                          /* Spell order */

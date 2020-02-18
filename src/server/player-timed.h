@@ -50,6 +50,5 @@ extern bool player_inc_timed(struct player *p, int idx, int v, bool notify, bool
 extern bool player_dec_timed(struct player *p, int idx, int v, bool notify);
 extern bool player_clear_timed(struct player *p, int idx, bool notify);
 extern bool player_timed_grade_eq(struct player *p, int idx, char *match);
-extern bool player_set_food(struct player *p, int v);
 
 #endif /* PLAYER_TIMED_H */

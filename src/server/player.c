@@ -576,7 +576,7 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
     }
 
     /* Always start with a well fed player */
-    p->food = PY_FOOD_FULL - 1;
+    p->timed[TMD_FOOD] = PY_FOOD_FULL - 1;
 
     /* Assume no feeling */
     p->feeling = -1;

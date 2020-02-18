@@ -324,15 +324,6 @@ static void prt_depth(struct player *p)
 
 
 /*
- * Prints status of hunger
- */
-static void prt_hunger(struct player *p)
-{
-    Send_food(p, p->food);
-}
-
-
-/*
  * Print all timed effects.
  */
 static void prt_tmd(struct player *p)
@@ -351,7 +342,6 @@ static void prt_status(struct player *p)
 {
     int i;
 
-    prt_hunger(p);
     prt_tmd(p);
 
     /* Hack -- timed flags display */
@@ -1918,7 +1908,7 @@ void player_death(struct player *p)
     effect_simple(EF_TELEPORT, who, "200", 0, 0, 0, 0, 0, NULL);
 
     /* Feed him (maybe he died from starvation) */
-    player_set_food(p, PY_FOOD_MAX - 1);
+    player_set_timed(p, TMD_FOOD, PY_FOOD_MAX - 1, false);
 
     /* Remove the death flag */
     p->is_dead = false;

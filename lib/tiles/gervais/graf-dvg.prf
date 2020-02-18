@@ -11,7 +11,6 @@
 
 ##### Spell effect types #####
 
-
 GF:*:static:0x81:0xD4
 GF:*:0:0x81:0x80
 GF:*:45:0x81:0x82
@@ -144,7 +143,6 @@ GF:BOULDER:315:0x81:0xBA
 
 
 ##### Feature attr/char definitions #####
-
 
 # <darkness>
 feat:unknown grid:*:0x80:0x80
@@ -520,6 +518,7 @@ trap:sleep gas trap:*:0x95:0xFD
 
 # alarm
 trap:aggravation trap:*:0x95:0xF5
+trap:siren:*:0x95:0xF5
 
 # explosion
 trap:mine trap:*:0x95:0xF3
@@ -541,9 +540,6 @@ trap:blinding trap:*:0x95:0xFA
 trap:mana drain trap:*:0x95:0xFD
 trap:knife trap:*:0x95:0xEE
 trap:petrifying trap:*:0x95:0xFD
-
-# alarm
-trap:siren:*:0x95:0xF5
 
 
 ##### Object attr/char definitions #####

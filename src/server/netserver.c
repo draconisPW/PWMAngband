@@ -2266,15 +2266,6 @@ int Send_depth(struct player *p, int depth, int maxdepth, const char *depths)
 }
 
 
-int Send_food(struct player *p, int food)
-{
-    connection_t *connp = get_connp(p, "food");
-    if (connp == NULL) return 0;
-
-    return Packet_printf(&connp->c, "%b%hd", (unsigned)PKT_FOOD, food);
-}
-
-
 int Send_status(struct player *p, s16b *effects)
 {
     int i;

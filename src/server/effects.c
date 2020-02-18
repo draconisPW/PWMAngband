@@ -938,7 +938,7 @@ static void player_turn_undead(struct player *p)
     restore_sp(p);
 
     /* Feed him */
-    player_set_food(p, PY_FOOD_MAX - 1);
+    player_set_timed(p, TMD_FOOD, PY_FOOD_MAX - 1, false);
 
     /* Cancel any WOR spells */
     p->word_recall = 0;
@@ -5191,7 +5191,7 @@ static bool effect_handler_NOURISH(effect_handler_context_t *context)
 
     if (context->self_msg && !player_undead(context->origin->player))
         msg(context->origin->player, context->self_msg);
-    player_set_food(context->origin->player, context->origin->player->food + amount);
+    player_inc_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false, false);
     context->ident = true;
     return true;
 }
@@ -5993,7 +5993,7 @@ static bool effect_handler_SET_NOURISH(effect_handler_context_t *context)
     int amount = effect_calculate_value(context, false);
 
     if (context->self_msg) msg(context->origin->player, context->self_msg);
-    player_set_food(context->origin->player, MAX(amount, 0));
+    player_set_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
     context->ident = true;
     return true;
 }
