@@ -3884,7 +3884,7 @@ magic:0:400:1
 
 # Hack -- mimic realm spells
 # Spells are all put in one book, and they use RSF_XXX flags as effect flag
-book:mimic realm:xxx:xxx:71:mimic
+book:mimic realm:xxx:xxx:73:mimic
 
 spell:Shriek:0:1:1:0:0
 effect:PROJECT_LOS:MON_SPEED
@@ -4113,6 +4113,14 @@ dice:$B+6d8
 expr:B:PLAYER_LEVEL:/ 3
 msg_other: fires a frost bolt.
 desc:Fires a frost bolt that always hits its target (#%d).
+
+spell:Poison Bolt:0:9:13:0:0
+effect:BOLT:POIS
+flag:BO_POIS
+dice:$B+9d8
+expr:B:PLAYER_LEVEL:/ 3
+msg_other: spews a stream of poison.
+desc:Fires a poison bolt that always hits its target (#%d).
 
 spell:Nether Bolt:0:13:19:0:0
 effect:BOLT:NETHER

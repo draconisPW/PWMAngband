@@ -688,6 +688,17 @@ lore-color-immune:Light Green
 message-vis:{name} casts a bolt of frost.
 message-invis:Something mumbles.
 
+name:BO_POIS
+hit:100
+effect:BOLT:POIS
+dice:$B+9d8
+expr:B:SPELL_POWER:/ 3
+lore:produce poison bolts
+lore-color-base:Orange
+lore-color-resist:Light Green
+message-vis:{name} spews a stream of poison.
+message-invis:Something retches.
+
 name:BO_NETH
 hit:100
 effect:BOLT:NETHER
