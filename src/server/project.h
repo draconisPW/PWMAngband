@@ -111,7 +111,6 @@ extern bool project_o(struct source *origin, int r, struct chunk *c, struct loc 
 
 /* project-player.c */
 extern int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resist);
-extern void project_player_swap_stats(struct player *p);
 extern void project_player_time_effects(struct player *p, struct source *who);
 extern void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, int dam,
     int typ, int power, const char *what, bool *did_hit, bool *was_obvious, struct loc *newgrid);

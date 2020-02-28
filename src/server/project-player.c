@@ -187,38 +187,6 @@ static void project_player_drain_stats(struct player *p, int num)
 }
 
 
-/*
- * Swap stats at random to temporarily scramble the player's stats.
- */
-void project_player_swap_stats(struct player *p)
-{
-    int max1, cur1, max2, cur2, i, j, swap;
-
-    /* Fisher-Yates shuffling algorithm. */
-    for (i = STAT_MAX - 1; i > 0; --i)
-    {
-        j = randint0(i);
-
-        max1 = p->stat_max[i];
-        cur1 = p->stat_cur[i];
-        max2 = p->stat_max[j];
-        cur2 = p->stat_cur[j];
-
-        p->stat_max[i] = max2;
-        p->stat_cur[i] = cur2;
-        p->stat_max[j] = max1;
-        p->stat_cur[j] = cur1;
-
-        /* Record what we did */
-        swap = p->stat_map[i];
-        p->stat_map[i] = p->stat_map[j];
-        p->stat_map[j] = swap;
-    }
-
-    player_inc_timed(p, TMD_SCRAMBLE, randint0(20) + 20, true, true);
-}
-
-
 void project_player_time_effects(struct player *p, struct source *who)
 {
     /* Life draining */
@@ -597,7 +565,7 @@ static int project_player_handler_NEXUS(project_player_handler_context_t *contex
     if (magik(p->state.skills[SKILL_SAVE]))
         msg(p, "You avoid the effect!");
     else
-        project_player_swap_stats(p);
+        player_inc_timed(p, TMD_SCRAMBLE, randint0(20) + 20, true, true);
 
     /* Teleport to */
     if (one_in_(3))
@@ -1131,7 +1099,7 @@ static int project_player_handler_MON_POLY(project_player_handler_context_t *con
         if (magik(p->state.skills[SKILL_SAVE]))
             msg(p, "You avoid the effect!");
         else
-            project_player_swap_stats(p);
+            player_inc_timed(p, TMD_SCRAMBLE, randint0(20) + 20, true, true);
     }
 
     /* Poly bat */

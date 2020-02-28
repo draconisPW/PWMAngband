@@ -1390,6 +1390,17 @@ static bool effect_handler_BANISH(effect_handler_context_t *context)
 
 
 /*
+ * Turns the player into a fruit bat
+ */
+static bool effect_handler_BATTY(effect_handler_context_t *context)
+{
+    poly_bat(context->origin->player, 100, NULL);
+    context->ident = true;
+    return true;
+}
+
+
+/*
  * Cast a beam spell
  * Pass through monsters, as a beam
  * Affect monsters (not grids or objects)

@@ -773,8 +773,8 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Digest normally */
     if (!(turn.turn % time)) digest_food(p);
 
-    /* Getting Faint */
-    if (p->timed[TMD_FOOD] < PY_FOOD_FAINT)
+    /* Faint or starving */
+    if (player_timed_grade_eq(p, TMD_FOOD, "Faint"))
     {
         /* Faint occasionally */
         if (!p->timed[TMD_PARALYZED] && magik(10))
@@ -787,9 +787,7 @@ static void process_player_world(struct player *p, struct chunk *c)
             player_inc_timed(p, TMD_PARALYZED, 1 + randint0(5), true, false);
         }
     }
-
-    /* Starve to death (slowly) */
-    if (p->timed[TMD_FOOD] < PY_FOOD_STARVE)
+    else if (player_timed_grade_eq(p, TMD_FOOD, "Starving"))
     {
         /* Calculate damage */
         i = (PY_FOOD_STARVE - p->timed[TMD_FOOD]) / 10;
@@ -1636,7 +1634,7 @@ static void energize_player(struct player *p)
     }
 
     /* Paralyzed or Knocked Out player gets no turn */
-    if (p->timed[TMD_PARALYZED] || p->timed[TMD_STUN] >= 100)
+    if (p->timed[TMD_PARALYZED] || player_timed_grade_eq(p, TMD_STUN, "Knocked Out"))
         do_cmd_sleep(p);
 
     /* Hack -- if player has energy and we are in a slow time bubble, blink faster */

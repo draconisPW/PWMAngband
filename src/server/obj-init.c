@@ -1853,13 +1853,33 @@ static enum parser_error parse_object_type(struct parser *p)
 }
 
 
-static enum parser_error parse_object_properties(struct parser *p)
+static enum parser_error parse_object_level(struct parser *p)
 {
     struct object_kind *k = parser_priv(p);
 
     my_assert(k);
     k->level = parser_getint(p, "level");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_object_weight(struct parser *p)
+{
+    struct object_kind *k = parser_priv(p);
+
+    my_assert(k);
     k->weight = parser_getint(p, "weight");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_object_cost(struct parser *p)
+{
+    struct object_kind *k = parser_priv(p);
+
+    my_assert(k);
     k->cost = parser_getint(p, "cost");
 
     return PARSE_ERROR_NONE;
@@ -1883,17 +1903,27 @@ static enum parser_error parse_object_alloc(struct parser *p)
 }
 
 
-static enum parser_error parse_object_combat(struct parser *p)
+static enum parser_error parse_object_attack(struct parser *p)
 {
     struct object_kind *k = parser_priv(p);
     struct random hd = parser_getrand(p, "hd");
 
     my_assert(k);
-    k->ac = parser_getint(p, "ac");
     k->dd = hd.dice;
     k->ds = hd.sides;
     k->to_h = parser_getrand(p, "to-h");
     k->to_d = parser_getrand(p, "to-d");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_object_armor(struct parser *p)
+{
+    struct object_kind *k = parser_priv(p);
+
+    my_assert(k);
+    k->ac = parser_getint(p, "ac");
     k->to_a = parser_getrand(p, "to-a");
 
     return PARSE_ERROR_NONE;
@@ -2229,9 +2259,12 @@ static struct parser *init_parse_object(void)
     parser_reg(p, "name str name", parse_object_name);
     parser_reg(p, "graphics char glyph sym color", parse_object_graphics);
     parser_reg(p, "type sym tval", parse_object_type);
-    parser_reg(p, "properties int level int weight int cost", parse_object_properties);
+    parser_reg(p, "level int level", parse_object_level);
+    parser_reg(p, "weight int weight", parse_object_weight);
+    parser_reg(p, "cost int cost", parse_object_cost);
     parser_reg(p, "alloc int common str minmax", parse_object_alloc);
-    parser_reg(p, "combat int ac rand hd rand to-h rand to-d rand to-a", parse_object_combat);
+    parser_reg(p, "attack rand hd rand to-h rand to-d", parse_object_attack);
+    parser_reg(p, "armor int ac rand to-a", parse_object_armor);
     parser_reg(p, "charges rand charges", parse_object_charges);
     parser_reg(p, "pile int prob rand stack", parse_object_pile);
     parser_reg(p, "flags str flags", parse_object_flags);
@@ -2819,7 +2852,7 @@ static enum parser_error parse_artifact_graphics(struct parser *p)
 }
 
 
-static enum parser_error parse_artifact_info(struct parser *p)
+static enum parser_error parse_artifact_level(struct parser *p)
 {
     struct artifact *a = parser_priv(p);
     struct object_kind *k;
@@ -2830,14 +2863,28 @@ static enum parser_error parse_artifact_info(struct parser *p)
     my_assert(k);
 
     a->level = parser_getint(p, "level");
+
+    /* Set kind level for special artifacts */
+    if (k->level == -1) k->level = a->level;
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_artifact_weight(struct parser *p)
+{
+    struct artifact *a = parser_priv(p);
+    struct object_kind *k;
+
+    my_assert(a);
+
+    k = lookup_kind(a->tval, a->sval);
+    my_assert(k);
+
     a->weight = parser_getint(p, "weight");
 
     /* Set kind weight for special artifacts */
-    if ((k->level == -1) && (k->weight == -1))
-    {
-        k->level = a->level;
-        k->weight = a->weight;
-    }
+    if (k->weight == -1) k->weight = a->weight;
 
     return PARSE_ERROR_NONE;
 }
@@ -2862,17 +2909,27 @@ static enum parser_error parse_artifact_alloc(struct parser *p)
 }
 
 
-static enum parser_error parse_artifact_power(struct parser *p)
+static enum parser_error parse_artifact_attack(struct parser *p)
 {
     struct artifact *a = parser_priv(p);
     struct random hd = parser_getrand(p, "hd");
 
     my_assert(a);
-    a->ac = parser_getint(p, "ac");
     a->dd = hd.dice;
     a->ds = hd.sides;
     a->to_h = parser_getint(p, "to-h");
     a->to_d = parser_getint(p, "to-d");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_artifact_armor(struct parser *p)
+{
+    struct artifact *a = parser_priv(p);
+
+    my_assert(a);
+    a->ac = parser_getint(p, "ac");
     a->to_a = parser_getint(p, "to-a");
 
     return PARSE_ERROR_NONE;
@@ -3071,9 +3128,11 @@ static struct parser *init_parse_artifact(void)
     parser_reg(p, "name str name", parse_artifact_name);
     parser_reg(p, "base-object sym tval sym sval", parse_artifact_base_object);
     parser_reg(p, "graphics char glyph sym color", parse_artifact_graphics);
-    parser_reg(p, "info int level int weight int cost", parse_artifact_info);
+    parser_reg(p, "level int level", parse_artifact_level);
+    parser_reg(p, "weight int weight", parse_artifact_weight);
     parser_reg(p, "alloc int common str minmax", parse_artifact_alloc);
-    parser_reg(p, "power int ac rand hd int to-h int to-d int to-a", parse_artifact_power);
+    parser_reg(p, "attack rand hd int to-h int to-d", parse_artifact_attack);
+    parser_reg(p, "armor int ac int to-a", parse_artifact_armor);
     parser_reg(p, "flags ?str flags", parse_artifact_flags);
     parser_reg(p, "act str name", parse_artifact_act);
     parser_reg(p, "time rand time", parse_artifact_time);
@@ -3225,6 +3284,7 @@ static enum parser_error parse_object_property_subtype(struct parser *p)
     else if (streq(name, "melee")) prop->subtype = OFT_MELEE;
     else if (streq(name, "bad")) prop->subtype = OFT_BAD;
     else if (streq(name, "dig")) prop->subtype = OFT_DIG;
+    else if (streq(name, "throw")) prop->subtype = OFT_THROW;
     else if (streq(name, "other")) prop->subtype = OFT_OTHER;
     else if (streq(name, "ESP flag")) prop->subtype = OFT_ESP;
     else return PARSE_ERROR_INVALID_SUBTYPE;

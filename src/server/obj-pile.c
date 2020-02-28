@@ -432,6 +432,13 @@ bool object_stackable(struct player *p, const struct object *obj1, const struct 
         if (obj1->decay != obj2->decay) return false;
     }
 
+    /* Gold! */
+    else if (tval_is_money(obj1))
+    {
+        /* Cannot stack infinite gold */
+        if ((obj1->pval + obj2->pval) > PY_MAX_GOLD) return false;
+    }
+
     /* Anything else */
     else
     {
@@ -594,10 +601,23 @@ void object_absorb_partial(struct object *obj1, struct object *obj2)
  */
 void object_absorb(struct object *obj1, struct object *obj2)
 {
-    int total = obj1->number + obj2->number;
+    int total;
 
-    /* Add together the item counts */
-    obj1->number = MIN(total, obj1->kind->base->max_stack);
+    /* Hack -- gold */
+    if (tval_is_money(obj1))
+    {
+        total = obj1->pval + obj2->pval;
+
+        /* Combine the pvals */
+        obj1->pval = MIN(total, PY_MAX_GOLD);
+    }
+    else
+    {
+        total = obj1->number + obj2->number;
+
+        /* Add together the item counts */
+        obj1->number = MIN(total, obj1->kind->base->max_stack);
+    }
 
     object_absorb_merge(obj1, obj2);
     object_delete(&obj2);

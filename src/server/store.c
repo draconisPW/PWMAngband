@@ -807,7 +807,6 @@ static void mass_produce(struct object *obj)
         case TV_FOOD:
         case TV_MUSHROOM:
         case TV_CROP:
-        case TV_COOKIE:
         case TV_FLASK:
         case TV_LIGHT:
         {
@@ -1536,8 +1535,9 @@ static void store_maint(struct store *s, bool force)
             /* Create the item if it doesn't exist */
             if (!obj) obj = store_create_item(s, kind);
 
-            /* Ensure a full stack */
-            obj->number = obj->kind->base->max_stack;
+            /* Ensure a full stack (except cookies) */
+            if (obj->tval != TV_COOKIE)
+                obj->number = obj->kind->base->max_stack;
         }
     }
 

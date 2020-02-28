@@ -124,13 +124,13 @@ desc:A door so broken that it cannot be shut.
 name:up staircase
 graphics:<:w
 priority:26
-flags:LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | STAIR | UPSTAIR | EASY
+flags:LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | STAIR | UPSTAIR | EASY | TORCH
 desc:A staircase up to a shallower part of the dungeon.
 
 name:down staircase
 graphics:>:w
 priority:26
-flags:LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | STAIR | DOWNSTAIR | EASY
+flags:LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | STAIR | DOWNSTAIR | EASY | TORCH
 desc:A staircase down to a deeper part of the dungeon.
 
 name:General Store
@@ -223,30 +223,30 @@ name:secret door
 graphics:#:w
 mimic:granite wall
 priority:11
-flags:WALL | ROCK | DOOR_ANY | GRANITE
+flags:WALL | ROCK | DOOR_ANY | GRANITE | TORCH
 desc:A door that appears like a granite wall to untrained eyes.
 
 name:pile of rubble
-graphics:::w
+graphics:::W
 priority:18
-flags:ROCK | NO_SCENT | NO_FLOW | INTERESTING
+flags:ROCK | NO_SCENT | NO_FLOW | INTERESTING | TORCH
 info:0:2
 desc:Ends LOS, stops missiles, bolts, and beams. May dissolve or be tunnelled
 desc: to normal floor.
 
 name:magma vein
-graphics:%:s
+graphics:%:D
 priority:15
-flags:WALL | ROCK | NO_SCENT | NO_FLOW | MAGMA
+flags:WALL | ROCK | NO_SCENT | NO_FLOW | MAGMA | TORCH
 info:0:3
 desc:A seam of soft rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
 name:quartz vein
-graphics:%:W
+graphics:%:s
 priority:14
-flags:WALL | ROCK | NO_SCENT | NO_FLOW | QUARTZ
+flags:WALL | ROCK | NO_SCENT | NO_FLOW | QUARTZ | TORCH
 info:0:4
 desc:A seam of hardish rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
@@ -262,7 +262,7 @@ desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight. It contains visible treasure.
 
 name:quartz vein with treasure
-graphics:*:o
+graphics:*:y
 priority:19
 flags:WALL | ROCK | INTERESTING | NO_SCENT | NO_FLOW | GOLD | QUARTZ
 info:0:4
@@ -271,9 +271,9 @@ desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight. It contains visible treasure.
 
 name:granite wall
-graphics:#:w
+graphics:#:W
 priority:11
-flags:WALL | ROCK | GRANITE | NO_SCENT | NO_FLOW
+flags:WALL | ROCK | GRANITE | NO_SCENT | NO_FLOW | TORCH
 info:0:5
 desc:A seam of hard rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
@@ -303,7 +303,7 @@ resist-flag:IM_FIRE
 name:pile of passable rubble
 graphics:::u
 priority:18
-flags:ROCK | PASSABLE | INTERESTING
+flags:ROCK | PASSABLE | INTERESTING | TORCH
 info:0:2
 desc:Ends LOS, stops missiles, bolts, and beams, and reduces the radius of ball
 desc: spells. May dissolve or be tunnelled to normal floor, and can be walked
@@ -330,7 +330,7 @@ name:fake permanent wall
 graphics:#:w
 mimic:granite wall
 priority:25
-flags:WALL | ROCK | PERMANENT | PIT | NO_SCENT | NO_FLOW
+flags:WALL | ROCK | PERMANENT | PIT | NO_SCENT | NO_FLOW | TORCH
 desc:This is a section of wall from a pit or nest.
 
 name:arena wall

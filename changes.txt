@@ -58,6 +58,9 @@ Angband 4.2.0:
 
 - Add line for fragility in describe_curses()
 - Some font improvements
+- Take all rock colors down a shade
+- Treasure in quartz as yellow
+- Add some missing object descriptions
 
 PWMAngband:
 
@@ -96,10 +99,16 @@ Angband 4.2.0:
   CLASSIC_EXP_FACTOR = false in mangband.cfg to activate this mode -- yeeks
   are still faster and ents/thunderlords/dragons are still slower)
 - The player now has a hunger meter, and food is more important
+- Fancy lighting
+- Replace Lose Memories
+- Add throwing weapons
+- Add extra moves and damage reduction
+- Add TRAP_IMMUNE
 
 PWMAngband:
 
 - Add a dummy golem in base town for target practice
+- Make Fortune Cookies single items in stores
 
 Bugs fixed
 ----------
@@ -111,6 +120,7 @@ Angband 4.2.0:
 PWMAngband:
 
 - Add missing Shapechanger spells
+- Make Dragons and Monks learn obvious object properties on carry
 
 Coding changes
 --------------
@@ -119,6 +129,11 @@ Angband 4.2.0:
 
 - Tidying and documenting of monster allocation
 - Remove TMD_CUT_ constants
+- Expand properties line in object.txt to level, weight, cost
+- Expand combat line in object.txt to attack and armor
+- Simplify saved subwindow preferences
+- Expand properties line in artifact.txt to level, weight, cost
+- Expand combat line in artifact.txt to attack and armor
 
 PWMAngband:
 

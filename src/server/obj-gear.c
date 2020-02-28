@@ -554,6 +554,7 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
         p->upkeep->notice |= (PN_COMBINE);
 
         /* Hobbits ID mushrooms on pickup, gnomes ID wands and staffs on pickup */
+        /* PWMAngband: Dragons and Monks cannot use weapons, so they need to learn "on wield" */
         if (!object_is_known(p, obj))
         {
             if (player_has(p, PF_KNOW_MUSHROOM) && tval_is_mushroom(obj))
@@ -564,6 +565,9 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
 
             else if (player_has(p, PF_KNOW_ZAPPER) && tval_is_zapper(obj))
                 object_know_everything(p, obj);
+
+            else if (player_has(p, PF_DRAGON) || player_has(p, PF_MARTIAL_ARTS))
+                weapon_learn_on_carry(p, obj);
         }
     }
 

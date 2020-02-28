@@ -19,6 +19,7 @@ EFFECT(ALTER_REALITY, false, NULL, 0, EFINFO_NONE, "creates a new dungeon level"
 EFFECT(BALL, true, "dam", 3, EFINFO_BALL, "shoots a radius-{%d} %s ball that inflicts %s points of damage at the centre")
 EFFECT(BALL_OBVIOUS, true, NULL, 3, EFINFO_BALL, "shoots a radius-{%d} %s ball that inflicts %s points of damage")
 EFFECT(BANISH, false, NULL, 0, EFINFO_NONE, "removes all non-unique monsters represented by a chosen symbol from the level, inflicting {1d4} points of damage for every monster removed")
+EFFECT(BATTY, false, NULL, 0, EFINFO_NONE, "turns you into a fruit bat")
 EFFECT(BEAM, true, "dam", 2, EFINFO_BOLTD, "shoots a beam of %s that inflicts %s points of damage")
 EFFECT(BEAM_OBVIOUS, true, NULL, 2, EFINFO_BOLTD, "shoots a beam of %s that inflicts %s points of damage")
 EFFECT(BIZARRE, true, NULL, 0, EFINFO_NONE, "does bizarre things")

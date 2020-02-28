@@ -106,6 +106,14 @@ static void project_feature_handler_FIRE(project_feature_handler_context_t *cont
         square_burn_grass(context->cave, &context->grid);
     }
 
+    /* Removes webs */
+    if (square_iswebbed(context->cave, &context->grid))
+    {
+        square_clear_feat(context->cave, &context->grid);
+        update_visuals(&context->cave->wpos);
+        fully_update_flow(&context->cave->wpos);
+    }
+
     /* Can create lava if extremely powerful. */
     if ((context->dam > randint1(1800) + 600) && square_isfloor(context->cave, &context->grid))
     {

@@ -188,7 +188,7 @@ static const byte chome[] =
 /*
  * Hack -- check for a "known wall" (see below)
  */
-static int see_wall(struct player *p, struct chunk *c, int dir, struct loc *grid)
+static bool see_wall(struct player *p, struct chunk *c, int dir, struct loc *grid)
 {
     struct loc next;
 
@@ -206,6 +206,9 @@ static int see_wall(struct player *p, struct chunk *c, int dir, struct loc *grid
 
     /* Illegal grids are not known walls XXX XXX XXX */
     if (!square_in_bounds(c, &next)) return false;
+
+    /* Webs are enough like walls */
+    if (square_iswebbed(c, &next)) return true;
 
     /* Non-wall grids are not known walls */
     if (square_ispassable(c, &next)) return false;
@@ -629,7 +632,8 @@ void run_step(struct player *p, int dir)
     }
 
     /* Take a turn */
-    use_energy(p);
+    p->energy -= move_energy(p->wpos.depth) / p->state.num_moves;
+    if (p->energy < 0) p->energy = 0;
 
     /* Move the player, attempts to disarm if running straight at a trap */
     move_player(p, c, p->run_cur_dir, (dir && disarm), false, false, 0);

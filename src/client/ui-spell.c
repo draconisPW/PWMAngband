@@ -136,7 +136,7 @@ static void spell_menu_browser(int oid, void *data, const region *loc)
 
     /* Redirect output to the screen */
     Term_gotoxy(loc->col, loc->row + loc->page_rows);
-    strnfmt(desc, sizeof(desc), "\n%s\n", book_info[d->book].spell_info[oid].desc);
+    strnfmt(desc, sizeof(desc), "\n%s\n\n", book_info[d->book].spell_info[oid].desc);
     text_out_to_screen(COLOUR_WHITE, desc);
 
     spell_menu_erase();

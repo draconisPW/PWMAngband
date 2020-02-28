@@ -163,6 +163,8 @@ static int ranged_damage(struct player *p, struct object *missile, struct object
         object_to_d(launcher, &to_d);
         dam += to_d;
     }
+    else if (of_has(missile->flags, OF_THROWING))
+        dam += p->state.to_d;
     dam *= mult;
     if (p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam;
 
@@ -1300,7 +1302,10 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
 
     /* Player attempts a shield bash if they can, and if monster is visible and not too pathetic */
     if (visible && player_has(p, PF_SHIELD_BASH))
+    {
+        /* Monster may die */
         stop = attempt_shield_bash(p, c, mon, &effects.fear, &blows, num_blows);
+    }
 
     /* Take blows until energy runs out or monster dies */
     while ((blows < num_blows) && !stop)

@@ -1306,9 +1306,9 @@ static void calc_hitpoints(struct player *p, struct player_state *state, bool up
 /*
  * Calculate and set the current light radius.
  *
- * Note that a cursed light source no longer emits light.
+ * The light radius will be the total of all lights carried.
  */
-static void calc_torch(struct player *p, struct player_state *state, bool update)
+static void calc_light(struct player *p, struct player_state *state, bool update)
 {
     int i, adj;
 
@@ -1358,10 +1358,6 @@ static void calc_torch(struct player *p, struct player_state *state, bool update
 
     /* Extra light from race/class bonuses */
     state->cur_light += adj;
-
-    /* Limit light */
-    state->cur_light = MIN(state->cur_light, 5);
-    state->cur_light = MAX(state->cur_light, 0);
 }
 
 
@@ -1907,6 +1903,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     int extra_blows = 0;
     int extra_shots = 0;
     int extra_might = 0;
+    int extra_moves = 0;
     struct object *launcher = equipped_item_by_slot_name(p, "shooting");
     struct object *weapon = equipped_item_by_slot_name(p, "weapon");
     bitflag f[OF_SIZE], f2[OF_SIZE];
@@ -2022,6 +2019,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         /* Affect speed */
         state->speed += modifiers[OBJ_MOD_SPEED];
 
+        /* Affect damage reduction */
+        state->dam_red += modifiers[OBJ_MOD_DAM_RED];
+
         /* Affect blows */
         extra_blows += (modifiers[OBJ_MOD_BLOWS] * 10);
 
@@ -2030,6 +2030,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
 
         /* Affect Might */
         extra_might += modifiers[OBJ_MOD_MIGHT];
+
+        /* Affect movement speed */
+        extra_moves += modifiers[OBJ_MOD_MOVES];
 
         /* Affect resists */
         for (j = 0; j < ELEM_MAX; j++)
@@ -2271,13 +2274,50 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     }
 
     /* Temporary flags */
-    if (p->timed[TMD_STUN] > 50)
+    if (player_timed_grade_eq(p, TMD_FOOD, "Hungry"))
+    {
+        int badness = 10 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_HUNGRY;
+
+        state->to_h -= badness;
+        state->to_d -= badness;
+    }
+    else if (player_timed_grade_eq(p, TMD_FOOD, "Weak"))
+    {
+        int badness = 15 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_WEAK;
+
+        state->to_h -= badness;
+        state->to_d -= badness;
+        state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 9 / 10;
+    }
+    else if (player_timed_grade_eq(p, TMD_FOOD, "Faint"))
+    {
+        int badness = 20 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_FAINT;
+
+        state->to_h -= badness;
+        state->to_d -= badness;
+        state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 8 / 10;
+        state->skills[SKILL_DISARM_PHYS] = state->skills[SKILL_DISARM_PHYS] * 9 / 10;
+        state->skills[SKILL_DISARM_MAGIC] = state->skills[SKILL_DISARM_MAGIC] * 9 / 10;
+    }
+    else if (player_timed_grade_eq(p, TMD_FOOD, "Starving"))
+    {
+        int badness = 28 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_STARVE;
+
+        state->to_h -= badness;
+        state->to_d -= badness;
+        state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 7 / 10;
+        state->skills[SKILL_DISARM_PHYS] = state->skills[SKILL_DISARM_PHYS] * 8 / 10;
+        state->skills[SKILL_DISARM_MAGIC] = state->skills[SKILL_DISARM_MAGIC] * 8 / 10;
+        state->skills[SKILL_SAVE] = state->skills[SKILL_SAVE] * 9 / 10;
+        state->skills[SKILL_SEARCH] = state->skills[SKILL_SEARCH] * 9 / 10;
+    }
+    if (player_timed_grade_eq(p, TMD_STUN, "Heavy Stun"))
     {
         state->to_h -= 20;
         state->to_d -= 20;
         state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 8 / 10;
     }
-    else if (p->timed[TMD_STUN])
+    else if (player_timed_grade_eq(p, TMD_STUN, "Stun"))
     {
         state->to_h -= 5;
         state->to_d -= 5;
@@ -2552,8 +2592,11 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     if (tool && tval_is_digger(tool))
         state->skills[SKILL_DIGGING] += (tool->weight / 10);
 
+    /* Movement speed */
+    state->num_moves = 1 + extra_moves;
+
     /* Call individual functions for other state fields */
-    calc_torch(p, state, update);
+    calc_light(p, state, update);
     calc_mana(p, state, update);
     calc_hitpoints(p, state, update);
 

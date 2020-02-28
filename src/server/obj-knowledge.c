@@ -76,6 +76,7 @@ static void init_rune(void)
         if (prop->subtype == OFT_NONE) continue;
         if (prop->subtype == OFT_LIGHT) continue;
         if (prop->subtype == OFT_DIG) continue;
+        if (prop->subtype == OFT_THROW) continue;
         count++;
     }
     for (i = 0; i < OBJ_MOD_MAX; i++)
@@ -200,6 +201,7 @@ static void init_rune(void)
         if (prop->subtype == OFT_NONE) continue;
         if (prop->subtype == OFT_LIGHT) continue;
         if (prop->subtype == OFT_DIG) continue;
+        if (prop->subtype == OFT_THROW) continue;
 
         rune_list[count].variety = RUNE_VAR_FLAG;
         rune_list[count].index = i;
@@ -1477,6 +1479,54 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     /* Hack -- know activation on rings of polymorphing to bypass (unfair) learning by use */
     if (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")))
         object_notice_effect(p, obj);
+}
+
+
+/*
+ * Learn object properties that would become obvious on wielding
+ * Since Dragons and Monks cannot use weapons, they need to learn "on wield" properties
+ *
+ * p is the player
+ * obj is the wielded object
+ */
+void weapon_learn_on_carry(struct player *p, struct object *obj)
+{
+    bitflag obvious_mask[OF_SIZE];
+    s32b modifiers[OBJ_MOD_MAX];
+    int i;
+
+    /* Only deal with un-ID'd items */
+    if (object_is_known(p, obj)) return;
+
+    /* Only deal with weapons */
+    if (!tval_is_melee_weapon(obj) && !tval_is_mstaff(obj) && !tval_is_launcher(obj)) return;
+
+    /* Check the worn flag */
+    if (obj->known->notice & OBJ_NOTICE_WORN) return;
+    obj->known->notice |= OBJ_NOTICE_WORN;
+
+    /* Get the obvious object flags */
+    create_obj_flag_mask(obvious_mask, 1, OFID_WIELD, OFT_MAX);
+
+    object_modifiers(obj, modifiers);
+
+    /* Make sustains obvious for items with that stat bonus */
+    for (i = 0; i < STAT_MAX; i++)
+    {
+        if (modifiers[i]) of_on(obvious_mask, sustain_flag(i));
+    }
+
+    /* Notice obvious flags */
+    of_union(obj->known->flags, obvious_mask);
+
+    /* Notice all modifiers */
+    for (i = 0; i < OBJ_MOD_MAX; i++)
+        obj->known->modifiers[i] = 1;
+
+    /* Notice curses */
+    object_know_curses(obj);
+
+    object_check_for_ident(p, obj);
 }
 
 

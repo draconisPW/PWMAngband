@@ -240,12 +240,18 @@ void window_dump(ang_file *f)
         /* Check each flag */
         for (j = 0; j < (int)N_ELEMENTS(window_flag_desc); j++)
         {
+            bool dump;
+
             /* Require a real flag */
             if (!window_flag_desc[j]) continue;
 
+            /* Only dump the flag if true */
+            /* PWMAngband: dump all flags for main/chat windows, since there are extra checks */
+            dump = ((window_flag[i] & (1L << j)) || (i == 0) || (i == PMSG_TERM));
+            if (!dump) continue;
+
             /* Comment */
-            file_putf(f, "# Window '%s', Flag '%s'\n",
-                angband_term_name[i], window_flag_desc[j]);
+            file_putf(f, "# Window '%s', Flag '%s'\n", angband_term_name[i], window_flag_desc[j]);
 
             /* Dump the flag */
             if (window_flag[i] & (1L << j))

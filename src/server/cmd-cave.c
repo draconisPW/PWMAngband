@@ -1947,6 +1947,7 @@ void do_cmd_walk(struct player *p, int dir)
                 /* If you can pass through walls, you can destroy a web */
                 else if (monster_passes_walls(p->poly_race))
                 {
+                    msg(p, "You clear the web.");
                     square_clear_feat(c, &p->grid);
                     update_visuals(&p->wpos);
                     fully_update_flow(&p->wpos);
@@ -1957,6 +1958,7 @@ void do_cmd_walk(struct player *p, int dir)
                 /* Clearing costs a turn */
                 else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
                 {
+                    msg(p, "You clear the web.");
                     square_clear_feat(c, &p->grid);
                     update_visuals(&p->wpos);
                     fully_update_flow(&p->wpos);
@@ -1972,6 +1974,7 @@ void do_cmd_walk(struct player *p, int dir)
         /* Clear the web, finish turn */
         else
         {
+            msg(p, "You clear the web.");
             square_clear_feat(c, &p->grid);
             update_visuals(&p->wpos);
             fully_update_flow(&p->wpos);
@@ -1984,7 +1987,8 @@ void do_cmd_walk(struct player *p, int dir)
     if (!do_cmd_walk_test(p)) return;
 
     /* Take a turn */
-    use_energy(p);
+    p->energy -= move_energy(p->wpos.depth) / p->state.num_moves;
+    if (p->energy < 0) p->energy = 0;
 
     /* Apply confusion/erratic movement */
     player_confuse_dir(p, &dir);
@@ -2025,6 +2029,7 @@ void do_cmd_jump(struct player *p, int dir)
                 /* If you can pass through walls, you can destroy a web */
                 else if (monster_passes_walls(p->poly_race))
                 {
+                    msg(p, "You clear the web.");
                     square_clear_feat(c, &p->grid);
                     update_visuals(&p->wpos);
                     fully_update_flow(&p->wpos);
@@ -2035,6 +2040,7 @@ void do_cmd_jump(struct player *p, int dir)
                 /* Clearing costs a turn */
                 else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
                 {
+                    msg(p, "You clear the web.");
                     square_clear_feat(c, &p->grid);
                     update_visuals(&p->wpos);
                     fully_update_flow(&p->wpos);
@@ -2050,6 +2056,7 @@ void do_cmd_jump(struct player *p, int dir)
         /* Clear the web, finish turn */
         else
         {
+            msg(p, "You clear the web.");
             square_clear_feat(c, &p->grid);
             update_visuals(&p->wpos);
             fully_update_flow(&p->wpos);
@@ -2062,7 +2069,8 @@ void do_cmd_jump(struct player *p, int dir)
     if (!do_cmd_walk_test(p)) return;
 
     /* Take a turn */
-    use_energy(p);
+    p->energy -= move_energy(p->wpos.depth) / p->state.num_moves;
+    if (p->energy < 0) p->energy = 0;
 
     /* Apply confusion/erratic movement */
     player_confuse_dir(p, &dir);

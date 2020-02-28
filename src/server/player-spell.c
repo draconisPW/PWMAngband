@@ -590,12 +590,6 @@ static int spell_value_base_monster_percent_hp_gone(void *data)
 }
 
 
-static int spell_value_base_food_max(void *data)
-{
-    return PY_FOOD_MAX;
-}
-
-
 static int spell_value_base_player_spell_power(void *data)
 {
     struct source *who = (struct source *)data;
@@ -656,7 +650,6 @@ expression_base_value_f spell_value_base_by_name(const char *name)
         {"FOOD_STARVE", spell_value_base_food_starve},
         {"WEAPON_DAMAGE", spell_value_base_weapon_damage},
         {"MONSTER_PERCENT_HP_GONE", spell_value_base_monster_percent_hp_gone},
-        {"FOOD_MAX", spell_value_base_food_max},
         {"PLAYER_SPELL_POWER", spell_value_base_player_spell_power},
         {"BALL_ELEMENT", spell_value_base_ball_element},
         {"XBALL_ELEMENT", spell_value_base_xball_element},

@@ -506,38 +506,6 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
 
 
 /*
- * Translate text colours.
- *
- * This translates a color based on the attribute. We use this to set terrain to
- * be lighter or darker, make metallic monsters shimmer, highlight text under the
- * mouse, and reduce the colours on mono colour or 16 colour terms to the correct
- * colour space.
- *
- * TODO: Honour the attribute for the term (full color, mono, 16 color) but ensure
- * that e.g. the lighter version of yellow becomes white in a 16 color term, but
- * light yellow in a full colour term.
- */
-byte get_color(byte a, int attr, int n)
-{
-    /* Accept any graphical attr (high bit set) */
-    if (a & (0x80)) return (a);
-
-    /* TODO: Honour the attribute for the term (full color, mono, 16 color) */
-    if (!attr) return (a);
-
-    /* Translate the color N times */
-    while (n > 0)
-    {
-        a = color_table[a].color_translate[attr];
-        n--;
-    }
-
-    /* Return the modified color */
-    return (a);
-}
-
-
-/*
  * Apply text lighting effects
  */
 static void grid_get_attr(struct player *p, struct grid_data *g, u16b *a)
@@ -548,49 +516,22 @@ static void grid_get_attr(struct player *p, struct grid_data *g, u16b *a)
     /* Remove the high bit so we can add it back again at the end */
     *a = (*a & 0x7F);
 
-    /* Never play with fg colours for treasure */
-    if (!feat_is_treasure(g->f_idx))
+    /* Play with fg colours for terrain affected by torchlight */
+    if (feat_is_torch(g->f_idx))
     {
-        /*
-         * Only apply lighting effects when the attr is white:
-         * this is to stop e.g. doors going grey when out of LOS
-         */
-        if (*a == COLOUR_WHITE)
+        /* Brighten if torchlit, darken if out of LoS, super dark for UNLIGHT */
+        switch (g->lighting)
         {
-            /* If it's a floor tile then we'll tint based on lighting. */
-            if (feat_is_torch(g->f_idx))
+            case LIGHTING_TORCH:
             {
-                switch (g->lighting)
-                {
-                    case LIGHTING_TORCH:
-                        *a = (OPT(p, view_orange_light)? COLOUR_ORANGE: COLOUR_YELLOW);
-                        break;
-                    case LIGHTING_LIT:
-                        *a = COLOUR_L_DARK;
-                        break;
-                    case LIGHTING_DARK:
-                        *a = COLOUR_L_DARK;
-                        break;
-                }
+                *a = get_color(*a, ATTR_LITE, 1);
+                if ((*a == COLOUR_YELLOW) && OPT(p, view_orange_light))
+                    *a = COLOUR_ORANGE;
+                break;
             }
-
-            /* If it's another kind of tile, only tint when unlit. */
-            else if ((g->lighting == LIGHTING_DARK) || (g->lighting == LIGHTING_LIT))
-            {
-                /* Hack -- don't apply lighting effect for the Weapon Smith */
-                if (!feat_is_shop(g->f_idx))
-                    *a = COLOUR_L_DARK;
-            }
+            case LIGHTING_LIT: *a = get_color(*a, ATTR_DARK, 1); break;
+            case LIGHTING_DARK: *a = get_color(*a, ATTR_DARK, 2); break;
         }
-        else if (feat_is_magma(g->f_idx) || feat_is_quartz(g->f_idx))
-        {
-            if (!g->in_view)
-                *a = COLOUR_L_DARK;
-        }
-
-        /* PWMAngband: apply torchlight effect to some other terrain (for example: grass) */
-        else if ((g->lighting == LIGHTING_TORCH) && feat_is_torch(g->f_idx))
-            *a = (OPT(p, view_orange_light)? COLOUR_ORANGE: COLOUR_YELLOW);
     }
 
     /* Hybrid or block walls -- for GCU, then for everyone else */

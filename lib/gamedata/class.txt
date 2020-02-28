@@ -550,8 +550,7 @@ desc: for one turn only.
 
 spell:Satisfy Hunger:2:2:25:2:0
 effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_MAX:- 1
+dice:16000
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
 
@@ -1871,8 +1870,7 @@ desc: for one turn only.
 
 spell:Satisfy Hunger:5:2:23:2:0
 effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_MAX:- 1
+dice:16000
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
 
@@ -2644,8 +2642,7 @@ desc:Covers your missiles with frost.
 
 spell:Satisfy Hunger:12:6:24:12:0
 effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_MAX:- 1
+dice:16000
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
 
@@ -2922,8 +2919,7 @@ desc:Reveals an unknown rune on an object.
 
 spell:Satisfy Hunger:16:14:40:16:0
 effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_MAX:- 1
+dice:16000
 msg_self:You focus your mind to convert energy into food.
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
@@ -3417,8 +3413,7 @@ desc:Grants you temporary resistance to cold.
 
 spell:Potion of Vitality:20:9:49:16:0
 effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_MAX:- 1
+dice:16000
 effect:TIMED_INC:BOLD
 dice:$B+1d$S
 expr:B:PLAYER_SPELL_POWER:* 10

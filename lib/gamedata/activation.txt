@@ -1149,8 +1149,7 @@ name:SATISFY
 aim:0
 power:7
 effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_MAX:- 1
+dice:16000
 desc:magically renders you well-fed (but not satiated)
 
 name:SHERO

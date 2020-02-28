@@ -140,9 +140,6 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     /* Become aware of player's presence */
     if (p->k_idx) aware_player(p, p);
 
-    /* Disturb */
-    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 1);
-
     /* Hack -- apply "invulnerability" */
     if ((p->timed[TMD_INVULN] == -1) || p->timed[TMD_SAFELOGIN])
     {
@@ -154,6 +151,17 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
         /* Globe of invulnerability protects against non-physical attacks only */
         damage -= damage * p->lev / 100;
     }
+
+    /* Apply damage reduction */
+    damage -= p->state.dam_red;
+    if (damage <= 0)
+    {
+        p->died_flavor[0] = '\0';
+        return false;
+    }
+
+    /* Disturb */
+    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 1);
 
     /* Disruption shield: damage is substracted from mana first */
     if (p->timed[TMD_MANASHIELD] && (p->csp > 0))
@@ -1854,5 +1862,6 @@ bool player_is_living(struct player *q)
 bool player_is_trapsafe(struct player *p)
 {
     if (p->timed[TMD_TRAPSAFE]) return true;
+    if (player_of_has(p, OF_TRAP_IMMUNE)) return true;
     return false;
 }

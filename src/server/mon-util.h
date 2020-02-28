@@ -41,6 +41,7 @@ extern void monster_death(struct player *p, struct chunk *c, struct monster *mon
 extern bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int dam,
     bool *fear, int note);
 extern void monster_take_terrain_damage(struct chunk *c, struct monster *mon);
+extern bool monster_taking_terrain_damage(struct chunk *c, struct monster *mon);
 extern void update_player(struct player *q);
 extern void update_players(void);
 extern bool is_humanoid(const struct monster_race *race);

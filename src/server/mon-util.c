@@ -1403,6 +1403,20 @@ void monster_take_terrain_damage(struct chunk *c, struct monster *mon)
 }
 
 
+/*
+ * Terrain is currently damaging monster
+ */
+bool monster_taking_terrain_damage(struct chunk *c, struct monster *mon)
+{
+    struct loc *grid = &mon->grid;
+
+    if (square_isdamaging(c, grid) && !rf_has(mon->race->flags, square_feat(c, grid)->resist_flag))
+        return true;
+
+    return false;
+}
+
+
 static bool is_detected_p(struct player *p, struct player *q, int dis_esp)
 {
     /* Full ESP */

@@ -992,11 +992,15 @@ static bool get_move_flee(struct player *p, struct monster *mon)
     int i;
     int best_score = -1;
 
-    /* If the player is not currently near the monster, no reason to flow */
-    if (mon->cdis >= mon->best_range) return false;
+    /* Taking damage from terrain makes moving vital */
+    if (!monster_taking_terrain_damage(chunk_get(&p->wpos), mon))
+    {
+        /* If the player is not currently near the monster, no reason to flow */
+        if (mon->cdis >= mon->best_range) return false;
 
-    /* Monster is too far away to use sound or scent */
-    if (!monster_can_hear(p, mon) && !monster_can_smell(p, mon)) return false;
+        /* Monster is too far away to use sound or scent */
+        if (!monster_can_hear(p, mon) && !monster_can_smell(p, mon)) return false;
+    }
 
     /* Check nearby grids, diagonals first */
     for (i = 7; i >= 0; i--)
@@ -1216,8 +1220,21 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
     {
         bool group_ai = (rf_has(mon->race->flags, RF_GROUP_AI) && !monster_passes_walls(mon->race));
 
+        /* Monster is taking damage from terrain */
+        if (monster_taking_terrain_damage(c, mon))
+        {
+            /* Try to find safe place */
+            if (get_move_find_safety(who->player, c, mon))
+            {
+                /* Set a course for the safe place */
+                get_move_flee(who->player, mon);
+                loc_diff(&grid, &mon->target.grid, &mon->grid);
+                done = true;
+            }
+        }
+
         /* Normal animal packs try to get the player out of corridors. */
-        if (group_ai)
+        if (!done && group_ai)
         {
             int i, open = 0;
 
@@ -2258,6 +2275,9 @@ static bool monster_check_active(struct chunk *c, struct monster *mon, int *targ
 
     /* Monster can smell the player */
     if (can_smell) return true;
+
+    /* Monster is taking damage from the terrain */
+    if (monster_taking_terrain_damage(c, mon)) return true;
 
     /* Otherwise go passive */
     return false;

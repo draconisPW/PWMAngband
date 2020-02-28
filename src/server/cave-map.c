@@ -72,7 +72,7 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
     /* Default "clear" values, others will be set later where appropriate. */
     g->first_obj = NULL;
     g->multiple_objects = false;
-    g->lighting = LIGHTING_DARK;
+    g->lighting = LIGHTING_LIT;
     g->unseen_object = false;
     g->unseen_money = false;
 
@@ -92,6 +92,18 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
         {
             if (OPT(p, view_yellow_light))
                 g->lighting = LIGHTING_TORCH;
+        }
+
+        /* Lit walls only show as lit if we are looking from the room that's lighting them */
+        if (!square_islitwall(p, c, grid))
+        {
+            if (square_islit(c, grid))
+            {
+                if (OPT(p, view_yellow_light)) g->lighting = LIGHTING_TORCH;
+                else g->lighting = LIGHTING_LOS;
+            }
+            else
+                g->lighting = LIGHTING_LIT;
         }
 
         /* Remember seen grid */
