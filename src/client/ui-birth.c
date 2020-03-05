@@ -278,7 +278,7 @@ static struct menu sex_menu, race_menu, class_menu, roller_menu;
 
 /* Upper left column and row, width, and lower column */
 static region gender_region = {SEX_COL, TABLE_ROW, 12, MENU_ROWS};
-static region race_region = {RACE_COL, TABLE_ROW, 15, MENU_ROWS};
+static region race_region = {RACE_COL, TABLE_ROW, 15, 0};
 static region class_region = {CLASS_COL, TABLE_ROW, 16, 0};
 static region roller_region = {ROLLER_COL, TABLE_ROW, 30, MENU_ROWS};
 
