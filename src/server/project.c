@@ -875,26 +875,27 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
                 /* If this is a wall grid, ... */
                 if (!square_isprojectable(cv, &iter.cur))
                 {
-                    /* Check neighbors */
-                    for (i = 0, k = 0; i < 8; i++)
-                    {
-                        struct loc ngrid;
+                    bool can_see_one = false;
 
-                        loc_sum(&ngrid, &iter.cur, &ddgrid_ddd[i]);
-                        if (los(cv, &centre, &ngrid))
+                    /* Check neighbors */
+                    for (i = 0; i < 8; i++)
+                    {
+                        struct loc adj_grid;
+
+                        loc_sum(&adj_grid, &iter.cur, &ddgrid_ddd[i]);
+                        if (los(cv, &centre, &adj_grid))
                         {
-                            k++;
+                            can_see_one = true;
                             break;
                         }
                     }
 
                     /* Require at least one adjacent grid in LOS. */
-                    if (!k) continue;
+                    if (!can_see_one) continue;
                 }
             }
             else if (!square_isprojectable(cv, &iter.cur))
                 continue;
-            /*if (!los(cv, &centre, &iter.cur)) continue;*/
 
             /* Must be within maximum distance. */
             dist_from_centre = distance(&centre, &iter.cur);
@@ -911,32 +912,27 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
                 n2x = iter.cur.x - start.x + 20;
 
                 /*
-                 * Find the angular difference (/2) between
-                 * the lines to the end of the arc's center-
-                 * line and to the current grid.
+                 * Find the angular difference (/2) between the lines to
+                 * the end of the arc's center-line and to the current grid.
                  */
                 rotate = 90 - get_angle_to_grid[n1y][n1x];
                 tmp = ABS(get_angle_to_grid[n2y][n2x] + rotate) % 180;
                 diff = ABS(90 - tmp);
 
-                /*
-                 * If difference is not greater then that
-                 * allowed, and the grid is in LOS, accept it.
-                 */
-                if (diff < (degrees_of_arc + 6) / 4)
+                /* If difference is greater then that allowed, skip it */
+                if (diff >= (degrees_of_arc + 6) / 4)
                 {
-                    if (los(cv, &centre, &iter.cur))
+                    /* ...unless it's on the target path */
+                    for (i = 0; i < num_path_grids; i++)
                     {
-                        loc_copy(&blast_grid[num_grids], &iter.cur);
-                        distance_to_grid[num_grids] = dist_from_centre;
-                        sqinfo_on(square(cv, &iter.cur)->info, SQUARE_PROJECT);
-                        num_grids++;
+                        if (loc_eq(&iter.cur, &path_grid[i])) break;
                     }
+                    if (i == num_path_grids) continue;
                 }
             }
 
             /* Accept all grids in LOS */
-            else if (los(cv, &centre, &iter.cur))
+            if (los(cv, &centre, &iter.cur))
             {
                 loc_copy(&blast_grid[num_grids], &iter.cur);
                 distance_to_grid[num_grids] = dist_from_centre;

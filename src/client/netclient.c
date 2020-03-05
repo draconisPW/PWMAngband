@@ -1690,7 +1690,7 @@ static int Receive_item_request(void)
             {
                 struct object *obj;
 
-                /* Hack -- recharge strength */
+                /* Used to show recharge failure rates */
                 player->upkeep->recharge_pow = atoi(dice_string);
 
                 result = get_item(&obj, tester_hook_item[tester_hook].prompt,

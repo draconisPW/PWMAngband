@@ -5685,8 +5685,9 @@ static void update_birth_options(struct player *p, struct birth_options *options
     if (cfg_no_stores) OPT(p, birth_no_stores) = true;
     if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
 
-    /* Fruit bat mode: not when a Dragon */
-    if (pf_has(p->race->pflags, PF_DRAGON)) OPT(p, birth_fruit_bat) = false;
+    /* Fruit bat mode: not when a Dragon or Hydra */
+    if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA))
+        OPT(p, birth_fruit_bat) = false;
 
     /* Fruit bat mode supercedes no-ghost mode */
     if (OPT(p, birth_fruit_bat)) OPT(p, birth_no_ghost) = true;
@@ -6544,7 +6545,7 @@ static void Handle_item(struct player *p, int item, int curse)
             const struct player_class *c = p->clazz;
             quark_t note = (quark_t)p->current_item;
             const struct class_spell *spell;
-            bool ident = false;
+            bool ident = false, used;
             struct beam_info beam;
             struct source who_body;
             struct source *who = &who_body;
@@ -6558,8 +6559,10 @@ static void Handle_item(struct player *p, int item, int curse)
             fill_beam_info(p, p->current_spell, &beam);
 
             source_player(who, get_player_index(get_connection(p->conn)), p);
-            if (!effect_do(spell->effect, who, &ident, true, 0, &beam, 0, note, NULL))
-                return;
+            target_fix(p);
+            used = effect_do(spell->effect, who, &ident, true, 0, &beam, 0, note, NULL);
+            target_release(p);
+            if (!used) return;
 
             cast_spell_end(p);
 
@@ -6830,8 +6833,8 @@ static int Receive_poly(int ind)
             return 1;
         }
 
-        /* Not if a Dragon or in fruit bat mode */
-        if (player_has(p, PF_DRAGON) || OPT(p, birth_fruit_bat))
+        /* Not if a Dragon or Hydra or in fruit bat mode */
+        if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) || OPT(p, birth_fruit_bat))
         {
             msg(p, "You are already polymorphed permanently.");
             return 1;

@@ -219,8 +219,8 @@ weight:8
 cost:3
 alloc:40:0 to 50
 pile:100:1d5
-effect:NOURISH
-dice:6000
+effect:NOURISH:INC_BY
+dice:40
 msg_self:That tastes good.
 desc:This nutritious but fairly bland food is familiar to anyone contemplating
 desc: long journeys.
@@ -233,8 +233,8 @@ weight:2
 cost:2
 alloc:40:5 to 60
 pile:100:2d3
-effect:NOURISH
-dice:2500
+effect:NOURISH:INC_BY
+dice:25
 msg_self:That tastes good.
 desc:A strange fungal growth, prone to moving if not observed. Not very tasty
 desc: but quite filling.
@@ -250,8 +250,8 @@ pile:10:1d3
 effect:CURE:POISONED
 effect:HEAL_HP
 dice:20
-effect:NOURISH
-dice:7500
+effect:NOURISH:INC_TO
+dice:75
 msg_self:That tastes good.
 desc:Food of the elves is always good; their waybread is no exception. These
 desc: thin cakes are wrapped in leaves and keep their tastiness for months.
@@ -262,8 +262,8 @@ type:food
 level:0
 weight:2
 cost:1
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:10
 effect:CRUNCH
 desc:A filling if tooth-breaking biscuit made mostly of rye.
 
@@ -275,8 +275,8 @@ weight:5
 cost:1
 effect:TIMED_INC:CONFUSED
 dice:1d5
-effect:NOURISH
-dice:250
+effect:NOURISH:INC_BY
+dice:3
 msg_self:That tastes great!
 desc:It raises your spirits.
 
@@ -288,8 +288,8 @@ weight:10
 cost:2
 effect:TIMED_INC:BOLD
 dice:80+1d40
-effect:NOURISH
-dice:250
+effect:NOURISH:INC_BY
+dice:3
 msg_self:That tastes great! A fine vintage.
 desc:A fine way to wash down some otherwise unappetising rations.
 
@@ -306,8 +306,8 @@ pile:70:1d4
 effect:TIMED_INC:ESP
 dice:50+7d7
 effect:CURE:BLIND
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 
 name:Fast Recovery
 graphics:,:d
@@ -323,8 +323,8 @@ effect:CURE:CUT
 effect:CURE:STUN
 effect:HEAL_HP
 dice:30
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 
 name:Vigor
 graphics:,:d
@@ -339,8 +339,8 @@ effect:RESTORE_STAT:DEX
 effect:RESTORE_STAT:WIS
 effect:RESTORE_STAT:INT
 effect:RESTORE_STAT:STR
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 
 name:Clear Mind
 graphics:,:d
@@ -357,8 +357,8 @@ effect:CURE:AFRAID
 effect:CURE:CONFUSED
 effect:RESTORE_MANA
 dice:10
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 
 name:Emergency
 graphics:,:d
@@ -376,8 +376,8 @@ effect:TIMED_INC:OPP_FIRE
 dice:25+5d5
 effect:TIMED_INC:IMAGE
 dice:25+5d5
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 
 name:Terror
 graphics:,:d
@@ -389,8 +389,8 @@ alloc:10:5 to 40
 pile:70:1d4
 effect:TIMED_SET:TERROR
 dice:25+5d5
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 desc:It allows you to run for your life.
 
 name:Stoneskin
@@ -403,8 +403,8 @@ alloc:10:10 to 40
 pile:70:1d4
 effect:TIMED_SET:STONESKIN
 dice:50+7d7
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 desc:Its poison turns your skin to stone, albeit briefly.
 
 name:Debility
@@ -420,8 +420,8 @@ effect:DRAIN_STAT:STR
 effect:RANDOM
 dice:2
 effect:RESTORE_MANA
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 
 name:Sprinting
 graphics:,:d
@@ -433,8 +433,8 @@ alloc:1:15 to 100
 pile:70:1d4
 effect:TIMED_INC:SPRINT
 dice:100
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 desc:It hastes you for a while, but then makes you slower for a while afterward.
 
 name:Purging
@@ -448,9 +448,8 @@ pile:70:1d4
 effect:CURE:POISONED
 effect:RESTORE_STAT:CON
 effect:RESTORE_STAT:STR
-effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_FAINT:- 1
+effect:NOURISH:SET_TO
+dice:5
 desc:It makes you very hungry but otherwise healthy.
 
 
@@ -2638,8 +2637,8 @@ weight:5
 cost:10
 alloc:60:5 to 100
 pile:100:2d3
-effect:SET_NOURISH
-dice:16000
+effect:NOURISH:SET_TO
+dice:50
 
 name:Identify Rune
 graphics:?:w
@@ -2928,8 +2927,8 @@ dice:20
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:20
-effect:NOURISH
-dice:150
+effect:NOURISH:INC_BY
+dice:1
 
 name:Cure Serious Wounds
 graphics:!:d
@@ -2944,8 +2943,8 @@ effect:CURE:BLIND
 effect:CURE:CUT
 effect:HEAL_HP
 dice:40
-effect:NOURISH
-dice:150
+effect:NOURISH:INC_BY
+dice:1
 
 name:Cure Critical Wounds
 graphics:!:d
@@ -2963,8 +2962,8 @@ effect:CURE:CONFUSED
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:60
-effect:NOURISH
-dice:150
+effect:NOURISH:INC_BY
+dice:1
 
 name:Healing
 graphics:!:d
@@ -2982,8 +2981,8 @@ effect:CURE:CONFUSED
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:300+m35
-effect:NOURISH
-dice:200
+effect:NOURISH:INC_BY
+dice:2
 
 name:*Healing*
 graphics:!:d
@@ -3000,8 +2999,8 @@ effect:CURE:CONFUSED
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:1200
-effect:NOURISH
-dice:300
+effect:NOURISH:INC_BY
+dice:3
 
 name:Life
 graphics:!:d
@@ -3275,8 +3274,8 @@ weight:4
 cost:2
 alloc:10:1 to 10
 pile:70:2d3
-effect:NOURISH
-dice:1000
+effect:NOURISH:INC_BY
+dice:10
 msg_self:You feel less thirsty.
 
 name:Sleep
@@ -3291,8 +3290,8 @@ attack:3d4:0:0
 armor:0:0
 effect:TIMED_INC:PARALYZED
 dice:5+1d5
-effect:NOURISH
-dice:100
+effect:NOURISH:INC_BY
+dice:1
 
 name:Blindness
 graphics:!:d
@@ -3319,8 +3318,8 @@ attack:3d4:0:0
 armor:0:0
 effect:TIMED_INC:CONFUSED
 dice:10+4d5
-effect:NOURISH
-dice:50
+effect:NOURISH:INC_BY
+dice:1
 
 name:Poison
 graphics:!:d
@@ -3348,8 +3347,8 @@ attack:3d4:0:0
 armor:0:0
 effect:TIMED_INC:SLOW
 dice:15+1d25
-effect:NOURISH
-dice:50
+effect:NOURISH:INC_BY
+dice:1
 
 name:Surprise
 graphics:!:d
@@ -3380,9 +3379,8 @@ pile:100:1d2
 effect:TIMED_INC_NO_RES:PARALYZED
 dice:4
 effect:CURE:POISONED
-effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_STARVE:- 1
+effect:NOURISH:SET_TO
+dice:2
 msg_self:The potion makes you vomit!
 msg_other: vomits!
 
@@ -3669,17 +3667,18 @@ effect:BOLT_AWARE:MON_POLY:1
 dice:$B
 expr:B:PLAYER_LEVEL:+ 0
 
-name:Door Destruction
+name:Darkness
 graphics:-:d
 type:wand
-level:10
+level:3
 weight:10
 cost:100
-alloc:20:10 to 60
+alloc:20:3 to 60
 attack:1d1:0:0
 armor:0:0
-charges:6+d8
-effect:ALTER:KILL_DOOR
+charges:6+d10
+effect:LINE:DARK_WEAK
+dice:6d8
 
 name:Clone Monster
 graphics:-:d
@@ -4154,7 +4153,7 @@ alloc:20:20 to 80
 attack:1d2:0:0
 armor:0:0
 charges:6+d5
-effect:STAR:LIGHT_WEAK
+effect:STAR:LIGHT
 dice:6d8
 msg_self:Light shoots in all directions!
 
@@ -4968,8 +4967,8 @@ type:food
 level:0
 weight:5
 cost:1
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 msg_self:That tastes good.
 desc:A fine way to wash down some otherwise unappetising rations.
 
@@ -4981,8 +4980,8 @@ weight:2
 cost:1
 effect:HEAL_HP
 dice:1d4
-effect:NOURISH
-dice:1500
+effect:NOURISH:INC_BY
+dice:15
 msg_self:That tastes especially good.
 
 name:& Head~ of Cabbage
@@ -4993,8 +4992,8 @@ weight:3
 cost:1
 effect:HEAL_HP
 dice:1d4
-effect:NOURISH
-dice:1500
+effect:NOURISH:INC_BY
+dice:15
 msg_self:That tastes especially good.
 
 name:& Carrot~
@@ -5005,8 +5004,8 @@ weight:1
 cost:2
 effect:HEAL_HP
 dice:1d4
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 msg_self:That tastes especially good.
 
 name:& Beet~
@@ -5017,8 +5016,8 @@ weight:1
 cost:2
 effect:HEAL_HP
 dice:1d4
-effect:NOURISH
-dice:750
+effect:NOURISH:INC_BY
+dice:7
 msg_self:That tastes especially good.
 
 name:& Squash~
@@ -5029,8 +5028,8 @@ weight:3
 cost:1
 effect:HEAL_HP
 dice:1d4
-effect:NOURISH
-dice:2000
+effect:NOURISH:INC_BY
+dice:20
 msg_self:That tastes especially good.
 
 name:& Ear~ of Corn
@@ -5041,8 +5040,8 @@ weight:2
 cost:2
 effect:HEAL_HP
 dice:1d4
-effect:NOURISH
-dice:1500
+effect:NOURISH:INC_BY
+dice:15
 msg_self:That tastes especially good.
 
 name:& Pair~ of Witan Boots
@@ -5154,8 +5153,8 @@ weight:4
 cost:1
 alloc:50:0 to 100
 pile:70:1d3
-effect:NOURISH
-dice:200
+effect:NOURISH:INC_BY
+dice:2
 msg_self:You feel less thirsty.
 
 
@@ -5184,8 +5183,8 @@ cost:2
 alloc:20:1 to 100
 attack:2d3:0:0
 armor:0:0
-effect:NOURISH
-dice:1000
+effect:NOURISH:INC_BY
+dice:10
 msg_self:Yuk, that tastes awful!
 desc:A smelly fish. It doesn't look fresh.
 
@@ -5527,6 +5526,6 @@ level:0
 weight:2
 cost:1
 effect:COOKIE
-effect:NOURISH
-dice:500
+effect:NOURISH:INC_BY
+dice:5
 desc:A biscuit containing a small piece of paper telling your fortune.

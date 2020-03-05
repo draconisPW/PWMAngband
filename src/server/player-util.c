@@ -260,6 +260,7 @@ void player_regen_hp(struct player *p, struct chunk *c)
 {
     s32b new_chp, new_chp_frac;
     int old_chp, percent = 0;
+    int food_bonus = 0;
     int old_num = get_player_num(p);
 
     /* Save the old hitpoints */
@@ -267,9 +268,13 @@ void player_regen_hp(struct player *p, struct chunk *c)
 
     /* Default regeneration */
     if (p->timed[TMD_FOOD] >= PY_FOOD_WEAK) percent = PY_REGEN_NORMAL;
-    else if (p->timed[TMD_FOOD] < PY_FOOD_STARVE) percent = 0;
-    else if (p->timed[TMD_FOOD] < PY_FOOD_FAINT) percent = PY_REGEN_FAINT;
-    else percent = PY_REGEN_WEAK;
+    else if (p->timed[TMD_FOOD] >= PY_FOOD_FAINT) percent = PY_REGEN_WEAK;
+    else if (p->timed[TMD_FOOD] >= PY_FOOD_STARVE) percent = PY_REGEN_FAINT;
+
+    /* Food bonus - better fed players regenerate up to 1/3 faster */
+    food_bonus = p->timed[TMD_FOOD] / (z_info->food_value * 10);
+    percent *= 30 + food_bonus;
+    percent /= 30;
 
     /* Various things speed up regeneration */
     if (player_of_has(p, OF_REGEN)) percent *= 2;
@@ -1357,6 +1362,32 @@ void poly_dragon(struct player *p, bool msg)
 }
 
 
+static int hydra_progression[15] = {0, 1, 10, 15, 20, 24, 28, 32, 36, 40, 42, 44, 46, 48, 50};
+
+
+void poly_hydra(struct player *p, bool msg)
+{
+    struct monster_race *race;
+    char nheads[20];
+    int i;
+
+    /* Get number of heads depending on level */
+    my_strcpy(nheads, "hydra", sizeof(nheads));
+    for (i = 14; i >= 2; i--)
+    {
+        if (p->lev >= hydra_progression[i])
+        {
+            strnfmt(nheads, sizeof(nheads), "%d-headed hydra", i);
+            break;
+        }
+    }
+
+    /* Polymorph into that hydra */
+    race = get_race(nheads);
+    if (race && (race != p->poly_race)) do_cmd_poly(p, race, false, msg);
+}
+
+
 void poly_bat(struct player *p, int chance, char *killer)
 {
     char buf[MSG_LEN];
@@ -1372,8 +1403,11 @@ void poly_bat(struct player *p, int chance, char *killer)
     if (p->poly_race != race_fruit_bat)
     {
         /* Attempt a saving throw */
-        if (p->ghost || player_has(p, PF_DRAGON) || CHANCE(p->state.skills[SKILL_SAVE], chance))
+        if (p->ghost || player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) ||
+            CHANCE(p->state.skills[SKILL_SAVE], chance))
+        {
             msg(p, "You resist the effects!");
+        }
         else
         {
             char desc[NORMAL_WID];
@@ -1549,7 +1583,7 @@ int player_digest(struct player *p)
     int i;
 
     /* Basic digestion rate based on speed */
-    i = turn_energy(p->state.speed) * 2;
+    i = turn_energy(p->state.speed);
 
     /* Some effects require more food */
     if (p->timed[TMD_ADRENALINE]) i *= 5;
@@ -1557,14 +1591,17 @@ int player_digest(struct player *p)
     if (p->timed[TMD_BIOFEEDBACK]) i *= 2;
 
     /* Regeneration takes more food */
-    if (player_of_has(p, OF_REGEN)) i += 30;
-    if (p->timed[TMD_REGEN]) i += 30;
+    if (player_of_has(p, OF_REGEN)) i += 15;
+    if (p->timed[TMD_REGEN]) i += 15;
 
     /* Invisibility consumes a lot of food */
-    if (p->timed[TMD_INVIS]) i += 30;
+    if (p->timed[TMD_INVIS]) i += 15;
 
     /* Wraithform consumes a lot of food */
-    if (p->timed[TMD_WRAITHFORM]) i += 30;
+    if (p->timed[TMD_WRAITHFORM]) i += 15;
+
+    /* Adjust for food value */
+    i = (i * 100) / z_info->food_value;
 
     /* Slow digestion takes less food */
     if (player_of_has(p, OF_SLOW_DIGEST)) i /= 5;

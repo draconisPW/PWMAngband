@@ -556,18 +556,6 @@ static int spell_value_base_max_sight(void *data)
 }
 
 
-static int spell_value_base_food_faint(void *data)
-{
-    return PY_FOOD_FAINT;
-}
-
-
-static int spell_value_base_food_starve(void *data)
-{
-    return PY_FOOD_STARVE;
-}
-
-
 static int spell_value_base_weapon_damage(void *data)
 {
     struct source *who = (struct source *)data;
@@ -646,8 +634,6 @@ expression_base_value_f spell_value_base_by_name(const char *name)
         {"PLAYER_LEVEL", spell_value_base_player_level},
         {"DUNGEON_LEVEL", spell_value_base_dungeon_level},
         {"MAX_SIGHT", spell_value_base_max_sight},
-        {"FOOD_FAINT", spell_value_base_food_faint},
-        {"FOOD_STARVE", spell_value_base_food_starve},
         {"WEAPON_DAMAGE", spell_value_base_weapon_damage},
         {"MONSTER_PERCENT_HP_GONE", spell_value_base_monster_percent_hp_gone},
         {"PLAYER_SPELL_POWER", spell_value_base_player_spell_power},
@@ -1133,7 +1119,7 @@ bool cast_spell_proj(struct player *p, int cidx, int spell_index, bool silent)
     const struct player_class *c = player_id2class(cidx);
     const struct class_spell *spell = spell_by_index(&c->magic, spell_index);
     bool pious = streq(spell->realm->name, "divine");
-    bool ident = false;
+    bool ident = false, used;
     struct source who_body;
     struct source *who = &who_body;
 
@@ -1170,7 +1156,10 @@ bool cast_spell_proj(struct player *p, int cidx, int spell_index, bool silent)
     }
 
     source_player(who, get_player_index(get_connection(p->conn)), p);
-    return effect_do(spell->effect, who, &ident, true, 0, NULL, 0, 0, NULL);
+    target_fix(p);
+    used = effect_do(spell->effect, who, &ident, true, 0, NULL, 0, 0, NULL);
+    target_release(p);
+    return used;
 }
 
 

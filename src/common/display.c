@@ -879,9 +879,17 @@ static size_t prt_tmd(struct player *p, int row, int col)
 
             while ((p->timed[i] > grade->max) || ((p->timed[i] < 0) && grade->next))
                 grade = grade->next;
-            if (streq(grade->name, "unused")) continue;
             put_str_hook(col + len, row, -1, grade->color, grade->name);
             len += strlen(grade->name) + 1;
+
+            /* Food meter */
+            if (i == TMD_FOOD)
+            {
+                char *meter = format("%d %%", p->timed[i] / 100);
+
+                put_str_hook(col + len, row, -1, grade->color, meter);
+                len += strlen(meter) + 1;
+            }
         }
     }
 

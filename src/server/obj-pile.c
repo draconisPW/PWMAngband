@@ -432,13 +432,6 @@ bool object_stackable(struct player *p, const struct object *obj1, const struct 
         if (obj1->decay != obj2->decay) return false;
     }
 
-    /* Gold! */
-    else if (tval_is_money(obj1))
-    {
-        /* Cannot stack infinite gold */
-        if ((obj1->pval + obj2->pval) > PY_MAX_GOLD) return false;
-    }
-
     /* Anything else */
     else
     {
@@ -459,10 +452,23 @@ bool object_stackable(struct player *p, const struct object *obj1, const struct 
 bool object_similar(struct player *p, const struct object *obj1, const struct object *obj2,
     object_stack_t mode)
 {
-    int total = obj1->number + obj2->number;
+    int total;
 
-    /* Check against stacking limit - except in stores which absorb anyway */
-    if (!(mode & OSTACK_STORE) && (total > obj1->kind->base->max_stack)) return false;
+    /* Hack -- gold */
+    if (tval_is_money(obj1))
+    {
+        total = obj1->pval + obj2->pval;
+
+        /* Check against stacking limit */
+        if (total > PY_MAX_GOLD) return false;
+    }
+    else
+    {
+        total = obj1->number + obj2->number;
+
+        /* Check against stacking limit - except in stores which absorb anyway */
+        if (!(mode & OSTACK_STORE) && (total > obj1->kind->base->max_stack)) return false;
+    }
 
     return object_stackable(p, obj1, obj2, mode);
 }

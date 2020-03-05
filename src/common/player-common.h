@@ -17,17 +17,6 @@
 #define PY_MAX_GOLD     999999999L  /* Maximum gold */
 #define PY_MAX_LEVEL    50          /* Maximum level */
 
-/*
- * Player food values
- * Note: this must be the same values as the ones in player_timed.txt
- */
-#define PY_FOOD_MAX     17500   /* Food value (Bloated) */
-#define PY_FOOD_FULL    10000   /* Food value (Normal) */
-#define PY_FOOD_HUNGRY  2000    /* Food value (Hungry) */
-#define PY_FOOD_WEAK    1000    /* Food value (Weak) */
-#define PY_FOOD_FAINT   500     /* Food value (Fainting) */
-#define PY_FOOD_STARVE  100     /* Food value (Starving) */
-
 /** Sexes **/
 
 /*
@@ -770,6 +759,8 @@ struct player
 
     /* Targeting */
     struct target target;                   /* Player target */
+    bool target_fixed;                      /* Is the target fixed (for the duration of a spell)? */
+    struct target old_target;               /* Old player target */
     bool tt_flag;                           /* Interesting grids */
     s16b tt_m;                              /* Current index */
     struct loc tt_grid;                     /* Current location */

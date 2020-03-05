@@ -455,7 +455,8 @@ static void improve_attack_modifier_slay(struct player *p, struct object *obj, s
         if (player_has(who->player, PF_GIANT)) rf_on(race->flags, RF_GIANT);
         if (player_has(who->player, PF_THUNDERLORD) || player_has(who->player, PF_DRAGON))
             rf_on(race->flags, RF_DRAGON);
-        if (player_has(who->player, PF_ANIMAL)) rf_on(race->flags, RF_ANIMAL);
+        if (player_has(who->player, PF_ANIMAL) || player_has(who->player, PF_HYDRA))
+            rf_on(race->flags, RF_ANIMAL);
     }
 
     /* Is the monster vulnerable? */

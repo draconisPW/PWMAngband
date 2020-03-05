@@ -70,6 +70,10 @@ RF:<player>:0x84:0xD8
 monster:<player>:0x83:0xBF
 ?:[AND [EQU $CLASS Warrior] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xD8
+?:[AND [EQU $CLASS Warrior] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBF
+?:[AND [EQU $CLASS Warrior] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xD8
 
 ?:[AND [EQU $CLASS Mage] [EQU $RACE Human] ]
 monster:<player>:0x83:0x81
@@ -130,6 +134,10 @@ RF:<player>:0x84:0xD9
 ?:[AND [EQU $CLASS Mage] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xB8
 ?:[AND [EQU $CLASS Mage] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xD9
+?:[AND [EQU $CLASS Mage] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xB8
+?:[AND [EQU $CLASS Mage] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xD9
 
 ?:[AND [EQU $CLASS Druid] [EQU $RACE Human] ]
@@ -192,6 +200,10 @@ RF:<player>:0x84:0xDC
 monster:<player>:0x83:0xBD
 ?:[AND [EQU $CLASS Druid] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDC
+?:[AND [EQU $CLASS Druid] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBD
+?:[AND [EQU $CLASS Druid] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDC
 
 ?:[AND [EQU $CLASS Priest] [EQU $RACE Human] ]
 monster:<player>:0x83:0x84
@@ -252,6 +264,10 @@ RF:<player>:0x84:0xDA
 ?:[AND [EQU $CLASS Priest] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xBC
 ?:[AND [EQU $CLASS Priest] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDA
+?:[AND [EQU $CLASS Priest] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBC
+?:[AND [EQU $CLASS Priest] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDA
 
 ?:[AND [EQU $CLASS Necromancer] [EQU $RACE Human] ]
@@ -314,6 +330,10 @@ RF:<player>:0x84:0xD9
 monster:<player>:0x83:0xB8
 ?:[AND [EQU $CLASS Necromancer] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xD9
+?:[AND [EQU $CLASS Necromancer] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xB8
+?:[AND [EQU $CLASS Necromancer] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xD9
 
 ?:[AND [EQU $CLASS Paladin] [EQU $RACE Human] ]
 monster:<player>:0x83:0x83
@@ -374,6 +394,10 @@ RF:<player>:0x84:0xDD
 ?:[AND [EQU $CLASS Paladin] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xBB
 ?:[AND [EQU $CLASS Paladin] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDD
+?:[AND [EQU $CLASS Paladin] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBB
+?:[AND [EQU $CLASS Paladin] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDD
 
 ?:[AND [EQU $CLASS Rogue] [EQU $RACE Human] ]
@@ -436,6 +460,10 @@ RF:<player>:0x84:0xDB
 monster:<player>:0x83:0xBE
 ?:[AND [EQU $CLASS Rogue] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDB
+?:[AND [EQU $CLASS Rogue] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBE
+?:[AND [EQU $CLASS Rogue] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDB
 
 ?:[AND [EQU $CLASS Ranger] [EQU $RACE Human] ]
 monster:<player>:0x83:0x85
@@ -496,6 +524,10 @@ RF:<player>:0x84:0xDC
 ?:[AND [EQU $CLASS Ranger] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xBD
 ?:[AND [EQU $CLASS Ranger] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDC
+?:[AND [EQU $CLASS Ranger] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBD
+?:[AND [EQU $CLASS Ranger] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDC
 
 ?:[AND [EQU $CLASS Blackguard] [EQU $RACE Human] ]
@@ -558,6 +590,10 @@ RF:<player>:0x84:0xDD
 monster:<player>:0x83:0xBB
 ?:[AND [EQU $CLASS Blackguard] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDD
+?:[AND [EQU $CLASS Blackguard] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBB
+?:[AND [EQU $CLASS Blackguard] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDD
 
 ?:[AND [EQU $CLASS Sorceror] [EQU $RACE Human] ]
 monster:<player>:0x83:0x81
@@ -618,6 +654,10 @@ RF:<player>:0x84:0xD9
 ?:[AND [EQU $CLASS Sorceror] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xB8
 ?:[AND [EQU $CLASS Sorceror] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xD9
+?:[AND [EQU $CLASS Sorceror] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xB8
+?:[AND [EQU $CLASS Sorceror] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xD9
 
 ?:[AND [EQU $CLASS Unbeliever] [EQU $RACE Human] ]
@@ -680,6 +720,10 @@ RF:<player>:0x83:0xF1
 monster:<player>:0x83:0xEF
 ?:[AND [EQU $CLASS Unbeliever] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x83:0xF1
+?:[AND [EQU $CLASS Unbeliever] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xEF
+?:[AND [EQU $CLASS Unbeliever] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x83:0xF1
 
 ?:[AND [EQU $CLASS Archer] [EQU $RACE Human] ]
 monster:<player>:0x83:0x85
@@ -740,6 +784,10 @@ RF:<player>:0x84:0xDC
 ?:[AND [EQU $CLASS Archer] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xBD
 ?:[AND [EQU $CLASS Archer] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDC
+?:[AND [EQU $CLASS Archer] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBD
+?:[AND [EQU $CLASS Archer] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDC
 
 ?:[AND [EQU $CLASS Monk] [EQU $RACE Human] ]
@@ -802,6 +850,10 @@ RF:<player>:0x84:0xDE
 monster:<player>:0x83:0xB9
 ?:[AND [EQU $CLASS Monk] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xDE
+?:[AND [EQU $CLASS Monk] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xB9
+?:[AND [EQU $CLASS Monk] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xDE
 
 ?:[AND [EQU $CLASS Telepath] [EQU $RACE Human] ]
 monster:<player>:0x83:0xFD
@@ -862,6 +914,10 @@ RF:<player>:0x83:0xF2
 ?:[AND [EQU $CLASS Telepath] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xF0
 ?:[AND [EQU $CLASS Telepath] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x83:0xF2
+?:[AND [EQU $CLASS Telepath] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xF0
+?:[AND [EQU $CLASS Telepath] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x83:0xF2
 
 ?:[AND [EQU $CLASS Elementalist] [EQU $RACE Human] ]
@@ -924,6 +980,10 @@ RF:<player>:0x84:0xD9
 monster:<player>:0x83:0xB8
 ?:[AND [EQU $CLASS Elementalist] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xD9
+?:[AND [EQU $CLASS Elementalist] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xB8
+?:[AND [EQU $CLASS Elementalist] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xD9
 
 ?:[AND [EQU $CLASS Summoner] [EQU $RACE Human] ]
 monster:<player>:0x83:0xFD
@@ -984,6 +1044,10 @@ RF:<player>:0x83:0xF2
 ?:[AND [EQU $CLASS Summoner] [EQU $RACE Dragon] ]
 monster:<player>:0x83:0xF0
 ?:[AND [EQU $CLASS Summoner] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x83:0xF2
+?:[AND [EQU $CLASS Summoner] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xF0
+?:[AND [EQU $CLASS Summoner] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x83:0xF2
 
 ?:[AND [EQU $CLASS Shapechanger] [EQU $RACE Human] ]
@@ -1046,6 +1110,10 @@ RF:<player>:0x84:0xD8
 monster:<player>:0x83:0xBF
 ?:[AND [EQU $CLASS Shapechanger] [EQU $RACE Dragon] [EQU $GENDER Female] ]
 RF:<player>:0x84:0xD8
+?:[AND [EQU $CLASS Shapechanger] [EQU $RACE Hydra] ]
+monster:<player>:0x83:0xBF
+?:[AND [EQU $CLASS Shapechanger] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xD8
 
 # Hack -- not a real class, used for ghost realm spells
 ?:[AND [EQU $CLASS Ghost] [EQU $RACE Human] ]
@@ -1077,4 +1145,6 @@ monster:<player>:0x94:0x98
 ?:[AND [EQU $CLASS Ghost] [EQU $RACE Thunderlord] ]
 monster:<player>:0x94:0x98
 ?:[AND [EQU $CLASS Ghost] [EQU $RACE Dragon] ]
+monster:<player>:0x94:0x98
+?:[AND [EQU $CLASS Ghost] [EQU $RACE Hydra] ]
 monster:<player>:0x94:0x98

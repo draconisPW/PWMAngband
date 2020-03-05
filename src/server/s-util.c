@@ -296,8 +296,8 @@ void get_plusses(struct player *p, struct player_state *state, int* dd, int* ds,
     /* Ghosts do barehanded damage relative to level */
     if (p->ghost && !player_can_undead(p)) *dd = 1 + (p->lev - 1) / 2;
 
-    /* Monks and dragons do barehanded damage */
-    else if (player_has(p, PF_MARTIAL_ARTS) || player_has(p, PF_DRAGON))
+    /* Monks, hydras and dragons do barehanded damage */
+    else if (player_has(p, PF_MARTIAL_ARTS) || player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA))
     {
         *dd = 1 + p->lev / 8;
         *ds = 4 + p->lev / 12;

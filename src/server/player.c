@@ -23,7 +23,7 @@
 
 static const char *stat_name_list[] =
 {
-    #define STAT(a) #a,
+    #define STAT(a, b, c) #a,
     #include "../common/list-stats.h"
     #undef STAT
     NULL
@@ -167,6 +167,9 @@ static void adjust_level(struct player *p)
         /* Dragon */
         if (player_has(p, PF_DRAGON)) poly_dragon(p, true);
 
+        /* Hydra */
+        if (player_has(p, PF_HYDRA)) poly_hydra(p, true);
+
         /* Redraw */
         redraw = true;
     }
@@ -179,6 +182,9 @@ static void adjust_level(struct player *p)
 
         /* Dragon */
         if (player_has(p, PF_DRAGON)) poly_dragon(p, true);
+
+        /* Hydra */
+        if (player_has(p, PF_HYDRA)) poly_hydra(p, true);
 
         /* Save the highest level */
         if (p->lev > p->max_lev)

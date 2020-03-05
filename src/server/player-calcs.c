@@ -2273,44 +2273,58 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             state->el_info[i].res_level--;
     }
 
-    /* Temporary flags */
-    if (player_timed_grade_eq(p, TMD_FOOD, "Hungry"))
+    /* Effects of food outside the "Fed" range */
+    if (!player_timed_grade_eq(p, TMD_FOOD, "Fed"))
     {
-        int badness = 10 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_HUNGRY;
+        int excess = p->timed[TMD_FOOD] - PY_FOOD_FULL;
+        int lack = PY_FOOD_HUNGRY - p->timed[TMD_FOOD];
 
-        state->to_h -= badness;
-        state->to_d -= badness;
-    }
-    else if (player_timed_grade_eq(p, TMD_FOOD, "Weak"))
-    {
-        int badness = 15 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_WEAK;
+        /* Scale to units 1/10 of the range and subtract from speed */
+        if ((excess > 0) && !p->timed[TMD_ATT_VAMP])
+        {
+            excess = (excess * 10) / (PY_FOOD_MAX - PY_FOOD_FULL);
+            state->speed -= excess;
+        }
 
-        state->to_h -= badness;
-        state->to_d -= badness;
-        state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 9 / 10;
-    }
-    else if (player_timed_grade_eq(p, TMD_FOOD, "Faint"))
-    {
-        int badness = 20 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_FAINT;
+        /* Scale to units 1/20 of the range */
+        else if (lack > 0)
+        {
+            lack = (lack * 20) / PY_FOOD_HUNGRY;
 
-        state->to_h -= badness;
-        state->to_d -= badness;
-        state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 8 / 10;
-        state->skills[SKILL_DISARM_PHYS] = state->skills[SKILL_DISARM_PHYS] * 9 / 10;
-        state->skills[SKILL_DISARM_MAGIC] = state->skills[SKILL_DISARM_MAGIC] * 9 / 10;
+            /* Apply effects progressively */
+            state->to_h -= lack;
+            state->to_d -= lack;
+            if ((lack > 10) && (lack <= 15))
+            {
+                state->skills[SKILL_DEVICE] *= 9;
+                state->skills[SKILL_DEVICE] /= 10;
+            }
+            else if ((lack > 15) && (lack <= 18))
+            {
+                state->skills[SKILL_DEVICE] *= 8;
+                state->skills[SKILL_DEVICE] /= 10;
+                state->skills[SKILL_DISARM_PHYS] *= 9;
+                state->skills[SKILL_DISARM_PHYS] /= 10;
+                state->skills[SKILL_DISARM_MAGIC] *= 9;
+                state->skills[SKILL_DISARM_MAGIC] /= 10;
+            }
+            else if (lack > 18)
+            {
+                state->skills[SKILL_DEVICE] *= 7;
+                state->skills[SKILL_DEVICE] /= 10;
+                state->skills[SKILL_DISARM_PHYS] *= 8;
+                state->skills[SKILL_DISARM_PHYS] /= 10;
+                state->skills[SKILL_DISARM_MAGIC] *= 8;
+                state->skills[SKILL_DISARM_MAGIC] /= 10;
+                state->skills[SKILL_SAVE] *= 9;
+                state->skills[SKILL_SAVE] /= 10;
+                state->skills[SKILL_SEARCH] *= 9;
+                state->skills[SKILL_SEARCH] /= 10;
+            }
+        }
     }
-    else if (player_timed_grade_eq(p, TMD_FOOD, "Starving"))
-    {
-        int badness = 28 - (p->timed[TMD_FOOD] * 10) / PY_FOOD_STARVE;
 
-        state->to_h -= badness;
-        state->to_d -= badness;
-        state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 7 / 10;
-        state->skills[SKILL_DISARM_PHYS] = state->skills[SKILL_DISARM_PHYS] * 8 / 10;
-        state->skills[SKILL_DISARM_MAGIC] = state->skills[SKILL_DISARM_MAGIC] * 8 / 10;
-        state->skills[SKILL_SAVE] = state->skills[SKILL_SAVE] * 9 / 10;
-        state->skills[SKILL_SEARCH] = state->skills[SKILL_SEARCH] * 9 / 10;
-    }
+    /* Other timed effects */
     if (player_timed_grade_eq(p, TMD_STUN, "Heavy Stun"))
     {
         state->to_h -= 20;

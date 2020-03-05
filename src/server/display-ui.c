@@ -1855,12 +1855,12 @@ void player_death(struct player *p)
      * Handle permanent death:
      * - all characters have a chance to die permanently (based on number of past deaths)
      * - no ghost characters (except Necromancers that can turn into an undead being)
-     * - Dragon characters
+     * - Dragon and Hydra characters
      * - ghosts
      * - suiciding characters
      */
     perma_death = (magik(p->lives) || (no_ghost && !player_can_undead(p)) ||
-        player_has(p, PF_DRAGON) || p->ghost || !p->alive);
+        player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) || p->ghost || !p->alive);
 
     /* Know inventory and home items upon permadeath */
     if (perma_death) death_knowledge(p);
@@ -4106,8 +4106,9 @@ static void master_player(struct player *p, char *parms)
         return;
     }
 
-    /* Cannot toggle ghost for Dragon players or in fruit bat mode */
-    if (dm_ptr->ghost && (player_has(dm_ptr, PF_DRAGON) || OPT(dm_ptr, birth_fruit_bat)))
+    /* Cannot toggle ghost for Dragon and Hydra players or in fruit bat mode */
+    if (dm_ptr->ghost && (player_has(dm_ptr, PF_DRAGON) || player_has(dm_ptr, PF_HYDRA) ||
+        OPT(dm_ptr, birth_fruit_bat)))
     {
         Send_special_line(p, 17, 17, 15, COLOUR_WHITE,
             " Error: can't toggle ghost for no-ghost players");
@@ -4790,11 +4791,12 @@ void describe_player(struct player *p, struct player *q)
         strrepall(buf, sizeof(buf), tmp, "You", pm);
         strrepall(tmp, sizeof(tmp), buf, "you", pm2);
 
-        /* Replace "are/have" with "is/has" */
+        /* Replace "are/have/were" with "is/has/was" */
         strrepall(buf, sizeof(buf), tmp, "are", "is");
-        strrepall(tmp, sizeof(tmp), buf, "have", "has");
+        strrepall(tmp, sizeof(tmp), buf, "have", "has"); 
+        strrepall(buf, sizeof(buf), tmp, "were", "was");
 
-        text_out(p, "%s\n", tmp);
+        text_out(p, "%s\n", buf);
     }
 
     /* Restore height and width of current dungeon level */

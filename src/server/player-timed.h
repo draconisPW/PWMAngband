@@ -38,6 +38,16 @@ struct timed_effect_data
     int fail;
 };
 
+/*
+ * Player food values
+ */
+extern int PY_FOOD_MAX;
+extern int PY_FOOD_FULL;
+extern int PY_FOOD_HUNGRY;
+extern int PY_FOOD_WEAK;
+extern int PY_FOOD_FAINT;
+extern int PY_FOOD_STARVE;
+
 extern struct file_parser player_timed_parser;
 extern struct timed_effect_data timed_effects[];
 

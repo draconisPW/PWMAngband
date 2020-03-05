@@ -91,6 +91,7 @@ extern void current_clear(struct player *p);
 extern bool check_st_anchor(struct worldpos *wpos, struct loc *grid);
 extern struct dragon_breed *get_dragon_form(struct monster_race *race);
 extern void poly_dragon(struct player *p, bool msg);
+extern void poly_hydra(struct player *p, bool msg);
 extern void poly_bat(struct player *p, int chance, char *killer);
 extern void drain_mana(struct player *p, struct source *who, int drain, bool seen);
 extern void recall_player(struct player *p, struct chunk *c);

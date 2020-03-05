@@ -1148,8 +1148,8 @@ effect:GLYPH:WARDING
 name:SATISFY
 aim:0
 power:7
-effect:SET_NOURISH
-dice:16000
+effect:NOURISH:SET_TO
+dice:50
 desc:magically renders you well-fed (but not satiated)
 
 name:SHERO
@@ -1198,9 +1198,8 @@ power:5
 effect:CURE:POISONED
 effect:RESTORE_STAT:CON
 effect:RESTORE_STAT:STR
-effect:SET_NOURISH
-dice:$B
-expr:B:FOOD_FAINT:- 1
+effect:NOURISH:SET_TO
+dice:5
 desc:makes you very hungry but neutralizes poison and restores strength and
 desc: constitution
 

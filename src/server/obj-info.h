@@ -23,6 +23,7 @@ enum
     EFINFO_NONE,
     EFINFO_HEAL,
     EFINFO_CONST,
+    EFINFO_FOOD,
     EFINFO_CURE,
     EFINFO_TIMED,
     EFINFO_STAT,
@@ -38,8 +39,7 @@ enum
     EFINFO_TOUCH,
     EFINFO_TAP,
     EFINFO_MANA,
-    EFINFO_ENCHANT,
-    EFINFO_FOOD
+    EFINFO_ENCHANT
 };
 
 extern void object_info(struct player *p, const struct object *obj, int mode);

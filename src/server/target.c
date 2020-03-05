@@ -211,7 +211,7 @@ bool target_okay(struct player *p)
 
 
 /*
- * Set the target to a monster/player (or nobody)
+ * Set the target to a monster/player (or nobody); if target is fixed, don't unset
  */
 bool target_set_monster(struct player *p, struct source *who)
 {
@@ -226,6 +226,16 @@ bool target_set_monster(struct player *p, struct source *who)
         else
             loc_copy(&p->target.grid, &who->player->grid);
 
+        return true;
+    }
+
+    /*
+     * If a monster has died during a spell, this maintains its grid as
+     * the target in case further effects of the spell need it
+     */
+    if (p->target_fixed)
+    {
+        memset(&p->target.target_who, 0, sizeof(struct source));
         return true;
     }
 
@@ -263,6 +273,35 @@ void target_set_location(struct player *p, struct loc *grid)
 
     /* Reset target info */
     memset(&p->target, 0, sizeof(p->target));
+}
+
+
+/*
+ * Fix the target
+ */
+void target_fix(struct player *p)
+{
+    memcpy(&p->old_target, &p->target, sizeof(struct target));
+    p->target_fixed = true;
+}
+
+
+/*
+ * Release the target
+ */
+void target_release(struct player *p)
+{
+    p->target_fixed = false;
+
+    /* If the old target is a now-dead monster, cancel it */
+    if (!source_null(&p->old_target.target_who))
+    {
+        struct monster *mon = p->old_target.target_who.monster;
+        struct player *player = p->old_target.target_who.player;
+
+        if ((mon && !mon->race) || (player && player->is_dead))
+            loc_init(&p->target.grid, 0, 0);
+    }
 }
 
 

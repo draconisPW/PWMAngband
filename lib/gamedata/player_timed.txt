@@ -135,14 +135,15 @@ near-end: is no longer stunned.
 msgt:STUN
 fail:1:PROT_STUN
 
+# Note food grades are in percentages here, and are translated on parsing
 name:FOOD
 desc:nourishment
-grade:r:100:Starving:unused:You are starving!!
-grade:r:500:Faint:You are still faint.:You are getting faint from hunger!
-grade:o:1000:Weak:You are still weak.:You are getting weak from hunger!
-grade:y:2000:Hungry:You are still hungry.:You are getting hungry.
-grade:G:10000:unused:You are no longer hungry.:You are no longer full.
-grade:G:17500:Full:You are full!
+grade:R:1:Starving:unused:You are starving!!
+grade:r:4:Faint:You are still faint.:You are getting faint from hunger!
+grade:o:8:Weak:You are still weak.:You are getting weak from hunger!
+grade:y:15:Hungry:You are still hungry.:You are getting hungry.
+grade:G:90:Fed:You are no longer hungry.:You are no longer full.
+grade:g:100:Full:You are full!
 msgt:HUNGRY
 
 name:PROTEVIL
@@ -403,8 +404,8 @@ near-begin:'s touch becomes vampiric.
 near-end:'s touch is back to normal.
 
 name:HEAL
-grade:G:10000:Heal:You feel the healing powers of nature!
-on-end:The healing effect fades.
+grade:G:10000:Heal:Your metabolism speeds up!
+on-end:Your metabolism returns to normal.
 near-begin: appears healthier.
 near-end: appears less healthy.
 

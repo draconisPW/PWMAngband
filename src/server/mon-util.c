@@ -1429,6 +1429,7 @@ static bool is_detected_p(struct player *p, struct player *q, int dis_esp)
     if (player_has(q, PF_THUNDERLORD) && player_of_has(p, OF_ESP_DRAGON)) return true;
     if (player_has(q, PF_ANIMAL) && player_of_has(p, OF_ESP_ANIMAL)) return true;
     if (player_has(q, PF_DRAGON) && player_of_has(p, OF_ESP_DRAGON)) return true;
+    if (player_has(q, PF_HYDRA) && player_of_has(p, OF_ESP_ANIMAL)) return true;
     if (q->ghost && player_of_has(p, OF_ESP_UNDEAD)) return true;
 
     /* Radius ESP */
@@ -1848,11 +1849,29 @@ bool monster_change_shape(struct player *p, struct monster *mon)
         race = select_shape(p, mon, summon_type);
     }
 
+    /* Print a message immediately, update visuals */
+    if (monster_is_obvious(p, mon->midx, mon))
+    {
+        char m_name[NORMAL_WID];
+        struct source *health_who = &p->upkeep->health_who;
+        struct source mon1_body;
+        struct source *mon1 = &mon1_body;
+
+        source_monster(mon1, mon);
+
+        monster_desc(p, m_name, sizeof(m_name), mon, MDESC_IND_HID);
+        msgt(p, MSG_GENERIC, "%s %s", m_name, "shimmers and changes!");
+        if (source_equal(health_who, mon1)) p->upkeep->redraw |= (PR_HEALTH);
+        p->upkeep->redraw |= (PR_MONLIST);
+        square_light_spot(c, &mon->grid);
+    }
+
     /* Set the race */
     if (race)
     {
         mon->original_race = mon->race;
         mon->race = race;
+        mon->mspeed += mon->race->speed - mon->original_race->speed;
     }
 
     /* Emergency teleport if needed */
@@ -1880,6 +1899,22 @@ bool monster_revert_shape(struct player *p, struct monster *mon)
 
     if (mon->original_race)
     {
+        if (monster_is_obvious(p, mon->midx, mon))
+        {
+            char m_name[NORMAL_WID];
+            struct source *health_who = &p->upkeep->health_who;
+            struct source mon1_body;
+            struct source *mon1 = &mon1_body;
+
+            source_monster(mon1, mon);
+
+            monster_desc(p, m_name, sizeof(m_name), mon, MDESC_IND_HID);
+            msgt(p, MSG_GENERIC, "%s %s", m_name, "shimmers and changes!");
+            if (source_equal(health_who, mon1)) p->upkeep->redraw |= (PR_HEALTH);
+            p->upkeep->redraw |= (PR_MONLIST);
+            square_light_spot(c, &mon->grid);
+        }
+        mon->mspeed += mon->original_race->speed - mon->race->speed;
         mon->race = mon->original_race;
         mon->original_race = NULL;
 

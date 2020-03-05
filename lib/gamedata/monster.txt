@@ -3452,6 +3452,24 @@ flags:WILD_ALL | PWMANG_BASE
 friends:100:2d7:Same
 desc:It is poisonous and aggressive.
 
+name:hydra
+base:hydra
+color:s
+speed:110
+hit-points:100
+hearing:20
+armor-class:80
+sleepiness:90
+depth:9
+rarity:2
+weight:350
+experience:40
+blow:BITE:HURT:2d6
+flags:DROP_1
+flags:MOVE_BODY
+flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
+desc:A strange reptilian hybrid.
+
 
 ########## DUNGEON LEVELS 10-19 ##########
 
@@ -5861,7 +5879,7 @@ flags:MOVE_BODY
 flags:DROP_CORPSE | DROP_SKELETON | WILD_SHORE | WILD_SWAMP
 spell-freq:11
 spells:SCARE
-desc:A strange reptilian hybrid with one extra head, guarding its hoard.
+desc:A hydra with one extra head, guarding its hoard.
 
 name:water spirit
 base:elemental
@@ -14907,14 +14925,14 @@ name:gorgon
 base:naga
 color:G
 speed:120
-hit-points:1800
+hit-points:1500
 hearing:30
 armor-class:120
 sleepiness:5
 depth:48
 rarity:2
 weight:200
-experience:7000
+experience:6000
 blow:GAZE:EXP_80
 blow:GAZE:PARALYZE
 blow:HIT:HURT:8d6

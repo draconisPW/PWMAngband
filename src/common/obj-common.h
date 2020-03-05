@@ -88,10 +88,10 @@ enum
 /* The object modifiers */
 enum
 {
-    #define STAT(a) OBJ_MOD_##a,
+    #define STAT(a, b, c) OBJ_MOD_##a,
     #include "list-stats.h"
     #undef STAT
-    #define OBJ_MOD(a) OBJ_MOD_##a,
+    #define OBJ_MOD(a, b, c) OBJ_MOD_##a,
     #include "list-object-modifiers.h"
     #undef OBJ_MOD
     OBJ_MOD_MAX

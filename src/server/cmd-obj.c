@@ -977,15 +977,17 @@ static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note,
         /* Cast the spell */
         else
         {
-            bool ident = false;
+            bool ident = false, used;
             struct beam_info beam;
 
             fill_beam_info(p, spell_index, &beam);
 
             if (spell->effect && spell->effect->other_msg)
                 msg_print_near(p, (pious? MSG_PY_PRAYER: MSG_PY_SPELL), spell->effect->other_msg);
-            if (!effect_do(spell->effect, who, &ident, true, dir, &beam, 0, note, NULL))
-                return false;
+            target_fix(p);
+            used = effect_do(spell->effect, who, &ident, true, dir, &beam, 0, note, NULL);
+            target_release(p);
+            if (!used) return false;
         }
 
         /* A spell was cast */
@@ -1558,7 +1560,9 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
     /* Do effect */
     if (effect->other_msg) msg_misc(p, effect->other_msg);
     source_player(who, get_player_index(get_connection(p->conn)), p);
+    target_fix(p);
     *used = effect_do(effect, who, ident, p->was_aware, dir, &beam, boost, note, NULL);
+    target_release(p);
 
     /* Notice */
     if (*ident) *notice = true;

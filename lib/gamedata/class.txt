@@ -549,8 +549,8 @@ desc:Detects all living monsters in the immediate area,
 desc: for one turn only.
 
 spell:Satisfy Hunger:2:2:25:2:0
-effect:SET_NOURISH
-dice:16000
+effect:NOURISH:SET_TO
+dice:50
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
 
@@ -666,7 +666,7 @@ spell:Mass Sleep:25:15:50:15:0
 effect:PROJECT_LOS_AWARE:SLEEP_ALL
 desc:Attempts to put to sleep each monster within line of sight.
 
-book:nature book:dungeon:[Nature Craft]:5:nature
+book:nature book:dungeon:[Nature Craft]:6:nature
 book-graphics:?:o
 book-properties:40:30:20000
 book-alloc:15:40 to 100
@@ -723,12 +723,6 @@ msg_other: fires a gravity beam.
 desc:Fires a gravity beam that hurts each monster in its path
 desc: and has a chance of teleporting it away.
 
-book:nature book:dungeon:[Wild Forces]:5:nature
-book-graphics:?:o
-book-properties:60:30:50000
-book-alloc:10:60 to 100
-book-desc:An advanced nature book with a few verses.
-
 spell:Ice Storm:37:25:75:24:0
 effect:PROJECT_LOS:ICE
 dice:3d$S
@@ -736,14 +730,24 @@ expr:S:PLAYER_LEVEL:* 3
 msg_other: invokes an ice storm.
 desc:Strikes every monster in line of sight with sheets of ice from above.
 
-spell:Herbal Healing:40:30:90:100:0
+book:nature book:dungeon:[Wild Forces]:5:nature
+book-graphics:?:o
+book-properties:60:30:50000
+book-alloc:10:60 to 100
+book-desc:An advanced nature book with a few verses.
+
+spell:Rapid Regeneration:37:20:90:100:0
 effect:TIMED_INC:HEAL
 dice:5+1d3
+desc:Speed up digestion to increase regeneration of hitpoints for
+desc: the next 5+1d3 turns (or until hungry).
+
+spell:Herbal Curing:40:20:90:100:0
+effect:CURE:BLACKBREATH
 effect:CURE:STUN
 effect:CURE:POISONED
 effect:CURE:CUT
-desc:Cures all cuts, poison and stunning and heals 30 hit points on each of
-desc: the next 5+1d3 turns.
+desc:Cures all cuts, poison, stunning and black breath.
 
 spell:Volcanic Eruption:40:30:75:50:0
 effect:EARTHQUAKE:NONE:5
@@ -1869,8 +1873,8 @@ desc:Detects all living monsters in the immediate area,
 desc: for one turn only.
 
 spell:Satisfy Hunger:5:2:23:2:0
-effect:SET_NOURISH
-dice:16000
+effect:NOURISH:SET_TO
+dice:50
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
 
@@ -1986,14 +1990,12 @@ effect:BOW_BRAND_SHOT:POIS
 dice:5
 desc:Covers your missiles with venom.
 
-spell:Herbal Healing:40:30:90:100:0
-effect:TIMED_INC:HEAL
-dice:5+1d3
+spell:Herbal Curing:40:20:90:100:0
+effect:CURE:BLACKBREATH
 effect:CURE:STUN
 effect:CURE:POISONED
 effect:CURE:CUT
-desc:Cures all cuts, poison and stunning and heals 30 hit points on each of
-desc: the next 5+1d3 turns.
+desc:Cures all cuts, poison, stunning and black breath.
 
 
 ############### BLACKGUARD ###############
@@ -2641,8 +2643,8 @@ dice:5
 desc:Covers your missiles with frost.
 
 spell:Satisfy Hunger:12:6:24:12:0
-effect:SET_NOURISH
-dice:16000
+effect:NOURISH:SET_TO
+dice:50
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
 
@@ -2918,8 +2920,8 @@ effect:IDENTIFY
 desc:Reveals an unknown rune on an object.
 
 spell:Satisfy Hunger:16:14:40:16:0
-effect:SET_NOURISH
-dice:16000
+effect:NOURISH:SET_TO
+dice:50
 msg_self:You focus your mind to convert energy into food.
 desc:Magically renders you well-fed (but not satiated).
 desc: This will also cure a bloated stomach.
@@ -3412,8 +3414,8 @@ expr:S:PLAYER_SPELL_POWER:* 10
 desc:Grants you temporary resistance to cold.
 
 spell:Potion of Vitality:20:9:49:16:0
-effect:SET_NOURISH
-dice:16000
+effect:NOURISH:SET_TO
+dice:50
 effect:TIMED_INC:BOLD
 dice:$B+1d$S
 expr:B:PLAYER_SPELL_POWER:* 10

@@ -22,6 +22,14 @@
 #include "s-angband.h"
 
 
+int PY_FOOD_MAX;
+int PY_FOOD_FULL;
+int PY_FOOD_HUNGRY;
+int PY_FOOD_WEAK;
+int PY_FOOD_FAINT;
+int PY_FOOD_STARVE;
+
+
 /*
  * Parsing functions for player_timed.txt
  */
@@ -124,6 +132,18 @@ static enum parser_error parse_player_timed_grade(struct parser *p)
     l->up_msg = string_make(parser_getsym(p, "up_msg"));
     if (parser_hasval(p, "down_msg"))
         l->down_msg  = string_make(parser_getsym(p, "down_msg"));
+
+    /* Set food constants and deal with percentages */
+    if (streq(t->name, "FOOD"))
+    {
+        l->max *= z_info->food_value;
+        if (streq(l->name, "Starving")) PY_FOOD_STARVE = l->max;
+        else if (streq(l->name, "Faint")) PY_FOOD_FAINT = l->max;
+        else if (streq(l->name, "Weak")) PY_FOOD_WEAK = l->max;
+        else if (streq(l->name, "Hungry")) PY_FOOD_HUNGRY = l->max;
+        else if (streq(l->name, "Fed")) PY_FOOD_FULL = l->max;
+        else if (streq(l->name, "Full")) PY_FOOD_MAX = l->max;
+    }
 
     return PARSE_ERROR_NONE;
 }

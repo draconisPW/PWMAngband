@@ -154,3 +154,16 @@ help: special melee attacks instead (biting and clawing) that increase in power 
 help: they gain levels. Starting at level 5, Dragons are able to breathe their
 help: corresponding element, but using this ability costs them hit points. At that
 help: level, they also gain the innate resistances and abilities of their type.
+
+race:Hydra
+help:They are also creatures legends are made of. They are average at everything
+help: and need much more experience to advance in levels compared to humans. Like
+help: Dragons, they evolve physically as they gain experience. At level 1, they
+help: start as regular hydras. At level 10, they gain an extra head and polymorph
+help: into a 2-headed hydra. At levels 15, 20, 24, 28, 32, 36, 40, 42, 44, 46, 48
+help: and 50, they also gain an extra head to evolve finally into a 14-headed hydra.
+help: Hydras cannot wield any weapons, but get extra dice on their barehanded
+help: attacks as they gain levels. They can breathe several elements (poison, fire,
+help: acid) as they gain the corresponding head, and get the innate resistances and
+help: abilities of their type (which also means they are all vulnerable to cold and
+help: permanently aggravate).

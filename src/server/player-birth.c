@@ -388,6 +388,7 @@ static void get_history(struct player *p)
                         case 'r': {g_strcat(t, "Your"); break;}
                         case 'a': {g_strcat(t, "are"); break;}
                         case 'h': {g_strcat(t, "have"); break;}
+                        case 'w': {g_strcat(t, "were"); break;}
                         default: continue;
                     }
                     break;
@@ -722,8 +723,9 @@ static void player_generate(struct player *p, byte psex, const struct player_rac
     /* Initialize the spells */
     player_spells_init(p);
 
-    /* No Dragon DMs, turn into a Human instead */
-    if (pf_has(p->race->pflags, PF_DRAGON) && is_dm_p(p)) p->race = player_id2race(0);
+    /* No Dragon/Hydra DMs, turn into a Human instead */
+    if ((player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA)) && is_dm_p(p))
+        p->race = player_id2race(0);
 
     p->sex = &sex_info[p->psex];
 
@@ -1320,6 +1322,13 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
         if (player_has(p, PF_DRAGON))
         {
             poly_dragon(p, false);
+            get_bonuses(p);
+        }
+
+        /* Hydra */
+        if (player_has(p, PF_HYDRA))
+        {
+            poly_hydra(p, false);
             get_bonuses(p);
         }
 

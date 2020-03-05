@@ -324,6 +324,21 @@ Dragon
   corresponding element, but using this ability costs them hit points. At that
   level, they also gain the innate resistances and abilities of their type.
 
+.. _Hydra:
+
+Hydra
+  They are also creatures legends are made of. They are average at everything
+  and need much more experience to advance in levels compared to humans. Like
+  Dragons, they evolve physically as they gain experience. At level 1, they
+  start as regular hydras. At level 10, they gain an extra head and polymorph
+  into a 2-headed hydra. At levels 15, 20, 24, 28, 32, 36, 40, 42, 44, 46, 48
+  and 50, they also gain an extra head to evolve finally into a 14-headed hydra.
+  Hydras cannot wield any weapons, but get extra dice on their barehanded
+  attacks as they gain levels. They can breathe several elements (poison, fire,
+  acid) as they gain the corresponding head, and get the innate resistances and
+  abilities of their type (which also means they are all vulnerable to cold and
+  permanently aggravate).
+
 Classes
 -------
  
@@ -710,6 +725,7 @@ adjusted for constitution).
     Ent           +8   -4   +2   -4   +8      14        275%   50'
     Thunderlord   +6   +2   +1   +1   +3      12        350%   None
     Dragon         0    0    0    0    0      13        450%   10'
+    Hydra          0    0    0    0    0      10        400%   None
 ================ ===  ===  ===  ===  ===  =========  ========  ======
 
 ~~~
@@ -757,6 +773,7 @@ Ability Tables
  Ent            5       0      20      -6       2      15       5
  Thunderlord    6       0      10     -16      10      15       5
  Dragon         6       0      10     -16      10      15       5
+ Hydra          0       0       0       0       0       0       0
 ============ ======  ======  =====  =======  ======  ======  =====
 
 ~~~

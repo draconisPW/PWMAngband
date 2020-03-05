@@ -104,11 +104,14 @@ Angband 4.2.0:
 - Add throwing weapons
 - Add extra moves and damage reduction
 - Add TRAP_IMMUNE
+- Make _Starlight more useful, replace Door Destruction with Darkness
+- Make timed healing fast metabolism, adjust nature spells
 
 PWMAngband:
 
 - Add a dummy golem in base town for target practice
 - Make Fortune Cookies single items in stores
+- New Hydra race
 
 Bugs fixed
 ----------

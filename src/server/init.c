@@ -98,10 +98,10 @@ const char *list_obj_flag_names[] =
 
 const char *obj_mods[] =
 {
-    #define STAT(a) #a,
+    #define STAT(a, b, c) #a,
     #include "../common/list-stats.h"
     #undef STAT
-    #define OBJ_MOD(a) #a,
+    #define OBJ_MOD(a, b, c) #a,
     #include "../common/list-object-modifiers.h"
     #undef OBJ_MOD
     NULL
@@ -624,6 +624,8 @@ static enum parser_error parse_constants_player(struct parser *p)
         z->max_range = value;
     else if (streq(label, "start-gold"))
         z->start_gold = value;
+    else if (streq(label, "food-value"))
+        z->food_value = value;
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
 

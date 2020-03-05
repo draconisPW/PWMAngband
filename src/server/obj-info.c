@@ -1669,6 +1669,23 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                     break;
                 }
 
+                /* PWMAngband: use dice string and apply digestion rate */
+                case EFINFO_FOOD:
+                {
+                    /* Basic digestion rate based on speed */
+                    int rate = player_digest(p);
+
+                    /* Adjust for player speed */
+                    int multiplier = turn_energy(p->state.speed);
+
+                    char *fed = effect->subtype? "leaves you nourished": "feeds you";
+
+                    strnfmt(dice_string, sizeof(dice_string), "{%d}",
+                        value.base * z_info->food_value * multiplier / rate);
+                    strnfmt(desc, sizeof(desc), effect_desc(effect), fed, dice_string, value.base);
+                    break;
+                }
+
                 /* Timed effect description */
                 case EFINFO_CURE:
                 {
@@ -1843,20 +1860,6 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                         default: what = "something"; /* XXX */
                     }
                     strnfmt(desc, sizeof(desc), effect_desc(effect), what, dice_string);
-                    break;
-                }
-
-                /* PWMAngband: use dice string and apply digestion rate */
-                case EFINFO_FOOD:
-                {
-                    /* Basic digestion rate based on speed */
-                    int rate = player_digest(p);
-
-                    /* Adjust for player speed */
-                    int multiplier = turn_energy(p->state.speed);
-
-                    strnfmt(dice_string, sizeof(dice_string), "{%d}", value.base * multiplier / rate);
-                    strnfmt(desc, sizeof(desc), effect_desc(effect), dice_string);
                     break;
                 }
 

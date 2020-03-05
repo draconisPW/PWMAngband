@@ -566,8 +566,11 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
             else if (player_has(p, PF_KNOW_ZAPPER) && tval_is_zapper(obj))
                 object_know_everything(p, obj);
 
-            else if (player_has(p, PF_DRAGON) || player_has(p, PF_MARTIAL_ARTS))
+            else if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) ||
+                player_has(p, PF_MARTIAL_ARTS))
+            {
                 weapon_learn_on_carry(p, obj);
+            }
         }
     }
 
@@ -988,8 +991,8 @@ bool item_tester_hook_wear(struct player *p, const struct object *obj)
 
     if ((slot < 0) || (slot >= p->body.count)) return false;
 
-    /* Dragons and Monks cannot use weapons */
-    if ((player_has(p, PF_DRAGON) || player_has(p, PF_MARTIAL_ARTS)) &&
+    /* Dragons, Hydras and Monks cannot use weapons */
+    if ((player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) || player_has(p, PF_MARTIAL_ARTS)) &&
         ((slot == slot_by_name(p, "weapon")) || (slot == slot_by_name(p, "shooting"))))
     {
         return false;

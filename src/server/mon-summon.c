@@ -532,14 +532,19 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
 
     /*
      * If delay, try to let the player act before the summoned monsters,
-     * including slowing down faster monsters for one turn
+     * including holding faster monsters for the required number of turns
      */
     mon = square_monster(c, &nearby);
     if (delay)
     {
+        int turns = (mon->mspeed + 9 - p->state.speed) / 10;
+
         mon->energy = 0;
-        if (mon->mspeed > p->state.speed)
-            mon_inc_timed(p, mon, MON_TMD_SLOW, 1, MON_TMD_FLG_NOMESSAGE);
+        if (turns > 0)
+        {
+            /* Set timer directly to avoid resistance */
+            mon->m_timed[MON_TMD_HOLD] = turns;
+        }
     }
 
     /* Hack -- monster summoned by the player */

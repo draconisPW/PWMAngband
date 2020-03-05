@@ -5194,7 +5194,7 @@ static bool effect_handler_MON_TIMED_INC(effect_handler_context_t *context)
 
 
 /*
- * Feed the player.
+ * Feed the player, or set their satiety level.
  */
 static bool effect_handler_NOURISH(effect_handler_context_t *context)
 {
@@ -5202,7 +5202,15 @@ static bool effect_handler_NOURISH(effect_handler_context_t *context)
 
     if (context->self_msg && !player_undead(context->origin->player))
         msg(context->origin->player, context->self_msg);
-    player_inc_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false, false);
+
+    amount *= z_info->food_value;
+    if (context->subtype == 0)
+        player_inc_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false, false);
+    else if (context->subtype == 1)
+        player_set_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
+    else if ((context->subtype == 2) && (context->origin->player->timed[TMD_FOOD] < amount))
+        player_set_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
+
     context->ident = true;
     return true;
 }
@@ -5216,6 +5224,7 @@ static bool effect_handler_POLY_RACE(effect_handler_context_t *context)
 
     /* Restrict */
     if (context->origin->player->ghost || player_has(context->origin->player, PF_DRAGON) ||
+        player_has(context->origin->player, PF_HYDRA) ||
         OPT(context->origin->player, birth_fruit_bat) ||
         (context->origin->player->poly_race == race))
     {
@@ -5997,20 +6006,6 @@ static bool effect_handler_SAFE_GUARD(effect_handler_context_t *context)
 
 
 /*
- * Set player food counter
- */
-static bool effect_handler_SET_NOURISH(effect_handler_context_t *context)
-{
-    int amount = effect_calculate_value(context, false);
-
-    if (context->self_msg) msg(context->origin->player, context->self_msg);
-    player_set_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
-    context->ident = true;
-    return true;
-}
-
-
-/*
  * Project from the player's grid at the player, act as a ball
  * Affect the player, grids, objects, and monsters
  */
@@ -6080,9 +6075,6 @@ static bool effect_handler_STAR_BALL(effect_handler_context_t *context)
 
 /*
  * Strike the target with a ball from above
- *
- * Targets absolute coordinates instead of a specific monster, so that
- * the death of the monster doesn't change the target's location.
  */
 static bool effect_handler_STRIKE(effect_handler_context_t *context)
 {
@@ -6100,6 +6092,9 @@ static bool effect_handler_STRIKE(effect_handler_context_t *context)
     /* Ask for a target; if no direction given, the player is struck  */
     if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
         target_get(context->origin->player, &target);
+
+    /* Enforce line of sight */
+    if (!los(context->cave, &context->origin->player->grid, &target)) return false;
 
     /* Aim at the target. Hurt items on floor. */
     context->origin->player->current_sound = -2;
@@ -6177,7 +6172,7 @@ static bool effect_handler_SUMMON(effect_handler_context_t *context)
         for (i = 0; i < summon_max; i++)
         {
             count += summon_specific(context->origin->player, context->cave,
-                &context->origin->player->grid, mlvl + level_boost, summon_type, true, false,
+                &context->origin->player->grid, mlvl + level_boost, summon_type, true, one_in_(4),
                 chance, NULL);
         }
     }
@@ -6240,10 +6235,7 @@ static bool effect_handler_SWARM(effect_handler_context_t *context)
 
     /* Hack -- use an actual "target" */
     if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
-    {
-        flg &= ~(PROJECT_STOP | PROJECT_THRU);
         target_get(context->origin->player, &target);
-    }
 
     context->origin->player->current_sound = -2;
     while (num--)
@@ -7329,6 +7321,7 @@ static bool effect_handler_UNDEAD_FORM(effect_handler_context_t *context)
 {
     /* Restrict */
     if (context->origin->player->ghost || player_has(context->origin->player, PF_DRAGON) ||
+        player_has(context->origin->player, PF_HYDRA) ||
         OPT(context->origin->player, birth_fruit_bat))
     {
         msg(context->origin->player, "You try to turn into an undead being... but nothing happens.");
@@ -7921,6 +7914,15 @@ int effect_subtype(int index, const char *type)
         case EF_TIMED_SET:
         {
             val = timed_name_to_idx(type);
+            break;
+        }
+
+        /* Nourishment types */
+        case EF_NOURISH:
+        {
+            if (streq(type, "INC_BY")) val = 0;
+            else if (streq(type, "SET_TO")) val = 1;
+            else if (streq(type, "INC_TO")) val = 2;
             break;
         }
 

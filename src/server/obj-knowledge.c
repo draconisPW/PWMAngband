@@ -1268,29 +1268,27 @@ void player_learn_everything(struct player *p)
  */
 
 
-static struct mod_msg
+static const char *mod_msg_pos[] =
 {
-    const char *msg;
-    const char *neg_msg;
-} mod_msgs[] =
+    #define STAT(a, b, c) b,
+    #include "../common/list-stats.h"
+    #undef STAT
+    #define OBJ_MOD(a, b, c) b,
+    #include "../common/list-object-modifiers.h"
+    #undef OBJ_MOD
+    NULL
+};
+
+
+static const char *mod_msg_neg[] =
 {
-    {"You feel stronger!", "You feel weaker!"}, /* OBJ_MOD_STR */
-    {"You feel smarter!", "You feel more stupid!"}, /* OBJ_MOD_INT */
-    {"You feel wiser!", "You feel more naive!"}, /* OBJ_MOD_WIS */
-    {"You feel more dextrous!", "You feel clumsier!"}, /* OBJ_MOD_DEX */
-    {"You feel healthier!", "You feel sicklier!"}, /* OBJ_MOD_CON */
-    {"You feel more attuned to magic.", "You feel less attuned to magic."}, /* OBJ_MOD_MANA */
-    {"You feel stealthier.", "You feel noisier."}, /* OBJ_MOD_STEALTH */
-    {NULL, NULL}, /* OBJ_MOD_SEARCH */
-    {"Your eyes tingle.", "Your eyes ache."}, /* OBJ_MOD_INFRA */
-    {NULL, NULL}, /* OBJ_MOD_TUNNEL */
-    {"You feel strangely quick.", "You feel strangely sluggish."}, /* OBJ_MOD_SPEED */
-    {"Your hands tingle.", "Your hands ache."}, /* OBJ_MOD_BLOWS */
-    {"Your missiles tingle in your hands.", "Your missiles ache in your hands."}, /* OBJ_MOD_SHOTS */
-    {NULL, NULL}, /* OBJ_MOD_MIGHT */
-    {"Your %s glows!", NULL}, /* OBJ_MOD_LIGHT */
-    {NULL, NULL}, /* OBJ_MOD_POLY_RACE */
-    {"You feel less attuned to magic.", "You feel more attuned to magic."} /* OBJ_MOD_ANTI_MAGIC */
+    #define STAT(a, b, c) c,
+    #include "../common/list-stats.h"
+    #undef STAT
+    #define OBJ_MOD(a, b, c) c,
+    #include "../common/list-object-modifiers.h"
+    #undef OBJ_MOD
+    NULL
 };
 
 
@@ -1303,7 +1301,7 @@ static struct mod_msg
 static void mod_message(struct player *p, int mod, const char *name, bool positive)
 {
     /* This should be in object_property.txt */
-    const char *message = (positive? mod_msgs[mod].msg: mod_msgs[mod].neg_msg);
+    const char *message = (positive? mod_msg_pos[mod]: mod_msg_neg[mod]);
 
     if (!message) return;
 
