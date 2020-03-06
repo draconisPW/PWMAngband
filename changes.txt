@@ -61,6 +61,7 @@ Angband 4.2.0:
 - Take all rock colors down a shade
 - Treasure in quartz as yellow
 - Add some missing object descriptions
+- Change stealing command to 's'
 
 PWMAngband:
 
@@ -106,12 +107,16 @@ Angband 4.2.0:
 - Add TRAP_IMMUNE
 - Make _Starlight more useful, replace Door Destruction with Darkness
 - Make timed healing fast metabolism, adjust nature spells
+- Make stores always accept items with unknown runes in no-selling
+- Make stealing a bit easier
+- Add Mushrooms of Shadows
 
 PWMAngband:
 
 - Add a dummy golem in base town for target practice
 - Make Fortune Cookies single items in stores
 - New Hydra race
+- Change vegetal monster base symbol to 'l', add 'l' monsters to the Old Forest
 
 Bugs fixed
 ----------

@@ -56,7 +56,7 @@ Alter Commands
 'c'    Close a door               'T'    Dig a tunnel
 'o'    Open a door or chest       '+'    Alter grid
 '_'    Drink/fill from a fountain
-'D'    Disarm a trap or chest     'J'    Steal
+'D'    Disarm a trap or chest     's'    Steal
 ====== ========================== ====== ==========================
  
 To alter a grid you can also hold down Ctrl and use the numpad direction keys.

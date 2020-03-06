@@ -938,7 +938,7 @@ static void player_turn_undead(struct player *p)
     restore_sp(p);
 
     /* Feed him */
-    player_set_timed(p, TMD_FOOD, PY_FOOD_MAX - 1, false);
+    player_set_timed(p, TMD_FOOD, PY_FOOD_FULL - 1, false);
 
     /* Cancel any WOR spells */
     p->word_recall = 0;

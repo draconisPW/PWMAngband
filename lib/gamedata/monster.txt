@@ -3912,7 +3912,7 @@ desc: growing.
 
 name:tangleweed
 base:vegetal
-color:g
+color:y
 speed:100
 hit-points:15
 hearing:5
@@ -3936,7 +3936,7 @@ desc: deep within the thickets.
 name:poison ivy
 plural:poison ivies
 base:vegetal
-color:G
+color:Y
 speed:100
 hit-points:15
 hearing:5
@@ -5456,7 +5456,7 @@ desc:A pack of skulls animated by necromantic spells.
 
 name:giant Venus flytrap
 base:vegetal
-color:y
+color:o
 speed:120
 hit-points:55
 hearing:20

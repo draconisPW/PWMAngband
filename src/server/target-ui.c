@@ -408,7 +408,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                 else if (rf_has(who->monster->race->flags, RF_MALE)) s1 = "He is ";
                 else s1 = "It is ";
 
-                /* Disabled for non-DMs since monsters now carry their drops */
+                /* Describe carried objects (DMs only) */
                 if (is_dm_p(p))
                 {
                     /* Use a verb */

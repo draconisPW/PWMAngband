@@ -393,6 +393,9 @@ static bool run_test(struct player *p, struct chunk *c)
             return true;
         }
 
+        /* Visible traps abort running */
+        if (square_isvisibletrap(c, &grid)) return true;
+
         /* Visible objects abort running */
         for (obj = square_known_pile(p, c, &grid); obj; obj = obj->next)
         {
@@ -463,14 +466,14 @@ static bool run_test(struct player *p, struct chunk *c)
                 {
                     /* Break to the right */
                     if (p->wpos.depth > 0)
-                        p->run_break_right = (true);
+                        p->run_break_right = true;
                 }
 
                 else if (i > 0)
                 {
                     /* Break to the left */
                     if (p->wpos.depth > 0)
-                        p->run_break_left = (true);
+                        p->run_break_left = true;
                 }
             }
         }

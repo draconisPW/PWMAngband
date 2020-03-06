@@ -79,7 +79,7 @@ struct cmd_info cmd_action[] =
     {"Dig a tunnel", {'T', KTRL('T')}, CMD_TUNNEL, NULL, NULL},
     {"Go up staircase", {'<'}, CMD_GO_UP, NULL, NULL},
     {"Go down staircase", {'>'}, CMD_GO_DOWN, NULL, NULL},
-    {"Toggle stealth mode", {'S', '#'}, CMD_TOGGLE_STEALTH, NULL, NULL},
+    {"Toggle stealth mode", {'S'}, CMD_TOGGLE_STEALTH, NULL, NULL},
     {"Open a door or a chest", {'o'}, CMD_OPEN, NULL, NULL},
     {"Close a door", {'c'}, CMD_CLOSE, NULL, NULL},
     {"Fire at nearest target", {'h', KC_TAB}, CMD_NULL, do_cmd_fire_at_nearest, NULL},
@@ -99,8 +99,7 @@ struct cmd_info cmd_item_manage[]  =
     {"Display quiver listing", {'|'}, CMD_NULL, do_cmd_quiver, NULL},
     {"Pick up objects", {'g'}, CMD_PICKUP, NULL, NULL},
     {"Ignore an item", {'k', KTRL('D')}, CMD_IGNORE, textui_cmd_ignore, NULL},
-    {"Drop gold", {'$'}, CMD_DROP_GOLD, textui_cmd_drop_gold, NULL},
-    {"Steal an item", {'J', 'S'}, CMD_STEAL, NULL, NULL}
+    {"Drop gold", {'$'}, CMD_DROP_GOLD, textui_cmd_drop_gold, NULL}
 };
 
 
@@ -158,6 +157,7 @@ struct cmd_info cmd_hidden[] =
 {
     {"Load a single pref line", {'"'}, CMD_NULL, do_cmd_pref, NULL},
     {"Alter a grid", {'+'}, CMD_ALTER, NULL, NULL},
+    {"Steal an item", {'s'}, CMD_STEAL, NULL, NULL},
     {"Walk", {';'}, CMD_WALK, NULL, NULL},
     {"Start running", {'.', ','}, CMD_RUN, NULL, NULL},
     {"Stand still", {',', '.'}, CMD_HOLD, NULL, NULL},

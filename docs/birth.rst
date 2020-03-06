@@ -140,7 +140,7 @@ sought after.
 Races
 -----
 
-There are fifteen different races that you can choose to play in PWMAngband. 
+There are sixteen different races that you can choose to play in PWMAngband. 
 Each race has its own adjustments to a character's stats and abilities. 
 Most races also have intrinsic abilities. The bonuses to statistics and 
 the experience penalty will be displayed next to the races as you move 

@@ -279,11 +279,12 @@ handled in different ways for the player and the monster, and for different
 attack forms.
 
 Bolt spells will hit the first monster (or the player) in the line of fire;
-ball spells and breaths may centre on a target which may be hiding behind
+ball spells may centre on a target which may be hiding behind
 other targets. Ball spells and breath weapons affect an area: other
 monsters caught in the blast take reduced damage depending on their distance
 from the centre of the blast. Breath weapons are proportional to a
-fraction of the monster's current hit points, with a maximum cap on the
+fraction of the monster's current hit points and drop off in power with
+distance from the monster, with a maximum cap on the
 damage (which is higher for the most common of such attacks, owing to the
 fact that the resistances are also easier to find). Bolt and ball spell
 damage is calculated differently - often (but not always) relative to
@@ -376,10 +377,7 @@ cut status are displayed at the bottom of the screen.
 There are resistances available to chaos, disenchantment, confusion, nexus, 
 sound, shards, light and darkness: all of these will reduce the damage and 
 prevent side-effects other than physical damage. With these resistances, as 
-with nether resistance, damage is a random fraction: for light and dark, it 
-is between 4/7 and 4/12, for sound and confusion it is between 5/7 and
-5/12, and for chaos, disenchantment, nexus, shards and nether it is between
-6/7 and 6/12.
+with nether resistance, damage is a random fraction between 1/2 and 2/3.
 
 It should be noted that not all of these are actually vital to completing 
 the game: indeed, of the above list, only fire, cold, acid, lightning,
@@ -397,10 +395,11 @@ A note on speed
 ---------------
 
 Monsters which do not move at normal speed generally move "slowly" (-10 to
-speed), "fast" (+10), "very fast" (+20) or "incredibly fast" (+30). (It will 
-surprise nobody that Morgoth is one of the few monsters in the last
-category.) This is further adjusted by the fact that any non-unique monster
-may have a random adjustment from (-2) to (+2) to its own speed.
+speed), "fairly quickly" (+5), "quickly" (+10), "very quickly" (+20) or
+"incredibly quickly" (+30). (It will surprise nobody that Morgoth is one of
+the few monsters in the last category.) This is further adjusted by the fact
+that any non-unique monster may have a random adjustment from (-2) to (+2)
+to its own speed.
 
 Generally, (+10) is exactly double normal speed, and (-10) exactly half. 
 (+20) is about three times normal speed, but after that there is less 

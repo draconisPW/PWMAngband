@@ -452,6 +452,20 @@ effect:NOURISH:SET_TO
 dice:5
 desc:It makes you very hungry but otherwise healthy.
 
+name:Shadows
+graphics:,:d
+type:mushroom
+level:50
+weight:1
+cost:300
+alloc:1:50 to 100
+pile:70:1d4
+effect:TIMED_INC:STEALTH
+dice:10+1d10
+effect:NOURISH:INC_BY
+dice:5
+desc:It makes you very stealthy for a short while.
+
 
 ##### Weapons #####
 

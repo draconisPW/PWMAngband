@@ -1422,7 +1422,7 @@ If running doesn't work, try pressing Numlock.</p>
 </tr>
 <tr><td>'D'</td>
 <td>Disarm a trap or chest</td>
-<td>'J'</td>
+<td>'s'</td>
 <td>Steal</td>
 </tr>
 </tbody>
@@ -1969,7 +1969,7 @@ sought after.</p>
 </div>
 <div class="section" id="races">
 <h3><a class="toc-backref" href="#id96">3.1.2&nbsp;&nbsp;&nbsp;Races</a></h3>
-<p>There are fifteen different races that you can choose to play in PWMAngband.
+<p>There are sixteen different races that you can choose to play in PWMAngband.
 Each race has its own adjustments to a character's stats and abilities.
 Most races also have intrinsic abilities. The bonuses to statistics and
 the experience penalty will be displayed next to the races as you move
@@ -2136,6 +2136,20 @@ special melee attacks instead (biting and clawing) that increase in power as
 they gain levels. Starting at level 5, Dragons are able to breathe their
 corresponding element, but using this ability costs them hit points. At that
 level, they also gain the innate resistances and abilities of their type.</dd>
+</dl>
+<dl class="docutils" id="hydra">
+<dt>Hydra</dt>
+<dd>They are also creatures legends are made of. They are average at everything
+and need much more experience to advance in levels compared to humans. Like
+Dragons, they evolve physically as they gain experience. At level 1, they
+start as regular hydras. At level 10, they gain an extra head and polymorph
+into a 2-headed hydra. At levels 15, 20, 24, 28, 32, 36, 40, 42, 44, 46, 48
+and 50, they also gain an extra head to evolve finally into a 14-headed hydra.
+Hydras cannot wield any weapons, but get extra dice on their barehanded
+attacks as they gain levels. They can breathe several elements (poison, fire,
+acid) as they gain the corresponding head, and get the innate resistances and
+abilities of their type (which also means they are all vulnerable to cold and
+permanently aggravate).</dd>
 </dl>
 </div>
 <div class="section" id="classes">
@@ -2659,6 +2673,16 @@ adjusted for constitution).</p>
 <td>450%</td>
 <td>10'</td>
 </tr>
+<tr><td>Hydra</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>10</td>
+<td>400%</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <p>~~~</p>
@@ -2981,6 +3005,15 @@ adjusted for constitution).</p>
 <td>10</td>
 <td>15</td>
 <td>5</td>
+</tr>
+<tr><td>Hydra</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
 </tr>
 </tbody>
 </table>
@@ -4239,11 +4272,12 @@ and the monsters, may be resistant to these forms of attack: resistance is
 handled in different ways for the player and the monster, and for different
 attack forms.</p>
 <p>Bolt spells will hit the first monster (or the player) in the line of fire;
-ball spells and breaths may centre on a target which may be hiding behind
+ball spells may centre on a target which may be hiding behind
 other targets. Ball spells and breath weapons affect an area: other
 monsters caught in the blast take reduced damage depending on their distance
 from the centre of the blast. Breath weapons are proportional to a
-fraction of the monster's current hit points, with a maximum cap on the
+fraction of the monster's current hit points and drop off in power with
+distance from the monster, with a maximum cap on the
 damage (which is higher for the most common of such attacks, owing to the
 fact that the resistances are also easier to find). Bolt and ball spell
 damage is calculated differently - often (but not always) relative to
@@ -4328,10 +4362,7 @@ cut status are displayed at the bottom of the screen.</p>
 <p>There are resistances available to chaos, disenchantment, confusion, nexus,
 sound, shards, light and darkness: all of these will reduce the damage and
 prevent side-effects other than physical damage. With these resistances, as
-with nether resistance, damage is a random fraction: for light and dark, it
-is between 4/7 and 4/12, for sound and confusion it is between 5/7 and
-5/12, and for chaos, disenchantment, nexus, shards and nether it is between
-6/7 and 6/12.</p>
+with nether resistance, damage is a random fraction between 1/2 and 2/3.</p>
 <p>It should be noted that not all of these are actually vital to completing
 the game: indeed, of the above list, only fire, cold, acid, lightning,
 poison and confusion resists are regarded as truly vital, with blindness,
@@ -4347,10 +4378,11 @@ effects of a gravity attack.</p>
 <div class="section" id="a-note-on-speed">
 <h3><a class="toc-backref" href="#id130">3.3.7&nbsp;&nbsp;&nbsp;A note on speed</a></h3>
 <p>Monsters which do not move at normal speed generally move &quot;slowly&quot; (-10 to
-speed), &quot;fast&quot; (+10), &quot;very fast&quot; (+20) or &quot;incredibly fast&quot; (+30). (It will
-surprise nobody that Morgoth is one of the few monsters in the last
-category.) This is further adjusted by the fact that any non-unique monster
-may have a random adjustment from (-2) to (+2) to its own speed.</p>
+speed), &quot;fairly quickly&quot; (+5), &quot;quickly&quot; (+10), &quot;very quickly&quot; (+20) or
+&quot;incredibly quickly&quot; (+30). (It will surprise nobody that Morgoth is one of
+the few monsters in the last category.) This is further adjusted by the fact
+that any non-unique monster may have a random adjustment from (-2) to (+2)
+to its own speed.</p>
 <p>Generally, (+10) is exactly double normal speed, and (-10) exactly half.
 (+20) is about three times normal speed, but after that there is less
 noticeable improvement as speed goes higher - for instance, (+30) is not
@@ -4921,7 +4953,7 @@ which is most convenient when using the original keyset.</p>
 <tr><td><tt class="docutils literal">j</tt></td>
 <td>(unused)</td>
 <td><tt class="docutils literal">J</tt></td>
-<td>Steal</td>
+<td>(unused)</td>
 </tr>
 <tr><td><tt class="docutils literal">k</tt></td>
 <td>Ignore an item</td>
@@ -4964,7 +4996,7 @@ which is most convenient when using the original keyset.</p>
 <td>Rest for a period</td>
 </tr>
 <tr><td><tt class="docutils literal">s</tt></td>
-<td>(unused)</td>
+<td>Steal</td>
 <td><tt class="docutils literal">S</tt></td>
 <td>Toggle stealth mode</td>
 </tr>
@@ -5252,9 +5284,9 @@ which is most convenient when using the original keyset.</p>
 <td>Rest for a period</td>
 </tr>
 <tr><td>s</td>
-<td>(unused)</td>
-<td>S</td>
 <td>Steal</td>
+<td>S</td>
+<td>Toggle stealth mode</td>
 </tr>
 <tr><td>t</td>
 <td>Fire an item</td>
@@ -5302,7 +5334,7 @@ which is most convenient when using the original keyset.</p>
 <td>(alter - south west)</td>
 </tr>
 <tr><td>#</td>
-<td>Toggle stealth mode</td>
+<td>(unused)</td>
 <td>^C</td>
 <td>End character &amp; quit</td>
 </tr>
@@ -5689,7 +5721,7 @@ number of turns to rest), and takes some energy.</dd>
 <h3><a class="toc-backref" href="#id148">3.5.4&nbsp;&nbsp;&nbsp;Stealth Commands</a></h3>
 <!--  -->
 <dl class="docutils">
-<dt>Toggle stealth mode (<tt class="docutils literal">S</tt>) or Toggle stealth mode (<tt class="docutils literal">#</tt>)</dt>
+<dt>Toggle stealth mode (<tt class="docutils literal">S</tt>)</dt>
 <dd>Only Rogues are able to use this command. When first pressed, the message
 &quot;Stealth Mode&quot; will appear at the bottom of the screen. You are now taking
 two turns for each command, one for the command and one to act carefully.
@@ -5757,7 +5789,7 @@ grid&quot; command. This command requires a direction, and takes some energy.</d
 </dl>
 <!--  -->
 <dl class="docutils">
-<dt>Steal (<tt class="docutils literal">J</tt>) or Steal (<tt class="docutils literal">S</tt>)</dt>
+<dt>Steal (<tt class="docutils literal">s</tt>)</dt>
 <dd>This command allows you to steal gold or items from other players. Stealing
 is usually disabled on most of the servers. If allowed, a failed attempt at
 stealing will make the offended player automatically hostile.

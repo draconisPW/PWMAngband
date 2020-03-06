@@ -1850,7 +1850,7 @@ void do_cmd_steal(struct player *p, int dir)
         return;
     }
 
-    /* Check preventive inscription '^J' */
+    /* Check preventive inscription '^S' */
     if (check_prevent_inscription(p, INSCRIPTION_STEAL))
     {
         msg(p, "The item's inscription prevents it.");
@@ -2013,7 +2013,7 @@ void do_cmd_steal(struct player *p, int dir)
     {
         /* Base monster protection and player stealing skill */
         bool unique = rf_has(who->monster->race->flags, RF_UNIQUE);
-        int guard = (who->monster->race->level * (unique? 4: 3)) / 2 + who->monster->mspeed -
+        int guard = (who->monster->race->level * (unique? 4: 3)) / 4 + who->monster->mspeed -
             p->state.speed;
         int steal_skill = p->state.skills[SKILL_STEALTH] + adj_dex_th[p->state.stat_ind[STAT_DEX]];
         int monster_reaction;
@@ -2022,8 +2022,8 @@ void do_cmd_steal(struct player *p, int dir)
         guard /= 2;
 
         /* Monster base reaction, plus allowance for item weight */
-        monster_reaction = guard / 2 + randint1(MAX(guard / 2, 1));
-        if (obj && !tval_is_money(obj)) monster_reaction += obj->weight / 10;
+        monster_reaction = guard / 2 + randint1(MAX(guard, 1));
+        if (obj && !tval_is_money(obj)) monster_reaction += obj->weight / 20;
 
         /* Check for success */
         if (monster_reaction < steal_skill) success = true;

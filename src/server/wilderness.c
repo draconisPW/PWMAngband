@@ -1523,6 +1523,7 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
                 {TV_MUSHROOM, "Debility", 5},
                 {TV_MUSHROOM, "Sprinting", 5},
                 {TV_MUSHROOM, "Purging", 5},
+                {TV_MUSHROOM, "Shadows", 1},
                 {TV_FOOD, "Slime Mold", 100}
             };
             int i;

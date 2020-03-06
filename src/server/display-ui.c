@@ -1908,7 +1908,7 @@ void player_death(struct player *p)
     effect_simple(EF_TELEPORT, who, "200", 0, 0, 0, 0, 0, NULL);
 
     /* Feed him (maybe he died from starvation) */
-    player_set_timed(p, TMD_FOOD, PY_FOOD_MAX - 1, false);
+    player_set_timed(p, TMD_FOOD, PY_FOOD_FULL - 1, false);
 
     /* Remove the death flag */
     p->is_dead = false;

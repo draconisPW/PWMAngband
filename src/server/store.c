@@ -607,6 +607,7 @@ static bool store_will_buy(struct player *p, int sidx, const struct object *obj)
 {
     struct object_buy *buy;
     struct store *store = &stores[sidx];
+    bool unknown;
 
     /* Home accepts anything */
     if (store->type == STORE_HOME) return true;
@@ -615,7 +616,8 @@ static bool store_will_buy(struct player *p, int sidx, const struct object *obj)
     if ((store->type == STORE_GENERAL) && !object_fully_known(p, obj)) return false;
 
     /* Ignore "worthless" items */
-    if (!object_value(p, obj, 1)) return false;
+    unknown = (OPT(p, birth_no_selling) && tval_has_variable_power(obj) && !object_runes_known(obj));
+    if (!object_value(p, obj, 1) && !unknown) return false;
 
     /* No buy list means we buy anything */
     if (!store->buy) return true;

@@ -38,6 +38,9 @@
  *
  * Note: preventing 'purchase an item' and 'sell an item' are mapped to 'p' and 's', which
  * correspond to the in-store commands.
+ *
+ * Note: preventing 'stealing' is mapped to 'S', even though the command is 's'. This
+ * is to keep 's' for selling.
  */
 static char map_inscriptions[INSCRIPTION_MAX][3] =
 {
@@ -63,7 +66,7 @@ static char map_inscriptions[INSCRIPTION_MAX][3] =
     ";;", /* INSCRIPTION_WALK */
     ".,", /* INSCRIPTION_RUN */
     "hh", /* INSCRIPTION_HOUSE */
-    "JS", /* INSCRIPTION_STEAL */
+    "SS", /* INSCRIPTION_STEAL */
     "__", /* INSCRIPTION_FOUNTAIN */
     "OO", /* INSCRIPTION_RETALIATE */
     "gg", /* INSCRIPTION_PICKUP */

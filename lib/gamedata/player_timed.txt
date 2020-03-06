@@ -450,6 +450,12 @@ on-end:The Black Shadow lifts.
 near-begin: appears deathly sick.
 near-end: appears more healthy.
 
+name:STEALTH
+grade:D:10000:Stealth:You feel silent!
+on-end:You feel less stealthy.
+near-begin: appears more stealthy.
+near-end: appears less stealthy.
+
 # PWMAngband
 
 name:WRAITHFORM

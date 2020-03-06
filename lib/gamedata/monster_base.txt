@@ -640,6 +640,6 @@ flags:ANIMAL | WEIRD_MIND | LEVITATE
 desc:Stinger
 
 name:vegetal
-glyph:#
+glyph:l
 pain:1
 desc:Vegetal

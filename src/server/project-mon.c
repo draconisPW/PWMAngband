@@ -276,6 +276,7 @@ static void project_monster_hurt_immune(project_monster_handler_context_t *conte
     if (rf_has(context->mon->race->flags, imm_flag))
     {
         context->hurt_msg = MON_MSG_RESIST_A_LOT;
+        context->die_msg = die_msg;
         context->dam /= imm_factor;
     }
     else if (rf_has(context->mon->race->flags, hurt_flag))
@@ -283,6 +284,11 @@ static void project_monster_hurt_immune(project_monster_handler_context_t *conte
         context->hurt_msg = hurt_msg;
         context->die_msg = die_msg;
         context->dam *= hurt_factor;
+    }
+    else
+    {
+        context->hurt_msg = MON_MSG_NONE;
+        context->die_msg = MON_MSG_DIE;
     }
 }
 

@@ -204,7 +204,7 @@ Stealth Commands
 
 ..
 
-Toggle stealth mode (``S``) or Toggle stealth mode (``#``)
+Toggle stealth mode (``S``)
   Only Rogues are able to use this command. When first pressed, the message
   "Stealth Mode" will appear at the bottom of the screen. You are now taking
   two turns for each command, one for the command and one to act carefully.
@@ -272,7 +272,7 @@ Alter (``+``)
 
 ..
 
-Steal (``J``) or Steal (``S``)
+Steal (``s``)
   This command allows you to steal gold or items from other players. Stealing
   is usually disabled on most of the servers. If allowed, a failed attempt at
   stealing will make the offended player automatically hostile.
