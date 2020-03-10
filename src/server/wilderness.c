@@ -2234,8 +2234,8 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     if (magik(25)) return;
 
     /* Possibly add a farm */
-    if (magik(50))
-        wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax, &type);
+    gridmin.x = -1;
+    if (magik(50)) wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax, &type);
 
     /* Hack -- if we have created this level before, do not add anything more to it. */
     if (w_ptr->generated != WILD_NONE) return;

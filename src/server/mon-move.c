@@ -2553,6 +2553,9 @@ void reset_monsters(struct chunk *c)
         /* Access the monster */
         mon = cave_monster(c, i);
 
+        /* Skip dead monsters */
+        if (!mon->race) continue;
+
         /* Dungeon hurts monsters */
         monster_take_terrain_damage(c, mon);
 
