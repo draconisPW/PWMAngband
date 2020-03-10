@@ -56,6 +56,10 @@ static struct monster_race *poly_race(struct chunk *c, struct monster_race *race
         /* Paranoia: should never happen (see get_mon_num) */
         if (rf_has(new_race->flags, RF_FORCE_DEPTH) && (c->wpos.depth < new_race->level)) continue;
 
+        /* Aquatic and non-aquatic monsters should never mix */
+        if (rf_has(new_race->flags, RF_AQUATIC) && !rf_has(race->flags, RF_AQUATIC)) continue;
+        if (!rf_has(new_race->flags, RF_AQUATIC) && rf_has(race->flags, RF_AQUATIC)) continue;
+
         return new_race;
     }
 

@@ -1919,8 +1919,12 @@ bool pick_and_place_monster(struct player *p, struct chunk *c, struct loc *grid,
     struct monster_race *race = get_mon_num(c, depth, false);
     struct monster_group_info info = {0, 0};
 
-    if (race) return place_new_monster(p, c, grid, race, mon_flag, &info, origin);
-    return false;
+    if (!race) return false;
+
+    /* Aquatic monsters suffocate if not in water */
+    if (!square_iswater(c, grid) && rf_has(race->flags, RF_AQUATIC)) return false;
+
+    return place_new_monster(p, c, grid, race, mon_flag, &info, origin);
 }
 
 
@@ -1940,8 +1944,14 @@ bool pick_and_place_distant_monster(struct player *p, struct chunk *c, int dis, 
 {
     struct loc grid;
     int attempts_left = 10000;
+    struct monster_race *race;
+    struct monster_group_info info = {0, 0};
 
     my_assert(c);
+
+    /* Pick a monster race, no specified group */
+    race = get_mon_num(c, monster_level(&c->wpos), false);
+    if (!race) return false;
 
     /* Find a legal, distant, unoccupied, space */
     while (--attempts_left)
@@ -1952,7 +1962,11 @@ bool pick_and_place_distant_monster(struct player *p, struct chunk *c, int dis, 
         loc_init(&grid, randint0(c->width), randint0(c->height));
 
         /* Require "naked" floor grid */
-        if (!square_isempty(c, &grid)) continue;
+        if (rf_has(race->flags, RF_AQUATIC))
+        {
+            if (!square_isemptywater(c, &grid)) continue;
+        }
+        else if (!square_isempty(c, &grid)) continue;
 
         /* Do not put random monsters in marked rooms. */
         if (square_ismon_restrict(c, &grid)) continue;
@@ -1977,14 +1991,7 @@ bool pick_and_place_distant_monster(struct player *p, struct chunk *c, int dis, 
     if (!attempts_left) return false;
 
     /* Attempt to place the monster, allow groups */
-    if (pick_and_place_monster(p, c, &grid, monster_level(&c->wpos), mon_flag | MON_GROUP,
-        ORIGIN_DROP))
-    {
-        return true;
-    }
-
-    /* Nope */
-    return false;
+    return place_new_monster(p, c, &grid, race, mon_flag | MON_GROUP, &info, ORIGIN_DROP);
 }
 
 

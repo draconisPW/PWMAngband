@@ -117,6 +117,7 @@ PWMAngband:
 - Make Fortune Cookies single items in stores
 - New Hydra race
 - Change vegetal monster base symbol to 'l', add 'l' monsters to the Old Forest
+- Add aquatic monsters
 
 Bugs fixed
 ----------

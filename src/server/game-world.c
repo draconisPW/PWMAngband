@@ -1484,6 +1484,8 @@ static void generate_new_level(struct player *p)
             {
                 struct monster_race *race = &r_info[i];
                 struct monster_group_info info = {0, 0};
+                bool found = false;
+                int tries = 50;
 
                 /* The monster must be an unseen fixed encounter of this depth. */
                 if (race->lore.spawned) continue;
@@ -1491,8 +1493,15 @@ static void generate_new_level(struct player *p)
                 if (race->level != c->wpos.depth) continue;
 
                 /* Pick a location and place the monster */
-                find_empty(c, &grid);
-                place_new_monster(p, c, &grid, race, MON_ASLEEP | MON_GROUP, &info, ORIGIN_DROP);
+                while (tries-- && !found)
+                {
+                    if (rf_has(race->flags, RF_AQUATIC)) found = find_emptywater(c, &grid);
+                    else found = find_empty(c, &grid);
+                }
+                if (found)
+                    place_new_monster(p, c, &grid, race, MON_ASLEEP | MON_GROUP, &info, ORIGIN_DROP);
+                else
+                    plog_fmt("Unable to place monster of race %s", race->name);
             }
         }
     }

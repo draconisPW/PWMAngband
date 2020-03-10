@@ -166,6 +166,7 @@ room:2
 alloc:1:50
 obj-rarity:10
 flags-req:ANIMAL
+flags-ban:AQUATIC
 
 name:Undead
 room:2

@@ -305,6 +305,7 @@ extern void shuffle(int *arr, int n);
 extern bool cave_find_in_range(struct chunk *c, struct loc *grid, struct loc *top_left,
     struct loc *bottom_right, square_predicate pred);
 extern bool find_empty(struct chunk *c, struct loc *grid);
+extern bool find_emptywater(struct chunk *c, struct loc *grid);
 extern bool find_nearby_grid(struct chunk *c, struct loc *grid, struct loc *centre, int yd, int xd);
 extern void correct_dir(struct loc *offset, struct loc *grid1, struct loc *grid2);
 extern void rand_dir(struct loc *offset);

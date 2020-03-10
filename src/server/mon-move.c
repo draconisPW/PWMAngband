@@ -302,6 +302,9 @@ bool monster_hates_grid(struct chunk *c, struct monster *mon, struct loc *grid)
         return true;
     }
 
+    /* Aquatic monsters suffocate if not in water */
+    if (!square_iswater(c, grid) && rf_has(mon->race->flags, RF_AQUATIC)) return true;
+
     return false;
 }
 
@@ -2758,6 +2761,9 @@ void reset_monsters(struct chunk *c)
     {
         /* Access the monster */
         mon = cave_monster(c, i);
+
+        /* Skip dead monsters */
+        if (!mon->race) continue;
 
         /* Dungeon hurts monsters */
         monster_take_terrain_damage(c, mon);

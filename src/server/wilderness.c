@@ -1410,6 +1410,17 @@ static bool wild_monst_aux_swamp(struct monster_race *race)
 /*
  * Helper function for wild_add_monster
  */
+static bool wild_monst_aux_ocean(struct monster_race *race)
+{
+    if (rf_has(race->flags, RF_WILD_OCEAN)) return true;
+
+    return false;
+}
+
+
+/*
+ * Helper function for wild_add_monster
+ */
 static bool wild_monst_aux_hill(struct monster_race *race)
 {
     if (rf_has(race->flags, RF_WILD_MOUNTAIN)) return true;
@@ -1442,10 +1453,19 @@ void wild_add_monster(struct player *p, struct chunk *c)
         case WILD_DESERT: get_mon_num_prep(wild_monst_aux_desert); break;
         case WILD_GLACIER: get_mon_num_prep(wild_monst_aux_glacier); break;
         case WILD_SWAMP: get_mon_num_prep(wild_monst_aux_swamp); break;
-        case WILD_DEEPWATER: return;
+        case WILD_DEEPWATER: get_mon_num_prep(wild_monst_aux_ocean); break;
         case WILD_HILL: get_mon_num_prep(wild_monst_aux_hill); break;
         case WILD_SHORE: get_mon_num_prep(wild_monst_aux_shallow_water); break;
     }
+
+    /* Get the monster */
+    race = get_mon_num(c, monster_level(&p->wpos), false);
+
+    /* Prepare allocation table */
+    get_mon_num_prep(NULL);
+
+    /* Handle failure */
+    if (!race) return;
 
     /* Find a legal, unoccupied space */
     while (true)
@@ -1460,17 +1480,12 @@ void wild_add_monster(struct player *p, struct chunk *c)
         /* Hack -- don't place monster in an arena */
         if (pick_arena(&c->wpos, &grid) != -1) continue;
 
-        if (square_isempty(c, &grid)) break;
+        if (rf_has(race->flags, RF_AQUATIC))
+        {
+            if (square_isemptywater(c, &grid)) break;
+        }
+        else if (square_isempty(c, &grid)) break;
     }
-
-    /* Get the monster */
-    race = get_mon_num(c, monster_level(&p->wpos), false);
-
-    /* Prepare allocation table */
-    get_mon_num_prep(NULL);
-
-    /* Handle failure */
-    if (!race) return;
 
     /* Place the monster */
     place_new_monster(p, c, &grid, race, MON_GROUP, &info, ORIGIN_DROP);
@@ -2236,8 +2251,8 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     if (magik(25)) return;
 
     /* Possibly add a farm */
-    if (magik(50))
-        wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax, &type);
+    gridmin.x = -1;
+    if (magik(50)) wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax, &type);
 
     /* Hack -- if we have created this level before, do not add anything more to it. */
     if (w_ptr->generated != WILD_NONE) return;

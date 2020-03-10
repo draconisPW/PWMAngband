@@ -375,6 +375,7 @@ extern bool square_isproject(struct chunk *c, struct loc *grid);
 extern bool square_isno_stairs(struct chunk *c, struct loc *grid);
 extern bool square_isopen(struct chunk *c, struct loc *grid);
 extern bool square_isempty(struct chunk *c, struct loc *grid);
+extern bool square_isemptywater(struct chunk *c, struct loc *grid);
 extern bool square_isemptyfloor(struct chunk *c, struct loc *grid);
 extern bool square_canputitem(struct chunk *c, struct loc *grid);
 extern bool square_isdiggable(struct chunk *c, struct loc *grid);

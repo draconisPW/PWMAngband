@@ -552,7 +552,7 @@ name:aquatic
 glyph:~
 pain:1
 desc:Aquatic
-flags:ANIMAL | CLEAR_WEB
+flags:ANIMAL | AQUATIC | CLEAR_WEB
 flags:IM_WATER
 
 name:ball

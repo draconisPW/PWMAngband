@@ -1398,6 +1398,9 @@ void monster_take_terrain_damage(struct chunk *c, struct monster *mon)
         if (square_isnether(c, &mon->grid))
             note_dies = MON_MSG_DRAIN;
 
+        if (rf_has(mon->race->flags, RF_AQUATIC))
+            note_dies = MON_MSG_SUFFOCATE;
+
         project_m_monster_attack_aux(NULL, c, mon, 100 + randint1(100), note_dies);
     }
 }

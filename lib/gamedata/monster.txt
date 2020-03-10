@@ -581,6 +581,23 @@ flags:PWMANG_EXTRA | PWMANG_FIXED
 desc:An indestructible golem used for target practice.
 force-location:Carn Dûm
 
+name:goldfish
+base:aquatic
+color:r
+speed:110
+hit-points:1
+hearing:30
+armor-class:4
+sleepiness:10
+depth:0
+rarity:1
+weight:0
+experience:0
+blow:BITE:HURT:1d1
+flags:FRIGHTENED | PWMANG_BASE
+flags:RAND_50 | COLD_BLOOD | NO_SLEEP
+desc:Beautiful red fish in ponds.
+
 ### Dungeon level 1 ###
 
 name:grey mold
@@ -1402,6 +1419,23 @@ flags:NO_CONF | NO_SLEEP
 desc:A rather vicious dog belonging to Farmer Maggot. It thinks you are stealing
 desc: mushrooms.
 
+name:pike
+base:aquatic
+color:s
+speed:110
+hit-points:14
+hearing:80
+armor-class:35
+sleepiness:0
+depth:2
+rarity:1
+weight:0
+experience:7
+blow:BITE:HURT:2d3
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:COLD_BLOOD | STUPID
+desc:It's a common fresh-water predatory fish.
+
 ### Dungeon level 3 ###
 
 name:Sméagol
@@ -2039,6 +2073,24 @@ friends-base:40:1d3:person
 friends-base:80:1d3:person
 friends:50:1d2:Same
 desc:A novice in the arts of mind over matter.
+
+name:swordfish
+base:aquatic
+color:m
+speed:110
+hit-points:28
+hearing:14
+armor-class:10
+sleepiness:20
+depth:4
+rarity:2
+weight:0
+experience:15
+blow:HIT:HURT:1d5
+blow:HIT:HURT:1d5
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:COLD_BLOOD
+desc:A fish with a swordlike "beak".
 
 ### Dungeon level 5 ###
 
@@ -2857,6 +2909,24 @@ friends:100:1d3:kobold archer:servant
 friends:100:1d5:large kobold:bodyguard
 desc:Where Mughash is the strongest of his kind, his consort Vort is the wisest:
 desc: she is her tribe's chief shamaness.
+
+name:barracuda
+base:aquatic
+color:M
+speed:110
+hit-points:54
+hearing:20
+armor-class:45
+sleepiness:20
+depth:7
+rarity:2
+weight:0
+experience:30
+blow:BITE:HURT:1d8
+blow:BITE:HURT:1d8
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:COLD_BLOOD
+desc:A predatory fish with razor-sharp teeth.
 
 ### Dungeon level 8 ###
 
@@ -4006,6 +4076,24 @@ spells:ANIM_DEAD
 drop-base:shadow book:5:1:1
 desc:A dark elven figure, clothed in black robes.
 
+name:piranha
+base:aquatic
+color:R
+speed:110
+hit-points:80
+hearing:30
+armor-class:20
+sleepiness:10
+depth:10
+rarity:2
+weight:0
+experience:40
+blow:BITE:HURT:1d10
+blow:BITE:HURT:1d10
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:COLD_BLOOD | NO_SLEEP | STUPID
+desc:A very large and bloodthirsty fish.
+
 ### Dungeon level 11 ###
 
 name:hippogriff
@@ -4917,6 +5005,25 @@ spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
 desc: scales shimmering purple.
 
+name:flounder
+base:aquatic
+color:w
+speed:110
+hit-points:80
+hearing:5
+armor-class:25
+sleepiness:30
+depth:13
+rarity:1
+weight:0
+experience:55
+blow:BITE:HURT:1d6
+blow:BITE:HURT:1d6
+blow:BITE:HURT:1d8
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:RAND_25 | INVISIBLE | ATTR_CLEAR
+desc:A flattened fish which is able to change body coloring for camouflage.
+
 ### Dungeon level 14 ###
 
 name:giant flea
@@ -5784,6 +5891,26 @@ flags:IM_ACID | IM_WATER
 flags:WILD_SHORE
 friends:100:4d4:Same
 desc:Intelligent lizard being from the depths.
+
+name:shark
+base:aquatic
+color:W
+speed:120
+hit-points:120
+hearing:20
+armor-class:50
+sleepiness:10
+depth:16
+rarity:1
+weight:0
+experience:100
+blow:BITE:HURT:3d5
+blow:BITE:HURT:3d5
+blow:BITE:HURT:3d5
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:COLD_BLOOD
+desc:A fast-moving hunter of the depths. When this creature moves,
+desc: everybody in the water is in danger!
 
 ### Dungeon level 17 ###
 
@@ -7177,6 +7304,25 @@ friends:50:1d1:Easterling champion
 friends:50:1d1:rogue
 desc:A scarred warrior who moves with strange confidence.
 
+name:whale
+base:aquatic
+color:G
+speed:110
+hit-points:150
+hearing:15
+armor-class:50
+sleepiness:70
+depth:20
+rarity:4
+weight:0
+experience:175
+blow:CRUSH:HURT:1d20
+blow:CRUSH:HURT:1d20
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:RAND_25
+desc:Although it looks like a fish and lives in water, it is in fact
+desc: a mammal. And it is huge!
+
 ### Dungeon level 21 ###
 
 name:Lugdush, the Uruk
@@ -8078,6 +8224,28 @@ flags:EMPTY_MIND | PWMANG_BASE
 flags:NO_FEAR
 friends:50:1d3:phantom warrior
 desc:A creature that is half-real, half illusion.
+
+name:globefish
+base:aquatic
+color:g
+speed:110
+hit-points:180
+hearing:20
+armor-class:30
+sleepiness:30
+depth:24
+rarity:1
+weight:0
+experience:200
+blow:BITE:POISON:4d6
+blow:BITE:POISON:4d6
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:EMPTY_MIND | BASH_DOOR | POWERFUL
+flags:IM_POIS | NO_STUN | COLD_BLOOD
+spell-freq:8
+innate-freq:100
+spells:BR_POIS
+desc:This fish is among the most poisonous creatures there are.
 
 ### Dungeon level 25 ###
 
@@ -9428,6 +9596,24 @@ innate-freq:100
 spells:SHRIEK
 desc:Often found in graveyards.
 
+name:jellyfish
+base:aquatic
+color:P
+speed:110
+hit-points:250
+hearing:20
+armor-class:30
+sleepiness:75
+depth:28
+rarity:2
+weight:0
+experience:250
+blow:TOUCH:PARALYZE:5d6
+blow:TOUCH:PARALYZE:5d6
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:IM_POIS | COLD_BLOOD | WEIRD_MIND | STUPID
+desc:A strange water creature, whose touch can be deadly.
+
 ### Dungeon level 29 ###
 
 name:green elf archer
@@ -10545,6 +10731,28 @@ spells:SCARE
 spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 desc:It has a form that legends are made of. Its still-tender scales are
 desc: shimmering purple.
+
+name:giant octopus
+base:aquatic
+color:b
+speed:115
+hit-points:350
+hearing:10
+armor-class:35
+sleepiness:5
+depth:32
+rarity:1
+weight:0
+experience:400
+blow:SPIT:BLIND:1d4
+blow:CRUSH:HURT:8d4
+blow:CRUSH:HURT:8d4
+blow:CRUSH:PARALYZE:8d4
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:IM_POIS | NO_CONF | NO_SLEEP | NO_FEAR | SMART | WEIRD_MIND | COLD_BLOOD
+spell-freq:15
+spells:DARKNESS | SLOW | CONF | SCARE
+desc:A cunning and dangerous undersea opponent.
 
 ### Dungeon level 33 ###
 
@@ -12029,6 +12237,28 @@ spells:BLINK | DARKNESS
 spells:S_DEMON
 desc:An ugly demon with insect-like extremities and large bulbous eyes.
 
+name:seahorse
+base:aquatic
+color:u
+speed:120
+hit-points:400
+hearing:20
+armor-class:60
+sleepiness:20
+depth:36
+rarity:2
+weight:0
+experience:500
+blow:BITE:PARALYZE:4d5
+blow:BITE:LOSE_DEX:4d5
+blow:BITE:LOSE_CON:4d5
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:FORCE_SLEEP | IM_COLD | IM_POIS | IM_FIRE | IM_ELEC
+spell-freq:5
+spells:BO_WATE | BO_COLD | BO_ICE | BO_MANA
+desc:Your mind is filled with admiration as you view this wondrous,
+desc: magical seahorse.
+
 ### Dungeon level 37 ###
 
 name:ice elemental
@@ -13412,6 +13642,29 @@ innate-freq:33
 spells:BR_FIRE | BLINK | TELE_AWAY
 desc:A Thunderlord. Among the weaker breeds, but still dangerous.
 
+name:giant squid
+base:aquatic
+color:U
+speed:120
+hit-points:750
+hearing:8
+armor-class:80
+sleepiness:80
+depth:40
+rarity:3
+weight:0
+experience:1500
+blow:CRUSH:HURT:8d8
+blow:CRUSH:HURT:8d8
+blow:CRUSH:HURT:8d8
+flags:PWMANG_BASE | WILD_SHORE | WILD_OCEAN
+flags:IM_ACID | IM_COLD | MOVE_BODY | COLD_BLOOD
+spell-freq:8
+innate-freq:100
+spells:BR_ELEC | BR_ACID | BR_POIS
+desc:Besides being capable of dragging whole ships underwater,
+desc: this creature can also harm you with ranged attacks.
+
 ### Dungeon level 41 ###
 
 name:9-headed hydra
@@ -14577,7 +14830,7 @@ experience:12000
 blow:CRUSH:ACID:8d8
 blow:CRUSH:POISON:8d8
 blow:CRUSH:PARALYZE:8d8
-flags:UNIQUE | EVIL | COLD_BLOOD | NEVER_MOVE | PWMANG_BASE | PWMANG_FIXED
+flags:UNIQUE | EVIL | COLD_BLOOD | PWMANG_BASE | PWMANG_FIXED
 flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:IM_ACID | IM_COLD | IM_POIS
 flags:NO_CONF | NO_FEAR
@@ -15348,6 +15601,32 @@ spell-freq:4
 innate-freq:33
 spells:BR_FIRE | TPORT | BLINK
 desc:A Thunderlord. Beware its flame.
+
+name:kraken
+base:aquatic
+color:y
+speed:120
+hit-points:2000
+hearing:30
+armor-class:145
+sleepiness:80
+depth:50
+rarity:2
+weight:0
+experience:10000
+blow:CRUSH:HURT:9d9
+blow:CRUSH:HURT:9d9
+blow:CRUSH:HURT:9d9
+blow:CRUSH:HURT:9d9
+flags:PWMANG_BASE | WILD_OCEAN
+flags:FORCE_SLEEP | BASH_DOOR | POWERFUL | MOVE_BODY | SMART
+flags:EVIL | IM_ELEC | NO_CONF | NO_SLEEP | IM_POIS | IM_COLD
+spell-freq:6
+innate-freq:36
+spells:BR_WATE | BR_DARK | BR_ACID | BR_POIS
+spells:BLIND | CONF | SCARE | WOUND | TELE_TO | TELE_AWAY | DARKNESS
+desc:An enormously fearsome and powerful inhabitant of the depths. It
+desc: resembles a gargantuan octopus and its evil is almost tangible.
 
 ### Dungeon level 51 ###
 
@@ -16893,6 +17172,31 @@ spell-freq:4
 innate-freq:50
 spells:BR_FIRE | BR_TIME | TPORT | BLINK
 desc:A Thunderlord, mightiest among the males.
+
+name:leviathan
+base:aquatic
+color:o
+speed:120
+hit-points:3000
+hearing:40
+armor-class:180
+sleepiness:30
+depth:60
+rarity:3
+weight:0
+experience:25000
+blow:BITE:FIRE:5d12
+blow:BITE:FIRE:5d12
+blow:CRUSH:HURT:6d15
+blow:CRUSH:HURT:6d15
+flags:PWMANG_BASE | WILD_OCEAN
+flags:FORCE_SLEEP
+flags:IM_FIRE | IM_ACID | IM_COLD | IM_POIS | NO_CONF | NO_SLEEP | NO_FEAR
+spell-freq:4
+innate-freq:63
+spells:BR_FIRE | BR_ACID | BR_DARK | BR_POIS | BR_WATE
+spells:HEAL | CONF | DARKNESS
+desc:An enormous, terrible sea-monster, the true master of the ocean.
 
 ### Dungeon level 61 ###
 

@@ -345,6 +345,9 @@ static bool can_call_monster(struct chunk *c, struct loc *grid, struct monster *
     /* Make sure the summoned monster is not in LOS of the summoner */
     if (los(c, grid, &mon->grid)) return false;
 
+    /* Aquatic monsters suffocate if not in water */
+    if (!square_iswater(c, grid) && rf_has(mon->race->flags, RF_AQUATIC)) return false;
+
     return true;
 }
 
@@ -507,6 +510,9 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
             continue;
         }
 
+        /* Aquatic monsters suffocate if not in water */
+        if (!square_iswater(c, &nearby) && rf_has(race->flags, RF_AQUATIC)) continue;
+
         /* Done */
         break;
     }
@@ -582,6 +588,9 @@ bool summon_specific_race_aux(struct player *p, struct chunk *c, struct loc *gri
 
         /* Look for a location */
         if (!summon_location(c, &new_grid, grid, 200)) return false;
+
+        /* Aquatic monsters suffocate if not in water */
+        if (!square_iswater(c, &new_grid) && rf_has(race->flags, RF_AQUATIC)) return false;
 
         /* Attempt to place the monster (awake, don't allow groups) */
         if (!place_new_monster(p, c, &new_grid, race, 0, &info, ORIGIN_DROP_SUMMON))

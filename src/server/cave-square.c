@@ -980,6 +980,16 @@ bool square_isempty(struct chunk *c, struct loc *grid)
 
 
 /*
+ * True if the square is an empty water square.
+ */
+bool square_isemptywater(struct chunk *c, struct loc *grid)
+{
+    if (square_isplayertrap(c, grid)) return false;
+    return (square_iswater(c, grid) && !square(c, grid)->mon && !square_object(c, grid));
+}
+
+
+/*
  * True if the square is an "empty" floor grid.
  */
 bool square_isemptyfloor(struct chunk *c, struct loc *grid)
