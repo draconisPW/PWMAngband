@@ -366,6 +366,7 @@ int rd_monster_memory(struct player *p)
         rd_s16b(&lore->pdeaths);
         rd_s16b(&lore->tdeaths);
         rd_s16b(&lore->pkills);
+        rd_s16b(&lore->thefts);
         rd_s16b(&lore->tkills);
 
         /* Count wakes and ignores */

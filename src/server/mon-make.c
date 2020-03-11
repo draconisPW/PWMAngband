@@ -1051,6 +1051,7 @@ static bool mon_drop_carry(struct player *p, struct object **obj_address, struct
 static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *mon, byte origin)
 {
     struct monster_drop *drop;
+    struct monster_lore *lore = (p? get_lore(p, mon->race): NULL);
     bool great, good, gold_ok, item_ok;
     bool extra_roll = false;
     bool any = false;
@@ -1070,6 +1071,9 @@ static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *m
 
     /* Determine how much we can drop */
     number = mon_create_drop_count(mon->race, false);
+
+    /* Uniques that have been stolen from get their quantity reduced */
+    if (lore && rf_has(mon->race->flags, RF_UNIQUE)) number = MAX(0, number - lore->thefts);
 
     /* Give added bonus for unique monters */
     monlevel = mon->level;

@@ -2106,10 +2106,14 @@ void do_cmd_steal(struct player *p, int dir)
             else
             {
                 char o_name[NORMAL_WID];
+                struct monster_lore *lore = get_lore(p, who->monster->race);
 
                 object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
                 msg(p, "You steal %s from %s.", o_name, m_name);
                 inven_carry(p, obj, true, false);
+
+                /* Track thefts */
+                if (lore->thefts < SHRT_MAX) lore->thefts++;
             }
 
             /* Monster wakes, may notice */

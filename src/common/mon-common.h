@@ -227,6 +227,7 @@ struct monster_lore
     s16b pdeaths;                       /* Count deaths from this monster (player) */
     s16b tdeaths;                       /* Count all deaths from this monster (global) */
     s16b pkills;                        /* Count monsters killed in this life (player) */
+    s16b thefts;                        /* Count objects stolen in this life (player) */
     s16b tkills;                        /* Count monsters killed in all lives (global) */
     byte wake;                          /* Number of times woken up (player) */
     byte ignore;                        /* Number of times ignored (player) */

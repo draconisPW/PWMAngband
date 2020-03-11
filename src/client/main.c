@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
     turn_off_numlock();
 
     /* Initialize everything, contact the server, and start the loop */
-    client_init();
+    client_init(true);
 
     /* Quit */
     quit(NULL);

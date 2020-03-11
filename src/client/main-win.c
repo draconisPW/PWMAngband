@@ -4168,7 +4168,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
     turn_off_numlock();
 
     /* Initialize everything, contact the server, and start the loop */
-    client_init();
+    client_init(true);
 
     /* Paranoia */
     quit(NULL);

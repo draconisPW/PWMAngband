@@ -239,6 +239,7 @@ void wr_monster_memory(void *data)
         wr_s16b(lore->pdeaths);
         wr_s16b(lore->tdeaths);
         wr_s16b(lore->pkills);
+        wr_s16b(lore->thefts);
         wr_s16b(lore->tkills);
 
         /* Count wakes and ignores */

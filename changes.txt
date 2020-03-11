@@ -40,6 +40,8 @@ Game Mechanics
 
 Code Improvements
 - Some font improvements
+- An option to start a new game after dying instead of closing the game and
+  re-opening
 - Many fixes to bugs and memory leaks
 
 For a full list of changes made in older versions, check the Official
@@ -62,6 +64,7 @@ Angband 4.2.0:
 - Treasure in quartz as yellow
 - Add some missing object descriptions
 - Change stealing command to 's'
+- Add option to play again on death
 
 PWMAngband:
 
@@ -110,6 +113,7 @@ Angband 4.2.0:
 - Make stores always accept items with unknown runes in no-selling
 - Make stealing a bit easier
 - Add Mushrooms of Shadows
+- Track number of thefts, reduce drops of uniques accordingly
 
 PWMAngband:
 

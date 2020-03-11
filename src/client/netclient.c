@@ -3103,10 +3103,21 @@ static int Receive_quit(void)
     }
     else
     {
+        ui_event ch;
+        char buf[NORMAL_WID];
+
         if (Packet_scanf(&rbuf, "%s", reason) <= 0)
             my_strcpy(reason, "unknown reason", sizeof(reason));
         errno = 0;
-        quit_fmt("Quitting: %s", reason);
+        plog_fmt("Quitting: %s", reason);
+
+        /* Hack -- restart game without quitting */
+        strnfmt(buf, NORMAL_WID - 2, "%.70s[y/n] ", "Start a new game? ");
+        prt(buf, 0, 0);
+        Term_fresh();
+        Term_inkey(&ch, true, true);
+        if ((ch.key.code != 'Y') && (ch.key.code != 'y')) quit(NULL);
+        play_again = true;
     }
     return -1;
 }
