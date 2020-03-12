@@ -5207,9 +5207,14 @@ static bool effect_handler_NOURISH(effect_handler_context_t *context)
     if (context->subtype == 0)
         player_inc_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false, false);
     else if (context->subtype == 1)
+    {
+        bool message = (context->origin->player->timed[TMD_FOOD] > amount);
+
+        if (message) msg(context->origin->player, "You vomit!");
         player_set_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
+    }
     else if ((context->subtype == 2) && (context->origin->player->timed[TMD_FOOD] < amount))
-        player_set_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
+        player_set_timed(context->origin->player, TMD_FOOD, MAX(amount + 1, 0), false);
 
     context->ident = true;
     return true;

@@ -192,7 +192,7 @@ Gnome
   mages, and have very good saving throws. They are good at searching,
   disarming, perception, and stealth. They have lower strength than humans
   so they are not very good at fighting with hand weapons. Gnomes have good
-  infravision.  Gnomes are intrinsically protected against paralysis and 
+  infravision. Gnomes are intrinsically protected against paralysis and 
   some slowing effects. Gnomes are excellent at using wands and staves
   and can identify them when found.
 
@@ -239,10 +239,8 @@ Half-Troll
 
 Dunadan
   Dunedain are a race of hardy men from the West. This elder race surpasses
-  human abilities in every field, especially constitution. However, being
-  men of the world, very little is new to them, and levels are very hard to
-  gain... their hardiness ensures that their constitution cannot be
-  reduced. They have no infravision.
+  human abilities in every field, especially constitution. Their hardiness
+  ensures that their constitution cannot be reduced. They have no infravision.
 
 .. _High-Elf:
 
@@ -253,8 +251,8 @@ High-Elf
   thousands of years before returning to mortal lands. Because of this,
   they are far superior in terms of abilities when compared to their lesser
   Elven kindred. They can also see into the invisible world of ghosts and
-  wraiths. However, they find new experience even harder to come by than
-  Dunedain. Like normal Elves, they resist attacks involving bright light.
+  wraiths. However, they find new experience harder to come by than other
+  races. Like normal Elves, they resist attacks involving bright light.
   They have good infravision and can even see cold-blooded invisible
   creatures.
 

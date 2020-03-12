@@ -290,7 +290,7 @@ skill-melee:10
 skill-shoot:25
 skill-dig:0
 hitdie:10
-exp:120:200
+exp:145:200
 history:7
 age:100:30
 height:90:10:82:10

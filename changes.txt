@@ -65,6 +65,7 @@ Angband 4.2.0:
 - Add some missing object descriptions
 - Change stealing command to 's'
 - Add option to play again on death
+- Enlarge character resist display
 
 PWMAngband:
 
@@ -114,6 +115,8 @@ Angband 4.2.0:
 - Make stealing a bit easier
 - Add Mushrooms of Shadows
 - Track number of thefts, reduce drops of uniques accordingly
+- Replace Satisfy Hunger with Remove Hunger
+- Add new foods
 
 PWMAngband:
 

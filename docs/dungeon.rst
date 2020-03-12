@@ -86,7 +86,7 @@ Monsters
 ``i``     Icky-Thing          ``I``    Insect
 ``j``     Jelly               ``J``    Snake
 ``k``     Kobold              ``K``    Killer Beetle
-``l``     Trees/Ents          ``L``    Lich
+``l``     Tree/Ent            ``L``    Lich
 ``m``     Mold                ``M``    Multi-Headed Hydra
 ``n``     Naga                ``N``    (unused)
 ``o``     Orc                 ``O``    Ogre
@@ -109,9 +109,9 @@ The Town Level
 The town level is where you will begin your adventure. The town consists of
 ten buildings (each with an entrance), some townspeople, some houses that can
 be bought to store treasures and sell items to other players, and (sometimes)
-a wall which surrounds the town. The first time you are in town it will be
-daytime (or night time), but note that the sun rises and falls (rather
-instantly) as time passes.
+a wall which surrounds the town. It may contain streams of lava. The first time
+you are in town it will be daytime (or night time), but note that the sun rises
+and falls (rather instantly) as time passes.
 
 Townspeople
 -----------

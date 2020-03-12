@@ -548,11 +548,10 @@ effect-yx:22:40
 desc:Detects all living monsters in the immediate area,
 desc: for one turn only.
 
-spell:Satisfy Hunger:2:2:25:2:0
-effect:NOURISH:SET_TO
+spell:Remove Hunger:2:2:25:2:0
+effect:NOURISH:INC_TO
 dice:50
-desc:Magically renders you well-fed (but not satiated).
-desc: This will also cure a bloated stomach.
+desc:Magically renders you comfortably fed (but not satiated).
 
 spell:Stinking Cloud:3:2:27:4:0
 effect:BALL:POIS:2
@@ -1872,11 +1871,10 @@ effect-yx:22:40
 desc:Detects all living monsters in the immediate area,
 desc: for one turn only.
 
-spell:Satisfy Hunger:5:2:23:2:0
-effect:NOURISH:SET_TO
+spell:Remove Hunger:5:2:23:2:0
+effect:NOURISH:INC_TO
 dice:50
-desc:Magically renders you well-fed (but not satiated).
-desc: This will also cure a bloated stomach.
+desc:Magically renders you comfortably fed (but not satiated).
 
 spell:Detect Stairs:7:3:50:5:0
 effect:DETECT_STAIRS
@@ -2642,11 +2640,10 @@ effect:BOW_BRAND_SHOT:COLD
 dice:5
 desc:Covers your missiles with frost.
 
-spell:Satisfy Hunger:12:6:24:12:0
-effect:NOURISH:SET_TO
+spell:Remove Hunger:12:6:24:12:0
+effect:NOURISH:INC_TO
 dice:50
-desc:Magically renders you well-fed (but not satiated).
-desc: This will also cure a bloated stomach.
+desc:Magically renders you comfortably fed (but not satiated).
 
 book:nature book:town:[Gifts of Nature]:4:nature
 
@@ -2919,12 +2916,11 @@ spell:Psychometry:14:12:37:14:0
 effect:IDENTIFY
 desc:Reveals an unknown rune on an object.
 
-spell:Satisfy Hunger:16:14:40:16:0
-effect:NOURISH:SET_TO
+spell:Remove Hunger:16:14:40:16:0
+effect:NOURISH:INC_TO
 dice:50
 msg_self:You focus your mind to convert energy into food.
-desc:Magically renders you well-fed (but not satiated).
-desc: This will also cure a bloated stomach.
+desc:Magically renders you comfortably fed (but not satiated).
 
 spell:Mass Stun:18:15:43:18:0
 effect:PROJECT_LOS_AWARE:MON_STUN
@@ -3414,7 +3410,7 @@ expr:S:PLAYER_SPELL_POWER:* 10
 desc:Grants you temporary resistance to cold.
 
 spell:Potion of Vitality:20:9:49:16:0
-effect:NOURISH:SET_TO
+effect:NOURISH:INC_TO
 dice:50
 effect:TIMED_INC:BOLD
 dice:$B+1d$S

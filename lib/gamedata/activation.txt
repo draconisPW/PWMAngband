@@ -1148,9 +1148,9 @@ effect:GLYPH:WARDING
 name:SATISFY
 aim:0
 power:7
-effect:NOURISH:SET_TO
+effect:NOURISH:INC_TO
 dice:50
-desc:magically renders you well-fed (but not satiated)
+desc:magically renders you comfortably fed
 
 name:SHERO
 aim:0

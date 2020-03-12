@@ -106,7 +106,7 @@ enum birth_rollers
  * List of resistances and abilities to display
  */
 #define RES_PANELS  4
-#define RES_ROWS    9
+#define RES_ROWS    13
 
 /* History message types */
 enum

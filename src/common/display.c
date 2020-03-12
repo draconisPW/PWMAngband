@@ -197,55 +197,75 @@ char *buffer_line(int row)
  */
 static const char *player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
 {
-    "Ac :", /* ELEM_ACID */
-    "El :", /* ELEM_ELEC */
-    "Fi :", /* ELEM_FIRE */
-    "Co :", /* ELEM_COLD */
-    "Po :", /* ELEM_POIS */
-    "Lt :", /* ELEM_LIGHT */
-    "Dk :", /* ELEM_DARK */
-    "Snd:", /* ELEM_SOUND */
-    "Shr:", /* ELEM_SHARD */
+    "Acid:", /* ELEM_ACID */
+    "Elec:", /* ELEM_ELEC */
+    "Fire:", /* ELEM_FIRE */
+    "Cold:", /* ELEM_COLD */
+    "Pois:", /* ELEM_POIS */
+    "Lite:", /* ELEM_LIGHT */
+    "Dark:", /* ELEM_DARK */
+    "Soun:", /* ELEM_SOUND */
+    "Shar:", /* ELEM_SHARD */
+    "Nexu:", /* ELEM_NEXUS */
+    "Neth:", /* ELEM_NETHER */
+    "Chao:", /* ELEM_CHAOS */
+    "Dise:", /* ELEM_DISEN */
 
-    "Nxs:", /* ELEM_NEXUS */
-    "Ntr:", /* ELEM_NETHER */
-    "Chs:", /* ELEM_CHAOS */
-    "Dsn:", /* ELEM_DISEN */
-    "Lev:", /* OF_FEATHER */
-    "Fe :", /* OF_PROT_FEAR */
-    "Bld:", /* OF_PROT_BLIND */
-    "Cnf:", /* OF_PROT_CONF */
-    "Stn:", /* OF_PROT_STUN */
+    "Fear:", /* OF_PROT_FEAR */
+    "Blnd:", /* OF_PROT_BLIND */
+    "Conf:", /* OF_PROT_CONF */
+    "Stun:", /* OF_PROT_STUN */
+    "HLif:", /* OF_HOLD_LIFE */
+    " Rgn:", /* OF_REGEN */
+    " ESP:", /* OF_ESP_XXX */
+    "SInv:", /* OF_SEE_INVIS */
+    "FAct:", /* OF_FREE_ACT */
+    " Lev:", /* OF_FEATHER */
+    "SDig:", /* OF_SLOW_DIGEST */
+    "Trap:", /* OF_TRAP_IMMUNE */
+    "Blss:", /* OF_BLESSED */
 
-    "Lit:", /* OBJ_MOD_LIGHT */
-    "Rgn:", /* OF_REGEN */
-    "ESP:", /* OF_ESP_XXX */
-    "SI :", /* OF_SEE_INVIS */
-    "FA :", /* OF_FREE_ACT */
-    "HL :", /* OF_HOLD_LIFE */
-    "Stl:", /* OBJ_MOD_STEALTH */
-    "Src:", /* OBJ_MOD_SEARCH */
-    "Inf:", /* OBJ_MOD_INFRA */
+    " -HP:", /* OF_IMPAIR_HP */
+    " -SP:", /* OF_IMPAIR_MANA */
+    "Afrd:", /* OF_AFRAID */
+    "Aggr:", /* OF_AGGRAVATE */
+    "-Tel:", /* OF_NO_TELEPORT */
+    "-Exp:", /* OF_DRAIN_EXP */
+    "Stck:", /* OF_STICKY */
+    "Frag:", /* OF_FRAGILE */
+    "",
+    "",
+    "Time:", /* ELEM_TIME */
+    "Mana:", /* ELEM_MANA */
+    "Wate:", /* ELEM_WATER */
 
-    "Tun:", /* OBJ_MOD_TUNNEL */
-    "Spd:", /* OBJ_MOD_SPEED */
-    "EA :", /* OBJ_MOD_BLOWS */
-    "XS :", /* OBJ_MOD_SHOTS */
-    "XM :", /* OBJ_MOD_MIGHT */
-    "Dig:", /* OF_SLOW_DIGEST */
-    "-HP:", /* OF_IMPAIR_HP */
-    "Afr:", /* OF_AFRAID */
-    "Agg:", /* OF_AGGRAVATE */
+    "Stea:", /* OBJ_MOD_STEALTH */
+    "Sear:", /* OBJ_MOD_SEARCH */
+    "Infr:", /* OBJ_MOD_INFRA */
+    "Tunn:", /* OBJ_MOD_TUNNEL */
+    " Spd:", /* OBJ_MOD_SPEED */
+    "Blow:", /* OBJ_MOD_BLOWS */
+    "Shot:", /* OBJ_MOD_SHOTS */
+    "Mght:", /* OBJ_MOD_MIGHT */
+    "PLit:", /* OBJ_MOD_LIGHT */
+    "DRed:", /* OBJ_MOD_DAM_RED */
+    "Move:", /* OBJ_MOD_MOVES */
+    "",
+    "",
 
-    "Rad:", /* OF_ESP_RADIUS */
-    "Evi:", /* OF_ESP_EVIL */
-    "Ani:", /* OF_ESP_ANIMAL */
-    "Und:", /* OF_ESP_UNDEAD */
-    "Dem:", /* OF_ESP_DEMON */
-    "Orc:", /* OF_ESP_ORC */
-    "Tro:", /* OF_ESP_TROLL */
-    "Gia:", /* OF_ESP_GIANT */
-    "Dra:"  /* OF_ESP_DRAGON */
+    "Radi:", /* OF_ESP_RADIUS */
+    "Evil:", /* OF_ESP_EVIL */
+    "Anim:", /* OF_ESP_ANIMAL */
+    "Unde:", /* OF_ESP_UNDEAD */
+    "Demo:", /* OF_ESP_DEMON */
+    "Orc :", /* OF_ESP_ORC */
+    "Trol:", /* OF_ESP_TROLL */
+    "Gian:", /* OF_ESP_GIANT */
+    "Drag:", /* OF_ESP_DRAGON */
+    "",
+    "",
+    "",
+    ""
 };
 
 
@@ -280,13 +300,16 @@ static void display_resistance_panel(struct player *p, const char **rec, const r
     int j;
     int col = bounds->col;
     int row = bounds->row;
-    int off = 1 + STAT_MAX + RES_ROWS * col / (p->body.count + 6);
+    int off = 1 + STAT_MAX + RES_ROWS * col / (p->body.count + 7);
 
     /* Special case: ESP flags */
-    if (col == RES_PANELS * (p->body.count + 6)) col = 0;
+    if (col == RES_PANELS * (p->body.count + 7)) col = 0;
+
+    /* Equippy */
+    display_equippy(p, row++, col + 5);
 
     /* Header */
-    put_str_hook(col, row++, -1, COLOUR_WHITE, "    abcdefghijklm@");
+    put_str_hook(col, row++, -1, COLOUR_WHITE, "     abcdefghijklm@");
 
     /* Lines */
     for (i = 0; i < RES_ROWS; i++, row++)
@@ -297,7 +320,7 @@ static void display_resistance_panel(struct player *p, const char **rec, const r
         for (j = 0; j <= p->body.count; j++)
         {
             byte attr = p->hist_flags[off + i][j].a;
-            char sym = p->hist_flags[off + i][j].c;
+            char sym = (strlen(rec[i])? p->hist_flags[off + i][j].c: ' ');
             bool rune = false;
 
             /* Hack -- rune is known */
@@ -308,7 +331,7 @@ static void display_resistance_panel(struct player *p, const char **rec, const r
             }
 
             /* Dump proper character */
-            put_ch_hook(col + 4 + j, row, attr, sym);
+            put_ch_hook(col + 5 + j, row, attr, sym);
 
             /* Name color */
 
@@ -334,27 +357,21 @@ static void display_resistance_panel(struct player *p, const char **rec, const r
         }
 
         /* Name */
-        put_str_hook(col, row, -1, name_attr, rec[i]);
+        if (strlen(rec[i])) put_str_hook(col, row, -1, name_attr, rec[i]);
     }
-
-    /* Footer */
-    put_str_hook(col, row++, -1, COLOUR_WHITE, "    abcdefghijklm@");
-
-    /* Equippy */
-    display_equippy(p, row++, col + 4);
 }
 
 
 static void display_player_flag_info(struct player *p)
 {
     int i;
-    int res_cols = p->body.count + 5;
+    int res_cols = p->body.count + 6;
     region resist_region[] =
     {
-        {0, 10, 0, RES_ROWS + 2},
-        {0, 10, 0, RES_ROWS + 2},
-        {0, 10, 0, RES_ROWS + 2},
-        {0, 10, 0, RES_ROWS + 2}
+        {0, 8, 0, RES_ROWS + 2},
+        {0, 8, 0, RES_ROWS + 2},
+        {0, 8, 0, RES_ROWS + 2},
+        {0, 8, 0, RES_ROWS + 2}
     };
 
     for (i = 0; i < N_ELEMENTS(resist_region); i++)
@@ -370,11 +387,11 @@ static void display_player_flag_info(struct player *p)
 
 static void display_player_esp_info(struct player *p)
 {
-    int res_cols = p->body.count + 5;
+    int res_cols = p->body.count + 6;
     region resist_region;
 
     resist_region.col = RES_PANELS * (res_cols + 1);
-    resist_region.row = 10;
+    resist_region.row = 8;
     resist_region.width = res_cols;
     resist_region.page_rows = RES_ROWS + 2;
 
@@ -491,12 +508,6 @@ static void display_player_sust_info(struct player *p)
             put_ch_hook(col + i, row + stat, a, c);
         }
     }
-
-    /* Footer */
-    put_str_hook(col, row + STAT_MAX, -1, COLOUR_WHITE, "abcdefghijklm@");
-
-    /* Equippy */
-    display_equippy(p, row + STAT_MAX + 1, col);
 }
 
 
