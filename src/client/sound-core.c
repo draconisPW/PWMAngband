@@ -51,7 +51,7 @@ static struct msg_snd_data message_sounds[MSG_MAX];
  */
 static const struct sound_module sound_modules[] =
 {
-#ifdef USE_SDL
+#ifdef SOUND_SDL
     {"sdl", "SDL_mixer sound module", init_sound_sdl},
 #else
 # ifndef USE_GCU

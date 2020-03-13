@@ -38,7 +38,7 @@ CLI_EXE = mangclient_sdl.exe
 CCOPTS = -Hc -tW -lGn -w8080 -w-8004 -w-8057 \
 	-D_WIN32_WINNT=0x0500 -DWINVER=0x0500 \
 	-DWIN32 -D_WINDOWS -DSTRICT -DWINDOWS \
-	-D"USE_SDL" \
+	-D"USE_SDL" -D"SOUND_SDL" \
 	-I$(BCCDIR)\include \
 	-I_SDL
 
