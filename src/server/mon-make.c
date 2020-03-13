@@ -684,8 +684,10 @@ void delete_monster(struct chunk *c, struct loc *grid)
 
 /*
  * Move a monster from index i1 to index i2 in the monster list.
+ *
+ * This should only be called when there is an actual monster at i1
  */
-static void compact_monsters_aux(struct chunk *c, int i1, int i2)
+static void monster_index_move(struct chunk *c, int i1, int i2)
 {
     int i;
     struct monster *mon, *newmon;
@@ -737,14 +739,14 @@ static void compact_monsters_aux(struct chunk *c, int i1, int i2)
         mflag_copy(p->mflag[i2], p->mflag[i1]);
         p->mon_det[i2] = p->mon_det[i1];
 
-        /* Hack -- update the target */
+        /* Update the target */
         if (target_equals(p, mon1)) target_set_monster(p, mon2);
 
-        /* Hack -- update the health bar */
+        /* Update the health bar */
         if (source_equal(health_who, mon1)) health_track(p->upkeep, mon2);
     }
 
-    /* Hack -- move monster */
+    /* Move monster */
     blows = newmon->blow;
     memcpy(newmon, mon, sizeof(struct monster));
     newmon->blow = blows;
@@ -752,7 +754,7 @@ static void compact_monsters_aux(struct chunk *c, int i1, int i2)
         newmon->blow = mem_zalloc(z_info->mon_blows_max * sizeof(struct monster_blow));
     memcpy(newmon->blow, mon->blow, z_info->mon_blows_max * sizeof(struct monster_blow));
 
-    /* Hack -- wipe hole */
+    /* Wipe hole */
     mem_free(mon->blow);
     memset(mon, 0, sizeof(struct monster));
 }
@@ -835,7 +837,7 @@ void compact_monsters(struct chunk *c, int num_to_compact)
         if (mon->race) continue;
 
         /* Move last monster into open hole */
-        compact_monsters_aux(c, cave_monster_max(c) - 1, m_idx);
+        monster_index_move(c, cave_monster_max(c) - 1, m_idx);
 
         /* Compress "cave->mon_max" */
         c->mon_max--;

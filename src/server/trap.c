@@ -526,7 +526,7 @@ bool square_remove_all_traps(struct chunk *c, struct loc *grid)
 
 
 /*
- * Remove all traps with the given kind.
+ * Remove all traps with the given index.
  *
  * Return true if traps were removed.
  */
@@ -570,12 +570,7 @@ bool square_remove_trap(struct chunk *c, struct loc *grid, unsigned int t_idx_re
 
 
 /*
- * Disable traps.
- *
- * If called with tidx < 0, will remove all traps in the location given.
- * Otherwise, will remove all traps with the given kind.
- *
- * Return true if no traps now exist in this grid.
+ * Disable a trap for the specified number of turns
  */
 bool square_set_trap_timeout(struct player *p, struct chunk *c, struct loc *grid, bool domsg,
     unsigned int tidx, int time)

@@ -94,7 +94,7 @@ EFFECT(MIND_VISION, false, NULL, 0, EFINFO_NONE, "allows you to infiltrate other
 EFFECT(MON_HEAL_HP, false, NULL, 0, EFINFO_NONE, "heals monster hitpoints")
 EFFECT(MON_HEAL_KIN, false, NULL, 0, EFINFO_NONE, "heals fellow monster hitpoints")
 EFFECT(MON_TIMED_INC, false, NULL, 2, EFINFO_TIMED, "increases monster %s by %s turns")
-EFFECT(NOURISH, false, NULL, 3, EFINFO_FOOD, "%s for %s turns (%d%%)")
+EFFECT(NOURISH, false, NULL, 3, EFINFO_FOOD, "%s for %s turns (%d%%%%)")
 EFFECT(POLY_RACE, false, NULL, 0, EFINFO_NONE, "attempts to polymorph you into the corresponding monster")
 EFFECT(PROBE, false, NULL, 0, EFINFO_NONE, "probes all monsters within line of sight")
 EFFECT(PROJECT, false, NULL, 0, EFINFO_NONE, NULL)

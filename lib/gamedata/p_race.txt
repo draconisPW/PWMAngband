@@ -22,8 +22,8 @@
 # exp:expbase:classic expbase
 # history:history
 # age:agebase:agemod
-# height:hgtmale:modhgtmale:hgtfemale:modhgtfemale
-# weight:wgtmale:modwgtmale:wgtfemale:modwgtfemale
+# height:hgt:modhgt
+# weight:wgt:modwgt
 # obj-flag:level of application:object flag
 # value:level of application:object modifier
 # brand:level of application:brand code
@@ -46,11 +46,9 @@
 
 # 'age' is age info - base age, random age modifier.
 
-# 'height' is height info - base height (males), mod height (males),
-# base height (females), mod height (females).
+# 'height' is height info - base height, random height modifier.
 
-# 'weight' is weight info - base weight (males), mod weight (males),
-# base weight (females), mod weight (females).
+# 'weight' is weight info - base weight, random weight modifier.
 
 # 'obj-flag' is for object flags (as in list-object-flags.h) that
 # races possess innately at a certain level.
@@ -82,8 +80,8 @@ hitdie:10
 exp:100:100
 history:1
 age:14:6
-height:72:6:66:4
-weight:180:25:150:20
+height:69:10
+weight:165:35
 
 name:Half-Elf
 skill-disarm-phys:2
@@ -99,8 +97,8 @@ hitdie:10
 exp:120:110
 history:4
 age:24:16
-height:66:6:62:6
-weight:130:15:100:10
+height:71:8
+weight:115:25
 obj-flag:1:SUST_DEX
 value:1:INT[1]
 value:1:WIS[-1]
@@ -122,8 +120,8 @@ hitdie:9
 exp:120:120
 history:5
 age:75:75
-height:60:4:54:4
-weight:100:6:80:6
+height:73:7
+weight:90:10
 obj-flag:1:SUST_DEX
 value:1:STR[-1]
 value:1:INT[2]
@@ -147,8 +145,8 @@ hitdie:7
 exp:120:110
 history:10
 age:21:12
-height:36:3:33:3
-weight:60:3:50:3
+height:34:4
+weight:55:5
 obj-flag:1:HOLD_LIFE
 value:1:STR[-2]
 value:1:INT[2]
@@ -172,8 +170,8 @@ hitdie:8
 exp:120:125
 history:13
 age:50:40
-height:42:3:39:3
-weight:90:6:75:3
+height:40:5
+weight:80:5
 obj-flag:1:FREE_ACT
 value:1:STR[-1]
 value:1:INT[2]
@@ -196,8 +194,8 @@ hitdie:11
 exp:120:120
 history:16
 age:35:15
-height:48:3:46:3
-weight:150:10:120:10
+height:47:4
+weight:135:20
 obj-flag:1:PROT_BLIND
 value:1:STR[2]
 value:1:INT[-3]
@@ -221,8 +219,8 @@ hitdie:10
 exp:120:110
 history:19
 age:11:4
-height:66:1:62:1
-weight:150:5:120:5
+height:64:2
+weight:135:15
 value:1:STR[2]
 value:1:INT[-1]
 value:1:CON[1]
@@ -244,8 +242,8 @@ hitdie:12
 exp:120:120
 history:21
 age:20:10
-height:96:10:84:8
-weight:250:50:225:40
+height:90:16
+weight:240:60
 obj-flag:1:SUST_STR
 obj-flag:1:REGEN
 value:1:STR[4]
@@ -270,8 +268,8 @@ hitdie:10
 exp:120:180
 history:1
 age:50:20
-height:82:5:78:6
-weight:190:20:180:15
+height:80:6
+weight:190:20
 obj-flag:1:SUST_CON
 value:1:STR[1]
 value:1:INT[2]
@@ -293,8 +291,8 @@ hitdie:10
 exp:145:200
 history:7
 age:100:30
-height:90:10:82:10
-weight:190:20:180:15
+height:77:6
+weight:190:20
 obj-flag:1:SEE_INVIS
 value:1:STR[1]
 value:1:INT[3]
@@ -318,8 +316,8 @@ hitdie:8
 exp:120:115
 history:23
 age:15:10
-height:38:4:36:3
-weight:70:5:60:4
+height:37:4
+weight:65:5
 value:1:STR[-1]
 value:1:INT[-1]
 value:1:DEX[2]
@@ -341,8 +339,8 @@ hitdie:6
 exp:80:50
 history:1
 age:14:6
-height:24:2:22:2
-weight:40:2:32:2
+height:23:3
+weight:36:6
 obj-flag:1:FEATHER
 value:1:STR[-5]
 value:1:INT[-5]
@@ -365,8 +363,8 @@ hitdie:14
 exp:165:275
 history:94
 age:255:70
-height:180:6:150:4
-weight:255:25:230:20
+height:170:20
+weight:240:60
 obj-flag:1:SLOW_DIGEST
 obj-flag:5:SEE_INVIS
 obj-flag:10:ESP_ANIMAL
@@ -402,8 +400,8 @@ hitdie:12
 exp:180:350
 history:89
 age:14:6
-height:180:6:150:4
-weight:255:25:230:20
+height:170:20
+weight:240:60
 obj-flag:1:FEATHER
 obj-flag:5:ESP_DRAGON
 value:1:STR[6]
@@ -431,8 +429,8 @@ hitdie:13
 exp:210:450
 history:98
 age:255:70
-height:180:6:150:4
-weight:255:25:230:20
+height:170:20
+weight:240:60
 obj-flag:1:FEATHER
 value:1:INFRA[1]
 value:1:RES_NEXUS[1]
@@ -452,7 +450,7 @@ hitdie:10
 exp:195:400
 history:97
 age:255:70
-height:180:6:150:4
-weight:255:25:230:20
+height:170:20
+weight:240:60
 obj-flag:1:AGGRAVATE
 player-flags:HYDRA

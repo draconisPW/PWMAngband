@@ -1830,10 +1830,10 @@ static int Receive_state(void)
 {
     int n;
     byte ch;
-    s16b stealthy, resting, unignoring, obj_feeling, mon_feeling;
+    s16b stealthy, resting, unignoring, obj_feeling, mon_feeling, square_light;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd", &ch, &stealthy, &resting, &unignoring,
-        &obj_feeling, &mon_feeling)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd%hd", &ch, &stealthy, &resting, &unignoring,
+        &obj_feeling, &mon_feeling, &square_light)) <= 0)
     {
         return n;
     }
@@ -1843,6 +1843,7 @@ static int Receive_state(void)
     player->unignoring = (byte)unignoring;
     player->obj_feeling = obj_feeling;
     player->mon_feeling = mon_feeling;
+    player->square_light = square_light;
 
     player->upkeep->redraw |= (PR_STATE);
 

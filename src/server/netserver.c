@@ -2297,8 +2297,9 @@ int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring)
     connection_t *connp = get_connp(p, "state");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd", (unsigned)PKT_STATE, (int)stealthy,
-        (int)resting, (int)unignoring, (int)p->obj_feeling, (int)p->mon_feeling);
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd%hd", (unsigned)PKT_STATE, (int)stealthy,
+        (int)resting, (int)unignoring, (int)p->obj_feeling, (int)p->mon_feeling,
+        (int)p->square_light);
 }
 
 

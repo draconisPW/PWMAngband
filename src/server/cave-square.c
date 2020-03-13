@@ -2078,6 +2078,7 @@ const char *square_apparent_name(struct player *p, struct chunk *c, struct loc *
 }
 
 
+/* Memorize the terrain */
 void square_memorize(struct player *p, struct chunk *c, struct loc *grid)
 {
     if (!wpos_eq(&p->wpos, &c->wpos)) return;
@@ -2085,6 +2086,7 @@ void square_memorize(struct player *p, struct chunk *c, struct loc *grid)
 }
 
 
+/* Forget the terrain */
 void square_forget(struct player *p, struct loc *grid)
 {
     square_set_known_feat(p, grid, FEAT_NONE);

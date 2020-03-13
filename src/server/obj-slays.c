@@ -473,11 +473,14 @@ static void improve_attack_modifier_slay(struct player *p, struct object *obj, s
                 my_strcpy(verb, s->melee_verb, len);
         }
 
-        /* Learn about the slay */
-        if (obj) object_notice_slay(p, obj, i);
-
         /* Learn about the monster */
-        if (ml) rf_on(lore->flags, s->race_flag);
+        if (ml)
+        {
+            rf_on(lore->flags, s->race_flag);
+
+            /* Learn about the slay */
+            if (obj) object_notice_slay(p, obj, i);
+        }
     }
 
     /* Learn about resistant monsters */

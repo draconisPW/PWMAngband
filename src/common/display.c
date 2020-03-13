@@ -1005,6 +1005,22 @@ static size_t prt_level_feeling(struct player *p, int row, int col)
 
 
 /*
+ * Prints player grid light level
+ */
+static size_t prt_light(struct player *p, int row, int col)
+{
+    int light = p->square_light;
+
+    if (light > 0)
+        put_str_hook(col, row, -1, COLOUR_YELLOW, format("Light %d ", light));
+    else
+        put_str_hook(col, row, -1, COLOUR_PURPLE, format("Light %d ", light));
+
+    return 8 + ((ABS(light) > 9)? 1: 0) + ((light < 0)? 1: 0);
+}
+
+
+/*
  * Print "unignoring" status
  */
 static size_t prt_unignore(struct player *p, int row, int col)
@@ -1147,8 +1163,8 @@ typedef size_t status_f(struct player *p, int row, int col);
  */
 static status_f *status_handlers[] =
 {
-    prt_level_feeling, prt_unignore, prt_recall, prt_descent, prt_state, prt_study, prt_tmd,
-        prt_dtrap
+    prt_level_feeling, prt_light, prt_unignore, prt_recall, prt_descent, prt_state, prt_study,
+        prt_tmd, prt_dtrap
 };
 
 

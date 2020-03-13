@@ -453,28 +453,9 @@ static void get_ahw(struct player *p)
     /* Calculate the age */
     p->age = p->race->b_age + randint1(p->race->m_age);
 
-    /* Calculate the height/weight for males */
-    if (p->psex == SEX_MALE)
-    {
-        p->ht = Rand_normal(p->race->m_b_ht, p->race->m_m_ht);
-        p->wt = Rand_normal(p->race->m_b_wt, p->race->m_m_wt);
-    }
-
-    /* Calculate the height/weight for females */
-    else if (p->psex == SEX_FEMALE)
-    {
-        p->ht = Rand_normal(p->race->f_b_ht, p->race->f_m_ht);
-        p->wt = Rand_normal(p->race->f_b_wt, p->race->f_m_wt);
-    }
-
-    /* For neither, go inbetween */
-    else
-    {
-        p->ht = Rand_normal((p->race->f_b_ht + p->race->m_b_ht) / 2,
-            (p->race->f_m_ht + p->race->m_m_ht) / 2);
-        p->wt = Rand_normal((p->race->f_b_wt + p->race->m_b_wt) / 2,
-            (p->race->f_m_wt + p->race->m_m_wt) / 2);
-    }
+    /* Calculate the height/weight */
+    p->ht = Rand_normal(p->race->base_hgt, p->race->mod_hgt);
+    p->wt = Rand_normal(p->race->base_wgt, p->race->mod_wgt);
 }
 
 

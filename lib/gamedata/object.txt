@@ -588,7 +588,7 @@ type:mushroom
 level:50
 weight:1
 cost:300
-alloc:1:50 to 100
+alloc:20:50 to 100
 pile:70:1d4
 effect:TIMED_INC:STEALTH
 dice:10+1d10
@@ -2244,7 +2244,7 @@ weight:2
 cost:4000
 alloc:50:15 to 80
 flags:AFRAID | EASY_KNOW
-values:SPEED[4]
+values:SPEED[2]
 
 name:the Mouse
 graphics:=:d

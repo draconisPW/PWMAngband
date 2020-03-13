@@ -8771,7 +8771,7 @@ mimic:gold:adamantite
 
 name:troll scavenger
 base:troll
-color:G
+color:o
 speed:110
 hit-points:137
 hearing:20
@@ -11040,7 +11040,7 @@ desc:A 5-headed hydra with one extra, smouldering, head.
 
 name:troll priest
 base:troll
-color:o
+color:G
 speed:110
 hit-points:340
 hearing:20
@@ -16971,7 +16971,7 @@ blow:HIT:COLD:9d10
 blow:HIT:HURT:10d9
 blow:HIT:CONFUSE:10d9
 flags:UNIQUE | MALE | SMART
-flags:DROP_4 | ONLY_ITEM
+flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:3
@@ -17936,7 +17936,7 @@ blow:HIT:HURT:12d12
 blow:HIT:CONFUSE:12d12
 blow:HIT:CONFUSE:12d12
 flags:UNIQUE | MALE | SMART | ATTR_FLICKER
-flags:DROP_4 | ONLY_ITEM
+flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:TAKE_ITEM
 flags:FORCE_SLEEP
 spell-freq:4

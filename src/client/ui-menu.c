@@ -797,6 +797,9 @@ ui_event menu_select(struct menu *menu, int notify, bool popup)
         /* Handle keyboard commands */
         if (in.type == EVT_KBRD)
         {
+            int mode = (OPT(player, rogue_like_commands)? KEYMAP_MODE_ROGUE: KEYMAP_MODE_ORIG);
+            const struct keypress *act;
+
             /* Command key */
             if (!no_act && menu->cmd_keys && strchr(menu->cmd_keys, (char)in.key.code) &&
                 menu_handle_action(menu, &in))
@@ -812,7 +815,12 @@ ui_event menu_select(struct menu *menu, int notify, bool popup)
                 return in;
             }
 
-            menu_handle_keypress(menu, &in, &out);
+            /* If we find a keymap that starts with ESCAPE, stop here */
+            act = keymap_find(mode, in.key);
+            if (act && (act->code == ESCAPE))
+                out.type = EVT_ESCAPE;
+            else
+                menu_handle_keypress(menu, &in, &out);
         }
         else if (in.type == EVT_RESIZE)
         {

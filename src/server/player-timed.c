@@ -1004,7 +1004,8 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     struct timed_effect_data *effect;
     struct timed_grade *new_grade, *current_grade;
     struct object *weapon;
-    bool result;
+    bool result, no_disturb = false;
+    int food_meter = 0;
 
     my_assert(idx >= 0);
     my_assert(idx < TMD_MAX);
@@ -1122,8 +1123,18 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
         else if (v == 0) player_fix_scramble(p);
     }
 
+    /* Hack -- food meter */
+    if (idx == TMD_FOOD) food_meter = p->timed[idx] / 100;
+
     /* Use the value */
     p->timed[idx] = v;
+
+    /* Hack -- food meter */
+    if ((idx == TMD_FOOD) && (food_meter != p->timed[idx] / 100))
+    {
+        if (!notify) no_disturb = true;
+        notify = true;
+    }
 
     /* Sort out the sprint effect */
     if ((idx == TMD_SPRINT) && (v == 0)) player_inc_timed(p, TMD_SLOW, 100, true, false);
@@ -1131,7 +1142,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     if (notify)
     {
         /* Disturb */
-        disturb(p, 0);
+        if (!no_disturb) disturb(p, 0);
 
         /* Reveal hidden players */
         if (p->k_idx) aware_player(p, p);

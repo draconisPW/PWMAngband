@@ -1078,7 +1078,9 @@ void lore_append_exp(struct player *p, const struct monster_race *race,
     long exp_integer, exp_fraction;
     s16b level;
 
+    /* Check legality and that this is a placeable monster */
     my_assert(race && lore);
+    if (!race->rarity) return;
 
     /* Introduction */
     if (rf_has(known_flags, RF_UNIQUE))
@@ -1303,6 +1305,10 @@ void lore_append_abilities(struct player *p, const struct monster_race *race,
         my_strcpy(start, ", and does not resist ", sizeof(start));
     else
         strnfmt(start, sizeof(start), "%s does not resist ", initial_pronoun);
+
+    /* Special case for undead */
+    if (rf_has(known_flags, RF_UNDEAD)) rf_off(current_flags, RF_IM_NETHER);
+
     lore_append_clause(p, current_flags, COLOUR_L_UMBER, start, "or", "");
     if (!rf_is_empty(current_flags)) prev = true;
 

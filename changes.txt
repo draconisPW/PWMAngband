@@ -66,10 +66,13 @@ Angband 4.2.0:
 - Change stealing command to 's'
 - Add option to play again on death
 - Enlarge character resist display
+- Add light level meter
+- Adjust some player race heights
 
 PWMAngband:
 
 - Remove Shockbolt tileset
+- Pressing another macro clears choice menu when a first macro lacks item
 
 Gameplay changes
 ----------------
@@ -117,6 +120,10 @@ Angband 4.2.0:
 - Track number of thefts, reduce drops of uniques accordingly
 - Replace Satisfy Hunger with Remove Hunger
 - Add new foods
+- Nerf rings of Escaping
+- Make being teleported wake monsters
+- Add trap immunity, move speed and damage reduction as possible randart
+  properties
 
 PWMAngband:
 

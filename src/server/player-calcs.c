@@ -1944,9 +1944,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Extract the player flags */
     player_flags(p, collect_f);
 
-    /* Add player specific pflags */
-    if (!p->msp) pf_on(state->pflags, PF_NO_MANA);
-
     /* Ghost */
     if (p->ghost) state->see_infra += 3;
 
@@ -2614,6 +2611,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Call individual functions for other state fields */
     calc_light(p, state, update);
     calc_mana(p, state, update);
+    if (!p->msp) pf_on(state->pflags, PF_NO_MANA);
     calc_hitpoints(p, state, update);
 
     /* PWMAngband: display a message when a monk becomes encumbered */

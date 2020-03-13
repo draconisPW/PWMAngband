@@ -217,14 +217,10 @@ struct player_race
     s16b r_exp;                 /* Experience factor */
     int b_age;                  /* Base age */
     int m_age;                  /* Mod age */
-    int m_b_ht;                 /* Base height (males) */
-    int m_m_ht;                 /* Mod height (males) */
-    int m_b_wt;                 /* Base weight (males) */
-    int m_m_wt;                 /* Mod weight (males) */
-    int f_b_ht;                 /* Base height (females) */
-    int f_m_ht;                 /* Mod height (females)   */
-    int f_b_wt;                 /* Base weight (females) */
-    int f_m_wt;                 /* Mod weight (females) */
+    int base_hgt;               /* Base height */
+    int mod_hgt;                /* Mod height */
+    int base_wgt;               /* Base weight */
+    int mod_wgt;                /* Mod weight */
     int body;                   /* Race body */
     struct modifier modifiers[OBJ_MOD_MAX]; /* Modifiers */
     s16b r_skills[SKILL_MAX];   /* Skills */
@@ -826,6 +822,7 @@ struct player
     char depths[13];                /* Displayed coordinates */
     int frac_blow;                  /* Blow frac (%) */
     int frac_shot;                  /* Shot frac (%) */
+    s16b square_light;              /* Square light (for display) */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

@@ -1726,6 +1726,9 @@ static bool project_m_apply_side_effects(project_monster_handler_context_t *cont
             who->trap = NULL;
             effect_simple(EF_TELEPORT, who, dice, 0, 0, 0, 0, 0, NULL);
 
+            /* Wake the monster up, don't notice the player */
+            monster_wake(context->origin->player, context->mon, false, 0);
+
             /* Hack -- get new location */
             loc_copy(&context->grid, &context->mon->grid);
         }
@@ -1764,6 +1767,9 @@ static bool project_m_apply_side_effects(project_monster_handler_context_t *cont
         effect_simple(EF_TELEPORT, who, dice, 0, 0, 0, 0, 0, NULL);
         if ((context->mon->grid.y == fy) && (context->mon->grid.x == fx))
             context->obvious = false;
+
+        /* Wake the monster up, don't notice the player */
+        monster_wake(context->origin->player, context->mon, false, 0);
 
         /* Hack -- get new location */
         loc_copy(&context->grid, &context->mon->grid);
