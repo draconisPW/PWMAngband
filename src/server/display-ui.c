@@ -1260,8 +1260,10 @@ static void prt_resistance_panel(struct player *p, int which, const struct playe
                 {
                     timed = (p->timed[rec[i].tmd_flag]? true: false);
 
-                    /* There has to be one special case... */
-                    if ((rec[i].tmd_flag == TMD_AFRAID) && (p->timed[TMD_TERROR]))
+                    /* Special cases */
+                    if ((rec[i].tmd_flag == TMD_AFRAID) && p->timed[TMD_TERROR])
+                        timed = true;
+                    if ((rec[i].tmd_flag == TMD_BOLD) && (p->timed[TMD_HERO] || p->timed[TMD_SHERO]))
                         timed = true;
                 }
 

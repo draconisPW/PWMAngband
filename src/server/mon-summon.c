@@ -178,7 +178,7 @@ static errr run_parse_summon(struct parser *p)
 static errr finish_parse_summon(struct parser *p)
 {
     struct summon *s, *n;
-    int count;
+    int index;
 
     /* Scan the list for the max id */
     z_info->summon_max = 0;
@@ -191,21 +191,21 @@ static errr finish_parse_summon(struct parser *p)
 
     /* Allocate the direct access list and copy the data to it */
     summons = mem_zalloc(z_info->summon_max * sizeof(*s));
-    count = z_info->summon_max - 1;
-    for (s = parser_priv(p); s; s = n, count--)
+    index = z_info->summon_max - 1;
+    for (s = parser_priv(p); s; s = n, index--)
     {
-        memcpy(&summons[count], s, sizeof(*s));
+        memcpy(&summons[index], s, sizeof(*s));
         n = s->next;
-        summons[count].next = NULL;
+        summons[index].next = NULL;
         mem_free(s);
     }
 
     /* Add indices of fallback summons */
-    for (count = 0; count < z_info->summon_max; count++)
+    for (index = 0; index < z_info->summon_max; index++)
     {
-        char *name = summons[count].fallback_name;
+        char *name = summons[index].fallback_name;
 
-        summons[count].fallback = summon_name_to_idx(name);
+        summons[index].fallback = summon_name_to_idx(name);
     }
 
     parser_destroy(p);

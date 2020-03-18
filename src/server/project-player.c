@@ -97,9 +97,8 @@ int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resis
     /* Immune */
     if (resist == 3) return 0;
 
-    /* Hack -- acid damage is halved by armour, holy orb is halved */
-    if (((type == PROJ_ACID) && p && minus_ac(p)) || (type == PROJ_HOLY_ORB))
-        dam = (dam + 1) / 2;
+    /* Hack -- acid damage is halved by armour */
+    if ((type == PROJ_ACID) && p && minus_ac(p)) dam = (dam + 1) / 2;
 
     /* Hack -- biofeedback halves "sharp" damage */
     if (p && p->timed[TMD_BIOFEEDBACK])

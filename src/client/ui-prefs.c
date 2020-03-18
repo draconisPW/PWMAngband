@@ -67,6 +67,7 @@ static void remove_old_dump(const char *cur_fname, const char *mark)
     new_file = file_open(new_fname, MODE_WRITE, FTYPE_TEXT);
     if (!new_file)
     {
+        file_close(cur_file);
         c_msg_print(format("Failed to create file %s", new_fname));
         return;
     }

@@ -455,12 +455,18 @@ void hit_trap(struct player *p, struct loc *grid, int delayed)
                 effect = trap->kind->effect;
                 effect_do(effect, who, &ident, false, 0, NULL, 0, 0, NULL);
 
+                /* Trap may have gone */
+                if (!square_trap(c, grid)) break;
+
                 /* Do any extra effects */
                 if (trap->kind->effect_xtra && one_in_(2))
                 {
                     if (trap->kind->msg_xtra) msg(p, trap->kind->msg_xtra);
                     effect = trap->kind->effect_xtra;
                     effect_do(effect, who, &ident, false, 0, NULL, 0, 0, NULL);
+
+                    /* Trap may have gone */
+                    if (!square_trap(c, grid)) break;
                 }
             }
 

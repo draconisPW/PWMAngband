@@ -347,6 +347,7 @@ void common_file_peruse(struct player *p, u32b query)
             /* Back up one line */
             case ARROW_UP:
             case '8':
+            case 'k':
             case '=':
                 p->interactive_line--;
                 break;
@@ -365,6 +366,7 @@ void common_file_peruse(struct player *p, u32b query)
             /* Advance one line */
             case ARROW_DOWN:
             case '2':
+            case 'j':
             case KC_ENTER:
                 p->interactive_line++;
                 break;

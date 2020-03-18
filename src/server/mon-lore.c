@@ -1046,7 +1046,7 @@ void lore_append_toughness(struct player *p, const struct monster_race *race,
         text_out(p, ". ");
 
         /* Player's base chance to hit */
-        chance = py_attack_hit_chance(p, weapon);
+        chance = chance_of_melee_hit(p, weapon);
 
         /* The following calculations are based on test_hit(); make sure to keep it in sync */
         if (chance < 9) chance = 9;

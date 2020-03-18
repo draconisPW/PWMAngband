@@ -496,7 +496,7 @@ dungeon.
 
 The possible messages are:
 
-  * 1 - "there are naught but cobwebs here."
+  * 1 - "there is naught but cobwebs here."
   * 2 - "there are only scraps of junk here."
   * 3 - "there aren't many treasures here."
   * 4 - "there may not be much interesting here."

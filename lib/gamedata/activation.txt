@@ -971,7 +971,7 @@ name:RECHARGE
 aim:0
 power:11
 effect:RECHARGE
-dice:60
+dice:10
 msg:Your {kind} glow{s} bright yellow...
 
 name:REMOVE_CURSE

@@ -653,6 +653,7 @@ void client_init(bool new_game)
     {
         play_again = false;
         cleanup_player();
+        Setup.initialized = false;
         client_init(false);
     }
 }

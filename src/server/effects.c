@@ -82,6 +82,7 @@ static int effect_calculate_value(effect_handler_context_t *context, bool use_bo
     if (context->value.base > 0 || (context->value.dice > 0 && context->value.sides > 0))
         final = context->value.base + damroll(context->value.dice, context->value.sides);
 
+    /* Device boost */
     if (use_boost) final = final * (100 + context->boost) / 100;
 
     /* Hack -- elementalists */
@@ -5598,7 +5599,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
     i = recharge_failure_chance(obj, strength);
 
     /* Back-fire */
-    if (one_in_(i))
+    if ((i <= 1) || one_in_(i))
     {
         msg(context->origin->player, "The recharge backfires!");
         msg(context->origin->player, "There is a bright flash of light.");
@@ -5619,7 +5620,9 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
     else
     {
         /* Extract a "power" */
-        t = (strength / (obj->kind->level + 2)) + 1;
+        int ease_of_recharge = (100 - obj->kind->level) / 10;
+
+        t = (strength / (10 - ease_of_recharge)) + 1;
 
         /* Recharge based on the power */
         if (t > 0) obj->pval += 2 + randint1(t);
@@ -6777,6 +6780,13 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
 
     /* Clear any projection marker to prevent double processing */
     sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_PROJECT);
+
+    /* Clear monster target if it's no longer visible */
+    if (context->origin->player && !is_player &&
+        !los(context->cave, &context->origin->player->grid, &iter.cur))
+    {
+        target_set_monster(context->origin->player, NULL);
+    }
 
     /* Handle stuff */
     if (context->origin->player) handle_stuff(context->origin->player);

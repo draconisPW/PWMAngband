@@ -163,13 +163,13 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     /* Disturb */
     if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 1);
 
-    /* Disruption shield: damage is substracted from mana first */
+    /* Disruption shield: damage is subtracted from mana first */
     if (p->timed[TMD_MANASHIELD] && (p->csp > 0))
     {
         /* Disruption shield fully absorbed the damage */
         if (p->csp > damage)
         {
-            /* Substract from mana and set to zero */
+            /* Subtract from mana and set to zero */
             p->csp -= damage;
             damage = 0;
         }

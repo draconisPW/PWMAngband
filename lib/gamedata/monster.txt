@@ -126,7 +126,7 @@
 
 # 'flags-off' is for flags to remove from the template. For example, in
 # monster_base.txt, molds are given HURT_FIRE. We don't want the red mold
-# to have that, so we add a 'flags-off:HURT_FIRE' line to substract that flag.
+# to have that, so we add a 'flags-off:HURT_FIRE' line to subtract that flag.
 
 # 'spell-freq' is for spell frequency - the number of monster turns, on 
 # average, before the monster will cast one of its spells. This must not be
@@ -4359,8 +4359,7 @@ experience:6
 blow:TOUCH:EXP_10
 flags:WEIRD_MIND | MULTIPLY | STUPID
 flags:RAND_25 | RAND_50 | BASH_DOOR
-flags:HURT_LIGHT | NO_FEAR
-flags:IM_NETHER
+flags:HURT_LIGHT | NO_FEAR | IM_NETHER
 desc:It is a disgusting mass of dark worms, eating each other, the floor, the
 desc: air, you....
 
@@ -4439,7 +4438,7 @@ flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:3
 spell-power:6
 spells:HEAL | SCARE | HEAL_KIN
-spells:BA_LIGHT
+spells:BA_LIGHT | BA_HOLY
 spells:S_KIN
 drop-base:prayer book:8:1:1
 friends:50:1d2:brigand
@@ -13360,7 +13359,7 @@ flags:FORCE_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON
 spell-freq:2
 spells:BLIND | HEAL | HEAL_KIN | MIND_BLAST
-spells:BA_LIGHT | BA_ELEC
+spells:BA_LIGHT | BA_ELEC | BA_HOLY
 spells:S_KIN
 drop-base:prayer book:10:1:1
 friends:30:1d1:master thief
@@ -16970,7 +16969,7 @@ blow:HIT:COLD:9d10
 blow:HIT:COLD:9d10
 blow:HIT:HURT:10d9
 blow:HIT:CONFUSE:10d9
-flags:UNIQUE | MALE | SMART
+flags:UNIQUE | MALE | SMART | ATTR_FLICKER
 flags:DROP_4 | DROP_GOOD | ONLY_ITEM
 flags:OPEN_DOOR | TAKE_ITEM
 flags:FORCE_SLEEP
@@ -19683,7 +19682,7 @@ blow:GAZE:EXP_80:5d5
 blow:GAZE:EXP_80:5d5
 blow:TOUCH:POISON:5d5
 blow:TOUCH:POISON:5d5
-flags:UNIQUE | MALE | SMART | SPIRIT
+flags:UNIQUE | MALE | SMART | SPIRIT | ATTR_FLICKER
 flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE
@@ -20902,11 +20901,11 @@ hearing:200
 armor-class:450
 sleepiness:0
 depth:115
-rarity:6
+rarity:8
 weight:0
 experience:25000
 flags:PWMANG_EXTRA | REGENERATE | ANTI_MAGIC | LEVITATE
-flags:BASH_DOOR | NEVER_BLOW | KILL_WALL
+flags:BASH_DOOR | NEVER_BLOW
 flags:IM_FIRE | IM_COLD | IM_POIS | IM_PLASMA | IM_NETHER
 flags:NO_STUN
 flags:FORCE_DEPTH
@@ -20924,7 +20923,7 @@ hearing:250
 armor-class:255
 sleepiness:0
 depth:120
-rarity:3
+rarity:8
 weight:0
 experience:50000
 blow:HIT:HURT:20d8
@@ -20933,7 +20932,7 @@ blow:HIT:HURT:20d8
 blow:HIT:HURT:20d8
 flags:PWMANG_EXTRA | SMART | REGENERATE | POWERFUL | COLD_BLOOD | LEVITATE
 flags:ONLY_ITEM | DROP_3
-flags:MOVE_BODY | KILL_WALL | KILL_ITEM | BASH_DOOR
+flags:MOVE_BODY | KILL_ITEM | BASH_DOOR
 flags:IM_WATER | IM_PLASMA | IM_NEXUS | IM_FIRE | IM_POIS | IM_ACID
 flags:IM_NETHER | NO_STUN | IM_COLD
 flags:FORCE_DEPTH

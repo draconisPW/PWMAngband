@@ -1510,7 +1510,7 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     if (square_ispassable(c, grid)) return true;
 
     /* Permanent wall in the way */
-    if (square_isperm(c, grid) || square_isborder(c, grid)) return false;
+    if (square_ispermborder(c, grid)) return false;
 
     /* Normal wall, door, or secret door in the way */
 

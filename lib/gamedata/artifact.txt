@@ -156,8 +156,8 @@ name:'Angrist'
 base-object:sword:Dagger
 level:20
 weight:12
-alloc:2:20 to 100
-attack:2d4:10:15
+alloc:2:60 to 100
+attack:2d7:18:16
 armor:0:5
 flags:FREE_ACT | SUST_DEX
 values:DEX[4] | RES_ACID[1] | RES_DARK[1]
@@ -277,7 +277,7 @@ base-object:sword:Main Gauche
 level:15
 weight:30
 alloc:3:15 to 65
-attack:2d5:12:15
+attack:2d6:12:15
 armor:0:0
 flags:FREE_ACT | SEE_INVIS
 values:INT[3] | DEX[3]
@@ -292,7 +292,7 @@ base-object:sword:Rapier
 level:5
 weight:40
 alloc:38:5 to 50
-attack:1d6:12:19
+attack:1d12:12:19
 armor:0:0
 values:LIGHT[1] | RES_COLD[1] | RES_LIGHT[1]
 brand:COLD_3
@@ -534,7 +534,7 @@ base-object:sword:Bastard Sword
 level:30
 weight:140
 alloc:7:30 to 127
-attack:5d4:0:20
+attack:3d7:0:20
 armor:0:0
 flags:AGGRAVATE | ESP_DRAGON
 values:CON[5] | RES_DISEN[1]
@@ -569,7 +569,7 @@ base-object:sword:Katana
 level:30
 weight:120
 alloc:4:30 to 100
-attack:6d5:10:10
+attack:6d6:10:10
 armor:0:0
 flags:SUST_DEX
 values:SPEED[5] | DEX[5] | BLOWS[1]
@@ -598,7 +598,7 @@ base-object:sword:Zweihander
 level:30
 weight:200
 alloc:1:30 to 127
-attack:4d8:19:21
+attack:3d10:19:21
 armor:0:0
 flags:FREE_ACT | SEE_INVIS | AGGRAVATE | ESP_DRAGON
 values:STR[4] | INFRA[2] | RES_FIRE[1] | RES_CHAOS[1]
@@ -631,7 +631,7 @@ base-object:sword:Executioner's Sword
 level:40
 weight:260
 alloc:4:40 to 127
-attack:4d7:18:19
+attack:4d8:18:19
 armor:0:0
 flags:SEE_INVIS
 slay:DRAGON_3
@@ -649,7 +649,7 @@ base-object:sword:Blade of Chaos
 level:70
 weight:180
 alloc:4:70 to 127
-attack:6d5:18:28
+attack:4d7:18:28
 armor:0:-50
 flags:FREE_ACT | SEE_INVIS | ESP_ALL | AGGRAVATE
 values:RES_ACID[1] | RES_ELEC[1] | RES_FIRE[1] | RES_COLD[1] | RES_CHAOS[1]
@@ -782,7 +782,7 @@ base-object:hafted:Two-Handed Great Flail
 level:45
 weight:280
 alloc:3:45 to 127
-attack:4d8:5:18
+attack:3d11:5:18
 armor:0:0
 flags:PROT_FEAR | ESP_ANIMAL | ESP_TROLL
 values:STR[4] | CON[3] | RES_ELEC[1] | RES_FIRE[1] | RES_DARK[1]
@@ -800,7 +800,7 @@ base-object:hafted:Mace
 level:20
 weight:120
 alloc:7:20 to 100
-attack:3d4:12:12
+attack:3d6:12:12
 armor:0:0
 flags:ESP_DRAGON
 values:RES_ELEC[3]
@@ -812,6 +812,23 @@ msg:{name} glows bright green...
 desc:A great ridged mace that surrounds you with a nimbus of living lightning.
 desc: You remain utterly untouched, even as fat sparks crackle around your
 desc: fingers and eyebrows.
+
+name:'Turmil'
+base-object:hafted:Lead-Filled Mace
+level:20
+weight:180
+alloc:7:20 to 100
+attack:4d4:10:11
+armor:0:8
+flags:BLESSED | REGEN | ESP_ORC
+values:WIS[4] | INFRA[4] | LIGHT[1] | RES_COLD[3] | RES_LIGHT[1]
+brand:COLD_3
+slay:ORC_3
+act:DRAIN_LIFE
+time:40
+desc:Once wielded by the High Priest of Meneltarma, this great mace gleams
+desc: coldly as though moonlit, and can strike equally mighty spiritual and
+desc: physical blows.
 
 name:'Skullcleaver'
 base-object:hafted:Lead-Filled Mace
@@ -828,19 +845,6 @@ slay:DRAGON_5
 slay:ANIMAL_2
 desc:This mighty bludgeon brings destruction to all around it, and is the
 desc: bane of dragons and magic.
-
-name:'Zodia'
-base-object:hafted:Lead-Filled Mace
-level:70
-weight:180
-alloc:0:70 to 127
-attack:7d3:0:0
-armor:0:0
-flags:FREE_ACT
-values:BLOWS[2] | DEX[3] | RES_NEXUS[1] | RES_ELEC[3]
-brand:ELEC_3
-desc:This huge mace was forged by the storm giants and grants its
-desc: wearer the power of lightning, letting him strike as fast as the wind.
 
 name:'Nar-i-vagil'
 base-object:hafted:Quarterstaff
@@ -1051,7 +1055,7 @@ base-object:polearm:Spear
 level:15
 weight:50
 alloc:8:15 to 65
-attack:1d6:11:13
+attack:1d7:11:13
 armor:0:0
 flags:BLESSED | SEE_INVIS
 values:STEALTH[3] | SPEED[3] | RES_COLD[1]
@@ -1128,7 +1132,7 @@ base-object:polearm:Halberd
 level:25
 weight:190
 alloc:12:25 to 80
-attack:3d7:16:12
+attack:3d9:16:12
 armor:0:0
 flags:BLESSED | FEATHER | SEE_INVIS
 values:STR[3] | WIS[3] | RES_FIRE[1] | RES_SOUND[1]
@@ -1143,7 +1147,7 @@ base-object:polearm:Pike
 level:20
 weight:160
 alloc:7:20 to 80
-attack:3d7:10:12
+attack:1d17:10:12
 armor:0:10
 flags:SUST_INT | SLOW_DIGEST | ESP_GIANT | ESP_DEMON
 values:STR[3] | INT[3] | SPEED[2] | RES_FIRE[1] | RES_COLD[1]
@@ -1293,7 +1297,7 @@ base-object:polearm:Lochaber Axe
 level:45
 weight:250
 alloc:12:45 to 100
-attack:3d8:12:17
+attack:3d10:12:17
 armor:0:0
 values:RES_ACID[1] | RES_ELEC[1] | RES_FIRE[1] | RES_COLD[1]
 slay:EVIL_2
@@ -1366,7 +1370,7 @@ base-object:polearm:Glaive
 level:30
 weight:190
 alloc:4:30 to 127
-attack:9d6:0:30
+attack:6d9:0:30
 armor:0:0
 desc:The massive cleaver that crowns this glaive glows blood-red and black;
 desc: fell spells of annihilation swirl and dance as you swing death's myrmidon
@@ -1377,7 +1381,7 @@ base-object:polearm:Lance
 level:20
 weight:300
 alloc:4:20 to 100
-attack:3d10:13:21
+attack:2d19:3:21
 armor:0:0
 flags:PROT_FEAR | SEE_INVIS
 values:STR[2] | DEX[2] | SPEED[2]
@@ -1456,22 +1460,18 @@ brand:ACID_3
 slay:ANIMAL_2
 desc:A sickle gleaming with unmatched sharpness.
 
-name:'Turmil'
+name:'Zodia'
 base-object:polearm:Lucerne Hammer
-level:20
+level:70
 weight:120
-alloc:7:20 to 100
-attack:2d5:10:11
-armor:0:8
-flags:BLESSED | REGEN | ESP_ORC
-values:WIS[4] | INFRA[4] | LIGHT[1] | RES_COLD[3] | RES_LIGHT[1]
-brand:COLD_3
-slay:ORC_3
-act:DRAIN_LIFE
-time:40
-desc:Once wielded by the High Priest of Meneltarma, this great mace gleams
-desc: coldly as though moonlit, and can strike equally mighty spiritual and
-desc: physical blows.
+alloc:0:70 to 127
+attack:5d5:0:0
+armor:0:0
+flags:FREE_ACT
+values:BLOWS[2] | DEX[3] | RES_NEXUS[1] | RES_ELEC[3]
+brand:ELEC_3
+desc:This huge mace was forged by the storm giants and grants its
+desc: wearer the power of lightning, letting him strike as fast as the wind.
 
 
 ### Missile Weapons ###
@@ -2745,7 +2745,7 @@ level:50
 weight:5
 alloc:0:50 to 127
 attack:1d1:0:0
-armor:0:10
+armor:0:15
 flags:REGEN | ESP_EVIL | FREE_ACT | SEE_INVIS
 values:MANA[5]
 desc:The alchemist's best friend.

@@ -1566,17 +1566,9 @@ static bool project_m_player_attack(project_monster_handler_context_t *context)
     enum mon_messages hurt_msg = context->hurt_msg;
     struct monster *mon = context->mon;
 
-    /*
-     * No damage is now going to mean the monster is not hit - and hence
-     * is not woken or released from holding.
-     */
-    if (!dam)
-    {
-        /* PWMAngband: cancel fire-till-kill if active */
-        if (context->origin->player->firing_request > 1)
-            context->origin->player->firing_request = 1;
-        return false;
-    }
+    /* PWMAngband: cancel fire-till-kill if active and no damage */
+    if ((context->origin->player->firing_request > 1) && !dam)
+        context->origin->player->firing_request = 1;
 
     /*
      * The monster is going to be killed, so display a specific death message.
@@ -1593,7 +1585,11 @@ static bool project_m_player_attack(project_monster_handler_context_t *context)
         add_monster_message(context->origin->player, mon, die_msg, false);
     }
 
-    mon_died = mon_take_hit(context->origin->player, context->cave, mon, dam, &fear, -1);
+    /*
+     * No damage is now going to mean the monster is not hit - and hence
+     * is not woken or released from holding.
+     */
+    if (dam) mon_died = mon_take_hit(context->origin->player, context->cave, mon, dam, &fear, -1);
 
     /*
      * If the monster didn't die, provide additional messages about how it was

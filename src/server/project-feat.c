@@ -89,7 +89,8 @@ static void project_feature_handler_FIRE(project_feature_handler_context_t *cont
         square_destroy_tree(context->cave, &context->grid);
 
         /* Reapply illumination */
-        square_illuminate(context->origin->player, context->cave, &context->grid, is_daytime());
+        square_illuminate(context->origin->player, context->cave, &context->grid, is_daytime(),
+            true);
         square_light_spot(context->cave, &context->grid);
 
         /* Update the visuals */
@@ -400,7 +401,7 @@ static void project_feature_handler_KILL_WALL(project_feature_handler_context_t 
         return;
 
     /* Permanent walls */
-    if (square_isperm(context->cave, &grid) || square_isborder(context->cave, &grid))
+    if (square_ispermborder(context->cave, &grid))
         return;
 
     /* Different treatment for different walls */

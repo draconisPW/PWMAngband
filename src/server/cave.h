@@ -309,6 +309,7 @@ extern bool square_isobjectholding(struct chunk *c, struct loc *grid);
 extern bool square_isrock(struct chunk *c, struct loc *grid);
 extern bool square_isperm(struct chunk *c, struct loc *grid);
 extern bool square_isborder(struct chunk *c, struct loc *grid);
+extern bool square_ispermborder(struct chunk *c, struct loc *grid);
 extern bool square_ispermarena(struct chunk *c, struct loc *grid);
 extern bool square_ispermhouse(struct chunk *c, struct loc *grid);
 extern bool square_ispermstatic(struct chunk *c, struct loc *grid);
@@ -472,7 +473,8 @@ extern void square_add_safe(struct chunk *c, struct loc *grid);
 extern bool square_isplot(struct chunk *c, struct loc *grid);
 extern void square_actor(struct chunk *c, struct loc *grid, struct source *who);
 extern int square_known_feat(struct player *p, struct chunk *c, struct loc *grid);
-extern void square_illuminate(struct player *p, struct chunk *c, struct loc *grid, bool daytime);
+extern void square_illuminate(struct player *p, struct chunk *c, struct loc *grid, bool daytime,
+    bool light);
 extern struct trap *square_top_trap(struct chunk *c, struct loc *grid);
 extern void square_memorize_trap(struct player *p, struct chunk *c, struct loc *grid);
 extern struct trap *square_known_trap(struct player *p, struct chunk *c, struct loc *grid);

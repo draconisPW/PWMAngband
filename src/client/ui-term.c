@@ -1197,53 +1197,18 @@ errr Term_fresh(void)
         /* Cursor was visible */
         if (!old->cu && old->cv)
         {
+            /*
+             * Fake a change at the old cursor position so that
+             * position will be redrawn along with any other changes.
+             */
             int tx = old->cx;
             int ty = old->cy;
 
-            /*u16b *old_aa = old->a[ty];
-            char *old_cc = old->c[ty];*/
-            u16b *scr_aa = scr->a[ty];
-            char *scr_cc = scr->c[ty];
-
-            u16b sa = scr_aa[tx];
-            char sc = scr_cc[tx];
-
-            /*u16b *old_taa = old->ta[ty];
-            char *old_tcc = old->tc[ty];*/
-            u16b *scr_taa = scr->ta[ty];
-            char *scr_tcc = scr->tc[ty];
-
-            u16b sta = scr_taa[tx];
-            char stc = scr_tcc[tx];
-
-            /* Graphics, character (fallback or intended), or erase */
-            if (Term->always_pict)
-                (*Term->pict_hook)(tx, ty, 1, &sa, &sc, &sta, &stc);
-            else if (Term->higher_pict && (sa & 0x80))
-                (*Term->pict_hook)(tx, ty, 1, &sa, &sc, &sta, &stc);
-            else if (sa || Term->always_text)
-            {
-                if (Setup.initialized && !Term->saved && (ty > 0) &&
-                    !((tx == scr->cx) && (ty == scr->cy)))
-                {
-                    int i, j;
-
-                    /* Hack -- erase a big cursor */
-                    for (i = tx; ((i < tx + tile_width) && (i < w)); i++)
-                    {
-                        for (j = ty; ((j < ty + tile_height) && (j < h)); j++)
-                        {
-                            sa = scr->a[j][i];
-                            sc = scr->c[j][i];
-                            (*Term->text_hook)(i, j, 1, sa, &sc);
-                        }
-                    }
-                }
-                else
-                    (*Term->text_hook)(tx, ty, 1, sa, &sc);
-            }
-            else
-                (*Term->wipe_hook)(tx, ty, 1);
+            old->c[ty][tx] = ~scr->c[ty][tx];
+            if (y1 > ty) y1 = ty;
+            if (y2 < ty) y2 = ty;
+            if (Term->x1[ty] > tx) Term->x1[ty] = tx;
+            if (Term->x2[ty] < tx) Term->x2[ty] = tx;
         }
     }
     else

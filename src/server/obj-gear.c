@@ -748,13 +748,13 @@ void inven_takeoff(struct player *p, struct object *obj)
     p->body.slots[slot].obj = NULL;
     p->upkeep->equip_cnt--;
 
-    /* Message */
-    msgt(p, MSG_WIELD, "%s %s (%c).", act, o_name, I2A(slot));
-
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
     p->upkeep->notice |= (PN_IGNORE);
     update_stuff(p, chunk_get(&p->wpos));
+
+    /* Message */
+    msgt(p, MSG_WIELD, "%s %s (%c).", act, o_name, gear_to_label(p, obj));
 }
 
 

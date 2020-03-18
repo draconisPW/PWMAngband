@@ -367,6 +367,12 @@ bool square_isborder(struct chunk *c, struct loc *grid)
 }
 
 
+bool square_ispermborder(struct chunk *c, struct loc *grid)
+{
+    return (square_isperm(c, grid) || square_isborder(c, grid));
+}
+
+
 bool square_ispermarena(struct chunk *c, struct loc *grid)
 {
     return tf_has(f_info[square(c, grid)->feat].flags, TF_ARENA);
@@ -2234,13 +2240,13 @@ static bool normal_grid(struct chunk *c, struct loc *grid)
  * Light or darken a square
  * Also applied for wilderness and special levels
  */
-void square_illuminate(struct player *p, struct chunk *c, struct loc *grid, bool daytime)
+void square_illuminate(struct player *p, struct chunk *c, struct loc *grid, bool daytime, bool light)
 {
     /* Only interesting grids at night */
     if (normal_grid(c, grid) || daytime || (c->wpos.depth > 0))
     {
         sqinfo_on(square(c, grid)->info, SQUARE_GLOW);
-        if (p) square_memorize(p, c, grid);
+        if (p && light) square_memorize(p, c, grid);
     }
     else
     {

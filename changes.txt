@@ -68,6 +68,12 @@ Angband 4.2.0:
 - Enlarge character resist display
 - Add light level meter
 - Adjust some player race heights
+- Harmonise plurals of hydra
+- Change order of messages when taking items off
+- Add j/k keys for scrolling help text
+- Grammatical and spelling fixes
+- Arrange town shops along streets
+- Light hidden squares in town
 
 PWMAngband:
 
@@ -124,6 +130,14 @@ Angband 4.2.0:
 - Make being teleported wake monsters
 - Add trap immunity, move speed and damage reduction as possible randart
   properties
+- Increase bigger weapon dice chance
+- V-combat throwing
+- Modify some artifacts
+- Nerf Recharge effect
+- Make stunning kill fastcast, tap devices stun
+- Halve device damage boosts
+- Give some monsters orb of draining
+- Give Alchemist's gloves better armor
 
 PWMAngband:
 
@@ -132,6 +146,8 @@ PWMAngband:
 - New Hydra race
 - Change vegetal monster base symbol to 'l', add 'l' monsters to the Old Forest
 - Add aquatic monsters
+- Nerf death wings/golems
+- Remove Unlife pits
 
 Bugs fixed
 ----------
@@ -157,6 +173,8 @@ Angband 4.2.0:
 - Simplify saved subwindow preferences
 - Expand properties line in artifact.txt to level, weight, cost
 - Expand combat line in artifact.txt to attack and armor
+- Reorganise player-attack
+- Simplify Term_fresh
 
 PWMAngband:
 

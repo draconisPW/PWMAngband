@@ -1714,7 +1714,7 @@ void do_cmd_drop_gold(struct player *p, s32b amt)
     /* Take a turn */
     use_energy(p);
 
-    /* Substract from the player's gold */
+    /* Subtract from the player's gold */
     p->au -= amt;
 
     /* Message */

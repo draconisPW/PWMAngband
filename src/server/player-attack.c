@@ -22,6 +22,11 @@
 
 
 /*
+ * Hit and breakage calculations
+ */
+
+
+/*
  * Returns percent chance of an object breaking after throwing or shooting.
  *
  * Artifacts will never break.
@@ -40,6 +45,7 @@ int breakage_chance(const struct object *obj, bool hit_target)
     int perc = obj->kind->base->break_perc;
 
     if (obj->artifact) return 0;
+    if (of_has(obj->flags, OF_THROWING)) perc = 1;
     if (!hit_target) return (perc * perc) / 100;
 
     return perc;
@@ -47,24 +53,57 @@ int breakage_chance(const struct object *obj, bool hit_target)
 
 
 /*
- * Determine if the player "hits" a monster with a missile.
+ * Return the player's chance to hit with a particular weapon.
+ */
+int chance_of_melee_hit(struct player *p, const struct object *weapon)
+{
+    int chance, bonus = p->state.to_h;
+
+    if (weapon)
+    {
+        s16b to_h;
+
+        object_to_h(weapon, &to_h);
+        bonus += to_h;
+    }
+    chance = p->state.skills[SKILL_TO_HIT_MELEE] + bonus * BTH_PLUS_ADJ;
+
+    return chance;
+}
+
+
+/*
+ * Return the player's chance to hit with a particular missile and (optionally) launcher.
  */
 static int chance_of_missile_hit(struct player *p, struct object *missile,
     struct object *launcher, struct loc *grid)
 {
-    int bonus = p->state.to_h + missile->to_h;
+    int bonus = missile->to_h;
     int chance;
 
-    if (launcher)
+    if (!launcher)
+    {
+        /*
+         * Other thrown objects are easier to use, but only throwing weapons
+         * take advantage of bonuses to Skill and Deadliness from other
+         * equipped items.
+         */
+        if (of_has(missile->flags, OF_THROWING))
+        {
+            bonus += p->state.to_h;
+            chance = p->state.skills[SKILL_TO_HIT_THROW] + bonus * BTH_PLUS_ADJ;
+        }
+        else
+            chance = 3 * p->state.skills[SKILL_TO_HIT_THROW] / 2 + bonus * BTH_PLUS_ADJ;
+    }
+    else
     {
         s16b to_h;
 
         object_to_h(launcher, &to_h);
-        bonus += to_h;
+        bonus += p->state.to_h + to_h;
         chance = p->state.skills[SKILL_TO_HIT_BOW] + bonus * BTH_PLUS_ADJ;
     }
-    else
-        chance = p->state.skills[SKILL_TO_HIT_THROW] + bonus * BTH_PLUS_ADJ;
 
     return chance - distance(&p->grid, grid);
 }
@@ -88,6 +127,118 @@ bool test_hit(int chance, int ac, int vis)
 
     /* Power competes against armor */
     return (randint0(chance) >= (ac * 2 / 3));
+}
+
+
+/*
+ * Damage calculations
+ */
+
+
+/*
+ * Check if a target is debuffed in such a way as to make a critical
+ * hit more likely.
+ */
+static bool is_debuffed(struct source *target)
+{
+    if (target->monster)
+    {
+        return (target->monster->m_timed[MON_TMD_CONF] || target->monster->m_timed[MON_TMD_HOLD] ||
+            target->monster->m_timed[MON_TMD_STUN] || target->monster->m_timed[MON_TMD_BLIND]);
+    }
+    if (target->player)
+    {
+        return (target->player->timed[TMD_CONFUSED] || target->player->timed[TMD_PARALYZED] ||
+            target->player->timed[TMD_BLIND]);
+    }
+    return false;
+}
+
+
+/*
+ * Determine damage for critical hits from shooting.
+ *
+ * Factor in item weight, total plusses, and player level.
+ */
+static int critical_shot(struct player *p, struct source *target, int weight, int plus, int dam,
+    u32b *msg_type)
+{
+    int debuff_to_hit = (is_debuffed(target)? DEBUFF_CRITICAL_HIT: 0);
+    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 4 + p->lev * 2;
+    int power = weight + randint1(500);
+    int new_dam = dam;
+
+    if (randint1(5000) > chance)
+        *msg_type = MSG_SHOOT_HIT;
+    else if (power < 500)
+    {
+        *msg_type = MSG_HIT_GOOD;
+        new_dam = 2 * dam + 5;
+    }
+    else if (power < 1000)
+    {
+        *msg_type = MSG_HIT_GREAT;
+        new_dam = 2 * dam + 10;
+    }
+    else
+    {
+        *msg_type = MSG_HIT_SUPERB;
+        new_dam = 3 * dam + 15;
+    }
+
+    return new_dam;
+}
+
+
+/*
+ * Determine damage for critical hits from melee.
+ *
+ * Factor in weapon weight, total plusses, player level.
+ */
+static int critical_melee(struct player *p, struct source *target, int weight, int plus, int dam,
+    u32b *msg_type)
+{
+    int debuff_to_hit = (is_debuffed(target)? DEBUFF_CRITICAL_HIT: 0);
+    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 5 + p->lev * 3;
+    int power = weight + randint1(650);
+    int new_dam = dam;
+
+    /* Apply Touch of Death */
+    if (p->timed[TMD_DEADLY] && magik(25))
+    {
+        *msg_type = MSG_HIT_HI_CRITICAL;
+        new_dam = 4 * dam + 30;
+    }
+
+    else if (randint1(5000) > chance)
+        *msg_type = MSG_HIT;
+    else if (power < 400)
+    {
+        *msg_type = MSG_HIT_GOOD;
+        new_dam = dam * 2 + 5;
+    }
+    else if (power < 700)
+    {
+        *msg_type = MSG_HIT_GREAT;
+        new_dam = dam * 2 + 10;
+    }
+    else if (power < 900)
+    {
+        *msg_type = MSG_HIT_SUPERB;
+        new_dam = dam * 3 + 15;
+    }
+    else if (power < 1300)
+    {
+        *msg_type = MSG_HIT_HI_GREAT;
+        new_dam = dam * 3 + 20;
+    }
+    else
+    {
+        *msg_type = MSG_HIT_HI_SUPERB;
+        new_dam = 4 * dam + 20;
+    }
+
+    return new_dam;
 }
 
 
@@ -164,112 +315,14 @@ static int ranged_damage(struct player *p, struct object *missile, struct object
         dam += to_d;
     }
     else if (of_has(missile->flags, OF_THROWING))
-        dam += p->state.to_d;
+    {
+        /* Multiply the damage dice by the throwing weapon multiplier. */
+        dam *= (1 + p->lev / 12);
+    }
     dam *= mult;
     if (p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam;
 
     return dam;
-}
-
-
-/*
- * Check if a target is debuffed in such a way as to make a critical
- * hit more likely.
- */
-static bool is_debuffed(struct source *target)
-{
-    if (target->monster)
-    {
-        return (target->monster->m_timed[MON_TMD_CONF] || target->monster->m_timed[MON_TMD_HOLD] ||
-            target->monster->m_timed[MON_TMD_STUN] || target->monster->m_timed[MON_TMD_BLIND]);
-    }
-    if (target->player)
-    {
-        return (target->player->timed[TMD_CONFUSED] || target->player->timed[TMD_PARALYZED] ||
-            target->player->timed[TMD_BLIND]);
-    }
-    return false;
-}
-
-
-/*
- * Determine damage for critical hits from shooting.
- *
- * Factor in item weight, total plusses, and player level.
- */
-static int critical_shot(struct player *p, struct source *target, int weight, int plus, int dam,
-    u32b *msg_type)
-{
-    int debuff_to_hit = (is_debuffed(target)? DEBUFF_CRITICAL_HIT: 0);
-    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 4 + p->lev * 2;
-    int power = weight + randint1(500);
-
-    if (randint1(5000) > chance)
-    {
-        *msg_type = MSG_SHOOT_HIT;
-        return dam;
-    }
-    if (power < 500)
-    {
-        *msg_type = MSG_HIT_GOOD;
-        return 2 * dam + 5;
-    }
-    if (power < 1000)
-    {
-        *msg_type = MSG_HIT_GREAT;
-        return 2 * dam + 10;
-    }
-    *msg_type = MSG_HIT_SUPERB;
-    return 3 * dam + 15;
-}
-
-
-/*
- * Determine damage for critical hits from melee.
- *
- * Factor in weapon weight, total plusses, player level.
- */
-static int critical_norm(struct player *p, struct source *target, int weight, int plus, int dam,
-    u32b *msg_type)
-{
-    int debuff_to_hit = (is_debuffed(target)? DEBUFF_CRITICAL_HIT: 0);
-    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 5 + p->lev * 3;
-    int power = weight + randint1(650);
-
-    /* Apply Touch of Death */
-    if (p->timed[TMD_DEADLY] && magik(25))
-    {
-        *msg_type = MSG_HIT_HI_CRITICAL;
-        return 4 * dam + 30;
-    }
-
-    if (randint1(5000) > chance)
-    {
-        *msg_type = MSG_HIT;
-        return dam;
-    }
-    if (power < 400)
-    {
-        *msg_type = MSG_HIT_GOOD;
-        return dam * 2 + 5;
-    }
-    if (power < 700)
-    {
-        *msg_type = MSG_HIT_GREAT;
-        return dam * 2 + 10;
-    }
-    if (power < 900)
-    {
-        *msg_type = MSG_HIT_SUPERB;
-        return dam * 3 + 15;
-    }
-    if (power < 1300)
-    {
-        *msg_type = MSG_HIT_HI_GREAT;
-        return dam * 3 + 20;
-    }
-    *msg_type = MSG_HIT_HI_SUPERB;
-    return 4 * dam + 20;
 }
 
 
@@ -280,6 +333,11 @@ static int player_damage_bonus(struct player_state *state)
 {
     return state->to_d;
 }
+
+
+/*
+ * Non-damage melee blow effects
+ */
 
 
 /*
@@ -697,26 +755,6 @@ static const struct hit_types melee_hit_types[] =
 };
 
 
-/*
- * Return the player's chance to hit with a particular weapon.
- */
-int py_attack_hit_chance(struct player *p, const struct object *weapon)
-{
-    int chance, bonus = p->state.to_h;
-
-    if (weapon)
-    {
-        s16b to_h;
-
-        object_to_h(weapon, &to_h);
-        bonus += to_h;
-    }
-    chance = p->state.skills[SKILL_TO_HIT_MELEE] + bonus * BTH_PLUS_ADJ;
-
-    return chance;
-}
-
-
 /* Barehanded attack */
 struct barehanded_attack
 {
@@ -795,7 +833,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     struct object *obj = equipped_item_by_slot_name(p, "weapon");
 
     /* Information about the attack */
-    int chance = py_attack_hit_chance(p, obj);
+    int chance = chance_of_melee_hit(p, obj);
     bool do_quake = false;
     bool success = false;
 
@@ -974,7 +1012,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
             /* Compute the damage */
             dmg = d_dam = randcalc(dice, 0, RANDOMISE);
             dmg *= best_mult;
-            dmg = critical_norm(p, target, p->lev * randint1(10), p->lev, dmg, &msg_type);
+            dmg = critical_melee(p, target, p->lev * randint1(10), p->lev, dmg, &msg_type);
 
             /* Special effect: knee attack */
             if (ba_ptr->effect == MA_KNEE)
@@ -1046,7 +1084,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
 
             dmg = melee_damage(p, obj, dice, best_mult, target, effects, &d_dam);
             object_to_h(obj, &to_h);
-            dmg = critical_norm(p, target, weight, to_h, dmg, &msg_type);
+            dmg = critical_melee(p, target, weight, to_h, dmg, &msg_type);
 
             /* Learn by use for the weapon */
             object_notice_attack_plusses(p, obj);
@@ -2206,7 +2244,7 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
 
     result.dmg = ranged_damage(p, obj, NULL, best_mult, multiplier);
     object_to_h(obj, &to_h);
-    result.dmg = critical_norm(p, target, obj->weight, to_h, result.dmg, &result.msg_type);
+    result.dmg = critical_shot(p, target, obj->weight, to_h, result.dmg, &result.msg_type);
 
     /* Direct adjustment for exploding things (flasks of oil) */
     if (of_has(obj->flags, OF_EXPLODE)) result.dmg *= 3;
@@ -2411,8 +2449,8 @@ void do_cmd_throw(struct player *p, int dir, int item)
     /* Apply confusion */
     player_confuse_dir(p, &dir);
 
-    ranged_helper(p, obj, dir, range, num_shots, attack, melee_hit_types,
-        (int)N_ELEMENTS(melee_hit_types), magic, false, false);
+    ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
+        (int)N_ELEMENTS(ranged_hit_types), magic, false, false);
 }
 
 

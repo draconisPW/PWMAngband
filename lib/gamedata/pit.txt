@@ -400,12 +400,6 @@ mon-base:feature mimic
 mon-base:object mimic
 mon-base:random mimic
 
-name:Unlife
-room:2
-alloc:1:110
-obj-rarity:20
-flags-req:NONLIVING
-
 name:People
 room:1
 alloc:1:45

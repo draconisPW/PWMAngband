@@ -315,7 +315,7 @@ desc: The chance to get a beam goes up with your character level.
 spell:Recharging:9:7:75:6:0
 effect:RECHARGE
 dice:$B
-expr:B:PLAYER_LEVEL:+ 20
+expr:B:PLAYER_LEVEL:/ 8 + 6
 desc:Adds charges to a stack of wands or staves.
 desc: Chance of success and number of charges gained increase with your
 desc: level and decrease with level of wand or staff and number of charges.
@@ -370,8 +370,10 @@ msg_other: sprays acid.
 desc:Sprays acid.
 
 spell:Mana Drain:22:2:30:12:0
+effect:TIMED_INC:STUN
+dice:1d2
 effect:TAP_DEVICE
-desc:Turns wand or staff energy into mana.
+desc:Turns wand or staff energy into mana; tapping stuns the player briefly.
 
 spell:Teleport Other:23:12:60:12:0
 effect:BOLT_STATUS:AWAY_ALL:1
@@ -1704,7 +1706,7 @@ desc:Renders you safe from traps for a level-dependent duration.
 spell:Recharge Devices:20:10:50:6:0
 effect:RECHARGE
 dice:$B
-expr:B:PLAYER_LEVEL:+ 20
+expr:B:PLAYER_LEVEL:/ 10 + 4
 desc:Adds charges to a stack of wands or staves.
 desc: Chance of success and number of charges gained increase with your
 desc: level and decrease with level of wand or staff and number of charges.
@@ -2396,7 +2398,7 @@ desc: up to 100 squares away.
 spell:Recharging:24:26:70:19:0
 effect:RECHARGE
 dice:$B
-expr:B:PLAYER_LEVEL:+ 20
+expr:B:PLAYER_LEVEL:/ 8 + 6
 desc:Adds charges to a stack of wands or staves.
 desc: Chance of success and number of charges gained increase with your
 desc: level and decrease with level of wand or staff and number of charges.

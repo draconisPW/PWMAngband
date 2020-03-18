@@ -648,10 +648,13 @@ void cave_illuminate(struct player *p, struct chunk *c, bool daytime)
     /* Apply light or darkness */
     do
     {
+        bool light = true;
+
         if (square_ispermstatic(c, &iter.cur) || square_isbright(c, &iter.cur))
         {
             int d;
-            bool light = false;
+
+            light = false;
 
             /* Skip static dungeon town walls/lava squares with no surrounding floors or stairs */
             for (d = 0; d < 9; d++)
@@ -668,12 +671,10 @@ void cave_illuminate(struct player *p, struct chunk *c, bool daytime)
                 if (square_isanyfloor(c, &a_grid) || square_isstairs(c, &a_grid))
                     light = true;
             }
-
-            if (!light) continue;
         }
 
         /* Only interesting grids at night */
-        square_illuminate(p, c, &iter.cur, daytime);
+        square_illuminate(p, c, &iter.cur, daytime, light);
     }
     while (loc_iterator_next_strict(&iter));
 

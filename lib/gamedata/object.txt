@@ -416,8 +416,8 @@ effect:GAIN_STAT:CON
 effect:GAIN_STAT:STR
 effect:RESTORE_STAT:CON
 effect:RESTORE_STAT:STR
-effect:NOURISH:INC_BY
-dice:1
+effect:NOURISH:INC_TO
+dice:60
 msg_self:Refreshing!
 desc:This looks like pure water, but its scent reminds you of the smell of a
 desc: distant wood borne from afar by a cool breeze at night.
@@ -1875,9 +1875,8 @@ weight:5
 cost:500
 alloc:10:50 to 100
 attack:1d1:0:0
-armor:0:2
+armor:0:5+d5
 flags:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
-flags:SPELLS_OK
 desc:Highly protective gloves designed for an alchemist's elemental magics.
 
 ### Shields ###
@@ -2827,7 +2826,7 @@ cost:200
 alloc:40:40 to 100
 pile:12:2d3
 effect:RECHARGE
-dice:60
+dice:6
 
 name:Door Destruction
 graphics:?:w

@@ -2262,7 +2262,7 @@ static const char *obj_feeling_text[][2] =
     {"there may not be much interesting here.", "there was nothing interesting here."},
     {"there aren't many treasures here.", "there weren't many treasures here."},
     {"there are only scraps of junk here.", "there were only scraps of junk here."},
-    {"there are naught but cobwebs here.", "there were naught but cobwebs here."}
+    {"there is naught but cobwebs here.", "there was naught but cobwebs here."}
 };
 
 

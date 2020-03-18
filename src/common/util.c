@@ -1210,7 +1210,9 @@ struct trap_kind *lookup_trap(const char *desc)
  */
 int recharge_failure_chance(const struct object *obj, int strength)
 {
-    int raw_chance = (strength + 100 - obj->kind->level - (10 * (obj->pval / obj->number))) / 15;
+    /* Ease of recharge ranges from 9 down to 4 (wands) or 3 (staffs) */
+    int ease_of_recharge = (100 - obj->kind->level) / 10;
+    int raw_chance = strength + ease_of_recharge - 2 * (obj->pval / obj->number);
 
     return ((raw_chance > 1)? raw_chance: 1);
 }

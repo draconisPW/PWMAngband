@@ -533,7 +533,7 @@ static int calculate_melee_crits(struct player *p, struct player_state *state, i
         else if (k < 700) crit_dam += dam * 2 + 10;
         else if (k < 900) crit_dam += dam * 3 + 15;
         else if (k < 1300) crit_dam += dam * 3 + 20;
-        else crit_dam += dam * 7 / 2 + 25;
+        else crit_dam += dam * 4 + 20;
     }
     crit_dam /= 650;
 
@@ -542,7 +542,7 @@ static int calculate_melee_crits(struct player *p, struct player_state *state, i
 
     /* Apply Touch of Death */
     if (p->timed[TMD_DEADLY])
-        crit_dam = (crit_dam * 3 + (dam * 7 / 2 + 30)) / 4;
+        crit_dam = (crit_dam * 3 + (dam * 4 + 30)) / 4;
 
     return crit_dam;
 }
@@ -836,10 +836,13 @@ static int calc_damage(struct player *p, struct player_state *state, const struc
         dam += to_d * 10;
     }
 
+    /* Apply throwing multiplier */
+    if (!weapon && !ammo) dam *= (1 + p->lev / 12);
+
     /* Calculate missile multiplier from launcher multiplier, slays & brands */
-    if (ammo)
+    if (!weapon)
     {
-        multiplier = p->state.ammo_mult;
+        if (ammo) multiplier = p->state.ammo_mult;
         if (mult > 1)
         {
             if (multiplier > 1) multiplier += mult;
@@ -848,13 +851,13 @@ static int calc_damage(struct player *p, struct player_state *state, const struc
     }
 
     /* Apply missile multiplier */
-    if (ammo) dam *= multiplier;
+    if (!weapon) dam *= multiplier;
 
     /* Apply missile to-dam from temp branding (x10) */
-    if (ammo && p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam * 10;
+    if (!weapon && p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam * 10;
 
     /* Apply missile critical hits */
-    if (ammo)
+    if (!weapon)
     {
         if (obj->known->to_h) plus = obj->to_h;
         dam = calculate_missile_crits(p, &p->state, obj->weight, plus, dam);
@@ -865,7 +868,7 @@ static int calc_damage(struct player *p, struct player_state *state, const struc
 
     /* Apply number of blows/shots per round */
     if (weapon) dam = (dam * state->num_blows) / 100;
-    else dam = (dam * p->state.num_shots) / 10;
+    else if (ammo) dam = (dam * p->state.num_shots) / 10;
 
     return dam;
 }
@@ -881,14 +884,14 @@ static int calc_damage(struct player *p, struct player_state *state, const struc
  * damage done by branding attacks.
  */
 static bool obj_known_damage(struct player *p, const struct object *obj, int *normal_damage,
-    int *brand_damage, int *slay_damage, bool *nonweap_slay)
+    int *brand_damage, int *slay_damage, bool *nonweap_slay, bool thrown)
 {
     int i;
     bool *total_brands;
     bool *total_slays;
     bool has_brands_or_slays = false;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
-    bool weapon = (tval_is_melee_weapon(obj) || tval_is_mstaff(obj));
+    bool weapon = ((tval_is_melee_weapon(obj) || tval_is_mstaff(obj)) && !thrown);
     bool ammo = (p->state.ammo_tval == obj->tval);
     struct player_state state;
     int weapon_slot = slot_by_name(p, "weapon");
@@ -932,7 +935,7 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     }
 
     /* Hack -- extract temp branding */
-    if (ammo && p->timed[TMD_BOWBRAND])
+    if (!weapon && p->timed[TMD_BOWBRAND])
         append_brand(&total_brands, get_bow_brand(&p->brand));
 
     /* Hack -- extract temp branding */
@@ -1030,7 +1033,7 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
 /*
  * Describe damage.
  */
-static void describe_damage(struct player *p, const struct object *obj)
+static void describe_damage(struct player *p, const struct object *obj, bool thrown)
 {
     int i;
     bool nonweap_slay = false;
@@ -1040,13 +1043,14 @@ static void describe_damage(struct player *p, const struct object *obj)
 
     /* Collect brands and slays */
     bool has_brands_or_slays = obj_known_damage(p, obj, &normal_damage, brand_damage, slay_damage,
-        &nonweap_slay);
+        &nonweap_slay, thrown);
 
     /* Mention slays and brands from other items */
     if (nonweap_slay)
         text_out(p, "This weapon may benefit from one or more off-weapon brands or slays.\n");
 
-    text_out(p, "Average damage/round: ");
+    if (thrown) text_out(p, "Average thrown damage: ");
+    else text_out(p, "Average damage/round: ");
 
     /* Output damage for creatures effected by the brands */
     for (i = 0; i < z_info->brand_max + 4; i++)
@@ -1161,6 +1165,7 @@ static bool describe_combat(struct player *p, const struct object *obj)
 {
     bool weapon = (tval_is_melee_weapon(obj) || tval_is_mstaff(obj));
     bool ammo = (p->state.ammo_tval == obj->tval);
+    bool throwing_weapon = (weapon && of_has(obj->flags, OF_THROWING));
     int range, break_chance;
     bool thrown_effect, heavy, two_handed;
 
@@ -1204,7 +1209,8 @@ static bool describe_combat(struct player *p, const struct object *obj)
     }
 
     /* Describe damage */
-    describe_damage(p, obj);
+    describe_damage(p, obj, false);
+    if (throwing_weapon) describe_damage(p, obj, true);
 
     /* Add breakage chance */
     if (ammo && !of_has(obj->flags, OF_AMMO_MAGIC) && !obj->artifact)

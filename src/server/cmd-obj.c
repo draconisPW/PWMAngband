@@ -500,10 +500,10 @@ void do_cmd_wield(struct player *p, int item, int slot)
     else
         act = "You were wearing";
 
+    inven_wield(p, obj, slot);
+
     /* Message */
     msgt(p, MSG_WIELD, "%s %s (%c).", act, o_name, gear_to_label(p, equip_obj));
-
-    inven_wield(p, obj, slot);
 }
 
 
@@ -1479,7 +1479,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
     }
 
     /* Boost damage effects if skill > difficulty */
-    boost = MAX(p->state.skills[SKILL_DEVICE] - level, 0);
+    boost = MAX((p->state.skills[SKILL_DEVICE] - level) / 2, 0);
 
     /* Various hacks */
     tval = (*obj_address)->tval;
