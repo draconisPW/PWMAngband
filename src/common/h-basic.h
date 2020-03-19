@@ -17,14 +17,6 @@
 #else
 
 /**
- * Native MSVC compiler doesn't understand inline or snprintf
- */
-#ifdef _MSC_VER
-#	define inline __inline
-#	define snprintf _snprintf
-#endif
-
-/**
  * Everyone except RISC OS has fcntl.h and sys/stat.h
  */
 #define HAVE_FCNTL_H

@@ -80,6 +80,13 @@
 # define my_mkdir(path, perms) false
 #endif
 
+/* Suppress MSC C4996 error */
+#if defined(_MSC_VER)
+#define open _open
+#define fdopen _fdopen
+#define mkdir _mkdir
+#endif
+
 /*
  * Player info
  */
@@ -374,7 +381,9 @@ bool file_newer(const char *first, const char *second)
     struct stat stat1, stat2;
 
     /* Remove W8080 warning: _fstat is declared but never used */
+#ifdef WINDOWS
     _fstat(0, NULL);
+#endif
 
     /* If the first doesn't exist, the first is not newer. */
     if (stat(first, &stat1) != 0) return false;
