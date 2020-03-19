@@ -330,7 +330,7 @@ glyph:n
 pain:1
 flags:FEMALE | EVIL | HURT_COLD | SPIRIT
 flags:BASH_DOOR | CLEAR_WEB
-flags:HAS_LEGS
+flags:HAS_LEGS | HYBRID
 desc:Naga
 
 # Ogres are like small giants, or large orcs. Mostly straightforward melee

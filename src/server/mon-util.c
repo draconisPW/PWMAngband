@@ -1717,11 +1717,7 @@ bool is_humanoid(const struct monster_race *race)
  */
 bool is_half_humanoid(const struct monster_race *race)
 {
-    if ((race->base == lookup_monster_base("naga")) || strstr(race->name, "harpy") ||
-        strstr(race->name, "taur") || streq(race->name, "sphinx") ||
-        strstr(race->name, "were")) return true;
-
-    return false;
+    return rf_has(race->flags, RF_HYBRID);
 }
 
 

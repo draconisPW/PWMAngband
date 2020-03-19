@@ -178,7 +178,8 @@ Angband 4.2.0:
 
 PWMAngband:
 
-- Implement temporary monster flags (CAMOUFLAGE, AWARE, HANDLED) 
+- Implement temporary monster flags (CAMOUFLAGE, AWARE, HANDLED)
+- Un-hardcode hybrid monsters by adding a HYBRID flag
 
 Compilation
 -----------

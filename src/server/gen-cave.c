@@ -2429,8 +2429,7 @@ static void build_ruin(struct chunk *c, struct loc *xroads, struct loc *lot,
     north = lot_north + offset_y;
     south = lot_south - (lot_hgt - (hgt + offset_y));
     east = lot_east - (lot_wid - (wid + offset_x));
-    if ((east > west) && (south > north))
-        fill_rectangle(c, north, west, south, east, FEAT_GRANITE, SQUARE_NONE);
+    fill_rectangle(c, north, west, south, east, FEAT_GRANITE, SQUARE_NONE);
 
     /* and then destroy it and spew rubble everywhere */
     for (grid.x = lot_west; grid.x <= lot_east; grid.x++)

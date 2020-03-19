@@ -166,6 +166,9 @@ void fill_rectangle(struct chunk *c, int y1, int x1, int y2, int x2, int feat, i
     struct loc begin, end;
     struct loc_iterator iter;
 
+    /* Paranoia */
+    if ((x1 > x2) || (y1 > y2)) return;
+
     loc_init(&begin, x1, y1);
     loc_init(&end, x2, y2);
     loc_iterator_first(&iter, &begin, &end);
