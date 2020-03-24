@@ -3,7 +3,7 @@
  * Purpose: Create object name descriptions
  *
  * Copyright (c) 1997 - 2007 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -525,7 +525,7 @@ static size_t obj_desc_charges(const struct object *obj, char *buf, size_t max, 
 static size_t obj_desc_inscrip(struct player *p, const struct object *obj, char *buf,
     size_t max, size_t end, bool aware, bool known)
 {
-    const char *u[5] = {NULL, NULL, NULL, NULL, NULL};
+    const char *u[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
     int i, n = 0;
 
     /* Get inscription */

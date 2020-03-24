@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Antony Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -356,6 +356,7 @@ static void prt_status(struct player *p)
 static void prt_state(struct player *p)
 {
     bool s, r, u;
+    struct chunk *c = chunk_get(&p->wpos);
 
     /* Stealth mode */
     s = (p->stealthy? true: false);
@@ -366,7 +367,30 @@ static void prt_state(struct player *p)
     /* Unignoring */
     u = (p->unignoring? true: false);
 
-    Send_state(p, s, r, u);
+    /* Paranoia */
+    if (!c) Send_state(p, s, r, u, "");
+    else
+    {
+        struct feature *feat = square_feat(c, &p->grid);
+        struct trap *trap = square_trap(c, &p->grid);
+        char buf[39];
+
+        if (trap)
+        {
+            my_strcpy(buf, trap->kind->name, sizeof(buf));
+            my_strcap(buf);
+            p->terrain[0] = trap->kind->d_attr;
+        }
+        else
+        {
+            my_strcpy(buf, feat->name, sizeof(buf));
+            my_strcap(buf);
+            p->terrain[0] = feat->d_attr;
+        }
+
+        my_strcpy(p->terrain + 1, buf, strlen(buf) + 1);
+        Send_state(p, s, r, u, p->terrain);
+    }
 
     /* Print recall/deep descent status */
     Send_recall(p, p->word_recall, p->deep_descent);

@@ -3,7 +3,7 @@
  * Purpose: Monster attacks
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -190,6 +190,9 @@ static int choose_attack_spell(bitflag *f, bool innate)
     byte spells[RSF_MAX];
     int i;
 
+    /* Paranoid initialization */
+    for (i = 0; i < RSF_MAX; i++) spells[i] = 0;
+
     /* Extract spells, filtering as necessary */
     for (i = FLAG_START; i < RSF_MAX; i++)
     {
@@ -197,9 +200,6 @@ static int choose_attack_spell(bitflag *f, bool innate)
         if (innate && !mon_spell_is_innate(i)) continue;
         if (rsf_has(f, i)) spells[num++] = i;
     }
-
-    /* Paranoia */
-    if (num == 0) return 0;
 
     /* Pick at random */
     return (spells[randint0(num)]);

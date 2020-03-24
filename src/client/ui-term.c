@@ -3,7 +3,7 @@
  * Purpose: A generic, efficient, terminal window package
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -543,50 +543,45 @@ void Term_big_queue_char(term *t, int x, int y, u16b a, char c, u16b a1, char c1
 {
     int hor, vert;
 
+    /* Leave space on bottom for status */
+    int vmax = ((y + tile_height < t->hgt - 1)? tile_height: t->hgt - 1 - y);
+
     /* No tall skinny tiles */
     if (tile_width > 1)
     {
-        /* Horizontal first */
-        for (hor = 0; hor <= tile_width; hor++)
+        /* Horizontal first; skip already marked upper left corner */
+        for (hor = 1; hor < tile_width; hor++)
         {
             /* Queue dummy character */
-            if (hor != 0)
-            {
-                if (a & 0x80)
-                    Term_queue_char(t, x + hor, y, 255, -1, 0, 0);
-                else
-                    Term_queue_char(t, x + hor, y, COLOUR_WHITE, ' ', a1, c1);
-            }
+            if (a & 0x80)
+                Term_queue_char(t, x + hor, y, 255, -1, 0, 0);
+            else
+                Term_queue_char(t, x + hor, y, COLOUR_WHITE, ' ', a1, c1);
+        }
 
-            /* Now vertical */
-            for (vert = 1; vert <= tile_height; vert++)
+        /* Now vertical */
+        for (vert = 1; vert < vmax; vert++)
+        {
+            for (hor = 0; hor < tile_width; hor++)
             {
-                /* Leave space on bottom for status */
-                if (y + vert + 1 < t->hgt)
-                {
-                    /* Queue dummy character */
-                    if (a & 0x80)
-                        Term_queue_char(t, x + hor, y + vert, 255, -1, 0, 0);
-                    else
-                        Term_queue_char(t, x + hor, y + vert, COLOUR_WHITE, ' ', a1, c1);
-                }
+                /* Queue dummy character */
+                if (a & 0x80)
+                    Term_queue_char(t, x + hor, y + vert, 255, -1, 0, 0);
+                else
+                    Term_queue_char(t, x + hor, y + vert, COLOUR_WHITE, ' ', a1, c1);
             }
         }
     }
     else
     {
         /* Only vertical */
-        for (vert = 1; vert <= tile_height; vert++)
+        for (vert = 1; vert < vmax; vert++)
         {
-            /* Leave space on bottom for status */
-            if (y + vert + 1 < t->hgt)
-            {
-                /* Queue dummy character */
-                if (a & 0x80)
-                    Term_queue_char(t, x, y + vert, 255, -1, 0, 0);
-                else
-                    Term_queue_char(t, x, y + vert, COLOUR_WHITE, ' ', a1, c1);
-            }
+            /* Queue dummy character */
+            if (a & 0x80)
+                Term_queue_char(t, x, y + vert, 255, -1, 0, 0);
+            else
+                Term_queue_char(t, x, y + vert, COLOUR_WHITE, ' ', a1, c1);
         }
     }
 }
@@ -1225,6 +1220,15 @@ errr Term_fresh(void)
         if (Term->icky_corner && (y2 >= h - 1) && (Term->x2[h - 1] > w - 2))
             Term->x2[h - 1] = w - 2;
 
+        /*
+         * Make the stored y bounds for the modified region empty.
+         * Do so before drawing so that Term_mark() calls from within
+         * the drawing hooks will adjust the bounds on the modified
+         * region for the next update.
+         */
+        Term->y1 = h;
+        Term->y2 = 0;
+
         /* Scan the "modified" rows */
         for (y = y1; y <= y2; ++y)
         {
@@ -1234,6 +1238,10 @@ errr Term_fresh(void)
             /* Flush each "modified" row */
             if (x1 <= x2)
             {
+                /* As above, set the bounds for the modified region to be empty before drawing. */
+                Term->x1[y] = w;
+                Term->x2[y] = 0;
+
                 /* Use "Term_pict()" - always, sometimes or never */
                 if (Term->always_pict)
                 {
@@ -1251,18 +1259,10 @@ errr Term_fresh(void)
                     Term_fresh_row_text(y, x1, x2);
                 }
 
-                /* This row is all done */
-                Term->x1[y] = w;
-                Term->x2[y] = 0;
-
                 /* Hack -- flush that row (if allowed) */
                 if (!Term->never_frosh) Term_xtra(TERM_XTRA_FROSH, y);
             }
         }
-
-        /* No rows are invalid */
-        Term->y1 = h;
-        Term->y2 = 0;
     }
 
     /* Cursor update -- show new cursor */
@@ -1870,6 +1870,12 @@ errr Term_mark(int x, int y)
     old_cc[x] = 0;
     old_taa[x] = 0x80;
     old_tcc[x] = 0;
+
+    /* Update bounds for modified region */
+    if (y < Term->y1) Term->y1 = y;
+    if (y > Term->y2) Term->y2 = y;
+    if (x < Term->x1[y]) Term->x1[y] = x;
+    if (x > Term->x2[y]) Term->x2[y] = x;
 
     return (0);
 }

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2007 Andi Sidwell
  * Copyright (c) 2016 Ben Semmler, Nick McConnell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -4069,8 +4069,8 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
             /* Skip illegal grids */
             if (!square_in_bounds_fully(context->cave, &grid)) continue;
 
-            /* Skip non-empty grids */
-            if (!square_isempty(context->cave, &grid)) continue;
+            /* Skip non-empty grids - allow pushing into traps and webs */
+            if (!square_isopen(context->cave, &grid)) continue;
 
             /* Important -- skip grids marked for damage */
             if (map[16 + grid.y - centre.y][16 + grid.x - centre.x]) continue;
@@ -4789,19 +4789,6 @@ static bool effect_handler_LINE(effect_handler_context_t *context)
         if (light_line_aux(context->origin, context->dir, context->subtype, dam))
             context->ident = true;
     }
-    return true;
-}
-
-
-static bool effect_handler_LOSE_EXP(effect_handler_context_t *context)
-{
-    if (!player_of_has(context->origin->player, OF_HOLD_LIFE) && context->origin->player->exp)
-    {
-        msg(context->origin->player, "You feel your memories fade.");
-        player_exp_lose(context->origin->player, context->origin->player->exp / 4, false);
-    }
-    context->ident = true;
-    equip_learn_flag(context->origin->player, OF_HOLD_LIFE);
     return true;
 }
 

@@ -132,7 +132,8 @@ extern int Send_turn(struct player *p, u32b game_turn, u32b player_turn, u32b ac
 extern int Send_depth(struct player *p, int depth, int maxdepth, const char *depths);
 extern int Send_status(struct player *p, s16b *effects);
 extern int Send_recall(struct player *p, s16b word_recall, s16b deep_descent);
-extern int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring);
+extern int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring,
+    const char *terrain);
 extern int Send_line_info(struct player *p, int y);
 extern int Send_remote_line(struct player *p, int y);
 extern int Send_speed(struct player *p, int speed, int mult);

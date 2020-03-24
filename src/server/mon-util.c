@@ -3,7 +3,7 @@
  * Purpose: Monster manipulation utilities.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -19,6 +19,11 @@
 
 
 #include "s-angband.h"
+
+
+/*
+ * Lore utilities
+ */
 
 
 static const struct monster_flag monster_flag_table[] =
@@ -77,6 +82,11 @@ void create_mon_flag_mask(bitflag *f, ...)
 
 
 /*
+ * Lore utilities
+ */
+
+
+/*
  * Return whether the given base matches any of the names given.
  *
  * Accepts a variable-length list of name strings. The list must end with NULL.
@@ -94,6 +104,11 @@ bool match_monster_bases(const struct monster_base *base, ...)
 
     return ok;
 }
+
+
+/*
+ * Monster updates
+ */
 
 
 /*
@@ -530,88 +545,9 @@ void update_monsters(struct chunk *c, bool full)
 }
 
 
-/*  
- * See if a monster can carry an object (it will pick up either way)
- */
-static bool monster_can_carry(struct monster *mon, struct object *obj, bool force)
-{
-    int total_number = 0;
-    struct object *held_obj;
-
-    /* Always carry artifacts */
-    if (obj->artifact) return true;
-
-    /* Clones don't carry stuff */
-    if (mon->clone) return false;
-
-    /* Force to carry monster drops */
-    if (force) return true;
-
-    /* Only carry stuff in the dungeon */
-    if (mon->wpos.depth == 0) return false;
-
-#if !defined(MAX_MONSTER_BAG)
-    return true;
-#else
-    /* Scan objects already being held for combination */
-    for (held_obj = mon->held_obj; held_obj; held_obj = held_obj->next)
-        total_number++;
-
-    /*
-     * Chance-based response. The closer monster to his limit, the less the chance is.
-     * If he reached the limit, he will not pick up
-     * XXX XXX XXX -- double chance && strict limit
-     */
-    if ((randint0(MAX_MONSTER_BAG) * 2 > total_number) && (total_number < MAX_MONSTER_BAG))
-        return true;
-
-    return false;
-#endif
-}
-
-
 /*
- * Add the given object to the given monster's inventory.
- *
- * Returns true if the object is successfully added, false otherwise.
+ * Monster (and player) actual movement
  */
-bool monster_carry(struct monster *mon, struct object *obj, bool force)
-{
-    struct object *held_obj;
-
-    /* See if the monster can carry the object */
-    if (!monster_can_carry(mon, obj, force)) return false;
-
-    /* Scan objects already being held for combination */
-    for (held_obj = mon->held_obj; held_obj; held_obj = held_obj->next)
-    {
-        /* Check for combination */
-        if (object_similar(NULL, held_obj, obj, OSTACK_MONSTER))
-        {
-            /* Combine the items */
-            object_absorb(held_obj, obj);
-
-            /* Result */
-            return true;
-        }
-    }
-
-    /* Forget location */
-    loc_init(&obj->grid, 0, 0);
-
-    /* Hack -- reset index */
-    obj->oidx = 0;
-
-    /* Link the object to the monster */
-    obj->held_m_idx = mon->midx;
-    memcpy(&obj->wpos, &mon->wpos, sizeof(struct worldpos));
-
-    /* Add the object to the monster's inventory */
-    pile_insert(&mon->held_obj, obj);
-
-    /* Result */
-    return true;
-}
 
 
 /*
@@ -747,6 +683,11 @@ void monster_swap(struct chunk *c, struct loc *grid1, struct loc *grid2)
     square_light_spot(c, &from);
     square_light_spot(c, &to);
 }
+
+
+/*
+ * Awareness and learning
+ */
 
 
 /*
@@ -893,6 +834,11 @@ void update_smart_learn(struct monster *mon, struct player *p, int flag, int pfl
 }
 
 
+/*
+ * Monster healing
+ */
+
+
 #define MAX_KIN_RADIUS      5
 #define MAX_KIN_DISTANCE    5
 
@@ -974,6 +920,11 @@ struct monster *choose_nearby_injured_kin(struct chunk *c, const struct monster 
 
     return found;
 }
+
+
+/*
+ * Monster damage and death utilities
+ */
 
 
 /*
@@ -1420,6 +1371,100 @@ bool monster_taking_terrain_damage(struct chunk *c, struct monster *mon)
 }
 
 
+/*
+ * Monster inventory utilities
+ */
+
+
+/*  
+ * See if a monster can carry an object (it will pick up either way)
+ */
+static bool monster_can_carry(struct monster *mon, struct object *obj, bool force)
+{
+    int total_number = 0;
+    struct object *held_obj;
+
+    /* Always carry artifacts */
+    if (obj->artifact) return true;
+
+    /* Clones don't carry stuff */
+    if (mon->clone) return false;
+
+    /* Force to carry monster drops */
+    if (force) return true;
+
+    /* Only carry stuff in the dungeon */
+    if (mon->wpos.depth == 0) return false;
+
+#if !defined(MAX_MONSTER_BAG)
+    return true;
+#else
+    /* Scan objects already being held for combination */
+    for (held_obj = mon->held_obj; held_obj; held_obj = held_obj->next)
+        total_number++;
+
+    /*
+     * Chance-based response. The closer monster to his limit, the less the chance is.
+     * If he reached the limit, he will not pick up
+     * XXX XXX XXX -- double chance && strict limit
+     */
+    if ((randint0(MAX_MONSTER_BAG) * 2 > total_number) && (total_number < MAX_MONSTER_BAG))
+        return true;
+
+    return false;
+#endif
+}
+
+
+/*
+ * Add the given object to the given monster's inventory.
+ *
+ * Returns true if the object is successfully added, false otherwise.
+ */
+bool monster_carry(struct monster *mon, struct object *obj, bool force)
+{
+    struct object *held_obj;
+
+    /* See if the monster can carry the object */
+    if (!monster_can_carry(mon, obj, force)) return false;
+
+    /* Scan objects already being held for combination */
+    for (held_obj = mon->held_obj; held_obj; held_obj = held_obj->next)
+    {
+        /* Check for combination */
+        if (object_similar(NULL, held_obj, obj, OSTACK_MONSTER))
+        {
+            /* Combine the items */
+            object_absorb(held_obj, obj);
+
+            /* Result */
+            return true;
+        }
+    }
+
+    /* Forget location */
+    loc_init(&obj->grid, 0, 0);
+
+    /* Hack -- reset index */
+    obj->oidx = 0;
+
+    /* Link the object to the monster */
+    obj->held_m_idx = mon->midx;
+    memcpy(&obj->wpos, &mon->wpos, sizeof(struct worldpos));
+
+    /* Add the object to the monster's inventory */
+    pile_insert(&mon->held_obj, obj);
+
+    /* Result */
+    return true;
+}
+
+
+/*
+ * Player updates
+ */
+
+
 static bool is_detected_p(struct player *p, struct player *q, int dis_esp)
 {
     /* Full ESP */
@@ -1754,6 +1799,11 @@ void update_view_all(struct worldpos *wpos, int skip)
             player->upkeep->update |= PU_UPDATE_VIEW;
     }
 }
+
+
+/*
+ * Monster shapechange utilities
+ */
 
 
 /*

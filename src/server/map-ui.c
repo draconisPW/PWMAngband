@@ -3,7 +3,7 @@
  * Purpose: Writing level map info to the screen
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -223,48 +223,22 @@ static byte multi_hued_attr_breath(struct monster_race *race)
 }
 
 
-/*
- * Table of flickering colors.
- */
-static byte color_flicker[MAX_COLORS][3] =
+static byte get_flicker_attr(struct player *p, const struct monster_race *race, const byte base_attr)
 {
-    {COLOUR_DARK, COLOUR_L_DARK, COLOUR_L_RED},
-    {COLOUR_WHITE, COLOUR_L_WHITE, COLOUR_L_BLUE},
-    {COLOUR_SLATE, COLOUR_WHITE, COLOUR_L_DARK},
-    {COLOUR_ORANGE, COLOUR_YELLOW, COLOUR_L_RED},
-    {COLOUR_RED, COLOUR_L_RED, COLOUR_L_PINK},
-    {COLOUR_GREEN, COLOUR_L_GREEN, COLOUR_L_TEAL},
-    {COLOUR_BLUE, COLOUR_L_BLUE, COLOUR_SLATE},
-    {COLOUR_UMBER, COLOUR_L_UMBER, COLOUR_MUSTARD},
-    {COLOUR_L_DARK, COLOUR_SLATE, COLOUR_L_VIOLET},
-    {COLOUR_L_WHITE, COLOUR_WHITE, COLOUR_SLATE},
-    {COLOUR_L_PURPLE, COLOUR_PURPLE, COLOUR_L_VIOLET},
-    {COLOUR_YELLOW, COLOUR_L_YELLOW, COLOUR_MUSTARD},
-    {COLOUR_L_RED, COLOUR_RED, COLOUR_L_PINK},
-    {COLOUR_L_GREEN, COLOUR_L_TEAL, COLOUR_GREEN},
-    {COLOUR_L_BLUE, COLOUR_DEEP_L_BLUE, COLOUR_BLUE_SLATE},
-    {COLOUR_L_UMBER, COLOUR_UMBER, COLOUR_MUD},
-    {COLOUR_PURPLE, COLOUR_VIOLET, COLOUR_MAGENTA},
-    {COLOUR_VIOLET, COLOUR_L_VIOLET, COLOUR_MAGENTA},
-    {COLOUR_TEAL, COLOUR_L_TEAL, COLOUR_L_GREEN},
-    {COLOUR_MUD, COLOUR_YELLOW, COLOUR_UMBER},
-    {COLOUR_L_YELLOW, COLOUR_WHITE, COLOUR_L_UMBER},
-    {COLOUR_MAGENTA, COLOUR_L_PINK, COLOUR_L_RED},
-    {COLOUR_L_TEAL, COLOUR_L_WHITE, COLOUR_TEAL},
-    {COLOUR_L_VIOLET, COLOUR_L_PURPLE, COLOUR_VIOLET},
-    {COLOUR_L_PINK, COLOUR_L_RED, COLOUR_L_WHITE},
-    {COLOUR_MUSTARD, COLOUR_YELLOW, COLOUR_UMBER},
-    {COLOUR_BLUE_SLATE, COLOUR_BLUE, COLOUR_SLATE},
-    {COLOUR_DEEP_L_BLUE, COLOUR_L_BLUE, COLOUR_BLUE},
-};
+    byte attr;
 
+    /* Get the color cycled attribute, if available. */
+    attr = visuals_cycler_get_attr_for_race(race, p->flicker);
 
-/*
- * Multi-hued monsters shimmer according to their flickering colors.
- */
-static byte get_flicker(byte a)
-{
-    return color_flicker[a][randint0(3)];
+    /* Fall back to the flicker attribute. */
+    if (attr == BASIC_COLORS) attr = visuals_flicker_get_attr_for_frame(base_attr, p->flicker);
+
+    /* Fall back to the static attribute if cycling fails. */
+    if (attr == BASIC_COLORS) attr = base_attr;
+
+    p->flicker++;
+
+    return attr;
 }
 
 
@@ -363,7 +337,7 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
             if (rf_has(q->poly_race->flags, RF_ATTR_MULTI))
                 *a = multi_hued_attr_breath(q->poly_race);
             else if (rf_has(q->poly_race->flags, RF_ATTR_FLICKER))
-                *a = get_flicker((byte)*a);
+                *a = get_flicker_attr(p, q->poly_race, (byte)*a);
         }
     }
 
@@ -789,7 +763,7 @@ void grid_data_as_text(struct player *p, struct chunk *cv, bool server, struct g
                     if (rf_has(mon->race->flags, RF_ATTR_MULTI))
                         a = multi_hued_attr_breath(mon->race);
                     else if (rf_has(mon->race->flags, RF_ATTR_FLICKER))
-                        a = get_flicker(da);
+                        a = get_flicker_attr(p, mon->race, da);
 
                     /* Redraw monster list if needed */
                     if (mon->attr != a) p->upkeep->redraw |= PR_MONLIST;

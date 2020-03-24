@@ -823,6 +823,8 @@ struct player
     int frac_blow;                  /* Blow frac (%) */
     int frac_shot;                  /* Shot frac (%) */
     s16b square_light;              /* Square light (for display) */
+    char terrain[40];               /* Displayed terrain */
+    byte flicker;                   /* A counter to select the step color from the flicker table */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

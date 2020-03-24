@@ -3,7 +3,7 @@
  * Purpose: Spell UI handing
  *
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -159,6 +159,10 @@ static const menu_iter spell_menu_iter =
 static int spell_collect_from_book(int book)
 {
     int i = 0, n_spells = 0;
+
+    /* Paranoia */
+    if (book < 0) return 0;
+    if (book >= player->clazz->magic.num_books) return 0;
 
     /* Check for end of the book */
     while (book_info[book].spell_info[i].info[0] != '\0')

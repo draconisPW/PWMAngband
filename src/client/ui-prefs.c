@@ -5,7 +5,7 @@
  * Copyright (c) 2003 Takeshi Mogami, Robert Ruehlmann
  * Copyright (c) 2007 Pete Mack
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -438,7 +438,7 @@ static const char *process_pref_file_expr(char **sp, char *fp)
         else
         {
             while (*s && (f != ']'))
-                t = process_pref_file_expr(&s, &f);
+                process_pref_file_expr(&s, &f);
         }
 
         /* Verify ending */

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Leon Marrick
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -214,6 +214,7 @@ static bool auto_pickup_okay(struct player *p, struct object *obj)
     {
         struct object *gear_obj = find_stack_object_in_inventory(p, obj);
 
+        if (!gear_obj) return false;
         if (inven_carry_num(p, obj, true) && !check_for_inscrip(gear_obj, "!g")) return true;
     }
 

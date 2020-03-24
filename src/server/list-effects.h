@@ -85,7 +85,6 @@ EFFECT(LASH, true, NULL, 2, EFINFO_LASH, "fires a beam of %s length %d, dealing 
 EFFECT(LIGHT_AREA, false, NULL, 0, EFINFO_NONE, "lights up the surrounding area")
 EFFECT(LIGHT_LEVEL, false, NULL, 0, EFINFO_NONE, "completely lights up and magically maps the current level")
 EFFECT(LINE, true, "dam", 2, EFINFO_BOLTD, "creates a line of %s, inflicting %s points of damage to susceptible monsters")
-EFFECT(LOSE_EXP, false, NULL, 0, EFINFO_NONE, "drains {25%%} of your experience total")
 EFFECT(LOSE_RANDOM_STAT, false, NULL, 1, EFINFO_STAT, "reduces a stat other than %s")
 EFFECT(MAP_AREA, false, NULL, 0, EFINFO_NONE, "maps out a portion of the level around you")
 EFFECT(MAP_WILD, false, NULL, 0, EFINFO_NONE, "reveals the location of a random wilderness area")

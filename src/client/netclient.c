@@ -2,7 +2,7 @@
  * File: netclient.c
  * Purpose: The client side of the networking stuff
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1832,8 +1832,8 @@ static int Receive_state(void)
     byte ch;
     s16b stealthy, resting, unignoring, obj_feeling, mon_feeling, square_light;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd%hd", &ch, &stealthy, &resting, &unignoring,
-        &obj_feeling, &mon_feeling, &square_light)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd%hd%s", &ch, &stealthy, &resting, &unignoring,
+        &obj_feeling, &mon_feeling, &square_light, player->terrain)) <= 0)
     {
         return n;
     }

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -555,9 +555,6 @@ bool generate_starburst_room(struct chunk *c, int y1, int x1, int y2, int x2, bo
                 tmp_cx1 = x1 + (width - height) / 2;
                 tmp_cy2 = y2;
                 tmp_cx2 = tmp_cx1 + (width - height) / 2;
-
-                tmp_cy1 = y1;
-                tmp_cx1 = x1;
             }
 
             /* Make the third room. */

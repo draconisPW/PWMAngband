@@ -17975,6 +17975,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_ELEC
 spells:S_DRAGON
+color-cycle:fancy:storm
 desc:A vast dragon of power. Storms and lightning crash around its titanic form.
 desc: Deep blue scales reflect the flashes and highlight the creature's great
 desc: muscles. It regards you with contempt.
@@ -18005,6 +18006,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_COLD
 spells:S_DRAGON
+color-cycle:fancy:ice
 desc:An immense dragon capable of awesome destruction. You have never felt such
 desc: extreme cold, or witnessed such an icy stare. Begone quickly or feel its
 desc: wrath!
@@ -18035,6 +18037,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_POIS
 spells:S_DRAGON
+color-cycle:fancy:swamp
 desc:A truly enormous dragon with great powers. The foul gases issuing from the
 desc: beast nearly make you vomit; and while you may try to hold your breath as
 desc: you fight it, it sees no reason to do likewise.
@@ -18286,6 +18289,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE
 spells:S_DRAGON
+color-cycle:fancy:hell
 desc:A vast dragon of immense power. Fire leaps continuously from its huge form.
 desc: The air around it scalds you. Its slightest glance burns you, and you
 desc: truly realize how insignificant you are.
@@ -18316,6 +18320,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_ACID
 spells:S_DRAGON
+color-cycle:fancy:bile
 desc:A huge and very powerful dragon. Great steaming pools of acid drip from its
 desc: form onto the ground. You shudder when you see the acid eating away the
 desc: very stones of the dungeon - what could it do to you?
@@ -18346,6 +18351,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_SOUN
 spells:S_DRAGON
+color-cycle:fancy:thunder
 desc:A dragon of gigantic proportions, with destructive abilities to match. The
 desc: sheer loudness of its roar leaves you stunned and unable to think clearly
 desc: enough to defend yourself adequately.
@@ -18703,6 +18709,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR
 spells:S_DRAGON
+color-cycle:fancy:crystal
 desc:A vast dragon of power with crystalline brown scales.
 
 name:great shadow wyrm
@@ -19149,6 +19156,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR | BR_SOUN
 spells:S_DRAGON
+color-cycle:fancy:law
 desc:A massive dragon of powerful intellect. It seeks to dominate the universe
 desc: and despises all other life. It sees all who do not obey it as mere
 desc: insects to be crushed underfoot.
@@ -19352,6 +19360,7 @@ innate-freq:20
 spells:BLIND | CONF | SCARE
 spells:BR_CHAO | BR_DISE | BR_SHAR | BR_SOUN
 spells:S_DRAGON
+color-cycle:fancy:balance
 desc:A massive dragon, one of the mightiest of dragonkind. It is thousands of
 desc: years old and seeks to maintain the Cosmic Balance. It sees you as an
 desc: upstart troublemaker without the wisdom to control your actions. It will
@@ -20058,6 +20067,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_ELEC
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:storm
 desc:An ancient dragon of power. Storms and lightning crash around its titanic
 desc: form. Deep blue scales reflect the flashes and highlight the creature's
 desc: great muscles. It regards you with contempt.
@@ -20087,6 +20097,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_COLD
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:ice
 desc:An ancient dragon capable of awesome destruction. You have never felt such
 desc: extreme cold, or witnessed such an icy stare. Begone quickly or feel its
 desc: wrath!
@@ -20116,6 +20127,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_POIS
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:swamp
 desc:A truly enormous ancient dragon with great powers. The foul gases issuing
 desc: from the beast nearly make you vomit; and while you may try to hold your
 desc: breath as you fight it, it sees no reason to do likewise.
@@ -20186,6 +20198,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_FIRE
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:hell
 desc:An ancient dragon of immense power. Fire leaps continuously from its huge
 desc: form. The air around it scalds you. Its slightest glance burns you, and
 desc: you truly realize how insignificant you are.
@@ -20215,6 +20228,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_ACID
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:bile
 desc:A huge and very powerful ancient dragon. Great steaming pools of acid drip
 desc: from its form onto the ground. You shudder when you see the acid eating
 desc: away the very stones of the dungeon - what could it do to you?
@@ -20245,6 +20259,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SOUN
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:thunder
 desc:An ancient dragon of gigantic proportions, with destructive abilities to
 desc: match. The sheer loudness of its roar leaves you stunned and unable to
 desc: think clearly enough to defend yourself adequately.
@@ -20334,6 +20349,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:crystal
 desc:An ancient dragon of power with crystalline brown scales.
 
 name:ancient shadow wyrm
@@ -20476,6 +20492,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SHAR | BR_SOUN
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:law
 desc:An ancient dragon of powerful intellect. It seeks to dominate the universe
 desc: and despises all other life. It sees all who do not obey it as mere
 desc: insects to be crushed underfoot.
@@ -20545,6 +20562,7 @@ innate-freq:17
 spells:BLIND | CONF | SCARE
 spells:BR_SOUN | BR_CHAO | BR_SHAR | BR_DISE
 spells:S_DRAGON | S_HI_DRAGON
+color-cycle:fancy:balance
 desc:An ancient dragon, one of the mightiest of dragon kind. It is thousands of
 desc: years old and seeks to maintain the cosmic balance. It sees you as an
 desc: upstart troublemaker without the wisdom to control your actions. It will

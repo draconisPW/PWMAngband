@@ -3,7 +3,7 @@
  * Purpose: Deal with command processing
  *
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -265,6 +265,8 @@ static void get_screen_loc(int cursor, int *x, int *y, int n_lines, int *line_st
     int *line_lengths)
 {
     int i, lengths_so_far = 0;
+
+    if (!line_starts || !line_lengths) return;
 
     for (i = 0; i < n_lines; i++)
     {

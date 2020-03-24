@@ -3,7 +3,7 @@
  * Purpose: Functions for dealing with individual squares
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1428,7 +1428,7 @@ struct monster *square_monster(struct chunk *c, struct loc *grid)
     {
         struct monster *mon = cave_monster(c, square(c, grid)->mon);
 
-        return (mon->race? mon: NULL);
+        return ((mon && mon->race)? mon: NULL);
     }
 
     return NULL;

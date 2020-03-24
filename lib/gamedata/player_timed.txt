@@ -378,10 +378,10 @@ near-end:'s weapon's toxic aura disappears.
 
 name:ATT_CONF
 desc:temporary monster confusion
-grade:U:10000:AttConf:Your {kind} begin{s} to glow!
-on-end:The glow fades from your {kind}.
-near-begin:'s weapon is surrounded by a confusing aura.
-near-end:'s weapon's confusing aura disappears.
+grade:U:10000:AttConf:Your hands begin to glow!
+on-end:The glow fades from your hands.
+near-begin:'s hands are surrounded by a confusing aura.
+near-end:'s hands' confusing aura disappears.
 
 name:ATT_EVIL
 desc:temporary slay evil

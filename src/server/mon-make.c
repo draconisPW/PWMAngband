@@ -3,7 +3,7 @@
  * Purpose: Monster creation / placement code.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -703,6 +703,7 @@ static void monster_index_move(struct chunk *c, int i1, int i2)
 
     /* Old monster */
     mon = cave_monster(c, i1);
+    if (!mon) return;
     source_monster(mon1, mon);
 
     /* New monster */

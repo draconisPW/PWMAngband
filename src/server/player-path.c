@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1988 Christopher J Stuart (running code)
  * Copyright (c) 2004-2007 Christophe Cavalaria, Leon Marrick (pathfinding)
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -393,8 +393,8 @@ static bool run_test(struct player *p, struct chunk *c)
             return true;
         }
 
-        /* Visible traps abort running */
-        if (square_isvisibletrap(c, &grid)) return true;
+        /* Visible traps abort running (unless trapsafe) */
+        if (square_isvisibletrap(c, &grid) && !player_is_trapsafe(p)) return true;
 
         /* Visible objects abort running */
         for (obj = square_known_pile(p, c, &grid); obj; obj = obj->next)

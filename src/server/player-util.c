@@ -3,7 +3,7 @@
  * Purpose: Player utility functions
  *
  * Copyright (c) 2011 The Angband Developers. See COPYING.
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -915,6 +915,8 @@ static int scan_items(struct player *p, struct object **item_list, size_t item_m
 static bool spell_okay_to_study(struct player *p, int spell_index)
 {
     const struct class_spell *spell = spell_by_index(&p->clazz->magic, spell_index);
+
+    if (!spell) return false;
 
     /* Skip illegible spells */
     if (spell->slevel >= 99) return false;

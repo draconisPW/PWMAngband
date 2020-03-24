@@ -3,7 +3,7 @@
  * Purpose: Chest and door opening/closing, disarming, running, resting, ...
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1416,14 +1416,15 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     struct source who_body;
     struct source *who = &who_body;
     bool trapsafe = player_is_trapsafe(p);
-    bool alterable;
+    bool trap, door;
     struct loc grid;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(dir)) return;
 
     next_grid(&grid, &p->grid, dir);
-    alterable = (square_isdisarmabletrap(c, &grid) || square_iscloseddoor(c, &grid));
+    trap = square_isdisarmabletrap(c, &grid);
+    door = square_iscloseddoor(c, &grid);
 
     /* Handle polymorphed players */
     if (p->poly_race)
@@ -1657,14 +1658,14 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* Optionally alter traps/doors on movement */
-    if (alterable && disarm && square_isknown(p, &grid))
+    if (((trap && disarm) || door) && square_isknown(p, &grid))
     {
         do_cmd_alter(p, dir);
         return;
     }
 
     /* Stop running before known traps */
-    if (p->upkeep->running && square_isdisarmabletrap(c, &grid) && !trapsafe)
+    if (trap && p->upkeep->running && !trapsafe)
     {
         disturb(p, 0);
         return;
@@ -1783,8 +1784,13 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     if (new_pit && !old_pit)
         msgt(p, MSG_ENTER_PIT, "The floor is very dusty and the air feels very still!");
 
+    /* Trap immune player learns that they are */
+    if (trap && player_of_has(p, OF_TRAP_IMMUNE))
+        equip_learn_flag(p, OF_TRAP_IMMUNE);
+
     /* Move player */
     monster_swap(c, &p->grid, &grid);
+    p->upkeep->redraw |= PR_STATE;
 
     /* Handle store doors, or notice objects */
     if (!p->ghost && square_isshop(c, &grid))

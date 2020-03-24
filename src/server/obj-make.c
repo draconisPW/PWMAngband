@@ -3,7 +3,7 @@
  * Purpose: Object generation functions
  *
  * Copyright (c) 1987-2007 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -406,7 +406,7 @@ static void do_powers(struct object *obj, bitflag kind_flags[KF_SIZE])
         if (random_base_resist(obj, &resist))
         {
             obj->el_info[resist].res_level = 1;
-            obj->el_info[resist].flags |= EL_INFO_RANDOM;
+            obj->el_info[resist].flags |= (EL_INFO_RANDOM | EL_INFO_IGNORE);
         }
     }
     if (kf_has(kind_flags, KF_RAND_HI_RES))
@@ -415,7 +415,7 @@ static void do_powers(struct object *obj, bitflag kind_flags[KF_SIZE])
         if (random_high_resist(obj, &resist))
         {
             obj->el_info[resist].res_level = 1;
-            obj->el_info[resist].flags |= EL_INFO_RANDOM;
+            obj->el_info[resist].flags |= (EL_INFO_RANDOM | EL_INFO_IGNORE);
         }
     }
 }

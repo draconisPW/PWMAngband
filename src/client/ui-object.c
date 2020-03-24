@@ -5,7 +5,7 @@
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007-9 Andi Sidwell, Chris Carr, Ed Graham, Erik Osheim
  * Copyright (c) 2015 Nick McConnell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -189,7 +189,6 @@ static void show_obj(int obj_num, int row, int col, bool cursor, int mode)
 
         strnfmt(buf, sizeof(buf), "%4d.%1d lb", weight / 10, weight % 10);
         put_str(buf, row + obj_num, col + ex_offset_ctr);
-        ex_offset_ctr += 9;
     }
 }
 

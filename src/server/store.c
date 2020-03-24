@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Robert A. Koeneke, James E. Wilson, Ben Harrison
  * Copyright (c) 2007 Andi Sidwell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1142,6 +1142,7 @@ static void store_delete(struct store *s, struct object *obj, int amt)
             my_strcpy(store_orders[obj->ordered - 1], "", sizeof(store_orders[0]));
 
         object_delete(&obj);
+        my_assert(s->stock_num);
         s->stock_num--;
     }
 }
@@ -2571,6 +2572,7 @@ void do_cmd_retrieve(struct player *p, int item, int amt)
 
     /* Paranoia */
     if (item < 0) return;
+    if (!store) return;
 
     if (store->type != STORE_HOME)
     {

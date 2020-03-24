@@ -100,6 +100,7 @@
 #include "target.h"
 #include "target-ui.h"
 #include "trap.h"
+#include "visuals-ui.h"
 #include "wilderness.h"
 #include "z-textblock.h"
 

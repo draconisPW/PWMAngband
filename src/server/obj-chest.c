@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2012 Peter Denison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -397,6 +397,10 @@ bool do_cmd_open_chest(struct player *p, struct chunk *c, struct loc *grid, stru
     {
         /* Apply chest traps, if any and player is not trapsafe */
         if (!player_is_trapsafe(p)) chest_trap(p, c, obj);
+
+        /* Learn trap immunity if there are traps */
+        else if ((obj->pval > 0) && player_of_has(p, OF_TRAP_IMMUNE))
+            equip_learn_flag(p, OF_TRAP_IMMUNE);
 
         /* Let the Chest drop items */
         chest_death(p, c, grid, obj);

@@ -2,7 +2,7 @@
  * File: netserver.c
  * Purpose: The server side of the network stuff
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -2292,14 +2292,14 @@ int Send_recall(struct player *p, s16b word_recall, s16b deep_descent)
 }
 
 
-int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring)
+int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring, const char *terrain)
 {
     connection_t *connp = get_connp(p, "state");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd%hd", (unsigned)PKT_STATE, (int)stealthy,
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd%hd%s", (unsigned)PKT_STATE, (int)stealthy,
         (int)resting, (int)unignoring, (int)p->obj_feeling, (int)p->mon_feeling,
-        (int)p->square_light);
+        (int)p->square_light, terrain);
 }
 
 

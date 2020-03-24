@@ -3,7 +3,7 @@
  * Purpose: Various game initialisation routines
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -3669,11 +3669,13 @@ extern struct init_module mon_make_module;
 extern struct init_module obj_make_module;
 extern struct init_module ignore_module;
 extern struct init_module store_module;
+extern struct init_module ui_visuals_module;
 
 
 static struct init_module *modules[] =
 {
     &z_quark_module,
+    &ui_visuals_module, /* This needs to load before monsters and objects. */
     &arrays_module,
     &generate_module,
     &rune_module,

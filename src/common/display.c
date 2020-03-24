@@ -2,7 +2,7 @@
  * File: display.c
  * Purpose: Display the character on the screen or in a file
  *
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1099,33 +1099,6 @@ static size_t prt_state(struct player *p, int row, int col)
 
 
 /*
- * Prints trap detection status
- */
-static size_t prt_dtrap(struct player *p, int row, int col)
-{
-    byte attr = COLOUR_WHITE;
-    const char *text = "";
-    byte dtrap = get_dtrap(p);
-
-    if (dtrap == 2)
-    {
-        attr = COLOUR_YELLOW;
-        text = "DTrap";
-    }
-    if (dtrap == 1)
-    {
-        attr = COLOUR_L_GREEN;
-        text = "DTrap";
-    }
-
-    /* Display the info (or blanks) */
-    put_str_hook(col, row, -1, attr, text);
-
-    return (text[0]? (strlen(text) + 1): 0);
-}
-
-
-/*
  * Print how many spells the player can study.
  */
 static size_t prt_study(struct player *p, int row, int col)
@@ -1153,6 +1126,44 @@ static size_t prt_study(struct player *p, int row, int col)
 
 
 /*
+ * Prints trap detection status
+ */
+static size_t prt_dtrap(struct player *p, int row, int col)
+{
+    byte attr = COLOUR_WHITE;
+    const char *text = "";
+    byte dtrap = get_dtrap(p);
+
+    if (dtrap == 2)
+    {
+        attr = COLOUR_YELLOW;
+        text = "DTrap";
+    }
+    if (dtrap == 1)
+    {
+        attr = COLOUR_L_GREEN;
+        text = "DTrap";
+    }
+
+    /* Display the info (or blanks) */
+    put_str_hook(col, row, -1, attr, text);
+
+    return (text[0]? (strlen(text) + 1): 0);
+}
+
+
+/*
+ * Prints player trap (if any) or terrain
+ */
+static size_t prt_terrain(struct player *p, int row, int col)
+{
+    put_str_hook(col, row, -1, p->terrain[0], p->terrain + 1);
+
+    return strlen(p->terrain) - 1;
+}
+
+
+/*
  * Descriptive typedef for status handlers
  */
 typedef size_t status_f(struct player *p, int row, int col);
@@ -1163,8 +1174,8 @@ typedef size_t status_f(struct player *p, int row, int col);
  */
 static status_f *status_handlers[] =
 {
-    prt_level_feeling, prt_light, prt_unignore, prt_recall, prt_descent, prt_state, prt_study,
-        prt_tmd, prt_dtrap
+    prt_level_feeling, prt_light, prt_unignore, prt_recall, prt_descent, prt_state,
+        prt_study, prt_tmd, prt_dtrap, prt_terrain
 };
 
 

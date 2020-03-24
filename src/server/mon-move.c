@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke (attacking code)
  * Copyright (c) 1997 Ben Harrison, David Reeve Sward, Keldon Jones (AI routines).
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -428,9 +428,14 @@ static bool get_move_bodyguard(struct player *p, struct chunk *c, struct monster
 {
     int i;
     struct monster *leader = monster_group_leader(c, mon);
-    int dist = distance(&mon->grid, &leader->grid);
+    int dist;
     struct loc best;
     bool found = false;
+
+    if (!leader) return false;
+
+    /* Get distance */
+    dist = distance(&mon->grid, &leader->grid);
 
     /* If currently adjacent to the leader, we can afford a move */
     if (dist <= 1) return false;
@@ -2384,7 +2389,6 @@ static void monster_effects(struct player *p, struct monster *mon)
 static void monster_reduce_sleep(struct monster *mon, bool mvm)
 {
     struct player *p = mon->closest_player;
-    bool woke_up = false;
     int stealth = p->state.skills[SKILL_STEALTH];
     int player_noise;
     int notice = randint0(1024);
@@ -2401,7 +2405,9 @@ static void monster_reduce_sleep(struct monster *mon, bool mvm)
         /* Wake the monster, make it aware */
         monster_wake(p, mon, true, 100);
 
-        woke_up = true;
+        /* Notify the player if aware */
+        if (player_of_has(p, OF_AGGRAVATE) && monster_is_obvious(p, mon->midx, mon))
+            equip_learn_flag(p, OF_AGGRAVATE);
     }
 
     /* Hack -- see if monster "notices" player */
@@ -2409,6 +2415,7 @@ static void monster_reduce_sleep(struct monster *mon, bool mvm)
     {
         int sleep_reduction = 1;
         int local_noise = p->cave->noise.grids[mon->grid.y][mon->grid.x];
+        bool woke_up = false;
 
         /* Wake up faster in hearing distance of the player */
         if ((local_noise > 0) && (local_noise < 50)) sleep_reduction = (100 / local_noise);

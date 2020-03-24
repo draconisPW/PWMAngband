@@ -74,6 +74,8 @@ Angband 4.2.0:
 - Grammatical and spelling fixes
 - Arrange town shops along streets
 - Light hidden squares in town
+- Make sure every extra projection effect has a message
+- Show plater grid trap or terrain on status line
 
 PWMAngband:
 
@@ -138,6 +140,8 @@ Angband 4.2.0:
 - Halve device damage boosts
 - Give some monsters orb of draining
 - Give Alchemist's gloves better armor
+- Make items with random resists also ignore that element
+- Allow player to be pushed into traps, webs or objects by earthquakes
 
 PWMAngband:
 
@@ -175,6 +179,8 @@ Angband 4.2.0:
 - Expand combat line in artifact.txt to attack and armor
 - Reorganise player-attack
 - Simplify Term_fresh
+- Replace hardcoded flicker table with one from a config file
+- Implement color cycling
 
 PWMAngband:
 
@@ -185,3 +191,4 @@ Compilation
 -----------
 
 - Restore UNIX support
+- Add README file

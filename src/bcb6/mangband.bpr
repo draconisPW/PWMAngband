@@ -47,8 +47,8 @@
       ..\..\obj\savefile.obj ..\..\obj\sched-win.obj ..\..\obj\score.obj 
       ..\..\obj\score-ui.obj ..\..\obj\store.obj ..\..\obj\s-util.obj 
       ..\..\obj\target.obj ..\..\obj\target-ui.obj ..\..\obj\trap.obj 
-      ..\..\obj\wilderness.obj ..\..\obj\z-quark.obj ..\..\obj\z-queue.obj 
-      ..\..\obj\z-textblock.obj"/>
+      ..\..\obj\visuals-ui.obj ..\..\obj\wilderness.obj ..\..\obj\z-quark.obj 
+      ..\..\obj\z-queue.obj ..\..\obj\z-textblock.obj"/>
     <RESFILES value="mangband.res ..\..\obj\angband.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -58,7 +58,7 @@
     <LIBRARIES value="rtl.lib"/>
     <SPARELIBS value="rtl.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi vclx.bpi"/>
-    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server"/>
+    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;..\win;..\win"/>
     <PATHASM value=".;"/>
@@ -215,6 +215,7 @@
       <FILE FILENAME="..\server\target.c" FORMNAME="" UNITNAME="target" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\target-ui.c" FORMNAME="" UNITNAME="target-ui" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\trap.c" FORMNAME="" UNITNAME="trap" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\server\visuals-ui.c" FORMNAME="" UNITNAME="visuals-ui" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\wilderness.c" FORMNAME="" UNITNAME="wilderness.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\z-quark.c" FORMNAME="" UNITNAME="z-quark" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\z-queue.c" FORMNAME="" UNITNAME="z-queue" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>

@@ -210,6 +210,7 @@ SERVER_ANGFILES = \
 	common/net-unix.o \
 	server/netserver.o \
 	server/s-util.o \
+	server/visuals-ui.o \
 	server/wilderness.o \
 	common/util.o \
 	server/display-ui.o \

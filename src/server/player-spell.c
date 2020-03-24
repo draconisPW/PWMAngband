@@ -3,7 +3,7 @@
  * Purpose: Spell and prayer casting/praying
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -258,14 +258,15 @@ static int min_fail(struct player *p, const struct class_spell *spell)
  */
 s16b spell_chance(struct player *p, int spell_index)
 {
-    int chance, minfail;
+    int chance = 100, minfail;
     const struct class_spell *spell;
 
     /* Paranoia -- must be literate */
-    if (!p->clazz->magic.total_spells) return (100);
+    if (!p->clazz->magic.total_spells) return chance;
 
     /* Get the spell */
     spell = spell_by_index(&p->clazz->magic, spell_index);
+    if (!spell) return chance;
 
     /* Extract the base spell failure rate */
     chance = spell->sfail;

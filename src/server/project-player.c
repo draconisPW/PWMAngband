@@ -3,7 +3,7 @@
  * Purpose: Projection effects on players
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -381,7 +381,7 @@ static int project_player_handler_COLD(project_player_handler_context_t *context
             {
                 int drain = context->dam;
 
-                msg(p, "You feel your life force draining away!");
+                msg(p, "The cold withers your life force!");
                 player_exp_lose(p, drain, false);
             }
         }
@@ -453,7 +453,10 @@ static int project_player_handler_LIGHT(project_player_handler_context_t *contex
 
     /* Confusion for strong unresisted light */
     if (context->dam > 300)
+    {
+        msg(p, "You are dazzled!");
         player_inc_timed(p, TMD_CONFUSED, 2 + randint1(context->dam / 100), true, check);
+    }
 
     return 0;
 }
@@ -486,18 +489,24 @@ static int project_player_handler_DARK(project_player_handler_context_t *context
             {
                 int drain = context->dam;
 
-                msg(p, "You feel your life force draining away!");
+                msg(p, "The darkness steals your life force!");
                 player_exp_lose(p, drain, false);
             }
         }
 
         /* Slowing */
         if (randint0(context->dam) > 200)
+        {
+            msg(p, "You feel unsure of yourself in the darkness.");
             player_inc_timed(p, TMD_SLOW, context->dam / 100, true, false);
+        }
 
         /* Amnesia */
         if (randint0(context->dam) > 300)
+        {
+            msg(p, "Darkness penetrates your mind!");
             player_inc_timed(p, TMD_AMNESIA, context->dam / 100, true, false);
+        }
     }
 
     return 0;
@@ -522,7 +531,10 @@ static int project_player_handler_SOUND(project_player_handler_context_t *contex
 
     /* Confusion for strong unresisted sound */
     if (context->dam > 300)
+    {
+        msg(p, "The noise disorients you.");
         player_inc_timed(p, TMD_CONFUSED, 2 + randint1(context->dam / 100), true, check);
+    }
 
     return 0;
 }

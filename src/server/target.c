@@ -3,7 +3,7 @@
  * Purpose: Targeting code
  *
  * Copyright (c) 1997-2007 Angband contributors
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -67,6 +67,8 @@ static const char *look_health_desc(bool living, int chp, int mhp)
 void look_mon_desc(struct monster *mon, char *buf, size_t max)
 {
     bool living = true;
+
+    if (!mon) return;
 
     /* Determine if the monster is "living" (vs "undead") */
     if (monster_is_nonliving(mon->race)) living = false;

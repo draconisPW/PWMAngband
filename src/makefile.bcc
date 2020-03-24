@@ -194,6 +194,7 @@ SERV_SRCS = \
   server\target.c \
   server\target-ui.c \
   server\trap.c \
+  server\visuals-ui.c \
   server\wilderness.c \
   server\z-quark.c \
   server\z-queue.c \
@@ -321,6 +322,7 @@ SERV_OBJS = \
   server\target.obj \
   server\target-ui.obj \
   server\trap.obj \
+  server\visuals-ui.obj \
   server\wilderness.obj \
   server\z-quark.obj \
   server\z-queue.obj \

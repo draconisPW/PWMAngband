@@ -3,7 +3,7 @@
  * Purpose: Monster group behaviours
  *
  * Copyright (c) 2018 Nick McConnell
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -108,6 +108,12 @@ static void monster_group_remove_leader(struct chunk *c, struct monster *leader,
     while (list_entry)
     {
         struct monster *mon = cave_monster(c, list_entry->midx);
+
+        if (!mon)
+        {
+            list_entry = list_entry->next;
+            continue;
+        }
 
         /* Monsters of the same race can take over as leader */
         if ((leader->race == mon->race) && !poss_leader &&

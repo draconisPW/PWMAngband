@@ -3,7 +3,7 @@
  * Purpose: Utility functions
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2019 MAngband and PWMAngband Developers
+ * Copyright (c) 2020 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -377,7 +377,7 @@ void object_short_name(char *buf, size_t max, const char *name)
     size_t len = strlen(name);
 
     /* Copy across the name, stripping modifiers & and ~ */
-    for (j = 0, k = 0; ((j < len) && (k < max)); j++)
+    for (j = 0, k = 0; ((j < len) && (k < max - 1)); j++)
     {
         if ((j == 0) && (name[0] == '&') && (name[1] == ' ')) j += 2;
         if (name[j] == '~') continue;
