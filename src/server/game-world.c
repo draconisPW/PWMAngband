@@ -338,6 +338,13 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
                     decr = 0;
                 break;
             }
+
+            case TMD_FOOD:
+            {
+                /* Already handled in digest_food() */
+                decr = 0;
+                break;
+            }
         }
 
         /* Hack -- make -1 permanent */
