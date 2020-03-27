@@ -4766,54 +4766,13 @@ cost:1
 alloc:50:0 to 100
 desc:A plain bottle made of glass. It can be filled with various liquids...
 
-name:& Broken Skull~
-graphics:~:W
-type:skeleton
-level:0
-weight:2
-cost:0
-desc:Good old Yorick. So that's where he ended up.
-
-name:& Broken Bone~
-graphics:~:W
-type:skeleton
-level:0
-weight:2
-cost:0
-desc:A yellowish bone, broken off. Obviously, its owner no longer has a use for
-desc: it.
-
-name:& Canine Skeleton~
-graphics:~:W
-type:skeleton
-level:0
-weight:10
-cost:0
-desc:The sorry, bony remains of some hapless dog.
-
-name:& Rodent Skeleton~
-graphics:~:W
-type:skeleton
-level:1
-weight:10
-cost:0
-desc:The sorry, bony remains of some hapless rodent.
-
-name:& Human Skeleton~
+name:skeleton
 graphics:~:w
 type:skeleton
-level:12
+level:0
 weight:60
 cost:0
-desc:The sorry, bony remains of some hapless human.
-
-name:& Elf Skeleton~
-graphics:~:W
-type:skeleton
-level:7
-weight:40
-cost:0
-desc:The sorry, bony remains of some hapless elf.
+desc:The sorry, bony remains of some hapless creature.
 
 
 ##### Dragon Scale Mail #####
@@ -5449,46 +5408,6 @@ weight:4
 cost:3500
 alloc:50:70 to 100
 effect:RESTORE_MANA
-
-name:& Kobold Skeleton~
-graphics:~:w
-type:skeleton
-level:5
-weight:20
-cost:0
-desc:The sorry, bony remains of some hapless kobold.
-
-name:& Orc Skeleton~
-graphics:~:w
-type:skeleton
-level:8
-weight:40
-cost:0
-desc:The sorry, bony remains of some hapless orc.
-
-name:& Skull~
-graphics:~:w
-type:skeleton
-level:15
-weight:15
-cost:0
-desc:It's a white bony skull, smiling to you without teeth.
-
-name:& Troll Skeleton~
-graphics:~:w
-type:skeleton
-level:30
-weight:100
-cost:0
-desc:The sorry, bony remains of some hapless troll.
-
-name:& Two-headed troll Skeleton~
-graphics:~:w
-type:skeleton
-level:33
-weight:200
-cost:0
-desc:The sorry, bony remains of some hapless two-headed troll.
 
 name:Crystal Dragon Scale Mail~
 graphics:[:u

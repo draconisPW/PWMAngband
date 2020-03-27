@@ -424,6 +424,13 @@ bool object_stackable(struct player *p, const struct object *obj1, const struct 
             return false;
     }
 
+    /* Skeletons */
+    else if (tval_is_skeleton(obj1))
+    {
+        /* Require identical monster type */
+        if (obj1->pval != obj2->pval) return false;
+    }
+
     /* Corpses */
     else if (tval_is_corpse(obj1))
     {

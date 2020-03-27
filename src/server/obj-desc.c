@@ -28,6 +28,9 @@
  */
 static const char *obj_desc_get_modstr(const struct object *obj)
 {
+    if (tval_is_skeleton(obj) && obj->pval)
+        return "skeleton";
+
     if (tval_is_corpse(obj) && obj->pval)
         return "corpse";
 
@@ -57,7 +60,6 @@ static const char *obj_desc_get_basename(const struct object *obj, bool aware, b
     /* Analyze the object */
     switch (obj->tval)
     {
-        case TV_SKELETON:
         case TV_STONE:
         case TV_BOTTLE:
         case TV_DEED:
@@ -88,6 +90,16 @@ static const char *obj_desc_get_basename(const struct object *obj, bool aware, b
         case TV_CROP:
         case TV_COOKIE:
             return obj->kind->name;
+
+        case TV_SKELETON:
+        {
+            struct monster_race* race;
+
+            if (!obj->pval) return "& Skeleton~";
+
+            race = &r_info[obj->pval];
+            return format("& %s #~", race->name);
+        }
 
         case TV_CORPSE:
         {

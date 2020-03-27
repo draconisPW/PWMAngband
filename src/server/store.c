@@ -1799,6 +1799,16 @@ static byte find_inven(struct player *p, struct object *obj)
                 break;
             }
 
+            /* Skeletons */
+            case TV_SKELETON:
+            {
+                /* Require identical monster type */
+                if (obj->pval != gear_obj->pval) continue;
+
+                /* Probably okay */
+                break;
+            }
+
             /* Corpses */
             case TV_CORPSE:
             {

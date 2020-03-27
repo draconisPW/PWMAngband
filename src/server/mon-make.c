@@ -2196,37 +2196,16 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
     else if (rf_has(mon->race->flags, RF_DROP_SKELETON) && one_in_(mon->wpos.depth? 40: 200))
     {
         struct object *skeleton = object_new();
-        int sval;
-
-        /* Get the sval from monster race */
-        if (mon->race->base == lookup_monster_base("canine"))
-            sval = lookup_sval(TV_SKELETON, "Canine Skeleton");
-        else if (mon->race->base == lookup_monster_base("rodent"))
-            sval = lookup_sval(TV_SKELETON, "Rodent Skeleton");
-        else if ((mon->race->base == lookup_monster_base("humanoid")) &&
-            (strstr(mon->race->name, "elf") || strstr(mon->race->name, "elven")))
-        {
-            sval = lookup_sval(TV_SKELETON, "Elf Skeleton");
-        }
-        else if (mon->race->base == lookup_monster_base("kobold"))
-            sval = lookup_sval(TV_SKELETON, "Kobold Skeleton");
-        else if (mon->race->base == lookup_monster_base("orc"))
-            sval = lookup_sval(TV_SKELETON, "Orc Skeleton");
-        else if (mon->race->base == lookup_monster_base("person"))
-            sval = lookup_sval(TV_SKELETON, "Human Skeleton");
-        else if (streq(mon->race->name, "two-headed troll"))
-            sval = lookup_sval(TV_SKELETON, "Two-headed troll Skeleton");
-        else if (mon->race->base == lookup_monster_base("troll"))
-            sval = lookup_sval(TV_SKELETON, "Troll Skeleton");
-        else if (mon->race->level >= 15)
-            sval = lookup_sval(TV_SKELETON, "Skull");
-        else if (one_in_(2))
-            sval = lookup_sval(TV_SKELETON, "Broken Skull");
-        else
-            sval = lookup_sval(TV_SKELETON, "Broken Bone");
+        int sval = lookup_sval(TV_SKELETON, "skeleton");
 
         /* Prepare to make the skeleton */
         object_prep(p, skeleton, lookup_kind(TV_SKELETON, sval), 0, MINIMISE);
+
+        /* Remember the type of skeleton */
+        skeleton->pval = mon->race->ridx;
+
+        /* Set weight */
+        skeleton->weight = (mon->race->weight + randint0(mon->race->weight) * 3 / 50) + 1;
 
         /* Set origin */
         set_origin(skeleton, ORIGIN_DROP, mon->wpos.depth, mon->race);

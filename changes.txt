@@ -161,6 +161,7 @@ PWMAngband:
 - Add aquatic monsters
 - Nerf death wings/golems
 - Remove Unlife pits
+- Replace specific skeletons by general skeletons, rework Raise effect
 
 Bugs fixed
 ----------

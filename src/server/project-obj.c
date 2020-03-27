@@ -392,6 +392,32 @@ static bool valid_race(project_object_handler_context_t *context, struct monster
 }
 
 
+/* Is the race consistent with the skeleton? */
+static bool consistent_skeleton(struct monster_race *race, struct monster_race *skeleton)
+{
+    if (streq(race->name, "skeleton kobold"))
+        return (skeleton->base == lookup_monster_base("kobold"));
+
+    if (streq(race->name, "skeleton orc"))
+        return (skeleton->base == lookup_monster_base("orc"));
+
+    if (streq(race->name, "skeleton human"))
+        return (skeleton->base == lookup_monster_base("person"));
+
+    if (streq(race->name, "skeleton troll"))
+        return (skeleton->base == lookup_monster_base("troll"));
+
+    if (streq(race->name, "skeleton two-headed troll"))
+        return streq(skeleton->name, "two-headed troll");
+
+    /* Give a slim chance of getting a powerful druj */
+    if (strstr(race->name, "druj"))
+        return one_in_(100);
+
+    return true;
+}
+
+
 /* Is the race consistent with the corpse? */
 static bool consistent_corpse(struct monster_race *race, struct monster_race *corpse)
 {
@@ -428,26 +454,29 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
     /* Skeletons must match an existing skeleton race */
     if (tval_is_skeleton(context->obj))
     {
-        if (strstr(context->obj->kind->name, "Human"))
-            race = get_race("skeleton human");
-        else if (strstr(context->obj->kind->name, "Elf"))
-            race = get_race("ice skeleton");
-        else if (strstr(context->obj->kind->name, "Kobold"))
-            race = get_race("skeleton kobold");
-        else if (strstr(context->obj->kind->name, "Orc"))
-            race = get_race("skeleton orc");
-        else if (context->obj->sval == lookup_sval(context->obj->tval, "Skull"))
+        struct monster_race *skeleton = &r_info[context->obj->pval];
+        int tries = 20;
+
+        /* Try hard to raise something */
+        while (tries)
         {
-            /* Give a chance of getting a powerful skull druj */
-            if (one_in_(3))
-                race = get_race("skull druj");
-            else
-                race = get_race("flying skull");
+            while (true)
+            {
+                race = &r_info[randint1(z_info->r_max - 1)];
+                if (!race->name) continue;
+
+                /* Animated skeletons can be any of non unique skeleton */
+                if ((race->base == lookup_monster_base("skeleton")) &&
+                    consistent_skeleton(race, skeleton))
+                {
+                    break;
+                }
+            }
+
+            if (valid_race(context, race)) break;
+            race = NULL;
+            tries--;
         }
-        else if (strstr(context->obj->kind->name, "Troll"))
-            race = get_race("skeleton troll");
-        else if (strstr(context->obj->kind->name, "Two-headed troll"))
-            race = get_race("skeleton two-headed troll");
     }
 
     /* Humanoid corpses can be raised too */
