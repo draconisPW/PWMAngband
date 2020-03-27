@@ -83,6 +83,7 @@ PWMAngband:
 
 - Remove Shockbolt tileset
 - Pressing another macro clears choice menu when a first macro lacks item
+- New option: Use white color for torch-lit grids in towns
 
 Gameplay changes
 ----------------

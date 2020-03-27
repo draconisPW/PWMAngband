@@ -139,6 +139,12 @@ Use orange color for torch-lit grids ``view_orange_light``
 
 ..
 
+Use white color for torch-lit grids in towns ``view_white_light``
+  This option causes special "torch-lit" grids to be displayed in "white"
+  instead of "yellow" while in a town.
+
+..
+
 Use special color for party leader ``highlight_leader``
   This option activates a special color scheme for party leaders, so that party
   members can quickly determine who's the leader and follow that player in
