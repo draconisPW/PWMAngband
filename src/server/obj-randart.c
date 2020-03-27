@@ -2666,7 +2666,8 @@ static void make_bad(struct artifact *art)
     /* Reverse mods and bonuses */
     for (i = 0; i < OBJ_MOD_MAX; i++)
     {
-        if ((art->modifiers[i] > 0) && one_in_(2)) art->modifiers[i] = 0 - art->modifiers[i];
+        if ((art->modifiers[i] > 0) && one_in_(2) && (i != OBJ_MOD_MIGHT))
+            art->modifiers[i] = 0 - art->modifiers[i];
     }
     if ((art->to_a > 0) && one_in_(2)) art->to_a = 0 - art->to_a;
     if ((art->to_h > 0) && one_in_(2)) art->to_h = 0 - art->to_h;

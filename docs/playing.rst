@@ -110,7 +110,7 @@ Original Keyset Command Summary
 ``z``  Zap a rod                     ``Z``  (unused)
 ``!``  (unused)                      ``^A`` Do autopickup
 ``@``  Display connected players     ``^B`` (unused)
-``#``  (unused)                      ``^C`` End character & quit
+``#``  See abilities                 ``^C`` End character & quit
 ``$``  Drop gold                     ``^D`` Describe object
 ``%``  Display current time          ``^E`` Buy a house
 ``^``  (special - control key)       ``^F`` Repeat level feeling
@@ -171,7 +171,7 @@ Roguelike Keyset Command Summary
   z    Aim a wand (Zap)                Z    Use a staff (Zap)
   !    Access party menu               ^A   Do autopickup
   @    Center map                      ^B   (alter - south west)
-  #    (unused)                        ^C   End character & quit
+  #    See abilities                   ^C   End character & quit
   $    Drop gold                       ^D   Ignore an item
   %    Display current time            ^E   Buy a house
   ^    (special - control key)         ^F   Repeat level feeling

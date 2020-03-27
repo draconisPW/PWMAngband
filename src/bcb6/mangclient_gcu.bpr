@@ -16,14 +16,15 @@
       ..\..\obj\c-player.obj ..\..\obj\cmd-core.obj ..\..\obj\conf.obj 
       ..\..\obj\game-event.obj ..\..\obj\game-input.obj ..\..\obj\grafmode.obj 
       ..\..\obj\main.obj ..\..\obj\main-gcu.obj ..\..\obj\netclient.obj 
-      ..\..\obj\set_focus.obj ..\..\obj\sound-core.obj ..\..\obj\ui-birth.obj 
-      ..\..\obj\ui-command.obj ..\..\obj\ui-context.obj ..\..\obj\ui-curse.obj 
-      ..\..\obj\ui-death.obj ..\..\obj\ui-display.obj ..\..\obj\ui-event.obj 
-      ..\..\obj\ui-game.obj ..\..\obj\ui-init.obj ..\..\obj\ui-input.obj 
-      ..\..\obj\ui-keymap.obj ..\..\obj\ui-knowledge.obj ..\..\obj\ui-menu.obj 
-      ..\..\obj\ui-message.obj ..\..\obj\ui-object.obj ..\..\obj\ui-options.obj 
-      ..\..\obj\ui-output.obj ..\..\obj\ui-prefs.obj ..\..\obj\ui-spell.obj 
-      ..\..\obj\ui-store.obj ..\..\obj\ui-term.obj"/>
+      ..\..\obj\player-properties.obj ..\..\obj\set_focus.obj 
+      ..\..\obj\sound-core.obj ..\..\obj\ui-birth.obj ..\..\obj\ui-command.obj 
+      ..\..\obj\ui-context.obj ..\..\obj\ui-curse.obj ..\..\obj\ui-death.obj 
+      ..\..\obj\ui-display.obj ..\..\obj\ui-event.obj ..\..\obj\ui-game.obj 
+      ..\..\obj\ui-init.obj ..\..\obj\ui-input.obj ..\..\obj\ui-keymap.obj 
+      ..\..\obj\ui-knowledge.obj ..\..\obj\ui-menu.obj ..\..\obj\ui-message.obj 
+      ..\..\obj\ui-object.obj ..\..\obj\ui-options.obj ..\..\obj\ui-output.obj 
+      ..\..\obj\ui-prefs.obj ..\..\obj\ui-spell.obj ..\..\obj\ui-store.obj 
+      ..\..\obj\ui-term.obj"/>
     <RESFILES value="mangclient_gcu.res ..\..\obj\angband.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -39,7 +40,7 @@
       inetdbbde.bpi inetdbxpress.bpi inetdb.bpi nmfast.bpi webdsnap.bpi 
       bcbie.bpi websnap.bpi soaprtl.bpi dclocx.bpi dbexpress.bpi dbxcds.bpi 
       indy.bpi bcb2kaxserver.bpi"/>
-    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client"/>
+    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;..\win;..\win"/>
     <PATHASM value=".;"/>
@@ -109,6 +110,7 @@
       <FILE FILENAME="..\client\main.c" FORMNAME="" UNITNAME="main" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\main-gcu.c" FORMNAME="" UNITNAME="main-gcu.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\netclient.c" FORMNAME="" UNITNAME="netclient.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\client\player-properties.c" FORMNAME="" UNITNAME="player-properties" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\set_focus.c" FORMNAME="" UNITNAME="set_focus.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\sound-core.c" FORMNAME="" UNITNAME="sound-core" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\ui-birth.c" FORMNAME="" UNITNAME="ui-birth" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>

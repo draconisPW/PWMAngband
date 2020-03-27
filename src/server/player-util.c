@@ -154,6 +154,8 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
 
     /* Apply damage reduction */
     damage -= p->state.dam_red;
+    if (p->state.perc_dam_red)
+        damage -= (damage * p->state.perc_dam_red) / 100;
     if (damage <= 0)
     {
         p->died_flavor[0] = '\0';
@@ -284,11 +286,17 @@ void player_regen_hp(struct player *p, struct chunk *c)
     /* Some things slow it down */
     if (player_of_has(p, OF_IMPAIR_HP)) percent /= 2;
 
+    /* Crowd fighters get a bonus */
+    if (player_has(p, PF_CROWD_FIGHT)) percent *= player_crowd_regeneration(p);
+
     /* Various things interfere with physical healing */
-    if (p->timed[TMD_PARALYZED]) percent = 0;
-    if (p->timed[TMD_POISONED]) percent = 0;
-    if (p->timed[TMD_STUN]) percent = 0;
-    if (p->timed[TMD_CUT]) percent = 0;
+    else
+    {
+        if (p->timed[TMD_PARALYZED]) percent = 0;
+        if (p->timed[TMD_POISONED]) percent = 0;
+        if (p->timed[TMD_STUN]) percent = 0;
+        if (p->timed[TMD_CUT]) percent = 0;
+    }
     if (player_undead(p)) percent = 0;
     if ((p->timed[TMD_WRAITHFORM] == -1) && !square_ispassable(c, &p->grid)) percent = 0;
 
@@ -985,6 +993,61 @@ void cancel_running(struct player *p)
 
     /* Mark the whole map to be redrawn */
     p->upkeep->redraw |= (PR_MAP);
+}
+
+
+/*
+ * Calculates a weighted value of monsters that can see the player.
+ */
+static int player_crowd_weighting(struct player *p)
+{
+    struct chunk *c = chunk_get(&p->wpos);
+    int i, depth, wgt = 0;
+
+    /* Paranoia */
+    if (!c) return 0;
+    depth = c->wpos.depth;
+
+    /* Count the monsters */
+    for (i = 1; i < cave_monster_max(c); i++)
+    {
+        /* Look at nearby living monsters */
+        struct monster *mon = cave_monster(c, i);
+
+        if (!mon->race) continue;
+        if (mon->cdis > z_info->max_sight) continue;
+        if (!projectable(p, c, &mon->grid, &p->grid, PROJECT_NONE, true)) continue;
+
+        /* Add up contributions */
+        wgt += ((depth < mon->race->level)? (mon->race->level - depth): 1);
+    }
+
+    return wgt;
+}
+
+
+/*
+ * Calculates damage reduction due to crowd of monsters.
+ */
+int player_crowd_damage_reduction(struct player *p)
+{
+    int weight = player_crowd_weighting(p);
+
+    /* Use that as a percentage, up to a point */
+    if (weight > 50) weight = 50 + ((weight - 50) / 4);
+    return MIN(weight, 80);
+}
+
+
+/*
+ *  Calculates regeneration due to crowd of monsters.
+ */
+int player_crowd_regeneration(struct player *p)
+{
+    int weight = player_crowd_weighting(p);
+
+    /* Make this a factor to regen */
+    return MAX(1, MIN(4, weight / 5));
 }
 
 

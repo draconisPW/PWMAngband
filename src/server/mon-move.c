@@ -56,7 +56,8 @@ static bool can_path_player(struct player *p, const struct monster *mon, struct 
     int m;
 
     /* If player is in LOS, there's no need to go around walls */
-    if (projectable(c, &((struct monster *)mon)->grid, &p->grid, PROJECT_NONE, false)) return true;
+    if (projectable(p, c, &((struct monster *)mon)->grid, &p->grid, PROJECT_SHORT, false))
+        return true;
 
     /* Analyze "dy" */
     if (y2 < y1)
@@ -209,6 +210,17 @@ static bool can_path_player(struct player *p, const struct monster *mon, struct 
 
 
 /*
+ * Check if the monster can see the player
+ */
+static bool monster_can_see_player(struct player *p, struct monster *mon)
+{
+    if (!square_isview(p, &mon->grid)) return false;
+    if (p->timed[TMD_COVERTRACKS] && (mon->cdis > z_info->max_sight / 4)) return false;
+    return true;
+}
+
+
+/*
  * Check if the monster can hear anything
  */
 static bool monster_can_hear(struct player *p, struct monster *mon)
@@ -350,6 +362,9 @@ static void get_move_find_range(struct player *p, struct monster *mon)
     {
         /* Minimum distance - stay at least this far if possible */
         mon->min_range = 1;
+
+        /* Taunted monsters just want to get in your face */
+        if (p->timed[TMD_TAUNT]) return;
 
         /* Examine player power (level) */
         p_lev = p->lev;
@@ -716,7 +731,7 @@ static bool get_move_advance(struct player *p, struct chunk *c, struct monster *
     }
 
     /* If the player can see monster, set target and run towards them */
-    if (square_isview(p, &mon->grid))
+    if (monster_can_see_player(p, mon))
     {
         loc_copy(&mon->target.grid, &target);
         *track = true;
@@ -725,108 +740,115 @@ static bool get_move_advance(struct player *p, struct chunk *c, struct monster *
 
     for (i = 0; i < 8; i++) loc_init(&best_grid[i], 0, 0);
 
-    /* Get nearby grids with best noise, break ties with max noise */
-    best_noise = get_best_noise(p, c, mon, &mon->grid);
-    max_noise = get_max_noise(p, c, mon, best_noise);
-    for (i = 0; i < 8; i++)
+    /* Try to use sound */
+    if (monster_can_hear(p, mon))
     {
-        /* Get the location */
-        struct loc grid;
-        int heard_noise;
-
-        loc_sum(&grid, &mon->grid, &ddgrid_ddd[i]);
-
-        /* Bounds check */
-        if (!square_in_bounds(c, &grid)) continue;
-
-        heard_noise = base_hearing - p->cave->noise.grids[grid.y][grid.x];
-
-        /* Must be some noise */
-        if (p->cave->noise.grids[grid.y][grid.x] == 0) continue;
-
-        /* There's a monster blocking that we can't deal with */
-        if (!monster_can_kill(c, mon, &grid) && !monster_can_move(c, mon, &grid))
-            continue;
-
-        /* There's damaging terrain */
-        if (monster_hates_grid(c, mon, &grid)) continue;
-
-        /* If it's better than the current noise, choose this direction */
-        /* Possible move if we can't actually get closer */
-        if (heard_noise == best_noise)
+        /* Get nearby grids with best noise, break ties with max noise */
+        best_noise = get_best_noise(p, c, mon, &mon->grid);
+        max_noise = get_max_noise(p, c, mon, best_noise);
+        for (i = 0; i < 8; i++)
         {
-            /* Check nearby grids for best noise again (in case we have multiple valid grids) */
-            int noise = get_best_noise(p, c, mon, &grid);
+            /* Get the location */
+            struct loc grid;
+            int heard_noise;
 
-            if (noise == max_noise)
+            loc_sum(&grid, &mon->grid, &ddgrid_ddd[i]);
+
+            /* Bounds check */
+            if (!square_in_bounds(c, &grid)) continue;
+
+            heard_noise = base_hearing - p->cave->noise.grids[grid.y][grid.x];
+
+            /* Must be some noise */
+            if (p->cave->noise.grids[grid.y][grid.x] == 0) continue;
+
+            /* There's a monster blocking that we can't deal with */
+            if (!monster_can_kill(c, mon, &grid) && !monster_can_move(c, mon, &grid))
+                continue;
+
+            /* There's damaging terrain */
+            if (monster_hates_grid(c, mon, &grid)) continue;
+
+            /* If it's better than the current noise, choose this direction */
+            /* Possible move if we can't actually get closer */
+            if (heard_noise == best_noise)
             {
-                loc_copy(&best_grid[n], &grid);
-                n++;
+                /* Check nearby grids for best noise again (in case we have multiple valid grids) */
+                int noise = get_best_noise(p, c, mon, &grid);
+
+                if (noise == max_noise)
+                {
+                    loc_copy(&best_grid[n], &grid);
+                    n++;
+                }
             }
+        }
+
+        /* Set the target */
+        if (n)
+        {
+            /* If we have multiple valid directions, choose one at random */
+            i = randint0(n);
+
+            loc_copy(&mon->target.grid, &best_grid[i]);
+            *track = true;
+            return true;
         }
     }
 
-    /* Set the target */
-    if (n)
+    /* If both vision and sound are no good, use scent */
+    if (monster_can_smell(p, mon))
     {
-        /* If we have multiple valid directions, choose one at random */
-        i = randint0(n);
-
-        loc_copy(&mon->target.grid, &best_grid[i]);
-        *track = true;
-        return true;
-    }
-
-    /* If no good sound, use scent */
-    best_scent = get_best_scent(p, c, mon, &mon->grid);
-    max_scent = get_max_scent(p, c, mon, best_scent);
-    for (i = 0; i < 8; i++)
-    {
-        /* Get the location */
-        struct loc grid;
-        int smelled_scent;
-
-        loc_sum(&grid, &mon->grid, &ddgrid_ddd[i]);
-
-        /* Bounds check */
-        if (!square_in_bounds(c, &grid)) continue;
-
-        smelled_scent = mon->race->smell - p->cave->scent.grids[grid.y][grid.x];
-
-        /* Must be some scent */
-        if (p->cave->scent.grids[grid.y][grid.x] == 0) continue;
-
-        /* There's a monster blocking that we can't deal with */
-        if (!monster_can_kill(c, mon, &grid) && !monster_can_move(c, mon, &grid))
-            continue;
-
-        /* There's damaging terrain */
-        if (monster_hates_grid(c, mon, &grid)) continue;
-
-        /* If it's better than the current scent, choose this direction */
-        /* Possible move if we can't actually get closer */
-        if (smelled_scent == best_scent)
+        best_scent = get_best_scent(p, c, mon, &mon->grid);
+        max_scent = get_max_scent(p, c, mon, best_scent);
+        for (i = 0; i < 8; i++)
         {
-            /* Check nearby grids for best scent again (in case we have multiple valid grids) */
-            int scent = get_best_scent(p, c, mon, &grid);
+            /* Get the location */
+            struct loc grid;
+            int smelled_scent;
 
-            if (scent == max_scent)
+            loc_sum(&grid, &mon->grid, &ddgrid_ddd[i]);
+
+            /* Bounds check */
+            if (!square_in_bounds(c, &grid)) continue;
+
+            smelled_scent = mon->race->smell - p->cave->scent.grids[grid.y][grid.x];
+
+            /* Must be some scent */
+            if (p->cave->scent.grids[grid.y][grid.x] == 0) continue;
+
+            /* There's a monster blocking that we can't deal with */
+            if (!monster_can_kill(c, mon, &grid) && !monster_can_move(c, mon, &grid))
+                continue;
+
+            /* There's damaging terrain */
+            if (monster_hates_grid(c, mon, &grid)) continue;
+
+            /* If it's better than the current scent, choose this direction */
+            /* Possible move if we can't actually get closer */
+            if (smelled_scent == best_scent)
             {
-                loc_copy(&best_grid[n], &grid);
-                n++;
+                /* Check nearby grids for best scent again (in case we have multiple valid grids) */
+                int scent = get_best_scent(p, c, mon, &grid);
+
+                if (scent == max_scent)
+                {
+                    loc_copy(&best_grid[n], &grid);
+                    n++;
+                }
             }
         }
-    }
 
-    /* Set the target */
-    if (n)
-    {
-        /* If we have multiple valid directions, choose one at random */
-        i = randint0(n);
+        /* Set the target */
+        if (n)
+        {
+            /* If we have multiple valid directions, choose one at random */
+            i = randint0(n);
 
-        loc_copy(&mon->target.grid, &best_grid[i]);
-        *track = true;
-        return true;
+            loc_copy(&mon->target.grid, &best_grid[i]);
+            *track = true;
+            return true;
+        }
     }
 
     /* No reason to advance */
@@ -961,7 +983,7 @@ static bool get_move_find_hiding(struct player *p, struct chunk *c, struct monst
             if (!square_isemptyfloor(c, &grid)) continue;
 
             /* Check for hidden, available grid */
-            if (!square_isview(p, &grid) && projectable(c, &mon->grid, &grid, PROJECT_STOP, true))
+            if (!square_isview(p, &grid) && projectable(p, c, &mon->grid, &grid, PROJECT_STOP, true))
             {
                 /* Calculate distance from player */
                 dis = distance(&grid, &p->grid);
@@ -1185,6 +1207,8 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
 
     bool done = false;
 
+    loc_init(&grid, 0, 0);
+
     if (!loc_is_zero(decoy))
         loc_copy(&target, decoy);
     else
@@ -1211,10 +1235,6 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
             /* Need los? */
             if (tracker && los(c, &mon->grid, &tracker->grid))
                 loc_diff(&grid, &tracker->grid, &mon->grid);
-
-            /* Head blindly straight for the "player" if there's no better idea */
-            else
-                loc_diff(&grid, &target, &mon->grid);
 
             /* No longer tracking */
             mflag_off(mon->mflag, MFLAG_TRACKING);

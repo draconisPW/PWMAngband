@@ -348,6 +348,20 @@ struct player_class
     struct player_shape *shapes;
 };
 
+/*
+ * Info for player abilities
+ */
+struct player_ability
+{
+    struct player_ability *next;
+    u16b index;                     /* PF_*, OF_* or element index */
+    char *type;                     /* Ability type */
+    char *name;                     /* Ability name */
+    char *desc;                     /* Ability description */
+    int group;                      /* Ability group (set locally when viewing) */
+    int value;                      /* Resistance value for elements */
+};
+
 /*  
  * Histories are a graph of charts; each chart contains a set of individual
  * entries for that chart, and each entry contains a text description and a
@@ -845,6 +859,7 @@ extern struct player_body *bodies;
 extern struct player_race *races;
 extern struct dragon_breed *breeds;
 extern struct player_class *classes;
+extern struct player_ability *player_abilities;
 extern struct magic_realm *realms;
 
 #endif /* INCLUDED_PLAYER_COMMON_H */

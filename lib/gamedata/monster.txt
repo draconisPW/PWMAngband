@@ -19290,7 +19290,8 @@ blow:ENGULF:COLD:3d6
 blow:ENGULF:CONFUSE:3d6
 blow:ENGULF:HURT:3d6
 flags:UNIQUE | NEVER_MOVE
-flags:IM_COLD | IM_FIRE | IM_ACID | IM_POIS
+flags:IM_COLD | IM_FIRE | IM_ACID
+flags-off:RAND_50 | BASH_DOOR | CLEAR_WEB
 spell-freq:5
 innate-freq:67
 spells:BR_COLD | BR_SOUN

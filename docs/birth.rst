@@ -731,7 +731,7 @@ adjusted for constitution).
 ================ ===  ===  ===  ===  ===  ==========
     Class        STR  INT  WIS  DEX  CON  HD (bonus)
 ================ ===  ===  ===  ===  ===  ==========
-    Warrior       +3   -2   -2   +2   +2      10
+    Warrior       +3   -2   -2   +2   +2       9
     Mage          -3   +3    0    0   -2       1
     Druid         -2    0   +3   -2    0       2
     Priest        -1   -3   +3   -1   +1       2
@@ -739,9 +739,9 @@ adjusted for constitution).
     Paladin       +1   -3   +1   -1   +2       7
     Rogue          0   +1   -3   +3   -1       5
     Ranger         0    0   +2   +1   -1       6
-    Blackguard    +2    0   -3    0   +2       8
+    Blackguard    +2    0   -3    0   +2      10
     Sorceror      -5   +5    0    0   -3       0
-    Unbeliever    +3   -4   -3   +2   +2       9
+    Unbeliever    +3   -4   -3   +2   +2       8
     Archer        -2   -2   +2   +2    0       4
     Monk          +1   -2    0   +2   +1       8
     Telepath      -1   -2   +3   -1    0       3

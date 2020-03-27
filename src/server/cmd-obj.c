@@ -1209,9 +1209,9 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         return true;
     }
 
-    /* Take a turn, or half a turn if fast casting */
+    /* Take a turn, or 75% a turn if fast casting */
     if (p->timed[TMD_FASTCAST])
-        p->energy -= move_energy(p->wpos.depth) / 2;
+        p->energy -= (move_energy(p->wpos.depth) * 3) / 4;
     else
         p->energy -= move_energy(p->wpos.depth);
     if (p->energy < 0) p->energy = 0;

@@ -2059,6 +2059,39 @@ int Send_timed_struct_info(int ind)
 }
 
 
+int Send_abilities_struct_info(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    struct player_ability *a;
+
+    if (connp->state != CONN_SETUP)
+    {
+        errno = 0;
+        plog_fmt("Connection not ready for abilities info (%d.%d.%d)", ind, connp->state, connp->id);
+        return 0;
+    }
+
+    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_PROPS,
+        (unsigned)player_amax()) <= 0)
+    {
+        Destroy_connection(ind, "Send_abilities_struct_info write error");
+        return -1;
+    }
+
+    for (a = player_abilities; a; a = a->next)
+    {
+        if (Packet_printf(&connp->c, "%hu%hu%s%s%s", (unsigned)a->index, (unsigned)a->value,
+            a->type, a->desc, a->name) <= 0)
+        {
+            Destroy_connection(ind, "Send_abilities_struct_info write error");
+            return -1;
+        }
+    }
+
+    return 1;
+}
+
+
 static connection_t *get_connp(struct player *p, const char *errmsg)
 {
     connection_t *connp;
@@ -2297,9 +2330,9 @@ int Send_state(struct player *p, bool stealthy, bool resting, bool unignoring, c
     connection_t *connp = get_connp(p, "state");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd%hd%s", (unsigned)PKT_STATE, (int)stealthy,
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd%hd%hd%s", (unsigned)PKT_STATE, (int)stealthy,
         (int)resting, (int)unignoring, (int)p->obj_feeling, (int)p->mon_feeling,
-        (int)p->square_light, terrain);
+        (int)p->square_light, p->state.num_moves, terrain);
 }
 
 
@@ -6265,6 +6298,7 @@ static int Receive_play(int ind)
         Send_feat_struct_info(ind);
         Send_trap_struct_info(ind);
         Send_timed_struct_info(ind);
+        Send_abilities_struct_info(ind);
         Send_char_info_conn(ind);
     }
     else

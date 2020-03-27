@@ -508,10 +508,11 @@ static void grid_get_attr(struct player *p, struct grid_data *g, u16b *a)
         }
     }
 
-    /* Hybrid or block walls -- for GCU, then for everyone else */
-    if (a0)
-        *a = a0 | *a;
-    else if (feat_is_wall(g->f_idx))
+    /* Add the attr inversion back for GCU */
+    if (a0) *a = a0 | *a;
+
+    /* Hybrid or block walls */
+    if (feat_is_wall(g->f_idx))
     {
         if (OPT(p, hybrid_walls))
             *a = *a + (MAX_COLORS * BG_DARK);

@@ -42,7 +42,7 @@ enum
  */
 enum
 {
-    #define PF(a, b, c) PF_##a,
+    #define PF(a) PF_##a,
     #include "list-player-flags.h"
     #undef PF
     PF__MAX
@@ -92,6 +92,7 @@ struct player_state
     int ammo_tval;              /* Ammo variety */
     int ac;                     /* Base ac */
     int dam_red;                /* Damage reduction */
+    int perc_dam_red;           /* Percentage damage reduction */
     int to_a;                   /* Bonus to ac */
     int to_h;                   /* Bonus to hit */
     int to_d;                   /* Bonus to dam */

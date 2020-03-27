@@ -46,6 +46,7 @@ extern struct timed_grade *get_grade(int i);
 extern struct player_class *player_id2class(guid id);
 extern struct player_class *lookup_player_class(const char *name);
 extern int player_cmax(void);
+extern int player_amax(void);
 extern struct player_race *player_id2race(guid id);
 extern int player_rmax(void);
 extern int player_bmax(void);

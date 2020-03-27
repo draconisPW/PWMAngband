@@ -1303,6 +1303,9 @@ bool mon_take_hit(struct player *p, struct chunk *c, struct monster *mon, int da
     /* No damage, we're done */
     if (dam == 0) return false;
 
+    /* Covering tracks is no longer possible */
+    p->timed[TMD_COVERTRACKS] = 0;
+
     /* Hurt it */
     mon->hp -= dam;
     mflag_on(p->mflag[mon->midx], MFLAG_HURT);

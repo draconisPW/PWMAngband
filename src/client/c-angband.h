@@ -30,6 +30,7 @@
 #include "grafmode.h"
 #include "main.h"
 #include "netclient.h"
+#include "player-properties.h"
 #include "sound.h"
 #include "snd-sdl.h"
 #include "snd-win.h"

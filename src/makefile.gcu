@@ -86,6 +86,7 @@ CLI_SRCS = \
   client\main.c \
   client\main-gcu.c \
   client\netclient.c \
+  client\player-properties.c \
   client\set_focus.c \
   client\sound-core.c \
   client\ui-birth.c \
@@ -147,6 +148,7 @@ CLI_OBJS = \
   client\main.obj \
   client\main-gcu.obj \
   client\netclient.obj \
+  client\player-properties.obj \
   client\set_focus.obj \
   client\sound-core.obj \
   client\ui-birth.obj \

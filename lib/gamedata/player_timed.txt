@@ -415,7 +415,7 @@ on-end:You relax again.
 near-begin: tenses up ready to run away.
 near-end: relaxes again.
 
-name:SCENTLESS
+name:COVERTRACKS
 grade:T:10000:NoTrack:You begin covering your tracks.
 on-end:You stop covering your tracks.
 near-begin:'s scent disappears.
@@ -427,11 +427,11 @@ on-end:Your shooting power returns to normal.
 near-begin: prepares to shoot powerfully.
 near-end:'s shooting power returns to normal.
 
-name:POWERBLOW
-grade:i:10000:PBlow:You feel you can strike with enormous force!
-on-end:Your sense of power dissipates.
-near-begin: appears very powerful.
-near-end: appears less powerful.
+name:TAUNT
+grade:i:10000:Taunt:You start aggravating your enemies!
+on-end:You stop aggravating your enemies.
+near-begin: appears very arrogant.
+near-end: appears less arrogant.
 
 name:BLOODLUST
 grade:y:9:Bloodlust:A red mist descends over your eyes!

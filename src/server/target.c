@@ -150,12 +150,13 @@ bool target_able(struct player *p, struct source *who)
     if (who->player)
     {
         return (wpos_eq(&p->wpos, &who->player->wpos) && player_is_visible(p, who->idx) &&
-            !who->player->k_idx && projectable(c, &p->grid, &who->player->grid, PROJECT_NONE, true) &&
+            !who->player->k_idx &&
+            projectable(p, c, &p->grid, &who->player->grid, PROJECT_NONE, true) &&
             !p->timed[TMD_IMAGE]);
     }
 
     return (who->monster->race && monster_is_obvious(p, who->idx, who->monster) &&
-        projectable(c, &p->grid, &who->monster->grid, PROJECT_NONE, true) &&
+        projectable(p, c, &p->grid, &who->monster->grid, PROJECT_NONE, true) &&
         !p->timed[TMD_IMAGE]);
 }
 

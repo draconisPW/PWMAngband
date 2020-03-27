@@ -76,6 +76,8 @@ Angband 4.2.0:
 - Light hidden squares in town
 - Make sure every extra projection effect has a message
 - Show plater grid trap or terrain on status line
+- Add browsing of player abilities
+- Add movement speed to status line
 
 PWMAngband:
 
@@ -142,6 +144,12 @@ Angband 4.2.0:
 - Give Alchemist's gloves better armor
 - Make items with random resists also ignore that element
 - Allow player to be pushed into traps, webs or objects by earthquakes
+- Nerf to Mana Channel
+- Make Cover Tracks reduce monster hearing and sight as well as smell
+- Major changes to blackguards
+- Make birth_ai_learn learn from breath attacks
+- Make birth_ai_learn on by default
+- Make monsters at preferred range more likely to cast spells
 
 PWMAngband:
 
@@ -164,6 +172,7 @@ PWMAngband:
 
 - Add missing Shapechanger spells
 - Make Dragons and Monks learn obvious object properties on carry
+- Fix incorrect number of bytes read from Packet_scanf() calls
 
 Coding changes
 --------------
@@ -181,6 +190,8 @@ Angband 4.2.0:
 - Simplify Term_fresh
 - Replace hardcoded flicker table with one from a config file
 - Implement color cycling
+- Add player_property.txt
+- Changed Term_resize() to handle all of the saved stack of terminals
 
 PWMAngband:
 

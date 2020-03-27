@@ -1576,6 +1576,9 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
 
         /* Check hostility for threatening spells */
         if (!pvm_check(p, origin->monster)) return;
+
+        /* Monster sees what is going on */
+        update_smart_learn(origin->monster, p, 0, 0, typ);
     }
 
     /* The caster is a player */

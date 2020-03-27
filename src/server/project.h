@@ -28,7 +28,7 @@
  *   ARC: Projection is a sector of circle radiating from the caster
  *   PLAY: May affect players
  *   INFO: Use believed map rather than truth for player ui
- *   POWER: Effect doesn't decrease with distance
+ *   SHORT: Use one quarter of max_range
  *   CONST: Effect doesn't decrease with distance
  */
 #define PROJECT_NONE    0x0000
@@ -46,7 +46,8 @@
 #define PROJECT_ARC     0x0400
 #define PROJECT_PLAY    0x0800
 #define PROJECT_INFO    0x1000
-#define PROJECT_CONST   0x2000
+#define PROJECT_SHORT   0x2000
+#define PROJECT_CONST   0x4000
 
 /*
  * Projection struct
@@ -83,7 +84,8 @@ extern int proj_name_to_idx(const char *name);
 extern const char *proj_idx_to_name(int type);
 extern int project_path(struct player *p, struct loc *gp, int range, struct chunk *c,
     struct loc *grid1, struct loc *grid2, int flg);
-extern bool projectable(struct chunk *c, struct loc *grid1, struct loc *grid2, int flg, bool nowall);
+extern bool projectable(struct player *p, struct chunk *c, struct loc *grid1, struct loc *grid2,
+    int flg, bool nowall);
 extern byte proj_color(int type);
 extern void origin_get_loc(struct loc *ploc, struct source *origin);
 extern bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finish, int dam,

@@ -325,13 +325,13 @@ static size_t append_random_value_string(char *buffer, size_t size, random_value
     {
         offset += strnfmt(buffer + offset, size - offset, "%d", rv->base);
 
-        if (rv->dice > 0 || rv->sides > 0)
+        if (rv->dice > 0 && rv->sides > 0)
             offset += strnfmt(buffer + offset, size - offset, "+");
     }
 
-    if (rv->dice == 1)
+    if (rv->dice == 1 && rv->sides > 0)
         offset += strnfmt(buffer + offset, size - offset, "d%d", rv->sides);
-    else if (rv->dice > 1)
+    else if (rv->dice > 1 && rv->sides > 0)
         offset += strnfmt(buffer + offset, size - offset, "%dd%d", rv->dice, rv->sides);
 
     return offset;
@@ -497,14 +497,17 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
 
         if (type == NULL) return;
 
-        if (first) offset += strnfmt(buf, len, " %s ", type);
-        else offset += strnfmt(buf + offset, len - offset, "+");
-        offset += append_random_value_string(buf + offset, len - offset, &rv);
+        if ((rv.base > 0) || (rv.dice > 0 && rv.sides > 0))
+        {
+            if (first) offset += strnfmt(buf, len, " %s ", type);
+            else offset += strnfmt(buf + offset, len - offset, "+");
+            offset += append_random_value_string(buf + offset, len - offset, &rv);
 
-        if (special != NULL)
-            strnfmt(buf + offset, len - offset, "%s", special);
+            if (special != NULL)
+                strnfmt(buf + offset, len - offset, "%s", special);
 
-        first = false;
+            first = false;
+        }
 
         /* Hack -- if next effect has the same tip, also append that info */
         if (!effect->next) return;

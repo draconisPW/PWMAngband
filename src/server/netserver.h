@@ -109,6 +109,7 @@ extern int Send_realm_struct_info(int ind);
 extern int Send_feat_struct_info(int ind);
 extern int Send_trap_struct_info(int ind);
 extern int Send_timed_struct_info(int ind);
+extern int Send_abilities_struct_info(int ind);
 extern int Send_death_cause(struct player *p);
 extern int Send_winner(struct player *p);
 extern int Send_lvl(struct player *p, int lev, int mlev);

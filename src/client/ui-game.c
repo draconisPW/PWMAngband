@@ -110,6 +110,7 @@ struct cmd_info cmd_info[] =
 {
     {"Browse a book", {'b', 'P'}, CMD_BROWSE_SPELL, NULL, obj_browse_pre},
     {"Gain new spells or prayers", {'G'}, CMD_STUDY, NULL, obj_study_pre},
+    {"View abilities", {'#'}, CMD_NULL, do_cmd_abilities, NULL},
     {"Cast a spell", {'m'}, CMD_CAST, NULL, obj_cast_pre},
     {"Project a spell", {'p'}, CMD_PROJECT, NULL, obj_cast_pre},
     {"Full dungeon map", {'M'}, CMD_NULL, do_cmd_view_map, NULL},

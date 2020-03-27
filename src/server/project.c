@@ -203,7 +203,7 @@ int project_path(struct player *p, struct loc *gp, int range, struct chunk *c, s
                 if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
             }
             else
-                if ((n > 0) && square_isbelievedwall(p, c, &gp[n - 1])) break;
+                if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
 
             /* Sometimes stop at non-initial targets */
             if (flg & (PROJECT_STOP))
@@ -271,7 +271,7 @@ int project_path(struct player *p, struct loc *gp, int range, struct chunk *c, s
                 if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
             }
             else
-                if ((n > 0) && square_isbelievedwall(p, c, &gp[n - 1])) break;
+                if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
 
             /* Sometimes stop at non-initial targets */
             if (flg & (PROJECT_STOP))
@@ -333,7 +333,7 @@ int project_path(struct player *p, struct loc *gp, int range, struct chunk *c, s
                 if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
             }
             else
-                if ((n > 0) && square_isbelievedwall(p, c, &gp[n - 1])) break;
+                if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
 
             /* Sometimes stop at non-initial targets */
             if (flg & (PROJECT_STOP))
@@ -367,13 +367,18 @@ int project_path(struct player *p, struct loc *gp, int range, struct chunk *c, s
  * If 'nowall' is false, we allow targets to be in walls, otherwise wraithed players/ghosts
  * would be safe from monster spells!
  */
-bool projectable(struct chunk *c, struct loc *grid1, struct loc *grid2, int flg, bool nowall)
+bool projectable(struct player *p, struct chunk *c, struct loc *grid1, struct loc *grid2, int flg,
+    bool nowall)
 {
     struct loc grid_g[512];
     int grid_n = 0;
+    int max_range = z_info->max_range;
+
+    /* Check for shortened projection range */
+    if ((flg & PROJECT_SHORT) && p && p->timed[TMD_COVERTRACKS]) max_range /= 4;
 
     /* Check the projection path */
-    grid_n = project_path(NULL, grid_g, z_info->max_range, c, grid1, grid2, flg);
+    grid_n = project_path(NULL, grid_g, max_range, c, grid1, grid2, flg);
 
     /* No grid is ever projectable from itself */
     if (!grid_n) return false;

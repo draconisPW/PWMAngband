@@ -26,6 +26,7 @@ struct ego_item *e_info;
 struct player_race *races;
 struct dragon_breed *breeds;
 struct player_class *classes;
+struct player_ability *player_abilities;
 struct magic_realm *realms;
 struct player_body *bodies;
 struct monster_race *r_info;
@@ -865,6 +866,17 @@ int player_cmax(void)
     struct player_class *c;
 
     for (c = classes; c; c = c->next) n++;
+
+    return n;
+}
+
+
+int player_amax(void)
+{
+    int n = 0;
+    struct player_ability *a;
+
+    for (a = player_abilities; a; a = a->next) n++;
 
     return n;
 }

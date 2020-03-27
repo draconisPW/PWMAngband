@@ -73,6 +73,12 @@ static int prev_type = 0;
 /*** Utilities ***/
 
 
+static int string_bytes(const char *str)
+{
+    return strlen(str) + 1;
+}
+
+
 int Flush_queue(void)
 {
     int len;
@@ -439,7 +445,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 2;
+                bytes_read += string_bytes(name) + 1;
 
                 r = mem_zalloc(sizeof(*r));
                 r->ridx = ridx;
@@ -592,7 +598,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 2;
+                bytes_read += string_bytes(name) + 1;
 
                 c = mem_zalloc(sizeof(*c));
                 c->cidx = cidx;
@@ -746,7 +752,7 @@ static int Receive_struct_info(void)
                         mem_free(c);
                         return n;
                     }
-                    bytes_read += 2 + strlen(realm);
+                    bytes_read += string_bytes(realm) + 2;
 
                     book->tval = tval;
                     book->sval = sval;
@@ -780,7 +786,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 3;
+                bytes_read += string_bytes(name) + 2;
 
                 b = mem_zalloc(sizeof(*b));
                 b->name = string_make(name);
@@ -800,7 +806,7 @@ static int Receive_struct_info(void)
                         mem_free(b);
                         return n;
                     }
-                    bytes_read += strlen(name) + 3;
+                    bytes_read += string_bytes(name) + 2;
 
                     b->slots[j].type = type;
                     b->slots[j].name = string_make(name);
@@ -835,7 +841,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 s->name = string_make(name);
 
@@ -882,7 +888,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 if (strlen(name)) kind->name = string_make(name);
 
@@ -948,7 +954,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 if (strlen(name)) ego->name = string_make(name);
 
@@ -1008,7 +1014,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 if (strlen(name)) race->name = string_make(name);
                 race->ridx = i;
@@ -1035,7 +1041,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 mb = mem_zalloc(sizeof(*mb));
                 mb->name = string_make(name);
@@ -1070,7 +1076,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 if (strlen(name)) curse->name = string_make(name);
 
@@ -1083,7 +1089,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(desc) + 1;
+                bytes_read += string_bytes(desc);
 
                 if (strlen(desc))
                 {
@@ -1116,7 +1122,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 /* Transfer other fields here */
                 if ((n = Packet_scanf(&rbuf, "%s%s", spell_noun, verb)) <= 0)
@@ -1127,8 +1133,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(spell_noun) + 1;
-                bytes_read += strlen(verb) + 1;
+                bytes_read += string_bytes(spell_noun) + string_bytes(verb);
 
                 realm = mem_zalloc(sizeof(*realm));
                 realm->name = string_make(name);
@@ -1160,7 +1165,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 if (strlen(name)) f->name = string_make(name);
                 f->fidx = i;
@@ -1188,7 +1193,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 1;
+                bytes_read += string_bytes(name);
 
                 if (strlen(name)) t->desc = string_make(name);
                 t->tidx = i;
@@ -1216,7 +1221,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += strlen(name) + 4;
+                bytes_read += string_bytes(name) + 4;
 
                 if (strlen(name))
                 {
@@ -1234,6 +1239,43 @@ static int Receive_struct_info(void)
                     timed_grades[i] = mem_zalloc(sizeof(struct timed_grade));
                     current = timed_grades[i];
                 }
+            }
+
+            break;
+        }
+
+        /* Player abilities */
+        case STRUCT_INFO_PROPS:
+        {
+            u16b index, value;
+            char type[NORMAL_WID], desc[NORMAL_WID];
+
+            player_abilities = NULL;
+
+            /* Fill */
+            for (i = 0; i < max; i++)
+            {
+                struct player_ability *a;
+
+                if ((n = Packet_scanf(&rbuf, "%hu%hu%s%s%s", &index, &value, type, desc, name)) <= 0)
+                {
+                    /* Rollback the socket buffer */
+                    Sockbuf_rollback(&rbuf, bytes_read);
+
+                    /* Packet isn't complete, graceful failure */
+                    return n;
+                }
+                bytes_read += string_bytes(type) + string_bytes(desc) + string_bytes(name) + 4;
+
+                a = mem_zalloc(sizeof(*a));
+                a->index = index;
+                a->type = string_make(type);
+                a->desc = string_make(desc);
+                a->name = string_make(name);
+                a->value = value;
+
+                a->next = player_abilities;
+                player_abilities = a;
             }
 
             break;
@@ -1830,10 +1872,10 @@ static int Receive_state(void)
 {
     int n;
     byte ch;
-    s16b stealthy, resting, unignoring, obj_feeling, mon_feeling, square_light;
+    s16b stealthy, resting, unignoring, obj_feeling, mon_feeling, square_light, num_moves;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd%hd%s", &ch, &stealthy, &resting, &unignoring,
-        &obj_feeling, &mon_feeling, &square_light, player->terrain)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd%hd%hd%s", &ch, &stealthy, &resting, &unignoring,
+        &obj_feeling, &mon_feeling, &square_light, &num_moves, player->terrain)) <= 0)
     {
         return n;
     }
@@ -1844,6 +1886,7 @@ static int Receive_state(void)
     player->obj_feeling = obj_feeling;
     player->mon_feeling = mon_feeling;
     player->square_light = square_light;
+    player->state.num_moves = num_moves;
 
     player->upkeep->redraw |= (PR_STATE);
 

@@ -88,6 +88,7 @@ CLI_SRCS = \
   client\main.c \
   client\main-sdl.c \
   client\netclient.c \
+  client\player-properties.c \
   client\set_focus.c \
   client\snd-sdl.c \
   client\sound-core.c \
@@ -150,6 +151,7 @@ CLI_OBJS = \
   client\main.obj \
   client\main-sdl.obj \
   client\netclient.obj \
+  client\player-properties.obj \
   client\set_focus.obj \
   client\snd-sdl.obj \
   client\sound-core.obj \

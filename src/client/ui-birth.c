@@ -371,80 +371,15 @@ static void skill_help(int col, int *row, const s16b r_skills[], const s16b c_sk
 }
 
 
-static const char *get_flag_desc(bitflag flag)
-{
-    switch (flag)
-    {
-        #define OF(a, b) case OF_##a: return b;
-        #include "../common/list-object-flags.h"
-        #undef OF
-
-        default: return "Undocumented flag";
-    }
-}
-
-
-static const char *get_resist_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return b;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_immune_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return c;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_vuln_desc(int element)
-{
-    switch (element)
-    {
-        #define ELEM(a, b, c, d) case ELEM_##a: return d;
-        #include "../common/list-elements.h"
-        #undef ELEM
-
-        default: return "Undocumented element";
-    }
-}
-
-
-static const char *get_pflag_desc(bitflag flag)
-{
-    switch (flag)
-    {
-        #define PF(a, b, c) case PF_##a: return c;
-        #include "../common/list-player-flags.h"
-        #undef PF
-
-        default: return "Undocumented pflag";
-    }
-}
-
-
 /*
  * Display additional information about each race during the selection.
  */
 static void race_help(int i, void *db, const region *l)
 {
     int j;
-    size_t k;
     struct player_race *r = player_id2race(i);
     int len = (STAT_MAX + 1) / 2;
+    struct player_ability *ability;
     int n_flags = 0;
     int flag_space = 3;
 
@@ -470,67 +405,26 @@ static void race_help(int i, void *db, const region *l)
     skill_help(RACE_AUX_COL, &j, r->r_skills, NULL, r->r_mhp, r->r_exp,
         race_modifier(r, OBJ_MOD_INFRA, 1, false));
 
-    for (k = 1; k < OF_MAX; k++)
+    for (ability = player_abilities; ability; ability = ability->next)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
-        if (!of_has(r->flags, k)) continue;
-        s = get_flag_desc(k);
-        if (!s) continue;
-        if (r->flvl[k] > 1) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
+        if (!ability->name) continue;
+        if (streq(ability->type, "object"))
+        {
+            if (!of_has(r->flags, ability->index)) continue;
+            if (r->flvl[ability->index] > 1) continue;
+        }
+        else if (streq(ability->type, "player"))
+        {
+            if (!pf_has(r->pflags, ability->index)) continue;
+        }
+        else if (streq(ability->type, "element"))
+        {
+            if (r->el_info[ability->index].res_level != ability->value) continue;
+            if (r->el_info[ability->index].lvl > 1) continue;
+        }
 
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != 1) continue;
-        s = get_resist_desc(k);
-        if (!s) continue;
-        if (r->el_info[k].lvl > 1) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != 3) continue;
-        s = get_immune_desc(k);
-        if (!s) continue;
-        if (r->el_info[k].lvl > 1) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (r->el_info[k].res_level != -1) continue;
-        s = get_vuln_desc(k);
-        if (!s) continue;
-        if (r->el_info[k].lvl > 1) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < PF__MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (!pf_has(r->pflags, k)) continue;
-        s = get_pflag_desc(k);
-        if (!s) continue;
-        format_help(RACE_AUX_COL, j++, "%-30s", s);
+        format_help(RACE_AUX_COL, j++, "%-30s", ability->name);
         n_flags++;
     }
 
@@ -548,10 +442,10 @@ static void race_help(int i, void *db, const region *l)
 static void class_help(int i, void *db, const region *l)
 {
     int j;
-    size_t k;
     const struct player_class *c = player_id2class(i);
     const struct player_race *r = player->race;
     int len = (STAT_MAX + 1) / 2;
+    struct player_ability *ability;
     int n_flags = 0;
     int flag_space = 5;
 
@@ -600,67 +494,26 @@ static void class_help(int i, void *db, const region *l)
         format_help(CLASS_AUX_COL, j++, "Learns %-23s", adjective);
     }
 
-    for (k = 1; k < OF_MAX; k++)
+    for (ability = player_abilities; ability; ability = ability->next)
     {
-        const char *s;
-
         if (n_flags >= flag_space) break;
-        if (!of_has(c->flags, k)) continue;
-        s = get_flag_desc(k);
-        if (!s) continue;
-        if (c->flvl[k] > 1) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
-        n_flags++;
-    }
+        if (!ability->name) continue;
+        if (streq(ability->type, "object"))
+        {
+            if (!of_has(c->flags, ability->index)) continue;
+            if (c->flvl[ability->index] > 1) continue;
+        }
+        else if (streq(ability->type, "player"))
+        {
+            if (!pf_has(c->pflags, ability->index)) continue;
+        }
+        else if (streq(ability->type, "element"))
+        {
+            if (c->el_info[ability->index].res_level != ability->value) continue;
+            if (c->el_info[ability->index].lvl > 1) continue;
+        }
 
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (c->el_info[k].res_level != 1) continue;
-        s = get_resist_desc(k);
-        if (!s) continue;
-        if (c->el_info[k].lvl > 1) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (c->el_info[k].res_level != 3) continue;
-        s = get_immune_desc(k);
-        if (!s) continue;
-        if (c->el_info[k].lvl > 1) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < ELEM_MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (c->el_info[k].res_level != -1) continue;
-        s = get_vuln_desc(k);
-        if (!s) continue;
-        if (c->el_info[k].lvl > 1) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
-        n_flags++;
-    }
-
-    for (k = 0; k < PF__MAX; k++)
-    {
-        const char *s;
-
-        if (n_flags >= flag_space) break;
-        if (!pf_has(c->pflags, k)) continue;
-        s = get_pflag_desc(k);
-        if (!s) continue;
-        format_help(CLASS_AUX_COL, j++, "%-33s", s);
+        format_help(CLASS_AUX_COL, j++, "%-33s", ability->name);
         n_flags++;
     }
 

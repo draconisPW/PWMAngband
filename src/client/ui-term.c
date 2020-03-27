@@ -2332,6 +2332,7 @@ errr Term_resize(int w, int h, int hmax)
     term_win *hold_old;
     term_win *hold_scr;
     term_win *hold_mem;
+    term_win **hold_mem_dest;
     term_win *hold_tmp;
     ui_event evt = {EVT_RESIZE};
 
@@ -2387,16 +2388,30 @@ errr Term_resize(int w, int h, int hmax)
     term_win_copy(Term->scr, hold_scr, wid, hgt);
 
     /* If needed */
-    if (hold_mem)
+    hold_mem_dest = &Term->mem;
+    while (hold_mem != 0)
     {
+        term_win* trash;
+
         /* Create new window */
-        Term->mem = mem_zalloc(sizeof(term_win));
+        *hold_mem_dest = mem_zalloc(sizeof(term_win));
 
         /* Initialize new window */
-        term_win_init(Term->mem, w, h);
+        term_win_init(*hold_mem_dest, w, h);
 
         /* Save the contents */
-        term_win_copy(Term->mem, hold_mem, wid, hgt);
+        term_win_copy(*hold_mem_dest, hold_mem, wid, hgt);
+
+        trash = hold_mem;
+        hold_mem = hold_mem->next;
+
+        if ((*hold_mem_dest)->cx >= w) (*hold_mem_dest)->cu = 1;
+        if ((*hold_mem_dest)->cy >= h) (*hold_mem_dest)->cu = 1;
+
+        hold_mem_dest = &((*hold_mem_dest)->next);
+
+        term_win_nuke(trash);
+        mem_free(trash);
     }
 
     /* If needed */
@@ -2435,20 +2450,6 @@ errr Term_resize(int w, int h, int hmax)
     /* Illegal cursor */
     if (Term->scr->cx >= w) Term->scr->cu = 1;
     if (Term->scr->cy >= h) Term->scr->cu = 1;
-
-    /* If needed */
-    if (hold_mem)
-    {
-        /* Nuke */
-        term_win_nuke(hold_mem);
-
-        /* Kill */
-        mem_free(hold_mem);
-
-        /* Illegal cursor */
-        if (Term->mem->cx >= w) Term->mem->cu = 1;
-        if (Term->mem->cy >= h) Term->mem->cu = 1;
-    }
 
     /* If needed */
     if (hold_tmp)

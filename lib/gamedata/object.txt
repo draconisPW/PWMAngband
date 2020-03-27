@@ -410,7 +410,7 @@ graphics:,:Z
 type:food
 level:60
 weight:10
-cost:1
+cost:2000
 alloc:10:60 to 100
 effect:GAIN_STAT:CON
 effect:GAIN_STAT:STR

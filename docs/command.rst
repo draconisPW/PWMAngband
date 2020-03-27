@@ -733,7 +733,12 @@ Display connected players (``@``) or Display connected players ('^V')
 
 Display current time (``%``)
   This command allows you to see what time it is on server. Useful to keep track
-  of sunrise/sunset.  
+  of sunrise/sunset.
+
+..
+
+See abilities (``#``)
+  This command allows you to see player abilities.
  
 Saving and Exiting Commands
 ---------------------------

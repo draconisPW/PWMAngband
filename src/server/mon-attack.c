@@ -43,8 +43,8 @@
 /*
  * Check if a monster has a chance of casting a spell this turn
  */
-static bool monster_can_cast(struct chunk *c, struct monster *mon, int target_m_dis,
-    struct loc *grid)
+static bool monster_can_cast(struct player *p, struct chunk *c, struct monster *mon,
+    int target_m_dis, struct loc *grid)
 {
     int chance = mon->race->freq_spell;
 
@@ -54,6 +54,12 @@ static bool monster_can_cast(struct chunk *c, struct monster *mon, int target_m_
     /* Not allowed to cast spells */
     if (!chance) return false;
 
+    /* Taunted monsters are likely just to attack */
+    if (p->timed[TMD_TAUNT]) chance /= 2;
+
+    /* Monsters at their preferred range are more likely to cast */
+    if (mon->cdis == mon->best_range) chance *= 2;
+
     /* Only do spells occasionally */
     if (!magik(chance)) return false;
 
@@ -61,7 +67,7 @@ static bool monster_can_cast(struct chunk *c, struct monster *mon, int target_m_
     if (target_m_dis > z_info->max_range) return false;
 
     /* Check path (destination could be standing on a wall) */
-    if (!projectable(c, &mon->grid, grid, PROJECT_NONE, false)) return false;
+    if (!projectable(p, c, &mon->grid, grid, PROJECT_SHORT, false)) return false;
 
     return true;
 }
@@ -106,7 +112,7 @@ static void remove_bad_spells(struct player *p, struct monster *mon, bitflag f[R
         bool know_something = false;
 
         /* Occasionally forget player status */
-        if (one_in_(100))
+        if (one_in_(20))
         {
             of_wipe(mon->known_pstate.flags);
             pf_wipe(mon->known_pstate.pflags);
@@ -247,7 +253,7 @@ static int get_thrown_spell(struct player *p, struct player *who, struct chunk *
     bool innate;
 
     /* Check prerequisites */
-    if (!monster_can_cast(c, mon, target_m_dis, grid)) return -1;
+    if (!monster_can_cast(p, c, mon, target_m_dis, grid)) return -1;
 
     /* Extract the racial spell flags */
     rsf_copy(f, mon->race->spell_flags);
@@ -263,7 +269,7 @@ static int get_thrown_spell(struct player *p, struct player *who, struct chunk *
         remove_bad_spells(who, mon, f);
 
         /* Check for a clean bolt shot */
-        if (test_spells(f, RST_BOLT) && !projectable(c, &mon->grid, grid, PROJECT_STOP, false))
+        if (test_spells(f, RST_BOLT) && !projectable(p, c, &mon->grid, grid, PROJECT_STOP, false))
             ignore_spells(f, RST_BOLT);
 
         /* Check for a possible summon */

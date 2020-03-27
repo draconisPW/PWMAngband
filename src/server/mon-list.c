@@ -185,7 +185,7 @@ void monster_list_collect(struct player *p, monster_list_t *list)
             entry->attr = p->r_attr[mon->race->ridx];
 
 		/* Check for LOS using projectable() */
-		los = (projectable(c, &p->grid, &mon->grid, PROJECT_NONE, true) &&
+		los = (projectable(p, c, &p->grid, &mon->grid, PROJECT_NONE, true) &&
             monster_is_in_view(p, i));
 		field = (los? MONSTER_LIST_SECTION_LOS: MONSTER_LIST_SECTION_ESP);
 		entry->count[field]++;

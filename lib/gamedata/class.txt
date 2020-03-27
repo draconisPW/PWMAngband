@@ -154,7 +154,7 @@ skill-search:10:12
 skill-melee:70:45
 skill-shoot:55:45
 skill-dig:0:0
-hitdie:10
+hitdie:9
 max-attacks:6
 min-weight:30
 strength-multiplier:5
@@ -389,10 +389,10 @@ book-properties:40:30:20000
 book-alloc:15:40 to 100
 book-desc:An advanced arcane book with a few spells.
 
-spell:Mana Channel:25:3:50:20:0
+spell:Mana Channel:25:10:50:20:0
 effect:TIMED_INC:FASTCAST
-dice:25+1d25
-desc:Doubles spellcasting speed for 25+1d25 turns.
+dice:5+1d5
+desc:Doubles spellcasting speed for 5+1d5 turns.
 
 spell:Mana Bolt:25:8:60:30:0
 effect:BOLT_OR_BEAM:MANA
@@ -1922,8 +1922,8 @@ effect:MAP_AREA
 effect-yx:22:40
 desc:Maps out a portion of the level around you.
 
-spell:Cover Tracks:20:10:40:40:0
-effect:TIMED_INC:SCENTLESS:0:5
+spell:Cover Tracks:20:20:40:40:0
+effect:TIMED_INC:COVERTRACKS:0:5
 dice:$B+1d20
 expr:B:PLAYER_LEVEL:* 2
 desc:Prevents you from leaving scent for monsters to track you by for a
@@ -2005,12 +2005,12 @@ skill-disarm-phys:20:15
 skill-disarm-magic:20:10
 skill-device:24:10
 skill-save:25:11
-skill-stealth:0:0
+skill-stealth:-1:-1
 skill-search:10:12
 skill-melee:60:40
 skill-shoot:50:30
 skill-dig:0:0
-hitdie:8
+hitdie:10
 max-attacks:5
 min-weight:100
 strength-multiplier:5
@@ -2022,7 +2022,7 @@ obj-flag:1:IMPAIR_HP
 value:1:STR[2]
 value:1:WIS[-3]
 value:1:CON[2]
-player-flags:CHOOSE_SPELLS | SHIELD_BASH
+player-flags:CHOOSE_SPELLS | SHIELD_BASH | CROWD_FIGHT
 title:Rat
 title:Bully
 title:Thug
@@ -2083,7 +2083,7 @@ effect:PROJECT_LOS:TURN_LIVING
 dice:$B
 expr:B:PLAYER_LEVEL:+ 0
 desc:Attempts to scare every living monster in line of sight for a
-desc: level-dependent duration. Uniques and monsters that resist fear are not
+desc: level-dependent duration. Monsters that resist fear are not
 desc: affected.
 
 spell:Phantoms Weapon:18:9:36:18:0
@@ -2107,7 +2107,13 @@ expr:S:PLAYER_LEVEL:* 2 + 30
 desc:This heals you by a substantial amount every time you kill a monster
 desc: within its duration.
 
-spell:Expertise:24:12:48:24:0
+spell:Taunt:24:10:40:150:0
+effect:TIMED_INC:TAUNT
+dice:10+d10
+desc:Makes anything that can move more inclined to run toward you than make a
+desc: ranged attack.
+
+spell:Expertise:25:12:48:24:0
 effect:TIMED_INC:SAFE
 dice:20+1d20
 effect:TIMED_INC:GROWTH
@@ -2120,12 +2126,12 @@ dice:20+1d20
 desc:Gives monsters around you a penalty to their saving throws and doubles
 desc: the duration if they get become afraid for 20+1d20 turns.
 
+book:shadow book:dungeon:[Dark Evocations]:4:shadow
+
 spell:Throw Monster:27:12:50:30:0
 effect:BOLT_MELEE:FORCE
 dice:200
 desc:Hits an adjacent monster with force, throwing it back.
-
-book:shadow book:dungeon:[Dark Evocations]:4:shadow
 
 spell:Dark Minions:28:14:56:28:0
 effect:SUMMON:DEMON:0:20
@@ -2151,6 +2157,8 @@ desc:Gives you a powerful desire to kill, increased every time you satsfy it.
 desc: Gives you extra damage and, at higher levels, extra blows, but comes
 desc: with dangerous side-effects.
 
+book:shadow book:dungeon:[Great Shadows]:4:shadow
+
 spell:Demonic Resistance:34:17:68:34:0
 effect:TIMED_INC:OPP_POIS
 dice:20+1d20
@@ -2166,23 +2174,15 @@ dice:20+1d20
 desc:Grants you resistance to acid, cold, fire, lightning and poison for
 desc: 20+1d20 turns.
 
-book:shadow book:dungeon:[Great Shadows]:4:shadow
-
 spell:Piercing Shot:35:20:40:120:0
 effect:TIMED_INC:POWERSHOT
 dice:3
 desc:Makes your next shot powerful enough to pierce several enemies.
 
-spell:Demonic Flight:36:18:72:36:0
+spell:Demonic Flight:38:19:72:36:0
 effect:TIMED_INC:FLIGHT:0:5
 dice:20+1d20
 desc:Grants levitation and +5 to speed for 20+1d20 turns.
-
-spell:Forceful Blow:38:20:40:150:0
-effect:TIMED_INC:POWERBLOW
-dice:10
-desc:Makes your next blow strong enough to hurl your enemy back, maybe even
-desc: through walls.
 
 spell:Path of the Unholy:40:20:80:40:0
 effect:TELEPORT
@@ -2553,7 +2553,7 @@ skill-search:10:12
 skill-melee:70:45
 skill-shoot:55:45
 skill-dig:0:0
-hitdie:9
+hitdie:8
 max-attacks:6
 min-weight:30
 strength-multiplier:5

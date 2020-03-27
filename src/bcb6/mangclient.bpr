@@ -15,7 +15,8 @@
       ..\..\obj\c-cmd.obj ..\..\obj\c-cmd-obj.obj ..\..\obj\c-option.obj 
       ..\..\obj\c-player.obj ..\..\obj\cmd-core.obj ..\..\obj\conf.obj 
       ..\..\obj\game-event.obj ..\..\obj\game-input.obj ..\..\obj\grafmode.obj 
-      ..\..\obj\main-win.obj ..\..\obj\netclient.obj ..\..\obj\snd-win.obj 
+      ..\..\obj\main-win.obj ..\..\obj\netclient.obj 
+      ..\..\obj\player-properties.obj ..\..\obj\snd-win.obj 
       ..\..\obj\sound-core.obj ..\..\obj\ui-birth.obj ..\..\obj\ui-command.obj 
       ..\..\obj\ui-context.obj ..\..\obj\ui-curse.obj ..\..\obj\ui-death.obj 
       ..\..\obj\ui-display.obj ..\..\obj\ui-event.obj ..\..\obj\ui-game.obj 
@@ -40,7 +41,7 @@
       inetdbbde.bpi inetdbxpress.bpi inetdb.bpi nmfast.bpi webdsnap.bpi 
       bcbie.bpi websnap.bpi soaprtl.bpi dclocx.bpi dbexpress.bpi dbxcds.bpi 
       indy.bpi bcb2kaxserver.bpi"/>
-    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\win;..\win;..\win"/>
+    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\client;..\win;..\win;..\win"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;..\win;..\win"/>
     <PATHASM value=".;"/>
@@ -110,6 +111,7 @@
       <FILE FILENAME="..\client\grafmode.c" FORMNAME="" UNITNAME="grafmode" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\main-win.c" FORMNAME="" UNITNAME="main-win.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\netclient.c" FORMNAME="" UNITNAME="netclient.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\client\player-properties.c" FORMNAME="" UNITNAME="player-properties" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\snd-win.c" FORMNAME="" UNITNAME="snd-win" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\sound-core.c" FORMNAME="" UNITNAME="sound-core" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\client\ui-birth.c" FORMNAME="" UNITNAME="ui-birth" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>

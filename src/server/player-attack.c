@@ -564,160 +564,18 @@ static void blow_side_effects(struct player *p, struct source *target,
 
 
 /*
- * Apply knock back from powerful blows
- */
-static bool blow_knock_back(struct player *p, struct chunk *c, struct source *origin, int dmg,
-    bool *fear)
-{
-    int power = (p->state.num_blows - 100) / 100;
-    struct loc target, grid, offset;
-    char df[160];
-
-    /* Not enough power left */
-    if (!power) return false;
-
-    strnfmt(df, sizeof(df), "was brutally murdered by %s", p->name);
-
-    origin_get_loc(&target, origin);
-    loc_copy(&grid, &target);
-    loc_diff(&offset, &grid, &p->grid);
-
-    /* Forced backwards until power runs out */
-    while (power > 0)
-    {
-        /* Move back a square */
-        grid.y += offset.y;
-        grid.x += offset.x;
-
-        /* React differently depending on the terrain behind the target */
-        if (square_ispassable(c, &grid))
-        {
-            /* Target can't move, give it the remaining damage */
-            if (square_isoccupied(c, &grid))
-            {
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * power, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * power, p->name, false, df))
-                    return true;
-                break;
-            }
-
-            /* Push back a square */
-            monster_swap(c, &target, &grid);
-            power--;
-        }
-        else
-        {
-            bool moved = false;
-
-            /* Deal with impassable terrain */
-            if (!random_level(&p->wpos)) {}
-            else if (square_isdoor(c, &grid) && (power >= 1))
-            {
-                square_open_door(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_isrubble(c, &grid) && (power >= 1))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_ismagma(c, &grid) && (power >= 1))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (square_hasgoldvein(c, &grid))
-                    place_gold(p, c, &grid, object_level(&p->wpos), ORIGIN_FLOOR);
-                if (randint0(20) < power)
-                    effect_simple(EF_EARTHQUAKE, origin, "0", 0, 3, 0, 0, 0, NULL);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_isquartz(c, &grid) && (power >= 2))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (square_hasgoldvein(c, &grid))
-                    place_gold(p, c, &grid, object_level(&p->wpos), ORIGIN_FLOOR);
-                if (randint0(20) < power)
-                    effect_simple(EF_EARTHQUAKE, origin, "0", 0, 3, 0, 0, 0, NULL);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * 2, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * 2, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_isrock(c, &grid) && (power >= 3))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (randint0(20) < power)
-                    effect_simple(EF_EARTHQUAKE, origin, "0", 0, 3, 0, 0, 0, NULL);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * 3, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * 3, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-            else if (square_ismineral_other(c, &grid) && (power >= 1))
-            {
-                square_destroy_wall(c, &grid);
-                monster_swap(c, &target, &grid);
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg, p->name, false, df))
-                    return true;
-                power--;
-                moved = true;
-            }
-
-            /* Target can't move, give it the remaining damage */
-            if (!moved)
-            {
-                if (origin->monster && mon_take_hit(p, c, origin->monster, dmg * power, fear, -2))
-                    return true;
-                if (origin->player && take_hit(origin->player, dmg * power, p->name, false, df))
-                    return true;
-                break;
-            }
-        }
-    }
-
-    /* Player needs to stop hitting if the target has moved */
-    return (ABS(target.y - p->grid.y) > 1) || (ABS(target.x - p->grid.x) > 1);
-}
-
-
-/*
  * Apply blow after effects
  */
 static bool blow_after_effects(struct player *p, struct chunk *c, struct loc *grid, bool circle,
-    int dmg, bool quake)
+    int splash, bool quake)
 {
     bool stop = false;
 
     /* Apply circular kick: do damage to anything around the attacker */
-    if (circle)
+    /* Splash damage for crowd fighters */
+    if (circle || player_has(p, PF_CROWD_FIGHT))
     {
-        fire_ball(p, PROJ_MISSILE, 0, dmg, 1, false);
+        fire_ball(p, PROJ_MISSILE, 0, splash, 1, false);
         show_monster_messages(p);
 
         /* Target may be dead */
@@ -739,6 +597,11 @@ static bool blow_after_effects(struct player *p, struct chunk *c, struct loc *gr
 
     return stop;
 }
+
+
+/*
+ * Melee attack
+ */
 
 
 /* Melee and throwing hit types */
@@ -834,6 +697,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
 
     /* Information about the attack */
     int chance = chance_of_melee_hit(p, obj);
+    int splash = 0;
     bool do_quake = false;
     bool success = false;
 
@@ -1062,7 +926,10 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
 
             /* Special effect: circular attack */
             if (ba_ptr->effect == MA_CIRCLE)
+            {
+                splash = dmg;
                 do_circle = true;
+            }
 
             /* Dragon monks do tail attacks */
             if (player_has(p, PF_DRAGON) && player_has(p, PF_MARTIAL_ARTS) && !ba_ptr->racial)
@@ -1076,12 +943,13 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         else if (obj)
         {
             s16b to_h;
-            int weight = obj->weight * (p->timed[TMD_POWERBLOW]? 2: 1);
+            int weight = obj->weight;
 
             /* Handle the weapon itself */
             improve_attack_modifier(p, obj, target, &best_mult, &seffects, verb, sizeof(verb),
                 false);
 
+            /* Get the damage */
             dmg = melee_damage(p, obj, dice, best_mult, target, effects, &d_dam);
             object_to_h(obj, &to_h);
             dmg = critical_melee(p, target, weight, to_h, dmg, &msg_type);
@@ -1089,6 +957,8 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
             /* Learn by use for the weapon */
             object_notice_attack_plusses(p, obj);
 
+            /* Splash damage and earthquakes */
+            splash = (weight * dmg) / 100;
             if (player_of_has(p, OF_IMPACT) && (dmg > 50))
             {
                 do_quake = true;
@@ -1160,7 +1030,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     blow_side_effects(p, target, effects, &seffects, do_conf, obj, name, do_blind, do_para, do_fear,
         &do_quake, dmg, dice, d_dam, do_slow);
 
-    /* Damage, check for knockback, fear and death */
+    /* Damage, check for fear and death */
     if (target->monster)
         stop = mon_take_hit(p, c, target->monster, dmg, &effects->fear, -2);
     else
@@ -1193,24 +1063,10 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         player_over_exert(p, PY_EXERT_CON, 20, 0);
     }
 
-    if (p->timed[TMD_POWERBLOW] && !stop)
-    {
-        stop = blow_knock_back(p, c, target, dmg, &effects->fear);
-
-        /* Small chance of side-effects */
-        if (one_in_(50))
-        {
-            msg(p, "You swing around wildly!");
-            player_over_exert(p, PY_EXERT_CONF, 40, 10);
-        }
-
-        player_clear_timed(p, TMD_POWERBLOW, true);
-    }
-
     if (stop) memset(effects, 0, sizeof(struct delayed_effects));
 
     /* Post-damage effects */
-    if (blow_after_effects(p, c, grid, do_circle, dmg, do_quake))
+    if (blow_after_effects(p, c, grid, do_circle, splash, do_quake))
         stop = true;
 
     return stop;
@@ -1733,6 +1589,11 @@ static void missile_pict(struct player *p, const struct object *obj, struct loc 
         *c = object_char(p, obj);
     }
 }
+
+
+/*
+ * Ranged attacks
+ */
 
 
 /* Shooting hit types */
