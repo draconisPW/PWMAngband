@@ -86,6 +86,7 @@ PWMAngband:
 - Exclude cookies from ignoring setup
 - New option: Use single items from floor instantly
 - Remove prompt when taking single items from home
+- Drop all items in a stack by default
 
 Gameplay changes
 ----------------

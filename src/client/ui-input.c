@@ -634,6 +634,9 @@ static s32b textui_get_quantity(const char *prompt, s32b max)
 
         /* Use that prompt */
         prompt = tmp;
+
+        /* Default to max */
+        amt = max;
     }
 
     /* Build the default */
