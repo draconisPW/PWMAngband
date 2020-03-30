@@ -191,7 +191,7 @@ static void fill_level(struct chunk *c, bool use_floor)
 {
     struct worldpos dpos;
     struct location *dungeon;
-    int count;
+    int count, max;
     struct loc begin, end;
     struct loc_iterator iter;
 
@@ -203,7 +203,8 @@ static void fill_level(struct chunk *c, bool use_floor)
     if (!dungeon || !c->wpos.depth) return;
 
     /* Count features */
-    for (count = 0; count < 3; count++)
+    max = (use_floor? dungeon->n_floors: dungeon->n_walls);
+    for (count = 0; count < max; count++)
     {
         struct dun_feature *feature = (use_floor? &dungeon->floors[count]: &dungeon->walls[count]);
 

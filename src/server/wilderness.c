@@ -816,41 +816,47 @@ static errr finish_parse_dungeon_info(struct parser *p)
         dungeons[count].next = NULL;
 
         /* Rules */
-        dungeons[count].rules = mem_zalloc(5 * sizeof(struct dun_rule));
+        dungeons[count].n_rules = 0;
         for (i = 0, r = t->rules; r; i++, r = rn)
         {
-            /* Keep five rules at max */
-            if (i < 5)
-            {
-                memcpy(&dungeons[count].rules[i], r, sizeof(*r));
-                dungeons[count].rules[i].next = NULL;
-            }
+            dungeons[count].n_rules++;
+            rn = r->next;
+        }
+        dungeons[count].rules = mem_zalloc(dungeons[count].n_rules * sizeof(struct dun_rule));
+        for (i = 0, r = t->rules; r; i++, r = rn)
+        {
+            memcpy(&dungeons[count].rules[i], r, sizeof(*r));
+            dungeons[count].rules[i].next = NULL;
             rn = r->next;
             mem_free(r);
         }
 
         /* Features */
-        dungeons[count].floors = mem_zalloc(3 * sizeof(struct dun_feature));
+        dungeons[count].n_floors = 0;
         for (i = 0, f = t->floors; f; i++, f = fn)
         {
-            /* Keep three features at max */
-            if (i < 3)
-            {
-                memcpy(&dungeons[count].floors[i], f, sizeof(*f));
-                dungeons[count].floors[i].next = NULL;
-            }
+            dungeons[count].n_floors++;
+            fn = f->next;
+        }
+        dungeons[count].floors = mem_zalloc(dungeons[count].n_floors * sizeof(struct dun_feature));
+        for (i = 0, f = t->floors; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].floors[i], f, sizeof(*f));
+            dungeons[count].floors[i].next = NULL;
             fn = f->next;
             mem_free(f);
         }
-        dungeons[count].walls = mem_zalloc(3 * sizeof(struct dun_feature));
+        dungeons[count].n_walls = 0;
         for (i = 0, f = t->walls; f; i++, f = fn)
         {
-            /* Keep three features at max */
-            if (i < 3)
-            {
-                memcpy(&dungeons[count].walls[i], f, sizeof(*f));
-                dungeons[count].walls[i].next = NULL;
-            }
+            dungeons[count].n_walls++;
+            fn = f->next;
+        }
+        dungeons[count].walls = mem_zalloc(dungeons[count].n_walls * sizeof(struct dun_feature));
+        for (i = 0, f = t->walls; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].walls[i], f, sizeof(*f));
+            dungeons[count].walls[i].next = NULL;
             fn = f->next;
             mem_free(f);
         }

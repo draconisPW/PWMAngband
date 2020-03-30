@@ -122,8 +122,11 @@ struct location
     int max_townies;            /* Max townies */
     bitflag flags[DF_SIZE];     /* Flags */
     struct dun_feature *floors; /* Unusual dungeon floors */
+    int n_floors;
     struct dun_feature *walls;  /* Unusual dungeon walls */
+    int n_walls;
     struct dun_rule *rules;     /* Rules */
+    int n_rules;
     struct location *next;
 };
 

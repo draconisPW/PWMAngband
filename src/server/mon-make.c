@@ -278,7 +278,7 @@ static int restrict_monster_to_dungeon(struct monster_race *race, struct worldpo
     if (!dungeon || !wpos->depth) return 100;
 
     /* Process all rules */
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < dungeon->n_rules; i++)
     {
         struct dun_rule *rule = &dungeon->rules[i];
 

@@ -163,6 +163,7 @@ PWMAngband:
 - Nerf death wings/golems
 - Remove Unlife pits
 - Replace specific skeletons by general skeletons, rework Raise effect
+- Allow more that 3 types of terrain for dungeons
 
 Bugs fixed
 ----------
