@@ -906,7 +906,11 @@ void wipe_mon_list(struct chunk *c)
     /* Delete all the monster groups */
     for (i = 1; i < z_info->level_monster_max; i++)
     {
-        if (c->monster_groups[i]) monster_group_free(c->monster_groups[i]);
+        if (c->monster_groups[i])
+        {
+            monster_group_free(c->monster_groups[i]);
+            c->monster_groups[i] = NULL;
+        }
     }
 
     /* Reset "cave->mon_max" */

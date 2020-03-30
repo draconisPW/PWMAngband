@@ -1248,12 +1248,25 @@ static void process_various(void)
             {
                 struct wild_type *w_ptr = get_wt_info_at(&grid);
                 struct chunk *c = w_ptr->chunk_list[0];
-                int m_idx;
+                int m_idx, i, num_on_depth = 0;
+                struct worldpos wpos;
 
-                if (in_town(&w_ptr->wpos)) continue;
+                /* Must exist */
+                if (!c) continue;
 
-                /* Must exist and not contain players */
-                if (!c || chunk_has_players(&c->wpos)) continue;
+                wpos_init(&wpos, &grid, 0);
+
+                /* Count the number of players actually in game on this level */
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    struct player *p = player_get(i);
+
+                    if (!p->upkeep->funeral && wpos_eq(&p->wpos, &wpos))
+                        num_on_depth++;
+                }
+
+                /* Only if no one is actually on this level */
+                if (num_on_depth) continue;
 
                 /* Mimic stuff */
                 for (m_idx = cave_monster_max(c) - 1; m_idx >= 1; m_idx--)
