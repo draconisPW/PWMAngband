@@ -499,11 +499,7 @@ static void grid_get_attr(struct player *p, struct grid_data *g, u16b *a)
             case LIGHTING_TORCH:
             {
                 *a = get_color(*a, ATTR_LITE, 1);
-                if (*a == COLOUR_YELLOW)
-                {
-                    if (OPT(p, view_white_light) && in_town(&p->wpos)) *a = COLOUR_WHITE;
-                    else if (OPT(p, view_orange_light)) *a = COLOUR_ORANGE;
-                }
+                if ((*a == COLOUR_YELLOW) && OPT(p, view_orange_light)) *a = COLOUR_ORANGE;
                 break;
             }
             case LIGHTING_LIT: *a = get_color(*a, ATTR_DARK, 1); break;
