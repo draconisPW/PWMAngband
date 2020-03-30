@@ -245,7 +245,7 @@ alloc:40:0 to 50
 effect:NOURISH:INC_BY
 dice:15
 msg_self:That tastes good.
-desc::Fruit roughly chopped and sun-dried, prepared as marching rations for the
+desc:Fruit roughly chopped and sun-dried, prepared as marching rations for the
 desc: rangers of Ithilien.
 
 name:& Slime Mold~

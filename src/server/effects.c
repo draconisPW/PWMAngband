@@ -1976,6 +1976,9 @@ static bool effect_handler_BREATH(effect_handler_context_t *context)
                 "the strain of breathing", false, df);
             if (context->origin->player->is_dead) return !used;
 
+            /* Breathing also consumes food */
+            player_dec_timed(context->origin->player, TMD_FOOD, 50, false);
+
             /* Powerful breath */
             if (monster_is_powerful(context->origin->player->poly_race))
             {
