@@ -167,6 +167,7 @@ PWMAngband:
 - Replace specific skeletons by general skeletons, rework Raise effect
 - Allow more that 3 types of terrain for dungeons
 - Make breathing consume food
+- Wipe townies every dawn
 
 Bugs fixed
 ----------
