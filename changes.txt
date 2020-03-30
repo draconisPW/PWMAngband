@@ -85,6 +85,7 @@ PWMAngband:
 - Pressing another macro clears choice menu when a first macro lacks item
 - Exclude cookies from ignoring setup
 - New option: Use single items from floor instantly
+- Remove prompt when taking single items from home
 
 Gameplay changes
 ----------------

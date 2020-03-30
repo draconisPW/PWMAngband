@@ -481,8 +481,11 @@ static bool store_purchase(struct store_context *ctx, int item)
         ((store->type == STORE_HOME)? "Take": "Buy"),
         (num? format(" (you have %d)", num): ""), amt);
 
+    /* Hack -- get single items directly from home */
+    if ((store->type == STORE_HOME) && (amt == 1)) {}
+
     /* Get a quantity */
-    amt = get_quantity_ex(o_name, amt);
+    else amt = get_quantity_ex(o_name, amt);
 
     /* Allow user abort */
     if (amt <= 0)
