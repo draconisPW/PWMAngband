@@ -6155,7 +6155,7 @@ static int Receive_play(int ind)
     if (mode == 0)
     {
         hash_entry *ptr;
-        bool need_info = false;
+        bool need_info = false, chardump = false;
         byte ridx = 0, cidx = 0, psex = 0;
         int ret;
         int pos = strlen(nick);
@@ -6174,6 +6174,8 @@ static int Receive_play(int ind)
                 Destroy_connection(ind, "Character dump failed");
                 return -1;
             }
+
+            chardump = true;
         }
 
         /* Delete character */
@@ -6295,7 +6297,7 @@ static int Receive_play(int ind)
         Send_rinfo_struct_info(ind);
         Send_rbinfo_struct_info(ind);
         Send_curse_struct_info(ind);
-        Send_feat_struct_info(ind);
+        if (!chardump) Send_feat_struct_info(ind);
         Send_trap_struct_info(ind);
         Send_timed_struct_info(ind);
         Send_abilities_struct_info(ind);
