@@ -1367,8 +1367,13 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
             /* The top line is icky */
             topline_icky = true;
 
+            /* Hack -- quick floor for single items */
+            if (OPT(player, quick_floor) && (command_wrk == USE_FLOOR) && (f1 == f2))
+                *choice = floor_list[f2];
+
             /* Get an item choice */
-            *choice = item_menu(cmd, MAX((pmt? strlen(pmt): 0), 15), mode);
+            else
+                *choice = item_menu(cmd, MAX((pmt? strlen(pmt): 0), 15), mode);
 
             /* Fix the top line */
             topline_icky = false;

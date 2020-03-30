@@ -33,6 +33,7 @@ OP(disturb_bash, "Disturb whenever monsters bash down doors", MANGBAND, true, tr
 OP(fire_till_kill, "Activate fire-till-kill mode", MANGBAND, false, true)
 OP(disturb_faint, "Kick out when starving while at full hps", MANGBAND, false, true)
 OP(risky_casting, "Risky casting", MANGBAND, false, true)
+OP(quick_floor, "Use single items from floor instantly", MANGBAND, false, false)
 OP(birth_force_descend, "Force player descent", BIRTH, false, true)
 OP(birth_no_recall, "Word of Recall has no effect", BIRTH, false, true)
 OP(birth_no_artifacts, "Restrict creation of artifacts", BIRTH, false, true)

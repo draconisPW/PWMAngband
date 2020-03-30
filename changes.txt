@@ -84,6 +84,7 @@ PWMAngband:
 - Remove Shockbolt tileset
 - Pressing another macro clears choice menu when a first macro lacks item
 - Exclude cookies from ignoring setup
+- New option: Use single items from floor instantly
 
 Gameplay changes
 ----------------
@@ -199,6 +200,7 @@ PWMAngband:
 
 - Implement temporary monster flags (CAMOUFLAGE, AWARE, HANDLED)
 - Un-hardcode hybrid monsters by adding a HYBRID flag
+- Don't load features when getting a dump from server
 
 Compilation
 -----------
