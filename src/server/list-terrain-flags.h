@@ -5,12 +5,12 @@
 
 /* symbol descr */
 TF(NONE, "")
-TF(LOS, "Allows line of sight")
+/*TF(LOS, "Allows line of sight")*/
 TF(PROJECT, "Allows projections to pass through")
 TF(PASSABLE, "Can be passed through by all creatures")
 TF(INTERESTING, "Is noticed on looking around")
 TF(PERMANENT, "Is permanent")
-TF(EASY, "Is easily passed through")
+/*TF(EASY, "Is easily passed through")*/
 TF(TRAP, "Can hold a trap")
 TF(NO_SCENT, "Cannot store scent")
 TF(NO_FLOW, "No flow through")
@@ -27,7 +27,7 @@ TF(DOOR_ANY, "Is any door")
 TF(DOOR_CLOSED, "Is a closed door")
 TF(SHOP, "Is a shop")
 /*TF(DOOR_JAMMED, "Is a jammed door")*/
-TF(DOOR_LOCKED, "Is a locked door")
+/*TF(DOOR_LOCKED, "Is a locked door")*/
 TF(MAGMA, "Is a magma seam")
 TF(QUARTZ, "Is a quartz seam")
 TF(STAIR, "Is a stair")
