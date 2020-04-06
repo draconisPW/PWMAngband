@@ -2410,7 +2410,6 @@ static bool effect_handler_CURSE(effect_handler_context_t *context)
 }
 
 
-#if 0
 /*
  * Curse the player's armor
  */
@@ -2514,7 +2513,6 @@ static bool effect_handler_CURSE_WEAPON(effect_handler_context_t *context)
 
     return true;
 }
-#endif
 
 
 /*
@@ -2527,6 +2525,7 @@ static bool effect_handler_DAMAGE(effect_handler_context_t *context)
     struct monster *mon = context->origin->monster;
     struct trap *trap = context->origin->trap;
     struct object *obj = context->origin->obj;
+    struct chest_trap *chest_trap = context->origin->chest_trap;
     bool non_physical;
     char df[160];
 
@@ -2587,6 +2586,13 @@ static bool effect_handler_DAMAGE(effect_handler_context_t *context)
         strnfmt(df, sizeof(df), "was killed by %s", killer);
     }
 
+    /* A chest */
+    else if (chest_trap)
+    {
+        non_physical = false;
+        strnfmt(df, sizeof(df), "was killed by %s", chest_trap->msg_death);
+    }
+
     /* The player */
     else
     {
@@ -2599,6 +2605,7 @@ static bool effect_handler_DAMAGE(effect_handler_context_t *context)
     /* Hit the player */
     take_hit(context->origin->player, dam, killer, non_physical, df);
 
+    context->self_msg = NULL;
     return true;
 }
 
@@ -4562,6 +4569,8 @@ static bool effect_handler_HEAL_HP(effect_handler_context_t *context)
 
     if (context->self_msg) msg(context->origin->player, context->self_msg);
     hp_player(context->origin->player, num);
+
+    context->self_msg = NULL;
     return true;
 }
 
@@ -4792,6 +4801,22 @@ static bool effect_handler_LINE(effect_handler_context_t *context)
         if (light_line_aux(context->origin, context->dir, context->subtype, dam))
             context->ident = true;
     }
+
+    context->self_msg = NULL;
+    return true;
+}
+
+
+static bool effect_handler_LOSE_EXP(effect_handler_context_t *context)
+{
+    if (!player_of_has(context->origin->player, OF_HOLD_LIFE) && context->origin->player->exp)
+    {
+        msg(context->origin->player, "You feel your memories fade.");
+        player_exp_lose(context->origin->player, context->origin->player->exp / 4, false);
+    }
+
+    context->ident = true;
+    equip_learn_flag(context->origin->player, OF_HOLD_LIFE);
     return true;
 }
 
@@ -5208,6 +5233,7 @@ static bool effect_handler_NOURISH(effect_handler_context_t *context)
         player_set_timed(context->origin->player, TMD_FOOD, MAX(amount + 1, 0), false);
 
     context->ident = true;
+    context->self_msg = NULL;
     return true;
 }
 
@@ -5393,9 +5419,11 @@ static bool effect_handler_PROJECT_LOS_AWARE(effect_handler_context_t *context)
     int dam = effect_calculate_value(context, context->other? true: false);
     int typ = context->subtype;
 
-    if (project_los(context, typ, dam, context->aware) && context->self_msg)
+    if (context->self_msg && project_los(context, typ, dam, context->aware))
         msg(context->origin->player, context->self_msg);
+
     context->ident = true;
+    context->self_msg = NULL;
     return true;
 }
 
@@ -5746,6 +5774,7 @@ static bool effect_handler_RESTORE_EXP(effect_handler_context_t *context)
     /* Did something */
     context->ident = true;
 
+    context->self_msg = NULL;
     return true;
 }
 
@@ -6048,6 +6077,8 @@ static bool effect_handler_STAR(effect_handler_context_t *context)
     for (i = 0; i < 8; i++)
         light_line_aux(context->origin, ddd[i], context->subtype, dam);
     if (!context->origin->player->timed[TMD_BLIND]) context->ident = true;
+
+    context->self_msg = NULL;
     return true;
 }
 
@@ -6067,6 +6098,8 @@ static bool effect_handler_STAR_BALL(effect_handler_context_t *context)
     for (i = 0; i < 8; i++)
         fire_ball(context->origin->player, context->subtype, ddd[i], dam, context->radius, false);
     if (!context->origin->player->timed[TMD_BLIND]) context->ident = true;
+
+    context->self_msg = NULL;
     return true;
 }
 
@@ -7264,6 +7297,7 @@ static bool effect_handler_TIMED_SET(effect_handler_context_t *context)
 
     player_set_timed(context->origin->player, context->subtype, MAX(amount, 0), true);
     context->ident = true;
+    context->self_msg = NULL;
     return true;
 }
 
@@ -7304,6 +7338,8 @@ static bool effect_handler_TOUCH(effect_handler_context_t *context)
         context->ident = true;
         if (context->self_msg) msg(context->origin->player, context->self_msg);
     }
+
+    context->self_msg = NULL;
     return true;
 }
 
@@ -8084,6 +8120,9 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
 
             /* PWMAngband: stop at the first non-handled effect */
             if (!completed) return false;
+
+            /* PWMAngband: message if not already displayed */
+            if (context.self_msg) msg(context.origin->player, context.self_msg);
         }
         else
             quit_fmt("Effect not handled. Please report this bug.");

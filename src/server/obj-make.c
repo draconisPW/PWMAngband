@@ -1525,16 +1525,8 @@ int apply_magic(struct player *p, struct chunk *c, struct object *obj, int lev,
     }
     else if (tval_is_chest(obj))
     {
-        /* Hack -- skip ruined chests */
-        if (obj->kind->level > 0)
-        {
-            /* Hack -- pick a "difficulty" */
-            obj->pval = randint1(obj->kind->level);
-
-            /* Never exceed "difficulty" of 55 to 59 */
-            if (obj->pval > 55)
-                obj->pval = 55 + randint0(5);
-        }
+        /* Get a random, level-dependent set of chest traps */
+        obj->pval = pick_chest_traps(obj);
     }
 
     return power;

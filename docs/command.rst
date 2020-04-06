@@ -236,10 +236,9 @@ Open a door or chest (``o``)
   To open an object such as a door or chest, you must use this command. If
   the object is locked, you will attempt to pick the lock based on your
   disarming ability. If you open a trapped chest without disarming the
-  traps first, the trap will be set off. Some doors will be locked shut and
-  may have to be forced open. Opening will automatically attempt to pick
-  any locked doors. You may need several tries to open a door or chest. This
-  command requires a direction, and takes some energy.
+  traps first, the trap will be set off. Opening will automatically attempt
+  to pick any door locks. You may need several tries to open a door or chest.
+  This command requires a direction, and takes some energy.
 
 ..
 
@@ -255,10 +254,11 @@ Close a door (``c``)
 Disarm a trap or chest, or lock a door (``D``)
   You can attempt to disarm traps on the floor or on chests. If you fail,
   there is a chance that you will blunder and set it off. You can only
-  disarm a trap after you have found it. The command can also be used to lock
-  a closed door. This will create a hindrance for monsters. Even if many
-  monsters will be able to pick the lock or bash the door down, it will often
-  take them some time. This command requires a direction, and takes some energy.
+  disarm a trap after you have found it. The command can also be used to
+  lock a closed door, which will create a hindrance for monsters. Even if
+  many monsters will be able to pick the lock or bash the door down, it
+  will often take them some time. This command requires a direction, and takes
+  some energy.
 
 ..
 
@@ -488,11 +488,11 @@ Throwing and Missile Weapons
 ..
 
 Fire an item (``f``) or Fire an item (``t``)
-  This command will allow you to fire a missile from either
-  your quiver or your inventory provided it is the appropriate ammunition
-  for the current missile weapon you have equipped. You may not fire an
-  item without a missile weapon equipped. Fired ammunition has a chance of
-  breaking. This command takes some energy.
+  This command will allow you to fire a missile from either your quiver or
+  your inventory provided it is the appropriate ammunition for the current
+  missile weapon you have equipped. You may not fire an item without a
+  missile weapon equipped. Fired ammunition has a chance of breaking.
+  This command takes some energy.
 
 ..
 

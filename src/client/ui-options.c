@@ -1788,6 +1788,7 @@ static bool sval_menu(int tval, const char *desc)
     if (is_abort(ke)) Term_event_push(&ea);
 
     /* Free memory */
+    mem_free(menu);
     mem_free(choices);
 
     /* Load screen */
@@ -1898,6 +1899,7 @@ static void sval_menu_extra(void)
     if (is_abort(ke)) Term_event_push(&ea);
 
     /* Free memory */
+    mem_free(menu);
     mem_free(choices);
 
     /* Load screen */

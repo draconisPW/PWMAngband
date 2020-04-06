@@ -200,6 +200,7 @@ Angband 4.2.0:
 - Implement color cycling
 - Add player_property.txt
 - Changed Term_resize() to handle all of the saved stack of terminals
+- Redo chest traps, make chest_trap.txt
 
 PWMAngband:
 
@@ -212,3 +213,4 @@ Compilation
 
 - Restore UNIX support
 - Add README file
+- Update help

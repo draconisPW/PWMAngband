@@ -1149,33 +1149,6 @@ bool square_islit(struct chunk *c, struct loc *grid)
 
 
 /*
- * True if a lit wall should appear lit.
- */
-bool square_islitwall(struct player *p, struct chunk *c, struct loc *grid)
-{
-    int d;
-
-    my_assert(square_in_bounds(c, grid));
-
-    for (d = 0; d < 8; d++)
-    {
-        struct loc adj;
-
-        loc_sum(&adj, grid, &ddgrid_ddd[d]);
-        if (!square_in_bounds(c, &adj)) continue;
-        if (!square_isfloor(c, &adj)) continue;
-        if (!square_isroom(c, &adj)) continue;
-        if (!square_isglow(c, &adj)) continue;
-        if (!square_isseen(p, &adj)) continue;
-
-        return true;
-    }
-
-    return false;
-}
-
-
-/*
  * True if the cave square can damage the inhabitant
  */
 bool square_isdamaging(struct chunk *c, struct loc *grid)

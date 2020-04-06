@@ -93,13 +93,6 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
             if (OPT(p, view_yellow_light)) g->lighting = LIGHTING_TORCH;
         }
 
-        /* Lit walls only show as lit if we are looking from the room that's lighting them */
-        else if (square_iswall(c, grid) && !square_islitwall(p, c, grid) && square_isroom(c, grid))
-        {
-            if (OPT(p, view_yellow_light)) g->lighting = LIGHTING_TORCH;
-            else g->lighting = LIGHTING_LOS;
-        }
-
         /* Remember seen grid */
         square_memorize(p, c, grid);
         square_know_pile(p, c, grid);

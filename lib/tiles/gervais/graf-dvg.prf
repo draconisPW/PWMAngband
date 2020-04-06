@@ -1020,7 +1020,7 @@ object:scroll:Wilderness Mapping:0x87:0xD9
 
 ##### Monster attr/char definitions #####
 
-monster:<player>:0x83:0x87
+monster:<player>:0x83:0x80
 monster:Filthy street urchin:0x8B:0x80
 monster:Scrawny cat:0x90:0xB6
 monster:Scruffy little dog:0x8F:0xC8

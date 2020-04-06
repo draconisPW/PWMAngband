@@ -251,5 +251,3 @@ letter. If lower case is used, the selection takes place immediately. If
 upper case is used, then the particular option is described, and you are
 given the option of confirming or retracting that choice. Upper case
 selection is thus safer, but requires an extra key stroke.
-
-For more information on selecting object, see 'Customising the game'.

@@ -3436,10 +3436,13 @@ static void cleanup_player_prop(void)
 
 	while (ability)
     {
-		string_free(ability->type);
-		string_free(ability->desc);
-		string_free(ability->name);
-		ability = ability->next;
+		struct player_ability *totrash = ability;
+
+        ability = ability->next;
+		string_free(totrash->type);
+		string_free(totrash->desc);
+		string_free(totrash->name);
+        mem_free(totrash);
 	}
 }
 
@@ -3795,6 +3798,7 @@ static struct
     {"monsters", &monster_parser},
     {"monster pits", &pit_parser},
     {"traps", &trap_parser},
+    {"chest_traps", &chest_trap_parser},
     {"quests", &quests_parser},
     {"flavours", &flavor_parser},
     {"socials", &soc_parser},

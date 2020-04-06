@@ -1562,6 +1562,13 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
             (is_a_vowel(origin->trap->kind->desc[0])? "an ": "a "), origin->trap->kind->desc);
     }
 
+    /* Hit by a trap (from a chest) */
+    else if (origin->chest_trap)
+    {
+        /* Get the trap name */
+        strnfmt(killer, sizeof(killer), "%s", origin->chest_trap->msg_death);
+    }
+
     /* The caster is a monster */
     else if (origin->monster)
     {

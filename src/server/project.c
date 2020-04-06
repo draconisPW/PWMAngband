@@ -483,10 +483,14 @@ static bool stop_project(struct source *who, struct loc *grid, struct chunk *cv,
  */
 void origin_get_loc(struct loc *ploc, struct source *origin)
 {
-    if (origin->monster) loc_copy(ploc, &origin->monster->grid);
-    else if (origin->trap) loc_copy(ploc, &origin->trap->grid);
-    else if (origin->player) loc_copy(ploc, &origin->player->grid);
-    else loc_init(ploc, -1, -1);
+    if (origin->monster)
+        loc_copy(ploc, &origin->monster->grid);
+    else if (origin->trap)
+        loc_copy(ploc, &origin->trap->grid);
+    else if (origin->player || origin->obj || origin->chest_trap)
+        loc_copy(ploc, &origin->player->grid);
+    else
+        loc_init(ploc, -1, -1);
 }
 
 

@@ -2,9 +2,9 @@ MKPATH=../../mk/
 include $(MKPATH)buildsys.mk
 
 CONFIG = activation.txt artifact.txt blow_effects.txt blow_methods.txt \
- body.txt brand.txt class.txt constants.txt curse.txt dragon_breed.txt \
- dungeon.txt dungeon_profile.txt ego_item.txt flavor.txt hints.txt \
- history.txt monster.txt monster_base.txt monster_spell.txt names.txt \
+ body.txt brand.txt chest_trap.txt class.txt constants.txt curse.txt \
+ dragon_breed.txt dungeon.txt dungeon_profile.txt ego_item.txt flavor.txt \
+ hints.txt history.txt monster.txt monster_base.txt monster_spell.txt names.txt \
  object.txt object_base.txt object_power.txt object_property.txt p_race.txt \
  pain.txt pit.txt player_property.txt player_timed.txt projection.txt \
  quest.txt realm.txt room_template.txt slay.txt socials.txt store.txt \
