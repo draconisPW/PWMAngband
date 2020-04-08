@@ -184,7 +184,7 @@ or the player quits.
 Gameplay
 ********
 
-Once the simulation is set up, the game main loop in `game-world.c - play_game`_
+Once the simulation is set up, the game main loop in game-world.c
 is responsible for stepping the simulation.
 
 game-world.c - the game main loop

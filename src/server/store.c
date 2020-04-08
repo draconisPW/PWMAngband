@@ -2932,7 +2932,11 @@ void store_confirm(struct player *p)
     }
 
     /* The store gets that (known) item */
-    store_carry(NULL, store, sold_item);
+    if (!store_carry(NULL, store, sold_item))
+    {
+        /* The store rejected it; delete. */
+        object_delete(&sold_item);
+    }
 
     /* Resend the basic store info */
     display_store(p, false);

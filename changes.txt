@@ -87,6 +87,7 @@ PWMAngband:
 - New option: Use single items from floor instantly
 - Remove prompt when taking single items from home
 - Drop all items in a stack by default
+- Add missing tiles, remap tileset
 
 Gameplay changes
 ----------------
@@ -214,3 +215,4 @@ Compilation
 - Restore UNIX support
 - Add README file
 - Update help
+- Improve datafile documentation
