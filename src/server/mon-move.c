@@ -1932,11 +1932,7 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
                 msgt(p, MSG_DESTROY, "%s crushes %s.", m_name, o_name);
 
             /* Delete the object */
-            square_excise_object(c, grid, obj);
-            object_delete(&obj);
-
-            square_note_spot(c, grid);
-            square_light_spot(c, grid);
+            square_delete_object(c, grid, obj, true, true);
         }
 
         /* Next object */

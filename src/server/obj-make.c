@@ -2056,8 +2056,7 @@ void reroll_randart(struct player *p, struct chunk *c)
     origin_race = obj->origin_race;
 
     /* We need to start from a clean object, so we delete the old one */
-    square_excise_object(c, &p->grid, obj);
-    object_delete(&obj);
+    square_delete_object(c, &p->grid, obj, false, false);
 
     /* Assign the template */
     obj = object_new();

@@ -6033,6 +6033,7 @@ static int Enter_player(int ind)
     Send_poly(p, (p->poly_race? p->poly_race->ridx: 0));
     p->delayed_display = true;
     p->upkeep->update |= (PU_BONUS | PU_SPELLS | PU_INVEN);
+    p->upkeep->notice |= (PN_COMBINE);
     update_stuff(p, chunk_get(&p->wpos));
     p->delayed_display = false;
 

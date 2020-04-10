@@ -1505,6 +1505,16 @@ bool earlier_object(struct player *p, struct object *orig, struct object *newobj
         if (!obj_can_browse(p, orig) && obj_can_browse(p, newobj)) return true;
     }
 
+    /* Usable ammo is before other ammo */
+    if (tval_is_ammo(orig) && tval_is_ammo(newobj))
+    {
+        /* First favour usable ammo */
+        if ((p->state.ammo_tval == orig->tval) && (p->state.ammo_tval != newobj->tval))
+            return false;
+        if ((p->state.ammo_tval != orig->tval) && (p->state.ammo_tval == newobj->tval))
+            return true;
+    }
+
     /* Objects sort by decreasing type */
     if (orig->tval > newobj->tval) return false;
     if (orig->tval < newobj->tval) return true;

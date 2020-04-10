@@ -3592,7 +3592,11 @@ static bool effect_handler_DETECT_TREASURES(effect_handler_context_t *context)
         obj = square_object(context->cave, &iter.cur);
 
         /* Skip empty grids */
-        if (!obj) continue;
+        if (!obj)
+        {
+            square_forget_pile(context->origin->player, &iter.cur);
+            continue;
+        }
 
         /* Detect */
         if (!ignore_item_ok(context->origin->player, obj) || !full) objects = true;

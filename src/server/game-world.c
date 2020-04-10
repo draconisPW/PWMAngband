@@ -1275,11 +1275,7 @@ static void process_various(void)
                     struct object *obj = mon->mimicked_obj;
 
                     /* Delete mimicked objects */
-                    if (obj)
-                    {
-                        square_excise_object(c, &mon->grid, obj);
-                        object_delete(&obj);
-                    }
+                    if (obj) square_delete_object(c, &mon->grid, obj, false, false);
 
                     /* Paranoia */
                     if (!mon || !mon->race) continue;
@@ -1329,10 +1325,7 @@ static void process_various(void)
 
                         /* Nuke object (unless it's a mimic) */
                         if (!obj->mimicking_m_idx)
-                        {
-                            square_excise_object(c, &iter.cur, obj);
-                            object_delete(&obj);
-                        }
+                            square_delete_object(c, &iter.cur, obj, false, false);
 
                         obj = next;
                     }

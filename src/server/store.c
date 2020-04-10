@@ -2285,10 +2285,7 @@ static void sell_player_item(struct player *p, struct object *original, struct o
 
     /* Full purchase */
     if (bought->number == original->number)
-    {
-        square_excise_object(c, &original->grid, original);
-        object_delete(&original);
-    }
+        square_delete_object(c, &original->grid, original, false, false);
 
     /* Partial purchase */
     else

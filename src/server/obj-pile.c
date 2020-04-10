@@ -840,8 +840,7 @@ static int grid_to_index(struct chunk *c, struct loc *grid, struct object *obj)
 {
     int oidx = obj->oidx;
 
-    square_excise_object(c, grid, obj);
-    object_delete(&obj);
+    square_delete_object(c, grid, obj, false, false);
 
     /* Use this index */
     c->o_gen[0 - (oidx + 1)] = true;
@@ -955,10 +954,7 @@ bool floor_carry(struct player *p, struct chunk *c, struct loc *grid, struct obj
     {
         /* Delete the oldest ignored object */
         if (ignore)
-        {
-            square_excise_object(c, grid, ignore);
-            object_delete(&ignore);
-        }
+            square_delete_object(c, grid, ignore, false, false);
         else
             return false;
     }

@@ -78,8 +78,7 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
         object_own(p, obj);
 
         /* Delete the gold */
-        square_excise_object(c, &p->grid, obj);
-        object_delete(&obj);
+        square_delete_object(c, &p->grid, obj, false, false);
         obj = next;
     }
 

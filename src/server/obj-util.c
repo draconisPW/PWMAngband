@@ -951,10 +951,7 @@ void process_objects(struct chunk *c)
 
                 /* No more corpse... */
                 else if (!obj->decay)
-                {
-                    square_excise_object(c, &iter.cur, obj);
-                    object_delete(&obj);
-                }
+                    square_delete_object(c, &iter.cur, obj, false, false);
             }
 
             obj = next;

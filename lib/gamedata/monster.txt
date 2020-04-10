@@ -3545,80 +3545,6 @@ desc:A strange reptilian hybrid.
 
 ### Dungeon level 10 ###
 
-name:baby black dragon
-base:dragon
-color:s
-speed:110
-hit-points:97
-hearing:20
-armor-class:36
-sleepiness:70
-depth:10
-rarity:2
-weight:400
-experience:40
-blow:CLAW:HURT:1d3
-blow:CLAW:HURT:1d4
-blow:BITE:HURT:1d5
-flags:DROP_40 | DROP_1 | ONLY_GOLD
-flags:OPEN_DOOR | BASH_DOOR
-flags:IM_ACID
-flags:DROP_CORPSE
-spell-freq:12
-innate-freq:100
-spells:BR_ACID
-desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
-desc: scales a dull black.
-
-name:baby red dragon
-base:dragon
-color:r
-speed:110
-hit-points:97
-hearing:20
-armor-class:36
-sleepiness:70
-depth:10
-rarity:2
-weight:400
-experience:40
-blow:CLAW:HURT:1d3
-blow:CLAW:HURT:1d4
-blow:BITE:HURT:1d5
-flags:DROP_40 | DROP_1 | ONLY_GOLD
-flags:OPEN_DOOR | BASH_DOOR
-flags:IM_FIRE
-flags:DROP_CORPSE | WILD_DESERT
-spell-freq:12
-innate-freq:100
-spells:BR_FIRE
-desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
-desc: scales a pale red.
-
-name:baby gold dragon
-base:dragon
-color:y
-speed:110
-hit-points:97
-hearing:20
-armor-class:36
-sleepiness:70
-depth:10
-rarity:2
-weight:400
-experience:40
-blow:CLAW:HURT:1d3
-blow:CLAW:HURT:1d4
-blow:BITE:HURT:1d5
-flags:DROP_40 | DROP_1 | ONLY_GOLD
-flags:OPEN_DOOR | BASH_DOOR | NO_STUN
-flags:DROP_CORPSE
-spell-freq:12
-innate-freq:100
-spells:BR_SOUN
-desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
-desc: scales a pale gold.
-
 name:giant spider
 base:spider
 color:V
@@ -3937,6 +3863,80 @@ friends:50:1d2:priest
 friends:50:1d2:warrior
 friends:50:1d2:Same
 desc:She is dressed in black and smells of decay.
+
+name:baby black dragon
+base:dragon
+color:s
+speed:110
+hit-points:97
+hearing:20
+armor-class:36
+sleepiness:70
+depth:10
+rarity:2
+weight:400
+experience:40
+blow:CLAW:HURT:1d3
+blow:CLAW:HURT:1d4
+blow:BITE:HURT:1d5
+flags:DROP_40 | DROP_1 | ONLY_GOLD
+flags:OPEN_DOOR | BASH_DOOR
+flags:IM_ACID
+flags:DROP_CORPSE
+spell-freq:12
+innate-freq:100
+spells:BR_ACID
+desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
+desc: scales a dull black.
+
+name:baby red dragon
+base:dragon
+color:r
+speed:110
+hit-points:97
+hearing:20
+armor-class:36
+sleepiness:70
+depth:10
+rarity:2
+weight:400
+experience:40
+blow:CLAW:HURT:1d3
+blow:CLAW:HURT:1d4
+blow:BITE:HURT:1d5
+flags:DROP_40 | DROP_1 | ONLY_GOLD
+flags:OPEN_DOOR | BASH_DOOR
+flags:IM_FIRE
+flags:DROP_CORPSE | WILD_DESERT
+spell-freq:12
+innate-freq:100
+spells:BR_FIRE
+desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
+desc: scales a pale red.
+
+name:baby gold dragon
+base:dragon
+color:y
+speed:110
+hit-points:97
+hearing:20
+armor-class:36
+sleepiness:70
+depth:10
+rarity:2
+weight:400
+experience:40
+blow:CLAW:HURT:1d3
+blow:CLAW:HURT:1d4
+blow:BITE:HURT:1d5
+flags:DROP_40 | DROP_1 | ONLY_GOLD
+flags:OPEN_DOOR | BASH_DOOR | NO_STUN
+flags:DROP_CORPSE
+spell-freq:12
+innate-freq:100
+spells:BR_SOUN
+desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
+desc: scales a pale gold.
 
 name:owlbear
 base:hybrid
@@ -4726,32 +4726,6 @@ desc: scales shimmering blue.
 
 ### Dungeon level 13 ###
 
-name:baby multi-hued dragon
-base:dragon
-color:v
-speed:110
-hit-points:123
-hearing:20
-armor-class:36
-sleepiness:70
-depth:13
-rarity:2
-weight:400
-experience:55
-blow:CLAW:HURT:1d4
-blow:CLAW:HURT:1d5
-blow:BITE:HURT:1d6
-flags:DROP_40 | DROP_1 | ONLY_GOLD
-flags:OPEN_DOOR | BASH_DOOR
-flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
-flags:ATTR_MULTI
-flags:DROP_CORPSE
-spell-freq:12
-innate-freq:100
-spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
-desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
-desc: scales shimmering with hints of many different colours.
-
 name:killer brown beetle
 base:killer beetle
 color:u
@@ -4767,6 +4741,28 @@ experience:45
 blow:BITE:HURT:4d4
 flags:DROP_CORPSE
 desc:It is a vicious insect with a tough carapace.
+
+name:ochre jelly
+plural:ochre jellies
+base:jelly
+color:U
+speed:120
+hit-points:59
+hearing:12
+armor-class:21
+sleepiness:1
+depth:13
+rarity:3
+weight:0
+experience:40
+blow:TOUCH:ACID:1d10
+blow:TOUCH:ACID:2d6
+blow:TOUCH:ACID:2d6
+flags:COLD_BLOOD
+flags:OPEN_DOOR | BASH_DOOR | TAKE_ITEM
+flags:IM_ACID | IM_POIS | HURT_COLD | NO_CONF | NO_SLEEP
+desc:A fast moving highly acidic jelly thing, that is eating away the floor it
+desc: rests on.
 
 name:Boldor, King of the Yeeks
 base:yeek
@@ -4918,27 +4914,31 @@ drop-base:nature book:5:1:1
 friends:100:1d3:Same
 desc:He has a bow of horn and a quiver full of black-feathered arrows.
 
-name:ochre jelly
-plural:ochre jellies
-base:jelly
-color:U
-speed:120
-hit-points:59
-hearing:12
-armor-class:21
-sleepiness:1
+name:baby multi-hued dragon
+base:dragon
+color:v
+speed:110
+hit-points:123
+hearing:20
+armor-class:36
+sleepiness:70
 depth:13
-rarity:3
-weight:0
-experience:40
-blow:TOUCH:ACID:1d10
-blow:TOUCH:ACID:2d6
-blow:TOUCH:ACID:2d6
-flags:COLD_BLOOD
-flags:OPEN_DOOR | BASH_DOOR | TAKE_ITEM
-flags:IM_ACID | IM_POIS | HURT_COLD | NO_CONF | NO_SLEEP
-desc:A fast moving highly acidic jelly thing, that is eating away the floor it
-desc: rests on.
+rarity:2
+weight:400
+experience:55
+blow:CLAW:HURT:1d4
+blow:CLAW:HURT:1d5
+blow:BITE:HURT:1d6
+flags:DROP_40 | DROP_1 | ONLY_GOLD
+flags:OPEN_DOOR | BASH_DOOR
+flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
+flags:ATTR_MULTI
+flags:DROP_CORPSE
+spell-freq:12
+innate-freq:100
+spells:BR_ACID | BR_COLD | BR_ELEC | BR_FIRE | BR_POIS
+desc:This hatchling dragon is still soft, its eyes unaccustomed to light and its
+desc: scales shimmering with hints of many different colours.
 
 name:mongbat
 base:bat
@@ -9380,7 +9380,7 @@ blow:PUNCH:HURT:2d8
 blow:PUNCH:HURT:2d8
 blow:HIT:HURT:2d6
 blow:HIT:HURT:2d6
-flags:UNIQUE | MALE | SMART | SPIRIT
+flags:UNIQUE | MALE | SMART
 flags:DROP_2 | DROP_GOOD | ONLY_ITEM
 flags:FORCE_SLEEP
 spell-freq:2
@@ -20775,10 +20775,10 @@ blow:BITE:EXP_80:6d12
 blow:CLAW:TERRIFY:8d12
 blow:HIT:DRAIN_CHARGES:8d12
 blow:HIT:DRAIN_CHARGES:8d12
-flags:UNIQUE | MALE | EVIL
-flags:FORCE_SLEEP | FORCE_DEPTH
+flags:UNIQUE | MALE
+flags:FORCE_DEPTH
 flags:MOVE_BODY | IM_ELEC
-flags:NO_CONF | NO_FEAR
+flags:NO_FEAR
 spell-freq:2
 spell-power:130
 spells:BLINK | TPORT | TELE_LEVEL | BLIND | CONF

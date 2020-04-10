@@ -642,11 +642,7 @@ void delete_monster_idx(struct chunk *c, int m_idx)
 
     /* Delete mimicked objects */
     obj = mon->mimicked_obj;
-    if (obj)
-    {
-        square_excise_object(c, &mon->grid, obj);
-        object_delete(&obj);
-    }
+    if (obj) square_delete_object(c, &mon->grid, obj, true, false);
 
     /* Delete mimicked features */
     if (mon->race->base == lookup_monster_base("feature mimic"))

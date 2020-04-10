@@ -716,12 +716,7 @@ bool project_o(struct source *origin, int r, struct chunk *c, struct loc *grid, 
                     msgt(origin->player, MSG_DESTROY, "The %s %s!", o_name, note_kill);
 
                 /* Delete the object */
-                square_excise_object(c, grid, obj);
-                object_delete(&obj);
-
-                /* Redraw */
-                square_note_spot(c, grid);
-                square_light_spot(c, grid);
+                square_delete_object(c, grid, obj, true, true);
             }
         }
 

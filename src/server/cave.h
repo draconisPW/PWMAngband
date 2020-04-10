@@ -418,6 +418,8 @@ extern struct trap *square_trap(struct chunk *c, struct loc *grid);
 extern bool square_holds_object(struct chunk *c, struct loc *grid, struct object *obj);
 extern void square_excise_object(struct chunk *c, struct loc *grid, struct object *obj);
 extern void square_excise_pile(struct chunk *c, struct loc *grid);
+extern void square_delete_object(struct chunk *c, struct loc *grid, struct object *obj,
+    bool do_note, bool do_light);
 extern void square_sense_pile(struct player *p, struct chunk *c, struct loc *grid);
 extern void square_know_pile(struct player *p, struct chunk *c, struct loc *grid);
 extern void square_forget_pile(struct player *p, struct loc *grid);

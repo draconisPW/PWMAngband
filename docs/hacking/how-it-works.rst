@@ -191,11 +191,8 @@ game-world.c - the game main loop
 *********************************
 
 The main loop of the game, run_game_loop() is repeatedly called inside
-play_game(). This loop runs once per time
-that either the level is regenerated, the player dies, or the player quits the
-game. Each iteration through, this loop runs the level main loop to
-completion for an individual level. Each iteration of the main loop is one
-"turn" in Angband parlance, or one step of the simulator. During each turn:
+play_game(). Each iteration of the main loop is one "turn" in PWAngband
+parlance, or one step of the simulator. During each turn:
 
 * All monsters with more energy than the player act
 * The player acts

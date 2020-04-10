@@ -234,7 +234,7 @@ power:60
 eval:300
 desc:shatter
 lore-color-base:Yellow
-lash-type:MISSILE
+lash-type:SHARDS
 
 name:EXP_10
 power:20

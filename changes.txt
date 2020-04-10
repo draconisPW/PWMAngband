@@ -155,6 +155,8 @@ Angband 4.2.0:
 - Make birth_ai_learn learn from breath attacks
 - Make birth_ai_learn on by default
 - Make monsters at preferred range more likely to cast spells
+- Changed to allow sense/detect objects to remove marks on the map for
+  locations detected as empty
 
 PWMAngband:
 

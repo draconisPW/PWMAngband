@@ -97,25 +97,32 @@ static bool object_is_in_quiver(struct player *p, const struct object *obj)
 static int pack_slots_used(struct player *p)
 {
     struct object *obj;
-    int quiver_slots = 0;
-    int pack_slots = 0;
+    int i, pack_slots = 0;
     int quiver_ammo = 0;
 
     for (obj = p->gear; obj; obj = obj->next)
     {
+        bool found = false;
+
         /* Equipment doesn't count */
         if (!object_is_equipped(p->body, obj))
         {
-            /* Check if it could be in the quiver */
-            if (tval_is_ammo(obj) && (quiver_slots < z_info->quiver_size))
+            /* Check if it is in the quiver */
+            if (tval_is_ammo(obj))
             {
-                quiver_slots++;
-                quiver_ammo += obj->number;
+                for (i = 0; i < z_info->quiver_size; i++)
+                {
+                    if (p->upkeep->quiver[i] == obj)
+                    {
+                        quiver_ammo += obj->number;
+                        found = true;
+                        break;
+                    }
+                }
             }
 
             /* Count regular slots */
-            else
-                pack_slots++;
+            if (!found) pack_slots++;
         }
     }
 
@@ -645,6 +652,8 @@ void inven_wield(struct player *p, struct object *obj, int slot)
         /* Just use the object directly */
         else
             wielded = obj;
+
+        p->upkeep->notice |= (PN_COMBINE);
     }
     else
     {
@@ -701,7 +710,7 @@ void inven_wield(struct player *p, struct object *obj, int slot)
     /* Recalculate bonuses, torch, mana, gear */
     p->upkeep->notice |= (PN_IGNORE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
-    p->upkeep->redraw |= (PR_PLUSSES | PR_INVEN | PR_BASIC);
+    p->upkeep->redraw |= (PR_PLUSSES | PR_INVEN | PR_EQUIP | PR_BASIC);
     update_stuff(p, c);
 }
 
