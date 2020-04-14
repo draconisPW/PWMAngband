@@ -493,11 +493,11 @@ static void digest_food(struct player *p)
     /* Ghosts don't need food */
     if (p->ghost) return;
 
-    /* Don't use food in towns */
-    if (forbid_town(&p->wpos)) return;
+    /* Don't use food in towns (except when full) */
+    if (forbid_town(&p->wpos) && !player_timed_grade_eq(p, TMD_FOOD, "Full")) return;
 
     /* Don't use food near towns (to avoid starving in one's own house) */
-    if (town_area(&p->wpos)) return;
+    if (town_area(&p->wpos) && !player_timed_grade_eq(p, TMD_FOOD, "Full")) return;
 
     /* Digest some food */
     player_dec_timed(p, TMD_FOOD, player_digest(p), false);

@@ -17,6 +17,7 @@ extern void cleanup_p_race(void);
 extern void cleanup_realm(void);
 extern void free_effect(struct effect *source);
 extern void cleanup_class(void);
+extern void cleanup_dm_start_items(void);
 extern void cleanup_body(void);
 extern size_t obj_desc_name_format(char *buf, size_t max, size_t end, const char *fmt,
     const char *modstr, bool pluralise);

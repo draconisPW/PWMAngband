@@ -26,6 +26,7 @@ struct ego_item *e_info;
 struct player_race *races;
 struct dragon_breed *breeds;
 struct player_class *classes;
+struct start_item *dm_start_items;
 struct player_ability *player_abilities;
 struct magic_realm *realms;
 struct player_body *bodies;
@@ -147,6 +148,19 @@ void cleanup_class(void)
         }
         mem_free(c);
         c = next;
+    }
+}
+
+
+void cleanup_dm_start_items(void)
+{
+    struct start_item *item = dm_start_items, *item_next;
+
+    while (item)
+    {
+        item_next = item->next;
+        mem_free(item);
+        item = item_next;
     }
 }
 

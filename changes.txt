@@ -88,6 +88,7 @@ PWMAngband:
 - Remove prompt when taking single items from home
 - Drop all items in a stack by default
 - Add missing tiles, remap tileset
+- Implement custom symbols for displaying towns on the world minimap
 
 Gameplay changes
 ----------------
@@ -171,6 +172,8 @@ PWMAngband:
 - Allow more that 3 types of terrain for dungeons
 - Make breathing consume food
 - Wipe townies every dawn
+- Decrease satiation in town areas if full
+- Add NO_STAIRS flag on terrain to prevent generating stairs
 
 Bugs fixed
 ----------
@@ -204,6 +207,7 @@ Angband 4.2.0:
 - Add player_property.txt
 - Changed Term_resize() to handle all of the saved stack of terminals
 - Redo chest traps, make chest_trap.txt
+- Un-hardcode admin equipment
 
 PWMAngband:
 

@@ -859,6 +859,7 @@ extern struct player_body *bodies;
 extern struct player_race *races;
 extern struct dragon_breed *breeds;
 extern struct player_class *classes;
+extern struct start_item *dm_start_items;
 extern struct player_ability *player_abilities;
 extern struct magic_realm *realms;
 

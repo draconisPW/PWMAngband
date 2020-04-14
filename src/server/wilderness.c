@@ -469,6 +469,17 @@ static enum parser_error parse_location_info_max_townies(struct parser *p)
 }
 
 
+static enum parser_error parse_location_info_symbol(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    t->feat = lookup_feat(parser_getstr(p, "terrain"));
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static const char *dungeon_flags[] =
 {
     #define DF(a, b) #a,
@@ -676,6 +687,7 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "max-depth int depth", parse_location_info_max_depth);
     parser_reg(p, "max-level int level", parse_location_info_max_level);
     parser_reg(p, "max-townies int townies", parse_location_info_max_townies);
+    parser_reg(p, "symbol str terrain", parse_location_info_symbol);
     parser_reg(p, "flags ?str flags", parse_location_info_flags);
     parser_reg(p, "floor sym feat int percent", parse_location_info_floor);
     parser_reg(p, "wall sym feat int percent", parse_location_info_wall);

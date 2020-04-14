@@ -3280,6 +3280,78 @@ static struct file_parser class_parser =
 
 
 /*
+ * Initialize DM starting items
+ */
+
+
+static enum parser_error parse_dm_start_items(struct parser *p)
+{
+    struct start_item *h = parser_priv(p);
+    struct start_item *si;
+    int tval, sval;
+    struct object_kind *kind;
+
+    tval = tval_find_idx(parser_getsym(p, "tval"));
+    if (tval < 0) return PARSE_ERROR_UNRECOGNISED_TVAL;
+
+    sval = lookup_sval(tval, parser_getsym(p, "sval"));
+    if (sval < 0) return PARSE_ERROR_UNRECOGNISED_SVAL;
+
+    si = mem_zalloc(sizeof(*si));
+    si->tval = tval;
+    si->sval = sval;
+    si->min = parser_getuint(p, "amount");
+
+    kind = lookup_kind(si->tval, si->sval);
+    if (si->min > kind->base->max_stack)
+    {
+        mem_free(si);
+        return PARSE_ERROR_INVALID_ITEM_NUMBER;
+    }
+
+    si->next = h;
+    parser_setpriv(p, si);
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static struct parser *init_parse_dm_start_items(void)
+{
+    struct parser *p = parser_new();
+
+    parser_setpriv(p, NULL);
+    parser_reg(p, "equip sym tval sym sval uint amount", parse_dm_start_items);
+
+    return p;
+}
+
+
+static errr run_parse_dm_start_items(struct parser *p)
+{
+    return parse_file_quit_not_found(p, "admin_stuff");
+}
+
+
+static errr finish_parse_dm_start_items(struct parser *p)
+{
+    dm_start_items = parser_priv(p);
+    parser_destroy(p);
+    return 0;
+}
+
+
+static struct file_parser dm_start_items_parser =
+{
+    "admin_stuff",
+    init_parse_dm_start_items,
+    run_parse_dm_start_items,
+    finish_parse_dm_start_items,
+    cleanup_dm_start_items
+};
+
+
+/*
  * Initialize player properties
  */
 
@@ -3789,6 +3861,7 @@ static struct
     {"dragon breeds", &dragon_breed_parser},
     {"magic realms", &realm_parser},
     {"player classes", &class_parser},
+    {"DM starting items", &dm_start_items_parser},
     {"artifacts", &artifact_parser},
     {"object properties", &object_property_parser},
     {"object power calculations", &object_power_parser},

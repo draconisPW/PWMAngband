@@ -1509,9 +1509,9 @@ bool earlier_object(struct player *p, struct object *orig, struct object *newobj
     if (tval_is_ammo(orig) && tval_is_ammo(newobj))
     {
         /* First favour usable ammo */
-        if ((p->state.ammo_tval == orig->tval) && (p->state.ammo_tval != newobj->tval))
+        if (p && (p->state.ammo_tval == orig->tval) && (p->state.ammo_tval != newobj->tval))
             return false;
-        if ((p->state.ammo_tval != orig->tval) && (p->state.ammo_tval == newobj->tval))
+        if (p && (p->state.ammo_tval != orig->tval) && (p->state.ammo_tval == newobj->tval))
             return true;
     }
 

@@ -383,7 +383,8 @@ static void prt_state(struct player *p)
         }
         else
         {
-            my_strcpy(buf, feat->name, sizeof(buf));
+            if (feat->shortdesc) my_strcpy(buf, feat->shortdesc, sizeof(buf));
+            else my_strcpy(buf, feat->name, sizeof(buf));
             my_strcap(buf);
             p->terrain[0] = feat->d_attr;
         }

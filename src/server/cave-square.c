@@ -951,7 +951,8 @@ bool square_isno_stairs(struct chunk *c, struct loc *grid)
 {
     my_assert(square_in_bounds(c, grid));
 
-    return sqinfo_has(square(c, grid)->info, SQUARE_NO_STAIRS);
+    return (sqinfo_has(square(c, grid)->info, SQUARE_NO_STAIRS) ||
+        tf_has(f_info[square(c, grid)->feat].flags, TF_NO_STAIRS));
 }
 
 

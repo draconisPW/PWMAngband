@@ -120,6 +120,7 @@ struct location
     int max_depth;              /* Max depth */
     int max_level;              /* Max character level allowed */
     int max_townies;            /* Max townies */
+    int feat;                   /* Symbol on minimap */
     bitflag flags[DF_SIZE];     /* Flags */
     struct dun_feature *floors; /* Unusual dungeon floors */
     int n_floors;

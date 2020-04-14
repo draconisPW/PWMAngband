@@ -610,7 +610,7 @@ dice:$B
 expr:B:PLAYER_LEVEL:+ 5
 effect:STRIKE:ELEC:0
 dice:$Dd4
-expr:D:PLAYER_LEVEL:/ 4
+expr:D:PLAYER_LEVEL:/ 4 + 1
 msg_other: strikes lightning from above.
 desc:Strikes a target from above with a lightning bolt, followed by a clap
 desc: of thunder.

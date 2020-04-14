@@ -1160,6 +1160,7 @@ static void wild_display_map(struct player *p)
             if (type >= 0)
             {
                 struct worldpos wpos;
+                struct location *town;
 
                 g.f_idx = wf_info[type].feat_idx;
 
@@ -1167,6 +1168,10 @@ static void wild_display_map(struct player *p)
                 wpos_init(&wpos, &grid, 0);
                 if ((get_dungeon(&wpos) != NULL) && !in_town(&wpos))
                     g.f_idx = FEAT_MORE;
+
+                /* Show town symbol if it exists */
+                town = get_town(&wpos);
+                if (town && town->feat) g.f_idx = town->feat;
             }
 
             /* Extract the current attr/char at that map location */

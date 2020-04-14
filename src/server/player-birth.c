@@ -640,7 +640,7 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
 static void player_outfit_dm(struct player *p)
 {
     int i;
-    struct object_kind *kind;
+    const struct start_item *si;
 
     /* Initialize the DM with special powers */
     if (is_dm_p(p))
@@ -676,11 +676,13 @@ static void player_outfit_dm(struct player *p)
     }
 
     /* Other useful stuff */
-    kind = lookup_kind_by_name(TV_POTION, "Augmentation");
-    player_outfit_aux(p, kind, kind->base->max_stack);
-    kind = lookup_kind_by_name(TV_POTION, "Experience");
-    player_outfit_aux(p, kind, kind->base->max_stack);
-    player_outfit_aux(p, lookup_kind_by_name(TV_RING, "Speed"), 2);
+    for (si = dm_start_items; si; si = si->next)
+    {
+        struct object_kind *kind = lookup_kind(si->tval, si->sval);
+
+        my_assert(kind);
+        player_outfit_aux(p, kind, (byte)si->min);
+    }
 
     /* Max recall depth */
     p->max_depth = z_info->max_depth - 1;
