@@ -27,7 +27,7 @@
 # standard depth of 1. This should always be the case for the Main Angband
 # dungeon.
 
-# Set max-depth to the depth of the corresponding "force-location" unique
+# Set max-depth to the depth of the corresponding FORCE_DEPTH unique
 # in monster.txt to create the "final level dungeon boss".
 # Leaving max-depth unset means "maximum depth allowed" (defined in
 # constants.txt). This should always be the case for the Main Angband dungeon.

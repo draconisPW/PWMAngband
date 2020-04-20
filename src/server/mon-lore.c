@@ -938,12 +938,7 @@ void lore_append_movement(struct player *p, const struct monster_race *race,
 
     /* Describe location */
     if (race->level == 0)
-    {
-        if (race->wpos && !in_town(race->wpos))
-            text_out(p, " lives in a special area");
-        else
-            text_out(p, " lives in a town");
-    }
+        text_out(p, " lives in a town");
     else
     {
         byte colour = (race->level > p->max_depth)? COLOUR_RED: COLOUR_L_BLUE;

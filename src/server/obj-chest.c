@@ -584,7 +584,6 @@ static void chest_trap(struct player *p, struct object *obj)
     if (traps <= 0) return;
 
     source_player(who, get_player_index(get_connection(p->conn)), p);
-    who->chest_trap = trap;
 
     /* Apply trap effects */
 	for (trap = chest_traps; trap; trap = trap->next)
@@ -592,6 +591,7 @@ static void chest_trap(struct player *p, struct object *obj)
 		if (trap->pval & traps)
         {
 			if (trap->msg) msg(p, trap->msg);
+            who->chest_trap = trap;
             effect_do(trap->effect, who, &ident, false, 0, NULL, 0, 0, NULL);
 		}
 	}

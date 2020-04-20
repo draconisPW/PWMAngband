@@ -285,7 +285,7 @@ struct monster_race
     struct monster_mimic *mimic_kinds;
     struct monster_shape *shapes;
     int num_shapes;
-    struct worldpos *wpos;                  /* Restrict to this location */
+    struct worldpos *locations;             /* Restrict to these locations */
 };
 
 struct target

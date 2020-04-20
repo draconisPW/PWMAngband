@@ -3156,12 +3156,15 @@ static int Receive_quit(void)
         plog_fmt("Quitting: %s", reason);
 
         /* Hack -- restart game without quitting */
-        strnfmt(buf, NORMAL_WID - 2, "%.70s[y/n] ", "Start a new game? ");
-        prt(buf, 0, 0);
-        Term_fresh();
-        Term_inkey(&ch, true, true);
-        if ((ch.key.code != 'Y') && (ch.key.code != 'y')) quit(NULL);
-        play_again = true;
+        if (!strstr(reason, "Server shutdown"))
+        {
+            strnfmt(buf, NORMAL_WID - 2, "%.70s[y/n] ", "Start a new game? ");
+            prt(buf, 0, 0);
+            Term_fresh();
+            Term_inkey(&ch, true, true);
+            if ((ch.key.code != 'Y') && (ch.key.code != 'y')) quit(NULL);
+            play_again = true;
+        }
     }
     return -1;
 }
@@ -3452,7 +3455,19 @@ static int Receive_char_dump(void)
         else
             file_delete(tmp);
 
-        if (dump_only) quit(NULL);
+        if (dump_only)
+        {
+            ui_event ev;
+
+            strnfmt(buf, NORMAL_WID - 2, "%.70s[y/n] ", "Start a new game? ");
+            prt(buf, 0, 0);
+            Term_fresh();
+            Term_inkey(&ev, true, true);
+            if ((ev.key.code != 'Y') && (ev.key.code != 'y')) quit(NULL);
+            play_again = true;
+
+            return -1;
+        }
     }
 
     /* Process the line */
@@ -5883,7 +5898,7 @@ int Net_packet(void)
         {
             if (result == -1)
             {
-                if (cur_type != PKT_QUIT)
+                if ((cur_type != PKT_QUIT) && !play_again)
                 {
                     errno = 0;
                     plog_fmt("Processing packet type (%d, %d) failed", cur_type, prev_type);

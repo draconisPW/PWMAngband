@@ -89,6 +89,7 @@ PWMAngband:
 - Drop all items in a stack by default
 - Add missing tiles, remap tileset
 - Implement custom symbols for displaying towns on the world minimap
+- Add option to disable the Enter menu
 
 Gameplay changes
 ----------------
@@ -174,6 +175,8 @@ PWMAngband:
 - Wipe townies every dawn
 - Decrease satiation in town areas if full
 - Add NO_STAIRS flag on terrain to prevent generating stairs
+- Allow multiple "force-locations" for monsters
+- Remove mean-looking mercenaries and battle-scarred veterans from Hobbiton
 
 Bugs fixed
 ----------

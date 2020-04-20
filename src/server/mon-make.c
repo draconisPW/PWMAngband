@@ -306,8 +306,19 @@ static bool allow_race(struct monster_race *race, struct worldpos *wpos)
         return false;
 
     /* Some monsters never appear out of their dungeon/town (wilderness) */
-    if ((cfg_diving_mode < 2) && race->wpos && !loc_eq(&race->wpos->grid, &wpos->grid))
-        return false;
+    if ((cfg_diving_mode < 2) && race->locations)
+    {
+        bool found = false;
+        struct worldpos *location = race->locations;
+
+        while (location && !found)
+        {
+            if (loc_eq(&location->grid, &wpos->grid)) found = true;
+            else location = location->next;
+        }
+
+        if (!found) return false;
+    }
 
     /* Some monsters only appear in the wilderness */
     if (rf_has(race->flags, RF_WILD_ONLY) && !in_wild(wpos))

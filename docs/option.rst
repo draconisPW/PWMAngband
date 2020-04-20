@@ -199,13 +199,23 @@ Kick out when starving while at full hps ``disturb_faint``
 
 Risky casting ``risky_casting``
   Allow the player to cast spells while not having the required amount of mana
-  at the risk of damaging constitution and getting paralyzed
+  at the risk of damaging constitution and getting paralyzed.
 
 ..
 
 Use single items from floor instantly ``quick_floor``
   This option enables instant using of single items on the floor instead of
-  displaying a menu with one item
+  displaying a menu with one item.
+
+..
+
+Hide trap/terrain description on status line ``hide_terrain``
+  This option hides trap/terrain description on status line.
+
+..
+
+Disable Enter menu ``disable_enter``
+  This option disables the Enter menu.
 
 Birth options
 -------------

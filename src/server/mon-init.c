@@ -1703,12 +1703,12 @@ static enum parser_error parse_monster_color_cycle(struct parser *p)
 }
 
 
-static enum parser_error parse_monster_location(struct parser *p)
+static enum parser_error parse_monster_locations(struct parser *p)
 {
     struct monster_race *r = parser_priv(p);
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    r->wpos = restrict_location(parser_getstr(p, "location"));
+    r->locations = restrict_locations(parser_getstr(p, "locations"));
 
     return PARSE_ERROR_NONE;
 }
@@ -1752,7 +1752,7 @@ static struct parser *init_parse_monster(void)
     parser_reg(p, "mimic sym tval sym sval", parse_monster_mimic);
     parser_reg(p, "shape str name", parse_monster_shape);
     parser_reg(p, "color-cycle sym group sym cycle", parse_monster_color_cycle);
-    parser_reg(p, "force-location str location", parse_monster_location);
+    parser_reg(p, "locations str locations", parse_monster_locations);
 
     return p;
 }
@@ -1876,6 +1876,7 @@ static void cleanup_monster(void)
         struct monster_friends_base *fb = NULL;
         struct monster_mimic *m = NULL;
         struct monster_shape *s;
+        struct worldpos *wpos;
 
         d = r->drops;
         while (d)
@@ -1923,7 +1924,14 @@ static void cleanup_monster(void)
         mem_free(r->blow);
         mem_free(r->lore.blows);
         mem_free(r->lore.blow_known);
-        mem_free(r->wpos);
+        wpos = r->locations;
+        while (wpos)
+        {
+            struct worldpos *wposn = wpos->next;
+
+            mem_free(wpos);
+            wpos = wposn;
+        }
     }
 
     mem_free(r_info);

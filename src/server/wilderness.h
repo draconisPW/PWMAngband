@@ -234,7 +234,7 @@ extern bool in_town(struct worldpos *wpos);
 extern bool in_wild(struct worldpos *wpos);
 extern bool town_suburb(struct worldpos *wpos);
 extern bool town_area(struct worldpos *wpos);
-extern struct worldpos *restrict_location(const char *location);
+extern struct worldpos *restrict_locations(const char *locations);
 extern struct location *get_dungeon(struct worldpos *wpos);
 extern void dungeon_list(struct player *p, ang_file *fff);
 extern void init_wild_info(void);

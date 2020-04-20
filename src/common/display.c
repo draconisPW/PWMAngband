@@ -1176,6 +1176,8 @@ static size_t prt_dtrap(struct player *p, int row, int col)
  */
 static size_t prt_terrain(struct player *p, int row, int col)
 {
+    if (OPT(p, hide_terrain)) return 0;
+
     put_str_hook(col, row, -1, p->terrain[0], p->terrain + 1);
 
     return strlen(p->terrain) - 1;

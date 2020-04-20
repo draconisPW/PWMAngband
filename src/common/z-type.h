@@ -52,6 +52,7 @@ struct worldpos
 {
     struct loc grid;    /* The wilderness coordinates */
     s16b depth;         /* Cur depth */
+    struct worldpos *next;
 };
 
 extern bool wpos_null(struct worldpos *wpos);

@@ -1061,48 +1061,48 @@ bool town_area(struct worldpos *wpos)
 
 
 /*
- * Restrict to this location.
- * Returns the coordinates of this location (town, dungeon or special coordinates).
+ * Restrict to these locations.
+ * Returns the coordinates of the locations (town, dungeon or special coordinates).
  */
-struct worldpos *restrict_location(const char *location)
+struct worldpos *restrict_locations(const char *locations)
 {
     int i;
-    struct loc grid;
+    char *s, *t;
+    struct worldpos *result = NULL;
 
-    /* Browse the towns */
-    for (i = 0; i < z_info->town_max; i++)
+    /* List the locations */
+    s = string_make(locations);
+    t = strtok(s, "|");
+    while (t)
     {
-        if (streq(towns[i].name, location))
+        struct worldpos* found = NULL;
+
+        /* Browse the towns */
+        for (i = 0; i < z_info->town_max && !found; i++)
         {
-            struct worldpos* wpos = mem_zalloc(sizeof(struct worldpos));
-
-            memcpy(wpos, &towns[i].wpos, sizeof(struct worldpos));
-            return wpos;
+            if (streq(towns[i].name, t)) found = &towns[i].wpos;
         }
-    }
 
-    /* Browse the dungeons */
-    for (i = 0; i < z_info->dungeon_max; i++)
-    {
-        if (streq(dungeons[i].name, location))
+        /* Browse the dungeons */
+        for (i = 0; i < z_info->dungeon_max && !found; i++)
         {
-            struct worldpos* wpos = mem_zalloc(sizeof(struct worldpos));
-
-            memcpy(wpos, &dungeons[i].wpos, sizeof(struct worldpos));
-            return wpos;
+            if (streq(dungeons[i].name, t)) found = &dungeons[i].wpos;
         }
+
+        if (found)
+        {
+            struct worldpos *wpos = mem_zalloc(sizeof(struct worldpos));
+
+            memcpy(wpos, found, sizeof(struct worldpos));
+            wpos->next = result;
+            result = wpos;
+        }
+
+        t = strtok(NULL, "|");
     }
+    string_free(s);
 
-    /* Simply use the given coordinates */
-    if (2 == sscanf(location, "%d,%d", &grid.x, &grid.y))
-    {
-        struct worldpos* wpos = mem_zalloc(sizeof(struct worldpos));
-
-        wpos_init(wpos, &grid, 0);
-        return wpos;
-    }
-
-    return NULL;
+    return result;
 }
 
 

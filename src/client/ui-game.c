@@ -274,7 +274,7 @@ static void textui_process_command_aux(ui_event e)
     }
 
     /* Use command menus */
-    if (key == KC_ENTER)
+    if ((key == KC_ENTER) && !OPT(player, disable_enter))
         cmd = textui_action_menu_choose();
 
     /* Command key */

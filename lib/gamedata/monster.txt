@@ -36,7 +36,7 @@
 # friends-base: chance : number : name : ?role
 # desc: Description
 # mimic: tval : sval
-# force-location: location (name or coordinates)
+# locations: location (dungeon or town) | location | etc
 
 # 'name' indicates the beginning of an entry.
 
@@ -168,9 +168,9 @@
 # 'mimic' lines give item types that this monster may mimic. Each of the objects
 # has an equal chance of being mimicked.
 
-# 'force-location' restricts the creation of that monster race to a specific
-# location (town, dungeon or special coordinates). Mainly used for FORCE_DEPTH
-# uniques to tag them as "dungeon boss".
+# 'locations' restricts the creation of that monster race to specific locations
+# (town or dungeon). Mainly used for FORCE_DEPTH uniques to tag them as
+# "dungeon boss".
 
 # === Understanding monster.txt flags ===
 
@@ -283,7 +283,7 @@ flags:UNIQUE | MALE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:NO_CONF | NO_SLEEP
 desc:He's lost his dogs. He's had his mushrooms stolen. He's not a happy hobbit!
-force-location:Hobbiton
+locations:Hobbiton
 
 name:blubbering idiot
 base:townsfolk
@@ -460,6 +460,7 @@ flags:OPEN_DOOR | BASH_DOOR | TAKE_ITEM
 flags:NO_FEAR | NO_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WANDERER
 desc:No job is too low for him.
+locations:Carn Dûm|Bree|Lothlorien|Minas Anor|Umbar|Gondolin
 
 name:battle-scarred veteran
 base:townsfolk
@@ -481,6 +482,7 @@ flags:OPEN_DOOR | BASH_DOOR | TAKE_ITEM
 flags:NO_FEAR | NO_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WANDERER
 desc:He doesn't take to strangers kindly.
+locations:Carn Dûm|Bree|Lothlorien|Minas Anor|Umbar|Gondolin
 
 name:sparrow
 base:bird
@@ -538,7 +540,7 @@ flags:TAKE_ITEM
 flags:NO_CONF | NO_SLEEP | IM_WATER
 desc:This greedy and ill-mannered hobbit thinks he has been spoiled from a good
 desc: heritage.
-force-location:The Brandywine Bridge
+locations:The Brandywine Bridge
 
 name:Lobelia Sackville-Baggins
 base:humanoid
@@ -562,7 +564,7 @@ flags:TAKE_ITEM
 flags:NO_CONF | NO_SLEEP | IM_WATER
 desc:This greedy and ill-mannered hobbit thinks she has been spoiled from a good
 desc: heritage.
-force-location:The Brandywine Bridge
+locations:The Brandywine Bridge
 
 name:Target Dummy
 base:golem
@@ -579,7 +581,7 @@ experience:0
 flags:UNIQUE | NEVER_BLOW | NEVER_MOVE | NO_DEATH
 flags:PWMANG_EXTRA | PWMANG_FIXED
 desc:An indestructible golem used for target practice.
-force-location:Carn Dûm
+locations:Carn Dûm
 
 name:goldfish
 base:aquatic
@@ -7787,7 +7789,7 @@ friends:100:1d1:Bolg, Son of Azog
 desc:A great orc with a huge iron-clad head, agile and strong. He is notorious
 desc: for starting the War of the Dwarves and Orcs by killing Durin's heir,
 desc: Thrór.
-force-location:The Orc Cave
+locations:The Orc Cave
 
 name:brigand
 base:person
@@ -8442,7 +8444,7 @@ desc: trespassers in his territory. "...a huge willow-tree, old and hoary.
 desc: Enormous it looked, its sprawling branches going up like racing arms with
 desc: many long-fingered hands, its knotted and twisted trunk gaping in wide
 desc: fissures that creaked faintly as the boughs moved."
-force-location:The Old Forest
+locations:The Old Forest
 
 ### Dungeon level 26 ###
 
@@ -10371,7 +10373,7 @@ friends-base:100:1d5:sandworm:servant
 friends-base:75:1d5:dragon worm:servant
 friends-base:50:1d5:dragon worm:servant
 desc:Queen and Mother of the sandworms, fear her and her prolific children.
-force-location:The Sandworm Lair
+locations:The Sandworm Lair
 
 name:psychedelic ball
 base:ball
@@ -11201,7 +11203,7 @@ friends:100:1d1:Ulwarth, Son of Ulfang
 desc:A short and swarthy Easterling dressed in black. He and his three sons once
 desc: openly swore allegiance to the High Elves, but were secretly in the pay of
 desc: Morgoth.
-force-location:The Land Of Rhûn
+locations:The Land Of Rhûn
 
 name:lich
 plural:liches
@@ -11782,7 +11784,7 @@ desc:He has lived in the Barrow-Downs for centuries after his first death at the
 desc: hands of the Witch-King of Angmar. A once loyal captain under the
 desc: Witch-King's command, he now awaits a time when his undead forces shall
 desc: rise again to avenge their deaths.
-force-location:The Barrow-downs
+locations:The Barrow-downs
 
 name:incubus
 plural:incubi
@@ -13532,7 +13534,7 @@ flags:DROP_1 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
 flags:BASH_DOOR | HYBRID
 flags:FORCE_DEPTH
 desc:It is a cross between a human and a bull.
-force-location:The Maze
+locations:The Maze
 
 name:Emperor Mimic
 base:random mimic
@@ -14842,7 +14844,7 @@ spells:BR_POIS | BR_WATE
 spells:HOLD | TELE_TO
 desc:A vile creature which seems to consist mostly of tentacles, it seeks to 
 desc: drag people to their doom in the water. Few have ever escaped its grasp.
-force-location:The Small Water Cave
+locations:The Small Water Cave
 
 name:lesser black reaver
 base:lich
@@ -14899,7 +14901,7 @@ friends-base:75:1d5:mineral
 friends-base:50:1d5:mineral
 desc:Deep in the heart of the earth, even the rock itself is sentient and has
 desc: learned to despise intruders.
-force-location:The Heart of the Earth
+locations:The Heart of the Earth
 
 name:master unbeliever
 base:person
@@ -15514,7 +15516,7 @@ friends:100:3d4:cave troll:servant
 desc:A huge Balrog surrounded by raging pillars of fire, this is indeed a
 desc: terrible opponent. Wielding a great whip of fire and a blazing sword, his
 desc: fury blisters your skin and melts your flesh!
-force-location:The Mines of Moria
+locations:The Mines of Moria
 
 name:The White Balrog
 base:major demon
@@ -15548,7 +15550,7 @@ spells:BR_COLD
 spells:S_UNDEAD | S_DEMON
 desc:It is a massive humanoid demon wreathed in frost, wielding a cruel looking
 desc: pike in its hands.
-force-location:The Helcaraxe
+locations:The Helcaraxe
 
 name:13-headed hydra
 base:hydra
@@ -16120,7 +16122,7 @@ desc: explains their destruction. A creation of finest glass, the body of this
 desc: creature bends and amplifies light in a way that makes you unsure of its
 desc: position. You feel somewhat dizzy as the radiant light reflects off the
 desc: walls, the ceiling and your gear.
-force-location:The Illusory Castle
+locations:The Illusory Castle
 
 ### Dungeon level 53 ###
 
@@ -16567,7 +16569,7 @@ desc:Shelob is an enormous bloated spider, the last daughter of Ungoliant the
 desc: Unlight. Her poison is legendary, as is her ego. She normally guards the
 desc: pass through Cirith Ungol, but occasionally goes out foraging for food to
 desc: feed her voracious appetite.
-force-location:Cirith Ungol
+locations:Cirith Ungol
 
 name:dracolich
 plural:dracoliches
@@ -16653,7 +16655,7 @@ spells:S_KIN | S_MONSTERS
 desc:Last and proudest king of ancient Númenor. Corrupted by power and avarice,
 desc: he fell victim to Sauron's wiles, tried to fight the Valar themselves, and
 desc: condemned Númenor to oblivion.
-force-location:Númenor
+locations:Númenor
 
 name:barbazu
 plural:barbazu
@@ -17505,7 +17507,7 @@ desc: gnarled walking stick. Sent to Middle-Earth by Yavanna, Radagast
 desc: has studied the plants and animals of Middle-Earth for many years
 desc: and considers himself their defender. His humble robes and demeanor
 desc: belie his inner strength.
-force-location:Mirkwood
+locations:Mirkwood
 
 ### Dungeon level 65 ###
 
@@ -17596,7 +17598,7 @@ desc:The Mouth of Sauron is a mighty spell caster. So old that even he cannot
 desc: remember his own name, his power and evil are undeniable. He believes
 desc: unshakably that he is unbeatable and laughs as he weaves his awesome
 desc: spells.
-force-location:Mordor
+locations:Mordor
 
 name:osyluth
 base:major demon
@@ -18477,7 +18479,7 @@ spells:TELE_TO | SCARE | BR_TIME | BR_FIRE
 spells:BO_MANA | S_KIN
 desc:As the Thunderlords came from afar to help the elves, Trone and his rebel
 desc: wing came to defend Morgoth! He is an evil and powerful Thunderlord.
-force-location:The Sacred Land Of Mountains
+locations:The Sacred Land Of Mountains
 
 name:mandragora
 base:mushroom
@@ -18753,7 +18755,7 @@ desc:Glaurung is the father of all dragons, and was for a long time the most
 desc: powerful. Though this is no longer so, he still has full command over his
 desc: brood and can command them to appear whenever he so wishes. He is the
 desc: definition of dragonfire.
-force-location:Erebor
+locations:Erebor
 
 name:great ethereal wyrm
 base:ancient dragon
@@ -18898,7 +18900,7 @@ desc:The dark master of the terrible fortress of southern Mirkwood. It is
 desc: rumoured that this is in fact none other than Sauron in disguise: although
 desc: if this is so, he has yet to reveal his full power - and perhaps will not
 desc: do so while his deception lasts, in the hope of keeping it going.
-force-location:Dol Guldur
+locations:Dol Guldur
 
 ### Dungeon level 76 ###
 
@@ -18981,7 +18983,7 @@ friends:40:1d2:master lich:servant
 friends:10:1d2:archlich:servant
 desc:A stench of corruption and decay surrounds this sorcerer, who has clearly
 desc: risen from the dead to continue his foul plots and schemes.
-force-location:The Paths of the Dead
+locations:The Paths of the Dead
 
 name:pit fiend
 base:major demon
@@ -20662,7 +20664,7 @@ spells:BR_FIRE | BR_PLAS
 spells:S_HI_DEMON | S_HI_UNDEAD
 desc:A huge Balrog of devastating power, he guards the entrance to the Chambers
 desc: of Fire at the top of Mount Doom.
-force-location:Mount Doom
+locations:Mount Doom
 
 ### Dungeon level 99 ###
 
@@ -20993,7 +20995,7 @@ desc: Void for eons before being awakened by sorcery and shaped into the being
 desc: you see before you. A flickering purple outline of a sphere, with eerie
 desc: yellow-purple mist circling rapidly around it, Tik'srvzllat threatens
 desc: your sanity with its appearance alone.
-force-location:Angband
+locations:Angband
 
 ### The Nether Realm ###
 
@@ -21020,7 +21022,7 @@ spell-freq:2
 innate-freq:100
 spells:BR_NETH
 desc:A whirling anomaly of nether mists that will drain your life force.
-force-location:The Nether Realm
+locations:The Nether Realm
 
 name:crawling mass of primal chaos
 plural:crawling masses of primal chaos
@@ -21046,7 +21048,7 @@ flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_POIS | NO_CONF | NO_SLEEP
 flags:FORCE_SLEEP | FORCE_DEPTH | ATTR_MULTI | NO_HOLD | IM_NETHER
 desc:A mass of pure chaotic energy crawling towards you, eating everything on
 desc: its path.
-force-location:The Nether Realm
+locations:The Nether Realm
 
 name:chaos mutant
 base:person
@@ -21074,7 +21076,7 @@ desc:Despite their swollen faces, they manage to smile at you. You back away
 desc: nervously as their smile becomes a grin, and then a yawn, and then their
 desc: mouths open wider still... and not one but a hundred writhing tongues
 desc: spill from between their impossible wide jaws.
-force-location:The Nether Realm
+locations:The Nether Realm
 
 name:vlodblad
 base:jelly
@@ -21101,7 +21103,7 @@ desc:A hideous creation of evil sorcery. Dormant it lies as a mound of flabby
 desc: flesh, but when aroused into combat it will gradually sprout limbs,
 desc: growing ever more skilful and unless killed quickly will overcome any
 desc: opponent, devouring them and absorbing them into its fleshy body.
-force-location:The Nether Realm
+locations:The Nether Realm
 
 name:blood lurcher
 base:canine
@@ -21129,7 +21131,7 @@ desc:Hairless, eyeless chaotic monstrosities which devour their victims by
 desc: sucking their blood through the many writhing tentacles which protrude
 desc: from their mouths instead of teeth. They are bipedal, fast and strong,
 desc: with long and vicious claws on their front paws.
-force-location:The Nether Realm
+locations:The Nether Realm
 
 name:Senyakaze, Sorceress of the Nether Realm
 base:ainu
@@ -21165,7 +21167,7 @@ spells:S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_MONSTERS
 desc:She is Xakaze's most powerful servant. A fallen Maia of mind-shattering
 desc: beauty, she is the princess of the Nether Realm. But beware, she knows
 desc: devastating spells, and she is as evil as she is beautiful.
-force-location:The Nether Realm
+locations:The Nether Realm
 
 name:Xakaze, Father of Abominations
 base:nether
@@ -21204,7 +21206,7 @@ desc: manipulations. Once human, he is now more like a tangle of human (and
 desc: non-human) body parts, always looking for one more arm, leg or head to add
 desc: to his body. He has bred new kinds of mutants, and never fight without
 desc: their help.
-force-location:The Nether Realm
+locations:The Nether Realm
 
 ### Utumno, Portal to the Void ###
 
@@ -21228,7 +21230,7 @@ blow:CLAW:LOSE_ALL:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 desc:A ghostly apparition ready for combat.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of body
 plural:spirits of body
@@ -21250,7 +21252,7 @@ blow:CLAW:HURT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 desc:A ghostly apparition ready to sap your body.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of mind
 plural:spirits of mind
@@ -21272,7 +21274,7 @@ blow:CLAW:LOSE_WIS:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 desc:A ghostly apparition ready to sap your mind.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of greed
 plural:spirits of greed
@@ -21294,7 +21296,7 @@ blow:TOUCH:EAT_LIGHT:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 desc:A ghostly apparition full of greed.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of filth
 plural:spirits of filth
@@ -21316,7 +21318,7 @@ blow:CLAW:FAMINE:8d8
 flags:PWMANG_EXTRA
 flags:FORCE_DEPTH
 desc:A ghostly apparition full of filth.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of poison
 plural:spirits of poison
@@ -21341,7 +21343,7 @@ spell-freq:3
 innate-freq:50
 spells:BR_POIS | BA_POIS
 desc:A ghostly apparition with a toxic aura.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of acid
 plural:spirits of acid
@@ -21367,7 +21369,7 @@ spell-freq:3
 innate-freq:33
 spells:BR_ACID | BA_ACID | BO_ACID
 desc:A ghostly apparition with an acidic aura.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of lightning
 plural:spirits of lightning
@@ -21393,7 +21395,7 @@ spell-freq:3
 innate-freq:33
 spells:BR_ELEC | BA_ELEC | BO_ELEC
 desc:A ghostly apparition with an electric aura.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of fire
 plural:spirits of fire
@@ -21419,7 +21421,7 @@ spell-freq:3
 innate-freq:33
 spells:BR_FIRE | BA_FIRE | BO_FIRE
 desc:A ghostly apparition with a fiery aura.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of cold
 plural:spirits of cold
@@ -21444,7 +21446,7 @@ spell-freq:3
 innate-freq:33
 spells:BR_COLD | BA_COLD | BO_COLD
 desc:A ghostly apparition with a chilling aura.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of annoyance
 plural:spirits of annoyance
@@ -21470,7 +21472,7 @@ innate-freq:8
 spells:SHRIEK | DRAIN_MANA | MIND_BLAST | BRAIN_SMASH | SCARE | BLIND | CONF
 spells:TELE_TO | DARKNESS | TRAPS | FORGET | ANIM_DEAD
 desc:A ghostly apparition ready to annoy you.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of haste
 plural:spirits of haste
@@ -21494,7 +21496,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:SLOW | HOLD | HASTE
 desc:A ghostly apparition moving with haste.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of missile
 plural:spirits of missile
@@ -21519,7 +21521,7 @@ spell-freq:3
 innate-freq:80
 spells:ARROW | SHOT | BOLT | BOULDER | MISSILE
 desc:A ghostly apparition ready for ranged combat.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of curse
 plural:spirits of curse
@@ -21543,7 +21545,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:WOUND
 desc:A ghostly apparition that will drag you to your doom.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of healing
 plural:spirits of healing
@@ -21567,7 +21569,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:HEAL | HEAL_KIN
 desc:A ghostly apparition ready to help its kin against you.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of teleportation
 plural:spirits of teleportation
@@ -21591,7 +21593,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:BLINK | TPORT | TELE_AWAY | TELE_LEVEL
 desc:A ghostly apparition that never stays in place.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of friendship
 plural:spirits of friendship
@@ -21615,7 +21617,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:S_KIN | S_MONSTER | S_MONSTERS | S_UNIQUE
 desc:A ghostly apparition with many friends.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of nature
 plural:spirits of nature
@@ -21639,7 +21641,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:S_ANIMAL | S_SPIDER | S_HOUND | S_HYDRA
 desc:A ghostly apparition with many friends of nature.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of goodness
 plural:spirits of goodness
@@ -21663,7 +21665,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:S_AINU
 desc:A ghostly apparition with many friends from the heavens.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of hell
 plural:spirits of hell
@@ -21687,7 +21689,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:S_DEMON | S_HI_DEMON
 desc:A ghostly apparition with many demonic friends.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of undeath
 plural:spirits of undeath
@@ -21711,7 +21713,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:S_UNDEAD | S_HI_UNDEAD
 desc:A ghostly apparition with many undead friends.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of dragonkind
 plural:spirits of dragonkind
@@ -21735,7 +21737,7 @@ flags:FORCE_DEPTH
 spell-freq:3
 spells:S_DRAGON | S_HI_DRAGON
 desc:A ghostly apparition with many draconic friends.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of nether
 plural:spirits of nether
@@ -21761,7 +21763,7 @@ spell-freq:3
 innate-freq:33
 spells:BR_NETH | BA_NETH | BO_NETH
 desc:A ghostly apparition from the Nether Realm.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of water
 plural:spirits of water
@@ -21787,7 +21789,7 @@ spell-freq:3
 innate-freq:33
 spells:BR_WATE | BA_WATE | BO_WATE
 desc:A ghostly apparition from the abyss world.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of mana
 plural:spirits of mana
@@ -21812,7 +21814,7 @@ spell-freq:3
 innate-freq:33
 spells:BR_MANA | BA_MANA | BO_MANA
 desc:A ghostly apparition with an intense magical aura.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of disenchantment
 plural:spirits of disenchantment
@@ -21838,7 +21840,7 @@ spell-freq:3
 innate-freq:100
 spells:BR_DISE
 desc:A ghostly apparition ready to ruin your belongings.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of chaos
 plural:spirits of chaos
@@ -21864,7 +21866,7 @@ spell-freq:3
 innate-freq:100
 spells:BR_CHAO
 desc:A ghostly apparition ready to wreck havoc.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of time
 plural:spirits of time
@@ -21889,7 +21891,7 @@ spell-freq:3
 innate-freq:100
 spells:BR_TIME
 desc:A ghostly apparition that seems out of time.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of shadows
 plural:spirits of shadows
@@ -21914,7 +21916,7 @@ spell-freq:3
 innate-freq:67
 spells:BR_LIGHT | BR_DARK | BA_DARK
 desc:A ghostly apparition that stands between light and darkness.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of law
 plural:spirits of law
@@ -21939,7 +21941,7 @@ spell-freq:3
 innate-freq:100
 spells:BR_SOUN | BR_SHAR
 desc:A ghostly apparition seeking obedience.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:spirit of power
 plural:spirits of power
@@ -21965,7 +21967,7 @@ spell-freq:3
 innate-freq:71
 spells:BR_NEXU | BR_INER | BR_GRAV | BR_PLAS | BR_WALL | BO_PLAS | BO_ICE
 desc:A ghostly apparition ready to demonstrate its power.
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
 
 name:Melkor, Lord of Darkness
 base:ainu
@@ -22005,4 +22007,4 @@ desc: forever. However here in the Void, his spirit gained much power
 desc: for he is closer to the Flame Imperishable. He is coming to you in pure
 desc: madness, which makes him even more dangerous. You are on the verge
 desc: of dying!
-force-location:Utumno, Portal to the Void
+locations:Utumno, Portal to the Void
