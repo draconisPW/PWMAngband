@@ -90,6 +90,8 @@ PWMAngband:
 - Add missing tiles, remap tileset
 - Implement custom symbols for displaying towns on the world minimap
 - Add option to disable the Enter menu
+- Add option to hide terrain description on status line
+- Normalize sounds and ensure they're at least 0.25s long
 
 Gameplay changes
 ----------------
@@ -190,6 +192,10 @@ PWMAngband:
 - Add missing Shapechanger spells
 - Make Dragons and Monks learn obvious object properties on carry
 - Fix incorrect number of bytes read from Packet_scanf() calls
+- Reimplement missing messages
+- Remove missiles from the list of wieldable items
+- Reimplement MSG_NOTICE for sensed objects
+- Reimplement MSG_FLEE
 
 Coding changes
 --------------
@@ -210,13 +216,14 @@ Angband 4.2.0:
 - Add player_property.txt
 - Changed Term_resize() to handle all of the saved stack of terminals
 - Redo chest traps, make chest_trap.txt
-- Un-hardcode admin equipment
 
 PWMAngband:
 
 - Implement temporary monster flags (CAMOUFLAGE, AWARE, HANDLED)
 - Un-hardcode hybrid monsters by adding a HYBRID flag
 - Don't load features when getting a dump from server
+- Un-hardcode admin equipment
+- Un-hardcode barehanded attacks
 
 Compilation
 -----------

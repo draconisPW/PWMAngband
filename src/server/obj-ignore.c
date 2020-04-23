@@ -152,15 +152,15 @@ static void sense_object(struct player *p, struct object *obj)
     /* Message (inventory) */
     if (object_is_carried(p, obj))
     {
-        msg(p, "You feel the %s (%c) in your pack %s %s...", o_name, gear_to_label(p, obj),
-            VERB_AGREEMENT(obj->number, "is", "are"), text);
+        msgt(p, MSG_NOTICE, "You feel the %s (%c) in your pack %s %s...", o_name,
+            gear_to_label(p, obj), VERB_AGREEMENT(obj->number, "is", "are"), text);
     }
 
     /* Message (floor) */
     else
     {
-        msg(p, "You feel the %s on the ground %s %s...", o_name, VERB_AGREEMENT(obj->number, "is", "are"),
-            text);
+        msgt(p, MSG_NOTICE, "You feel the %s on the ground %s %s...", o_name,
+            VERB_AGREEMENT(obj->number, "is", "are"), text);
     }
 
     /* Set ignore flag as appropriate */

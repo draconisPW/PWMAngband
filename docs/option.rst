@@ -209,8 +209,8 @@ Use single items from floor instantly ``quick_floor``
 
 ..
 
-Hide trap/terrain description on status line ``hide_terrain``
-  This option hides trap/terrain description on status line.
+Hide terrain description on status line ``hide_terrain``
+  This option hides terrain description on status line.
 
 ..
 

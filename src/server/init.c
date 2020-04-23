@@ -153,6 +153,35 @@ static const char *player_info_flags[] =
 };
 
 
+static const char *attack_effects[] = {
+    #define MA(a) #a,
+    #include "list-attack-effects.h"
+    #undef MA
+    NULL
+};
+
+
+static errr grab_barehanded_attack(struct parser *p, struct barehanded_attack *attack)
+{
+    const char *extra;
+    int val;
+
+    attack->verb = string_make(parser_getsym(p, "verb"));
+    extra = parser_getsym(p, "extra");
+    if (streq(extra, "none")) extra = "";
+    attack->hit_extra = string_make(extra);
+    attack->min_level = parser_getint(p, "level");
+    attack->chance = parser_getint(p, "chance");
+    if (grab_name("effect", parser_getstr(p, "effect"), attack_effects, N_ELEMENTS(attack_effects),
+        &val))
+    {
+        return PARSE_ERROR_INVALID_EFFECT;
+    }
+    attack->effect = val;
+    return PARSE_ERROR_NONE;
+}
+
+
 errr grab_effect_data(struct parser *p, struct effect *effect)
 {
     const char *type;
@@ -928,10 +957,12 @@ static enum parser_error parse_trap_flags(struct parser *p)
 static enum parser_error parse_trap_effect(struct parser *p)
 {
 	struct trap_kind *t = parser_priv(p);
-    struct effect *new_effect = mem_zalloc(sizeof(*new_effect));
+    struct effect *new_effect;
     errr ret;
 
 	if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    new_effect = mem_zalloc(sizeof(*new_effect));
 
     /* Fill in the detail */
     ret = grab_effect_data(p, new_effect);
@@ -1032,10 +1063,12 @@ static enum parser_error parse_trap_expr(struct parser *p)
 static enum parser_error parse_trap_effect_xtra(struct parser *p)
 {
 	struct trap_kind *t = parser_priv(p);
-    struct effect *new_effect = mem_zalloc(sizeof(*new_effect));
+    struct effect *new_effect;
     errr ret;
 
 	if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    new_effect = mem_zalloc(sizeof(*new_effect));
 
     /* Fill in the detail */
     ret = grab_effect_data(p, new_effect);
@@ -2197,6 +2230,27 @@ static enum parser_error parse_p_race_shape(struct parser *p)
 }
 
 
+static enum parser_error parse_p_race_attack(struct parser *p)
+{
+    struct player_race *r = parser_priv(p);
+    struct barehanded_attack *attack;
+    errr ret;
+
+    if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    attack = mem_zalloc(sizeof(*attack));
+
+    /* Fill in the detail */
+    ret = grab_barehanded_attack(p, attack);
+    if (ret) return ret;
+
+    attack->next = r->attacks;
+    r->attacks = attack;
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static struct parser *init_parse_p_race(void)
 {
     struct parser *p = parser_new();
@@ -2224,6 +2278,7 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "player-flags ?str flags", parse_p_race_play_flags);
     parser_reg(p, "value uint level str value", parse_p_race_value);
     parser_reg(p, "shape uint level str name", parse_p_race_shape);
+    parser_reg(p, "attack sym verb sym extra int level int chance str effect", parse_p_race_attack);
 
     return p;
 }
@@ -2853,6 +2908,27 @@ static enum parser_error parse_p_class_shape(struct parser *p)
 }
 
 
+static enum parser_error parse_class_attack(struct parser *p)
+{
+    struct player_class *c = parser_priv(p);
+    struct barehanded_attack *attack;
+    errr ret;
+
+    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    attack = mem_zalloc(sizeof(*attack));
+
+    /* Fill in the detail */
+    ret = grab_barehanded_attack(p, attack);
+    if (ret) return ret;
+
+    attack->next = c->attacks;
+    c->attacks = attack;
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_class_magic(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
@@ -3228,6 +3304,7 @@ static struct parser *init_parse_class(void)
     parser_reg(p, "value uint level str value", parse_p_class_value);
     parser_reg(p, "shape uint level str name", parse_p_class_shape);
     parser_reg(p, "title str title", parse_class_title);
+    parser_reg(p, "attack sym verb sym extra int level int chance str effect", parse_class_attack);
     parser_reg(p, "magic uint first int weight int books", parse_class_magic);
     parser_reg(p, "book sym tval sym quality sym name uint spells str realm", parse_class_book);
     parser_reg(p, "book-graphics char glyph sym color", parse_class_book_graphics);

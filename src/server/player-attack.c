@@ -572,8 +572,7 @@ static bool blow_after_effects(struct player *p, struct chunk *c, struct loc *gr
     bool stop = false;
 
     /* Apply circular kick: do damage to anything around the attacker */
-    /* Splash damage for crowd fighters */
-    if (circle || player_has(p, PF_CROWD_FIGHT))
+    if (circle)
     {
         fire_ball(p, PROJ_MISSILE, 0, splash, 1, false);
         show_monster_messages(p);
@@ -618,60 +617,13 @@ static const struct hit_types melee_hit_types[] =
 };
 
 
-/* Barehanded attack */
-struct barehanded_attack
-{
-    const char *verb;       /* A verbose attack description */
-    const char *hit_extra;
-    int min_level;          /* Minimum level to use */
-    int chance;             /* Chance of failure vs player level */
-    int effect;             /* Special effects */
-    bool racial;            /* true for dragons, false for monks */
-};
-
-
 /* Special effects for barehanded attacks */
 enum
 {
-    MA_NONE,
-    MA_SIDE,
-    MA_DICE,
-    MA_KNEE,
-    MA_DAM,
-    MA_SLOW,
-    MA_STUN,
-    MA_CUT,
-    MA_JUMP,
-    MA_CIRCLE,
-    MA_CRUSH
-};
-
-
-/* Barehanded attacks */
-#define MAX_MA 14
-static struct barehanded_attack barehanded_attacks[MAX_MA] =
-{
-    /* Basic monk attack */
-    {"punch", "", 1, 0, MA_NONE, false},
-
-    /* Special monk attacks */
-    {"kick", "", 2, 1, MA_SIDE, false},
-    {"strike", " with your elbow", 3, 2, MA_DICE, false},
-    {"ram", " with your knee", 5, 4, MA_KNEE, false},
-    {"butt", "", 8, 7, MA_DAM, false},
-    {"strike", "", 11, 10, MA_SLOW, false},
-    {"uppercut", "", 15, 12, MA_STUN, false},
-    {"hit", " with a Cat's Claw", 20, 15, MA_CUT, false},
-    {"hit", " with a jump kick", 25, 20, MA_JUMP, false},
-    {"hit", " with a circle kick", 35, 30, MA_CIRCLE, false},
-    {"hit", " with a crushing blow", 45, 35, MA_CRUSH, false},
-
-    /* Basic dragon attack */
-    {"claw", "", 1, 0, MA_NONE, true},
-
-    /* Special dragon attacks */
-    {"bite", "", 5, 4, MA_DAM, true},
-    {"crush", "", 45, 40, MA_CRUSH, true}
+    #define MA(a) MA_##a,
+    #include "list-attack-effects.h"
+    #undef MA
+    MA_MAX
 };
 
 
@@ -702,7 +654,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     bool success = false;
 
     /* Default to punching for one damage */
-    char verb[30];
+    char verb[30], hit_extra[30];
     int dmg = 1;
     u32b msg_type = MSG_HIT;
 
@@ -713,7 +665,6 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     int show_shit, show_sdam;
     int d_dam = 1;
     bool do_circle = false;
-    const char *hit_extra = "";
     bool do_slow = false, do_fear = false, do_conf = false, do_blind = false, do_para = false;
     struct side_effects seffects;
 
@@ -722,6 +673,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
     /* Default to punching for one damage */
     my_strcpy(verb, "punch", sizeof(verb));
     if (obj) my_strcpy(verb, "hit", sizeof(verb));
+    hit_extra[0] = '\0';
 
     /* Information about the target of the attack */
     square_actor(c, grid, target);
@@ -819,54 +771,69 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
             }
         }
 
-        /* Monks and dragons do barehanded damage with special attacks */
-        if (player_has(p, PF_MARTIAL_ARTS) || player_has(p, PF_DRAGON))
+        /* Handle barehanded damage from special attacks */
+        if (p->race->attacks || p->clazz->attacks)
         {
-            struct barehanded_attack *ba_ptr;
+            struct barehanded_attack *attacks, *attack;
+            int count = 0, pick;
             bool ok;
 
-            /* Get an attack */
+            /* Take special attacks from class 1/3 of the time */
+            if (p->race->attacks && p->clazz->attacks)
+            {
+                if (magik(66)) attacks = p->race->attacks;
+                else attacks = p->clazz->attacks;
+            }
+            else if (p->race->attacks) attacks = p->race->attacks;
+            else attacks = p->clazz->attacks;
+
+            /* Count the available special attacks */
+            attack = attacks;
+            while (attack)
+            {
+                count++;
+                attack = attack->next;
+            }
+
+            /* Pick one */
             do
             {
-                ba_ptr = &barehanded_attacks[randint0(MAX_MA)];
-
-                /* Monks: use monk attacks */
-                if (player_has(p, PF_MARTIAL_ARTS))
+                pick = randint0(count);
+                attack = attacks;
+                while (pick)
                 {
-                    ok = !ba_ptr->racial;
-
-                    /* Dragon monks do monk attacks 1/3 of the time */
-                    if (player_has(p, PF_DRAGON) && magik(66))
-                        ok = ba_ptr->racial;
-
-                    /* Special monk attacks: only when not stunned, confused or encumbered */
-                    else if (ok && (ba_ptr->effect != MA_NONE))
-                        ok = !p->timed[TMD_STUN] && !p->timed[TMD_CONFUSED] && monk_armor_ok(p);
+                    pick--;
+                    attack = attack->next;
                 }
 
-                /* Dragons: use dragon attacks */
-                else
-                    ok = ba_ptr->racial;
+                ok = true;
+
+                /* Special monk attacks: only when not stunned, confused or encumbered */
+                if (player_has(p, PF_MARTIAL_ARTS) && (attacks == p->clazz->attacks) &&
+                    (attack->effect != MA_NONE))
+                {
+                    ok = !p->timed[TMD_STUN] && !p->timed[TMD_CONFUSED] && monk_armor_ok(p);
+                }
 
                 /* Apply minimum level */
-                if (ok) ok = (ba_ptr->min_level <= p->lev);
+                if (ok) ok = (attack->min_level <= p->lev);
 
                 /* Chance of failure vs player level */
-                if (ok) ok = !CHANCE(ba_ptr->chance, p->lev);
+                if (ok) ok = !CHANCE(attack->chance, p->lev);
             }
             while (!ok);
 
-            my_strcpy(verb, ba_ptr->verb, sizeof(verb));
-            hit_extra = ba_ptr->hit_extra;
+            my_strcpy(verb, attack->verb, sizeof(verb));
+            my_strcpy(hit_extra, attack->hit_extra, sizeof(hit_extra));
 
             /* Special effect: extra damage side */
-            if (ba_ptr->effect == MA_SIDE) dice.sides++;
+            if (attack->effect == MA_SIDE) dice.sides++;
 
             /* Special effect: extra damage dice */
-            if (ba_ptr->effect == MA_DICE) dice.dice++;
+            if (attack->effect == MA_DICE) dice.dice++;
 
             /* Special effect: crushing attack */
-            if (ba_ptr->effect == MA_CRUSH)
+            if (attack->effect == MA_CRUSH)
             {
                 dice.dice += 2;
                 dice.sides += 2;
@@ -879,7 +846,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
             dmg = critical_melee(p, target, p->lev * randint1(10), p->lev, dmg, &msg_type);
 
             /* Special effect: knee attack */
-            if (ba_ptr->effect == MA_KNEE)
+            if (attack->effect == MA_KNEE)
             {
                 bool male = false;
 
@@ -892,16 +859,16 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
                 /* Stuns male targets */
                 if (male)
                 {
-                    hit_extra = " in the groin with your knee";
+                    my_strcpy(hit_extra, " in the groin with your knee", sizeof(hit_extra));
                     seffects.do_stun = 1;
                 }
             }
 
             /* Special effect: extra damage */
-            if (ba_ptr->effect == MA_DAM) dmg = dmg * 5 / 4;
+            if (attack->effect == MA_DAM) dmg = dmg * 5 / 4;
 
             /* Special effect: slowing attack */
-            if (ba_ptr->effect == MA_SLOW)
+            if (attack->effect == MA_SLOW)
             {
                 /* Slows some targets */
                 if (target->monster && !rf_has(target->monster->race->flags, RF_NEVER_MOVE) &&
@@ -911,31 +878,31 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
                     !CHANCE(target->monster->level - 10, (dmg < 11)? 1: (dmg - 10)))
                 {
                     my_strcpy(verb, "kick", sizeof(verb));
-                    hit_extra = " in the ankle";
+                    my_strcpy(hit_extra, " in the ankle", sizeof(hit_extra));
                     do_slow = true;
                 }
             }
 
             /* Special effect: stunning attack */
-            if ((ba_ptr->effect == MA_STUN) || (ba_ptr->effect == MA_JUMP))
+            if ((attack->effect == MA_STUN) || (attack->effect == MA_JUMP))
                 seffects.do_stun = 1;
 
             /* Special effect: cutting attack */
-            if ((ba_ptr->effect == MA_CUT) || (ba_ptr->effect == MA_JUMP))
+            if ((attack->effect == MA_CUT) || (attack->effect == MA_JUMP))
                 seffects.do_cut = 1;
 
             /* Special effect: circular attack */
-            if (ba_ptr->effect == MA_CIRCLE)
+            if (attack->effect == MA_CIRCLE)
             {
                 splash = dmg;
                 do_circle = true;
             }
 
-            /* Dragon monks do tail attacks */
-            if (player_has(p, PF_DRAGON) && player_has(p, PF_MARTIAL_ARTS) && !ba_ptr->racial)
+            /* Special non-racial dragon/hydra attacks: tail attacks */
+            if ((player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA)) && (attacks == p->clazz->attacks))
             {
                 my_strcpy(verb, "hit", sizeof(verb));
-                hit_extra = " with your tail";
+                my_strcpy(hit_extra, " with your tail", sizeof(hit_extra));
             }
         }
 
@@ -987,7 +954,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         dmg = 0;
         msg_type = MSG_MISS;
         my_strcpy(verb, "fail to harm", sizeof(verb));
-        hit_extra = "";
+        hit_extra[0] = '\0';
     }
 
     /* Special messages */

@@ -375,21 +375,24 @@ static void prt_state(struct player *p)
         struct trap *trap = square_trap(c, &p->grid);
         char buf[39];
 
+        p->terrain[0] = 0;
+
         if (trap)
         {
             my_strcpy(buf, trap->kind->name, sizeof(buf));
             my_strcap(buf);
             p->terrain[0] = trap->kind->d_attr;
+            my_strcpy(p->terrain + 1, buf, strlen(buf) + 1);
         }
-        else
+        else if (!OPT(p, hide_terrain))
         {
             if (feat->shortdesc) my_strcpy(buf, feat->shortdesc, sizeof(buf));
             else my_strcpy(buf, feat->name, sizeof(buf));
             my_strcap(buf);
             p->terrain[0] = feat->d_attr;
+            my_strcpy(p->terrain + 1, buf, strlen(buf) + 1);
         }
 
-        my_strcpy(p->terrain + 1, buf, strlen(buf) + 1);
         Send_state(p, s, r, u, p->terrain);
     }
 

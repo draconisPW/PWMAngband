@@ -205,6 +205,18 @@ struct player_shape
     byte lvl;
 };
 
+
+/* Barehanded attack */
+struct barehanded_attack
+{
+    char *verb;         /* A verbose attack description */
+    char *hit_extra;
+    int min_level;      /* Minimum level to use */
+    int chance;         /* Chance of failure vs player level */
+    int effect;         /* Special effects */
+    struct barehanded_attack *next;
+};
+
 /*
  * Player race info
  */
@@ -232,6 +244,7 @@ struct player_race
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */
     struct player_shape *shapes;
+    struct barehanded_attack *attacks;
 };
 
 /*
@@ -346,6 +359,7 @@ struct player_class
     struct class_magic magic;       /* Magic spells */
     byte attr;                      /* Class color */
     struct player_shape *shapes;
+    struct barehanded_attack *attacks;
 };
 
 /*

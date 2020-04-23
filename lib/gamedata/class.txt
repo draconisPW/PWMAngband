@@ -31,6 +31,7 @@
 # player-flags:class flags
 # shape:level of application:monster race
 # title:title
+# attack:verb:hit_extra:min_level:chance:effect
 # magic:spell_first:spell_weight:num_books
 # book:tval:quality:name:spells:realm
 # book-graphics:symbol:color
@@ -83,6 +84,8 @@
 # 'shape' is for shapes that classes can polymorph into at a certain level.
 
 # 'title' is for class titles.
+
+# 'attack' is for barehanded attacks.
 
 # 'magic' is for general magic info - level of the first spell, weight that
 # hurts spells, number of books used.
@@ -2022,7 +2025,7 @@ obj-flag:1:IMPAIR_HP
 value:1:STR[2]
 value:1:WIS[-3]
 value:1:CON[2]
-player-flags:CHOOSE_SPELLS | SHIELD_BASH | CROWD_FIGHT
+player-flags:CHOOSE_SPELLS | SHIELD_BASH
 title:Rat
 title:Bully
 title:Thug
@@ -2775,6 +2778,17 @@ title:Hard Master
 title:Flower Master
 title:Dragon Master
 title:Grand Master
+attack:punch:none:1:0:NONE
+attack:kick:none:2:1:SIDE
+attack:strike: with your elbow:3:2:DICE
+attack:ram: with your knee:5:4:KNEE
+attack:butt:none:8:7:DAM
+attack:strike:none:11:10:SLOW
+attack:uppercut:none:15:12:STUN
+attack:hit: with a Cat's Claw:20:15:CUT
+attack:hit: with a jump kick:25:20:JUMP
+attack:hit: with a circle kick:35:30:CIRCLE
+attack:hit: with a crushing blow:45:35:CRUSH
 
 
 ############### TELEPATH ###############

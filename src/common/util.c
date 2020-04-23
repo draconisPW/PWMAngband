@@ -41,6 +41,7 @@ void cleanup_p_race(void)
     struct player_race *p = races;
     struct player_race *next;
     struct player_shape *shape, *shape_next;
+    struct barehanded_attack *attack, *attack_next;
 
     while (p)
     {
@@ -55,6 +56,15 @@ void cleanup_p_race(void)
             string_free(shape->name);
             mem_free(shape);
             shape = shape_next;
+        }
+        attack = p->attacks;
+        while (attack)
+        {
+            attack_next = attack->next;
+            string_free(attack->verb);
+            string_free(attack->hit_extra);
+            mem_free(attack);
+            attack = attack_next;
         }
         mem_free(p);
         p = next;
@@ -109,6 +119,7 @@ void cleanup_class(void)
     struct class_spell *spell;
     struct class_book *book;
     struct player_shape *shape, *shape_next;
+    struct barehanded_attack *attack, *attack_next;
     int i, j;
 
     while (c)
@@ -145,6 +156,15 @@ void cleanup_class(void)
             string_free(shape->name);
             mem_free(shape);
             shape = shape_next;
+        }
+        attack = c->attacks;
+        while (attack)
+        {
+            attack_next = attack->next;
+            string_free(attack->verb);
+            string_free(attack->hit_extra);
+            mem_free(attack);
+            attack = attack_next;
         }
         mem_free(c);
         c = next;

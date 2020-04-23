@@ -91,11 +91,6 @@ name:Shield Bash
 desc:You can bash monsters with a shield in melee.
 
 type:player
-code:CROWD_FIGHT
-name:Crowd Fighter
-desc:You gain advantage from fighting many monsters at once.
-
-type:player
 code:ELEMENTAL_SPELLS
 name:Elemental Spells
 desc:You get access to elemental spells.

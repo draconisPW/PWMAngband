@@ -30,6 +30,7 @@
 # slay:level of application:slay code
 # player-flags:racial flags
 # shape:level of application:monster race
+# attack:verb:hit_extra:min_level:chance:effect
 
 # 'name' indicates the beginning of an entry.
 
@@ -64,6 +65,8 @@
 # races possess innately.
 
 # 'shape' is for shapes that races can polymorph into at a certain level.
+
+# 'attack' is for barehanded attacks.
 
 
 name:Human
@@ -435,6 +438,9 @@ obj-flag:1:FEATHER
 value:1:INFRA[1]
 value:1:RES_NEXUS[1]
 player-flags:DRAGON
+attack:claw:none:1:0:NONE
+attack:bite:none:5:4:DAM
+attack:crush:none:45:40:CRUSH
 
 name:Hydra
 skill-disarm-phys:0
@@ -454,3 +460,5 @@ height:170:20
 weight:240:60
 obj-flag:1:AGGRAVATE
 player-flags:HYDRA
+attack:bite:none:1:0:NONE
+attack:hit: with a circular attack:35:30:CIRCLE

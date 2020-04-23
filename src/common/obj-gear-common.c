@@ -195,11 +195,7 @@ bool obj_can_wear(struct player *p, const struct object *obj)
         case TV_GLOVES:
         case TV_BOOTS:
         case TV_DIGGING:
-        case TV_HORN:
-        case TV_ROCK:
-        case TV_SHOT:
-        case TV_ARROW:
-        case TV_BOLT: return true;
+        case TV_HORN: return true;
     }
 
     /* Assume not wearable */

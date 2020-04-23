@@ -522,7 +522,7 @@ void do_cmd_open(struct player *p, int dir, bool easy)
     }
 
     /* Get a direction (or abort) */
-    if (!dir || !VALID_DIR(dir)) return;
+    if (!VALID_DIR(dir)) return;
 
     /* Get location */
     next_grid(&grid, &p->grid, dir);
@@ -703,7 +703,7 @@ void do_cmd_close(struct player *p, int dir, bool easy)
     }
 
     /* Get a direction (or abort) */
-    if (!dir || !VALID_DIR(dir)) return;
+    if (!VALID_DIR(dir)) return;
 
     /* Get location */
     next_grid(&grid, &p->grid, dir);
@@ -1216,7 +1216,7 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
     }
 
     /* Get a direction (or abort) */
-    if (!dir || !VALID_DIR(dir)) return;
+    if (!VALID_DIR(dir)) return;
 
     /* Get location */
     next_grid(&grid, &p->grid, dir);
