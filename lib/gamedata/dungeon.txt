@@ -17,6 +17,7 @@
 # flags : dungeon flags
 # floor : floor feature : chance of getting the feature
 # wall : wall feature : chance of getting the feature
+# door : door feature : chance of getting the feature
 # rule : chance of using the rule : apply to all monsters
 # rule-flags : monster flags
 # rule-spells : monster spell flags
@@ -40,6 +41,7 @@
 
 # 'floor' are dungeon features that can replace basic floors
 # 'wall' are dungeon features that can replace basic walls
+# 'door' are dungeon features that can replace basic doors
 
 # 'rule' are dungeon rules to restrict the possible monsters
 # 'rule-flags' are monster flags checked by the rule

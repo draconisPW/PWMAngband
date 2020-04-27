@@ -406,9 +406,22 @@ static const char *process_pref_file_expr(char **sp, char *fp)
                 t = process_pref_file_expr(&s, &f);
             while (*s && (f != ']'))
             {
+                char buf[30];
+                char *ptr;
+
                 p = t;
                 t = process_pref_file_expr(&s, &f);
-                if (*t && !streq(p, t)) v = "0";
+
+                /* Hack -- replace '_' by ' ' for races described by two words */
+                ptr = strstr(t, "_");
+                if (ptr)
+                {
+                    my_strcpy(buf, t, 1 + ptr - t);
+                    my_strcat(buf, " ", sizeof(buf));
+                    my_strcat(buf, ptr + 1, sizeof(buf));
+                    if (buf[0] && !streq(p, buf)) v = "0";
+                }
+                else if (*t && !streq(p, t)) v = "0";
             }
         }
         else if (streq(t, "LEQ"))

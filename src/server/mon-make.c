@@ -1282,7 +1282,15 @@ void mon_create_mimicked_object(struct player *p, struct chunk *c, struct monste
     if (!kind) return;
 
     if (tval_is_money_k(kind))
-        obj = make_gold(p, object_level(&c->wpos), kind->name);
+    {
+        int level;
+
+        /* Use same level as for drop to not leak that this is a mimic */
+        level = MAX((mon->level + object_level(&c->wpos)) / 2, mon->level);
+        level = MIN(level, 100);
+
+        obj = make_gold(p, level, kind->name);
+    }
     else
     {
         obj = object_new();

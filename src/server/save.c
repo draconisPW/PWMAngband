@@ -832,6 +832,39 @@ void wr_level(void *data)
         wr_u16b(prev_feat);
     }
 
+    count = 0;
+    prev_feat = 0;
+
+    loc_iterator_first(&iter, &begin, &end);
+
+    /* Run length encoding of cave->squares[y][x].feat_save */
+    do
+    {
+        /* Extract a byte */
+        tmp16u = square(c, &iter.cur)->feat_save;
+
+        /* If the run is broken, or too full, flush it */
+        if ((tmp16u != prev_feat) || (count == UCHAR_MAX))
+        {
+            wr_byte(count);
+            wr_u16b(prev_feat);
+            prev_feat = tmp16u;
+            count = 1;
+        }
+
+        /* Continue the run */
+        else
+            count++;
+    }
+    while (loc_iterator_next_strict(&iter));
+
+    /* Flush the data (if any) */
+    if (count)
+    {
+        wr_byte(count);
+        wr_u16b(prev_feat);
+    }
+
     /* Run length encoding of cave->squares[y][x].info */
     for (i = 0; i < SQUARE_SIZE; i++)
     {

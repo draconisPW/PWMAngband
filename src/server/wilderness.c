@@ -573,6 +573,35 @@ static enum parser_error parse_location_info_wall(struct parser *p)
 }
 
 
+static enum parser_error parse_location_info_door(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    struct dun_feature *f;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f = t->doors;
+
+    /* Go to the last valid feature, then allocate a new one */
+    if (!f)
+    {
+        t->doors = mem_zalloc(sizeof(struct dun_feature));
+        f = t->doors;
+    }
+    else
+    {
+        while (f->next) f = f->next;
+        f->next = mem_zalloc(sizeof(struct dun_feature));
+        f = f->next;
+    }
+
+    /* Now read the data */
+    f->feat = lookup_feat(parser_getsym(p, "feat"));
+    f->percent = parser_getint(p, "percent");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_location_info_rule(struct parser *p)
 {
     struct location *t = parser_priv(p);
@@ -691,6 +720,7 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "flags ?str flags", parse_location_info_flags);
     parser_reg(p, "floor sym feat int percent", parse_location_info_floor);
     parser_reg(p, "wall sym feat int percent", parse_location_info_wall);
+    parser_reg(p, "door sym feat int percent", parse_location_info_door);
     parser_reg(p, "rule int percent uint all", parse_location_info_rule);
     parser_reg(p, "rule-flags ?str flags", parse_location_info_rule_flags);
     parser_reg(p, "rule-spells ?str flags", parse_location_info_rule_spells);
@@ -751,6 +781,11 @@ static errr finish_parse_town_info(struct parser *p)
             mem_free(f);
         }
         for (i = 0, f = t->walls; f; i++, f = fn)
+        {
+            fn = f->next;
+            mem_free(f);
+        }
+        for (i = 0, f = t->doors; f; i++, f = fn)
         {
             fn = f->next;
             mem_free(f);
@@ -869,6 +904,20 @@ static errr finish_parse_dungeon_info(struct parser *p)
         {
             memcpy(&dungeons[count].walls[i], f, sizeof(*f));
             dungeons[count].walls[i].next = NULL;
+            fn = f->next;
+            mem_free(f);
+        }
+        dungeons[count].n_doors = 0;
+        for (i = 0, f = t->doors; f; i++, f = fn)
+        {
+            dungeons[count].n_doors++;
+            fn = f->next;
+        }
+        dungeons[count].doors = mem_zalloc(dungeons[count].n_doors * sizeof(struct dun_feature));
+        for (i = 0, f = t->doors; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].doors[i], f, sizeof(*f));
+            dungeons[count].doors[i].next = NULL;
             fn = f->next;
             mem_free(f);
         }

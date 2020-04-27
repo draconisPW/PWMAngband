@@ -73,6 +73,7 @@ s16b cfg_limit_stairs = 0;
 s16b cfg_diving_mode = 0;
 bool cfg_no_artifacts = false;
 bool cfg_no_selling = true;
+s16b cfg_gold_drop_noselling = 0;
 bool cfg_no_stores = false;
 bool cfg_no_ghost = false;
 bool cfg_ai_learn = true;
@@ -4345,6 +4346,8 @@ static void set_server_option(const char *option, char *value)
         cfg_no_artifacts = str_to_boolean(value);
     else if (!strcmp(option, "NO_SELLING"))
         cfg_no_selling = str_to_boolean(value);
+    else if (!strcmp(option, "GOLD_DROP_NOSELLING"))
+        cfg_gold_drop_noselling = atoi(value);
     else if (!strcmp(option, "NO_STORES"))
         cfg_no_stores = str_to_boolean(value);
     else if (!strcmp(option, "NO_GHOST"))

@@ -53,6 +53,7 @@ extern s16b cfg_limit_stairs;
 extern s16b cfg_diving_mode;
 extern bool cfg_no_artifacts;
 extern bool cfg_no_selling;
+extern s16b cfg_gold_drop_noselling;
 extern bool cfg_no_stores;
 extern bool cfg_no_ghost;
 extern bool cfg_ai_learn;

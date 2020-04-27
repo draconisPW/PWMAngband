@@ -81,7 +81,7 @@ struct grid_data
 
 struct square
 {
-    u16b feat;
+    u16b feat, feat_save;
     bitflag *info;
     int light;
     s16b mon;

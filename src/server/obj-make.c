@@ -1905,8 +1905,22 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     object_prep(p, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
-    if (p && (cfg_no_selling || OPT(p, birth_no_selling)) && (p->wpos.depth > 0))
-        value *= 5;
+    if (p && (cfg_no_selling || OPT(p, birth_no_selling)))
+    {
+        /* Classic method: multiply by 5 in the dungeon */
+        if ((cfg_gold_drop_noselling == 0) && (p->wpos.depth > 0)) value *= 5;
+
+        /* Legacy method: multiply by 5 starting at depth 5 */
+        else if ((cfg_gold_drop_noselling == -1) && (p->wpos.depth >= 5)) value *= 5;
+
+        /* Linear method: multiply by a factor depending on depth */
+        else
+        {
+            int boost = value * cfg_gold_drop_noselling * MIN(p->wpos.depth, 100) / 100;
+
+            value += boost;
+        }
+    }
 
     /* Cap gold at max short (or alternatively make pvals s32b) */
     if (value >= SHRT_MAX) value = SHRT_MAX - randint0(200);

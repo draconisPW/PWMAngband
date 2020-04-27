@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 2
+New features in PWMAngband 1.4.0 beta 5
 =======================================
 
 User interface
@@ -92,6 +92,7 @@ PWMAngband:
 - Add option to disable the Enter menu
 - Add option to hide terrain description on status line
 - Normalize sounds and ensure they're at least 0.25s long
+- Add custom door features to dungeon.txt
 
 Gameplay changes
 ----------------
@@ -179,6 +180,8 @@ PWMAngband:
 - Add NO_STAIRS flag on terrain to prevent generating stairs
 - Allow multiple "force-locations" for monsters
 - Remove mean-looking mercenaries and battle-scarred veterans from Hobbiton
+- Add GOLD_DROP_NOSELLING server option to manage gold drops on no_selling
+  servers
 
 Bugs fixed
 ----------
@@ -196,6 +199,10 @@ PWMAngband:
 - Remove missiles from the list of wieldable items
 - Reimplement MSG_NOTICE for sensed objects
 - Reimplement MSG_FLEE
+- Fix townies being generated on FLOOR_SAFE terrain
+- Fix creeping coins so they drop the same amount of money as the object
+  they're mimicking
+- Fix space in race name preventing proper race preset to be displayed
 
 Coding changes
 --------------

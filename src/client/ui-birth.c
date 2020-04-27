@@ -315,7 +315,11 @@ static void birthmenu_display(struct menu *menu, int oid, bool cursor, int row, 
     struct birthmenu_data *data = menu_priv(menu);
     byte attr = curs_attrs[CURS_KNOWN][0 != cursor];
 
-    c_put_str(attr, data->items[oid], row, col);
+    /* Hack -- don't write past menu width */
+    if (strlen(data->items[oid]) > width)
+        Term_putstr(col, row, width, attr, data->items[oid]);
+    else
+        c_put_str(attr, data->items[oid], row, col);
 }
 
 

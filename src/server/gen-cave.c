@@ -182,16 +182,16 @@ static void add_streamer(struct chunk *c, int feat, int flag)
 
 
 /*
- * Fill a level with floor/wall type specific to a dungeon.
+ * Tweak floors/doors with types specific to a dungeon.
  *
  * c is the current chunk
- * use_floor, when TRUE, tells the function to use floor type terrains instead of walls
+ * walls, when TRUE, tells the function to also tweak walls
  */
-static void fill_level(struct chunk *c, bool use_floor)
+static void tweak_features(struct chunk *c, bool walls)
 {
     struct worldpos dpos;
     struct location *dungeon;
-    int count, max;
+    int n_floors, n_doors, n_walls;
     struct loc begin, end;
     struct loc_iterator iter;
 
@@ -199,21 +199,34 @@ static void fill_level(struct chunk *c, bool use_floor)
     wpos_init(&dpos, &c->wpos.grid, 0);
     dungeon = get_dungeon(&dpos);
 
-    /* No dungeon here, leave basic floors/walls */
+    /* No dungeon here, leave basic floors/doors/walls */
     if (!dungeon || !c->wpos.depth) return;
 
     /* Count features */
-    max = (use_floor? dungeon->n_floors: dungeon->n_walls);
-    for (count = 0; count < max; count++)
+    for (n_floors = 0; n_floors < dungeon->n_floors; n_floors++)
     {
-        struct dun_feature *feature = (use_floor? &dungeon->floors[count]: &dungeon->walls[count]);
+        struct dun_feature *feature = &dungeon->floors[n_floors];
+
+        /* Break if not valid */
+        if (!feature->percent) break;
+    }
+    for (n_doors = 0; n_doors < dungeon->n_doors; n_doors++)
+    {
+        struct dun_feature *feature = &dungeon->doors[n_doors];
+
+        /* Break if not valid */
+        if (!feature->percent) break;
+    }
+    for (n_walls = 0; walls && n_walls < dungeon->n_walls; n_walls++)
+    {
+        struct dun_feature *feature = &dungeon->walls[n_walls];
 
         /* Break if not valid */
         if (!feature->percent) break;
     }
 
     /* Nothing to do */
-    if (!count) return;
+    if (n_floors + n_doors + n_walls == 0) return;
 
     loc_init(&begin, 1, 1);
     loc_init(&end, c->width - 1, c->height - 1);
@@ -223,32 +236,79 @@ static void fill_level(struct chunk *c, bool use_floor)
     do
     {
         int i, chance;
-        bool valid;
 
         /* Require a valid grid */
-        valid = (use_floor? square_isfloor(c, &iter.cur): square_isrock(c, &iter.cur));
-        if (!valid || square_isvault(c, &iter.cur) || square(c, &iter.cur)->mon ||
-            square(c, &iter.cur)->obj)
-        {
+        if (square_isvault(c, &iter.cur) || square(c, &iter.cur)->mon || square(c, &iter.cur)->obj)
             continue;
+
+        /* Floors */
+        if (square_isfloor(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(100);
+
+            /* Process all features */
+            for (i = 0; i < n_floors; i++)
+            {
+                struct dun_feature *feature = &dungeon->floors[i];
+
+                /* Fill the level with that feature */
+                if (feature->percent > chance)
+                {
+                    square_set_feat(c, &iter.cur, feature->feat);
+                    break;
+                }
+
+                chance -= feature->percent;
+            }
         }
 
-        /* Basic chance */
-        chance = randint0(100);
-
-        /* Process all features */
-        for (i = 0; i < count; i++)
+        /* Doors */
+        if (square_iscloseddoor(c, &iter.cur))
         {
-            struct dun_feature *feature = (use_floor? &dungeon->floors[i]: &dungeon->walls[i]);
+            /* Basic chance */
+            chance = randint0(100);
 
-            /* Fill the level with that feature */
-            if (feature->percent > chance)
+            /* Process all features */
+            for (i = 0; i < n_doors; i++)
             {
-                square_set_feat(c, &iter.cur, feature->feat);
-                break;
-            }
+                struct dun_feature *feature = &dungeon->doors[i];
 
-            chance -= feature->percent;
+                /* Fill the level with that feature */
+                if (feature->percent > chance)
+                {
+                    square_set_feat(c, &iter.cur, feature->feat);
+
+                    /* Hack -- save the feature for when we want to open that door */
+                    square(c, &iter.cur)->feat_save = feature->feat;
+
+                    break;
+                }
+
+                chance -= feature->percent;
+            }
+        }
+
+        /* Walls */
+        if (walls && square_isrock(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(100);
+
+            /* Process all features */
+            for (i = 0; i < n_walls; i++)
+            {
+                struct dun_feature *feature = &dungeon->walls[i];
+
+                /* Fill the level with that feature */
+                if (feature->percent > chance)
+                {
+                    square_set_feat(c, &iter.cur, feature->feat);
+                    break;
+                }
+
+                chance -= feature->percent;
+            }
         }
     }
     while (loc_iterator_next_strict(&iter));
@@ -1041,9 +1101,8 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
     add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
 
-    /* Tweak floors and walls */
-    fill_level(c, false);
-    fill_level(c, true);
+    /* Tweak floors/doors/walls */
+    tweak_features(c, true);
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
@@ -1481,9 +1540,8 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
         w *= 2;
     }
 
-    /* Tweak floors and walls */
-    fill_level(c, false);
-    fill_level(c, true);
+    /* Tweak floors/doors/walls */
+    tweak_features(c, true);
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
@@ -2083,9 +2141,8 @@ struct chunk *cavern_gen(struct player *p, struct worldpos *wpos, int min_height
     /* Surround the level with perma-rock */
     draw_rectangle(c, 0, 0, h - 1, w - 1, FEAT_PERM, SQUARE_NONE);
 
-    /* Tweak floors and walls */
-    fill_level(c, false);
-    fill_level(c, true);
+    /* Tweak floors/doors/walls */
+    tweak_features(c, true);
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
@@ -3141,9 +3198,8 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
     add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
 
-    /* Tweak floors and walls */
-    fill_level(c, false);
-    fill_level(c, true);
+    /* Tweak floors/doors/walls */
+    tweak_features(c, true);
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
@@ -3392,9 +3448,8 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
     add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
 
-    /* Tweak floors and walls */
-    fill_level(c, false);
-    fill_level(c, true);
+    /* Tweak floors/doors/walls */
+    tweak_features(c, true);
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
@@ -4097,8 +4152,8 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
 
     ensure_connectedness(c);
 
-    /* Tweak floors */
-    fill_level(c, true);
+    /* Tweak floors/doors */
+    tweak_features(c, false);
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);

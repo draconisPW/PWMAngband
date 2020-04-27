@@ -98,7 +98,7 @@ bool feat_is_object_holding(int feat)
  */
 bool feat_is_monster_walkable(int feat)
 {
-    return tf_has(f_info[feat].flags, TF_PASSABLE);
+    return (tf_has(f_info[feat].flags, TF_PASSABLE) && !tf_has(f_info[feat].flags, TF_FLOOR_SAFE));
 }
 
 
@@ -1890,7 +1890,12 @@ void square_open_homedoor(struct chunk *c, struct loc *grid)
 
 void square_close_door(struct chunk *c, struct loc *grid)
 {
-    square_set_feat(c, grid, FEAT_CLOSED);
+    int feat = FEAT_CLOSED;
+
+    /* Hack -- if this was a special door that was opened, use that feature instead */
+    if (square(c, grid)->feat_save) feat = square(c, grid)->feat_save;
+
+    square_set_feat(c, grid, feat);
 }
 
 
