@@ -208,21 +208,21 @@ static void tweak_features(struct chunk *c, bool walls)
         struct dun_feature *feature = &dungeon->floors[n_floors];
 
         /* Break if not valid */
-        if (!feature->percent) break;
+        if (!feature->chance) break;
     }
     for (n_doors = 0; n_doors < dungeon->n_doors; n_doors++)
     {
         struct dun_feature *feature = &dungeon->doors[n_doors];
 
         /* Break if not valid */
-        if (!feature->percent) break;
+        if (!feature->chance) break;
     }
     for (n_walls = 0; walls && n_walls < dungeon->n_walls; n_walls++)
     {
         struct dun_feature *feature = &dungeon->walls[n_walls];
 
         /* Break if not valid */
-        if (!feature->percent) break;
+        if (!feature->chance) break;
     }
 
     /* Nothing to do */
@@ -245,7 +245,7 @@ static void tweak_features(struct chunk *c, bool walls)
         if (square_isfloor(c, &iter.cur))
         {
             /* Basic chance */
-            chance = randint0(100);
+            chance = randint0(10000);
 
             /* Process all features */
             for (i = 0; i < n_floors; i++)
@@ -253,13 +253,13 @@ static void tweak_features(struct chunk *c, bool walls)
                 struct dun_feature *feature = &dungeon->floors[i];
 
                 /* Fill the level with that feature */
-                if (feature->percent > chance)
+                if (feature->chance > chance)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
                     break;
                 }
 
-                chance -= feature->percent;
+                chance -= feature->chance;
             }
         }
 
@@ -267,7 +267,7 @@ static void tweak_features(struct chunk *c, bool walls)
         if (square_iscloseddoor(c, &iter.cur))
         {
             /* Basic chance */
-            chance = randint0(100);
+            chance = randint0(10000);
 
             /* Process all features */
             for (i = 0; i < n_doors; i++)
@@ -275,7 +275,7 @@ static void tweak_features(struct chunk *c, bool walls)
                 struct dun_feature *feature = &dungeon->doors[i];
 
                 /* Fill the level with that feature */
-                if (feature->percent > chance)
+                if (feature->chance > chance)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
 
@@ -285,7 +285,7 @@ static void tweak_features(struct chunk *c, bool walls)
                     break;
                 }
 
-                chance -= feature->percent;
+                chance -= feature->chance;
             }
         }
 
@@ -293,7 +293,7 @@ static void tweak_features(struct chunk *c, bool walls)
         if (walls && square_isrock(c, &iter.cur))
         {
             /* Basic chance */
-            chance = randint0(100);
+            chance = randint0(10000);
 
             /* Process all features */
             for (i = 0; i < n_walls; i++)
@@ -301,13 +301,13 @@ static void tweak_features(struct chunk *c, bool walls)
                 struct dun_feature *feature = &dungeon->walls[i];
 
                 /* Fill the level with that feature */
-                if (feature->percent > chance)
+                if (feature->chance > chance)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
                     break;
                 }
 
-                chance -= feature->percent;
+                chance -= feature->chance;
             }
         }
     }
@@ -2661,9 +2661,9 @@ static void town_gen_layout(struct player *p, struct chunk *c)
 
         /* Stairs along north wall */
         pgrid.x = rand_spread(town_wid / 2, town_wid / 6);
-        pgrid.y = 2;
-        while (!square_isfloor(c, &pgrid) && (pgrid.y < town_wid / 4)) pgrid.y++;
-        if (pgrid.y >= town_wid / 4) continue;
+        pgrid.y = 1;
+        while (!square_isfloor(c, &pgrid) && (pgrid.y < town_hgt / 4)) pgrid.y++;
+        if (pgrid.y >= town_hgt / 4) continue;
 
         /* no lava next to stairs */
         for (grid.x = pgrid.x - 1; grid.x <= pgrid.x + 1; grid.x++)

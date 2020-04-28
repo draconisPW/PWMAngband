@@ -538,7 +538,7 @@ static enum parser_error parse_location_info_floor(struct parser *p)
 
     /* Now read the data */
     f->feat = lookup_feat(parser_getsym(p, "feat"));
-    f->percent = parser_getint(p, "percent");
+    f->chance = parser_getint(p, "chance");
 
     return PARSE_ERROR_NONE;
 }
@@ -567,7 +567,7 @@ static enum parser_error parse_location_info_wall(struct parser *p)
 
     /* Now read the data */
     f->feat = lookup_feat(parser_getsym(p, "feat"));
-    f->percent = parser_getint(p, "percent");
+    f->chance = parser_getint(p, "chance");
 
     return PARSE_ERROR_NONE;
 }
@@ -596,7 +596,7 @@ static enum parser_error parse_location_info_door(struct parser *p)
 
     /* Now read the data */
     f->feat = lookup_feat(parser_getsym(p, "feat"));
-    f->percent = parser_getint(p, "percent");
+    f->chance = parser_getint(p, "chance");
 
     return PARSE_ERROR_NONE;
 }
@@ -624,7 +624,7 @@ static enum parser_error parse_location_info_rule(struct parser *p)
     }
 
     /* Now read the data */
-    r->percent = parser_getint(p, "percent");
+    r->chance = parser_getint(p, "chance");
     r->all = parser_getuint(p, "all");
 
     return PARSE_ERROR_NONE;
@@ -718,10 +718,10 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "max-townies int townies", parse_location_info_max_townies);
     parser_reg(p, "symbol str terrain", parse_location_info_symbol);
     parser_reg(p, "flags ?str flags", parse_location_info_flags);
-    parser_reg(p, "floor sym feat int percent", parse_location_info_floor);
-    parser_reg(p, "wall sym feat int percent", parse_location_info_wall);
-    parser_reg(p, "door sym feat int percent", parse_location_info_door);
-    parser_reg(p, "rule int percent uint all", parse_location_info_rule);
+    parser_reg(p, "floor sym feat int chance", parse_location_info_floor);
+    parser_reg(p, "wall sym feat int chance", parse_location_info_wall);
+    parser_reg(p, "door sym feat int chance", parse_location_info_door);
+    parser_reg(p, "rule int chance uint all", parse_location_info_rule);
     parser_reg(p, "rule-flags ?str flags", parse_location_info_rule_flags);
     parser_reg(p, "rule-spells ?str flags", parse_location_info_rule_spells);
     parser_reg(p, "rule-symbols str symbols", parse_location_info_rule_symbols);

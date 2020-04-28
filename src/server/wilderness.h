@@ -90,7 +90,7 @@ enum
  */
 struct dun_rule
 {
-    int percent;                    /* Percentage of monsters that should obey this rule */
+    int chance;                     /* 1/10000 chance of monsters to obey this rule */
     byte all;                       /* Rule applies to all monsters */
     bitflag flags[RF_SIZE];         /* Flags */
 	bitflag spell_flags[RSF_SIZE];  /* Spell flags */
@@ -103,8 +103,8 @@ struct dun_rule
  */
 struct dun_feature
 {
-    int feat;                       /* Feature */
-    int percent;                    /* Percentage of floors or walls replaced by that feature */
+    int feat;                   /* Feature */
+    int chance;                 /* 1/10000 chance of floors/walls/doors replaced by that feature */
     struct dun_feature *next;
 };
 

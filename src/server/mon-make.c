@@ -262,20 +262,20 @@ static bool apply_rule(struct monster_race *race, struct dun_rule *rule)
 
 /*
  * Some dungeon types restrict the possible monsters.
- * Return the percent chance of generating a monster in a specific dungeon
+ * Return the 1/10000 chance of generating a monster in a specific dungeon
  */
 static int restrict_monster_to_dungeon(struct monster_race *race, struct worldpos *wpos)
 {
     struct worldpos dpos;
     struct location *dungeon;
-    int i, percents = 0;
+    int i, chance = 0;
 
     /* Get the dungeon */
     wpos_init(&dpos, &wpos->grid, 0);
     dungeon = get_dungeon(&dpos);
 
     /* No dungeon here, allow everything */
-    if (!dungeon || !wpos->depth) return 100;
+    if (!dungeon || !wpos->depth) return 10000;
 
     /* Process all rules */
     for (i = 0; i < dungeon->n_rules; i++)
@@ -283,14 +283,14 @@ static int restrict_monster_to_dungeon(struct monster_race *race, struct worldpo
         struct dun_rule *rule = &dungeon->rules[i];
 
         /* Break if not valid */
-        if (!rule->percent) break;
+        if (!rule->chance) break;
 
         /* Apply the rule */
-        if (apply_rule(race, rule)) percents += rule->percent;
+        if (apply_rule(race, rule)) chance += rule->chance;
     }
 
-    /* Return percentage */
-    return percents;
+    /* Return chance */
+    return chance;
 }
 
 
@@ -417,8 +417,8 @@ struct monster_race *get_mon_num(struct chunk *c, int level, bool summon)
         table[i].prob3 = table[i].prob2;
 
         /* Hack -- some dungeon types restrict the possible monsters (except for summons) */
-        p = (summon? 100: restrict_monster_to_dungeon(race, &c->wpos));
-        table[i].prob3 = table[i].prob3 * p / 100;
+        p = (summon? 10000: restrict_monster_to_dungeon(race, &c->wpos));
+        table[i].prob3 = table[i].prob3 * p / 10000;
         if (p && table[i].prob2 && !table[i].prob3) table[i].prob3 = 1;
 
         /* Total */

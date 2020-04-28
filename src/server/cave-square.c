@@ -98,7 +98,7 @@ bool feat_is_object_holding(int feat)
  */
 bool feat_is_monster_walkable(int feat)
 {
-    return (tf_has(f_info[feat].flags, TF_PASSABLE) && !tf_has(f_info[feat].flags, TF_FLOOR_SAFE));
+    return (tf_has(f_info[feat].flags, TF_PASSABLE) && !tf_has(f_info[feat].flags, TF_NO_MONSTERS));
 }
 
 
