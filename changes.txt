@@ -78,6 +78,7 @@ Angband 4.2.0:
 - Show plater grid trap or terrain on status line
 - Add browsing of player abilities
 - Add movement speed to status line
+- Add menu for throwing items
 
 PWMAngband:
 
@@ -162,6 +163,7 @@ Angband 4.2.0:
 - Make monsters at preferred range more likely to cast spells
 - Changed to allow sense/detect objects to remove marks on the map for
   locations detected as empty
+- Major changes to blackguard
 
 PWMAngband:
 
@@ -224,8 +226,6 @@ Angband 4.2.0:
 - Add player_property.txt
 - Changed Term_resize() to handle all of the saved stack of terminals
 - Redo chest traps, make chest_trap.txt
-- Change floor/wall/door/rule lines in dungeon.txt from a percentage chance to
-  a 1/10000 chance
 
 PWMAngband:
 
@@ -234,6 +234,10 @@ PWMAngband:
 - Don't load features when getting a dump from server
 - Un-hardcode admin equipment
 - Un-hardcode barehanded attacks
+- Change floor/wall/door/rule lines in dungeon.txt from a percentage chance to
+  a 1/10000 chance
+- Split Send_play into multiple parts to avoid "Send_feat_struct_info write
+  error" when too many features
 
 Compilation
 -----------

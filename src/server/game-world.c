@@ -815,8 +815,8 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Regenerate Hit Points if needed */
     if (p->chp < p->mhp) player_regen_hp(p, c);
 
-    /* Regenerate mana if needed */
-    if (p->csp < p->msp) player_regen_mana(p);
+    /* Regenerate or lose mana */
+    player_regen_mana(p);
 
     /* Check for interrupts */
     player_resting_complete_special(p);

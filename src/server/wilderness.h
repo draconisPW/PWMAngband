@@ -103,7 +103,8 @@ struct dun_rule
  */
 struct dun_feature
 {
-    int feat;                   /* Feature */
+    int feat;                   /* Feature (floor, wall, closed door) */
+    int feat_open;              /* Feature (open door) */
     int chance;                 /* 1/10000 chance of floors/walls/doors replaced by that feature */
     struct dun_feature *next;
 };

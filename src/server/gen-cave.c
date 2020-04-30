@@ -278,10 +278,26 @@ static void tweak_features(struct chunk *c, bool walls)
                 if (feature->chance > chance)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
+                    break;
+                }
 
-                    /* Hack -- save the feature for when we want to open that door */
-                    square(c, &iter.cur)->feat_save = feature->feat;
+                chance -= feature->chance;
+            }
+        }
+        if (square_isopendoor(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(10000);
 
+            /* Process all features */
+            for (i = 0; i < n_doors; i++)
+            {
+                struct dun_feature *feature = &dungeon->doors[i];
+
+                /* Fill the level with that feature */
+                if (feature->chance > chance)
+                {
+                    square_set_feat(c, &iter.cur, feature->feat_open);
                     break;
                 }
 
@@ -1194,7 +1210,8 @@ static void lab_get_adjoin(int i, int w, int *a, int *b)
  * For our purposes a tunnel is a horizontal or vertical path, not an
  * intersection. Thus, we want the squares on either side to walls in one
  * case (e.g. up/down) and open in the other case (e.g. left/right). We don't
- * want a square that represents an intersection point.
+ * want a square that represents an intersection point. Treat doors the same
+ * as open floors in the tests since doors may replace a floor but not a wall.
  *
  * The high-level idea is that these are squares which can't be avoided (by
  * walking diagonally around them).
@@ -1205,13 +1222,13 @@ static bool lab_is_tunnel(struct chunk *c, struct loc *grid)
     struct loc next;
 
     next_grid(&next, grid, DIR_W);
-    west = square_isopen(c, &next);
+    west = square_ispassable(c, &next) || square_iscloseddoor(c, &next);
     next_grid(&next, grid, DIR_E);
-    east = square_isopen(c, &next);
+    east = square_ispassable(c, &next) || square_iscloseddoor(c, &next);
     next_grid(&next, grid, DIR_N);
-    north = square_isopen(c, &next);
+    north = square_ispassable(c, &next) || square_iscloseddoor(c, &next);
     next_grid(&next, grid, DIR_S);
-    south = square_isopen(c, &next);
+    south = square_ispassable(c, &next) || square_iscloseddoor(c, &next);
 
     return ((north == south) && (west == east) && (north != west));
 }

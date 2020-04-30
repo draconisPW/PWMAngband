@@ -59,6 +59,9 @@ extern bool take_hit(struct player *p, int damage, const char *kb_str, bool non_
     const char *died_flavor);
 extern void player_regen_hp(struct player *p, struct chunk *c);
 extern void player_regen_mana(struct player *p);
+extern void player_adjust_hp_precise(struct player *p, s32b hp_gain);
+extern s32b player_adjust_mana_precise(struct player *p, s32b sp_gain);
+extern void convert_mana_to_hp(struct player *p, s32b sp_long);
 extern void player_update_light(struct player *p);
 extern void player_over_exert(struct player *p, int flag, int chance, int amount);
 extern void use_mana(struct player *p);

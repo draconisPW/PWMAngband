@@ -1168,7 +1168,7 @@ static const struct player_flag_record player_flag_table[(RES_PANELS + 1) * RES_
     {-1, OF_REGEN, -1, -1},
     {-1, OF_ESP_ALL, -1, TMD_ESP},
     {-1, OF_SEE_INVIS, -1, TMD_SINVIS},
-    {-1, OF_FREE_ACT, -1, -1},
+    {-1, OF_FREE_ACT, -1, TMD_FREE_ACT},
     {-1, OF_FEATHER, -1, TMD_FLIGHT},
     {-1, OF_SLOW_DIGEST, -1, -1},
     {-1, OF_TRAP_IMMUNE, -1, -1},

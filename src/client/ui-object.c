@@ -592,6 +592,7 @@ static int i1, i2;
 static int e1, e2;
 static int q1, q2;
 static int f1, f2;
+static int throwing_num;
 static int olist_mode;
 static cmd_code item_cmd;
 static bool newmenu = false;
@@ -786,6 +787,35 @@ static void menu_header(void)
         /* Indicate legality of equipment */
         else if (e1 <= e2)
             my_strcat(out_val, " / for Equip,", sizeof(out_val));
+
+        /* Indicate legality of the "floor" */
+        if (f1 <= f2)
+            my_strcat(out_val, " - for floor,", sizeof(out_val));
+    }
+
+    /* Viewing throwing */
+    else if (command_wrk == SHOW_THROWING)
+    {
+        /* Begin the header */
+        strnfmt(out_val, sizeof(out_val), "Throwing items:");
+
+        /* List choices */
+        if (throwing_num)
+        {
+            /* Build the header */
+            strnfmt(tmp_val, sizeof(tmp_val), " a-%c,", I2A(throwing_num - 1));
+
+            /* Append */
+            my_strcat(out_val, tmp_val, sizeof(out_val));
+        }
+
+        /* Indicate legality of inventory */
+        if (i1 <= i2)
+            my_strcat(out_val, " / for Inven,", sizeof(out_val));
+
+        /* Indicate legality of quiver */
+        if (q1 <= q2)
+            my_strcat(out_val, " | for Quiver,", sizeof(out_val));
 
         /* Indicate legality of the "floor" */
         if (f1 <= f2)
@@ -1141,6 +1171,21 @@ static struct object *item_menu(cmd_code cmd, int prompt_size, int mode)
                 else if (i1 <= i2) command_wrk = USE_INVEN;
             }
         }
+        else if (command_wrk == SHOW_THROWING)
+        {
+            if (left)
+            {
+                if (f1 <= f2) command_wrk = USE_FLOOR;
+                else if (q1 <= q2) command_wrk = USE_QUIVER;
+                else if (i1 <= i2) command_wrk = USE_INVEN;
+            }
+            else
+            {
+                if (i1 <= i2) command_wrk = USE_INVEN;
+                else if (q1 <= q2) command_wrk = USE_QUIVER;
+                else if (f1 <= f2) command_wrk = USE_FLOOR;
+            }
+        }
         else if (command_wrk == USE_FLOOR)
         {
             if (left)
@@ -1198,6 +1243,33 @@ static bool scan_floor(struct object **floor_list, int *size)
 }
 
 
+static int scan_throwable(struct object **item_list, size_t item_max)
+{
+    int i;
+    size_t item_num = 0;
+
+    for (i = 0; ((i < z_info->pack_size) && (item_num < item_max)); i++)
+    {
+        if (object_test(player, obj_is_throwing, player->upkeep->inven[i]))
+            item_list[item_num++] = player->upkeep->inven[i];
+    }
+
+    for (i = 0; ((i < z_info->quiver_size) && (item_num < item_max)); i++)
+    {
+        if (object_test(player, obj_is_throwing, player->upkeep->quiver[i]))
+            item_list[item_num++] = player->upkeep->quiver[i];
+    }
+
+    for (i = 0; ((i < floor_num) && (item_num < item_max)); i++)
+    {
+        if (object_test(player, obj_is_throwing, floor_items[i]))
+            item_list[item_num++] = floor_items[i];
+    }
+
+    return item_num;
+}
+
+
 /*
  * Let the user select an object, save its address
  *
@@ -1235,7 +1307,9 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
 {
     int floor_max = z_info->floor_size;
     int floor_nb = -1;
+    int throwing_max = z_info->pack_size + z_info->quiver_size + z_info->floor_size;
     struct object **floor_list = mem_zalloc(floor_max * sizeof(*floor_list));
+    struct object **throwing_list = mem_zalloc(throwing_max * sizeof(*throwing_list));
     bool equip_up, inven_up;
 
     olist_mode = 0;
@@ -1310,11 +1384,17 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
     while ((f1 <= f2) && !object_test(player, tester, floor_list[f1])) f1++;
     while ((f1 <= f2) && !object_test(player, tester, floor_list[f2])) f2--;
 
+    /* Scan all throwing objects in reach */
+    throwing_num = scan_throwable(throwing_list, throwing_max);
+
     /* Require at least one legal choice */
     if ((i1 <= i2) || (e1 <= e2) || (q1 <= q2) || (f1 <= f2))
     {
+        /* Use throwing menu if at all possible */
+        if ((mode & SHOW_THROWING) && throwing_num) command_wrk = SHOW_THROWING;
+
         /* Start where requested if possible */
-        if ((mode & START_EQUIP) && (e1 <= e2)) command_wrk = USE_EQUIP;
+        else if ((mode & START_EQUIP) && (e1 <= e2)) command_wrk = USE_EQUIP;
         else if ((mode & START_INVEN) && (i1 <= i2)) command_wrk = USE_INVEN;
         else if ((mode & START_QUIVER) && (q1 <= q2)) command_wrk = USE_QUIVER;
 
@@ -1350,8 +1430,10 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
                 build_obj_list(e2, NULL, tester, olist_mode);
             else if (command_wrk == USE_QUIVER)
                 build_obj_list(q2, player->upkeep->quiver, tester, olist_mode);
-            else
+            else if (command_wrk == USE_FLOOR)
                 build_obj_list(f2, floor_list, tester, olist_mode);
+            else if (command_wrk == SHOW_THROWING)
+                build_obj_list(throwing_num, throwing_list, tester, olist_mode);
 
             /* Show the prompt */
             menu_header();
@@ -1431,6 +1513,7 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
 
     /* Clean up */
     command_wrk = 0;
+    mem_free(throwing_list);
     mem_free(floor_list);
 
     /* Result */

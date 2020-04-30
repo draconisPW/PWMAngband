@@ -1657,8 +1657,8 @@ static bool effect_handler_BOLT_MELEE(effect_handler_context_t *context)
     }
 
     /* Analyze the "dir" and the "target", do NOT explode */
-    if (project(who, 0, context->cave, &target, dam, context->subtype, PROJECT_KILL | PROJECT_PLAY,
-        0, 0, "annihilated"))
+    if (project(who, 0, context->cave, &target, dam, context->subtype,
+        PROJECT_GRID | PROJECT_KILL | PROJECT_PLAY, 0, 0, "annihilated"))
     {
         context->ident = true;
     }
@@ -3989,7 +3989,10 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
     origin_get_loc(&centre, context->origin);
 
     if (!context->origin->monster)
+    {
+        msg(context->origin->player, "The ground shakes! The ceiling caves in!");
         msg_misc(context->origin->player, " causes the ground to shake!");
+    }
 
     /* Sometimes ask for a target */
     if (targeted)
@@ -4003,7 +4006,7 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
     }
 
     /* Paranoia -- enforce maximum range */
-    if (r > 12) r = 12;
+    if (r > 15) r = 15;
 
     /* Initialize a map of the maximal blast area */
     for (y = 0; y < 32; y++)
@@ -4101,7 +4104,7 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
         {
             case 1:
             {
-                msg(player, "The cave ceiling collapses!");
+                msg(player, "The cave ceiling collapses on you!");
                 break;
             }
             case 2:
@@ -5042,6 +5045,74 @@ static bool effect_handler_MASS_BANISH(effect_handler_context_t *context)
 
     /* Redraw */
     if (result) context->origin->player->upkeep->redraw |= (PR_MONLIST);
+
+    return true;
+}
+
+
+static void py_attack_grid(struct player *p, struct chunk *c, struct loc *grid)
+{
+    struct source who_body;
+    struct source *who = &who_body;
+
+    square_actor(c, grid, who);
+
+    /* Monster */
+    if (who->monster)
+    {
+        /* Reveal mimics */
+        if (monster_is_camouflaged(who->monster))
+        {
+            become_aware(p, c, who->monster);
+
+            /* Mimic wakes up and becomes aware */
+            if (pvm_check(p, who->monster))
+                monster_wake(p, who->monster, false, 100);
+        }
+
+        /* Attack */
+        if (pvm_check(p, who->monster)) py_attack(p, c, grid);
+    }
+
+    /* Player */
+    else if (who->player)
+    {
+        /* Reveal mimics */
+        if (who->player->k_idx)
+            aware_player(p, who->player);
+
+        /* Attack */
+        if (pvp_check(p, who->player, PVP_DIRECT, true, square(c, grid)->feat))
+            py_attack(p, c, grid);
+    }
+}
+
+
+static bool effect_handler_MELEE_BLOWS(effect_handler_context_t *context)
+{
+    struct loc target;
+
+    /* Ensure "dir" is in ddx/ddy array bounds */
+    if (!VALID_DIR(context->dir)) return false;
+
+    /* Use the given direction */
+    next_grid(&target, &context->origin->player->grid, context->dir);
+
+    /* Hack -- use an actual "target" */
+    if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
+    {
+        target_get(context->origin->player, &target);
+
+        /* Check distance */
+        if (distance(&context->origin->player->grid, &target) > 1)
+        {
+            msg(context->origin->player, "Target out of range.");
+            context->ident = true;
+            return true;
+        }
+    }
+
+    py_attack_grid(context->origin->player, context->cave, &target);
 
     return true;
 }
@@ -6283,6 +6354,22 @@ static bool effect_handler_SWARM(effect_handler_context_t *context)
         }
     }
     context->origin->player->current_sound = -1;
+
+    return true;
+}
+
+
+static bool effect_handler_SWEEP(effect_handler_context_t *context)
+{
+    int d;
+
+    for (d = 0; d < 8; d++)
+    {
+        struct loc adjacent;
+
+        loc_sum(&adjacent, &context->origin->player->grid, &ddgrid_ddd[d]);
+        py_attack_grid(context->origin->player, context->cave, &adjacent);
+    }
 
     return true;
 }

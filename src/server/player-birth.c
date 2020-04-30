@@ -334,7 +334,7 @@ static void get_bonuses(struct player *p)
 
 
 #define g_strcat(P, T) \
-    n = strlen((T)); strncpy((P), (T), n); (P) += n
+    n = strlen((T)); my_strcpy((P), (T), n); (P) += n
 
 
 /*

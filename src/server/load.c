@@ -1250,31 +1250,6 @@ int rd_level(struct player *unused)
         }
     }
 
-    /* Run length decoding of cave->squares[y][x].feat_save */
-    for (grid.x = grid.y = 0; grid.y < c->height; )
-    {
-        /* Grab RLE info */
-        rd_byte(&count);
-        rd_u16b(&tmp16u);
-
-        /* Apply the RLE info */
-        for (i = count; i > 0; i--)
-        {
-            /* Extract "feat" */
-            square(c, &grid)->feat_save = tmp16u;
-
-            /* Advance/Wrap */
-            if (++grid.x >= c->width)
-            {
-                /* Wrap */
-                grid.x = 0;
-
-                /* Advance/Wrap */
-                if (++grid.y >= c->height) break;
-            }
-        }
-    }
-
     /* Run length decoding of cave->squares[y][x].info */
     for (n = 0; n < square_size; n++)
     {

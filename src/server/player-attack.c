@@ -45,7 +45,7 @@ int breakage_chance(const struct object *obj, bool hit_target)
     int perc = obj->kind->base->break_perc;
 
     if (obj->artifact) return 0;
-    if (of_has(obj->flags, OF_THROWING)) perc = 1;
+    if (of_has(obj->flags, OF_THROWING) && !of_has(obj->flags, OF_EXPLODE)) perc = 1;
     if (!hit_target) return (perc * perc) / 100;
 
     return perc;
@@ -1073,47 +1073,47 @@ static bool attempt_shield_bash(struct player *p, struct chunk *c, struct monste
     }
 
     /* Try to get in a shield bash. */
-    if (bash_chance > randint0(200 + mon->race->level))
+    if (bash_chance <= randint0(200 + mon->race->level)) return false;
+
+    /* Calculate attack quality, a mix of momentum and accuracy. */
+    bash_quality = p->state.skills[SKILL_TO_HIT_MELEE] / 4 + p->wt / 8 +
+        p->upkeep->total_weight / 80 + shield->weight / 2;
+
+    /* Calculate damage. Big shields are deadly. */
+    bash_dam = damroll(shield->dd, shield->ds);
+
+    /* Multiply by quality and experience factors */
+    bash_dam *= bash_quality / 40 + p->lev / 14;
+
+    /* Strength bonus. */
+    bash_dam += adj_str_td[p->state.stat_ind[STAT_STR]];
+
+    /* Paranoia. */
+    bash_dam = MIN(bash_dam, 125);
+
+    if (OPT(p, show_damage)) msgt(p, MSG_HIT, "You get in a shield bash (%d)!", bash_dam);
+    else msgt(p, MSG_HIT, "You get in a shield bash!");
+
+    /* Encourage the player to keep wearing that heavy shield. */
+    if (randint1(bash_dam) > 30 + randint1(bash_dam / 2))
+        msgt(p, MSG_HIT_HI_SUPERB, "WHAMM!");
+
+    /* Damage, check for fear and death. */
+    if (mon_take_hit(p, c, mon, bash_dam, fear, -2)) return true;
+
+    /* Stunning. */
+    if (bash_quality + p->lev > randint1(200 + mon->race->level * 8))
+        mon_inc_timed(p, mon, MON_TMD_STUN, randint0(p->lev / 5) + 4, 0);
+
+    /* Confusion. */
+    if (bash_quality + p->lev > randint1(300 + mon->race->level * 12))
+        mon_inc_timed(p, mon, MON_TMD_CONF, randint0(p->lev / 5) + 4, 0);
+
+    /* The player will sometimes stumble. */
+    if (35 + adj_dex_th[p->state.stat_ind[STAT_DEX]] < randint1(60))
     {
-        msgt(p, MSG_HIT, "You get in a shield bash!");
-
-        /* Calculate attack quality, a mix of momentum and accuracy. */
-        bash_quality = p->state.skills[SKILL_TO_HIT_MELEE] / 4 + p->wt / 8 +
-            p->upkeep->total_weight / 80 + shield->weight / 2;
-
-        /* Calculate damage. Big shields are deadly. */
-        bash_dam = damroll(shield->dd, shield->ds);
-
-        /* Multiply by quality and experience factors */
-        bash_dam *= bash_quality / 40 + p->lev / 14;
-
-        /* Strength bonus. */
-        bash_dam += adj_str_td[p->state.stat_ind[STAT_STR]];
-
-        /* Paranoia. */
-        bash_dam = MIN(bash_dam, 125);
-
-        /* Encourage the player to keep wearing that heavy shield. */
-        if (randint1(bash_dam) > 30 + randint1(bash_dam / 2))
-            msgt(p, MSG_HIT_HI_SUPERB, "WHAMM!");
-
-        /* Damage, check for fear and death. */
-        if (mon_take_hit(p, c, mon, bash_dam, fear, -2)) return true;
-
-        /* Stunning. */
-        if (bash_quality + p->lev > randint1(200 + mon->race->level * 8))
-            mon_inc_timed(p, mon, MON_TMD_STUN, randint0(p->lev / 5) + 4, 0);
-
-        /* Confusion. */
-        if (bash_quality + p->lev > randint1(300 + mon->race->level * 12))
-            mon_inc_timed(p, mon, MON_TMD_CONF, randint0(p->lev / 5) + 4, 0);
-
-        /* The player will sometimes stumble. */
-        if (35 + adj_dex_th[p->state.stat_ind[STAT_DEX]] < randint1(60))
-        {
-            *blows += randint1(num_blows);
-            msgt(p, MSG_GENERIC, "You stumble!");
-        }
+        *blows += randint1(num_blows);
+        msgt(p, MSG_GENERIC, "You stumble!");
     }
 
     return false;
@@ -1125,7 +1125,7 @@ static bool attempt_shield_bash(struct player *p, struct chunk *c, struct monste
  *
  * We get blows until energy drops below that required for another blow, or
  * until the target monster dies. Each blow is handled by py_attack_real().
- * We don't allow @ to spend more than 100 energy in one go, to avoid slower
+ * We don't allow @ to spend more than 1 turn's worth of energy, to avoid slower
  * monsters getting double moves.
  */
 void py_attack(struct player *p, struct chunk *c, struct loc *grid)
@@ -1160,6 +1160,13 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
 
     /* Calculate remainder */
     p->frac_blow = (p->state.num_blows + p->frac_blow) % 100;
+
+    /* Reward blackguards with 5% of max SPs, min 1/2 point */
+    if (player_has(p, PF_COMBAT_REGEN))
+    {
+        s32b sp_gain = (s32b)(MAX(p->msp, 10) << 16) / 20;
+        player_adjust_mana_precise(p, sp_gain);
+    }
 
     /* Player attempts a shield bash if they can, and if monster is visible and not too pathetic */
     if (visible && player_has(p, PF_SHIELD_BASH))
@@ -2164,8 +2171,7 @@ bool do_cmd_fire(struct player *p, int dir, int item)
     if ((dir == DIR_TARGET) && !target_okay(p)) return false;
 
     magic = of_has(obj->flags, OF_AMMO_MAGIC);
-    pierce = (has_bowbrand(p, PROJ_ARROW, false) ||
-        (p->timed[TMD_POWERSHOT] && tval_is_sharp_missile(obj)));
+    pierce = has_bowbrand(p, PROJ_ARROW, false);
 
     /* Temporary "Farsight" */
     if (p->timed[TMD_FARSIGHT]) range += (p->lev - 7) / 10;
@@ -2182,9 +2188,6 @@ bool do_cmd_fire(struct player *p, int dir, int item)
     /* Take shots until energy runs out or monster dies */
     more = ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
         (int)N_ELEMENTS(ranged_hit_types), magic, pierce, true);
-
-    /* Terminate piercing */
-    if (p->timed[TMD_POWERSHOT]) player_clear_timed(p, TMD_POWERSHOT, true);
 
     return more;
 }

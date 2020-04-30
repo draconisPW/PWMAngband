@@ -17,7 +17,8 @@
 # flags : dungeon flags
 # floor : floor feature : 1/10000 chance of getting the feature
 # wall : wall feature : 1/10000 chance of getting the feature
-# door : door feature : 1/10000 chance of getting the feature
+# door : closed door feature : open door feature : 1/10000 chance of getting
+#        the feature
 # rule : 1/10000 chance of using the rule : apply to all monsters
 # rule-flags : monster flags
 # rule-spells : monster spell flags

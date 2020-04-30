@@ -63,6 +63,7 @@ static sockbuf_t rbuf, wbuf, qbuf;
 static char talk_pend[MSG_LEN], initialized = 0;
 static ang_file *fp = NULL;
 static bool dump_only = false;
+static byte chardump = 0;
 
 
 /* Packet types */
@@ -1098,6 +1099,8 @@ static int Receive_struct_info(void)
                 }
             }
 
+            Send_play(chardump? 3: 2);
+
             break;
         }
 
@@ -1170,6 +1173,8 @@ static int Receive_struct_info(void)
                 if (strlen(name)) f->name = string_make(name);
                 f->fidx = i;
             }
+
+            Send_play(3);
 
             break;
         }
@@ -2423,7 +2428,7 @@ static int Receive_floor(void)
 {
     int n, bytes_read;
     byte ch, num, tval, sval, notice, attr, act, aim, fuel, fail, known, known_effect, carry,
-        quality_ignore, ignored, magic;
+        quality_ignore, ignored, magic, throwable;
     s16b amt, slot, oidx, eidx, bidx;
     s32b pval;
     quark_t note;
@@ -2449,8 +2454,9 @@ static int Receive_floor(void)
     }
     bytes_read += 15;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel, &fail,
-        &slot, &known, &known_effect, &carry, &quality_ignore, &ignored, &eidx, &magic, &bidx)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
+        &fail, &slot, &known, &known_effect, &carry, &quality_ignore, &ignored, &eidx, &magic,
+        &bidx, &throwable)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -2458,7 +2464,7 @@ static int Receive_floor(void)
         /* Packet isn't complete, graceful failure */
         return n;
     }
-    bytes_read += 16;
+    bytes_read += 18;
 
     if ((n = Packet_scanf(&rbuf, "%s%s%s%s%s", name, name_terse, name_base, name_curse,
         name_power)) <= 0)
@@ -2514,6 +2520,7 @@ static int Receive_floor(void)
         obj->info_xtra.eidx = eidx;
         obj->info_xtra.magic = magic;
         obj->info_xtra.bidx = bidx;
+        obj->info_xtra.throwable = throwable;
 
         /* Hack -- the name is stored separately */
         my_strcpy(obj->info_xtra.name, name, sizeof(obj->info_xtra.name));
@@ -3250,7 +3257,7 @@ static int Receive_text_screen(void)
             show_splashscreen();
 
             /* Request gameplay */
-            Send_play(1);
+            Send_play(4);
         }
     }
     else
@@ -3551,7 +3558,7 @@ static int Receive_item(void)
 {
     int n, bytes_read;
     byte ch, tval, equipped, sval, notice, attr, act, aim, fuel, fail, stuck, known, known_effect,
-        sellable, quality_ignore, ignored, magic;
+        sellable, quality_ignore, ignored, magic, throwable;
     s16b wgt, amt, oidx, slot, eidx, bidx;
     s32b price, pval;
     quark_t note;
@@ -3579,9 +3586,9 @@ static int Receive_item(void)
     bytes_read += 20;
 
     /* Extra info */
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd", &attr, &act, &aim, &fuel,
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
         &fail, &slot, &stuck, &known, &known_effect, &sellable, &quality_ignore, &ignored, &eidx,
-        &magic, &bidx)) <= 0)
+        &magic, &bidx, &throwable)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -3589,7 +3596,7 @@ static int Receive_item(void)
         /* Packet isn't complete, graceful failure */
         return n;
     }
-    bytes_read += 17;
+    bytes_read += 19;
 
     /* Descriptions */
     if ((n = Packet_scanf(&rbuf, "%s%s%s%s%s", name, name_terse, name_base, name_curse,
@@ -3652,6 +3659,7 @@ static int Receive_item(void)
         obj->info_xtra.eidx = eidx;
         obj->info_xtra.equipped = equipped;
         obj->info_xtra.bidx = bidx;
+        obj->info_xtra.throwable = throwable;
 
         my_strcpy(obj->info_xtra.name, name, sizeof(obj->info_xtra.name));
         my_strcpy(obj->info_xtra.name_terse, name_terse, sizeof(obj->info_xtra.name_terse));
@@ -4173,6 +4181,20 @@ static int Receive_autoinscriptions(void)
 }
 
 
+static int Receive_play_setup(void)
+{
+    int n;
+    byte ch;
+
+    if ((n = Packet_scanf(&rbuf, "%b%b", &ch, &chardump)) <= 0)
+        return n;
+
+    Send_play(1);
+
+    return 1;
+}
+
+
 /*** Sending ***/
 
 
@@ -4651,7 +4673,7 @@ int Send_throw(struct command *cmd)
         /* Prompt */ "Throw which item? ",
         /* Error */ "You have nothing to throw.",
         /* Filter */ NULL,
-        /* Choice */ USE_QUIVER | USE_INVEN | USE_FLOOR | QUIVER_TAGS | START_INVEN) != CMD_OK)
+        /* Choice */ USE_QUIVER | USE_INVEN | USE_FLOOR | QUIVER_TAGS | START_INVEN | SHOW_THROWING) != CMD_OK)
     {
         return 0;
     }
@@ -5417,17 +5439,24 @@ int Send_track_object(int item)
 }
 
 
-int Send_play(int mode)
+int Send_play(int phase)
 {
     int n;
 
-    /* Send */
-    n = Packet_printf(&wbuf, "%b%b%s%s", (unsigned)PKT_PLAY, (unsigned)mode, nick, stored_pass);
+    /* Send marker */
+    n = Packet_printf(&wbuf, "%b%b", (unsigned)PKT_PLAY, (unsigned)phase);
+    if (n <= 0) return n;
 
-    /* Set real player name */
-    if (mode == 0)
+    /* Send nick/pass */
+    if (phase == 0)
     {
         int pos = strlen(nick);
+
+        dump_only = false;
+        chardump = 0;
+
+        n = Packet_printf(&wbuf, "%s%s", nick, stored_pass);
+        if (n <= 0) return n;
 
         if (nick[pos - 1] == '=') nick[pos - 1] = '\0';
         else if (nick[pos - 1] == '-') nick[pos - 1] = '\0';
@@ -5438,7 +5467,6 @@ int Send_play(int mode)
         }
     }
 
-    if (n <= 0) return n;
     return 1;
 }
 

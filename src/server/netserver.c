@@ -2658,12 +2658,12 @@ int Send_floor(struct player *p, byte num, const struct object *obj, struct obje
     Packet_printf(&connp->c, "%b%b", (unsigned)PKT_FLOOR, (unsigned)num);
     Packet_printf(&connp->c, "%b%b%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->known,
         (unsigned)info_xtra->known_effect, (unsigned)info_xtra->carry,
         (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
-        (unsigned)info_xtra->magic, info_xtra->bidx);
+        (unsigned)info_xtra->magic, info_xtra->bidx, (unsigned)info_xtra->throwable);
     Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,
         info_xtra->name_base, info_xtra->name_curse, info_xtra->name_power);
 
@@ -3123,12 +3123,12 @@ int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
         price, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
 
     /* Extra info */
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->stuck,
         (unsigned)info_xtra->known, (unsigned)info_xtra->known_effect, (unsigned)info_xtra->sellable,
         (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
-        (unsigned)info_xtra->magic, info_xtra->bidx);
+        (unsigned)info_xtra->magic, info_xtra->bidx, (unsigned)info_xtra->throwable);
 
     /* Descriptions */
     Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,
@@ -6131,17 +6131,30 @@ static bool Limit_connections(int ind)
 static int Receive_play(int ind)
 {
     connection_t *connp = get_connection(ind);
-    byte ch, mode;
+    byte ch, phase;
+    int n;
     char nick[NORMAL_WID];
     char pass[NORMAL_WID];
-    int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%b%s%s", &ch, &mode, nick, pass)) != 4)
+    /* Read marker */
+    if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &phase)) != 2)
     {
         errno = 0;
         plog("Cannot receive play packet");
         Destroy_connection(ind, "Cannot receive play packet");
         return -1;
+    }
+
+    /* Read nick/pass */
+    if (phase == 0)
+    {
+        if ((n = Packet_scanf(&connp->r, "%s%s", nick, pass)) != 2)
+        {
+            errno = 0;
+            plog("Cannot receive play packet");
+            Destroy_connection(ind, "Cannot receive play packet");
+            return -1;
+        }
     }
 
     if (connp->state != CONN_SETUP)
@@ -6152,14 +6165,14 @@ static int Receive_play(int ind)
         return -1;
     }
 
-    /* Just asking */
-    if (mode == 0)
+    /* Process nick/pass */
+    if (phase == 0)
     {
-        hash_entry *ptr;
-        bool need_info = false, chardump = false;
-        byte ridx = 0, cidx = 0, psex = 0;
-        int ret;
         int pos = strlen(nick);
+        byte chardump = 0;
+        hash_entry *ptr;
+        bool need_info = false;
+        byte ridx = 0, cidx = 0, psex = 0;
 
         /* Get a character dump */
         if (nick[pos - 1] == '=')
@@ -6176,7 +6189,7 @@ static int Receive_play(int ind)
                 return -1;
             }
 
-            chardump = true;
+            chardump = 1;
         }
 
         /* Delete character */
@@ -6239,7 +6252,7 @@ static int Receive_play(int ind)
         /* Test if his password is matching */
         if (!need_info)
         {
-            ret = scoop_player(nick, pass, &ridx, &cidx, &psex);
+            int ret = scoop_player(nick, pass, &ridx, &cidx, &psex);
 
             /* Incorrect Password */
             if (ret == -2)
@@ -6286,6 +6299,18 @@ static int Receive_play(int ind)
             return -1;
         }
 
+        if (Packet_printf(&connp->c, "%b%b", (unsigned)PKT_PLAY_SETUP, (unsigned)chardump) <= 0)
+        {
+            Destroy_connection(ind, "play_setup write error");
+            return -1;
+        }
+
+        return 2;
+    }
+
+    /* Send struct info (part 1) */
+    if (phase == 1)
+    {
         Send_basic_info(ind);
         Send_limits_struct_info(ind);
         Send_kind_struct_info(ind);
@@ -6298,26 +6323,40 @@ static int Receive_play(int ind)
         Send_rinfo_struct_info(ind);
         Send_rbinfo_struct_info(ind);
         Send_curse_struct_info(ind);
-        if (!chardump) Send_feat_struct_info(ind);
+
+        return 2;
+    }
+
+    /* Send feat info */
+    if (phase == 2)
+    {
+        Send_feat_struct_info(ind);
+
+        return 2;
+    }
+
+    /* Send struct info (part 2) */
+    if (phase == 3)
+    {
         Send_trap_struct_info(ind);
         Send_timed_struct_info(ind);
         Send_abilities_struct_info(ind);
         Send_char_info_conn(ind);
+
+        return 2;
     }
-    else
+
+    /* Trying to start gameplay! */
+    if ((n = Enter_player(ind)) == -2)
     {
-        /* Trying to start gameplay! */
-        if ((n = Enter_player(ind)) == -2)
-        {
-            errno = 0;
-            plog_fmt("Unable to play (%02x)", connp->state);
-            Destroy_connection(ind, "Unable to play");
-        }
-        if (n < 0)
-        {
-            /* The connection has already been destroyed */
-            return -1;
-        }
+        errno = 0;
+        plog_fmt("Unable to play (%02x)", connp->state);
+        Destroy_connection(ind, "Unable to play");
+    }
+    if (n < 0)
+    {
+        /* The connection has already been destroyed */
+        return -1;
     }
 
     return 2;

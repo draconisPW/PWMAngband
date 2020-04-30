@@ -203,6 +203,16 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
         p->chp_frac = 0;
     }
 
+    /* Reward COMBAT_REGEN characters with mana for their lost hitpoints */
+    if (player_has(p, PF_COMBAT_REGEN) && strcmp(hit_from, "poison") &&
+        strcmp(hit_from, "a fatal wound") && strcmp(hit_from, "starvation"))
+    {
+        /* lose X% of hitpoints get X% of spell points */
+        s32b sp_gain = (MAX((s32b)p->msp, 10) << 16) / (s32b)p->mhp * damage;
+
+        player_adjust_mana_precise(p, sp_gain);
+    }
+
     /* Hack -- redraw picture */
     redraw_picture(p, old_num);
 
@@ -212,9 +222,17 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     /* Dead player */
     if (p->chp < 0)
     {
-        /* Benefit of extreme bloodlust */
-        if (p->timed[TMD_BLOODLUST] > 48)
-            msg(p, "Your lust for blood keeps you alive!");
+        /* From hell's heart I stab at thee */
+        if (p->timed[TMD_BLOODLUST] && (p->chp + p->timed[TMD_BLOODLUST] + p->lev >= 0))
+        {
+            if (randint0(10))
+                msg(p, "Your lust for blood keeps you alive!");
+            else
+            {
+                msg(p, "So great was his prowess and skill in warfare, the Elves said: ");
+                msg(p, "'The Mormegil cannot be slain, save by mischance.'");
+            }
+        }
         else
         {
             /* Note cause of death */
@@ -254,17 +272,14 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
 
 
 /*
- * Regenerate hit points
+ * Regenerate one turn's worth of hit points
  */
 void player_regen_hp(struct player *p, struct chunk *c)
 {
-    s32b new_chp, new_chp_frac;
-    int old_chp, percent = 0;
-    int food_bonus = 0;
+    s32b hp_gain;
+    int percent = 0;    /* max 32k -> 50% of mhp; more accurately "per two bytes" */
+    int fed_pct, old_chp = p->chp;
     int old_num = get_player_num(p);
-
-    /* Save the old hitpoints */
-    old_chp = p->chp;
 
     /* Default regeneration */
     if (p->timed[TMD_FOOD] >= PY_FOOD_WEAK) percent = PY_REGEN_NORMAL;
@@ -272,9 +287,9 @@ void player_regen_hp(struct player *p, struct chunk *c)
     else if (p->timed[TMD_FOOD] >= PY_FOOD_STARVE) percent = PY_REGEN_FAINT;
 
     /* Food bonus - better fed players regenerate up to 1/3 faster */
-    food_bonus = p->timed[TMD_FOOD] / (z_info->food_value * 10);
-    percent *= 30 + food_bonus;
-    percent /= 30;
+    fed_pct = p->timed[TMD_FOOD] / z_info->food_value;
+    percent *= 100 + fed_pct / 3;
+    percent /= 100;
 
     /* Various things speed up regeneration */
     if (player_of_has(p, OF_REGEN)) percent *= 2;
@@ -282,7 +297,7 @@ void player_regen_hp(struct player *p, struct chunk *c)
     if (p->timed[TMD_REGEN]) percent *= 3;
 
     /* Some things slow it down */
-    if (player_of_has(p, OF_IMPAIR_HP)) percent /= 2;
+    if (player_of_has(p, OF_IMPAIR_HP) || player_has(p, PF_COMBAT_REGEN)) percent /= 2;
 
     /* Various things interfere with physical healing */
     else
@@ -300,26 +315,8 @@ void player_regen_hp(struct player *p, struct chunk *c)
         percent += randint1(0x400) + percent;
 
     /* Extract the new hitpoints */
-    new_chp = ((long)p->mhp) * percent + PY_REGEN_HPBASE;
-    p->chp += (s16b)(new_chp >> 16);   /* div 65536 */
-
-    /* Check for overflow */
-    if ((p->chp < 0) && (old_chp > 0)) p->chp = SHRT_MAX;
-    new_chp_frac = (new_chp & 0xFFFF) + p->chp_frac;    /* mod 65536 */
-    if (new_chp_frac >= 0x10000L)
-    {
-        p->chp_frac = (u16b)(new_chp_frac - 0x10000L);
-        p->chp++;
-    }
-    else
-        p->chp_frac = (u16b)new_chp_frac;
-
-    /* Fully healed */
-    if (p->chp >= p->mhp)
-    {
-        p->chp = p->mhp;
-        p->chp_frac = 0;
-    }
+    hp_gain = (s32b)(p->mhp * percent) + PY_REGEN_HPBASE;
+    player_adjust_hp_precise(p, hp_gain);
 
     /* Notice changes */
     if (old_chp != p->chp)
@@ -328,7 +325,6 @@ void player_regen_hp(struct player *p, struct chunk *c)
         redraw_picture(p, old_num);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_HP);
         equip_learn_flag(p, OF_REGEN);
         equip_learn_flag(p, OF_IMPAIR_HP);
     }
@@ -336,48 +332,35 @@ void player_regen_hp(struct player *p, struct chunk *c)
 
 
 /*
- * Regenerate mana points
+ * Regenerate one turn's worth of mana
  */
 void player_regen_mana(struct player *p)
 {
-    s32b new_mana, new_mana_frac;
-    int old_csp, percent = 0;
+    s32b sp_gain;
+    int percent, old_csp = p->csp;
     int old_num = get_player_num(p);
-
-    /* Save the old spell points */
-    old_csp = p->csp;
 
     /* Default regeneration */
     percent = PY_REGEN_NORMAL;
 
-    /* Various things speed up regeneration */
-    if (player_of_has(p, OF_REGEN)) percent *= 2;
-    if (player_resting_can_regenerate(p)) percent *= 2;
+    /* Various things speed up regeneration, but don't punish blackguards */
+    if (!(player_has(p, PF_COMBAT_REGEN) && p->chp == p->mhp))
+    {
+        if (player_of_has(p, OF_REGEN)) percent *= 2;
+        if (player_resting_can_regenerate(p)) percent *= 2;
+    }
 
     /* Some things slow it down */
-    if (player_of_has(p, OF_IMPAIR_MANA)) percent /= 2;
+    if (player_has(p, PF_COMBAT_REGEN)) percent /= -2;
+    else if (player_of_has(p, OF_IMPAIR_MANA)) percent /= 2;
 
     /* Regenerate mana */
-    new_mana = ((long)p->msp) * percent + PY_REGEN_MNBASE;
-    p->csp += (s16b)(new_mana >> 16);	/* div 65536 */
+    sp_gain = (s32b)(p->msp * percent);
+    sp_gain += ((percent < 0)? -PY_REGEN_MNBASE: PY_REGEN_MNBASE);
+    sp_gain = player_adjust_mana_precise(p, sp_gain);
 
-    /* Check for overflow */
-    if ((p->csp < 0) && (old_csp > 0)) p->csp = SHRT_MAX;
-    new_mana_frac = (new_mana & 0xFFFF) + p->csp_frac;  /* mod 65536 */
-    if (new_mana_frac >= 0x10000L)
-    {
-        p->csp_frac = (u16b)(new_mana_frac - 0x10000L);
-        p->csp++;
-    }
-    else
-        p->csp_frac = (u16b)new_mana_frac;
-
-    /* Must set frac to zero even if equal */
-    if (p->csp >= p->msp)
-    {
-        p->csp = p->msp;
-        p->csp_frac = 0;
-    }
+    /* SP degen heals blackguards at double efficiency vs casting */
+    if (sp_gain < 0 && player_has(p, PF_COMBAT_REGEN)) convert_mana_to_hp(p, -sp_gain << 2);
 
     /* Notice changes */
     if (old_csp != p->csp)
@@ -390,6 +373,120 @@ void player_regen_mana(struct player *p)
         equip_learn_flag(p, OF_REGEN);
         equip_learn_flag(p, OF_IMPAIR_MANA);
     }
+}
+
+
+void player_adjust_hp_precise(struct player *p, s32b hp_gain)
+{
+	s32b new_chp;
+	int num, old_chp = p->chp;
+
+	/* Load it all into 4 byte format*/
+	new_chp = (s32b)((p->chp << 16) + p->chp_frac) + hp_gain;
+
+	/* Check for overflow */
+	if ((new_chp < 0) && (old_chp > 0) && (hp_gain > 0))
+		new_chp = LONG_MAX;
+	else if ((new_chp > 0) && (old_chp < 0) && (hp_gain < 0))
+		new_chp = LONG_MIN;
+
+	/* Break it back down */
+	p->chp = (s16b)(new_chp >> 16);   /* div 65536 */
+	p->chp_frac = (u16b)(new_chp & 0xFFFF); /* mod 65536 */
+
+	/* Fully healed */
+	if (p->chp >= p->mhp)
+    {
+		p->chp = p->mhp;
+		p->chp_frac = 0;
+	}
+
+	num = p->chp - old_chp;
+	if (num == 0) return;
+
+	p->upkeep->redraw |= (PR_HP);
+}
+
+
+/*
+ * Accept a 4 byte signed int, divide it by 65k, and add
+ * to current spell points. p->csp and csp_frac are 2 bytes each.
+ */
+s32b player_adjust_mana_precise(struct player *p, s32b sp_gain)
+{
+	s32b old_csp_long, new_csp_long;
+	int old_csp_short = p->csp;
+
+	if (sp_gain == 0) return 0;
+
+	/* Load it all into 4 byte format*/
+	old_csp_long = (s32b)((p->csp << 16) + p->csp_frac);
+	new_csp_long = old_csp_long + sp_gain;
+
+	/* Check for overflow */
+	if ((new_csp_long < 0) && (old_csp_long > 0) && (sp_gain > 0))
+    {
+		new_csp_long = LONG_MAX;
+		sp_gain = 0;
+	}
+    else if ((new_csp_long > 0) && (old_csp_long < 0) && (sp_gain < 0))
+    {
+		new_csp_long = LONG_MIN;
+		sp_gain = 0;
+	}
+
+	/* Break it back down*/
+	p->csp = (s16b)(new_csp_long >> 16);   /* div 65536 */
+	p->csp_frac = (u16b)(new_csp_long & 0xFFFF);    /* mod 65536 */
+
+	/* Max/min SP */
+	if (p->csp >= p->msp)
+    {
+		p->csp = p->msp;
+		p->csp_frac = 0;
+		sp_gain = 0;
+	}
+    else if (p->csp < 0)
+    {
+		p->csp = 0;
+		p->csp_frac = 0;
+		sp_gain = 0;
+	}
+
+	/* Notice changes */
+	if (old_csp_short != p->csp) p->upkeep->redraw |= (PR_MANA);
+
+	if (sp_gain == 0)
+    {
+		/* Recalculate */
+		new_csp_long = (s32b)((p->csp << 16) + p->csp_frac);
+		sp_gain = new_csp_long - old_csp_long;
+	}
+
+	return sp_gain;
+}
+
+
+void convert_mana_to_hp(struct player *p, s32b sp_long)
+{
+	s32b hp_gain, sp_ratio;
+
+	if (sp_long <= 0 || p->msp == 0 || p->mhp == p->chp) return;
+
+	/* Total HP from max */
+	hp_gain = (s32b)((p->mhp - p->chp) << 16);
+	hp_gain -= (s32b)p->chp_frac;
+
+	/* Spend X% of SP get X/2% of lost HP. E.g., at 50% HP get X/4% */
+	/* Gain stays low at msp < 10 because MP gains are generous at msp < 10 */
+	/* sp_ratio is max sp to spent sp, doubled to suit target rate. */
+	sp_ratio = (MAX(10, (s32b)p->msp) << 16) * 2 / sp_long;
+
+	/* Limit max healing to 25% of damage; ergo spending > 50% msp is inefficient */
+	if (sp_ratio < 4) sp_ratio = 4;
+	hp_gain /= sp_ratio;
+
+	player_adjust_hp_precise(p, hp_gain);
 }
 
 
@@ -469,6 +566,8 @@ void player_update_light(struct player *p)
  */
 void player_over_exert(struct player *p, int flag, int chance, int amount)
 {
+    if (chance <= 0) return;
+
     /* CON damage */
     if ((flag & PY_EXERT_CON) && (randint0(100) < chance))
     {

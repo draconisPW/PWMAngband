@@ -593,6 +593,11 @@ static void chest_trap(struct player *p, struct object *obj)
 			if (trap->msg) msg(p, trap->msg);
             who->chest_trap = trap;
             effect_do(trap->effect, who, &ident, false, 0, NULL, 0, 0, NULL);
+            if (trap->destroy)
+            {
+                obj->pval = 0;
+                break;
+            }
 		}
 	}
 }

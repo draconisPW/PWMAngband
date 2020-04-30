@@ -1345,6 +1345,13 @@ dice:24+9d9
 effect:CURE:BLIND
 desc:cures blindness and grants the power of telepathy for {24+9d9} turns
 
+name:TMD_FREE_ACT
+aim:0
+power:4
+effect:TIMED_INC:FREE_ACT
+dice:10+1d10
+desc:grants temporary free action for {10+1d10} turns
+
 name:TMD_INFRA
 aim:0
 power:5

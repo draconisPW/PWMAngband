@@ -2149,6 +2149,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->stat_add[STAT_CON] += 3;
     }
 
+    /* Combat Regeneration */
+    if (player_has(p, PF_COMBAT_REGEN)) of_on(state->flags, OF_IMPAIR_HP);
+
     /* Calculate the various stat values */
     for (i = 0; i < STAT_MAX; i++)
     {
@@ -2393,6 +2396,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         of_on(state->flags, OF_ESP_ALL);
     }
     if (p->timed[TMD_SINVIS]) of_on(state->flags, OF_SEE_INVIS);
+    if (p->timed[TMD_FREE_ACT]) of_on(state->flags, OF_FREE_ACT);
     if (p->timed[TMD_AFRAID] || p->timed[TMD_TERROR]) of_on(state->flags, OF_AFRAID);
     if (p->timed[TMD_TERROR]) state->speed += 10;
     if (p->timed[TMD_OPP_ACID])
@@ -2593,7 +2597,10 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         }
     }
     else
+    {
+        /* Unarmed */
         state->num_blows = calc_blows(p, NULL, state, extra_blows);
+    }
 
     /* Unencumbered monks get a bonus tohit/todam */
     if (unencumbered_monk)

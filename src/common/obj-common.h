@@ -435,6 +435,7 @@ struct object_xtra
     byte equipped;          /* Equipped flag */
     byte magic;             /* Magic flag */
     s16b bidx;              /* Book index */
+    byte throwable;         /* Throwable flag */
     char name[NORMAL_WID];
     char name_terse[NORMAL_WID];
     char name_base[NORMAL_WID];

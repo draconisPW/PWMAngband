@@ -1877,8 +1877,34 @@ void square_add_stairs(struct chunk *c, struct loc *grid, byte feat_stairs)
 
 void square_open_door(struct chunk *c, struct loc *grid)
 {
+    int feat = FEAT_OPEN;
+    struct worldpos dpos;
+    struct location *dungeon;
+
     square_remove_all_traps(c, grid);
-    square_set_feat(c, grid, FEAT_OPEN);
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+
+    /* Use the corresponding open door instead */
+    if (dungeon && c->wpos.depth)
+    {
+        int i;
+
+        for (i = 0; i < dungeon->n_doors; i++)
+        {
+            struct dun_feature *feature = &dungeon->doors[i];
+
+            if (square(c, grid)->feat == feature->feat)
+            {
+                feat = feature->feat_open;
+                break;
+            }
+        }
+    }
+
+    square_set_feat(c, grid, feat);
 }
 
 
@@ -1891,9 +1917,29 @@ void square_open_homedoor(struct chunk *c, struct loc *grid)
 void square_close_door(struct chunk *c, struct loc *grid)
 {
     int feat = FEAT_CLOSED;
+    struct worldpos dpos;
+    struct location *dungeon;
 
-    /* Hack -- if this was a special door that was opened, use that feature instead */
-    if (square(c, grid)->feat_save) feat = square(c, grid)->feat_save;
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+
+    /* Use the corresponding closed door instead */
+    if (dungeon && c->wpos.depth)
+    {
+        int i;
+
+        for (i = 0; i < dungeon->n_doors; i++)
+        {
+            struct dun_feature *feature = &dungeon->doors[i];
+
+            if (square(c, grid)->feat == feature->feat_open)
+            {
+                feat = feature->feat;
+                break;
+            }
+        }
+    }
 
     square_set_feat(c, grid, feat);
 }

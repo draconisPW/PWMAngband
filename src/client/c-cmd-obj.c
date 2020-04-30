@@ -32,6 +32,13 @@ bool obj_can_takeoff(struct player *p, const struct object *obj)
 }
 
 
+/* Determine if an object is designed for throwing */
+bool obj_is_throwing(struct player *p, const struct object *obj)
+{
+    return (obj->info_xtra.throwable? true: false);
+}
+
+
 /* Can only uninscribe inscribed items */
 bool obj_has_inscrip(struct player *p, const struct object *obj)
 {

@@ -596,6 +596,7 @@ static enum parser_error parse_location_info_door(struct parser *p)
 
     /* Now read the data */
     f->feat = lookup_feat(parser_getsym(p, "feat"));
+    f->feat_open = lookup_feat(parser_getsym(p, "open"));
     f->chance = parser_getint(p, "chance");
 
     return PARSE_ERROR_NONE;
@@ -720,7 +721,7 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "flags ?str flags", parse_location_info_flags);
     parser_reg(p, "floor sym feat int chance", parse_location_info_floor);
     parser_reg(p, "wall sym feat int chance", parse_location_info_wall);
-    parser_reg(p, "door sym feat int chance", parse_location_info_door);
+    parser_reg(p, "door sym feat sym open int chance", parse_location_info_door);
     parser_reg(p, "rule int chance uint all", parse_location_info_rule);
     parser_reg(p, "rule-flags ?str flags", parse_location_info_rule_flags);
     parser_reg(p, "rule-spells ?str flags", parse_location_info_rule_spells);

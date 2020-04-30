@@ -103,6 +103,7 @@ static void display_item(struct player *p, struct object *obj, byte equipped)
     info_xtra.equipped = equipped;
     if (of_has(obj->flags, OF_AMMO_MAGIC)) info_xtra.magic = 1;
     info_xtra.bidx = (s16b)object_to_book_index(p, obj);
+    if (of_has(obj->flags, OF_THROWING)) info_xtra.throwable = 1;
 
     my_strcpy(info_xtra.name, o_name, sizeof(info_xtra.name));
     my_strcpy(info_xtra.name_terse, o_name_terse, sizeof(info_xtra.name_terse));
@@ -237,6 +238,7 @@ void display_floor(struct player *p, struct chunk *c, struct object **floor_list
 
         if (of_has(floor_list[i]->flags, OF_AMMO_MAGIC)) info_xtra.magic = 1;
         info_xtra.bidx = (s16b)object_to_book_index(p, floor_list[i]);
+        if (of_has(floor_list[i]->flags, OF_THROWING)) info_xtra.throwable = 1;
 
         my_strcpy(info_xtra.name, o_name, sizeof(info_xtra.name));
         my_strcpy(info_xtra.name_terse, o_name_terse, sizeof(info_xtra.name_terse));

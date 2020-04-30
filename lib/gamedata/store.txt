@@ -238,6 +238,7 @@ always:magic book
 normal:ring:Searching
 normal:ring:Levitation
 normal:ring:Protection
+normal:ring:Open Wounds
 normal:amulet:Slow Digestion
 normal:amulet:Resist Acid
 normal:wand:Light

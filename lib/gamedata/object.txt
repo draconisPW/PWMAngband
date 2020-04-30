@@ -199,7 +199,7 @@ cost:3
 alloc:50:1 to 100
 attack:1d4:0:0
 armor:0:0
-flags:EXPLODE
+flags:EXPLODE | THROWING
 pval:7500
 desc:It can be used to fuel a lantern with 7500 turns of light, up to
 desc: a maximum of 15000 turns of light.
@@ -1325,6 +1325,7 @@ pile:100:5d7
 alloc:30:0 to 100
 attack:1d2:0:0
 armor:0:0
+flags:THROWING
 desc:Small round stones. When fired with a sling, they could even hurt a giant.
 
 name:& Iron Shot~
@@ -1337,6 +1338,7 @@ pile:100:5d7
 alloc:25:3 to 100
 attack:1d4:0:0
 armor:0:0
+flags:THROWING
 desc:Metal balls, made for shooting with slings.
 
 name:& Mithril Shot~
@@ -1349,10 +1351,10 @@ pile:100:5d7
 alloc:20:40 to 100
 attack:2d4:0:0
 armor:0:0
-flags:IGNORE_ACID
+flags:IGNORE_ACID | THROWING
 desc:A sling bullet made from the slags of mithril smelting. It is unusually
 desc: heavy, hitting with great force, and is almost imperishable. It can be
-desc: shot with a sling.
+desc: shot with a sling or thrown.
 
 
 ##### Digging Tools #####
@@ -3327,7 +3329,7 @@ graphics:!:d
 type:potion
 level:3
 weight:4
-cost:100
+cost:80
 alloc:40:3 to 100
 pile:25:2
 effect:TIMED_INC:SHERO

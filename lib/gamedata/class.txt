@@ -157,7 +157,7 @@ skill-search:10:12
 skill-melee:70:45
 skill-shoot:55:45
 skill-dig:0:0
-hitdie:9
+hitdie:10
 max-attacks:6
 min-weight:30
 strength-multiplier:5
@@ -2007,25 +2007,29 @@ color:s
 skill-disarm-phys:20:15
 skill-disarm-magic:20:10
 skill-device:24:10
-skill-save:25:11
+skill-save:18:10
 skill-stealth:-1:-1
-skill-search:10:12
-skill-melee:60:40
-skill-shoot:50:30
+skill-search:8:10
+skill-melee:65:40
+skill-shoot:35:15
 skill-dig:0:0
-hitdie:10
+hitdie:9
 max-attacks:5
 min-weight:100
 strength-multiplier:5
 equip:food:Ration of Food:1:3:1
 equip:light:Wooden Torch:1:3:1
-equip:sword:Cutlass:1:1:1
+equip:sword:Tulwar:1:1:1
+equip:shield:Leather Shield:1:1:1
 equip:scroll:Word of Recall:1:1:0
+equip:potion:Cure Light Wounds:1:1:1
 obj-flag:1:IMPAIR_HP
 value:1:STR[2]
 value:1:WIS[-3]
 value:1:CON[2]
-player-flags:CHOOSE_SPELLS | SHIELD_BASH
+player-flags:CHOOSE_SPELLS | SHIELD_BASH | COMBAT_REGEN
+shape:20:werewolf
+shape:40:werewolf of Sauron
 title:Rat
 title:Bully
 title:Thug
@@ -2037,43 +2041,61 @@ title:Marauder
 title:Destroyer
 title:Tyrant
 
-magic:8:400:5
+magic:1:600:5
 
-book:shadow book:town:[Shadows for Beginners]:4:shadow
+book:shadow book:town:[Shadows for Beginners]:5:shadow
 equip:shadow book:[Shadows for Beginners]:1:1:1
 
-spell:Dark Focus:8:5:5:8:0
-effect:TIMED_INC:BLESSED:0:5
-dice:$B+1d$S
-expr:B:PLAYER_LEVEL:/ 5 + 10
-expr:S:PLAYER_LEVEL:/ 5 + 10
-desc:Gives you a bonus of +5 to AC and +10 to-hit, for a
-desc: level-dependent duration.
-
-spell:Dark Detection:10:5:20:10:0
-effect:DETECT_NONEVIL
+spell:Seek Battle:1:1:15:2:0
+effect:DETECT_LIVING_MONSTERS
 effect-yx:22:40
-desc:Detects all non-evil monsters in the immediate area,
-desc: for one turn only.
+desc:Detects all living monsters in the immediate area, for one turn only.
+
+spell:Berserk Strength:3:2:20:4:0
+effect:TIMED_INC:SHERO:0:5
+dice:25+1d25
+effect:TIMED_INC:BOLD:0:5
+dice:25+1d25
+effect:CURE:AFRAID
+desc:Removes fear and grants you berserk strength (resistance to fear,
+desc: a bonus of +24 to-hit and a penalty of -10 to AC) for 25+1d25 turns.
+
+spell:Leap into Battle:5:4:25:6:0
+effect:TELEPORT_TO
+dice:4
+desc:Teleports you next to a chosen target up to 4 squares away.
+
+spell:Shatter Stone:7:3:20:8:0
+effect:BOLT_MELEE:KILL_WALL
+dice:20+1d30
+desc:Destroys an adjacent section of wall or rubble, unless it is a permanent
+desc: wall. Deals 20+1d30 damage to monsters vulnerable to rock remover.
+
+spell:Whirlwind Attack:10:5:30:10:0
+effect:SWEEP
+desc:Deals a melee attack to each adjacent enemy.
+
+book:shadow book:town:[Dark Conjurings]:5:shadow
 
 spell:Dark Blessing:12:6:24:12:0
 effect:TIMED_INC:HOLD_LIFE
 dice:20+1d20
 desc:Grants you resistance to draining attacks for 20+1d20 turns.
 
-spell:Berserk Rage:14:10:10:10:0
-effect:TIMED_INC:SHERO:0:5
-dice:25+1d25
-effect:TIMED_INC:BOLD:0:5
-dice:25+1d25
-effect:CURE:AFRAID
-effect:HEAL_HP
-dice:30
-desc:Cures 30 points of damage, removes fear and grants you berserk
-desc: strength (resistance to fear, a bonus of +24 to-hit and a penalty
-desc: of -10 to AC) for 25+1d25 turns.
+spell:Grim Purpose:13:8:30:12:0
+effect:TIMED_INC:FREE_ACT
+dice:12+1d12
+effect:TIMED_INC:OPP_CONF
+dice:12+1d12
+desc:Your mind becomes too focused to be slowed, paralyzed or confused
+desc: for 12+1d12 turns.
 
-book:shadow book:town:[Dark Conjurings]:4:shadow
+spell:Maim Foe:15:6:35:14:0
+effect:BOLT_MELEE:MON_STUN
+dice:5+1d5
+effect:MELEE_BLOWS
+desc:Attempts a melee attack against an adjacent enemy.
+desc: Stuns that enemy for 5+1d5 turns.
 
 spell:Unholy Pact:16:8:32:16:0
 effect:TIMED_INC:REGEN
@@ -2081,26 +2103,20 @@ dice:20+1d20
 desc:Greatly increases your regeneration rate for 20+1d20 turns.
 desc: The effect of this spell is cumulative with other means of regeneration.
 
-spell:Cry of the Damned:17:5:30:12:0
-effect:PROJECT_LOS:TURN_LIVING
+spell:Howl of the Damned:18:8:30:16:0
+effect:PROJECT_LOS:TURN_ALL
 dice:$B
 expr:B:PLAYER_LEVEL:+ 0
-desc:Attempts to scare every living monster in line of sight for a
-desc: level-dependent duration. Monsters that resist fear are not
-desc: affected.
+desc:Attempts to scare every monster in line of sight for a level-dependent
+desc: duration. Monsters that resist fear are not affected.
 
-spell:Phantoms Weapon:18:9:36:18:0
+book:shadow book:town:[Shadows and Illusions]:5:shadow
+
+spell:Phantoms Weapon:20:10:40:20:0
 effect:TIMED_INC:HOLD_WEAPON
 dice:20+1d20
 desc:Grants extra damage each turn and makes you immune to disarming
 desc: for 20+1d20 turns.
-
-spell:Poison Brand:20:30:40:20:0
-effect:TIMED_INC:ATT_POIS:0:5
-dice:20+1d20
-desc:Temporarily makes your melee attacks branded with poison.
-
-book:shadow book:town:[Shadows and Illusions]:4:shadow
 
 spell:Soul Harvest:22:11:44:22:0
 effect:TIMED_INC:SOUL
@@ -2110,11 +2126,11 @@ expr:S:PLAYER_LEVEL:* 2 + 30
 desc:This heals you by a substantial amount every time you kill a monster
 desc: within its duration.
 
-spell:Taunt:24:10:40:150:0
+spell:Relentless Taunting:24:10:35:20:0
 effect:TIMED_INC:TAUNT
 dice:10+d10
-desc:Makes anything that can move more inclined to run toward you than make a
-desc: ranged attack.
+desc:Makes any monster that can move more inclined to run toward you, and less
+desc: likely to use a ranged attack (including spells and innate abilities).
 
 spell:Expertise:25:12:48:24:0
 effect:TIMED_INC:SAFE
@@ -2129,12 +2145,12 @@ dice:20+1d20
 desc:Gives monsters around you a penalty to their saving throws and doubles
 desc: the duration if they get become afraid for 20+1d20 turns.
 
-book:shadow book:dungeon:[Dark Evocations]:4:shadow
+book:shadow book:dungeon:[Dark Evocations]:5:shadow
 
-spell:Throw Monster:27:12:50:30:0
-effect:BOLT_MELEE:FORCE
-dice:200
-desc:Hits an adjacent monster with force, throwing it back.
+spell:Venom:28:20:40:30:0
+effect:TIMED_INC:ATT_POIS:0:5
+dice:20+1d20
+desc:Coats all your melee weapons with poison for 20+1d20 turns.
 
 spell:Dark Minions:28:14:56:28:0
 effect:SUMMON:DEMON:0:20
@@ -2145,24 +2161,31 @@ msg_other: summons some minions.
 desc:Attempts to summon one undead monster and one demon generated at the
 desc: current dungeon level. This spell has no effect when used in the town.
 
-spell:Demonic Skin:30:15:60:30:0
+spell:Bloodlust:30:30:40:100:0
+effect:TIMED_INC:BLOODLUST:0:-1
+dice:10
+desc:Gives you a powerful desire to kill, increased every time you satisfy it.
+desc: Gives you extra melee damage and extra blows, but comes
+desc: with dangerous side-effects.
+
+spell:Demonic Skin:32:16:64:32:0
 effect:TIMED_INC:SHIELD
 dice:30+1d20
 desc:Grants you +50 to AC for 30+1d20 turns.
 
-spell:Thirst for Blood:32:30:40:100:0
+spell:Unholy Reprieve:34:45:60:120:0
 effect:DAMAGE
-dice:50
-msg_self:blood sacrifice
-effect:TIMED_INC:BLOODLUST:0:-1
-dice:10
-desc:Gives you a powerful desire to kill, increased every time you satsfy it.
-desc: Gives you extra damage and, at higher levels, extra blows, but comes
-desc: with dangerous side-effects.
+dice:66
+effect:RESTORE_EXP
+effect:RESTORE_STAT:CON
+effect:RESTORE_STAT:INT
+effect:RESTORE_STAT:STR
+desc:Restores strength, intelligence, constitution, and experience at the cost
+desc: of 66 HP.
 
-book:shadow book:dungeon:[Great Shadows]:4:shadow
+book:shadow book:dungeon:[Great Shadows]:5:shadow
 
-spell:Demonic Resistance:34:17:68:34:0
+spell:Demonic Resistance:36:18:72:36:0
 effect:TIMED_INC:OPP_POIS
 dice:20+1d20
 effect:TIMED_INC:OPP_COLD
@@ -2177,17 +2200,20 @@ dice:20+1d20
 desc:Grants you resistance to acid, cold, fire, lightning and poison for
 desc: 20+1d20 turns.
 
-spell:Piercing Shot:35:20:40:120:0
-effect:TIMED_INC:POWERSHOT
-dice:3
-desc:Makes your next shot powerful enough to pierce several enemies.
+spell:Forceful Blow:38:16:50:150:0
+effect:BOLT_MELEE:FORCE
+dice:2d$B
+expr:B:PLAYER_LEVEL:* 4
+effect:MELEE_BLOWS
+desc:Attempts a melee attack and hits the target with force, knocking it back
+desc: with a chance to stun it.
 
-spell:Demonic Flight:38:19:72:36:0
+spell:Demonic Flight:40:20:80:40:0
 effect:TIMED_INC:FLIGHT:0:5
 dice:20+1d20
 desc:Grants levitation and +5 to speed for 20+1d20 turns.
 
-spell:Path of the Unholy:40:20:80:40:0
+spell:Path of the Unholy:42:21:84:42:0
 effect:TELEPORT
 dice:40
 msg_other: teleports away.
@@ -2199,6 +2225,10 @@ effect:TIMED_INC:ZFARSIGHT
 dice:10+1d10
 desc:Grants infravision, telepathic powers, and surrounds you with an icy aura
 desc: for 10+1d10 turns, but also teleports you around.
+
+spell:Quake:44:39:55:175:0
+effect:EARTHQUAKE:NONE:13
+desc:Causes a radius 13 earthquake centered around the player.
 
 
 ############### SORCEROR ###############
@@ -2556,7 +2586,7 @@ skill-search:10:12
 skill-melee:70:45
 skill-shoot:55:45
 skill-dig:0:0
-hitdie:8
+hitdie:9
 max-attacks:6
 min-weight:30
 strength-multiplier:5

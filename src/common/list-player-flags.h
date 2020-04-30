@@ -4,11 +4,10 @@
  *
  * Fields:
  * symbol - the flag name
- * descr - description of the flag effect
- * birth-descr - description of the flag for use in the birth menus
+ * additional details in player_property.txt
  */
 
-/* symbol  descr  birth-descr */
+/* symbol */
 PF(NONE)
 PF(FAST_SHOT)
 PF(BLESS_WEAPON)
@@ -23,6 +22,7 @@ PF(CHARM)
 PF(UNLIGHT)
 PF(STEAL)
 PF(SHIELD_BASH)
+PF(COMBAT_REGEN)
 PF(ELEMENTAL_SPELLS)
 PF(UNDEAD_POWERS)
 PF(STEALTH_MODE)

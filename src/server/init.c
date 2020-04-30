@@ -3467,12 +3467,11 @@ static enum parser_error parse_player_prop_code(struct parser *p)
 
 static enum parser_error parse_player_prop_desc(struct parser *p)
 {
-	const char *desc = parser_getstr(p, "desc");
 	struct player_ability *ability = parser_priv(p);
 
 	if (!ability) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
-	ability->desc = string_make(desc);
+	ability->desc = string_append(ability->desc, parser_getstr(p, "desc"));
 	return PARSE_ERROR_NONE;
 }
 
@@ -3534,9 +3533,9 @@ static errr finish_parse_player_prop(struct parser *p)
         {
 			size_t i;
 
-			for (i = 0; i < N_ELEMENTS(list_element_names); i++)
+			for (i = 0; i < N_ELEMENTS(list_element_names) - 1; i++)
             {
-				char *name = projections[i].name;
+                char *name = projections[i].name;
 
 				new_ability->index = i;
 				new_ability->type = string_make(ability->type);
@@ -3544,7 +3543,7 @@ static errr finish_parse_player_prop(struct parser *p)
                 my_strcap(name);
 				new_ability->name = string_make(format("%s %s", name, ability->name));
                 new_ability->value = ability->value;
-				if ((i != N_ELEMENTS(list_element_names) - 1) || ability->next)
+				if ((i != N_ELEMENTS(list_element_names) - 2) || ability->next)
                 {
 					previous = new_ability;
 					new_ability = mem_zalloc(sizeof(*new_ability));
