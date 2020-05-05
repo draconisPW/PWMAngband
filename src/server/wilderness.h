@@ -103,9 +103,10 @@ struct dun_rule
  */
 struct dun_feature
 {
-    int feat;                   /* Feature (floor, wall, closed door) */
-    int feat_open;              /* Feature (open door) */
-    int chance;                 /* 1/10000 chance of floors/walls/doors replaced by that feature */
+    int feat;               /* Feature (floor, wall, permanent wall, closed door, stairs down) */
+    int feat2;              /* Feature (open door, fake permanent wall, stairs up) */
+    int feat3;              /* Feature (broken door) */
+    int chance;             /* 1/10000 chance of floors/walls/doors replaced by that feature */
     struct dun_feature *next;
 };
 
@@ -114,22 +115,28 @@ struct dun_feature
  */
 struct location
 {
-    char *name;                 /* Name */
-    char *shortname;            /* Short name */
-    struct worldpos wpos;       /* Position on the world map */
-    int min_depth;              /* Min depth */
-    int max_depth;              /* Max depth */
-    int max_level;              /* Max character level allowed */
-    int max_townies;            /* Max townies */
-    int feat;                   /* Symbol on minimap */
-    bitflag flags[DF_SIZE];     /* Flags */
-    struct dun_feature *floors; /* Unusual dungeon floors */
+    char *name;                     /* Name */
+    char *shortname;                /* Short name */
+    struct worldpos wpos;           /* Position on the world map */
+    int min_depth;                  /* Min depth */
+    int max_depth;                  /* Max depth */
+    int max_level;                  /* Max character level allowed */
+    int max_townies;                /* Max townies */
+    int feat;                       /* Symbol on minimap */
+    bitflag flags[DF_SIZE];         /* Flags */
+    struct dun_feature *floors;     /* Unusual dungeon floors */
     int n_floors;
-    struct dun_feature *walls;  /* Unusual dungeon walls */
+    struct dun_feature *walls;      /* Unusual dungeon walls */
     int n_walls;
-    struct dun_feature *doors;  /* Unusual dungeon doors */
+    struct dun_feature *permas;     /* Unusual dungeon permawalls */
+    int n_permas;
+    struct dun_feature *doors;      /* Unusual dungeon doors */
     int n_doors;
-    struct dun_rule *rules;     /* Rules */
+    struct dun_feature *stairs;     /* Unusual dungeon stairs */
+    int n_stairs;
+    struct dun_feature *rubbles;    /* Unusual dungeon rubbles */
+    int n_rubbles;
+    struct dun_rule *rules;         /* Rules */
     int n_rules;
     struct location *next;
 };

@@ -182,16 +182,14 @@ static void add_streamer(struct chunk *c, int feat, int flag)
 
 
 /*
- * Tweak floors/doors with types specific to a dungeon.
+ * Replace floors/walls/doors/stairs/rubbles with custom features specific to a dungeon.
  *
  * c is the current chunk
- * walls, when TRUE, tells the function to also tweak walls
  */
-static void tweak_features(struct chunk *c, bool walls)
+static void customize_features(struct chunk *c)
 {
     struct worldpos dpos;
     struct location *dungeon;
-    int n_floors, n_doors, n_walls;
     struct loc begin, end;
     struct loc_iterator iter;
 
@@ -202,33 +200,14 @@ static void tweak_features(struct chunk *c, bool walls)
     /* No dungeon here, leave basic floors/doors/walls */
     if (!dungeon || !c->wpos.depth) return;
 
-    /* Count features */
-    for (n_floors = 0; n_floors < dungeon->n_floors; n_floors++)
-    {
-        struct dun_feature *feature = &dungeon->floors[n_floors];
-
-        /* Break if not valid */
-        if (!feature->chance) break;
-    }
-    for (n_doors = 0; n_doors < dungeon->n_doors; n_doors++)
-    {
-        struct dun_feature *feature = &dungeon->doors[n_doors];
-
-        /* Break if not valid */
-        if (!feature->chance) break;
-    }
-    for (n_walls = 0; walls && n_walls < dungeon->n_walls; n_walls++)
-    {
-        struct dun_feature *feature = &dungeon->walls[n_walls];
-
-        /* Break if not valid */
-        if (!feature->chance) break;
-    }
-
     /* Nothing to do */
-    if (n_floors + n_doors + n_walls == 0) return;
+    if (dungeon->n_floors + dungeon->n_walls + dungeon->n_permas + dungeon->n_doors +
+        dungeon->n_stairs + dungeon->n_rubbles == 0)
+    {
+        return;
+    }
 
-    loc_init(&begin, 1, 1);
+    loc_init(&begin, 0, 0);
     loc_init(&end, c->width - 1, c->height - 1);
     loc_iterator_first(&iter, &begin, &end);
 
@@ -237,10 +216,6 @@ static void tweak_features(struct chunk *c, bool walls)
     {
         int i, chance;
 
-        /* Require a valid grid */
-        if (square_isvault(c, &iter.cur) || square(c, &iter.cur)->mon || square(c, &iter.cur)->obj)
-            continue;
-
         /* Floors */
         if (square_isfloor(c, &iter.cur))
         {
@@ -248,7 +223,7 @@ static void tweak_features(struct chunk *c, bool walls)
             chance = randint0(10000);
 
             /* Process all features */
-            for (i = 0; i < n_floors; i++)
+            for (i = 0; i < dungeon->n_floors; i++)
             {
                 struct dun_feature *feature = &dungeon->floors[i];
 
@@ -263,63 +238,122 @@ static void tweak_features(struct chunk *c, bool walls)
             }
         }
 
-        /* Doors */
-        if (square_iscloseddoor(c, &iter.cur))
-        {
-            /* Basic chance */
-            chance = randint0(10000);
-
-            /* Process all features */
-            for (i = 0; i < n_doors; i++)
-            {
-                struct dun_feature *feature = &dungeon->doors[i];
-
-                /* Fill the level with that feature */
-                if (feature->chance > chance)
-                {
-                    square_set_feat(c, &iter.cur, feature->feat);
-                    break;
-                }
-
-                chance -= feature->chance;
-            }
-        }
-        if (square_isopendoor(c, &iter.cur))
-        {
-            /* Basic chance */
-            chance = randint0(10000);
-
-            /* Process all features */
-            for (i = 0; i < n_doors; i++)
-            {
-                struct dun_feature *feature = &dungeon->doors[i];
-
-                /* Fill the level with that feature */
-                if (feature->chance > chance)
-                {
-                    square_set_feat(c, &iter.cur, feature->feat_open);
-                    break;
-                }
-
-                chance -= feature->chance;
-            }
-        }
-
         /* Walls */
-        if (walls && square_isrock(c, &iter.cur))
+        if (square_isrock(c, &iter.cur) || square_ispermfake(c, &iter.cur))
         {
             /* Basic chance */
             chance = randint0(10000);
 
             /* Process all features */
-            for (i = 0; i < n_walls; i++)
+            for (i = 0; i < dungeon->n_walls; i++)
             {
                 struct dun_feature *feature = &dungeon->walls[i];
 
                 /* Fill the level with that feature */
                 if (feature->chance > chance)
                 {
+                    if (square_isrock(c, &iter.cur))
+                        square_set_feat(c, &iter.cur, feature->feat);
+                    else
+                        square_set_feat(c, &iter.cur, feature->feat2);
+                    break;
+                }
+
+                chance -= feature->chance;
+            }
+        }
+        if (square_isperm(c, &iter.cur) && !square_ispermfake(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(10000);
+
+            /* Process all features */
+            for (i = 0; i < dungeon->n_permas; i++)
+            {
+                struct dun_feature *feature = &dungeon->permas[i];
+
+                /* Fill the level with that feature */
+                if (feature->chance > chance)
+                {
                     square_set_feat(c, &iter.cur, feature->feat);
+                    break;
+                }
+
+                chance -= feature->chance;
+            }
+        }
+
+        /* Doors */
+        if (square_iscloseddoor(c, &iter.cur) || square_isopendoor(c, &iter.cur) ||
+            square_isbrokendoor(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(10000);
+
+            /* Process all features */
+            for (i = 0; i < dungeon->n_doors; i++)
+            {
+                struct dun_feature *feature = &dungeon->doors[i];
+
+                /* Fill the level with that feature */
+                if (feature->chance > chance)
+                {
+                    if (square_iscloseddoor(c, &iter.cur))
+                        square_set_feat(c, &iter.cur, feature->feat);
+                    else if (square_isopendoor(c, &iter.cur))
+                        square_set_feat(c, &iter.cur, feature->feat2);
+                    else
+                        square_set_feat(c, &iter.cur, feature->feat3);
+                    break;
+                }
+
+                chance -= feature->chance;
+            }
+        }
+
+        /* Stairs */
+        if (square_isstairs(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(10000);
+
+            /* Process all features */
+            for (i = 0; i < dungeon->n_stairs; i++)
+            {
+                struct dun_feature *feature = &dungeon->stairs[i];
+
+                /* Fill the level with that feature */
+                if (feature->chance > chance)
+                {
+                    if (square_isdownstairs(c, &iter.cur))
+                        square_set_feat(c, &iter.cur, feature->feat);
+                    else
+                        square_set_feat(c, &iter.cur, feature->feat2);
+                    break;
+                }
+
+                chance -= feature->chance;
+            }
+        }
+
+        /* Rubbles */
+        if (square_isrubble(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(10000);
+
+            /* Process all features */
+            for (i = 0; i < dungeon->n_rubbles; i++)
+            {
+                struct dun_feature *feature = &dungeon->rubbles[i];
+
+                /* Fill the level with that feature */
+                if (feature->chance > chance)
+                {
+                    if (!square_ispassable(c, &iter.cur))
+                        square_set_feat(c, &iter.cur, feature->feat);
+                    else
+                        square_set_feat(c, &iter.cur, feature->feat2);
                     break;
                 }
 
@@ -327,7 +361,7 @@ static void tweak_features(struct chunk *c, bool walls)
             }
         }
     }
-    while (loc_iterator_next_strict(&iter));
+    while (loc_iterator_next(&iter));
 }
 
 
@@ -1117,9 +1151,6 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
     add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
 
-    /* Tweak floors/doors/walls */
-    tweak_features(c, true);
-
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
     add_stairs(c, FEAT_LESS);
@@ -1138,6 +1169,9 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
 
     /* Place some fountains in rooms */
     alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
 
     /* Determine the character location */
     new_player_spot(c, p);
@@ -1557,9 +1591,6 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
         w *= 2;
     }
 
-    /* Tweak floors/doors/walls */
-    tweak_features(c, true);
-
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
     add_stairs(c, FEAT_LESS);
@@ -1575,6 +1606,9 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
 
     /* Place some traps in the dungeon */
     alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
 
     /* Determine the character location */
     new_player_spot(c, p);
@@ -2158,9 +2192,6 @@ struct chunk *cavern_gen(struct player *p, struct worldpos *wpos, int min_height
     /* Surround the level with perma-rock */
     draw_rectangle(c, 0, 0, h - 1, w - 1, FEAT_PERM, SQUARE_NONE);
 
-    /* Tweak floors/doors/walls */
-    tweak_features(c, true);
-
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
     add_stairs(c, FEAT_LESS);
@@ -2176,6 +2207,9 @@ struct chunk *cavern_gen(struct player *p, struct worldpos *wpos, int min_height
 
     /* Place some traps in the dungeon */
     alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
 
     /* Determine the character location */
     new_player_spot(c, p);
@@ -3215,9 +3249,6 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
     add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
 
-    /* Tweak floors/doors/walls */
-    tweak_features(c, true);
-
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
     add_stairs(c, FEAT_LESS);
@@ -3236,6 +3267,9 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
 
     /* Place some fountains in rooms */
     alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
 
     /* Determine the character location */
     new_player_spot(c, p);
@@ -3465,9 +3499,6 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
     add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
 
-    /* Tweak floors/doors/walls */
-    tweak_features(c, true);
-
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
     add_stairs(c, FEAT_LESS);
@@ -3486,6 +3517,9 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
 
     /* Place some fountains in rooms */
     alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
 
     /* Determine the character location */
     new_player_spot(c, p);
@@ -4169,9 +4203,6 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
 
     ensure_connectedness(c);
 
-    /* Tweak floors/doors */
-    tweak_features(c, false);
-
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
     add_stairs(c, FEAT_LESS);
@@ -4190,6 +4221,9 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
 
     /* Place some fountains in rooms */
     alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
 
     /* Determine the character location */
     new_player_spot(c, p);

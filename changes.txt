@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 6
+New features in PWMAngband 1.4.0 beta 7
 =======================================
 
 User interface
@@ -94,6 +94,7 @@ PWMAngband:
 - Add option to hide terrain description on status line
 - Normalize sounds and ensure they're at least 0.25s long
 - Add custom door features to dungeon.txt
+- Add custom permawall features, stairs and rubbles to dungeon.txt
 
 Gameplay changes
 ----------------
@@ -206,6 +207,8 @@ PWMAngband:
 - Fix creeping coins so they drop the same amount of money as the object
   they're mimicking
 - Fix space in race name preventing proper race preset to be displayed
+- Fix floor not updated when the DM generates a randart from a floor item
+- Use custom dungeon floors when destroying a door or digging a wall
 
 Coding changes
 --------------

@@ -4535,7 +4535,7 @@ static bool effect_handler_GRANITE(effect_handler_context_t *context)
 {
     struct trap *trap = context->origin->trap;
 
-    square_set_feat(context->cave, &trap->grid, FEAT_GRANITE);
+    square_add_wall(context->cave, &trap->grid);
 
     context->origin->player->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
     context->origin->player->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
@@ -6000,9 +6000,9 @@ static bool effect_handler_RUBBLE(effect_handler_context_t *context)
             if (one_in_(3))
             {
                 if (one_in_(2))
-                    square_set_feat(context->cave, &grid, FEAT_PASS_RUBBLE);
+                    square_set_rubble(context->cave, &grid, FEAT_PASS_RUBBLE);
                 else
-                    square_set_feat(context->cave, &grid, FEAT_RUBBLE);
+                    square_set_rubble(context->cave, &grid, FEAT_RUBBLE);
                 rubble_grids--;
             }
         }

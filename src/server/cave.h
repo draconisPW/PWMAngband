@@ -432,7 +432,7 @@ extern void square_set_trap(struct chunk *c, struct loc *grid, struct trap *trap
 extern void square_add_trap(struct chunk *c, struct loc *grid);
 extern void square_add_glyph(struct chunk *c, struct loc *grid, int type);
 extern void square_add_web(struct chunk *c, struct loc *grid);
-extern void square_add_stairs(struct chunk *c, struct loc *grid, byte feat_stairs);
+extern void square_add_stairs(struct chunk *c, struct loc *grid, int feat_stairs);
 extern void square_open_door(struct chunk *c, struct loc *grid);
 extern void square_open_homedoor(struct chunk *c, struct loc *grid);
 extern void square_close_door(struct chunk *c, struct loc *grid);
@@ -488,6 +488,7 @@ extern void square_init_join_rand(struct chunk *c);
 extern void square_set_join_rand(struct chunk *c, struct loc *grid);
 extern void square_set_upstairs(struct chunk *c, struct loc *grid);
 extern void square_set_downstairs(struct chunk *c, struct loc *grid, int feat);
+extern void square_set_rubble(struct chunk *c, struct loc *grid, int feat);
 
 /* cave-view.c */
 extern int distance(struct loc *grid1, struct loc *grid2);

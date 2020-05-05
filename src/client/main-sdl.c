@@ -3224,7 +3224,7 @@ static errr Term_text_sdl_aux(int col, int row, int n, u16b a, const char *s)
     Term_wipe_sdl(col, row, n);
 
     /* Take a copy of the incoming string, but truncate it at n chars */
-    my_strcpy(buf, s, n);
+    my_strcpy(buf, s, sizeof(buf));
     buf[n] = '\0';
 
     /* Handle background */

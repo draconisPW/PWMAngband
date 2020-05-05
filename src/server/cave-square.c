@@ -1837,11 +1837,46 @@ void square_add_web(struct chunk *c, struct loc *grid)
 }
 
 
-void square_add_stairs(struct chunk *c, struct loc *grid, byte feat_stairs)
+static void square_set_stairs(struct chunk *c, struct loc *grid, int feat)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        int i, chance;
+
+        /* Basic chance */
+        chance = randint0(10000);
+
+        /* Get a random stair tile */
+        for (i = 0; i < dungeon->n_stairs; i++)
+        {
+            struct dun_feature *feature = &dungeon->stairs[i];
+
+            if (feature->chance > chance)
+            {
+                if (feat == FEAT_MORE) feat = feature->feat;
+                else feat = feature->feat2;
+                break;
+            }
+
+            chance -= feature->chance;
+        }
+    }
+
+    square_set_feat(c, grid, feat);
+}
+
+
+void square_add_stairs(struct chunk *c, struct loc *grid, int feat_stairs)
 {
     static byte count = 0xFF;
-    static u16b feat = 0;
-    u16b desired_feat;
+    static int feat = 0;
+    int desired_feat;
 
     if (!feat) feat = FEAT_MORE;
 
@@ -1871,7 +1906,7 @@ void square_add_stairs(struct chunk *c, struct loc *grid, byte feat_stairs)
     }
 
     /* Create a staircase */
-    square_set_feat(c, grid, desired_feat);
+    square_set_stairs(c, grid, desired_feat);
 }
 
 
@@ -1886,19 +1921,18 @@ void square_open_door(struct chunk *c, struct loc *grid)
     /* Get the dungeon */
     wpos_init(&dpos, &c->wpos.grid, 0);
     dungeon = get_dungeon(&dpos);
-
-    /* Use the corresponding open door instead */
     if (dungeon && c->wpos.depth)
     {
         int i;
 
+        /* Use the corresponding open door instead */
         for (i = 0; i < dungeon->n_doors; i++)
         {
             struct dun_feature *feature = &dungeon->doors[i];
 
             if (square(c, grid)->feat == feature->feat)
             {
-                feat = feature->feat_open;
+                feat = feature->feat2;
                 break;
             }
         }
@@ -1923,17 +1957,33 @@ void square_close_door(struct chunk *c, struct loc *grid)
     /* Get the dungeon */
     wpos_init(&dpos, &c->wpos.grid, 0);
     dungeon = get_dungeon(&dpos);
-
-    /* Use the corresponding closed door instead */
     if (dungeon && c->wpos.depth)
     {
-        int i;
+        int i, chance;
 
+        /* Basic chance */
+        chance = randint0(10000);
+
+        /* Get a random closed door (for mimics) */
         for (i = 0; i < dungeon->n_doors; i++)
         {
             struct dun_feature *feature = &dungeon->doors[i];
 
-            if (square(c, grid)->feat == feature->feat_open)
+            if (feature->chance > chance)
+            {
+                feat = feature->feat;
+                break;
+            }
+
+            chance -= feature->chance;
+        }
+
+        /* If we close a specific open door, use that instead */
+        for (i = 0; i < dungeon->n_doors; i++)
+        {
+            struct dun_feature *feature = &dungeon->doors[i];
+
+            if (square(c, grid)->feat == feature->feat2)
             {
                 feat = feature->feat;
                 break;
@@ -1947,7 +1997,31 @@ void square_close_door(struct chunk *c, struct loc *grid)
 
 void square_smash_door(struct chunk *c, struct loc *grid)
 {
-    square_set_feat(c, grid, FEAT_BROKEN);
+    int feat = FEAT_BROKEN;
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        int i;
+
+        /* Use the corresponding broken door instead */
+        for (i = 0; i < dungeon->n_doors; i++)
+        {
+            struct dun_feature *feature = &dungeon->doors[i];
+
+            if (square(c, grid)->feat == feature->feat)
+            {
+                feat = feature->feat3;
+                break;
+            }
+        }
+    }
+
+    square_set_feat(c, grid, feat);
 }
 
 
@@ -1957,12 +2031,46 @@ void square_unlock_door(struct chunk *c, struct loc *grid)
 }
 
 
+static void square_set_floor(struct chunk *c, struct loc *grid, int feat)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        int i, chance;
+
+        /* Basic chance */
+        chance = randint0(10000);
+
+        /* Get a random floor tile */
+        for (i = 0; i < dungeon->n_floors; i++)
+        {
+            struct dun_feature *feature = &dungeon->floors[i];
+
+            if (feature->chance > chance)
+            {
+                feat = feature->feat;
+                break;
+            }
+
+            chance -= feature->chance;
+        }
+    }
+
+    square_set_feat(c, grid, feat);
+}
+
+
 void square_destroy_door(struct chunk *c, struct loc *grid)
 {
-    u16b feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_DIRT);
+    int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_DIRT);
 
     square_remove_all_traps(c, grid);
-    square_set_feat(c, grid, feat);
+    square_set_floor(c, grid, feat);
 }
 
 
@@ -1992,17 +2100,17 @@ void square_destroy_decoy(struct player *p, struct chunk *c, struct loc *grid)
 
 void square_tunnel_wall(struct chunk *c, struct loc *grid)
 {
-    u16b feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_DIRT);
+    int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_DIRT);
 
-    square_set_feat(c, grid, feat);
+    square_set_floor(c, grid, feat);
 }
 
 
 void square_destroy_wall(struct chunk *c, struct loc *grid)
 {
-    u16b feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_MUD);
+    int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_MUD);
 
-    square_set_feat(c, grid, feat);
+    square_set_floor(c, grid, feat);
 }
 
 
@@ -2010,7 +2118,7 @@ void square_smash_wall(struct chunk *c, struct loc *grid)
 {
     int i;
 
-    square_set_feat(c, grid, FEAT_FLOOR);
+    square_set_floor(c, grid, FEAT_FLOOR);
 
     for (i = 0; i < 8; i++)
     {
@@ -2035,31 +2143,63 @@ void square_smash_wall(struct chunk *c, struct loc *grid)
         }
 
         /* Remove it */
-        square_set_feat(c, &adj_grid, FEAT_FLOOR);
+        square_set_floor(c, &adj_grid, FEAT_FLOOR);
     }
+}
+
+
+static void square_set_wall(struct chunk *c, struct loc *grid, int feat)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        int i, chance;
+
+        /* Basic chance */
+        chance = randint0(10000);
+
+        /* Get a random wall tile */
+        for (i = 0; i < dungeon->n_walls; i++)
+        {
+            struct dun_feature *feature = &dungeon->walls[i];
+
+            if (feature->chance > chance)
+            {
+                feat = feature->feat;
+                break;
+            }
+
+            chance -= feature->chance;
+        }
+    }
+
+    square_set_feat(c, grid, feat);
 }
 
 
 void square_destroy(struct chunk *c, struct loc *grid)
 {
-    int feat = FEAT_FLOOR;
     int r = randint0(200);
 
     if (r < 20)
-        feat = FEAT_GRANITE;
+        square_set_wall(c, grid, FEAT_GRANITE);
     else if (r < 70)
-        feat = FEAT_QUARTZ;
+        square_set_feat(c, grid, FEAT_QUARTZ);
     else if (r < 100)
-        feat = FEAT_MAGMA;
-
-    square_set_feat(c, grid, feat);
+        square_set_feat(c, grid, FEAT_MAGMA);
+    else
+        square_set_floor(c, grid, FEAT_FLOOR);
 }
 
 
 void square_earthquake(struct chunk *c, struct loc *grid)
 {
     int t = randint0(100);
-    int f;
 
     if (!square_ispassable(c, grid))
     {
@@ -2068,13 +2208,11 @@ void square_earthquake(struct chunk *c, struct loc *grid)
     }
 
     if (t < 20)
-        f = FEAT_GRANITE;
+        square_set_wall(c, grid, FEAT_GRANITE);
     else if (t < 70)
-        f = FEAT_QUARTZ;
+        square_set_feat(c, grid, FEAT_QUARTZ);
     else
-        f = FEAT_MAGMA;
-
-    square_set_feat(c, grid, f);
+        square_set_feat(c, grid, FEAT_MAGMA);
 }
 
 
@@ -2092,9 +2230,9 @@ void square_upgrade_mineral(struct chunk *c, struct loc *grid)
 
 void square_destroy_rubble(struct chunk *c, struct loc *grid)
 {
-    u16b feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_MUD);
+    int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_MUD);
 
-    square_set_feat(c, grid, feat);
+    square_set_floor(c, grid, feat);
 }
 
 
@@ -2212,13 +2350,13 @@ void square_dry_fountain(struct chunk *c, struct loc *grid)
 
 void square_clear_feat(struct chunk *c, struct loc *grid)
 {
-    square_set_feat(c, grid, FEAT_FLOOR);
+    square_set_floor(c, grid, FEAT_FLOOR);
 }
 
 
 void square_add_wall(struct chunk *c, struct loc *grid)
 {
-    square_set_feat(c, grid, FEAT_GRANITE);
+    square_set_wall(c, grid, FEAT_GRANITE);
 }
 
 
@@ -2409,7 +2547,7 @@ void square_set_join_rand(struct chunk *c, struct loc *grid)
 void square_set_upstairs(struct chunk *c, struct loc *grid)
 {
     /* Clear previous contents, add up stairs */
-    if (cfg_limit_stairs < 2) square_set_feat(c, grid, FEAT_LESS);
+    if (cfg_limit_stairs < 2) square_set_stairs(c, grid, FEAT_LESS);
 
     /* Set this to be the starting location for people going down */
     square_set_join_down(c, grid);
@@ -2422,8 +2560,43 @@ void square_set_upstairs(struct chunk *c, struct loc *grid)
 void square_set_downstairs(struct chunk *c, struct loc *grid, int feat)
 {
     /* Clear previous contents, add down stairs */
-    square_set_feat(c, grid, feat);
+    square_set_stairs(c, grid, feat);
 
     /* Set this to be the starting location for people going up */
     square_set_join_up(c, grid);
+}
+
+
+void square_set_rubble(struct chunk *c, struct loc *grid, int feat)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        int i, chance;
+
+        /* Basic chance */
+        chance = randint0(10000);
+
+        /* Get a random rubble tile */
+        for (i = 0; i < dungeon->n_rubbles; i++)
+        {
+            struct dun_feature *feature = &dungeon->rubbles[i];
+
+            if (feature->chance > chance)
+            {
+                if (feat == FEAT_RUBBLE) feat = feature->feat;
+                else feat = feature->feat2;
+                break;
+            }
+
+            chance -= feature->chance;
+        }
+    }
+
+    square_set_feat(c, grid, feat);
 }
