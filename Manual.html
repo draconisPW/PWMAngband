@@ -6896,7 +6896,14 @@ find them, then save these autoinscriptions to pref file by using <tt class="doc
 <dl class="docutils">
 <dt>Inscribing an item with '=g':</dt>
 <dd>This marks an item as 'always pick up'. This is sometimes useful for
-picking up ammunition after a shootout.</dd>
+picking up ammunition after a shootout. If there is a number
+immediately after the 'g', then the amount picked up automatically
+will be limited. If you have inscribed a spellbook with '=g4' and have
+four or more copies in your pack, you will not automatially pick up
+any more copies when you have the 'pickup if in inventory' option
+enabled. If you have three copies in your pack with that inscription
+and happen to find a pile of two copies, you'll automatically pick up
+one so there is four in the pack.</dd>
 </dl>
 <!--  -->
 <dl class="docutils">
@@ -7026,7 +7033,7 @@ user pref file.</p>
 <div class="section" id="version-information">
 <h2><a class="toc-backref" href="#id180">4.1&nbsp;&nbsp;&nbsp;Version Information</a></h2>
 <p>PWMAngband 1.4.0 is based on Angband 4.2.0 and MAngband 1.x. The latest
-build for PWMAngband 1.4.0 is beta 6.</p>
+build for PWMAngband 1.4.0 is beta 7.</p>
 <p>Angband information was last updated for Angband 4.2.0.
 MAngband information was last updated for MAngband 1.x.
 PWMAngband information was last updated for PWMAngband 1.4.0.</p>

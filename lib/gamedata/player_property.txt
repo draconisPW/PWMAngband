@@ -335,8 +335,8 @@ desc:You can sense trolls.
 
 type:object
 code:ESP_GIANT
+name:ESP Giant
 desc:You can sense giants.
-name:ESP giant
 
 type:object
 code:ESP_DRAGON

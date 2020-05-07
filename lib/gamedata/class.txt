@@ -2027,7 +2027,7 @@ obj-flag:1:IMPAIR_HP
 value:1:STR[2]
 value:1:WIS[-3]
 value:1:CON[2]
-player-flags:CHOOSE_SPELLS | SHIELD_BASH | COMBAT_REGEN
+player-flags:CHOOSE_SPELLS | SHIELD_BASH | COMBAT_REGEN | SHAPECHANGE
 shape:20:werewolf
 shape:40:werewolf of Sauron
 title:Rat

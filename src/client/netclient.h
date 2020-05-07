@@ -91,7 +91,7 @@ extern int Send_char_info(void);
 extern int Send_options(bool settings);
 extern int Send_char_dump(void);
 extern int Send_msg(const char *message);
-extern int Send_item(int item, int curse);
+extern int Send_item(int item, int curse, const char *inscription);
 extern int Send_store_sell(int item, int amt);
 extern int Send_party(s16b command, const char *buf);
 extern int Send_special_line(int type, int line);

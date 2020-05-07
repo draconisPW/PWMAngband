@@ -1487,6 +1487,7 @@ static enum parser_error parse_monster_spells(struct parser *p)
     char *flags;
     char *s;
     int ret = PARSE_ERROR_NONE;
+    bitflag current_flags[RSF_SIZE];
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
     flags = string_make(parser_getstr(p, "spells"));
@@ -1500,6 +1501,16 @@ static enum parser_error parse_monster_spells(struct parser *p)
         }
         s = strtok(NULL, " |");
     }
+
+    /* Make sure innate frequency is set if necessary */
+    create_mon_spell_mask(current_flags, RST_INNATE, RST_NONE);
+    rsf_inter(current_flags, r->spell_flags);
+    if (!rsf_is_empty(current_flags) && !r->freq_innate)
+        return PARSE_ERROR_MISSING_INNATE_FREQUENCY;
+
+    /* Make sure spell frequency is set if necessary */
+    if (!rsf_is_empty(r->spell_flags) && !r->freq_spell)
+        return PARSE_ERROR_MISSING_SPELL_FREQUENCY;
 
     string_free(flags);
     return ret;

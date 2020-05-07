@@ -95,6 +95,8 @@ PWMAngband:
 - Normalize sounds and ensure they're at least 0.25s long
 - Add custom door features to dungeon.txt
 - Add custom permawall features, stairs and rubbles to dungeon.txt
+- Add "!" option on character birth screen to show race/class stat gains and
+  abilities
 
 Gameplay changes
 ----------------
@@ -165,6 +167,9 @@ Angband 4.2.0:
 - Changed to allow sense/detect objects to remove marks on the map for
   locations detected as empty
 - Major changes to blackguard
+- Allow "=g<number>" inscription to limit the number of items automatically
+  picked up
+- Adjust digestion rates, add mushrooms of Purging in the General Store
 
 PWMAngband:
 
@@ -186,6 +191,9 @@ PWMAngband:
 - Add GOLD_DROP_NOSELLING server option to manage gold drops on no_selling
   servers
 - Add NO_MONSTERS flag on terrain to prevent generating monsters
+- Add new DF_STREAMS flag to allow magma/quartz veins in dungeons
+- Allow generic "#R" inscription on items and spellbooks to ask for recall depth
+  manually
 
 Bugs fixed
 ----------
@@ -229,6 +237,8 @@ Angband 4.2.0:
 - Add player_property.txt
 - Changed Term_resize() to handle all of the saved stack of terminals
 - Redo chest traps, make chest_trap.txt
+- Add check in parse_monster_spells() to ensure innate/spell frequency is set
+  if necessary
 
 PWMAngband:
 

@@ -159,7 +159,7 @@ static void build_streamer(struct chunk *c, int feat, int chance)
  * feat is the base feature (FEAT_LAVA or FEAT_WATER or FEAT_SANDWALL)
  * flag is the dungeon flag allowing the streamer to be generated
  */
-static void add_streamer(struct chunk *c, int feat, int flag)
+static void add_streamer(struct chunk *c, int feat, int flag, int chance)
 {
     struct worldpos dpos;
     struct location *dungeon;
@@ -170,14 +170,7 @@ static void add_streamer(struct chunk *c, int feat, int flag)
 
     /* Place streamer into dungeon */
     if (dungeon && c->wpos.depth && df_has(dungeon->flags, flag))
-    {
-        int i, max = 3 + randint0(3);
-
-        for (i = 0; i < max; i++)
-        {
-            if (one_in_(3)) build_streamer(c, feat, 0);
-        }
-    }
+        build_streamer(c, feat, chance);
 }
 
 
@@ -1140,16 +1133,28 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
 
     /* Add some magma streamers */
     for (i = 0; i < dun->profile->str.mag; i++)
-        build_streamer(c, FEAT_MAGMA, dun->profile->str.mc);
+        add_streamer(c, FEAT_MAGMA, DF_STREAMS, dun->profile->str.mc);
 
     /* Add some quartz streamers */
     for (i = 0; i < dun->profile->str.qua; i++)
-        build_streamer(c, FEAT_QUARTZ, dun->profile->str.qc);
+        add_streamer(c, FEAT_QUARTZ, DF_STREAMS, dun->profile->str.qc);
 
     /* Add some streamers */
-    add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER);
-    add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
-    add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_WATER, DF_WATER_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN, 0);
+    }
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
@@ -3238,16 +3243,28 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
 
     /* Add some magma streamers */
     for (i = 0; i < dun->profile->str.mag; i++)
-        build_streamer(c, FEAT_MAGMA, dun->profile->str.mc);
+        add_streamer(c, FEAT_MAGMA, DF_STREAMS, dun->profile->str.mc);
 
     /* Add some quartz streamers */
     for (i = 0; i < dun->profile->str.qua; i++)
-        build_streamer(c, FEAT_QUARTZ, dun->profile->str.qc);
+        add_streamer(c, FEAT_QUARTZ, DF_STREAMS, dun->profile->str.qc);
 
     /* Add some streamers */
-    add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER);
-    add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
-    add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_WATER, DF_WATER_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN, 0);
+    }
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
@@ -3488,16 +3505,28 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
 
     /* Add some magma streamers */
     for (i = 0; i < dun->profile->str.mag; i++)
-        build_streamer(c, FEAT_MAGMA, dun->profile->str.mc);
+        add_streamer(c, FEAT_MAGMA, DF_STREAMS, dun->profile->str.mc);
 
     /* Add some quartz streamers */
     for (i = 0; i < dun->profile->str.qua; i++)
-        build_streamer(c, FEAT_QUARTZ, dun->profile->str.qc);
+        add_streamer(c, FEAT_QUARTZ, DF_STREAMS, dun->profile->str.qc);
 
     /* Add some streamers */
-    add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER);
-    add_streamer(c, FEAT_WATER, DF_WATER_RIVER);
-    add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN);
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_WATER, DF_WATER_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN, 0);
+    }
 
     /* Place stairs near some walls */
     add_stairs(c, FEAT_MORE);
