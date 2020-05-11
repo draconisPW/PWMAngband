@@ -2943,7 +2943,7 @@ static bool effect_handler_DESTRUCTION(effect_handler_context_t *context)
         if (square_isstairs(context->cave, &iter.cur)) continue;
 
         /* Destroy any grid that isn't a permanent wall */
-        if (!square_isperm(context->cave, &iter.cur))
+        if (!square_isunpassable(context->cave, &iter.cur))
         {
             /* Delete objects */
             square_forget_pile_all(context->cave, &iter.cur);

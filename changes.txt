@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 7
+New features in PWMAngband 1.4.0 beta 8
 =======================================
 
 User interface
@@ -217,6 +217,7 @@ PWMAngband:
 - Fix space in race name preventing proper race preset to be displayed
 - Fix floor not updated when the DM generates a randart from a floor item
 - Use custom dungeon floors when destroying a door or digging a wall
+- Fix crash in rd_objects_aux()
 
 Coding changes
 --------------
@@ -251,6 +252,7 @@ PWMAngband:
   a 1/10000 chance
 - Split Send_play into multiple parts to avoid "Send_feat_struct_info write
   error" when too many features
+- Replace fake permawall terrain by SQUARE_FAKE flag
 
 Compilation
 -----------

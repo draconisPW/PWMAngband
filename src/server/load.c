@@ -1343,8 +1343,8 @@ static int rd_objects_aux(rd_item_t rd_item_version, struct chunk *c)
         {
             if (!floor_add(c, &obj->grid, obj))
             {
-                object_delete(&obj);
                 plog_fmt("Cannot place object at row %d, column %d!", obj->grid.y, obj->grid.x);
+                object_delete(&obj);
                 return -1;
             }
         }

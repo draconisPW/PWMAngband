@@ -104,7 +104,7 @@ struct dun_rule
 struct dun_feature
 {
     int feat;               /* Feature (floor, wall, permanent wall, closed door, stairs down) */
-    int feat2;              /* Feature (open door, fake permanent wall, stairs up) */
+    int feat2;              /* Feature (open door, stairs up, passable rubble) */
     int feat3;              /* Feature (broken door) */
     int chance;             /* 1/10000 chance of floors/walls/doors replaced by that feature */
     struct dun_feature *next;

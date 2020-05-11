@@ -361,6 +361,12 @@ bool square_isperm(struct chunk *c, struct loc *grid)
 }
 
 
+bool square_isunpassable(struct chunk *c, struct loc *grid)
+{
+    return (square_isperm(c, grid) || square_ispermfake(c, grid));
+}
+
+
 bool square_isborder(struct chunk *c, struct loc *grid)
 {
     return tf_has(f_info[square(c, grid)->feat].flags, TF_BORDER);
@@ -369,7 +375,7 @@ bool square_isborder(struct chunk *c, struct loc *grid)
 
 bool square_ispermborder(struct chunk *c, struct loc *grid)
 {
-    return (square_isperm(c, grid) || square_isborder(c, grid));
+    return (square_isunpassable(c, grid) || square_isborder(c, grid));
 }
 
 
@@ -393,8 +399,9 @@ bool square_ispermstatic(struct chunk *c, struct loc *grid)
 
 bool square_ispermfake(struct chunk *c, struct loc *grid)
 {
-    return (tf_has(f_info[square(c, grid)->feat].flags, TF_PERMANENT) &&
-        tf_has(f_info[square(c, grid)->feat].flags, TF_PIT));
+    my_assert(square_in_bounds(c, grid));
+
+    return sqinfo_has(square(c, grid)->info, SQUARE_FAKE);
 }
 
 
@@ -1307,7 +1314,7 @@ bool square_changeable(struct chunk *c, struct loc *grid)
     struct object *obj;
 
     /* Forbid perma-grids */
-    if (square_isperm(c, grid) || square_isstairs(c, grid) || square_isshop(c, grid) ||
+    if (square_isunpassable(c, grid) || square_isstairs(c, grid) || square_isshop(c, grid) ||
         square_home_iscloseddoor(c, grid))
     {
         return false;
@@ -2131,7 +2138,7 @@ void square_smash_wall(struct chunk *c, struct loc *grid)
         if (!square_in_bounds_fully(c, &adj_grid)) continue;
 
         /* Ignore permanent grids */
-        if (square_isperm(c, &adj_grid)) continue;
+        if (square_isunpassable(c, &adj_grid)) continue;
 
         /* Give this grid a chance to survive */
         if ((square_isrock(c, &adj_grid) && one_in_(4)) ||

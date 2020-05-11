@@ -167,7 +167,6 @@ extern int FEAT_LAVA;
 /* MAngband-specific terrain elements */
 extern int FEAT_PERM_STATIC;
 extern int FEAT_PERM_HOUSE;
-extern int FEAT_PERM_FAKE;
 extern int FEAT_PERM_ARENA;
 
 extern int FEAT_WATER;
@@ -308,6 +307,7 @@ extern bool square_istrappable(struct chunk *c, struct loc *grid);
 extern bool square_isobjectholding(struct chunk *c, struct loc *grid);
 extern bool square_isrock(struct chunk *c, struct loc *grid);
 extern bool square_isperm(struct chunk *c, struct loc *grid);
+extern bool square_isunpassable(struct chunk *c, struct loc *grid);
 extern bool square_isborder(struct chunk *c, struct loc *grid);
 extern bool square_ispermborder(struct chunk *c, struct loc *grid);
 extern bool square_ispermarena(struct chunk *c, struct loc *grid);

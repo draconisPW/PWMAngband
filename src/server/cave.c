@@ -40,7 +40,6 @@ int FEAT_PERM;
 int FEAT_LAVA;
 int FEAT_PERM_STATIC;
 int FEAT_PERM_HOUSE;
-int FEAT_PERM_FAKE;
 int FEAT_PERM_ARENA;
 int FEAT_WATER;
 int FEAT_MUD;
@@ -350,7 +349,6 @@ void set_terrain(void)
     FEAT_LAVA = lookup_feat("lava");
     FEAT_PERM_STATIC = lookup_feat("static dungeon town wall");
     FEAT_PERM_HOUSE = lookup_feat("house wall");
-    FEAT_PERM_FAKE = lookup_feat("fake permanent wall");
     FEAT_PERM_ARENA = lookup_feat("arena wall");
     FEAT_WATER = lookup_feat("water");
     FEAT_MUD = lookup_feat("mud");

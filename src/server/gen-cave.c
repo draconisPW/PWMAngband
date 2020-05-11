@@ -232,7 +232,7 @@ static void customize_features(struct chunk *c)
         }
 
         /* Walls */
-        if (square_isrock(c, &iter.cur) || square_ispermfake(c, &iter.cur))
+        if (square_isrock(c, &iter.cur))
         {
             /* Basic chance */
             chance = randint0(10000);
@@ -245,17 +245,15 @@ static void customize_features(struct chunk *c)
                 /* Fill the level with that feature */
                 if (feature->chance > chance)
                 {
-                    if (square_isrock(c, &iter.cur))
+                    if (!square_ispermfake(c, &iter.cur) || !feat_is_passable(feature->feat))
                         square_set_feat(c, &iter.cur, feature->feat);
-                    else
-                        square_set_feat(c, &iter.cur, feature->feat2);
                     break;
                 }
 
                 chance -= feature->chance;
             }
         }
-        if (square_isperm(c, &iter.cur) && !square_ispermfake(c, &iter.cur))
+        if (square_isperm(c, &iter.cur))
         {
             /* Basic chance */
             chance = randint0(10000);

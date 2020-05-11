@@ -567,7 +567,6 @@ static enum parser_error parse_location_info_wall(struct parser *p)
 
     /* Now read the data */
     f->feat = lookup_feat(parser_getsym(p, "feat"));
-    f->feat2 = lookup_feat(parser_getsym(p, "mimic"));
     f->chance = parser_getint(p, "chance");
 
     return PARSE_ERROR_NONE;
@@ -811,7 +810,7 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "symbol str terrain", parse_location_info_symbol);
     parser_reg(p, "flags ?str flags", parse_location_info_flags);
     parser_reg(p, "floor sym feat int chance", parse_location_info_floor);
-    parser_reg(p, "wall sym feat sym mimic int chance", parse_location_info_wall);
+    parser_reg(p, "wall sym feat int chance", parse_location_info_wall);
     parser_reg(p, "perma sym feat int chance", parse_location_info_perma);
     parser_reg(p, "door sym feat sym open sym broken int chance", parse_location_info_door);
     parser_reg(p, "stair sym feat sym up int chance", parse_location_info_stair);
