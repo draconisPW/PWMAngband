@@ -1454,7 +1454,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
 
 bool execute_effect(struct player *p, struct object **obj_address, struct effect *effect, int dir,
-    bool *ident, bool *used, bool *notice)
+    const char *inscription, bool *ident, bool *used, bool *notice)
 {
     struct beam_info beam;
     int boost, level;
@@ -1559,6 +1559,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
     }
 
     fill_beam_info(NULL, tval, &beam);
+    my_strcpy(beam.inscription, inscription, sizeof(beam.inscription));
 
     /* Do effect */
     if (effect->other_msg) msg_misc(p, effect->other_msg);
@@ -1701,7 +1702,7 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
         sound(p, p_cmd->snd);
         activation_message(p, obj);
 
-        if (execute_effect(p, &obj, effect, dir, &ident, &used, &notice)) return;
+        if (execute_effect(p, &obj, effect, dir, "", &ident, &used, &notice)) return;
     }
 
     /* Take a turn if device failed */

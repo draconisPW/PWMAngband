@@ -2521,7 +2521,7 @@ bool build_nest(struct player *p, struct chunk *c, struct loc *centre, int ratin
 
     /* Generate inner walls */
     /* PWMAngband -- make them permanent to prevent monsters from escaping */
-    draw_rectangle(c, y1 - 1, x1 - 1, y2 + 1, x2 + 1, FEAT_PERM_FAKE, SQUARE_NONE);
+    draw_rectangle(c, y1 - 1, x1 - 1, y2 + 1, x2 + 1, FEAT_GRANITE, SQUARE_FAKE);
 
     /* Open the inner room with a door */
     generate_hole(c, y1 - 1, x1 - 1, y2 + 1, x2 + 1, FEAT_CLOSED);
@@ -2668,7 +2668,7 @@ bool build_pit(struct player *p, struct chunk *c, struct loc *centre, int rating
 
     /* Generate inner walls, and open with a door */
     /* PWMAngband -- make them permanent to prevent monsters from escaping */
-    draw_rectangle(c, y1 - 1, x1 - 1, y2 + 1, x2 + 1, FEAT_PERM_FAKE, SQUARE_NONE);
+    draw_rectangle(c, y1 - 1, x1 - 1, y2 + 1, x2 + 1, FEAT_GRANITE, SQUARE_FAKE);
     generate_hole(c, y1 - 1, x1 - 1, y2 + 1, x2 + 1, FEAT_CLOSED);
 
     loc_init(&begin, x1, y1);

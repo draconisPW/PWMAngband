@@ -34,14 +34,13 @@ typedef struct effect_handler_context_s
     struct chunk *cave;
     bool aware;
     int dir;
-    int beam;
+    struct beam_info beam;
     int boost;
     random_value value;
     int subtype, radius, other, y, x;
     const char *self_msg;
     bool ident;
     quark_t note;
-    int spell_power, elem_power;
     int flag;
     struct monster *target_mon;
 } effect_handler_context_t;
@@ -86,7 +85,7 @@ static int effect_calculate_value(effect_handler_context_t *context, bool use_bo
     if (use_boost) final = final * (100 + context->boost) / 100;
 
     /* Hack -- elementalists */
-    final = final * (20 + context->elem_power) / 20;
+    final = final * (20 + context->beam.elem_power) / 20;
 
     return final;
 }
@@ -965,13 +964,125 @@ static void set_descent(struct player *p)
 
 
 /*
+ * Checks if an inscription is valid.
+ *
+ * Returns 0 if valid, 1 if invalid, 2 if asking for recall depth
+ */
+static int valid_inscription(struct player *p, unsigned char *inscription, int current_value,
+    const char *where)
+{
+    struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
+
+    /* Scan the inscription for #R */
+    while (*inscription != '\0')
+    {
+        if (*inscription == '#')
+        {
+            inscription++;
+
+            if (*inscription == 'R')
+            {
+                int depth;
+                struct loc grid;
+                char buf[NORMAL_WID];
+
+                /* A valid #R has been located */
+                inscription++;
+
+                /* Generic #R inscription: ask for recall depth */
+                if (*inscription == '\0')
+                {
+                    /* Ask for recall depth */
+                    if (current_value == ITEM_REQUEST)
+                    {
+                        get_item(p, HOOK_RECALL, "");
+                        return 2;
+                    }
+
+                    /* Default recall depth */
+                    if (STRZERO(where)) return 0;
+
+                    /* Use recall depth */
+                    inscription = (unsigned char *)where;
+                }
+
+                /* Convert the inscription into wilderness coordinates */
+                if ((3 == sscanf(inscription, "%d,%d%s", &grid.x, &grid.y, buf)) ||
+                    (2 == sscanf(inscription, "%d,%d", &grid.x, &grid.y)))
+                {
+                    /* Forbid if no wilderness */
+                    if ((cfg_diving_mode > 1) || OPT(p, birth_no_recall))
+                    {
+                        /* Deactivate recall */
+                        memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
+                        return 1;
+                    }
+
+                    /* Do some bounds checking/sanity checks */
+                    w_ptr = get_wt_info_at(&grid);
+                    if (w_ptr)
+                    {
+                        /* Verify that the player has visited here before */
+                        if (wild_is_explored(p, &w_ptr->wpos))
+                        {
+                            memcpy(&p->recall_wpos, &w_ptr->wpos, sizeof(struct worldpos));
+                            return 1;
+                        }
+                    }
+
+                    /* Deactivate recall */
+                    memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
+                    return 1;
+                }
+
+                /* Convert the inscription into a level index */
+                if ((2 == sscanf(inscription, "%d%s", &depth, buf)) ||
+                    (1 == sscanf(inscription, "%d", &depth)))
+                {
+                    /* Help avoid typos */
+                    if (depth % 50)
+                    {
+                        /* Deactivate recall */
+                        memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
+                        return 1;
+                    }
+
+                    /* Convert from ft to index */
+                    depth /= 50;
+
+                    /* Do some bounds checking/sanity checks */
+                    if ((depth >= w_ptr->min_depth) && (depth <= p->recall_wpos.depth))
+                    {
+                        p->recall_wpos.depth = depth;
+                        break;
+                    }
+
+                    /* Deactivate recall */
+                    memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
+                    return 1;
+                }
+
+                /* Deactivate recall */
+                memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
+                return 1;
+            }
+        }
+
+        inscription++;
+    }
+
+    return 0;
+}
+
+
+/*
  * Selects the recall depth.
  *
  * Inscribe #Rdepth to recall to a specific depth.
  * Inscribe #Rx,y to recall to a specific wilderness level (this assumes
  * that the player has explored the respective wilderness level).
  */
-static void set_recall_depth(struct player *p, quark_t note)
+static bool set_recall_depth(struct player *p, quark_t note, int current_value, const char *where)
 {
     unsigned char *inscription = (unsigned char *)quark_str(note);
     struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
@@ -989,85 +1100,10 @@ static void set_recall_depth(struct player *p, quark_t note)
     /* Check for a valid inscription */
     if (inscription)
     {
-        /* Scan the inscription for #R */
-        while (*inscription != '\0')
-        {
-            if (*inscription == '#')
-            {
-                inscription++;
+        int result = valid_inscription(p, inscription, current_value, where);
 
-                if (*inscription == 'R')
-                {
-                    int depth;
-                    struct loc grid;
-                    char buf[NORMAL_WID];
-
-                    /* A valid #R has been located */
-                    inscription++;
-
-                    /* Convert the inscription into wilderness coordinates */
-                    if ((3 == sscanf(inscription, "%d,%d%s", &grid.x, &grid.y, buf)) ||
-                        (2 == sscanf(inscription, "%d,%d", &grid.x, &grid.y)))
-                    {
-                        /* Forbid if no wilderness */
-                        if ((cfg_diving_mode > 1) || OPT(p, birth_no_recall))
-                        {
-                            /* Deactivate recall */
-                            memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
-                            return;
-                        }
-
-                        /* Do some bounds checking/sanity checks */
-                        w_ptr = get_wt_info_at(&grid);
-                        if (w_ptr)
-                        {
-                            /* Verify that the player has visited here before */
-                            if (wild_is_explored(p, &w_ptr->wpos))
-                            {
-                                memcpy(&p->recall_wpos, &w_ptr->wpos, sizeof(struct worldpos));
-                                return;
-                            }
-                        }
-
-                        /* Deactivate recall */
-                        memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
-                        return;
-                    }
-
-                    /* Convert the inscription into a level index */
-                    if ((2 == sscanf(inscription, "%d%s", &depth, buf)) ||
-                        (1 == sscanf(inscription, "%d", &depth)))
-                    {
-                        /* Help avoid typos */
-                        if (depth % 50)
-                        {
-                            /* Deactivate recall */
-                            memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
-                            return;
-                        }
-
-                        /* Convert from ft to index */
-                        depth /= 50;
-
-                        /* Do some bounds checking/sanity checks */
-                        if ((depth >= w_ptr->min_depth) && (depth <= p->recall_wpos.depth))
-                        {
-                            p->recall_wpos.depth = depth;
-                            break;
-                        }
-
-                        /* Deactivate recall */
-                        memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
-                        return;
-                    }
-
-                    /* Deactivate recall */
-                    memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
-                    return;
-                }
-            }
-            inscription++;
-        }
+        if (result == 1) return true;
+        if (result == 2) return false;
     }
 
     /* Force descent to a lower level if allowed */
@@ -1076,6 +1112,8 @@ static void set_recall_depth(struct player *p, quark_t note)
     {
         p->recall_wpos.depth = dungeon_get_next_level(p, p->max_depth, 1);
     }
+
+    return true;
 }
 
 
@@ -1262,8 +1300,8 @@ static bool effect_handler_BALL(effect_handler_context_t *context)
             }
 
             /* Hack -- elementalists */
-            rad = rad + context->spell_power / 2;
-            rad = rad * (20 + context->elem_power) / 20;
+            rad = rad + context->beam.spell_power / 2;
+            rad = rad * (20 + context->beam.elem_power) / 20;
 
             source_player(who, get_player_index(get_connection(context->origin->player->conn)),
                 context->origin->player);
@@ -1503,8 +1541,8 @@ static bool effect_handler_BLAST(effect_handler_context_t *context)
     int rad = context->radius + (context->other? (context->origin->player->lev / context->other): 0);
 
     /* Hack -- elementalists */
-    rad = rad + context->spell_power / 2;
-    rad = rad * (20 + context->elem_power) / 20;
+    rad = rad + context->beam.spell_power / 2;
+    rad = rad * (20 + context->beam.elem_power) / 20;
 
     if (fire_ball(context->origin->player, context->subtype, 0, dam, rad, false))
         context->ident = true;
@@ -1674,7 +1712,7 @@ static bool effect_handler_BOLT_MELEE(effect_handler_context_t *context)
 static bool effect_handler_BOLT_OR_BEAM(effect_handler_context_t *context)
 {
     int dam = effect_calculate_value(context, true);
-    int beam = context->beam + context->other;
+    int beam = context->beam.beam + context->other;
 
     /* Hack -- space/time anchor */
     if (context->origin->player->timed[TMD_ANCHOR] && (context->subtype == PROJ_TIME))
@@ -2905,7 +2943,7 @@ static bool effect_handler_DESTRUCTION(effect_handler_context_t *context)
         if (square_isstairs(context->cave, &iter.cur)) continue;
 
         /* Destroy any grid that isn't a permanent wall */
-        if (!square_isperm(context->cave, &iter.cur))
+        if (!square_isunpassable(context->cave, &iter.cur))
         {
             /* Delete objects */
             square_forget_pile_all(context->cave, &iter.cur);
@@ -4535,7 +4573,7 @@ static bool effect_handler_GRANITE(effect_handler_context_t *context)
 {
     struct trap *trap = context->origin->trap;
 
-    square_set_feat(context->cave, &trap->grid, FEAT_GRANITE);
+    square_add_wall(context->cave, &trap->grid);
 
     context->origin->player->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
     context->origin->player->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
@@ -4751,7 +4789,7 @@ static bool effect_handler_LIGHT_AREA(effect_handler_context_t *context)
         msg(context->origin->player, "You are surrounded by a white light.");
 
     /* Hack -- elementalists */
-    if (context->spell_power)
+    if (context->beam.spell_power)
     {
         int rad = effect_calculate_value(context, false);
         struct source who_body;
@@ -5588,7 +5626,11 @@ static bool effect_handler_RECALL(effect_handler_context_t *context)
     if (!context->origin->player->word_recall)
     {
         /* Select the recall depth */
-        set_recall_depth(context->origin->player, context->note);
+        if (!set_recall_depth(context->origin->player, context->note,
+            context->origin->player->current_value, context->beam.inscription))
+        {
+            return false;
+        }
 
         /* Warn the player if they're descending to an unrecallable level */
         if (((cfg_limit_stairs == 3) || OPT(context->origin->player, birth_force_descend)) &&
@@ -6000,9 +6042,9 @@ static bool effect_handler_RUBBLE(effect_handler_context_t *context)
             if (one_in_(3))
             {
                 if (one_in_(2))
-                    square_set_feat(context->cave, &grid, FEAT_PASS_RUBBLE);
+                    square_set_rubble(context->cave, &grid, FEAT_PASS_RUBBLE);
                 else
-                    square_set_feat(context->cave, &grid, FEAT_RUBBLE);
+                    square_set_rubble(context->cave, &grid, FEAT_RUBBLE);
                 rubble_grids--;
             }
         }
@@ -8190,7 +8232,6 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
             context.cave = chunk_get(&wpos);
             context.aware = aware;
             context.dir = dir;
-            context.beam = (beam? beam->beam: 0);
             context.boost = boost;
             context.value = value;
             context.subtype = effect->subtype;
@@ -8201,10 +8242,18 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
             context.self_msg = effect->self_msg;
             context.ident = *ident;
             context.note = note;
-            context.spell_power = (beam? beam->spell_power: 0);
-            context.elem_power = (beam? beam->elem_power: 0);
             context.flag = effect->flag;
             context.target_mon = target_mon;
+
+            memset(&context.beam, 0, sizeof(context.beam));
+            if (beam)
+            {
+                context.beam.beam = beam->beam;
+                context.beam.spell_power = beam->spell_power;
+                context.beam.elem_power = beam->elem_power;
+                my_strcpy(context.beam.inscription, beam->inscription,
+                    sizeof(context.beam.inscription));
+            }
 
             completed = handler(&context);
             *ident = context.ident;

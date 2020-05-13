@@ -2008,6 +2008,8 @@ void create_randart(struct player *p, struct chunk *c)
         if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
         if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
 
+        player_know_floor(p, c);
+
         /* Success */
         msg(p, "You manage to create a random artifact.");
         return;

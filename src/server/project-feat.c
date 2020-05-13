@@ -138,11 +138,11 @@ static void project_feature_handler_COLD(project_feature_handler_context_t *cont
         bool occupied = square_isoccupied(context->cave, &context->grid);
 
         if (one_in_(2))
-            square_set_feat(context->cave, &context->grid, FEAT_FLOOR);
+            square_clear_feat(context->cave, &context->grid);
         else if (one_in_(2) && !occupied)
-            square_set_feat(context->cave, &context->grid, FEAT_RUBBLE);
+            square_set_rubble(context->cave, &context->grid, FEAT_RUBBLE);
         else
-            square_set_feat(context->cave, &context->grid, FEAT_PASS_RUBBLE);
+            square_set_rubble(context->cave, &context->grid, FEAT_PASS_RUBBLE);
     }
 }
 
@@ -266,11 +266,11 @@ static void project_feature_handler_ICE(project_feature_handler_context_t *conte
         bool occupied = square_isoccupied(context->cave, &context->grid);
 
         if (one_in_(2))
-            square_set_feat(context->cave, &context->grid, FEAT_FLOOR);
+            square_clear_feat(context->cave, &context->grid);
         else if (one_in_(2) && !occupied)
-            square_set_feat(context->cave, &context->grid, FEAT_RUBBLE);
+            square_set_rubble(context->cave, &context->grid, FEAT_RUBBLE);
         else
-            square_set_feat(context->cave, &context->grid, FEAT_PASS_RUBBLE);
+            square_set_rubble(context->cave, &context->grid, FEAT_PASS_RUBBLE);
     }
 }
 

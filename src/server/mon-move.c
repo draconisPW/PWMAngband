@@ -111,7 +111,7 @@ static bool can_path_player(struct player *p, const struct monster *mon, struct 
             if ((grid.x == x2) && (grid.y == y2)) return true;
 
             /* Stop at permawall grids */
-            if (square_isperm(c, &grid)) return false;
+            if (square_isunpassable(c, &grid)) return false;
 
             /* Slant */
             if (m)
@@ -157,7 +157,7 @@ static bool can_path_player(struct player *p, const struct monster *mon, struct 
             if ((grid.x == x2) && (grid.y == y2)) return true;
 
             /* Stop at permawall grids */
-            if (square_isperm(c, &grid)) return false;
+            if (square_isunpassable(c, &grid)) return false;
 
             /* Slant */
             if (m)
@@ -197,7 +197,7 @@ static bool can_path_player(struct player *p, const struct monster *mon, struct 
             if ((grid.x == x2) && (grid.y == y2)) return true;
 
             /* Stop at permawall grids */
-            if (square_isperm(c, &grid)) return false;
+            if (square_isunpassable(c, &grid)) return false;
 
             /* Advance (Y) */
             grid.y += sy;

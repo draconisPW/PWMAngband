@@ -1720,11 +1720,17 @@ static int Receive_item_request(void)
 
     if (!player->screen_save_depth && !topline_icky)
     {
+        char inscription[20];
+
+        inscription[0] = '\0';
         c_msg_print(NULL);
 
         switch (tester_hook)
         {
             /* Special hooks */
+            case HOOK_RECALL:
+                result = get_string("Recall depth: ", inscription, sizeof(inscription));
+                break;
             case HOOK_DOWN:
                 result = get_check("Are you sure you want to descend? ");
                 break;
@@ -1755,7 +1761,7 @@ static int Receive_item_request(void)
         if (!result)
             Send_flush();
         else
-            Send_item(item, curse);
+            Send_item(item, curse, inscription);
     }
     else if ((n = Packet_printf(&qbuf, "%b%b", (unsigned)ch, (unsigned)tester_hook)) <= 0)
         return n;
@@ -5582,11 +5588,11 @@ int Send_msg(const char *message)
 }
 
 
-int Send_item(int item, int curse)
+int Send_item(int item, int curse, const char *inscription)
 {
     int n;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%hd", (unsigned)PKT_ITEM, item, curse)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%hd%hd%s", (unsigned)PKT_ITEM, item, curse, inscription)) <= 0)
         return n;
 
     return 1;

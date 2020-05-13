@@ -6608,7 +6608,7 @@ static int Receive_message(int ind)
 }
 
 
-static void Handle_item(struct player *p, int item, int curse)
+static void Handle_item(struct player *p, int item, int curse, const char *inscription)
 {
     /* Set current value */
     p->current_value = item;
@@ -6634,6 +6634,7 @@ static void Handle_item(struct player *p, int item, int curse)
 
             spell = spell_by_index(&c->magic, p->current_spell);
             fill_beam_info(p, p->current_spell, &beam);
+            my_strcpy(beam.inscription, inscription, sizeof(beam.inscription));
 
             source_player(who, get_player_index(get_connection(p->conn)), p);
             target_fix(p);
@@ -6678,7 +6679,7 @@ static void Handle_item(struct player *p, int item, int curse)
         /* Do effect */
         if (effect)
         {
-            if (execute_effect(p, &obj, effect, 0, &ident, &used, &notice)) return;
+            if (execute_effect(p, &obj, effect, 0, inscription, &ident, &used, &notice)) return;
         }
 
         /* If the item is a null pointer or has been wiped, be done now */
@@ -6703,6 +6704,7 @@ static void Handle_item(struct player *p, int item, int curse)
         {
             /* Pickup */
             case ACTION_PICKUP: player_pickup_item(p, chunk_get(&p->wpos), 3, NULL); break;
+
             case ACTION_GO_DOWN: do_cmd_go_down(p); break;
             default: return;
         }
@@ -6717,8 +6719,9 @@ static int Receive_item(int ind)
     byte ch;
     int n;
     s16b item, curse;
+    char inscription[20];
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%hd", &ch, &item, &curse)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%hd%s", &ch, &item, &curse, inscription)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_item read error");
         return n;
@@ -6731,7 +6734,7 @@ static int Receive_item(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        Handle_item(p, item, curse);
+        Handle_item(p, item, curse, inscription);
     }
 
     return 1;

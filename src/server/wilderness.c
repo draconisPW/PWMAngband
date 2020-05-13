@@ -573,6 +573,35 @@ static enum parser_error parse_location_info_wall(struct parser *p)
 }
 
 
+static enum parser_error parse_location_info_perma(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    struct dun_feature *f;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f = t->permas;
+
+    /* Go to the last valid feature, then allocate a new one */
+    if (!f)
+    {
+        t->permas = mem_zalloc(sizeof(struct dun_feature));
+        f = t->permas;
+    }
+    else
+    {
+        while (f->next) f = f->next;
+        f->next = mem_zalloc(sizeof(struct dun_feature));
+        f = f->next;
+    }
+
+    /* Now read the data */
+    f->feat = lookup_feat(parser_getsym(p, "feat"));
+    f->chance = parser_getint(p, "chance");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_location_info_door(struct parser *p)
 {
     struct location *t = parser_priv(p);
@@ -596,7 +625,68 @@ static enum parser_error parse_location_info_door(struct parser *p)
 
     /* Now read the data */
     f->feat = lookup_feat(parser_getsym(p, "feat"));
-    f->feat_open = lookup_feat(parser_getsym(p, "open"));
+    f->feat2 = lookup_feat(parser_getsym(p, "open"));
+    f->feat3 = lookup_feat(parser_getsym(p, "broken"));
+    f->chance = parser_getint(p, "chance");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_location_info_stair(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    struct dun_feature *f;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f = t->stairs;
+
+    /* Go to the last valid feature, then allocate a new one */
+    if (!f)
+    {
+        t->stairs = mem_zalloc(sizeof(struct dun_feature));
+        f = t->stairs;
+    }
+    else
+    {
+        while (f->next) f = f->next;
+        f->next = mem_zalloc(sizeof(struct dun_feature));
+        f = f->next;
+    }
+
+    /* Now read the data */
+    f->feat = lookup_feat(parser_getsym(p, "feat"));
+    f->feat2 = lookup_feat(parser_getsym(p, "up"));
+    f->chance = parser_getint(p, "chance");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_location_info_rubble(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    struct dun_feature *f;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f = t->rubbles;
+
+    /* Go to the last valid feature, then allocate a new one */
+    if (!f)
+    {
+        t->rubbles = mem_zalloc(sizeof(struct dun_feature));
+        f = t->rubbles;
+    }
+    else
+    {
+        while (f->next) f = f->next;
+        f->next = mem_zalloc(sizeof(struct dun_feature));
+        f = f->next;
+    }
+
+    /* Now read the data */
+    f->feat = lookup_feat(parser_getsym(p, "feat"));
+    f->feat2 = lookup_feat(parser_getsym(p, "pass"));
     f->chance = parser_getint(p, "chance");
 
     return PARSE_ERROR_NONE;
@@ -721,7 +811,10 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "flags ?str flags", parse_location_info_flags);
     parser_reg(p, "floor sym feat int chance", parse_location_info_floor);
     parser_reg(p, "wall sym feat int chance", parse_location_info_wall);
-    parser_reg(p, "door sym feat sym open int chance", parse_location_info_door);
+    parser_reg(p, "perma sym feat int chance", parse_location_info_perma);
+    parser_reg(p, "door sym feat sym open sym broken int chance", parse_location_info_door);
+    parser_reg(p, "stair sym feat sym up int chance", parse_location_info_stair);
+    parser_reg(p, "rubble sym feat sym pass int chance", parse_location_info_rubble);
     parser_reg(p, "rule int chance uint all", parse_location_info_rule);
     parser_reg(p, "rule-flags ?str flags", parse_location_info_rule_flags);
     parser_reg(p, "rule-spells ?str flags", parse_location_info_rule_spells);
@@ -786,7 +879,22 @@ static errr finish_parse_town_info(struct parser *p)
             fn = f->next;
             mem_free(f);
         }
+        for (i = 0, f = t->permas; f; i++, f = fn)
+        {
+            fn = f->next;
+            mem_free(f);
+        }
         for (i = 0, f = t->doors; f; i++, f = fn)
+        {
+            fn = f->next;
+            mem_free(f);
+        }
+        for (i = 0, f = t->stairs; f; i++, f = fn)
+        {
+            fn = f->next;
+            mem_free(f);
+        }
+        for (i = 0, f = t->rubbles; f; i++, f = fn)
         {
             fn = f->next;
             mem_free(f);
@@ -908,6 +1016,20 @@ static errr finish_parse_dungeon_info(struct parser *p)
             fn = f->next;
             mem_free(f);
         }
+        dungeons[count].n_permas = 0;
+        for (i = 0, f = t->permas; f; i++, f = fn)
+        {
+            dungeons[count].n_permas++;
+            fn = f->next;
+        }
+        dungeons[count].permas = mem_zalloc(dungeons[count].n_permas * sizeof(struct dun_feature));
+        for (i = 0, f = t->permas; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].permas[i], f, sizeof(*f));
+            dungeons[count].permas[i].next = NULL;
+            fn = f->next;
+            mem_free(f);
+        }
         dungeons[count].n_doors = 0;
         for (i = 0, f = t->doors; f; i++, f = fn)
         {
@@ -919,6 +1041,34 @@ static errr finish_parse_dungeon_info(struct parser *p)
         {
             memcpy(&dungeons[count].doors[i], f, sizeof(*f));
             dungeons[count].doors[i].next = NULL;
+            fn = f->next;
+            mem_free(f);
+        }
+        dungeons[count].n_stairs = 0;
+        for (i = 0, f = t->stairs; f; i++, f = fn)
+        {
+            dungeons[count].n_stairs++;
+            fn = f->next;
+        }
+        dungeons[count].stairs = mem_zalloc(dungeons[count].n_stairs * sizeof(struct dun_feature));
+        for (i = 0, f = t->stairs; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].stairs[i], f, sizeof(*f));
+            dungeons[count].stairs[i].next = NULL;
+            fn = f->next;
+            mem_free(f);
+        }
+        dungeons[count].n_rubbles = 0;
+        for (i = 0, f = t->rubbles; f; i++, f = fn)
+        {
+            dungeons[count].n_rubbles++;
+            fn = f->next;
+        }
+        dungeons[count].rubbles = mem_zalloc(dungeons[count].n_rubbles * sizeof(struct dun_feature));
+        for (i = 0, f = t->rubbles; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].rubbles[i], f, sizeof(*f));
+            dungeons[count].rubbles[i].next = NULL;
             fn = f->next;
             mem_free(f);
         }
@@ -941,6 +1091,13 @@ static void cleanup_dungeon_info(void)
     for (i = 0; i < z_info->dungeon_max; i++)
     {
         string_free(dungeons[i].name);
+        string_free(dungeons[i].shortname);
+        mem_free(dungeons[i].floors);
+        mem_free(dungeons[i].walls);
+        mem_free(dungeons[i].permas);
+        mem_free(dungeons[i].doors);
+        mem_free(dungeons[i].stairs);
+        mem_free(dungeons[i].rubbles);
         mem_free(dungeons[i].rules);
     }
     mem_free(dungeons);

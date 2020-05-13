@@ -849,15 +849,8 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     digging = square_digging(c, grid);
     if (digging > 0) okay = CHANCE(digging_chances[digging - 1], 1600);
 
-    /* Hack -- pit walls (to fool the player) */
-    if (square_ispermfake(c, grid))
-    {
-        msg(p, "You tunnel into the granite wall.");
-        more = true;
-    }
-
     /* Hack -- house walls */
-    else if (square_ispermhouse(c, grid))
+    if (square_ispermhouse(c, grid))
     {
         /* Either the player has lost his mind or he is trying to create a door! */
         create_house_door(p, c, grid);
@@ -876,6 +869,13 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     /* Mountain */
     else if (square_ismountain(c, grid))
         msg(p, "Digging a tunnel into that mountain would take forever!");
+
+    /* Hack -- pit walls (to fool the player) */
+    else if (square_ispermfake(c, grid))
+    {
+        msg(p, "You tunnel into the %s.", square_apparent_name(p, c, grid));
+        more = true;
+    }
 
     /* Success */
     else if (okay && twall(p, c, grid))
@@ -1319,7 +1319,7 @@ void do_cmd_alter(struct player *p, int dir)
         more = do_cmd_tunnel_aux(p, c, &grid);
 
     /* Tunnel through walls, trees and rubble (allow pit walls to fool the player) */
-    else if (square_isdiggable(c, &grid) || square_ispermfake(c, &grid))
+    else if (square_isdiggable(c, &grid))
         more = do_cmd_tunnel_aux(p, c, &grid);
 
     /* Open closed doors */
@@ -1736,7 +1736,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     }
 
     /* Permanent walls */
-    if (player_passwall(p) && square_isperm(c, &grid))
+    if (player_passwall(p) && square_isunpassable(c, &grid))
     {
         /* Forbid in most cases */
         if (p->timed[TMD_WRAITHFORM] || player_can_undead(p) || !square_in_bounds_fully(c, &grid))

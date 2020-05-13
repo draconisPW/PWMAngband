@@ -1690,25 +1690,21 @@ int player_digest(struct player *p)
     i = turn_energy(p->state.speed);
 
     /* Some effects require more food */
-    if (p->timed[TMD_ADRENALINE]) i *= 5;
-    if (p->timed[TMD_HARMONY]) i *= 5;
+    if (p->timed[TMD_ADRENALINE]) i *= 2;
+    if (p->timed[TMD_HARMONY]) i *= 2;
     if (p->timed[TMD_BIOFEEDBACK]) i *= 2;
-
-    /* Regeneration takes more food */
-    if (player_of_has(p, OF_REGEN)) i += 15;
-    if (p->timed[TMD_REGEN]) i += 15;
-
-    /* Invisibility consumes a lot of food */
-    if (p->timed[TMD_INVIS]) i += 15;
-
-    /* Wraithform consumes a lot of food */
-    if (p->timed[TMD_WRAITHFORM]) i += 15;
+    if (p->timed[TMD_INVIS]) i *= 2;
+    if (p->timed[TMD_WRAITHFORM]) i *= 2;
+    if (p->timed[TMD_REGEN]) i *= 2;
 
     /* Adjust for food value */
     i = (i * 100) / z_info->food_value;
 
+    /* Regeneration takes more food */
+    if (player_of_has(p, OF_REGEN)) i *= 2;
+
     /* Slow digestion takes less food */
-    if (player_of_has(p, OF_SLOW_DIGEST)) i /= 5;
+    if (player_of_has(p, OF_SLOW_DIGEST)) i /= 2;
 
     /* Minimal digestion */
     if (i < 1) i = 1;

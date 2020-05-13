@@ -275,6 +275,7 @@ static void run_init(struct player *p, struct chunk *c, int dir)
         /* When in the towns/wilderness, don't break left/right. */
         if (p->wpos.depth > 0)
         {
+            /* Wall diagonally left of player's current grid */
             p->run_break_left = true;
             shortleft = true;
         }
@@ -284,6 +285,7 @@ static void run_init(struct player *p, struct chunk *c, int dir)
         /* When in the towns/wilderness, don't break left/right. */
         if (p->wpos.depth > 0)
         {
+            /* Wall diagonally left of the grid the player is stepping to */
             p->run_break_left = true;
             deepleft = true;
         }
@@ -295,6 +297,7 @@ static void run_init(struct player *p, struct chunk *c, int dir)
         /* When in the towns/wilderness, don't break left/right. */
         if (p->wpos.depth > 0)
         {
+            /* Wall diagonally right of player's current grid */
             p->run_break_right = true;
             shortright = true;
         }
@@ -304,6 +307,7 @@ static void run_init(struct player *p, struct chunk *c, int dir)
         /* When in the towns/wilderness, don't break left/right. */
         if (p->wpos.depth > 0)
         {
+            /* Wall diagonally right of the grid the player is stepping to */
             p->run_break_right = true;
             deepright = true;
         }
@@ -317,7 +321,7 @@ static void run_init(struct player *p, struct chunk *c, int dir)
         if (p->wpos.depth > 0)
             p->run_open_area = false;
 
-        /* Angled or blunt corridor entry */
+        /* Check angled or blunt corridor entry for diagonal directions */
         if (dir & 0x01)
         {
             if (deepleft && !deepright)
@@ -361,7 +365,7 @@ static bool run_test(struct player *p, struct chunk *c)
     /* Where we came from */
     prev_dir = p->run_old_dir;
 
-    /* Range of newly adjacent grids */
+    /* Range of newly adjacent grids - 5 for diagonals, 3 for cardinals */
     max = (prev_dir & 0x01) + 1;
 
     /* Look at every newly adjacent square. */
