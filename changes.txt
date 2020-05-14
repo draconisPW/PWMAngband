@@ -257,6 +257,7 @@ PWMAngband:
 - Split Send_play into multiple parts to avoid "Send_feat_struct_info write
   error" when too many features
 - Replace fake permawall terrain by SQUARE_FAKE flag
+- Switch tval/sval pair from byte to u16b
 
 Compilation
 -----------
