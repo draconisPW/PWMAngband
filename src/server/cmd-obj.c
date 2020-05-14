@@ -1458,7 +1458,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
 {
     struct beam_info beam;
     int boost, level;
-    byte tval;
+    u16b tval;
     quark_t note;
     bool no_ident = false;
     struct effect *e = effect;

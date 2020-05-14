@@ -9,6 +9,8 @@ extern u16b flavor_max;
 extern s16b section_icky_col;
 extern byte section_icky_row;
 extern bool allow_disturb_icky;
+extern int cursor_x;
+extern int cursor_y;
 
 /*** Utilities ***/
 extern int Flush_queue(void);

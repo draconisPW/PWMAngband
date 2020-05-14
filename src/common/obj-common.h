@@ -156,8 +156,8 @@ struct flavor
     char *text;         /* Text */
     unsigned int fidx;  /* Index */
     struct flavor *next;
-    byte tval;          /* Associated object type */
-    byte sval;          /* Associated object sub-type */
+    u16b tval;          /* Associated object type */
+    u16b sval;          /* Associated object sub-type */
     byte d_attr;        /* Default flavor attribute */
     char d_char;        /* Default flavor character */
 };
@@ -277,8 +277,8 @@ struct object_kind
     struct object_base *base;
     u32b kidx;                      /* Index */
     struct object_kind *next;
-    byte tval;                      /* General object type (see TV_ macros) */
-    byte sval;                      /* Object sub-type */
+    u16b tval;                      /* General object type (see TV_ macros) */
+    u16b sval;                      /* Object sub-type */
     random_value pval;              /* Item extra-parameter */
     random_value to_h;              /* Bonus to hit */
     random_value to_d;              /* Bonus to damage */
@@ -503,8 +503,8 @@ struct object
 
     struct loc grid;                    /* Position on map, or (0, 0) */
 
-    byte tval;                          /* Item type (from kind) */
-    byte sval;                          /* Item sub-type (from kind) */
+    u16b tval;                          /* Item type (from kind) */
+    u16b sval;                          /* Item sub-type (from kind) */
 
     s32b pval;                          /* Item extra-parameter */
 

@@ -66,6 +66,7 @@ PKT(SPELL_DESC, undefined, undefined, undefined, spell_desc)
 PKT(DTRAP, undefined, undefined, undefined, dtrap)
 PKT(TERM, undefined, undefined, undefined, term_info)
 PKT(PLAYER, undefined, undefined, undefined, player_pos)
+PKT(MINIPOS, undefined, undefined, undefined, minipos)
 PKT(MESSAGE_FLUSH, undefined, undefined, undefined, message_flush)
 /* Packets sent from the client */
 PKT(VERIFY, verify, undefined, undefined, undefined)

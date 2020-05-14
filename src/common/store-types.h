@@ -29,7 +29,7 @@ enum
 struct object_buy
 {
     struct object_buy *next;
-    byte tval;
+    u16b tval;
     size_t flag;
 };
 

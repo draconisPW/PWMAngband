@@ -1926,6 +1926,61 @@ static bool erratic_dir(struct player *p, int *dp)
 }
 
 
+static bool clear_web(struct player *p, struct chunk *c)
+{
+    if (!square_iswebbed(c, &p->grid)) return false;
+
+    /* Handle polymorphed players */
+    if (p->poly_race)
+    {
+        /* If we can pass, no need to clear */
+        if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
+        {
+            /* Insubstantial monsters go right through */
+            if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
+
+            /* If you can pass through walls, you can destroy a web */
+            else if (monster_passes_walls(p->poly_race))
+            {
+                msg(p, "You clear the web.");
+                square_clear_feat(c, &p->grid);
+                update_visuals(&p->wpos);
+                fully_update_flow(&p->wpos);
+                use_energy(p);
+                return true;
+            }
+
+            /* Clearing costs a turn */
+            else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
+            {
+                msg(p, "You clear the web.");
+                square_clear_feat(c, &p->grid);
+                update_visuals(&p->wpos);
+                fully_update_flow(&p->wpos);
+                use_energy(p);
+                return true;
+            }
+
+            /* Stuck */
+            else return true;
+        }
+    }
+
+    /* Clear the web, finish turn */
+    else
+    {
+        msg(p, "You clear the web.");
+        square_clear_feat(c, &p->grid);
+        update_visuals(&p->wpos);
+        fully_update_flow(&p->wpos);
+        use_energy(p);
+        return true;
+    }
+
+    return false;
+}
+
+
 /*
  * Walk in the given direction.
  */
@@ -1939,55 +1994,7 @@ void do_cmd_walk(struct player *p, int dir)
     if (!dir) return;
 
     /* If we're in a web, deal with that */
-    if (square_iswebbed(c, &p->grid))
-    {
-        /* Handle polymorphed players */
-        if (p->poly_race)
-        {
-            /* If we can pass, no need to clear */
-            if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
-            {
-                /* Insubstantial monsters go right through */
-                if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
-
-                /* If you can pass through walls, you can destroy a web */
-                else if (monster_passes_walls(p->poly_race))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Clearing costs a turn */
-                else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Stuck */
-                else return;
-            }
-        }
-
-        /* Clear the web, finish turn */
-        else
-        {
-            msg(p, "You clear the web.");
-            square_clear_feat(c, &p->grid);
-            update_visuals(&p->wpos);
-            fully_update_flow(&p->wpos);
-            use_energy(p);
-            return;
-        }
-    }
+    if (clear_web(p, c)) return;
 
     /* Verify legality */
     if (!do_cmd_walk_test(p)) return;
@@ -2021,55 +2028,7 @@ void do_cmd_jump(struct player *p, int dir)
     if (!dir) return;
 
     /* If we're in a web, deal with that */
-    if (square_iswebbed(c, &p->grid))
-    {
-        /* Handle polymorphed players */
-        if (p->poly_race)
-        {
-            /* If we can pass, no need to clear */
-            if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
-            {
-                /* Insubstantial monsters go right through */
-                if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
-
-                /* If you can pass through walls, you can destroy a web */
-                else if (monster_passes_walls(p->poly_race))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Clearing costs a turn */
-                else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Stuck */
-                else return;
-            }
-        }
-
-        /* Clear the web, finish turn */
-        else
-        {
-            msg(p, "You clear the web.");
-            square_clear_feat(c, &p->grid);
-            update_visuals(&p->wpos);
-            fully_update_flow(&p->wpos);
-            use_energy(p);
-            return;
-        }
-    }
+    if (clear_web(p, c)) return;
 
     /* Verify legality */
     if (!do_cmd_walk_test(p)) return;
@@ -2176,6 +2135,9 @@ void do_cmd_run(struct player *p, int dir)
 
     /* Ignore non-direction if we are not running */
     if (!p->upkeep->running && !dir) return;
+
+    /* If we're in a web, deal with that */
+    if (clear_web(p, chunk_get(&p->wpos))) return;
 
     /* Continue running if we are already running in this direction */
     if (p->upkeep->running && (dir == p->run_cur_dir)) dir = 0;

@@ -2990,10 +2990,29 @@ static struct object_kind *item_kind_fuzzy(char *name)
     /* Lowercase our search string */
     for (str = name; *str; str++) *str = tolower((unsigned char)*str);
 
+    /* Kind prefixed by '#': search from exact name */
+    if (*name == '#')
+    {
+        for (i = 0; i < z_info->k_max; i++)
+        {
+            struct object_kind *kind = &k_info[i];
+
+            if (!kind->name) continue;
+
+            /* Clean up its name */
+            clean_name(match, kind->name);
+
+            /* If cleaned name matches our search string, return it */
+            if (streq(match, name + 1)) return kind;
+        }
+
+        return NULL;
+    }
+
     /* Check if a symbol has been passed (!speed, =strength...) */
     if ((*name < 'a') || (*name > 'z')) d_char = *name;
 
-    /* For each item kind race */
+    /* For each item kind */
     for (i = 0; i < z_info->k_max; i++)
     {
         struct object_kind *kind = &k_info[i];

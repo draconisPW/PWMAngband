@@ -221,7 +221,7 @@ struct room_template
     byte hgt;                   /* Room height */
     byte wid;                   /* Room width */
     byte dor;                   /* Random door options */
-    byte tval;                  /* tval for objects in this room */
+    u16b tval;                  /* tval for objects in this room */
 };
 
 extern struct dun_data *dun;

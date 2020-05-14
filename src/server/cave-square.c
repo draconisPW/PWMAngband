@@ -2351,7 +2351,31 @@ void square_build_permhouse(struct chunk *c, struct loc *grid)
 
 void square_dry_fountain(struct chunk *c, struct loc *grid)
 {
-    square_set_feat(c, grid, FEAT_FNT_DRIED);
+    int feat = FEAT_FNT_DRIED;
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        int i;
+
+        /* Use the corresponding dried out fountain instead */
+        for (i = 0; i < dungeon->n_fountains; i++)
+        {
+            struct dun_feature *feature = &dungeon->fountains[i];
+
+            if (square(c, grid)->feat == feature->feat)
+            {
+                feat = feature->feat2;
+                break;
+            }
+        }
+    }
+
+    square_set_feat(c, grid, feat);
 }
 
 

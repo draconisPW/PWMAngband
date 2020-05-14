@@ -1029,6 +1029,8 @@ void display_map(struct player *p, bool subwindow)
 
         /* Set the "player" char */
         mc[row][col] = tc;
+
+        Send_minipos(p, row, col);
     }
 
     /* Activate mini-map window */

@@ -2008,6 +2008,7 @@ static errr Term_text_win(int x, int y, int n, u16b a, const char *s)
     u16b fa, ta;
     char fc, tc;
     int tile_wid = 1, tile_hgt = 1;
+    term_data *td = (term_data*)(Term->data);
 
     /* Large tile mode */
     if (!map_active && !Term->minimap_active)
@@ -2015,6 +2016,10 @@ static errr Term_text_win(int x, int y, int n, u16b a, const char *s)
         tile_wid = tile_width;
         tile_hgt = tile_height;
     }
+
+    /* Highlight the player */
+    if (Term->minimap_active && (td == &data[0]) && cursor_x && cursor_y)
+        Term_curs_win(cursor_x + COL_MAP, cursor_y + ROW_MAP);
 
     /* Redraw the current text */
     Term_text_win_aux(x, y, n, a, s);
@@ -2066,6 +2071,7 @@ static errr Term_pict_win(int x, int y, int n, const u16b *ap, const char *cp, c
     u16b a, ta;
     char c, tc;
     int tile_wid = 1, tile_hgt = 1;
+    term_data *td = (term_data*)(Term->data);
 
     /* Large tile mode */
     if (!map_active && !Term->minimap_active)
@@ -2073,6 +2079,10 @@ static errr Term_pict_win(int x, int y, int n, const u16b *ap, const char *cp, c
         tile_wid = tile_width;
         tile_hgt = tile_height;
     }
+
+    /* Highlight the player */
+    if (Term->minimap_active && (td == &data[0]) && cursor_x && cursor_y)
+        Term_curs_win(cursor_x + COL_MAP, cursor_y + ROW_MAP);
 
     /* Redraw the top tiles */
     for (i = 0; i < n; i++)

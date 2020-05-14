@@ -693,6 +693,36 @@ static enum parser_error parse_location_info_rubble(struct parser *p)
 }
 
 
+static enum parser_error parse_location_info_fountain(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    struct dun_feature *f;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f = t->fountains;
+
+    /* Go to the last valid feature, then allocate a new one */
+    if (!f)
+    {
+        t->fountains = mem_zalloc(sizeof(struct dun_feature));
+        f = t->fountains;
+    }
+    else
+    {
+        while (f->next) f = f->next;
+        f->next = mem_zalloc(sizeof(struct dun_feature));
+        f = f->next;
+    }
+
+    /* Now read the data */
+    f->feat = lookup_feat(parser_getsym(p, "feat"));
+    f->feat2 = lookup_feat(parser_getsym(p, "dried"));
+    f->chance = parser_getint(p, "chance");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_location_info_rule(struct parser *p)
 {
     struct location *t = parser_priv(p);
@@ -815,6 +845,7 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "door sym feat sym open sym broken int chance", parse_location_info_door);
     parser_reg(p, "stair sym feat sym up int chance", parse_location_info_stair);
     parser_reg(p, "rubble sym feat sym pass int chance", parse_location_info_rubble);
+    parser_reg(p, "fountain sym feat sym dried int chance", parse_location_info_fountain);
     parser_reg(p, "rule int chance uint all", parse_location_info_rule);
     parser_reg(p, "rule-flags ?str flags", parse_location_info_rule_flags);
     parser_reg(p, "rule-spells ?str flags", parse_location_info_rule_spells);
@@ -895,6 +926,11 @@ static errr finish_parse_town_info(struct parser *p)
             mem_free(f);
         }
         for (i = 0, f = t->rubbles; f; i++, f = fn)
+        {
+            fn = f->next;
+            mem_free(f);
+        }
+        for (i = 0, f = t->fountains; f; i++, f = fn)
         {
             fn = f->next;
             mem_free(f);
@@ -1072,6 +1108,21 @@ static errr finish_parse_dungeon_info(struct parser *p)
             fn = f->next;
             mem_free(f);
         }
+        dungeons[count].n_fountains = 0;
+        for (i = 0, f = t->fountains; f; i++, f = fn)
+        {
+            dungeons[count].n_fountains++;
+            fn = f->next;
+        }
+        dungeons[count].fountains = mem_zalloc(dungeons[count].n_fountains *
+            sizeof(struct dun_feature));
+        for (i = 0, f = t->fountains; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].fountains[i], f, sizeof(*f));
+            dungeons[count].fountains[i].next = NULL;
+            fn = f->next;
+            mem_free(f);
+        }
 
         mem_free(t);
     }
@@ -1098,6 +1149,7 @@ static void cleanup_dungeon_info(void)
         mem_free(dungeons[i].doors);
         mem_free(dungeons[i].stairs);
         mem_free(dungeons[i].rubbles);
+        mem_free(dungeons[i].fountains);
         mem_free(dungeons[i].rules);
     }
     mem_free(dungeons);

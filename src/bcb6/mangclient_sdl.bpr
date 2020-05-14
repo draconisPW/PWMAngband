@@ -48,7 +48,7 @@
     <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
     <RELEASELIBPATH value="$(BCB)\lib\release"/>
     <LINKER value="ilink32"/>
-    <USERDEFINES value="_DEBUG;STRICT;BCC_IDE;USE_SDL;WINDOWS"/>
+    <USERDEFINES value="_DEBUG;STRICT;BCC_IDE;USE_SDL;WINDOWS;SOUND_SDL"/>
     <SYSDEFINES value="NO_STRICT;_NO_VCL;_RTLDLL"/>
     <MAINSOURCE value="mangclient_sdl.bpf"/>
     <INCLUDEPATH value="..\win;..\client;..\common;$(BCB)\include;..;..\SDL"/>
@@ -58,7 +58,8 @@
   </MACROS>
   <OPTIONS>
     <IDLCFLAGS value="-I..\win -I..\client -I..\common -I$(BCB)\include -I.. -I..\SDL 
-      -src_suffix cpp -D_DEBUG -DSTRICT -DBCC_IDE -DUSE_SDL -DWINDOWS -boa"/>
+      -src_suffix cpp -D_DEBUG -DSTRICT -DBCC_IDE -DUSE_SDL -DWINDOWS -DSOUND_SDL 
+      -boa"/>
     <CFLAG1 value="-Od -Vx -Ve -X- -r- -a8 -b -k -y -v -vi- -tWC -tWM -c"/>
     <PFLAGS value="-N2..\..\obj -N0..\..\obj -$YD -$W -$O- -$A8 -v -JPHNE -M"/>
     <RFLAGS value=""/>
@@ -197,15 +198,16 @@ Count=1
 Item0=$(BCB)\source\vcl
 
 [HistoryLists\hlConditionals]
-Count=8
-Item0=_DEBUG;STRICT;BCC_IDE;USE_SDL;WINDOWS
-Item1=_DEBUG;STRICT;BCC_IDE;USE_SDL
-Item2=_DEBUG;STRICT;BCC_IDE;USE_SDL;__NDS__
-Item3=_DEBUG;STRICT;BCC_IDE;&quot;USE_SDL&quot;
-Item4=_DEBUG;BCC_IDE;USE_SDL
-Item5=_DEBUG;STRICT;BCC_IDE;USE_SDL;&quot;USE_SDL&quot;
-Item6=_DEBUG;STRICT;BCC_IDE
-Item7=_DEBUG
+Count=9
+Item0=_DEBUG;STRICT;BCC_IDE;USE_SDL;WINDOWS;SOUND_SDL
+Item1=_DEBUG;STRICT;BCC_IDE;USE_SDL;WINDOWS
+Item2=_DEBUG;STRICT;BCC_IDE;USE_SDL
+Item3=_DEBUG;STRICT;BCC_IDE;USE_SDL;__NDS__
+Item4=_DEBUG;STRICT;BCC_IDE;&quot;USE_SDL&quot;
+Item5=_DEBUG;BCC_IDE;USE_SDL
+Item6=_DEBUG;STRICT;BCC_IDE;USE_SDL;&quot;USE_SDL&quot;
+Item7=_DEBUG;STRICT;BCC_IDE
+Item8=_DEBUG
 
 [HistoryLists\hlIntOutputDir]
 Count=3

@@ -136,6 +136,8 @@ struct location
     int n_stairs;
     struct dun_feature *rubbles;    /* Unusual dungeon rubbles */
     int n_rubbles;
+    struct dun_feature *fountains;  /* Unusual dungeon fountains */
+    int n_fountains;
     struct dun_rule *rules;         /* Rules */
     int n_rules;
     struct location *next;

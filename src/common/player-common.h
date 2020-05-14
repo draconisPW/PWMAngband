@@ -313,7 +313,7 @@ struct class_spell
  */
 struct class_book
 {
-    byte tval;                          /* Item type of the book */
+    u16b tval;                          /* Item type of the book */
     int sval;                           /* Item sub-type for book (book number) */
     bool dungeon;                       /* Whether this is a dungeon book */
     const struct magic_realm *realm;    /* The magic realm of this book */
@@ -326,7 +326,7 @@ struct class_book
  */
 struct class_magic
 {
-    byte spell_first;                       /* Level of first spell */
+    u16b spell_first;                       /* Level of first spell */
     int spell_weight;                       /* Max armor weight to avoid mana penalties */
     int num_books;                          /* Number of spellbooks */
     struct class_book *books;               /* Details of spellbooks */

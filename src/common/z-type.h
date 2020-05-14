@@ -64,7 +64,7 @@ extern bool wpos_eq(struct worldpos *wpos1, struct worldpos *wpos2);
  */
 typedef struct
 {
-	byte tval;
+	u16b tval;
 	const char *name;
 } grouper;
 

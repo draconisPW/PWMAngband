@@ -22,6 +22,8 @@
 #        chance of getting the feature
 # stair : stairs down : stairs up : 1/10000 chance of getting the feature
 # rubble : rubble : passable rubble : 1/10000 chance of getting the feature
+# fountain : fountain : dried out fountain : 1/10000 chance of getting
+#            the feature
 # rule : 1/10000 chance of using the rule : apply to all monsters
 # rule-flags : monster flags
 # rule-spells : monster spell flags
@@ -49,6 +51,7 @@
 # 'door' are dungeon features that can replace basic doors
 # 'stair' are dungeon features that can replace basic stairs
 # 'rubble' are dungeon features that can replace basic rubbles
+# 'fountain' are dungeon features that can replace basic fountains
 
 # 'rule' are dungeon rules to restrict the possible monsters
 # 'rule-flags' are monster flags checked by the rule

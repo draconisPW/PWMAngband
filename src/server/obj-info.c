@@ -892,7 +892,7 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     bool has_brands_or_slays = false;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
     bool weapon = ((tval_is_melee_weapon(obj) || tval_is_mstaff(obj)) && !thrown);
-    bool ammo = (p->state.ammo_tval == obj->tval);
+    bool ammo = ((p->state.ammo_tval == obj->tval) && !thrown);
     struct player_state state;
     int weapon_slot = slot_by_name(p, "weapon");
     struct object *current_weapon = slot_object(p, weapon_slot);
@@ -1166,13 +1166,14 @@ static bool describe_combat(struct player *p, const struct object *obj)
     bool weapon = (tval_is_melee_weapon(obj) || tval_is_mstaff(obj));
     bool ammo = (p->state.ammo_tval == obj->tval);
     bool throwing_weapon = (weapon && of_has(obj->flags, OF_THROWING));
+    bool rock = (tval_is_ammo(obj) && of_has(obj->flags, OF_THROWING));
     int range, break_chance;
     bool thrown_effect, heavy, two_handed;
 
     obj_known_misc_combat(p, obj, &thrown_effect, &range, &break_chance, &heavy, &two_handed);
 
     /* Abort if we've nothing to say */
-    if (!weapon && !ammo)
+    if (!weapon && !ammo && !rock)
     {
         /* Potions can have special text */
         if (thrown_effect)
@@ -1199,18 +1200,18 @@ static bool describe_combat(struct player *p, const struct object *obj)
         describe_blows(p, obj);
 
     /* Missile: shots/round and range */
-    else
+    else if (ammo)
     {
         text_out_c(p, COLOUR_L_GREEN, "%d.%d ", p->state.num_shots / 10, p->state.num_shots % 10);
         text_out(p, "shot%s/round.\n", ((p->state.num_shots > 10)? "s": ""));
-        text_out(p, "Hits targets up to ");
+        text_out(p, "When fired, hits targets up to ");
         text_out_c(p, COLOUR_L_GREEN, "%d", range * 10);
         text_out(p, " feet away.\n");
     }
 
     /* Describe damage */
-    describe_damage(p, obj, false);
-    if (throwing_weapon) describe_damage(p, obj, true);
+    if (weapon || ammo) describe_damage(p, obj, false);
+    if (throwing_weapon || rock) describe_damage(p, obj, true);
 
     /* Add breakage chance */
     if (ammo && !of_has(obj->flags, OF_AMMO_MAGIC) && !obj->artifact)

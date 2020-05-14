@@ -57,7 +57,7 @@ static void flavor_assign_fixed(void)
 }
 
 
-static void flavor_assign_random(byte tval)
+static void flavor_assign_random(u16b tval)
 {
     int i;
     int flavor_count = 0;

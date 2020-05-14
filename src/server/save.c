@@ -41,7 +41,7 @@ void wr_description(void *data)
 }
 
 
-static void wr_tval_sval(byte tval, byte sval)
+static void wr_tval_sval(u16b tval, u16b sval)
 {
 #ifdef SAVE_AS_STRINGS
     wr_string(tval_find_name(tval));
@@ -55,8 +55,8 @@ static void wr_tval_sval(byte tval, byte sval)
     else
         wr_string("");
 #else
-    wr_byte(tval);
-    wr_byte(sval);
+    wr_u16b(tval);
+    wr_u16b(sval);
 #endif
 }
 

@@ -1496,7 +1496,7 @@ int Send_class_struct_info(int ind)
 
     for (c = classes; c; c = c->next)
     {
-        byte tval = 0;
+        u16b tval = 0;
 
         if (c->magic.num_books)
             tval = c->magic.books[0].tval;
@@ -1563,7 +1563,7 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
-        if (Packet_printf(&connp->c, "%b%b%c", (unsigned)c->magic.total_spells, (unsigned)tval,
+        if (Packet_printf(&connp->c, "%b%hu%c", (unsigned)c->magic.total_spells, (unsigned)tval,
             c->magic.num_books) <= 0)
         {
             Destroy_connection(ind, "Send_class_struct_info write error");
@@ -1573,7 +1573,7 @@ int Send_class_struct_info(int ind)
         {
             struct class_book *book = &c->magic.books[j];
 
-            if (Packet_printf(&connp->c, "%b%b%s", (unsigned)book->tval, (unsigned)book->sval,
+            if (Packet_printf(&connp->c, "%hu%hu%s", (unsigned)book->tval, (unsigned)book->sval,
                 book->realm->name) <= 0)
             {
                 Destroy_connection(ind, "Send_class_struct_info write error");
@@ -1702,7 +1702,7 @@ int Send_kind_struct_info(int ind)
         }
 
         /* Transfer other fields here */
-        if (Packet_printf(&connp->c, "%b%b%lu%hd", (unsigned)k_info[i].tval,
+        if (Packet_printf(&connp->c, "%hu%hu%lu%hd", (unsigned)k_info[i].tval,
             (unsigned)k_info[i].sval, k_info[i].kidx, (int)ac) <= 0)
         {
             Destroy_connection(ind, "Send_kind_struct_info write error");
@@ -2656,7 +2656,7 @@ int Send_floor(struct player *p, byte num, const struct object *obj, struct obje
     if (connp == NULL) return 0;
 
     Packet_printf(&connp->c, "%b%b", (unsigned)PKT_FLOOR, (unsigned)num);
-    Packet_printf(&connp->c, "%b%b%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
+    Packet_printf(&connp->c, "%hu%hu%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
     Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
@@ -2689,12 +2689,12 @@ int Send_special_other(struct player *p, char *header, byte peruse, bool protect
 
 
 int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number, byte owned,
-    s32b price, byte tval, byte max, s16b bidx, const char *name)
+    s32b price, u16b tval, byte max, s16b bidx, const char *name)
 {
     connection_t *connp = get_connp(p, "store");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%b%b%hd%s", (unsigned)PKT_STORE,
+    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%hu%b%hd%s", (unsigned)PKT_STORE,
         (int)pos, (unsigned)attr, (int)wgt, (unsigned)number, (unsigned)owned,
         price, (unsigned)tval, (unsigned)max, (int)bidx, name);
 }
@@ -2940,6 +2940,15 @@ int Send_player_pos(struct player *p)
 }
 
 
+int Send_minipos(struct player *p, int y, int x)
+{
+    connection_t *connp = get_connp(p, "minipos");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->c, "%b%hd%hd", (unsigned)PKT_MINIPOS, y, x);
+}
+
+
 int Send_play(int ind)
 {
     connection_t *connp = get_connection(ind);
@@ -3115,11 +3124,11 @@ int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
     if (connp == NULL) return 0;
 
     /* Packet and base info */
-    Packet_printf(&connp->c, "%b%b%b", (unsigned)PKT_ITEM, (unsigned)obj->tval,
+    Packet_printf(&connp->c, "%b%hu%b", (unsigned)PKT_ITEM, (unsigned)obj->tval,
         (unsigned)info_xtra->equipped);
 
     /* Object info */
-    Packet_printf(&connp->c, "%b%hd%hd%ld%lu%ld%b%hd", (unsigned)obj->sval, wgt, obj->number,
+    Packet_printf(&connp->c, "%hu%hd%hd%ld%lu%ld%b%hd", (unsigned)obj->sval, wgt, obj->number,
         price, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
 
     /* Extra info */

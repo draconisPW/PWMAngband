@@ -62,7 +62,7 @@ static byte trf_size = 0;
 typedef struct object *(*rd_item_t)(void);
 
 
-static void rd_tval_sval(byte *tval, byte *sval)
+static void rd_tval_sval(u16b *tval, u16b *sval)
 {
 #ifdef SAVE_AS_STRINGS
     char buf[MSG_LEN];
@@ -72,8 +72,8 @@ static void rd_tval_sval(byte *tval, byte *sval)
     rd_string(buf, sizeof(buf));
     if (buf[0]) *sval = lookup_sval(*tval, buf);
 #else
-    rd_byte(tval);
-    rd_byte(sval);
+    rd_u16b(tval);
+    rd_u16b(sval);
 #endif
 }
 

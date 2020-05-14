@@ -175,7 +175,7 @@ static void add_streamer(struct chunk *c, int feat, int flag, int chance)
 
 
 /*
- * Replace floors/walls/doors/stairs/rubbles with custom features specific to a dungeon.
+ * Replace floors/walls/doors/stairs/rubbles/fountains with custom features specific to a dungeon.
  *
  * c is the current chunk
  */
@@ -195,7 +195,7 @@ static void customize_features(struct chunk *c)
 
     /* Nothing to do */
     if (dungeon->n_floors + dungeon->n_walls + dungeon->n_permas + dungeon->n_doors +
-        dungeon->n_stairs + dungeon->n_rubbles == 0)
+        dungeon->n_stairs + dungeon->n_rubbles + dungeon->n_fountains == 0)
     {
         return;
     }
@@ -342,6 +342,31 @@ static void customize_features(struct chunk *c)
                 if (feature->chance > chance)
                 {
                     if (!square_ispassable(c, &iter.cur))
+                        square_set_feat(c, &iter.cur, feature->feat);
+                    else
+                        square_set_feat(c, &iter.cur, feature->feat2);
+                    break;
+                }
+
+                chance -= feature->chance;
+            }
+        }
+
+        /* Fountains */
+        if (square_isfountain(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(10000);
+
+            /* Process all features */
+            for (i = 0; i < dungeon->n_fountains; i++)
+            {
+                struct dun_feature *feature = &dungeon->fountains[i];
+
+                /* Fill the level with that feature */
+                if (feature->chance > chance)
+                {
+                    if (!square_isdryfountain(c, &iter.cur))
                         square_set_feat(c, &iter.cur, feature->feat);
                     else
                         square_set_feat(c, &iter.cur, feature->feat2);

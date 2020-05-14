@@ -441,12 +441,10 @@ static bool run_test(struct player *p, struct chunk *c)
                 option = new_dir;
 
             /* Three new directions. Stop running. */
-            else if (option2)
-                return true;
+            else if (option2) return true;
 
             /* Two non-adjacent new directions.  Stop running. */
-            else if (option != cycle[chome[prev_dir] + i - 1])
-                return true;
+            else if (option != cycle[chome[prev_dir] + i - 1]) return true;
 
             /* Two new (adjacent) directions (case 1) */
             else if (new_dir & 0x01)
@@ -594,8 +592,7 @@ static bool run_test(struct player *p, struct chunk *c)
     }
 
     /* About to hit a known wall, stop */
-    if (see_wall(p, c, p->run_cur_dir, &p->grid))
-        return true;
+    if (see_wall(p, c, p->run_cur_dir, &p->grid)) return true;
 
     /* Failure */
     return false;

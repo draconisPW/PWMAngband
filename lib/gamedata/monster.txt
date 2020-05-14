@@ -16973,7 +16973,7 @@ blow:HIT:HURT:10d9
 blow:HIT:CONFUSE:10d9
 flags:UNIQUE | MALE | SMART | ATTR_FLICKER
 flags:DROP_4 | DROP_GOOD | ONLY_ITEM
-flags:OPEN_DOOR | TAKE_ITEM
+flags:OPEN_DOOR | TAKE_ITEM | IM_COLD
 flags:FORCE_SLEEP
 spell-freq:3
 innate-freq:25
@@ -17938,7 +17938,7 @@ blow:HIT:CONFUSE:12d12
 blow:HIT:CONFUSE:12d12
 flags:UNIQUE | MALE | SMART | ATTR_FLICKER
 flags:DROP_4 | DROP_GOOD | ONLY_ITEM
-flags:TAKE_ITEM
+flags:TAKE_ITEM | IM_FIRE
 flags:FORCE_SLEEP
 spell-freq:4
 innate-freq:25

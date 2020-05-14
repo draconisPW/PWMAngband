@@ -79,6 +79,7 @@ Angband 4.2.0:
 - Add browsing of player abilities
 - Add movement speed to status line
 - Add menu for throwing items
+- Adjust monster speed in lore
 
 PWMAngband:
 
@@ -97,6 +98,8 @@ PWMAngband:
 - Add custom permawall features, stairs and rubbles to dungeon.txt
 - Add "!" option on character birth screen to show race/class stat gains and
   abilities
+- Display the cursor under the player on the minimap
+- Add custom fountains to dungeon.txt
 
 Gameplay changes
 ----------------
@@ -218,6 +221,7 @@ PWMAngband:
 - Fix floor not updated when the DM generates a randart from a floor item
 - Use custom dungeon floors when destroying a door or digging a wall
 - Fix crash in rd_objects_aux()
+- Allow fuzzy kind searching to use exact name by prefixing the search with '#'
 
 Coding changes
 --------------
