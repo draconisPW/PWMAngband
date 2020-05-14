@@ -735,7 +735,7 @@ static int Receive_struct_info(void)
                     mem_free(c);
                     return n;
                 }
-                bytes_read += 3;
+                bytes_read += 4;
 
                 c->c_mhp = c_mhp;
                 c->magic.total_spells = total_spells;
