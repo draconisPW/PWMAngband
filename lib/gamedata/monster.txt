@@ -282,6 +282,7 @@ blow:MOAN
 flags:UNIQUE | MALE
 flags:DROP_1 | DROP_GOOD | ONLY_ITEM
 flags:NO_CONF | NO_SLEEP
+drop-base:mushroom:100:1:2
 desc:He's lost his dogs. He's had his mushrooms stolen. He's not a happy hobbit!
 locations:Hobbiton
 
@@ -460,7 +461,7 @@ flags:OPEN_DOOR | BASH_DOOR | TAKE_ITEM
 flags:NO_FEAR | NO_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WANDERER
 desc:No job is too low for him.
-locations:Carn Dûm|Bree|Lothlorien|Minas Anor|Umbar|Gondolin
+locations:Carn DÃ»m|Bree|Lothlorien|Minas Anor|Umbar|Gondolin
 
 name:battle-scarred veteran
 base:townsfolk
@@ -482,7 +483,7 @@ flags:OPEN_DOOR | BASH_DOOR | TAKE_ITEM
 flags:NO_FEAR | NO_SLEEP
 flags:DROP_CORPSE | DROP_SKELETON | WANDERER
 desc:He doesn't take to strangers kindly.
-locations:Carn Dûm|Bree|Lothlorien|Minas Anor|Umbar|Gondolin
+locations:Carn DÃ»m|Bree|Lothlorien|Minas Anor|Umbar|Gondolin
 
 name:sparrow
 base:bird
@@ -581,7 +582,7 @@ experience:0
 flags:UNIQUE | NEVER_BLOW | NEVER_MOVE | NO_DEATH
 flags:PWMANG_EXTRA | PWMANG_FIXED
 desc:An indestructible golem used for target practice.
-locations:Carn Dûm
+locations:Carn DÃ»m
 
 name:goldfish
 base:aquatic
@@ -1440,7 +1441,7 @@ desc:It's a common fresh-water predatory fish.
 
 ### Dungeon level 3 ###
 
-name:Sméagol
+name:SmÃ©agol
 base:humanoid
 color:B
 speed:130
@@ -3664,7 +3665,7 @@ flags:NEVER_MOVE
 flags:ATTR_CLEAR
 desc:Yum! It looks quite tasty.
 
-name:Grishnákh, the Hill Orc
+name:GrishnÃ¡kh, the Hill Orc
 base:orc
 color:y
 speed:110
@@ -4389,7 +4390,7 @@ friends:50:4d4:snaga:servant
 friends:80:2d7:warg
 friends:100:5d4:orc tracker:servant
 friends:100:1d1:Bullroarer the Hobbit
-friends:100:1d1:Grishnákh, the Hill Orc
+friends:100:1d1:GrishnÃ¡kh, the Hill Orc
 desc:A leader of a band of raiding orcs, he picks on hobbits.
 
 name:master yeek
@@ -5961,7 +5962,7 @@ flags:DROP_CORPSE | DROP_SKELETON | WILD_WOOD
 friends:100:4d4:Same
 desc:He is green skinned, ugly and stupid.
 
-name:Nár, the Dwarf
+name:NÃ¡r, the Dwarf
 base:humanoid
 color:y
 speed:110
@@ -5983,8 +5984,8 @@ flags:IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:6
 spells:BLIND | WOUND | CONF | HEAL | MIND_BLAST
-desc:The friend and companion of the dwarven king Thrór, he went mad with grief
-desc: after Thrór's death at the hands of Azog the Orc. With torn beard and
+desc:The friend and companion of the dwarven king ThrÃ³r, he went mad with grief
+desc: after ThrÃ³r's death at the hands of Azog the Orc. With torn beard and
 desc: ragged clothes, he seems to have fixed on you as a convenient target to
 desc: vent his anger.
 
@@ -7538,7 +7539,7 @@ desc: from its incessant squeaking, which can best be described as "neek-breek,
 desc: neek-breek". The noise can drive people frantic, and worse still, can be
 desc: heard for quite some distance, alerting other monsters to your presence.
 
-name:Uglúk, the Uruk
+name:UglÃºk, the Uruk
 base:orc
 color:b
 speed:110
@@ -7788,7 +7789,7 @@ friends:50:1d3:orc captain:servant
 friends:100:1d1:Bolg, Son of Azog
 desc:A great orc with a huge iron-clad head, agile and strong. He is notorious
 desc: for starting the War of the Dwarves and Orcs by killing Durin's heir,
-desc: Thrór.
+desc: ThrÃ³r.
 locations:The Orc Cave
 
 name:brigand
@@ -7960,7 +7961,7 @@ spell-freq:10
 spells:DRAIN_MANA | SCARE
 desc:It is a ghostly apparition with a humanoid form.
 
-name:Ibun, Son of Mîm
+name:Ibun, Son of MÃ®m
 base:humanoid
 color:o
 speed:110
@@ -7986,7 +7987,7 @@ spells:BO_FIRE
 desc:One of the last of the Petty-Dwarves. Ibun is a tricky sorcerous little
 desc: being, full of mischief.
 
-name:Khîm, Son of Mîm
+name:KhÃ®m, Son of MÃ®m
 base:humanoid
 color:o
 speed:110
@@ -8009,7 +8010,7 @@ flags:FORCE_SLEEP
 spell-freq:8
 spells:HEAL | SLOW
 spells:BO_FIRE
-desc:One of the last of the Petty-Dwarves. Khîm is a tricky sorcerous little
+desc:One of the last of the Petty-Dwarves. KhÃ®m is a tricky sorcerous little
 desc: being, full of mischief.
 
 name:4-headed hydra
@@ -8098,10 +8099,10 @@ flags:IM_ELEC | IM_FIRE | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:4
 spells:CONF | SLOW
-friends:100:1d1:Angamaitë of Umbar
-desc:A Black Númenórean with a blacker heart.
+friends:100:1d1:AngamaitÃ« of Umbar
+desc:A Black NÃºmenÃ³rean with a blacker heart.
 
-name:Angamaitë of Umbar
+name:AngamaitÃ« of Umbar
 base:person
 color:U
 speed:110
@@ -8126,7 +8127,7 @@ flags:FORCE_SLEEP
 spell-freq:4
 spells:CONF | SLOW
 friends:100:1d1:Sangahyando of Umbar
-desc:A Black Númenórean who hates the men of the west.
+desc:A Black NÃºmenÃ³rean who hates the men of the west.
 
 name:banshee
 base:ghost
@@ -8696,7 +8697,7 @@ desc:He is out to have revenge on those who have desecrated his tomb.
 
 ### Dungeon level 27 ###
 
-name:Mîm, Betrayer of Turin
+name:MÃ®m, Betrayer of Turin
 base:humanoid
 color:I
 speed:120
@@ -8722,7 +8723,7 @@ spell-freq:6
 spells:HEAL | SCARE
 spells:BA_ACID
 spells:BO_ACID
-desc:The last of his race, Mîm is a Petty-Dwarf. Petty-Dwarves are strange
+desc:The last of his race, MÃ®m is a Petty-Dwarf. Petty-Dwarves are strange
 desc: creatures, powerful in sorcery and originating in the East. They have been
 desc: hunted nearly to extinction by the High Elves.
 
@@ -9174,7 +9175,7 @@ flags:OPEN_DOOR | TAKE_ITEM
 spell-freq:10
 spells:S_KIN
 desc:An evil and cunning man from the East. Having once sworn allegiance to the
-desc: sons of Fëanor, it was Uldor's treachery that turned the tide of the
+desc: sons of FÃ«anor, it was Uldor's treachery that turned the tide of the
 desc: Battle of Unnumbered Tears in Morgoth's favour.
 
 name:mage
@@ -11196,14 +11197,14 @@ flags:OPEN_DOOR | TAKE_ITEM
 flags:FORCE_DEPTH
 spell-freq:10
 spells:S_KIN
-friends:60:1d3:mûmak
+friends:60:1d3:mÃ»mak
 friends:100:3d3:Easterling champion:bodyguard
 friends:100:1d1:Ulfast, Son of Ulfang
 friends:100:1d1:Ulwarth, Son of Ulfang
 desc:A short and swarthy Easterling dressed in black. He and his three sons once
 desc: openly swore allegiance to the High Elves, but were secretly in the pay of
 desc: Morgoth.
-locations:The Land Of Rhûn
+locations:The Land Of RhÃ»n
 
 name:lich
 plural:liches
@@ -11552,8 +11553,8 @@ desc:A deep brown shape is visible before you, its canine form strikes you with
 desc: an almost physical force. The dungeon floor buckles as if struck by a
 desc: powerful blow as it stalks towards you.
 
-name:mûmak
-plural:mûmakil
+name:mÃ»mak
+plural:mÃ»makil
 base:quadruped
 color:s
 speed:110
@@ -12071,8 +12072,8 @@ spells:BO_FIRE
 spells:S_DEMON
 desc:It is a humanoid form composed of flames and hatred.
 
-name:dúnadan of Angmar
-plural:dúnedain of Angmar
+name:dÃºnadan of Angmar
+plural:dÃºnedain of Angmar
 base:person
 color:P
 speed:120
@@ -12128,7 +12129,7 @@ flags:FORCE_SLEEP
 spell-freq:4
 spells:TELE_TO
 spells:S_MONSTERS
-friends:50:1d3:mûmak
+friends:50:1d3:mÃ»mak
 friends:100:2d5:Easterling champion:bodyguard
 desc:A mighty warrior from the east, Lorgan hates everything that he cannot
 desc: control.
@@ -12639,7 +12640,7 @@ flags:FORCE_SLEEP
 spell-freq:2
 spells:HEAL | TRAPS
 spells:BO_COLD | BO_ELEC | BO_FIRE | BO_ICE
-desc:A Black Númenórean who usurped the throne of Gondor, he is treacherous and
+desc:A Black NÃºmenÃ³rean who usurped the throne of Gondor, he is treacherous and
 desc: evil.
 
 name:time vortex
@@ -14955,8 +14956,8 @@ desc:A Thunderlord. Among the weaker breeds, but still dangerous.
 
 ### Dungeon level 46 ###
 
-name:lord of Carn Dûm
-plural:lords of Carn Dûm
+name:lord of Carn DÃ»m
+plural:lords of Carn DÃ»m
 base:person
 color:i
 speed:120
@@ -15290,7 +15291,7 @@ spells:BO_NETH
 desc:A figure that seems made of void, its strangely human shape is cloaked in
 desc: shadow. It reaches out at you.
 
-name:Eöl, the Dark Elf
+name:EÃ¶l, the Dark Elf
 base:humanoid
 color:v
 speed:130
@@ -15315,7 +15316,7 @@ spells:TELE_TO
 spells:BA_ACID | BA_COLD | BA_ELEC | BA_FIRE | BA_NETH
 spells:BO_MANA
 spells:S_DEMON | S_DRAGON | S_MONSTERS | S_UNDEAD
-desc:A lord of the Teleri, Eöl is a mighty metalsmith, the only one to ever
+desc:A lord of the Teleri, EÃ¶l is a mighty metalsmith, the only one to ever
 desc: forge weapons of meteorite iron. The mortal enemy of the Eldar, he is
 desc: currently fleeing their wrath, following the murder of Princess Aredhel of
 desc: Gondolin.
@@ -15899,8 +15900,8 @@ desc: many years, killing everything that crossed his path.
 
 ### Dungeon level 52 ###
 
-name:Maia of Oromë
-plural:Maiar of Oromë
+name:Maia of OromÃ«
+plural:Maiar of OromÃ«
 base:ainu
 color:w
 speed:120
@@ -15926,7 +15927,7 @@ spells:SHAPECHANGE
 spells:S_HOUND
 shape:ranger chieftain
 shape:giant
-desc:A servant of Oromë, hunter of monsters and fell beasts.
+desc:A servant of OromÃ«, hunter of monsters and fell beasts.
 
 name:Itangast the Fire Drake
 base:ancient dragon
@@ -16627,7 +16628,7 @@ spells:BR_FIRE | BR_NEXU
 desc:A mixture of dragon and basilisk, the dracolisk stares at you with deep
 desc: piercing eyes, its evil breath burning the ground where it stands.
 
-name:Ar-Pharazôn the Golden
+name:Ar-PharazÃ´n the Golden
 base:person
 color:y
 speed:130
@@ -16652,10 +16653,10 @@ flags:FORCE_DEPTH | FORCE_SLEEP | LEVITATE
 spell-freq:6
 spells:HEAL | TELE_AWAY
 spells:S_KIN | S_MONSTERS
-desc:Last and proudest king of ancient Númenor. Corrupted by power and avarice,
+desc:Last and proudest king of ancient NÃºmenor. Corrupted by power and avarice,
 desc: he fell victim to Sauron's wiles, tried to fight the Valar themselves, and
-desc: condemned Númenor to oblivion.
-locations:Númenor
+desc: condemned NÃºmenor to oblivion.
+locations:NÃºmenor
 
 name:barbazu
 plural:barbazu
@@ -17009,11 +17010,11 @@ spells:BO_MANA | BO_WATE
 spells:S_AINU | S_ANIMAL
 spells:SHAPECHANGE
 shape:tree
-desc:A servant of Yavanna Kementári, Queen of the Earth, the Giver of Fruits
+desc:A servant of Yavanna KementÃ¡ri, Queen of the Earth, the Giver of Fruits
 desc: and lover of all things that grow.
 
-name:Maia of Aulë
-plural:Maiar of Aulë
+name:Maia of AulÃ«
+plural:Maiar of AulÃ«
 base:ainu
 color:U
 speed:120
@@ -17038,7 +17039,7 @@ spells:BOULDER
 spells:SHAPECHANGE
 shape:shardstorm
 shape:great earth elemental
-desc:A servant of Aulë the Smith, lord of all the substances of Arda and friend
+desc:A servant of AulÃ« the Smith, lord of all the substances of Arda and friend
 desc: of the Noldor.
 
 name:great earth elemental
@@ -17343,7 +17344,7 @@ spell-freq:4
 innate-freq:33
 spells:WOUND | CONF
 spells:BR_FIRE
-desc:Smaug is one of the Urulóki that still survive, a fire-drake of immense
+desc:Smaug is one of the UrulÃ³ki that still survive, a fire-drake of immense
 desc: cunning and intelligence. His speed through air is matched by few other
 desc: dragons and his dragonfire is what legends are made of; he is believed to
 desc: be the greatest dragon still surviving into the Third Age.
@@ -17629,7 +17630,7 @@ desc:It is a demon made almost entirely out of bones. It is humanoid, but with a
 desc: large tail similar to that of a giant scorpion, and emits a foul smell of
 desc: decay and rot. They are despised even in the hells.
 
-name:Fëanorian raider
+name:FÃ«anorian raider
 base:humanoid
 color:M
 speed:120
@@ -17651,7 +17652,7 @@ flags:NO_FEAR | IM_ACID | IM_ELEC
 spell-freq:3
 innate-freq:100
 spells:BOLT
-desc:A veteran of the battles waged by Fëanor and his sons in pursuit of the
+desc:A veteran of the battles waged by FÃ«anor and his sons in pursuit of the
 desc: Silmarils, he attacks you with agility, power and cruelty.
 
 ### Dungeon level 66 ###
@@ -18145,8 +18146,8 @@ desc:A Thunderlord, among the queens of their kind.
 
 ### Dungeon level 71 ###
 
-name:Maia of Manwë
-plural:Maiar of Manwë
+name:Maia of ManwÃ«
+plural:Maiar of ManwÃ«
 base:ainu
 color:B
 speed:130
@@ -18172,7 +18173,7 @@ spells:S_AINU
 spells:SHAPECHANGE
 shape:elemental
 shape:vortex
-desc:A servant of Manwë Súlimo, the first of all Kings, lord of the realm of
+desc:A servant of ManwÃ« SÃºlimo, the first of all Kings, lord of the realm of
 desc: Arda and ruler of all that dwell therein.
 
 name:Maia of Varda
@@ -18292,7 +18293,7 @@ desc: by foes and friends alike when it flies into one of its berserk rages, the
 desc: Horned Reaper will cut down anything in its path between it and you - even
 desc: the minions it has just summoned.
 
-name:Ossë, Herald of Ulmo
+name:OssÃ«, Herald of Ulmo
 base:ainu
 color:Z
 speed:130
@@ -18321,7 +18322,7 @@ spells:BR_WATE | BR_DISE
 spells:S_AINU
 desc:Encrusted with barnacles, slimy and dripping, the Maia of the untamed
 desc: sea has dragged himself down into Angband to send you to a watery grave.
-desc: Ossë is the most powerful and heartless of Ulmo's servants and embodies
+desc: OssÃ« is the most powerful and heartless of Ulmo's servants and embodies
 desc: the untamed power of the ocean. Terror grows in your heart with each
 desc: squelching step of his approach.
 
@@ -18945,7 +18946,7 @@ flags:KILL_WALL | KILL_BODY
 flags:IM_ACID | IM_ELEC
 desc:A battle-hungry spirit from amongst the Ainur, who built a grim hall in
 desc: the early days of Arda to host endless battles. When not at home, he
-desc: and his sister Meássë hunt and seek out the turmoils caused by Morgoth.
+desc: and his sister MeÃ¡ssÃ« hunt and seek out the turmoils caused by Morgoth.
 
 ### Dungeon level 77 ###
 
@@ -19298,7 +19299,7 @@ spell-freq:5
 innate-freq:67
 spells:BR_COLD | BR_SOUN
 spells:S_KIN
-desc:A violent icy whirlpool, brought from the frozen wastes of the Helcaraxë
+desc:A violent icy whirlpool, brought from the frozen wastes of the HelcaraxÃ«
 desc: by Morgoth as guard and entertainment. Smaller vortices arise on its
 desc: edges, and you feel as if you will never be free of its deafening roar.
 
@@ -19359,7 +19360,7 @@ flags:IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
 flags:FORCE_SLEEP
 spell-freq:6
 spells:S_ANIMAL | S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_MONSTERS | S_UNIQUE
-desc:The son of Eöl the Dark Elf, Maeglin is every bit as evil as his father and
+desc:The son of EÃ¶l the Dark Elf, Maeglin is every bit as evil as his father and
 desc: more. His greed for gold led him to betray the Hidden Kingdom of Gondolin
 desc: to Morgoth's forces. He is a mighty warrior himself, and some of Morgoth's
 desc: greatest servants answer to his call.
@@ -19613,7 +19614,7 @@ desc: wolf inhabited with a human spirit. He is chief of all his kind.
 
 ### Dungeon level 84 ###
 
-name:Khamûl, the Black Easterling
+name:KhamÃ»l, the Black Easterling
 base:wraith
 color:p
 speed:120
@@ -19642,7 +19643,7 @@ spells:BO_MANA
 spells:S_HI_UNDEAD | S_WRAITH
 spells:ANIM_DEAD
 drop:ring:Black Ring of Power:100:1:1
-desc:A warrior-king of the East. Khamûl is a powerful opponent, his skill in
+desc:A warrior-king of the East. KhamÃ»l is a powerful opponent, his skill in
 desc: combat awesome and his form twisted by evil cunning.
 
 name:Cantoras, the Skeletal Lord
@@ -19772,7 +19773,7 @@ spells:ANIM_DEAD
 drop:ring:Black Ring of Power:100:1:1
 friends:50:1d1:winged horror
 desc:The most fell of all Sauron's captains: King of Angmar, Sorcerer,
-desc: Ringwraith, Lord of the Nazgûl, a spear of terror in the hand of Sauron,
+desc: Ringwraith, Lord of the NazgÃ»l, a spear of terror in the hand of Sauron,
 desc: shadow of despair. His spells are lethal and his combat blows crushingly
 desc: hard. He moves at speed, and commands legions of evil to do his bidding.
 desc: It is said that he is fated never to die by the hand of mortal man.
@@ -19874,7 +19875,7 @@ desc: immune to magic. Fear its anger, for its devastation is unmatched!
 
 ### Dungeon level 87 ###
 
-name:Meássë, the Bloody
+name:MeÃ¡ssÃ«, the Bloody
 base:ainu
 color:r
 speed:120
@@ -19900,14 +19901,14 @@ spells:HEAL | HEAL_KIN
 spells:BOULDER
 spells:BA_SHAR | BR_SOUN
 spells:S_KIN | S_MONSTERS
-friends:50:1d4:Maia of Oromë:servant
-friends:50:1d4:Maia of Aulë:servant
+friends:50:1d4:Maia of OromÃ«:servant
+friends:50:1d4:Maia of AulÃ«:servant
 friends:50:1d3:lesser titan:servant
 friends:50:1d2:greater titan:servant
 friends:100:1d1:Makar, the Warrior
 desc:Sister of Makar the Warrior, she would shout encouragement to the
 desc: warriors of their hall and heal their wounds so they could battle on,
-desc: until her arms were reddened to the elbow. Meássë is delighted by
+desc: until her arms were reddened to the elbow. MeÃ¡ssÃ« is delighted by
 desc: all violence, and recruits any beings of like abilities to her service.
 
 ### Dungeon level 88 ###
@@ -20005,7 +20006,7 @@ spell-freq:5
 innate-freq:100
 spells:BR_COLD | BR_LIGHT | BR_SHAR | BR_SOUN
 desc:The wolfhound of the Valar, Huan has served many masters in his time, from
-desc: Celegorm son of Fëanor to Beren son of Barahir: but now he runs wild and
+desc: Celegorm son of FÃ«anor to Beren son of Barahir: but now he runs wild and
 desc: acknowledges no master save himself, as he hunts alone for his nemesis -
 desc: Carcharoth, the terrible wolf of Angband.
 
@@ -20472,7 +20473,7 @@ friends:30:1d3:pit fiend:servant
 friends:100:1d2:greater Balrog:bodyguard
 friends:100:1d1:Lungorthin, the Balrog of White Fire:servant
 desc:Gothmog is the Chief Balrog in Morgoth's personal guard. He is renowned for
-desc: slaying Fëanor and Fingon, two of the High Kings of the Noldor, and
+desc: slaying FÃ«anor and Fingon, two of the High Kings of the Noldor, and
 desc: has never been defeated in combat. With his whip of flame and awesome
 desc: fiery breath he saved his master from Ungoliant's rage.
 
@@ -20697,7 +20698,7 @@ spells:BO_ICE | BO_MANA | BO_PLAS
 spells:SHAPECHANGE
 spells:S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_UNIQUE | S_WRAITH
 spells:ANIM_DEAD
-friends:100:1d1:Khamûl, the Black Easterling:servant
+friends:100:1d1:KhamÃ»l, the Black Easterling:servant
 friends:100:1d1:The Witch-King of Angmar:servant
 shape:Wolf-Sauron
 shape:Serpent-Sauron
