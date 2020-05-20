@@ -1931,10 +1931,10 @@ static bool effect_handler_BREATH(effect_handler_context_t *context)
     struct source *who = &who_body;
 
     /*
-     * Diameter of source starts at 40, so full strength up to 3 grids from
+     * Diameter of source starts at 4, so full strength up to 3 grids from
      * the breather.
      */
-    int diameter_of_source = 40;
+    int diameter_of_source = 4;
 
     /* Minimum breath width is 20 degrees */
     int degrees_of_arc = MAX(context->other, 20);
@@ -2058,7 +2058,7 @@ static bool effect_handler_BREATH(effect_handler_context_t *context)
         diameter_of_source = diameter_of_source * 60 / degrees_of_arc;
 
         /* Max */
-        if (diameter_of_source > 250) diameter_of_source = 250;
+        if (diameter_of_source > 25) diameter_of_source = 25;
     }
 
     /* Breathe at the target */
@@ -2189,7 +2189,7 @@ static bool effect_handler_CREATE_ARROWS(effect_handler_context_t *context)
     set_origin(arrows, ORIGIN_ACQUIRE, context->origin->player->wpos.depth, NULL);
 
     drop_near(context->origin->player, context->cave, &arrows, 0, &context->origin->player->grid,
-        true, DROP_FADE);
+        true, DROP_FADE, true);
 
     return true;
 }
@@ -2265,7 +2265,7 @@ static bool effect_handler_CREATE_POISON(effect_handler_context_t *context)
     set_origin(poison, ORIGIN_ACQUIRE, context->origin->player->wpos.depth, NULL);
 
     drop_near(context->origin->player, context->cave, &poison, 0, &context->origin->player->grid,
-        true, DROP_FADE);
+        true, DROP_FADE, true);
 
     return true;
 }
@@ -4692,10 +4692,10 @@ static bool effect_handler_LASH(effect_handler_context_t *context)
     if (rad > z_info->max_range) rad = z_info->max_range;
 
     /*
-     * Diameter of source is 10 times radius, so the effect is essentially
-     * tfull strength for its entire length.
+     * Diameter of source is the same as the radius, so the effect is
+     * essentially full strength for its entire length.
      */
-    diameter_of_source = rad * 10;
+    diameter_of_source = rad;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(context->dir)) return false;
@@ -4764,7 +4764,7 @@ static bool effect_handler_LASH(effect_handler_context_t *context)
     if (!dam) return false;
 
     /* Check bounds */
-    if (diameter_of_source > 250) diameter_of_source = 250;
+    if (diameter_of_source > 25) diameter_of_source = 25;
 
     /* Lash the target */
     context->origin->player->current_sound = -2;

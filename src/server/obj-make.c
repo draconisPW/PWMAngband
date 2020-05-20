@@ -1717,7 +1717,7 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     bool extra_roll, s32b *value, int tval)
 {
     int base;
-    struct object_kind *kind;
+    struct object_kind *kind = NULL;
     struct object *new_obj;
     int i;
     int tries = 1;
@@ -1843,7 +1843,7 @@ void acquirement(struct player *p, struct chunk *c, int num, quark_t quark)
         if (quark > 0) nice_obj->note = quark;
 
         /* Drop the object */
-        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_FADE);
+        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_FADE, false);
     }
 }
 
@@ -2096,7 +2096,7 @@ void reroll_randart(struct player *p, struct chunk *c)
     if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
     if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
 
-    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE, true);
 }
 
 

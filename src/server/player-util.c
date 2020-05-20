@@ -386,7 +386,7 @@ void player_adjust_hp_precise(struct player *p, s32b hp_gain)
 
 	/* Check for overflow */
 	if ((new_chp < 0) && (old_chp > 0) && (hp_gain > 0))
-		new_chp = LONG_MAX;
+        new_chp = LONG_MAX;
 	else if ((new_chp > 0) && (old_chp < 0) && (hp_gain < 0))
 		new_chp = LONG_MIN;
 
@@ -435,7 +435,7 @@ s32b player_adjust_mana_precise(struct player *p, s32b sp_gain)
 		sp_gain = 0;
 	}
 
-	/* Break it back down*/
+	/* Break it back down */
 	p->csp = (s16b)(new_csp_long >> 16);   /* div 65536 */
 	p->csp_frac = (u16b)(new_csp_long & 0xFFFF);    /* mod 65536 */
 

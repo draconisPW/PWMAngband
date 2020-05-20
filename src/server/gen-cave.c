@@ -212,6 +212,8 @@ static void customize_features(struct chunk *c)
         /* Floors */
         if (square_isfloor(c, &iter.cur))
         {
+            struct monster *mon = square_monster(c, &iter.cur);
+
             /* Basic chance */
             chance = randint0(10000);
 
@@ -219,9 +221,26 @@ static void customize_features(struct chunk *c)
             for (i = 0; i < dungeon->n_floors; i++)
             {
                 struct dun_feature *feature = &dungeon->floors[i];
+                int current_feat = square(c, &iter.cur)->feat;
+                bool ok = true;
+
+                /* Make the change for testing */
+                square(c, &iter.cur)->feat = feature->feat;
+
+                /* Damaging terrain */
+                if (mon && monster_hates_grid(c, mon, &iter.cur)) ok = false;
+
+                /* Square can't hold objects */
+                if (square_object(c, &iter.cur) && !square_isobjectholding(c, &iter.cur)) ok = false;
+
+                /* Skip */
+                if (feature->chance <= chance) ok = false;
+
+                /* Revert the change */
+                square(c, &iter.cur)->feat = current_feat;
 
                 /* Fill the level with that feature */
-                if (feature->chance > chance)
+                if (ok)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
                     break;

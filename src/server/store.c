@@ -2346,7 +2346,7 @@ static void sell_player_item(struct player *p, struct object *original, struct o
         gold_obj->pval = price;
 
         /* Put it in the house */
-        drop_near(p, c, &gold_obj, 0, &space, false, DROP_FADE);
+        drop_near(p, c, &gold_obj, 0, &space, false, DROP_FADE, false);
     }
 }
 

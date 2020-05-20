@@ -559,7 +559,7 @@ static void chest_death(struct player *p, struct chunk *c, struct loc *grid, str
         }
 
         set_origin(treasure, ORIGIN_CHEST, chest->origin_depth, NULL);
-        drop_near(p, c, &treasure, 0, grid, true, DROP_FADE);
+        drop_near(p, c, &treasure, 0, grid, true, DROP_FADE, false);
         number--;
     }
 

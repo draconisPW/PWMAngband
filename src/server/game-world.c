@@ -854,7 +854,7 @@ static void process_player_world(struct player *p, struct chunk *c)
     /*** Process Inventory ***/
 
     /* Handle experience draining */
-    if (player_of_has(p, OF_DRAIN_EXP))
+    if (player_of_has(p, OF_DRAIN_EXP) && !p->is_idle)
     {
         if (magik(10) && (p->exp > 0))
         {

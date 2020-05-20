@@ -1931,9 +1931,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Set various defaults */
     state->speed = 110;
     state->num_blows = 100;
-    state->num_shots = 10;
-    state->ammo_tval = TV_ROCK;
-    state->ammo_mult = 1;
 
     /* Extract race/class info */
     for (i = 0; i < SKILL_MAX; i++)
@@ -2513,6 +2510,8 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             state->heavy_shoot = true;
         }
 
+        state->num_shots = 10;
+
         /* Type of ammo */
         if (kf_has(launcher->kind->kind_flags, KF_SHOOTS_SHOTS))
             state->ammo_tval = TV_SHOT;
@@ -2534,22 +2533,18 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             if (player_has(p, PF_FAST_SHOT) && (state->ammo_tval == TV_ARROW))
                 state->num_shots += p->lev / 3;
         }
+
+        /* Handle polymorphed players */
+        if (p->poly_race && (rsf_has(p->poly_race->spell_flags, RSF_SHOT) ||
+            rsf_has(p->poly_race->spell_flags, RSF_ARROW) ||
+            rsf_has(p->poly_race->spell_flags, RSF_BOLT)))
+        {
+            state->num_shots += 5;
+        }
+
+        /* Require at least one shot */
+        if (state->num_shots < 10) state->num_shots = 10;
     }
-
-    /* Monks and archers are good at throwing */
-    if (player_has(p, PF_FAST_THROW) && (state->ammo_tval == TV_ROCK))
-        state->num_shots += p->lev / 2;
-
-    /* Handle polymorphed players */
-    if (p->poly_race && (rsf_has(p->poly_race->spell_flags, RSF_SHOT) ||
-        rsf_has(p->poly_race->spell_flags, RSF_ARROW) ||
-        rsf_has(p->poly_race->spell_flags, RSF_BOLT)))
-    {
-        state->num_shots += 5;
-    }
-
-    /* Require at least one shot */
-    if (state->num_shots < 10) state->num_shots = 10;
 
     /* Temporary "Farsight" */
     if (p->timed[TMD_FARSIGHT])

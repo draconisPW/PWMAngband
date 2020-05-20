@@ -858,7 +858,7 @@ bool inven_drop(struct player *p, struct object *obj, int amt, bool bypass_inscr
 
     /* Drop it (carefully) near the player */
     drop_near(p, chunk_get(&p->wpos), &dropped, 0, &p->grid, false,
-        (bypass_inscr? DROP_SILENT: DROP_FORBID));
+        (bypass_inscr? DROP_SILENT: DROP_FORBID), true);
 
     /* Sound for quiver objects */
     if (quiver) sound(p, MSG_QUIVER);
@@ -980,7 +980,7 @@ void pack_overflow(struct player *p, struct chunk *c, struct object *obj)
 
     /* Excise the object and drop it (carefully) near the player */
     gear_excise_object(p, obj);
-    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE, true);
 
     /* Describe */
     msg(p, "You no longer have %s.", o_name);

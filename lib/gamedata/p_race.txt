@@ -437,7 +437,7 @@ weight:240:60
 obj-flag:1:FEATHER
 value:1:INFRA[1]
 value:1:RES_NEXUS[1]
-player-flags:DRAGON
+player-flags:DRAGON | FAST_THROW
 attack:claw:none:1:0:NONE
 attack:bite:none:5:4:DAM
 attack:crush:none:45:40:CRUSH
@@ -459,6 +459,6 @@ age:255:70
 height:170:20
 weight:240:60
 obj-flag:1:AGGRAVATE
-player-flags:HYDRA
+player-flags:HYDRA | FAST_THROW
 attack:bite:none:1:0:NONE
 attack:hit: with a circular attack:35:30:CIRCLE

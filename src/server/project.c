@@ -973,7 +973,7 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
          */
         else
         {
-            dam_temp = (diameter_of_source * dam) / ((i + 1) * 10);
+            dam_temp = (diameter_of_source * dam) / (i + 1);
             if (dam_temp > (u32b)dam) dam_temp = dam;
         }
 

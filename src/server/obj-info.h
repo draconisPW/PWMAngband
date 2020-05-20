@@ -21,6 +21,7 @@ enum
 enum
 {
     EFINFO_NONE,
+    EFINFO_HURT,
     EFINFO_HEAL,
     EFINFO_CONST,
     EFINFO_FOOD,

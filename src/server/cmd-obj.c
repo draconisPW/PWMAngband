@@ -1913,7 +1913,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
             if (object_is_carried(p, obj))
                 inven_carry(p, used, true, true);
             else
-                drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE);
+                drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE, true);
         }
 
         /* Empty a single lamp */

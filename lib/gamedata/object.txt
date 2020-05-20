@@ -5338,7 +5338,7 @@ cost:100
 alloc:10:10 to 100
 attack:1d3:0:0
 armor:0:0
-flags:EASY_KNOW | AMMO_MAGIC
+flags:EASY_KNOW | AMMO_MAGIC | THROWING
 desc:An ethereal shot, made of pure mana.
 
 name:& Rock~
@@ -5352,8 +5352,8 @@ alloc:20:1 to 100
 attack:1d6:0:0
 armor:0:0
 brand:STUN_1
-desc:A simple piece of stone.
-desc: It can be fired without any missile launcher.
+flags:THROWING
+desc:A simple piece of stone. It can be thrown.
 
 name:& Shuriken~
 graphics:*:W
@@ -5366,8 +5366,8 @@ alloc:20:45 to 100
 attack:3d6:0:0
 armor:0:0
 brand:CUT_1
-desc:A sharp little piece of metal.
-desc: It can be fired without any missile launcher.
+flags:THROWING
+desc:A sharp little piece of metal. It can be thrown.
 
 name:& Boomerang~
 graphics:*:y
@@ -5378,7 +5378,7 @@ cost:100
 alloc:20:10 to 100
 attack:1d6:0:0
 armor:0:0
-flags:EASY_KNOW | AMMO_MAGIC
+flags:EASY_KNOW | AMMO_MAGIC | THROWING
 desc:It returns when thrown.
 
 name:& Black Ring~ of Power

@@ -899,15 +899,14 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     struct object *known_bow = (bow? bow->known: NULL);
 
     /* Pretend we're wielding the object if it's a weapon */
-    if (weapon)
-        p->body.slots[weapon_slot].obj = (struct object *)obj;
+    if (weapon) p->body.slots[weapon_slot].obj = (struct object *)obj;
 
     /* Calculate the player's hypothetical state */
     memset(&state, 0, sizeof(state));
     calc_bonuses(p, &state, true, false);
 
     /* Stop pretending */
-    p->body.slots[weapon_slot].obj = current_weapon;
+    if (weapon) p->body.slots[weapon_slot].obj = current_weapon;
 
     /* Get the brands */
     total_brands = mem_zalloc(z_info->brand_max * sizeof(bool));
@@ -1052,34 +1051,150 @@ static void describe_damage(struct player *p, const struct object *obj, bool thr
     if (thrown) text_out(p, "Average thrown damage: ");
     else text_out(p, "Average damage/round: ");
 
-    /* Output damage for creatures effected by the brands */
-    for (i = 0; i < z_info->brand_max + 4; i++)
+    if (has_brands_or_slays)
     {
-        if (!brand_damage[i]) continue;
-        if (brand_damage[i] % 10)
-            text_out_c(p, COLOUR_L_GREEN, "%d.%d", brand_damage[i] / 10, brand_damage[i] % 10);
-        else
-            text_out_c(p, COLOUR_L_GREEN, "%d", brand_damage[i] / 10);
-        if (i < z_info->brand_max)
-            text_out(p, " vs. creatures not resistant to %s, ", brands[i].name);
-        else if (i < z_info->brand_max + 2)
-            text_out(p, " vs. creatures susceptible to fire, ");
-        else
-            text_out(p, " vs. creatures susceptible to cold, ");
-    }
+        /* Sort by decreasing damage so entries with the same damage can be printed together */
+        int *sortind = mem_alloc((z_info->brand_max + 4 + z_info->slay_max) * sizeof(int));
+        int nsort = 0;
+        const char *lastnm;
+        int lastdam, groupn;
+        bool last_is_brand, last_is_fire, last_is_cold;
 
-    /* Output damage for creatures effected by the slays */
-    for (i = 0; i < z_info->slay_max; i++)
-    {
-        if (!slay_damage[i]) continue;
-        if (slay_damage[i] % 10)
-            text_out_c(p, COLOUR_L_GREEN, "%d.%d", slay_damage[i] / 10, slay_damage[i] % 10);
-        else
-            text_out_c(p, COLOUR_L_GREEN, "%d", slay_damage[i] / 10);
-        text_out(p, " vs. %s, ", slays[i].name);
-    }
+        /* Assemble the indices. Do the slays first so, if tied for damage, they'll appear first. */
+        for (i = 0; i < z_info->slay_max; i++)
+        {
+            if (slay_damage[i] > 0)
+            {
+                sortind[nsort] = i + z_info->brand_max + 4;
+                ++nsort;
+            }
+        }
+        for (i = 0; i < z_info->brand_max + 4; i++)
+        {
+            if (brand_damage[i] > 0)
+            {
+                sortind[nsort] = i;
+                ++nsort;
+            }
+        }
 
-    if (has_brands_or_slays) text_out(p, "and ");
+        /* Sort. Since the number is small, insertion sort is fine. */
+        for (i = 0; i < nsort - 1; i++)
+        {
+            int maxdam = ((sortind[i] < z_info->brand_max + 4)? brand_damage[sortind[i]]:
+                slay_damage[sortind[i] - z_info->brand_max - 4]);
+            int maxind = i;
+            int j;
+
+            for (j = i + 1; j < nsort; j++)
+            {
+                int dam = ((sortind[j] < z_info->brand_max + 4)? brand_damage[sortind[j]]:
+                    slay_damage[sortind[j] - z_info->brand_max - 4]);
+
+                if (maxdam < dam)
+                {
+                    maxdam = dam;
+                    maxind = j;
+                }
+            }
+            if (maxind != i)
+            {
+                int tmp = sortind[maxind];
+
+                sortind[maxind] = sortind[i];
+                sortind[i] = tmp;
+            }
+        }
+
+        /* Output */
+        lastdam = 0;
+        groupn = 0;
+        lastnm = NULL;
+        last_is_brand = false;
+        last_is_fire = false;
+        last_is_cold = false;
+        for (i = 0; i < nsort; i++)
+        {
+            const char *tgt;
+            int dam;
+            bool is_brand, is_fire = false, is_cold = false;
+
+            if (sortind[i] < z_info->brand_max + 4)
+            {
+                is_brand = true;
+                if (sortind[i] < z_info->brand_max)
+                    tgt = brands[sortind[i]].name;
+                else if (sortind[i] < z_info->brand_max + 2)
+                {
+                    is_fire = true;
+                    tgt = "fire";
+                }
+                else
+                {
+                    is_cold = true;
+                    tgt = "cold";
+                }
+                dam = brand_damage[sortind[i]];
+            }
+            else
+            {
+                is_brand = false;
+                tgt = slays[sortind[i] - z_info->brand_max - 4].name;
+                dam = slay_damage[sortind[i] - z_info->brand_max - 4];
+            }
+
+            if (groupn > 0)
+            {
+                if (dam != lastdam)
+                {
+                    if (groupn > 2) text_out(p, ", and");
+                    else if (groupn == 2) text_out(p, " and");
+                }
+                else if (groupn > 1) text_out(p, ",");
+                if (last_is_brand)
+                {
+                    if (last_is_fire || last_is_cold)
+                        text_out(p, " creatures susceptible to");
+                    else
+                        text_out(p, " creatures not resistant to");
+                }
+                text_out(p, " %s", lastnm);
+            }
+            if (dam != lastdam)
+            {
+                if (i != 0) text_out(p, ", ");
+                if (dam % 10) text_out_c(p, COLOUR_L_GREEN, "%d.%d vs", dam / 10, dam % 10);
+                else text_out_c(p, COLOUR_L_GREEN, "%d vs", dam / 10);
+                groupn = 1;
+                lastdam = dam;
+            }
+            else
+            {
+                my_assert(groupn > 0);
+                ++groupn;
+            }
+            lastnm = tgt;
+            last_is_brand = is_brand;
+            last_is_fire = is_fire;
+            last_is_cold = is_cold;
+        }
+        if (groupn > 0)
+        {
+            if (groupn > 2) text_out(p, ", and");
+            else if (groupn == 2) text_out(p, " and");
+            if (last_is_brand)
+            {
+                if (last_is_fire || last_is_cold)
+                    text_out(p, " creatures susceptible to");
+                else
+                    text_out(p, " creatures not resistant to");
+            }
+            text_out(p, " %s", lastnm);
+        }
+
+        text_out(p, ((nsort == 1)? " and ": ", and "));
+        mem_free(sortind);
+    }
 
     /* Normal damage, not considering brands or slays */
     if (!normal_damage)
@@ -1650,6 +1765,12 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
                 case EFINFO_NONE:
                 {
                     my_strcpy(desc, effect_desc(effect), sizeof(desc));
+                    break;
+                }
+
+                case EFINFO_HURT:
+                {
+                    strnfmt(desc, sizeof(desc), effect_desc(effect), dice_string);
                     break;
                 }
 

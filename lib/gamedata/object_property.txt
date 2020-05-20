@@ -499,7 +499,7 @@ type-mult:dragon armour:0
 type-mult:light:0
 type-mult:amulet:0
 type-mult:ring:0
-desc:Blessed by the gods
+desc:Blessed by the gods (combat bonuses for holy casters)
 
 name:burns out
 type:flag

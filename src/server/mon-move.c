@@ -298,26 +298,35 @@ static bool monster_can_move(struct chunk *c, struct monster *mon, struct loc *g
 
 
 /*
- * Check if the monster can occupy a grid safely
+ * Check if the monster (defined by race) can occupy a grid safely
  */
-bool monster_hates_grid(struct chunk *c, struct monster *mon, struct loc *grid)
+bool race_hates_grid(struct chunk *c, struct monster_race *race, struct loc *grid)
 {
     /* Only some creatures can handle damaging terrain */
-    if (square_isdamaging(c, grid) && !rf_has(mon->race->flags, square_feat(c, grid)->resist_flag))
+    if (square_isdamaging(c, grid) && !rf_has(race->flags, square_feat(c, grid)->resist_flag))
     {
         /* Hack -- passwall creatures can cross any damaging terrain */
-        if (rf_has(mon->race->flags, RF_PASS_WALL)) return false;
+        if (rf_has(race->flags, RF_PASS_WALL)) return false;
 
         /* Hack -- levitating creatures can cross water */
-        if (square_iswater(c, grid) && rf_has(mon->race->flags, RF_LEVITATE)) return false;
+        if (square_iswater(c, grid) && rf_has(race->flags, RF_LEVITATE)) return false;
 
         return true;
     }
 
     /* Aquatic monsters suffocate if not in water */
-    if (!square_iswater(c, grid) && rf_has(mon->race->flags, RF_AQUATIC)) return true;
+    if (!square_iswater(c, grid) && rf_has(race->flags, RF_AQUATIC)) return true;
 
     return false;
+}
+
+
+/*
+ * Check if the monster can occupy a grid safely
+ */
+bool monster_hates_grid(struct chunk *c, struct monster *mon, struct loc *grid)
+{
+    return race_hates_grid(c, mon->race, grid);
 }
 
 

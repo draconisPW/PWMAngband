@@ -1703,7 +1703,7 @@ static void player_strip(struct player *p, bool perma_death)
 
         /* Excise the object and drop it */
         gear_excise_object(p, obj);
-        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE, false);
     }
 
     mem_free(gear);
@@ -1724,7 +1724,7 @@ static void player_strip(struct player *p, bool perma_death)
         p->au = 0;
 
         /* Drop it */
-        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE, false);
     }
 }
 
@@ -3864,7 +3864,7 @@ static void master_generate(struct player *p, char *parms)
                     object_copy(drop, obj);
                     if (object_has_standard_to_h(drop)) drop->known->to_h = 1;
                     if (object_flavor_is_aware(p, drop)) object_id_set_aware(drop);
-                    drop_near(p, c, &drop, 0, &p->grid, true, DROP_FADE);
+                    drop_near(p, c, &drop, 0, &p->grid, true, DROP_FADE, true);
 
                     /* Reinitialize some stuff */
                     undo_fixed_powers(obj, power, resist);
@@ -4010,7 +4010,7 @@ static void master_generate(struct player *p, char *parms)
             if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
 
             /* Drop the object from heaven */
-            drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE);
+            drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE, true);
 
             break;
         }

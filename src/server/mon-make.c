@@ -1542,6 +1542,7 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
 
     /* Hack -- check if monster race can be generated at that location */
     if (!allow_race(race, &c->wpos)) return false;
+    if (race_hates_grid(c, race, grid)) return false;
 
     /* Get local monster */
     mon = &monster_body;
@@ -2161,7 +2162,7 @@ void monster_drop_carried(struct player *p, struct chunk *c, struct monster *mon
             }
         }
 
-        drop_near(p, c, &obj, 0, &mon->grid, true, DROP_FADE);
+        drop_near(p, c, &obj, 0, &mon->grid, true, DROP_FADE, false);
         obj = next;
     }
 
@@ -2208,7 +2209,7 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
         set_origin(corpse, ORIGIN_DROP, mon->wpos.depth, mon->race);
 
         /* Drop it in the dungeon */
-        drop_near(p, c, &corpse, 0, &mon->grid, true, DROP_FADE);
+        drop_near(p, c, &corpse, 0, &mon->grid, true, DROP_FADE, false);
     }
 
     /* Sometimes, a dead monster leaves a skeleton */
@@ -2230,7 +2231,7 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
         set_origin(skeleton, ORIGIN_DROP, mon->wpos.depth, mon->race);
 
         /* Drop it in the dungeon */
-        drop_near(p, c, &skeleton, 0, &mon->grid, true, DROP_FADE);
+        drop_near(p, c, &skeleton, 0, &mon->grid, true, DROP_FADE, false);
     }
 }
 

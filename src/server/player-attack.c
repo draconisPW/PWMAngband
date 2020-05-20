@@ -45,7 +45,8 @@ int breakage_chance(const struct object *obj, bool hit_target)
     int perc = obj->kind->base->break_perc;
 
     if (obj->artifact) return 0;
-    if (of_has(obj->flags, OF_THROWING) && !of_has(obj->flags, OF_EXPLODE)) perc = 1;
+    if (of_has(obj->flags, OF_THROWING) && !of_has(obj->flags, OF_EXPLODE) && !tval_is_ammo(obj))
+        perc = 1;
     if (!hit_target) return (perc * perc) / 100;
 
     return perc;
@@ -316,8 +317,13 @@ static int ranged_damage(struct player *p, struct object *missile, struct object
     }
     else if (of_has(missile->flags, OF_THROWING))
     {
-        /* Multiply the damage dice by the throwing weapon multiplier. */
-        dam *= (1 + p->lev / 12);
+        /* Adjust damage for throwing weapons */
+        int might = 2 + missile->weight / 12;
+
+        /* Good at throwing */
+        if (player_has(p, PF_FAST_THROW)) might = 2 + (missile->weight + p->lev) / 12;
+
+        dam *= might;
     }
     dam *= mult;
     if (p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam;
@@ -1949,7 +1955,7 @@ static bool ranged_helper(struct player *p, struct object *obj, int dir, int ran
             if (newbies_cannot_drop(p)) j = 100;
 
             /* Drop (or break) near that location */
-            drop_near(p, c, &missile, j, &grid, true, DROP_FADE);
+            drop_near(p, c, &missile, j, &grid, true, DROP_FADE, false);
         }
 
         shots++;
@@ -1987,7 +1993,7 @@ static struct attack_result make_ranged_shot(struct player *p, struct object *am
     struct attack_result result;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
     int chance = chance_of_missile_hit(p, ammo, bow, grid);
-    int multiplier = p->state.ammo_mult;
+    int multiplier = (bow? p->state.ammo_mult: 1);
     int best_mult = 1;
     struct chunk *c = chunk_get(&p->wpos);
     struct source target_body;
@@ -2302,7 +2308,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     if (!has_energy(p, true)) return false;
 
     /* Require a usable launcher */
-    if (!bow && (p->state.ammo_tval != TV_ROCK))
+    if (!bow)
     {
         msg(p, "You have nothing to fire with.");
 

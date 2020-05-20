@@ -938,6 +938,9 @@ bool floor_carry(struct player *p, struct chunk *c, struct loc *grid, struct obj
             /* Combine the items */
             object_absorb(obj, drop);
 
+            /* Note the pile */
+            if (square_isview(p, grid)) square_note_spot(c, grid);
+
             /* Don't mention if ignored */
             if (p && ignore_item_ok(p, obj)) *note = false;
 
@@ -1051,9 +1054,13 @@ static void floor_carry_fail(struct player *p, struct object *drop, bool broke, 
  * the object can combine, stack, or be placed. Artifacts will try very
  * hard to be placed, including "teleporting" to a useful grid if needed.
  *
+ * If prefer_pile is true, does not apply a penalty for putting different types
+ * of items in the same grid.
+ *
  * If no appropriate grid is found, the given grid is unchanged
  */
-static bool drop_find_grid(struct player *p, struct chunk *c, struct object *drop, struct loc *grid)
+static bool drop_find_grid(struct player *p, struct chunk *c, struct object *drop, bool prefer_pile,
+    struct loc *grid)
 {
     int best_score = -1;
     struct loc best;
@@ -1073,6 +1080,7 @@ static bool drop_find_grid(struct player *p, struct chunk *c, struct object *dro
             int num_shown = 0;
             int num_ignored = 0;
             int score;
+            struct monster *mon;
 
             loc_init(&loc_try, grid->x + dx, grid->y + dy);
 
@@ -1080,6 +1088,14 @@ static bool drop_find_grid(struct player *p, struct chunk *c, struct object *dro
             if ((dist > 10) || !square_in_bounds_fully(c, &loc_try) || !los(c, grid, &loc_try) ||
                 !square_isanyfloor(c, &loc_try) || square_isplayertrap(c, &loc_try) ||
                 square_trap_flag(c, &loc_try, TRF_GLYPH))
+            {
+                continue;
+            }
+
+            /* Hack -- not where a NEVER_MOVE + NO_DEATH monster stands */
+            mon = square_monster(c, &loc_try);
+            if (mon && rf_has(mon->race->flags, RF_NEVER_MOVE) &&
+                rf_has(mon->race->flags, RF_NO_DEATH))
             {
                 continue;
             }
@@ -1104,7 +1120,7 @@ static bool drop_find_grid(struct player *p, struct chunk *c, struct object *dro
             }
 
             /* Score the location based on how close and how full the grid is */
-            score = 1000 - (dist + num_shown * 5);
+            score = 1000 - (dist + (prefer_pile? 0: num_shown * 5));
 
             if ((score < best_score) || ((score == best_score) && one_in_(2))) continue;
 
@@ -1163,9 +1179,12 @@ static bool drop_find_grid(struct player *p, struct chunk *c, struct object *dro
  *
  * This function will produce a description of a drop event under the player
  * when "verbose" is true.
+ *
+ * If "prefer_pile" is true, the penalty for putting different types of items
+ * in the same square is not applied.
  */
 void drop_near(struct player *p, struct chunk *c, struct object **dropped, int chance,
-    struct loc *grid, bool verbose, int mode)
+    struct loc *grid, bool verbose, int mode, bool prefer_pile)
 {
     char o_name[NORMAL_WID];
     struct loc best;
@@ -1186,7 +1205,7 @@ void drop_near(struct player *p, struct chunk *c, struct object **dropped, int c
     }
 
     /* Find the best grid and drop the item, destroying if there's no space */
-    if (!drop_find_grid(p, c, *dropped, &best)) return;
+    if (!drop_find_grid(p, c, *dropped, prefer_pile, &best)) return;
 
     /* Check houses */
     if (true_artifact_p(*dropped) || tval_can_have_timeout(*dropped) || tval_is_light(*dropped))
@@ -1317,7 +1336,7 @@ void push_object(struct player *p, struct chunk *c, struct loc *grid)
         obj = q_pop_ptr(queue);
 
         /* Drop the object */
-        drop_near(p, c, &obj, 0, grid, false, DROP_FADE);
+        drop_near(p, c, &obj, 0, grid, false, DROP_FADE, false);
     }
 
     /* Reset cave feature and glyph if needed */

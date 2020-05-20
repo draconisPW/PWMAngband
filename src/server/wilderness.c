@@ -1839,7 +1839,7 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
 
     /* Drop food */
     set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
-    drop_near(NULL, c, &food, 0, grid, false, DROP_FADE);
+    drop_near(NULL, c, &food, 0, grid, false, DROP_FADE, false);
 }
 
 
@@ -2610,7 +2610,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
             set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
 
-            drop_near(NULL, c, &food, 0, &grid, false, DROP_FADE);
+            drop_near(NULL, c, &food, 0, &grid, false, DROP_FADE, false);
 
             num_food--;
         }
