@@ -195,7 +195,7 @@ PWMAngband:
 - Remove mean-looking mercenaries and battle-scarred veterans from Hobbiton
 - Add GOLD_DROP_NOSELLING server option to manage gold drops on no_selling
   servers
-- Add NO_MONSTERS flag on terrain to prevent generating monsters
+- Add NO_MONSTERS flag on terrain to prevent generating monsters and teleporting
 - Add new DF_STREAMS flag to allow magma/quartz veins in dungeons
 - Allow generic "#R" inscription on items and spellbooks to ask for recall depth
   manually

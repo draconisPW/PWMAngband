@@ -6702,7 +6702,7 @@ static bool allow_teleport(struct chunk *c, struct loc *grid, bool safe_ghost, b
     if (!is_player && square_iswarded(c, grid)) return false;
 
     /* No teleporting into vaults and such */
-    if (square_isvault(c, grid)) return false;
+    if (square_isvault(c, grid) || !square_is_monster_walkable(c, grid)) return false;
 
     return true;
 }
