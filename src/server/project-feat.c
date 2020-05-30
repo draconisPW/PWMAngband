@@ -526,6 +526,25 @@ static void project_feature_handler_KILL_WALL(project_feature_handler_context_t 
         /* Fully update the flow */
         fully_update_flow(&context->cave->wpos);
     }
+    else
+    {
+        /* Message */
+        if (context->line_sound)
+        {
+            msg(context->origin->player, "The %s turns into mud!",
+                square_apparent_name(context->origin->player, context->cave, &grid));
+            context->obvious = true;
+        }
+
+        /* Destroy the wall */
+        square_destroy_wall(context->cave, &grid);
+
+        /* Update the visuals */
+        update_visuals(&context->cave->wpos);
+
+        /* Fully update the flow */
+        fully_update_flow(&context->cave->wpos);
+    }
 }
 
 

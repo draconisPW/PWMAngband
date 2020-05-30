@@ -2038,7 +2038,7 @@ void square_unlock_door(struct chunk *c, struct loc *grid)
 }
 
 
-static void square_set_floor(struct chunk *c, struct loc *grid, int feat)
+static void square_set_floor(struct chunk *c, struct loc *grid, int feat, bool object)
 {
     struct worldpos dpos;
     struct location *dungeon;
@@ -2057,8 +2057,25 @@ static void square_set_floor(struct chunk *c, struct loc *grid, int feat)
         for (i = 0; i < dungeon->n_floors; i++)
         {
             struct dun_feature *feature = &dungeon->floors[i];
+            int current_feat = square(c, grid)->feat;
+            bool ok = true;
 
-            if (feature->chance > chance)
+            /* Make the change for testing */
+            square(c, grid)->feat = feature->feat;
+
+            /* Need to be passable */
+            if (!square_ispassable(c, grid)) ok = false;
+
+            /* Square can't hold objects */
+            if (object && !square_isobjectholding(c, grid)) ok = false;
+
+            /* Skip */
+            if (feature->chance <= chance) ok = false;
+
+            /* Revert the change */
+            square(c, grid)->feat = current_feat;
+
+            if (ok)
             {
                 feat = feature->feat;
                 break;
@@ -2077,7 +2094,7 @@ void square_destroy_door(struct chunk *c, struct loc *grid)
     int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_DIRT);
 
     square_remove_all_traps(c, grid);
-    square_set_floor(c, grid, feat);
+    square_set_floor(c, grid, feat, false);
 }
 
 
@@ -2109,7 +2126,7 @@ void square_tunnel_wall(struct chunk *c, struct loc *grid)
 {
     int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_DIRT);
 
-    square_set_floor(c, grid, feat);
+    square_set_floor(c, grid, feat, true);
 }
 
 
@@ -2117,7 +2134,7 @@ void square_destroy_wall(struct chunk *c, struct loc *grid)
 {
     int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_MUD);
 
-    square_set_floor(c, grid, feat);
+    square_set_floor(c, grid, feat, true);
 }
 
 
@@ -2125,7 +2142,7 @@ void square_smash_wall(struct chunk *c, struct loc *grid)
 {
     int i;
 
-    square_set_floor(c, grid, FEAT_FLOOR);
+    square_set_floor(c, grid, FEAT_FLOOR, false);
 
     for (i = 0; i < 8; i++)
     {
@@ -2150,7 +2167,7 @@ void square_smash_wall(struct chunk *c, struct loc *grid)
         }
 
         /* Remove it */
-        square_set_floor(c, &adj_grid, FEAT_FLOOR);
+        square_set_floor(c, &adj_grid, FEAT_FLOOR, false);
     }
 }
 
@@ -2200,7 +2217,7 @@ void square_destroy(struct chunk *c, struct loc *grid)
     else if (r < 100)
         square_set_feat(c, grid, FEAT_MAGMA);
     else
-        square_set_floor(c, grid, FEAT_FLOOR);
+        square_set_floor(c, grid, FEAT_FLOOR, false);
 }
 
 
@@ -2239,7 +2256,7 @@ void square_destroy_rubble(struct chunk *c, struct loc *grid)
 {
     int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_MUD);
 
-    square_set_floor(c, grid, feat);
+    square_set_floor(c, grid, feat, true);
 }
 
 
@@ -2381,7 +2398,7 @@ void square_dry_fountain(struct chunk *c, struct loc *grid)
 
 void square_clear_feat(struct chunk *c, struct loc *grid)
 {
-    square_set_floor(c, grid, FEAT_FLOOR);
+    square_set_floor(c, grid, FEAT_FLOOR, false);
 }
 
 

@@ -210,7 +210,7 @@ static void customize_features(struct chunk *c)
         int i, chance;
 
         /* Floors */
-        if (square_isfloor(c, &iter.cur))
+        if (square_isfloor(c, &iter.cur) && !square_ispitfloor(c, &iter.cur))
         {
             struct monster *mon = square_monster(c, &iter.cur);
 
@@ -227,11 +227,16 @@ static void customize_features(struct chunk *c)
                 /* Make the change for testing */
                 square(c, &iter.cur)->feat = feature->feat;
 
-                /* Damaging terrain */
-                if (mon && monster_hates_grid(c, mon, &iter.cur)) ok = false;
+                /* Damaging or blocking terrain */
+                if (mon && (monster_hates_grid(c, mon, &iter.cur) ||
+                    !square_ispassable(c, &iter.cur)))
+                {
+                    ok = false;
+                }
 
                 /* Square can't hold objects */
-                if (square_object(c, &iter.cur) && !square_isobjectholding(c, &iter.cur)) ok = false;
+                if (square_object(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
+                    ok = false;
 
                 /* Skip */
                 if (feature->chance <= chance) ok = false;
