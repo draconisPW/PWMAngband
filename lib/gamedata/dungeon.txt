@@ -107,6 +107,22 @@ rule-flags:UNDEAD
 rule-symbols:hl
 rule:3000:1
 
+# The Ettenmoors (boss: Bert/Bill/Tom)
+name:The Ettenmoors
+wpos:-6:30
+min-depth:18
+max-depth:30
+max-level:35
+flags:CAVERN | STREAMS
+floor:packed dirt:1000
+wall:mountain:1000
+rule:5000:0
+rule-flags:TROLL
+rule:3000:0
+rule-flags:GIANT
+rule-symbols:O
+rule:2000:1
+
 # The Sandworm Lair (boss: The Sandworm Queen)
 name:The Sandworm Lair
 wpos:40:-40
