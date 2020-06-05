@@ -66,6 +66,7 @@ struct projection
     int damage_cap;
     int msgt;
     bool obvious;
+    bool wake;
     int color;
     byte flags;
     char *threat;

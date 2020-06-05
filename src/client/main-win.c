@@ -590,7 +590,7 @@ static void save_prefs_aux(term_data *td, const char *sec_name)
     if (rc.top < 0) rc.top = 0;
 
     /* Get information about the placement of the window */
-    if (lpwndpl.flags & SW_SHOWMAXIMIZED)
+    if (lpwndpl.showCmd & SW_SHOWMAXIMIZED)
         td->maximized = true;
     else
         td->maximized = false;
@@ -2316,6 +2316,7 @@ static void init_windows(void)
     int i;
     term_data *td;
     char buf[MSG_LEN];
+    WINDOWPLACEMENT lpwndpl;
     HFONT editfont;
     MENUITEMINFO mii;
     HMENU hm;
@@ -2412,8 +2413,14 @@ static void init_windows(void)
             /* Activate the window */
             SetActiveWindow(td->w);
 
-            /* Bring window to top */
-            SetWindowPos(td->w, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            /* Bring window to top, place it correctly */
+            lpwndpl.length = sizeof(WINDOWPLACEMENT);
+            lpwndpl.showCmd = SW_SHOWNORMAL;
+            lpwndpl.rcNormalPosition.left = td->pos_x;
+            lpwndpl.rcNormalPosition.top = td->pos_y;
+            lpwndpl.rcNormalPosition.right = td->pos_x + td->size_wid;
+            lpwndpl.rcNormalPosition.bottom = td->pos_y + td->size_hgt;
+            SetWindowPlacement(td->w, &lpwndpl);
         }
     }
 
@@ -2446,8 +2453,14 @@ static void init_windows(void)
     /* Activate the main window */
     SetActiveWindow(td->w);
 
-    /* Bring main window back to top */
-    SetWindowPos(td->w, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    /* Bring window to top, place it correctly */
+    lpwndpl.length = sizeof(WINDOWPLACEMENT);
+    lpwndpl.showCmd = SW_SHOWNORMAL;
+    lpwndpl.rcNormalPosition.left = td->pos_x;
+    lpwndpl.rcNormalPosition.top = td->pos_y;
+    lpwndpl.rcNormalPosition.right = td->pos_x + td->size_wid;
+    lpwndpl.rcNormalPosition.bottom = td->pos_y + td->size_hgt;
+    SetWindowPlacement(td->w, &lpwndpl);
 
     if (gamma_correction > 0)
         build_gamma_table(gamma_correction);

@@ -816,6 +816,29 @@ static int calc_mon_feeling(struct chunk *c)
 
 
 /*
+ * Find a cave_profile by name
+ *
+ * name is the name of the cave_profile being looked for
+ */
+static const struct cave_profile *find_cave_profile(char *name)
+{
+    int i;
+
+    for (i = 0; i < z_info->profile_max; i++)
+    {
+        const struct cave_profile *profile;
+
+        profile = &cave_profiles[i];
+        if (!strcmp(name, profile->name))
+            return profile;
+    }
+
+    /* Not there */
+    return NULL;
+}
+
+
+/*
  * Do prime check for labyrinths
  *
  * depth is the depth where we're trying to generate a labyrinth
@@ -899,29 +922,6 @@ static bool arena_check(struct worldpos *wpos)
 
 
 /*
- * Find a cave_profile by name
- *
- * name is the name of the cave_profile being looked for
- */
-static const struct cave_profile *find_cave_profile(char *name)
-{
-    int i;
-
-    for (i = 0; i < z_info->profile_max; i++)
-    {
-        const struct cave_profile *profile;
-
-        profile = &cave_profiles[i];
-        if (!strcmp(name, profile->name))
-            return profile;
-    }
-
-    /* Not there */
-    return NULL;
-}
-
-
-/*
  * Choose a cave profile
  *
  * wpos is the coordinates of the cave the profile will be used to generate
@@ -929,6 +929,8 @@ static const struct cave_profile *find_cave_profile(char *name)
 static const struct cave_profile *choose_profile(struct worldpos *wpos)
 {
     const struct cave_profile *profile = NULL;
+    int moria_cutoff = find_cave_profile("moria")->cutoff;
+    int labyrinth_cutoff = find_cave_profile("labyrinth")->cutoff;
 
     /* Make the profile choice */
     if (wpos->depth > 0)
@@ -941,9 +943,9 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
             profile = find_cave_profile("arena");
         else if (cavern_check(wpos))
             profile = find_cave_profile("cavern");
-        else if (labyrinth_check(wpos))
+        else if (labyrinth_check(wpos) && (labyrinth_cutoff >= -1))
             profile = find_cave_profile("labyrinth");
-        else if ((wpos->depth >= 10) && (wpos->depth < 40) && one_in_(40))
+        else if ((wpos->depth >= 10) && (wpos->depth < 40) && one_in_(40) && (moria_cutoff >= -1))
             profile = find_cave_profile("moria");
         else
         {

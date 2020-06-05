@@ -598,7 +598,7 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
     }
 
     /* Always start with a well fed player */
-    p->timed[TMD_FOOD] = PY_FOOD_FULL - 10;
+    p->timed[TMD_FOOD] = PY_FOOD_FULL - 1000;
 
     /* Assume no feeling */
     p->feeling = -1;
@@ -640,6 +640,8 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
 
     for (i = 0; i < z_info->k_max; i++)
         add_autoinscription(p, i, connp->Client_setup.note_aware[i]);
+
+    p->cancel_firing = true;
 }
 
 

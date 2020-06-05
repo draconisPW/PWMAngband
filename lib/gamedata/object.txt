@@ -3127,7 +3127,7 @@ effect:CURE:BLIND
 effect:HEAL_HP
 dice:300+m35
 effect:NOURISH:INC_BY
-dice:2
+dice:1
 
 name:*Healing*
 graphics:!:d
@@ -3144,8 +3144,6 @@ effect:CURE:CONFUSED
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:1200
-effect:NOURISH:INC_BY
-dice:3
 
 name:Life
 graphics:!:d

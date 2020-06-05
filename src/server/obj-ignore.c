@@ -140,7 +140,7 @@ static void sense_object(struct player *p, struct object *obj)
     marker = object_marker(obj);
 
     /* Stop everything */
-    disturb(p, 0);
+    disturb(p);
 
     if (cursed) text = "cursed";
     else if (worthless) text = "worthless";

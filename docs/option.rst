@@ -217,6 +217,11 @@ Hide terrain description on status line ``hide_terrain``
 Disable Enter menu ``disable_enter``
   This option disables the Enter menu.
 
+..
+
+Sort monsters by experience in the monster list ``sort_exp``
+  This option sorts monsters by experience instead of depth in the monster list.
+
 Birth options
 -------------
 

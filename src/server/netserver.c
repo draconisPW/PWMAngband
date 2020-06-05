@@ -3630,7 +3630,7 @@ static int Receive_walk(int ind)
         /* Disturb if running or resting */
         if (p->upkeep->running || player_is_resting(p))
         {
-            disturb(p, 0);
+            disturb(p);
             return 1;
         }
 
@@ -5296,7 +5296,7 @@ static int Receive_jump(int ind)
         /* Disturb if running or resting */
         if (p->upkeep->running || player_is_resting(p))
         {
-            disturb(p, 0);
+            disturb(p);
             return 1;
         }
 
@@ -7472,7 +7472,7 @@ bool process_pending_commands(int ind)
         if (result == 0)
         {
             /* Hack -- if we tried to do something while resting, wake us up. */
-            if ((type != PKT_REST) && player_is_resting(p)) disturb(p, 0);
+            if ((type != PKT_REST) && player_is_resting(p)) disturb(p);
 
             /*
              * If we didn't have enough energy to execute this

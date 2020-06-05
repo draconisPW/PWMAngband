@@ -361,38 +361,13 @@ static bool describe_misc_magic(struct player *p, const bitflag flags[OF_SIZE])
 static bool describe_slays(struct player *p, const struct object *obj, bool fulldesc)
 {
     int i, count = 0;
-    bool *s = obj->known->slays, *known_slays = NULL;
-    bool weapon = (tval_is_melee_weapon(obj) || tval_is_mstaff(obj));
+    bool *s = obj->known->slays;
 
-    copy_slays(&known_slays, s);
-
-    /* Handle racial/class slays */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->slay_max; i++)
-        {
-            if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
-                append_slay(&known_slays, i);
-            if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
-                append_slay(&known_slays, i);
-        }
-    }
-
-    /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->slay_max; i++)
-        {
-            if (!player_has_temporary_slay(p, i)) continue;
-            append_slay(&known_slays, i);
-        }
-    }
-
-    if (!known_slays) return false;
+    if (!s) return false;
 
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (known_slays[i]) count++;
+        if (s[i]) count++;
     }
 
     my_assert(count >= 1);
@@ -402,7 +377,7 @@ static bool describe_slays(struct player *p, const struct object *obj, bool full
 
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (!known_slays[i]) continue;
+        if (!s[i]) continue;
         text_out(p, slays[i].name);
         if (slays[i].multiplier > 3) text_out(p, " (powerfully)");
         if (count > 1) text_out(p, ", ");
@@ -410,7 +385,6 @@ static bool describe_slays(struct player *p, const struct object *obj, bool full
         count--;
     }
 
-    mem_free(known_slays);
     return true;
 }
 
@@ -421,50 +395,13 @@ static bool describe_slays(struct player *p, const struct object *obj, bool full
 static bool describe_brands(struct player *p, const struct object *obj, bool fulldesc)
 {
     int i, count = 0;
-    bool *b = obj->known->brands, *known_brands = NULL;
-    bool weapon = (tval_is_melee_weapon(obj) || tval_is_mstaff(obj));
-    bool ammo = (p->state.ammo_tval == obj->tval);
+    bool *b = obj->known->brands;
 
-    copy_brands(&known_brands, b);
-
-    /* Handle racial/class brands */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->brand_max; i++)
-        {
-            if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
-                append_brand(&known_brands, i);
-            if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
-                append_brand(&known_brands, i);
-        }
-    }
-
-    /* Handle polymorphed players */
-    if (weapon && p->poly_race)
-    {
-        for (i = 0; i < z_info->mon_blows_max; i++)
-            append_brand(&known_brands, get_poly_brand(p->poly_race, i));
-    }
-
-    /* Hack -- extract temp branding */
-    if (ammo && p->timed[TMD_BOWBRAND])
-        append_brand(&known_brands, get_bow_brand(&p->brand));
-
-    /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->brand_max; i++)
-        {
-            if (!player_has_temporary_brand(p, i)) continue;
-            append_brand(&known_brands, i);
-        }
-    }
-
-    if (!known_brands) return false;
+    if (!b) return false;
 
     for (i = 0; i < z_info->brand_max; i++)
     {
-        if (known_brands[i]) count++;
+        if (b[i]) count++;
     }
 
     my_assert(count >= 1);
@@ -474,7 +411,7 @@ static bool describe_brands(struct player *p, const struct object *obj, bool ful
 
     for (i = 0; i < z_info->brand_max; i++)
     {
-        if (!known_brands[i]) continue;
+        if (!b[i]) continue;
         if (brands[i].desc_adjective)
         {
             text_out(p, brands[i].desc_adjective);
@@ -486,7 +423,6 @@ static bool describe_brands(struct player *p, const struct object *obj, bool ful
         count--;
     }
 
-    mem_free(known_brands);
     return true;
 }
 
@@ -854,7 +790,7 @@ static int calc_damage(struct player *p, struct player_state *state, const struc
     if (!weapon) dam *= multiplier;
 
     /* Apply missile to-dam from temp branding (x10) */
-    if (!weapon && p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam * 10;
+    if (tval_is_ammo(obj) && p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam * 10;
 
     /* Apply missile critical hits */
     if (!weapon)
@@ -914,37 +850,34 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     if (ammo && known_bow)
         copy_brands(&total_brands, known_bow->brands);
 
-    /* Handle racial/class brands */
-    if (weapon)
+    /* Brands */
+    for (i = 0; i < z_info->brand_max; i++)
     {
-        for (i = 0; i < z_info->brand_max; i++)
-        {
-            if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
-                append_brand(&total_brands, i);
-            if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
-                append_brand(&total_brands, i);
-        }
+        /* Handle class brands */
+        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
+            append_brand(&total_brands, i);
+
+        /* Only for melee attacks */
+        if (!weapon) continue;
+
+        /* Handle racial brands */
+        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
+            append_brand(&total_brands, i);
+
+        /* Temporary brands */
+        if (player_has_temporary_brand(p, i))
+            append_brand(&total_brands, i);
     }
 
-    /* Handle polymorphed players */
+    /* Temporary branding (missile attacks) */
+    if (tval_is_ammo(obj) && p->timed[TMD_BOWBRAND])
+        append_brand(&total_brands, get_bow_brand(&p->brand));
+
+    /* Handle polymorphed players (melee attacks) */
     if (weapon && p->poly_race)
     {
         for (i = 0; i < z_info->mon_blows_max; i++)
             append_brand(&total_brands, get_poly_brand(p->poly_race, i));
-    }
-
-    /* Hack -- extract temp branding */
-    if (!weapon && p->timed[TMD_BOWBRAND])
-        append_brand(&total_brands, get_bow_brand(&p->brand));
-
-    /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->brand_max; i++)
-        {
-            if (!player_has_temporary_brand(p, i)) continue;
-            append_brand(&total_brands, i);
-        }
     }
 
     /* Get the slays */
@@ -953,26 +886,21 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     if (ammo && known_bow)
         copy_slays(&total_slays, known_bow->slays);
 
-    /* Handle racial/class slays */
-    if (weapon)
+    /* Slays */
+    for (i = 0; i < z_info->slay_max; i++)
     {
-        for (i = 0; i < z_info->slay_max; i++)
-        {
-            if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
-                append_slay(&total_slays, i);
-            if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
-                append_slay(&total_slays, i);
-        }
-    }
+        /* Only for melee attacks */
+        if (!weapon) continue;
 
-    /* Hack -- extract temp branding */
-    if (weapon)
-    {
-        for (i = 0; i < z_info->slay_max; i++)
-        {
-            if (!player_has_temporary_slay(p, i)) continue;
+        /* Handle racial/class slays */
+        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
             append_slay(&total_slays, i);
-        }
+        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
+            append_slay(&total_slays, i);
+
+        /* Temporary slays */
+        if (player_has_temporary_slay(p, i))
+            append_slay(&total_slays, i);
     }
 
     /* Melee weapons may get slays and brands from other items */

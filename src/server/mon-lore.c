@@ -1402,7 +1402,6 @@ void lore_append_friends(struct player *p, const struct monster_race *race,
 void lore_append_spells(struct player *p, const struct monster_race *race,
     const struct monster_lore *lore, bitflag known_flags[RF_SIZE])
 {
-    int average_frequency;
     monster_sex_t msex = MON_SEX_NEUTER;
     bool breath = false;
     bool magic = false;
@@ -1466,10 +1465,10 @@ void lore_append_spells(struct player *p, const struct monster_race *race,
     }
 
     /* End the sentence about innate/other spells */
-    if (breath || magic)
+    if ((breath || magic) && race->freq_spell)
     {
         /* Calculate total casting and average frequency */
-        average_frequency = race->freq_spell;
+        int average_frequency = race->freq_spell;
 
         /* Describe the spell frequency */
         if (lore->spell_freq_known)
@@ -1483,7 +1482,8 @@ void lore_append_spells(struct player *p, const struct monster_race *race,
         /* Guess at the frequency */
         else if (lore->cast_innate || lore->cast_spell)
         {
-            average_frequency = ((average_frequency + 9) / 10) * 10;
+            average_frequency = MAX(((average_frequency + 9) / 10) * 10, 1);
+
             text_out(p, "; about ");
             text_out_c(p, COLOUR_L_GREEN, "1");
             text_out(p, " time in ");

@@ -130,7 +130,7 @@ static void recharged_notice(struct player *p, const struct object *obj, bool al
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_BASE);
 
     /* Disturb the player */
-    disturb(p, 0);
+    disturb(p);
 
     /* Notify the player */
     if (obj->number > 1)
@@ -797,7 +797,7 @@ static void process_player_world(struct player *p, struct chunk *c)
         {
             /* Message */
             msg(p, "You faint from the lack of food.");
-            disturb(p, 1);
+            disturb(p);
 
             /* Hack -- faint (bypass free action) */
             player_inc_timed(p, TMD_PARALYZED, 1 + randint0(5), true, false);
@@ -2156,7 +2156,7 @@ bool level_keep_allocated(struct chunk *c)
 static void save_game(struct player *p)
 {
     /* Disturb the player */
-    disturb(p, 1);
+    disturb(p);
 
     /* Clear messages */
     message_flush(p);
@@ -2425,7 +2425,7 @@ void exit_game_panic(void)
         }
 
         /* Hack -- turn off some things */
-        disturb(p, 1);
+        disturb(p);
 
         /* Hack -- delay death */
         if (p->chp < 0) p->is_dead = false;

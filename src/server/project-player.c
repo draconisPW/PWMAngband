@@ -86,7 +86,7 @@ int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resis
         /* Hack -- ice damage checks against cold resistance */
         int res_type = ((type == PROJ_ICE)? PROJ_COLD: type);
 
-        resist = p->state.el_info[res_type].res_level;
+        resist = ((res_type < ELEM_MAX)? p->state.el_info[res_type].res_level: 0);
 
         /* Notice element stuff */
         equip_learn_element(p, res_type);
@@ -1711,7 +1711,7 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     obvious = context.obvious;
 
     /* Disturb */
-    disturb(p, 1);
+    disturb(p);
 
     /* Track this player */
     *did_hit = true;

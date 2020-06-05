@@ -630,7 +630,7 @@ void run_step(struct player *p, int dir)
         if (run_test(p, c))
         {
             /* Disturb */
-            disturb(p, 0);
+            disturb(p);
             return;
         }
     }

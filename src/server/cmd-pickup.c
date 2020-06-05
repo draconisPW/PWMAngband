@@ -88,7 +88,7 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
         char buf[100];
 
         /* Disturb */
-        disturb(p, 0);
+        disturb(p);
 
         /* Build a message */
         strnfmt(buf, sizeof(buf), "You have found %d gold piece%s worth of ", total_gold,
@@ -750,7 +750,7 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
             bool auto_pickup;
 
             /* Hack -- disturb */
-            if (!p->ghost) disturb(p, 0);
+            if (!p->ghost) disturb(p);
 
             /* Hack -- ghosts don't pick up gold automatically */
             auto_pickup = (pickup? true: false);

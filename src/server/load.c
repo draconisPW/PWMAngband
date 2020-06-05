@@ -1699,8 +1699,11 @@ int rd_player_traps(struct player *p)
         if (loc_is_zero(&trap->grid)) break;
 
         /* Put the trap at the front of the grid trap list */
-        trap->next = square_p(p, &trap->grid)->trap;
-        square_p(p, &trap->grid)->trap = trap;
+        if (player_square_in_bounds_fully(p, &trap->grid))
+        {
+            trap->next = square_p(p, &trap->grid)->trap;
+            square_p(p, &trap->grid)->trap = trap;
+        }
     }
 
     mem_free(trap);

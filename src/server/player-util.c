@@ -161,7 +161,7 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     }
 
     /* Disturb */
-    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 1);
+    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p);
 
     /* Disruption shield: damage is subtracted from mana first */
     if (p->timed[TMD_MANASHIELD] && (p->csp > 0))
@@ -534,7 +534,7 @@ void player_update_light(struct player *p)
             /* The light is now out */
             else if (obj->timeout == 0)
             {
-                disturb(p, 0);
+                disturb(p);
                 msg(p, "Your light has gone out!");
 
                 /* If it's a torch, now is the time to delete it */
@@ -548,7 +548,7 @@ void player_update_light(struct player *p)
             /* The light is getting dim */
             else if ((obj->timeout < 50) && (!(obj->timeout % 20)))
             {
-                disturb(p, 0);
+                disturb(p);
                 msg(p, "Your light is growing faint.");
             }
         }
@@ -915,7 +915,7 @@ void player_resting_complete_special(struct player *p)
     }
 
     /* Stop resting */
-    if (done) disturb(p, 0);
+    if (done) disturb(p);
 }
 
 
@@ -1097,23 +1097,15 @@ void cancel_running(struct player *p)
  *
  * All disturbance cancels repeated commands, resting, and running.
  */
-void disturb(struct player *p, int stop_search)
+void disturb(struct player *p)
 {
-    bool cancel_firing = true;
-
     /* Dungeon Master is never disturbed */
     /*if (p->dm_flags & DM_NEVER_DISTURB) return;*/
 
-    /* Hack -- do not cancel fire_till_kill on appearance or movement */
-    if (stop_search >= 2)
-    {
-        stop_search -= 2;
-        cancel_firing = false;
-    }
-
     /* Cancel repeated commands */
     p->digging_request = 0;
-    if (cancel_firing) p->firing_request = 0;
+    if (p->cancel_firing) p->firing_request = 0;
+    else p->cancel_firing = true;
 
     /* Cancel Resting */
     if (player_is_resting(p))
@@ -1125,22 +1117,21 @@ void disturb(struct player *p, int stop_search)
     /* Cancel running */
     if (p->upkeep->running) cancel_running(p);
 
-    /* Cancel stealth mode if requested */
-    if (stop_search && p->stealthy)
+    /* Cancel stealth mode */
+    if (p->stealthy)
     {
         p->stealthy = false;
         p->upkeep->update |= (PU_BONUS);
         p->upkeep->redraw |= (PR_STATE);
     }
 
-    /* Get out of icky screen if requested */
-    if (stop_search && p->screen_save_depth && OPT(p, disturb_icky))
+    /* Get out of icky screen */
+    if (p->screen_save_depth && OPT(p, disturb_icky))
         Send_term_info(p, NTERM_HOLD, 1);
 
-    /* Cancel looking around if requested */
-    if (stop_search &&
-        (((p->offset_grid.y != p->old_offset_grid.y) && (p->old_offset_grid.y != -1)) ||
-        ((p->offset_grid.x != p->old_offset_grid.x) && (p->old_offset_grid.x != -1))))
+    /* Cancel looking around */
+    if (((p->offset_grid.y != p->old_offset_grid.y) && (p->old_offset_grid.y != -1)) ||
+        ((p->offset_grid.x != p->old_offset_grid.x) && (p->old_offset_grid.x != -1)))
     {
         /* Cancel input */
         Send_term_info(p, NTERM_HOLD, 0);
@@ -1180,7 +1171,7 @@ void search(struct player *p, struct chunk *c)
         {
             msg(p, "You have found a secret door.");
             place_closed_door(c, &iter.cur);
-            disturb(p, 0);
+            disturb(p);
         }
 
         /* Traps on chests */
@@ -1192,7 +1183,7 @@ void search(struct player *p, struct chunk *c)
             if (!ignore_item_ok(p, obj))
             {
                 msg(p, "You have discovered a trap on the chest!");
-                disturb(p, 0);
+                disturb(p);
             }
         }
     }
@@ -1665,7 +1656,7 @@ void recall_player(struct player *p, struct chunk *c)
     }
 
     /* Disturbing! */
-    disturb(p, 0);
+    disturb(p);
 
     /* Messages */
     msgt(p, MSG_TPLEVEL, msg_self);

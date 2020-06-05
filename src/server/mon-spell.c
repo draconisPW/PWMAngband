@@ -277,7 +277,7 @@ void do_mon_spell(struct player *p, struct chunk *c, struct monster *target_mon,
     }
 
     /* Tell the player what's going on */
-    disturb(p, 1);
+    disturb(p);
     spell_message(p, mon, spell, seen, hits, target_mon);
 
     if (hits)

@@ -455,7 +455,10 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             if (OPT(p, disturb_near) && (mon->level > 0) && pvm_check(p, mon) &&
                 !monster_is_camouflaged(mon))
             {
-                disturb(p, (p->firing_request? 3: 1));
+                /* Hack -- do not cancel fire_till_kill on appearance */
+                if (p->firing_request) p->cancel_firing = false;
+
+                disturb(p);
             }
 
             /* Redraw */
@@ -1684,7 +1687,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
                  !p->firing_request)
             {
                 /* Disturb */
-                disturb(p, 1);
+                disturb(p);
             }
         }
     }

@@ -2838,7 +2838,7 @@ static bool effect_handler_DEEP_DESCENT(effect_handler_context_t *context)
         }
 
         /* Change location */
-        disturb(context->origin->player, 0);
+        disturb(context->origin->player);
         msgt(context->origin->player, MSG_TPLEVEL, "The floor opens beneath you!");
         msg_misc(context->origin->player, " sinks through the floor!");
         dungeon_change_level(context->origin->player, context->cave, &wpos, LEVEL_RAND);
@@ -3162,6 +3162,46 @@ static bool effect_handler_DETECT_EVIL(effect_handler_context_t *context)
     }
     else if (context->aware)
         msg(context->origin->player, "You sense no evil creatures.");
+
+    context->ident = true;
+    return true;
+}
+
+
+/*
+ * Detect lmonsters susceptible to fear around the player. The height to detect
+ * above and below the player is context->y, the width either side of
+ * the player context->x.
+ */
+static bool effect_handler_DETECT_FEARFUL_MONSTERS(effect_handler_context_t *context)
+{
+    bool monsters = detect_monsters(context->origin->player, context->y, context->x,
+        monster_is_fearful, 0, NULL);
+
+    /* Note effects and clean up */
+    if (monsters)
+    {
+        /* Hack -- fix the monsters */
+        update_monsters(context->cave, false);
+
+        /* Full refresh (includes monster/object lists) */
+        context->origin->player->full_refresh = true;
+
+        /* Handle Window stuff */
+        handle_stuff(context->origin->player);
+
+        /* Normal refresh (without monster/object lists) */
+        context->origin->player->full_refresh = false;
+
+        /* Describe, and wait for acknowledgement */
+        msg(context->origin->player, "You sense the presence of fearful creatures!");
+        party_msg_near(context->origin->player, " senses the presence of fearful creatures!");
+
+        /* Hack -- pause */
+        if (OPT(context->origin->player, pause_after_detect)) Send_pause(context->origin->player);
+    }
+    else if (context->aware)
+        msg(context->origin->player, "You sense no fearful creatures.");
 
     context->ident = true;
     return true;
@@ -3532,7 +3572,7 @@ static bool effect_handler_DETECT_TRAPS(effect_handler_context_t *context)
                 if (!ignore_item_ok(context->origin->player, obj))
                 {
                     /* Notice it */
-                    disturb(context->origin->player, 0);
+                    disturb(context->origin->player);
 
                     /* We found something to detect */
                     detect = true;

@@ -363,7 +363,10 @@ static void project_monster_teleport_away(project_monster_handler_context_t *con
     if (context->seen) rf_on(context->lore->flags, flag);
 
     if (rf_has(context->mon->race->flags, flag))
+    {
         context->teleport_distance = context->dam;
+        monster_wake(context->origin->player, context->mon, false, 100);
+    }
     else
         context->skipped = true;
 
@@ -385,7 +388,10 @@ static void project_monster_teleport_away(project_monster_handler_context_t *con
 static void project_monster_scare(project_monster_handler_context_t *context, int flag)
 {
     if (rf_has(context->mon->race->flags, flag))
+    {
         context->mon_timed[MON_TMD_FEAR] = context->dam;
+        monster_wake(context->origin->player, context->mon, false, 100);
+    }
     else
         context->skipped = true;
 
@@ -1012,9 +1018,6 @@ static void project_monster_handler_MON_HEAL(project_monster_handler_context_t *
     }
 
     source_monster(mon, context->mon);
-
-    /* Wake up, become aware */
-    monster_wake(context->origin->player, context->mon, false, 100);
     mon_clear_timed(context->origin->player, context->mon, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
 
     /* Heal */
@@ -1966,6 +1969,9 @@ void project_m(struct source *origin, int r, struct chunk *c, struct loc *grid, 
         context.skipped = true;
         context.dam = 0;
     }
+
+    /* Wake monster if required */
+    if (projections[typ].wake) monster_wake(origin->player, context.mon, false, 100);
 
     /* Absolutely no effect */
     if (context.skipped) return;

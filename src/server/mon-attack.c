@@ -353,7 +353,7 @@ bool make_ranged_attack(struct source *who, struct chunk *c, struct monster *mon
     if (monster_is_camouflaged(mon)) become_aware(who->player, c, mon);
 
     /* Cast the spell. */
-    disturb(who->player, 1);
+    disturb(who->player);
     do_mon_spell(who->player, c, who->monster, thrown_spell, mon, seen);
 
     /* Remember what the monster did */
@@ -542,7 +542,7 @@ bool make_attack_normal(struct monster *mon, struct source *who)
             const char* flav = NULL;
 
             /* Always disturbing */
-            disturb(who->player, 1);
+            disturb(who->player);
 
             /* Hack -- apply "protection from evil" */
             if ((who->player->timed[TMD_PROTEVIL] > 0) && !who->monster)
@@ -731,7 +731,7 @@ bool make_attack_normal(struct monster *mon, struct source *who)
         else if (visible && method->miss)
         {
             /* Disturbing */
-            disturb(who->player, 1);
+            disturb(who->player);
 
             /* Message */
             msgt(who->player, MSG_MISS, "%s misses %s.", m_name, target_m_name);

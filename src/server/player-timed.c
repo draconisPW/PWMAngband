@@ -500,7 +500,7 @@ static bool set_bow_brand(struct player *p, int v)
     if (!notice) return false;
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the "brand" */
     p->upkeep->redraw |= (PR_STATUS);
@@ -551,7 +551,7 @@ static bool player_set_timed_perma(struct player *p, int idx)
     if (!notify) return false;
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Reveal hidden players */
     if (p->k_idx) aware_player(p, p);
@@ -729,7 +729,7 @@ static bool set_adrenaline(struct player *p, int v)
     p->upkeep->update |= (PU_BONUS);
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the "adrenaline" */
     p->upkeep->redraw |= (PR_STATUS);
@@ -805,7 +805,7 @@ static bool set_biofeedback(struct player *p, int v)
     p->upkeep->update |= (PU_BONUS);
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the "biofeedback" */
     p->upkeep->redraw |= (PR_STATUS);
@@ -961,7 +961,7 @@ static bool set_harmony(struct player *p, int v)
     p->upkeep->update |= (PU_BONUS);
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the status */
     p->upkeep->redraw |= (PR_STATUS);
@@ -1142,7 +1142,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     if (notify)
     {
         /* Disturb */
-        if (!no_disturb) disturb(p, 0);
+        if (!no_disturb) disturb(p);
 
         /* Reveal hidden players */
         if (p->k_idx) aware_player(p, p);

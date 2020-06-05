@@ -326,7 +326,7 @@ static int ranged_damage(struct player *p, struct object *missile, struct object
         dam *= might;
     }
     dam *= mult;
-    if (p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam;
+    if (tval_is_ammo(missile) && p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam;
 
     return dam;
 }
@@ -724,7 +724,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         mon_clear_timed(p, target->monster, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
     }
     else
-        disturb(target->player, 0);
+        disturb(target->player);
 
     /* See if the player hit */
     success = test_hit(chance, ac, visible);
@@ -763,7 +763,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         int best_mult = 1;
 
         /* Handle polymorphed players + temp branding */
-        improve_attack_modifier(p, NULL, target, &best_mult, &seffects, verb, sizeof(verb), false);
+        player_attack_modifier(p, target, &best_mult, &seffects, verb, sizeof(verb), false, false);
 
         /* Best attack from all slays or brands on all non-launcher equipment */
         for (i = 2; i < (size_t)p->body.count; i++)
@@ -1159,7 +1159,7 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
     }
 
     /* Disturb the player */
-    disturb(p, 0);
+    disturb(p);
 
     /* Calculate number of blows */
     num_blows = (p->state.num_blows + p->frac_blow) / 100;
@@ -2022,8 +2022,8 @@ static struct attack_result make_ranged_shot(struct player *p, struct object *am
 
     result.success = true;
 
-    improve_attack_modifier(p, NULL, target, &best_mult, &result.effects, result.verb,
-        sizeof(result.verb), true);
+    player_attack_modifier(p, target, &best_mult, &result.effects, result.verb,
+        sizeof(result.verb), true, true);
     improve_attack_modifier(p, ammo, target, &best_mult, &result.effects, result.verb,
         sizeof(result.verb), true);
     if (bow)
@@ -2078,8 +2078,8 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
 
     result.success = true;
 
-    improve_attack_modifier(p, NULL, target, &best_mult, &result.effects, result.verb,
-        sizeof(result.verb), true);
+    player_attack_modifier(p, target, &best_mult, &result.effects, result.verb,
+        sizeof(result.verb), true, tval_is_ammo(obj));
     improve_attack_modifier(p, obj, target, &best_mult, &result.effects, result.verb,
         sizeof(result.verb), true);
 
@@ -2313,7 +2313,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
         msg(p, "You have nothing to fire with.");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -2332,7 +2332,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
         msg(p, "You have no ammunition in the quiver to fire.");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -2340,7 +2340,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     if (!target_set_closest(p, TARGET_KILL | TARGET_QUIET))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -2348,7 +2348,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     if (!do_cmd_fire(p, dir, ammo->oidx))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 

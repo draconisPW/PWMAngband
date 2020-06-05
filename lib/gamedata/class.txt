@@ -2047,9 +2047,10 @@ book:shadow book:town:[Shadows for Beginners]:5:shadow
 equip:shadow book:[Shadows for Beginners]:1:1:1
 
 spell:Seek Battle:1:1:15:2:0
-effect:DETECT_LIVING_MONSTERS
+effect:DETECT_FEARFUL_MONSTERS
 effect-yx:22:40
-desc:Detects all living monsters in the immediate area, for one turn only.
+desc:Detects all monsters susceptible to fear in the immediate area,
+desc: for one turn only.
 
 spell:Berserk Strength:3:2:20:4:0
 effect:TIMED_INC:SHERO:0:5

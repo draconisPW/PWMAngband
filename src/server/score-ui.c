@@ -24,7 +24,7 @@
 /*
  * Display the scores in a given range.
  */
-static void display_scores_aux(ang_file *fff, const high_score scores[], int from, int to,
+static void display_scores_aux(ang_file *fff, const struct high_score scores[], int from, int to,
     int highlight)
 {
     int j, place;
@@ -49,7 +49,7 @@ static void display_scores_aux(ang_file *fff, const high_score scores[], int fro
     {
         char out_val[160];
         char tmp_val[160];
-        const high_score *score = &scores[j];
+        const struct high_score *score = &scores[j];
         char attr;
         int clev, mlev, cdun, mdun;
         const char *user, *gold, *when, *aged;
@@ -127,8 +127,8 @@ static void display_scores_aux(ang_file *fff, const high_score scores[], int fro
 void do_cmd_knowledge_scores(struct player *p, int line)
 {
     int j;
-    high_score the_score;
-    high_score scores[MAX_HISCORES];
+    struct high_score the_score;
+    struct high_score scores[MAX_HISCORES];
     ang_file *fff;
     char file_name[MSG_LEN];
 

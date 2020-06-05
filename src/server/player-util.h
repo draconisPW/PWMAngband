@@ -82,7 +82,7 @@ extern bool player_is_immune(struct player *p, int element);
 extern bool player_can_cast(struct player *p, bool show_msg);
 extern bool player_book_has_unlearned_spells(struct player *p);
 extern void cancel_running(struct player *p);
-extern void disturb(struct player *p, int stop_search);
+extern void disturb(struct player *p);
 extern void search(struct player *p, struct chunk *c);
 extern bool has_bowbrand(struct player *p, bitflag type, bool blast);
 extern bool can_swim(struct player *p);

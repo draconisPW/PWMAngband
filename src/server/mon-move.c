@@ -1661,7 +1661,7 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
                 msg(who->player, "You hear a door burst open!");
 
                 /* Disturb if necessary */
-                if (!who->monster && OPT(who->player, disturb_bash)) disturb(who->player, 0);
+                if (!who->monster && OPT(who->player, disturb_bash)) disturb(who->player);
 
                 /* Note changes to viewable region */
                 note_viewable_changes(&c->wpos, grid);
@@ -2072,7 +2072,12 @@ static void monster_turn_move(struct source *who, struct chunk *c, struct monste
         {
             /* Disturb (except townies, friendlies and hidden mimics) */
             if ((mon->level > 0) && pvm_check(who->player, mon) && !monster_is_camouflaged(mon))
-                disturb(who->player, (who->player->firing_request? 2: 0));
+            {
+                /* Hack -- do not cancel fire_till_kill on movement */
+                if (who->player->firing_request) who->player->cancel_firing = false;
+
+                disturb(who->player);
+            }
         }
     }
 }

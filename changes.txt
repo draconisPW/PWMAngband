@@ -81,6 +81,11 @@ Angband 4.2.0:
 - Add menu for throwing items
 - Adjust monster speed in lore
 - Sort slays/brands by damage
+- Give the teleportation curse a message
+- Make winners appear first in hall of fame
+- Add option to sort monsters by experience instead of depth in the monster list
+- Allow alter command to close doors and open chests
+- Only describe brands and slays that come from the object
 
 PWMAngband:
 
@@ -174,7 +179,11 @@ Angband 4.2.0:
 - Allow "=g<number>" inscription to limit the number of items automatically
   picked up
 - Adjust digestion rates, add mushrooms of Purging in the General Store
-- New dungeon: The Ettenmoors (home of trolls)
+- Drop grid target after a monster vanishes from view
+- Make more things wake monsters
+- Enable turning labyrinths and moria levels off completely
+- Make curse activation disturb the player
+- Reduce food value of healing potions
 
 PWMAngband:
 
@@ -204,6 +213,9 @@ PWMAngband:
 - Rework FAST_THROW so it gives extra might instead of extra shots, give it to
   dragons and hydras
 - Give magic shots, rocks, shurikens and boomerangs the THROWING flag
+- New dungeon: The Ettenmoors (home of trolls)
+- Make TMD_BOWBRAND work on missiles only (both fired and thrown)
+- Make class brands work on ranged attacks
 
 Bugs fixed
 ----------
@@ -230,6 +242,7 @@ PWMAngband:
 - Fix crash in rd_objects_aux()
 - Allow fuzzy kind searching to use exact name by prefixing the search with '#'
 - Fix item combination not redrawing the floor
+- Fix crash in rd_player_traps()
 
 Coding changes
 --------------
@@ -257,6 +270,9 @@ Angband 4.2.0:
 - Changed message_color_define() so there's only one entry per message type for
   the color
 - Stack items when dropping
+- Add whether a projection wakes a monster to struct projections
+- Use SetWindowPlacement when re-opening the game in Windows
+- Remove disturb() argument
 
 PWMAngband:
 
