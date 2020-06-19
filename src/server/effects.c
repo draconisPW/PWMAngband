@@ -2488,6 +2488,8 @@ static bool effect_handler_CURSE_ARMOR(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
+        object_know_curses(obj);
+        object_check_for_ident(context->origin->player, obj);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
@@ -2541,6 +2543,8 @@ static bool effect_handler_CURSE_WEAPON(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
+        object_know_curses(obj);
+        object_check_for_ident(context->origin->player, obj);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
@@ -3194,14 +3198,14 @@ static bool effect_handler_DETECT_FEARFUL_MONSTERS(effect_handler_context_t *con
         context->origin->player->full_refresh = false;
 
         /* Describe, and wait for acknowledgement */
-        msg(context->origin->player, "You sense the presence of fearful creatures!");
+        msg(context->origin->player, "These monsters could provide good sport.");
         party_msg_near(context->origin->player, " senses the presence of fearful creatures!");
 
         /* Hack -- pause */
         if (OPT(context->origin->player, pause_after_detect)) Send_pause(context->origin->player);
     }
     else if (context->aware)
-        msg(context->origin->player, "You sense no fearful creatures.");
+        msg(context->origin->player, "You smell no fear in the air.");
 
     context->ident = true;
     return true;
@@ -6280,9 +6284,18 @@ static bool effect_handler_STRIKE(effect_handler_context_t *context)
     /* Ask for a target; if no direction given, the player is struck  */
     if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
         target_get(context->origin->player, &target);
+    else
+    {
+        msg(context->origin->player, "You must have a target.");
+        return false;
+    }
 
     /* Enforce line of sight */
-    if (!los(context->cave, &context->origin->player->grid, &target)) return false;
+    if (!projectable(context->origin->player, context->cave, &context->origin->player->grid,
+        &target, PROJECT_NONE, true) || !square_isknown(context->origin->player, &target))
+    {
+        return false;
+    }
 
     /* Aim at the target. Hurt items on floor. */
     context->origin->player->current_sound = -2;
@@ -6701,7 +6714,7 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     /* Actually teleport the object to the player inventory */
     teled = object_new();
     object_copy(teled, obj);
-    assess_object(q, teled);
+    assess_object(q, teled, true);
     inven_carry(q, teled, true, false);
 
     /* Combine the pack */

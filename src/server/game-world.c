@@ -432,10 +432,8 @@ static void process_world(struct player *p, struct chunk *c)
     /* Daybreak/Nighfall in towns or wilderness */
     if ((p->wpos.depth == 0) && !(turn.turn % ((10L * z_info->day_length) / 2)))
     {
-        bool dawn;
-
         /* Check for dawn */
-        dawn = (!(turn.turn % (10L * z_info->day_length)));
+        bool dawn = (!(turn.turn % (10L * z_info->day_length)));
 
         dusk_or_dawn(p, c, dawn);
 
@@ -1282,7 +1280,7 @@ static void process_various(void)
 
                     /* Delete mimicked features */
                     if (mon->race->base == lookup_monster_base("feature mimic"))
-                        square_set_feat(c, &mon->grid, mon->feat);
+                        square_set_floor(c, &mon->grid, mon->feat, true);
                 }
 
                 /* Wipe the monster list */
@@ -1580,12 +1578,13 @@ static void generate_new_level(struct player *p)
          */
         case LEVEL_OUTSIDE_RAND:
         {
-            /* Make sure we aren't in an "icky" location */
+            /* Make sure we aren't in an "icky" or damaging location */
             do
             {
                 loc_init(&grid, rand_range(1, c->width - 2), rand_range(1, c->height - 2));
             }
-            while (square_isvault(c, &grid) || !square_ispassable(c, &grid));
+            while (square_isvault(c, &grid) || !square_ispassable(c, &grid) ||
+                square_isdamaging(c, &grid));
             break;
         }
     }

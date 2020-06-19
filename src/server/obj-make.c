@@ -1843,7 +1843,7 @@ void acquirement(struct player *p, struct chunk *c, int num, quark_t quark)
         if (quark > 0) nice_obj->note = quark;
 
         /* Drop the object */
-        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_FADE, false);
+        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_CARRY, false);
     }
 }
 
@@ -1883,6 +1883,27 @@ struct object_kind *money_kind(const char *name, int value)
 
 
 /*
+ * This table provides for different gold drop rates at different dungeon depths.
+ */
+static u16b level_golds[] =
+{
+    10, 20, 25, 30, 35, 40, 50, 50, 50, 50, /* Town - 450' */
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 500' - 950' */
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 1000' - 1450' */
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 1500' - 1950' */
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 2000' - 2450' */
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 2500' - 2950' */
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 3000' - 3450' */
+    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 3500' - 3950' */
+    50, 51, 52, 53, 54, 55, 56, 57, 58, 59, /* 4000' - 4450' */
+    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, /* 4500' - 4950' */
+    70, 70, 70, 70, 70, 70, 70, 70, 70, 70, /* 5000' - 5450' */
+    70, 70, 70, 70, 70, 70, 70, 70, 70, 70, /* 5500' - 5950' */
+    70, 70, 70, 70, 70, 70, 70, 70          /* 6000' - 6350' */
+};
+
+
+/*
  * Make a money object
  *
  * lev the dungeon level
@@ -1908,18 +1929,10 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     if (p && (cfg_no_selling || OPT(p, birth_no_selling)))
     {
         /* Classic method: multiply by 5 in the dungeon */
-        if ((cfg_gold_drop_noselling == 0) && (p->wpos.depth > 0)) value *= 5;
+        if (cfg_gold_drop_vanilla && (p->wpos.depth > 0)) value *= 5;
 
-        /* Legacy method: multiply by 5 starting at depth 5 */
-        else if ((cfg_gold_drop_noselling == -1) && (p->wpos.depth >= 5)) value *= 5;
-
-        /* Linear method: multiply by a factor depending on depth */
-        else
-        {
-            int boost = value * cfg_gold_drop_noselling * MIN(p->wpos.depth, 100) / 100;
-
-            value += boost;
-        }
+        /* PWMAngband method: multiply by a depth dependent factor */
+        else value = (value * level_golds[p->wpos.depth]) / 10;
     }
 
     /* Cap gold at max short (or alternatively make pvals s32b) */

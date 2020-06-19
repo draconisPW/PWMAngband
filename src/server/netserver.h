@@ -146,7 +146,7 @@ extern int Send_spell_info(struct player *p, int book, int i, const char *out_va
     spell_flags *flags);
 extern int Send_book_info(struct player *p, int book, const char *name);
 extern int Send_floor(struct player *p, byte num, const struct object *obj,
-    struct object_xtra *info_xtra);
+    struct object_xtra *info_xtra, byte force);
 extern int Send_special_other(struct player *p, char *header, byte peruse, bool protect);
 extern int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number,
     byte owned, s32b price, u16b tval, byte max, s16b bidx, const char *name);

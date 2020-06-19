@@ -520,7 +520,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                 if (query == 'r')
                 {
                     msg(p, "You see:");
-                    display_floor(p, c, floor_list, floor_num);
+                    display_floor(p, c, floor_list, floor_num, false);
                     show_floor(p, OLIST_WEIGHT | OLIST_GOLD);
                     mem_free(floor_list);
                     return false;

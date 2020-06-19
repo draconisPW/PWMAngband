@@ -2,8 +2,8 @@
 PWMAngband 1.4.0
 ================
 
-This new version has a few significant changes ported from the Angband 4.2.0
-version:
+This new version has a few significant changes ported from the Angband 4.2.x
+series:
 
 Monsters
 - Ainur: most of these now align with one of the great Valar, and have
@@ -50,13 +50,13 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 10
+New features in PWMAngband 1.4.0 beta 11
 ========================================
 
 User interface
 --------------
 
-Angband 4.2.0:
+Angband 4.2.x:
 
 - Add line for fragility in describe_curses()
 - Some font improvements
@@ -110,7 +110,7 @@ PWMAngband:
 Gameplay changes
 ----------------
 
-Angband 4.2.0:
+Angband 4.2.x:
 
 - Monsters can whip or spit on the player from nearby
 - Monster groups act more as a group, with leaders and sometimes bodyguards
@@ -184,6 +184,9 @@ Angband 4.2.0:
 - Enable turning labyrinths and moria levels off completely
 - Make curse activation disturb the player
 - Reduce food value of healing potions
+- Use to-hit skill instead of player level in critical calculation
+- Add 'line of sight' through rock, improve PASS_WALL monster behaviour near
+  permanent walls
 
 PWMAngband:
 
@@ -202,7 +205,7 @@ PWMAngband:
 - Add NO_STAIRS flag on terrain to prevent generating stairs
 - Allow multiple "force-locations" for monsters
 - Remove mean-looking mercenaries and battle-scarred veterans from Hobbiton
-- Add GOLD_DROP_NOSELLING server option to manage gold drops on no_selling
+- Add GOLD_DROP_VANILLA server option to manage gold drops on no_selling
   servers
 - Add NO_MONSTERS flag on terrain to prevent generating monsters and teleporting
 - Add new DF_STREAMS flag to allow magma/quartz veins in dungeons
@@ -216,11 +219,16 @@ PWMAngband:
 - New dungeon: The Ettenmoors (home of trolls)
 - Make TMD_BOWBRAND work on missiles only (both fired and thrown)
 - Make class brands work on ranged attacks
+- Rework magic mapping/enlightenment to take into account custom walls
+- Make acquirement generate the item in the inventory (if pack is not full)
+  if the floor around the character isn't suitable for objects
+- Remove speed penalty from being Full when calculating food digestion rate
+  to avoid double penalty
 
 Bugs fixed
 ----------
 
-Angband 4.2.0:
+Angband 4.2.x:
 
 - Many fixes to bugs and memory leaks
 
@@ -243,11 +251,16 @@ PWMAngband:
 - Allow fuzzy kind searching to use exact name by prefixing the search with '#'
 - Fix item combination not redrawing the floor
 - Fix crash in rd_player_traps()
+- Fix not automatically learning curses after using curse weapon/armor
+- Fix pickup menu not properly allowing to pickup items one by one
+- Prevent recalling on harmful terrain
+- Use custom floor under a mimic when it is revealed or deleted
+- Fix critical bug that made wraithed players totally invisible to monsters
 
 Coding changes
 --------------
 
-Angband 4.2.0:
+Angband 4.2.x:
 
 - Tidying and documenting of monster allocation
 - Remove TMD_CUT_ constants
@@ -273,6 +286,7 @@ Angband 4.2.0:
 - Add whether a projection wakes a monster to struct projections
 - Use SetWindowPlacement when re-opening the game in Windows
 - Remove disturb() argument
+- Tightened code for unique generation
 
 PWMAngband:
 

@@ -28,184 +28,32 @@
 
 
 /*
- * Find whether a monster has a clear path to the player.
+ * Find whether a monster is near a permanent wall
  *
- * This is a modified/simplified version of project_path().
+ * This decides whether PASS_WALL & KILL_WALL monsters use the monster flow code
  */
-static bool can_path_player(struct player *p, const struct monster *mon, struct chunk *c)
+static bool monster_near_permwall(struct player *p, const struct monster *mon, struct chunk *c)
 {
-    int y1 = mon->grid.y;
-    int x1 = mon->grid.x;
-    int y2 = p->grid.y;
-    int x2 = p->grid.x;
-    struct loc grid;
-
-    /* Absolute */
-    int ay, ax;
-
-    /* Offsets */
-    int sy, sx;
-
-    /* Fractions */
-    int frac;
-
-    /* Scale factors */
-    int full, half;
-
-    /* Slope */
-    int m;
+    struct loc gp[512];
+    int path_grids, j;
 
     /* If player is in LOS, there's no need to go around walls */
     if (projectable(p, c, &((struct monster *)mon)->grid, &p->grid, PROJECT_SHORT, false))
-        return true;
+        return false;
 
-    /* Analyze "dy" */
-    if (y2 < y1)
-    {
-        ay = (y1 - y2);
-        sy = -1;
-    }
-    else
-    {
-        ay = (y2 - y1);
-        sy = 1;
-    }
+    /* Find the shortest path */
+    path_grids = project_path(p, gp, z_info->max_sight, c, &((struct monster *)mon)->grid, &p->grid,
+        PROJECT_ROCK);
 
-    /* Analyze "dx" */
-    if (x2 < x1)
+    /* See if we can "see" the player without hitting permanent wall */
+    for (j = 0; j < path_grids; j++)
     {
-        ax = (x1 - x2);
-        sx = -1;
-    }
-    else
-    {
-        ax = (x2 - x1);
-        sx = 1;
+        if (square_isunpassable(c, &gp[j])) return true;
+        if (loc_eq(&gp[j], &((struct monster *)mon)->old_grid)) return true;
+        if (loc_eq(&gp[j], &p->grid)) return false;
     }
 
-    /* Number of "units" in one "half" grid */
-    half = (ay * ax);
-
-    /* Number of "units" in one "full" grid */
-    full = half << 1;
-
-    /* Vertical */
-    if (ay > ax)
-    {
-        /* Start at tile edge */
-        frac = ax * ax;
-
-        /* Let m = ((dx/dy) * full) = (dx * dx * 2) = (frac * 2) */
-        m = frac << 1;
-
-        /* Start */
-        loc_init(&grid, x1, y1 + sy);
-
-        /* Never go back from whence we came */
-        if (loc_eq(&grid, &((struct monster *)mon)->old_grid)) return false;
-
-        /* Create the projection path */
-        while (1)
-        {
-            /* Stop at destination grid */
-            if ((grid.x == x2) && (grid.y == y2)) return true;
-
-            /* Stop at permawall grids */
-            if (square_isunpassable(c, &grid)) return false;
-
-            /* Slant */
-            if (m)
-            {
-                /* Advance (X) part 1 */
-                frac += m;
-
-                /* Horizontal change */
-                if (frac >= half)
-                {
-                    /* Advance (X) part 2 */
-                    grid.x += sx;
-
-                    /* Advance (X) part 3 */
-                    frac -= full;
-                }
-            }
-
-            /* Advance (Y) */
-            grid.y += sy;
-        }
-    }
-
-    /* Horizontal */
-    else if (ax > ay)
-    {
-        /* Start at tile edge */
-        frac = ay * ay;
-
-        /* Let m = ((dy/dx) * full) = (dy * dy * 2) = (frac * 2) */
-        m = frac << 1;
-
-        /* Start */
-        loc_init(&grid, x1 + sx, y1);
-
-        /* Never go back from whence we came */
-        if (loc_eq(&grid, &((struct monster *)mon)->old_grid)) return false;
-
-        /* Create the projection path */
-        while (1)
-        {
-            /* Stop at destination grid */
-            if ((grid.x == x2) && (grid.y == y2)) return true;
-
-            /* Stop at permawall grids */
-            if (square_isunpassable(c, &grid)) return false;
-
-            /* Slant */
-            if (m)
-            {
-                /* Advance (Y) part 1 */
-                frac += m;
-
-                /* Vertical change */
-                if (frac >= half)
-                {
-                    /* Advance (Y) part 2 */
-                    grid.y += sy;
-
-                    /* Advance (Y) part 3 */
-                    frac -= full;
-                }
-            }
-
-            /* Advance (X) */
-            grid.x += sx;
-        }
-    }
-
-    /* Diagonal */
-    else
-    {
-        /* Start */
-        loc_init(&grid, x1 + sx, y1 + sy);
-
-        /* Never go back from whence we came */
-        if (loc_eq(&grid, &((struct monster *)mon)->old_grid)) return false;
-
-        /* Create the projection path */
-        while (1)
-        {
-            /* Stop at destination grid */
-            if ((grid.x == x2) && (grid.y == y2)) return true;
-
-            /* Stop at permawall grids */
-            if (square_isunpassable(c, &grid)) return false;
-
-            /* Advance (Y) */
-            grid.y += sy;
-
-            /* Advance (X) */
-            grid.x += sx;
-        }
-    }
+    return false;
 }
 
 
@@ -719,20 +567,27 @@ static bool get_move_advance(struct player *p, struct chunk *c, struct monster *
     int best_noise, max_noise;
     struct loc best_grid[8];
 
-    /* PWMAngband: not if the player is wraithed in walls */
-    if (player_walled(p, c)) return false;
-
     if (!loc_is_zero(decoy))
         loc_copy(&target, decoy);
     else
+    {
         loc_copy(&target, &p->grid);
+
+        /* PWMAngband: head straight for the player if wraithed in walls */
+        if (player_walled(p, c))
+        {
+            loc_copy(&mon->target.grid, &target);
+            *track = true;
+            return true;
+        }
+    }
 
     /* Bodyguards are special */
     if ((mon->group_info[PRIMARY_GROUP].role == MON_GROUP_BODYGUARD) && get_move_bodyguard(p, c, mon))
         return true;
 
     /* If the monster can pass through nearby walls, do that */
-    if (monster_passes_walls(mon->race) && can_path_player(p, mon, c))
+    if (monster_passes_walls(mon->race) && !monster_near_permwall(p, mon, c))
     {
         loc_copy(&mon->target.grid, &target);
         *track = true;

@@ -438,6 +438,7 @@ extern void square_open_homedoor(struct chunk *c, struct loc *grid);
 extern void square_close_door(struct chunk *c, struct loc *grid);
 extern void square_smash_door(struct chunk *c, struct loc *grid);
 extern void square_unlock_door(struct chunk *c, struct loc *grid);
+extern void square_set_floor(struct chunk *c, struct loc *grid, int feat, bool object);
 extern void square_destroy_door(struct chunk *c, struct loc *grid);
 extern void square_destroy_trap(struct chunk *c, struct loc *grid);
 extern void square_disable_trap(struct player *p, struct chunk *c, struct loc *grid);

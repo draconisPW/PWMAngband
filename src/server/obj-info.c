@@ -457,7 +457,7 @@ static bool describe_esp(struct player *p, const bitflag flags[OF_SIZE])
 static int calculate_melee_crits(struct player *p, struct player_state *state, int weight,
     int plus, int dam)
 {
-    int k, to_crit = weight + 5 * (state->to_h + plus) + 3 * p->lev;
+    int k, to_crit = weight + 5 * (state->to_h + plus) + (state->skills[SKILL_TO_HIT_MELEE] - 60);
     int crit_dam = 0;
 
     to_crit = MIN(5000, MAX(0, to_crit));

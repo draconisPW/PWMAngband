@@ -270,7 +270,10 @@ static void customize_features(struct chunk *c)
                 if (feature->chance > chance)
                 {
                     if (!square_ispermfake(c, &iter.cur) || !feat_is_passable(feature->feat))
+                    {
                         square_set_feat(c, &iter.cur, feature->feat);
+                        sqinfo_on(square(c, &iter.cur)->info, SQUARE_CUSTOM_WALL);
+                    }
                     break;
                 }
 
@@ -291,6 +294,7 @@ static void customize_features(struct chunk *c)
                 if (feature->chance > chance)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
+                    sqinfo_on(square(c, &iter.cur)->info, SQUARE_CUSTOM_WALL);
                     break;
                 }
 

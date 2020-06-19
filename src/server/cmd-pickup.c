@@ -602,11 +602,8 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
         /* No item -> get one */
         if (p->current_value == ITEM_REQUEST)
         {
-            /* Update the floor on the client */
-            display_floor(p, c, floor_list, floor_num);
-
-            p->current_action = ACTION_PICKUP;
-            get_item(p, HOOK_CARRY, "");
+            /* Update the floor on the client, force response */
+            display_floor(p, c, floor_list, floor_num, true);
             mem_free(floor_list);
             return objs_picked_up;
         }

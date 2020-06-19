@@ -439,7 +439,7 @@ static void prt_floor_item(struct player *p)
     if (!c) return;
 
     floor_num = scan_floor(p, c, floor_list, floor_max, OFLOOR_SENSE | OFLOOR_VISIBLE, NULL);
-    display_floor(p, c, floor_list, floor_num);
+    display_floor(p, c, floor_list, floor_num, false);
     mem_free(floor_list);
 }
 

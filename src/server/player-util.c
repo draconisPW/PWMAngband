@@ -343,8 +343,8 @@ void player_regen_mana(struct player *p)
     /* Default regeneration */
     percent = PY_REGEN_NORMAL;
 
-    /* Various things speed up regeneration, but don't punish blackguards */
-    if (!(player_has(p, PF_COMBAT_REGEN) && p->chp == p->mhp))
+    /* Various things speed up regeneration, but shouldn't punish healthy blackguards */
+    if (!(player_has(p, PF_COMBAT_REGEN) && (p->chp > p->mhp / 2)))
     {
         if (player_of_has(p, OF_REGEN)) percent *= 2;
         if (player_resting_can_regenerate(p)) percent *= 2;
@@ -356,7 +356,7 @@ void player_regen_mana(struct player *p)
 
     /* Regenerate mana */
     sp_gain = (s32b)(p->msp * percent);
-    sp_gain += ((percent < 0)? -PY_REGEN_MNBASE: PY_REGEN_MNBASE);
+    if (percent >= 0) sp_gain += PY_REGEN_MNBASE;
     sp_gain = player_adjust_mana_precise(p, sp_gain);
 
     /* SP degen heals blackguards at double efficiency vs casting */
@@ -1676,9 +1676,17 @@ void recall_player(struct player *p, struct chunk *c)
 int player_digest(struct player *p)
 {
     int i;
+    int speed = p->state.speed;
+    int excess = p->timed[TMD_FOOD] - PY_FOOD_FULL;
 
     /* Basic digestion rate based on speed */
-    i = turn_energy(p->state.speed);
+    /* PWMAngband: remove speed penalty from being Full to avoid double penalty */
+    if ((excess > 0) && !p->timed[TMD_ATT_VAMP])
+    {
+        excess = (excess * 10) / (PY_FOOD_MAX - PY_FOOD_FULL);
+        speed += excess;
+    }
+    i = turn_energy(speed);
 
     /* Some effects require more food */
     if (p->timed[TMD_ADRENALINE]) i *= 2;

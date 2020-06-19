@@ -767,7 +767,7 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
         if (p) msg(p, "The %s was really a monster!", f_info[square(c, &mon->grid)->feat].name);
 
         /* Clear the feature */
-        square_set_feat(c, &mon->grid, mon->feat);
+        square_set_floor(c, &mon->grid, mon->feat, true);
     }
 
     /* Update monster and item lists */
@@ -1068,7 +1068,6 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
     /* Shapechanged monsters revert on death */
     if (mon->original_race)
     {
-        msg(p, "A change comes over %s", m_name);
         monster_revert_shape(p, mon);
         lore = get_lore(p, mon->race);
         monster_desc(p, m_name, sizeof(m_name), mon, MDESC_DEFAULT);

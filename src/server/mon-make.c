@@ -297,7 +297,7 @@ static int restrict_monster_to_dungeon(struct monster_race *race, struct worldpo
 /* Checks if a monster race can be generated at that location */
 static bool allow_race(struct monster_race *race, struct worldpos *wpos)
 {
-    /* Only one copy of a a unique must be around at the same time */
+    /* Only one copy of a unique must be around at the same time */
     if (monster_is_unique(race) && !allow_unique_level(race, wpos))
         return false;
 
@@ -657,7 +657,7 @@ void delete_monster_idx(struct chunk *c, int m_idx)
 
     /* Delete mimicked features */
     if (mon->race->base == lookup_monster_base("feature mimic"))
-        square_set_feat(c, &mon->grid, mon->feat);
+        square_set_floor(c, &mon->grid, mon->feat, true);
 
     loc_copy(&grid, &mon->grid);
 
@@ -1777,8 +1777,7 @@ static bool place_friends(struct player *p, struct chunk *c, struct loc *grid,
     bool is_unique = monster_is_unique(friends_race);
 
     /* Make sure the unique hasn't been killed already */
-    if (is_unique)
-        total = (allow_unique_level(friends_race, &c->wpos)? 1: 0);
+    if (is_unique && !allow_unique_level(friends_race, &c->wpos)) return false;
 
     /* More than 4 levels OoD, no groups allowed */
     if ((level_difference <= 0) && !is_unique) return false;

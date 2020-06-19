@@ -25,6 +25,7 @@
 #define DROP_FADE   1
 #define DROP_FORBID 2
 #define DROP_SILENT 3
+#define DROP_CARRY  4
 
 extern void flavor_init(void);
 extern void object_flags_aux(const struct object *obj, bitflag flags[OF_SIZE]);

@@ -1449,9 +1449,12 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
             /* The top line is icky */
             topline_icky = true;
 
-            /* Hack -- quick floor for single items */
-            if (OPT(player, quick_floor) && (command_wrk == USE_FLOOR) && (f1 == f2))
+            /* Hack -- quick floor for single items (except on pickup) */
+            if (OPT(player, quick_floor) && (command_wrk == USE_FLOOR) && (f1 == f2) &&
+                (cmd != CMD_PICKUP))
+            {
                 *choice = floor_list[f2];
+            }
 
             /* Get an item choice */
             else

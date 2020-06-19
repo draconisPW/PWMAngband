@@ -1208,7 +1208,8 @@ bool square_isdecoyed(struct chunk *c, struct loc *grid)
 
 bool square_seemslikewall(struct chunk *c, struct loc *grid)
 {
-    return tf_has(f_info[square(c, grid)->feat].flags, TF_ROCK);
+    return (tf_has(f_info[square(c, grid)->feat].flags, TF_ROCK) ||
+        sqinfo_has(square(c, grid)->info, SQUARE_CUSTOM_WALL));
 }
 
 
@@ -2038,7 +2039,7 @@ void square_unlock_door(struct chunk *c, struct loc *grid)
 }
 
 
-static void square_set_floor(struct chunk *c, struct loc *grid, int feat, bool object)
+void square_set_floor(struct chunk *c, struct loc *grid, int feat, bool object)
 {
     struct worldpos dpos;
     struct location *dungeon;
@@ -2086,6 +2087,7 @@ static void square_set_floor(struct chunk *c, struct loc *grid, int feat, bool o
     }
 
     square_set_feat(c, grid, feat);
+    sqinfo_off(square(c, grid)->info, SQUARE_CUSTOM_WALL);
 }
 
 
@@ -2195,6 +2197,7 @@ static void square_set_wall(struct chunk *c, struct loc *grid, int feat)
             if (feature->chance > chance)
             {
                 feat = feature->feat;
+                sqinfo_on(square(c, grid)->info, SQUARE_CUSTOM_WALL);
                 break;
             }
 
@@ -2339,6 +2342,7 @@ bool square_isnormal(struct chunk *c, struct loc *grid)
 void square_destroy_tree(struct chunk *c, struct loc *grid)
 {
     square_set_feat(c, grid, FEAT_DIRT);
+    sqinfo_off(square(c, grid)->info, SQUARE_CUSTOM_WALL);
 }
 
 

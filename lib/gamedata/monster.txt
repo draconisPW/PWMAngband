@@ -2597,6 +2597,7 @@ desc:It is slowly making its way towards you, eating everything in its path...
 ### Dungeon level 7 ###
 
 name:crow of Durthang
+plural:crows of Durthang
 base:bird
 color:s
 speed:120

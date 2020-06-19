@@ -2649,13 +2649,14 @@ int Send_book_info(struct player *p, int book, const char *name)
 }
 
 
-int Send_floor(struct player *p, byte num, const struct object *obj, struct object_xtra *info_xtra)
+int Send_floor(struct player *p, byte num, const struct object *obj, struct object_xtra *info_xtra,
+    byte force)
 {
     byte ignore = ((obj->known->notice & OBJ_NOTICE_IGNORE)? 1: 0);
     connection_t *connp = get_connp(p, "floor");
     if (connp == NULL) return 0;
 
-    Packet_printf(&connp->c, "%b%b", (unsigned)PKT_FLOOR, (unsigned)num);
+    Packet_printf(&connp->c, "%b%b%b", (unsigned)PKT_FLOOR, (unsigned)num, (unsigned)force);
     Packet_printf(&connp->c, "%hu%hu%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
     Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
@@ -5654,6 +5655,35 @@ static int Receive_track_object(int ind)
 
         /* Track the object */
         track_object(p->upkeep, object_from_index(p, item, false, false));
+    }
+
+    return 1;
+}
+
+
+static int Receive_floor_ack(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    struct player *p;
+    byte ch;
+    int n;
+
+    if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
+    {
+        if (n == -1) Destroy_connection(ind, "Receive_floor_ack read error");
+        return n;
+    }
+
+    if (connp->id != -1)
+    {
+        p = player_get(get_player_index(connp));
+
+        /* Break mind link */
+        break_mind_link(p);
+
+        /* Get item for pickup */
+        p->current_action = ACTION_PICKUP;
+        get_item(p, HOOK_CARRY, "");
     }
 
     return 1;

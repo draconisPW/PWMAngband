@@ -2440,7 +2440,7 @@ static int Receive_floor(void)
 {
     int n, bytes_read;
     byte ch, num, notice, attr, act, aim, fuel, fail, known, known_effect, carry, quality_ignore,
-        ignored, magic, throwable;
+        ignored, magic, throwable, force;
     u16b tval, sval;
     s16b amt, slot, oidx, eidx, bidx;
     s32b pval;
@@ -2452,9 +2452,9 @@ static int Receive_floor(void)
     char name_power[NORMAL_WID];
     struct object *obj;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b", &ch, &num)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b", &ch, &num, &force)) <= 0)
         return n;
-    bytes_read = 2;
+    bytes_read = 3;
 
     if ((n = Packet_scanf(&rbuf, "%hu%hu%hd%lu%ld%b%hd", &tval, &sval, &amt, &note, &pval, &notice,
         &oidx)) <= 0)
@@ -2492,12 +2492,19 @@ static int Receive_floor(void)
     /* Paranoia */
     if (num >= z_info->floor_size) return 1;
 
-    /* Clear */
+    /* No item */
     if (!tval)
     {
-        cleanup_floor();
-        floor_num = 0;
-        player->upkeep->redraw |= (PR_EQUIP);
+        /* Force response */
+        if (force) Send_floor_ack();
+
+        /* Clear */
+        else
+        {
+            cleanup_floor();
+            floor_num = 0;
+            player->upkeep->redraw |= (PR_EQUIP);
+        }
     }
 
     /* Add the item */
@@ -5462,6 +5469,17 @@ int Send_track_object(int item)
     int n;
 
     if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_TRACK_OBJECT, item)) <= 0)
+        return n;
+
+    return 1;
+}
+
+
+int Send_floor_ack(void)
+{
+    int n;
+
+    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_FLOOR_ACK)) <= 0)
         return n;
 
     return 1;

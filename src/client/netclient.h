@@ -86,6 +86,7 @@ extern int Send_toggle_ignore(void);
 extern int Send_use_any(struct command *cmd);
 extern int Send_store_order(const char *buf);
 extern int Send_track_object(int item);
+extern int Send_floor_ack(void);
 extern int Send_play(int phase);
 extern int Send_text_screen(int type, s32b off);
 extern int Send_keepalive(void);

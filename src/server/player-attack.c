@@ -200,8 +200,9 @@ static int critical_melee(struct player *p, struct source *target, int weight, i
     u32b *msg_type)
 {
     int debuff_to_hit = (is_debuffed(target)? DEBUFF_CRITICAL_HIT: 0);
-    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 5 + p->lev * 3;
     int power = weight + randint1(650);
+    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 5 +
+        (p->state.skills[SKILL_TO_HIT_MELEE] - 60);
     int new_dam = dam;
 
     /* Apply Touch of Death */

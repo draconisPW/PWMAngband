@@ -189,7 +189,8 @@ void display_equip(struct player *p)
 /*
  * Choice window "shadow" of the "show_floor()" function
  */
-void display_floor(struct player *p, struct chunk *c, struct object **floor_list, int floor_num)
+void display_floor(struct player *p, struct chunk *c, struct object **floor_list, int floor_num,
+    bool force)
 {
     int i;
     struct object *dummy_item;
@@ -211,8 +212,7 @@ void display_floor(struct player *p, struct chunk *c, struct object **floor_list
     memset(&info_xtra, 0, sizeof(info_xtra));
     info_xtra.slot = -1;
     info_xtra.bidx = -1;
-    Send_floor(p, 0, dummy_item, &info_xtra);
-    object_delete(&dummy_item);
+    Send_floor(p, 0, dummy_item, &info_xtra, 0);
 
     /* Display the floor */
     for (i = 0; i < floor_num; i++)
@@ -245,8 +245,18 @@ void display_floor(struct player *p, struct chunk *c, struct object **floor_list
         my_strcpy(info_xtra.name_base, o_name_base, sizeof(info_xtra.name_base));
 
         /* Send the info to the client */
-        Send_floor(p, i, floor_list[i], &info_xtra);
+        Send_floor(p, i, floor_list[i], &info_xtra, 0);
     }
+
+    /* Force response */
+    if (force)
+    {
+        memset(&info_xtra, 0, sizeof(info_xtra));
+        info_xtra.slot = -1;
+        info_xtra.bidx = -1;
+        Send_floor(p, 0, dummy_item, &info_xtra, 1);
+    }
+    object_delete(&dummy_item);
 }
 
 
