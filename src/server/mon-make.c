@@ -657,7 +657,7 @@ void delete_monster_idx(struct chunk *c, int m_idx)
 
     /* Delete mimicked features */
     if (mon->race->base == lookup_monster_base("feature mimic"))
-        square_set_floor(c, &mon->grid, mon->feat, true);
+        square_set_floor(c, &mon->grid, mon->feat);
 
     loc_copy(&grid, &mon->grid);
 

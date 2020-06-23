@@ -1280,7 +1280,7 @@ static void process_various(void)
 
                     /* Delete mimicked features */
                     if (mon->race->base == lookup_monster_base("feature mimic"))
-                        square_set_floor(c, &mon->grid, mon->feat, true);
+                        square_set_floor(c, &mon->grid, mon->feat);
                 }
 
                 /* Wipe the monster list */

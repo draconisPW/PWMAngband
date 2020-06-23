@@ -767,7 +767,7 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
         if (p) msg(p, "The %s was really a monster!", f_info[square(c, &mon->grid)->feat].name);
 
         /* Clear the feature */
-        square_set_floor(c, &mon->grid, mon->feat, true);
+        square_set_floor(c, &mon->grid, mon->feat);
     }
 
     /* Update monster and item lists */

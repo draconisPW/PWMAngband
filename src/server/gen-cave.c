@@ -234,8 +234,8 @@ static void customize_features(struct chunk *c)
                     ok = false;
                 }
 
-                /* Square can't hold objects */
-                if (square_object(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
+                /* Floor can't hold objects */
+                if (square_isanyfloor(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
                     ok = false;
 
                 /* Skip */
@@ -265,9 +265,24 @@ static void customize_features(struct chunk *c)
             for (i = 0; i < dungeon->n_walls; i++)
             {
                 struct dun_feature *feature = &dungeon->walls[i];
+                int current_feat = square(c, &iter.cur)->feat;
+                bool ok = true;
+
+                /* Make the change for testing */
+                square(c, &iter.cur)->feat = feature->feat;
+
+                /* Floor can't hold objects */
+                if (square_isanyfloor(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
+                    ok = false;
+
+                /* Skip */
+                if (feature->chance <= chance) ok = false;
+
+                /* Revert the change */
+                square(c, &iter.cur)->feat = current_feat;
 
                 /* Fill the level with that feature */
-                if (feature->chance > chance)
+                if (ok)
                 {
                     if (!square_ispermfake(c, &iter.cur) || !feat_is_passable(feature->feat))
                     {
