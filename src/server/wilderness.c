@@ -825,6 +825,31 @@ static enum parser_error parse_location_info_rule_symbols(struct parser *p)
 }
 
 
+static enum parser_error parse_location_info_stairs(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    dice_t *dice;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    dice = dice_new();
+    if (!dice_parse_string(dice, parser_getsym(p, "up")))
+    {
+        dice_free(dice);
+        return PARSE_ERROR_NOT_RANDOM;
+    }
+    dice_random_value(dice, NULL, &t->up);
+    if (!dice_parse_string(dice, parser_getstr(p, "down")))
+    {
+        dice_free(dice);
+        return PARSE_ERROR_NOT_RANDOM;
+    }
+    dice_random_value(dice, NULL, &t->down);
+    dice_free(dice);
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static struct parser *init_parse_location_info(void)
 {
     struct parser *p = parser_new();
@@ -850,6 +875,7 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "rule-flags ?str flags", parse_location_info_rule_flags);
     parser_reg(p, "rule-spells ?str flags", parse_location_info_rule_spells);
     parser_reg(p, "rule-symbols str symbols", parse_location_info_rule_symbols);
+    parser_reg(p, "stairs sym up str down", parse_location_info_stairs);
 
     return p;
 }

@@ -161,7 +161,7 @@ struct cave_profile
     int max_rarity;                     /* Max number of rarity levels used in room generation */
     int n_room_profiles;                /* Number of room profiles */
     struct tunnel_profile tun;          /* Used to build tunnels */
-    struct streamer_profile str;        /* Used to build mineral streamers*/
+    struct streamer_profile str;        /* Used to build mineral streamers */
     struct room_profile *room_profiles; /* Used to build rooms */
     int cutoff;                         /* Used to see if we should try this dungeon */
     random_value up;

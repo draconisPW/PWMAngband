@@ -807,6 +807,9 @@ bool alloc_object(struct player *p, struct chunk *c, int set, int typ, int depth
 
         find_empty(c, &grid);
 
+        /* Prevent objects from being placed in remote areas */
+        if (!square_is_monster_walkable(c, &grid)) continue;
+
         /* If we are ok with a corridor and we're in one, we're done */
         if (set & SET_CORR && !square_isroom(c, &grid)) break;
 

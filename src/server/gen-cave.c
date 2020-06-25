@@ -70,11 +70,26 @@
 static void add_stairs(struct chunk *c, int feat)
 {
     random_value *dir;
+    int num;
+    struct worldpos dpos;
+    struct location *dungeon;
 
+    /* Get number of stairs from dungeon profile */
     if (feat == FEAT_MORE) dir = &((struct cave_profile *)dun->profile)->down;
     else dir = &((struct cave_profile *)dun->profile)->up;
+    num = dir->base + damroll(dir->dice, dir->sides);
 
-    alloc_stairs(c, feat, dir->base + damroll(dir->dice, dir->sides));
+    /* Get extra number of stairs from dungeon itself */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        if (feat == FEAT_MORE) dir = &dungeon->down;
+        else dir = &dungeon->up;
+        num = num + dir->base + damroll(dir->dice, dir->sides);
+    }
+
+    alloc_stairs(c, feat, num);
 }
 
 

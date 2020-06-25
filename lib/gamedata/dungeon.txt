@@ -28,6 +28,7 @@
 # rule-flags : monster flags
 # rule-spells : monster spell flags
 # rule-symbols : monster symbols
+# stairs : extra ups : extra downs
 
 # Set min-depth to the depth of the first level of the dungeon.
 # Leaving min-depth unset means that the first level of the dungeon has a
@@ -57,6 +58,10 @@
 # 'rule-flags' are monster flags checked by the rule
 # 'rule-spells' are monster spell flags checked by the rule
 # 'rule-symbols' are monster symbols checked by the rule
+
+# 'stairs' are extra stairs up and down generated in the dungeon
+# up is the random value used for extra up staircases
+# down is the random value used for extra down staircases
 
 
 # Main Angband dungeon

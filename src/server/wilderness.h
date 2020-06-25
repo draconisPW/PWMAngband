@@ -140,6 +140,8 @@ struct location
     int n_fountains;
     struct dun_rule *rules;         /* Rules */
     int n_rules;
+    random_value up;
+    random_value down;
     struct location *next;
 };
 

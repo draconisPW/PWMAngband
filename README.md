@@ -11,9 +11,9 @@ press '?'.
 
 2. If you're compiling the game yourself, check the compiling instructions in the Manual.
 
-3. To get the latest binaries, try [PowerWyrm's Website] (https://powerwyrm.monsite-orange.fr/).
+3. To get the latest binaries, try [PowerWyrm's Website](https://powerwyrm.monsite-orange.fr/).
 
-4. To get the latest info about Tangar's variant, try [Tangaria's Website] (https://tangaria.com/).
+4. To get the latest info about Tangar's variant, try [Tangaria's Website](https://tangaria.com/).
 
 
 Enjoy!
