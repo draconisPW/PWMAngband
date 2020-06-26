@@ -845,9 +845,12 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Process light */
     player_update_light(p);
 
-    /* Update noise and scent */
-    make_noise(p);
-    update_scent(p);
+    /* Update noise and scent (not if resting) */
+    if (!player_is_resting(p))
+    {
+        make_noise(p);
+        update_scent(p);
+    }
 
     /*** Process Inventory ***/
 
@@ -931,6 +934,7 @@ static void process_player_cleanup(struct player *p)
 {
     int timefactor, time;
     struct chunk *c = chunk_get(&p->wpos);
+    int mode = ((get_connection(p->conn)->state == CONN_QUIT)? AR_QUIT: AR_NORMAL);
 
     /* If we are in a slow time condition, give visual warning */
     timefactor = time_factor(p, c);
@@ -938,7 +942,7 @@ static void process_player_cleanup(struct player *p)
         square_light_spot_aux(p, c, &p->grid);
 
     /* Check for auto-retaliate */
-    if (has_energy(p, true)) auto_retaliate(p, c, false);
+    if (has_energy(p, true)) auto_retaliate(p, c, mode);
 
     /* Notice stuff */
     notice_stuff(p);

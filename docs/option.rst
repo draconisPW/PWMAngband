@@ -222,6 +222,12 @@ Disable Enter menu ``disable_enter``
 Sort monsters by experience in the monster list ``sort_exp``
   This option sorts monsters by experience instead of depth in the monster list.
 
+..
+
+Display monsters in ASCII ``ascii_mon``
+  This option displays monsters using ASCII symbols instead of tiles when using
+  a tileset.
+
 Birth options
 -------------
 

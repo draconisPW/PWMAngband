@@ -9,7 +9,6 @@
 #define FREE_TIMEOUT    15
 #define SETUP_TIMEOUT   180
 #define PLAY_TIMEOUT    30
-#define QUIT_TIMEOUT    5
 
 /*
  * The types of communication that we send to the metaserver

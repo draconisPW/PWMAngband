@@ -1725,7 +1725,7 @@ void use_energy(struct player *p)
 /*
  * Check for nearby players/monsters and attack the current target.
  */
-bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
+bool auto_retaliate(struct player *p, struct chunk *c, int mode)
 {
     int i, n = 0;
     bool found = false;
@@ -1735,7 +1735,8 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     struct loc target, targets[8];
     s16b target_dir, targets_dir[8];
     struct object *weapon = equipped_item_by_slot_name(p, "weapon");
-    struct object *launcher = (bypass_inscription? NULL: equipped_item_by_slot_name(p, "shooting"));
+    struct object *launcher = ((mode == AR_BLOODLUST)? NULL:
+        equipped_item_by_slot_name(p, "shooting"));
 
     /* Hack -- shoppers don't auto-retaliate */
     if (in_store(p)) return false;
@@ -1750,11 +1751,11 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     if (get_connection(p->conn)->q.len > 0) return false;
 
     /* Check preventive inscription '^O' */
-    if (check_prevent_inscription(p, INSCRIPTION_RETALIATE) && !bypass_inscription) return false;
+    if (check_prevent_inscription(p, INSCRIPTION_RETALIATE) && (mode == AR_NORMAL)) return false;
 
     /* Check melee weapon inscription '!O' */
     if (weapon && object_prevent_inscription(p, weapon, INSCRIPTION_RETALIATE, false) &&
-        !bypass_inscription)
+        (mode == AR_NORMAL))
     {
         return false;
     }
@@ -1822,7 +1823,7 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     }
 
     /* If there's at least one valid target around, attack one (active auto-retaliator only) */
-    if ((OPT(p, active_auto_retaliator) || bypass_inscription) && !found)
+    if ((OPT(p, active_auto_retaliator) || (mode != AR_NORMAL)) && !found)
     {
         /* Choose randomly */
         i = randint0(n);
@@ -1887,7 +1888,7 @@ bool has_energy(struct player *p, bool real_command)
     {
         struct chunk *c = chunk_get(&p->wpos);
 
-        if (auto_retaliate(p, c, true)) return false;
+        if (auto_retaliate(p, c, AR_BLOODLUST)) return false;
     }
 
     return true;

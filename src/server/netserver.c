@@ -249,7 +249,7 @@ static void do_quit(int ind)
     {
         /* Otherwise wait for the timeout */
         connp->quit_msg = string_make("Client quit");
-        Conn_set_state(connp, CONN_QUIT, QUIT_TIMEOUT);
+        Conn_set_state(connp, CONN_QUIT, cfg_quit_timeout);
     }
 }
 
@@ -7414,7 +7414,10 @@ bool process_pending_commands(int ind)
     int last_pos, data_advance = 0;
 
     /* Paranoia: ignore input from client if not in SETUP or PLAYING state */
-    if ((connp->state != CONN_PLAYING) && (connp->state != CONN_SETUP)) return true;
+    /*if ((connp->state != CONN_PLAYING) && (connp->state != CONN_SETUP)) return true;*/
+    if ((connp->state == CONN_FREE) || (connp->state == CONN_CONSOLE)) return true;
+    if (connp->state == CONN_QUIT)
+        return false;
 
     /* SETUP state */
     if (connp->state == CONN_SETUP) receive_tbl = &setup_receive[0];

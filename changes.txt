@@ -106,6 +106,8 @@ PWMAngband:
   abilities
 - Display the cursor under the player on the minimap
 - Add custom fountains to dungeon.txt
+- Add "ascii_mon" option to display monsters using ASCII symbols instead
+  of tiles when using a tileset
 
 Gameplay changes
 ----------------
@@ -197,7 +199,7 @@ PWMAngband:
 - Add aquatic monsters
 - Nerf death wings/golems
 - Remove Unlife pits
-- Replace specific skeletons by general skeletons, rework Raise effect
+- Replace specific skeletons with general skeletons, rework Raise effect
 - Allow more that 3 types of terrain for dungeons
 - Make breathing consume food
 - Wipe townies every dawn
@@ -225,6 +227,9 @@ PWMAngband:
   if the floor around the character isn't suitable for objects
 - Remove speed penalty from being Full when calculating food digestion rate
   to avoid double penalty
+- Add custom number of stairs for dungeons
+- Replace hardcoded QUIT_TIMEOUT with mangband.cfg server option
+- Keep player active during disconnection timeout
 
 Bugs fixed
 ----------
@@ -288,6 +293,8 @@ Angband 4.2.x:
 - Use SetWindowPlacement when re-opening the game in Windows
 - Remove disturb() argument
 - Tightened code for unique generation
+- Small optimisation for resting
+- Add sval validity check in parse_ego_item()
 
 PWMAngband:
 
@@ -300,7 +307,7 @@ PWMAngband:
   a 1/10000 chance
 - Split Send_play into multiple parts to avoid "Send_feat_struct_info write
   error" when too many features
-- Replace fake permawall terrain by SQUARE_FAKE flag
+- Replace fake permawall terrain with SQUARE_FAKE flag
 - Switch tval/sval pair from byte to u16b
 
 Compilation

@@ -2045,7 +2045,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             {
                 /* Note vulnerability for later processing */
                 if (el_info[j].res_level == -1)
-                    vuln[i] = true;
+                    vuln[j] = true;
 
                 /* OK because res_level has not included vulnerability yet */
                 if (el_info[j].res_level > state->el_info[j].res_level)

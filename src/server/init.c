@@ -52,6 +52,7 @@ bool cfg_more_towns = false;
 bool cfg_artifact_drop_shallow = true;
 bool cfg_limit_player_connections = true;
 s32b cfg_tcp_port = 18346;
+s16b cfg_quit_timeout = 5;
 bool cfg_chardump_color = false;
 s16b cfg_pvp_hostility = PVP_SAFE;
 bool cfg_base_monsters = true;
@@ -4266,6 +4267,14 @@ static void set_server_option(const char *option, char *value)
             cfg_tcp_port++;
         if ((cfg_tcp_port > 65535) || (cfg_tcp_port < 1))
             cfg_tcp_port = 18346;
+    }
+    else if (!strcmp(option, "QUIT_TIMEOUT"))
+    {
+        cfg_quit_timeout = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_quit_timeout < 0) cfg_quit_timeout = 0;
+        if (cfg_quit_timeout > 60) cfg_quit_timeout = 60;
     }
     else if (!strcmp(option, "CHARACTER_DUMP_COLOR"))
         cfg_chardump_color = str_to_boolean(value);

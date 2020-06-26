@@ -726,7 +726,8 @@ void grid_data_as_text(struct player *p, struct chunk *cv, bool server, struct g
             char dc;
 
             /* Desired attr & char */
-            if (server)
+            /* Hack -- use ASCII symbols instead of tiles if wanted */
+            if (server || OPT(p, ascii_mon))
             {
                 da = monster_x_attr[mon->race->ridx];
                 dc = monster_x_char[mon->race->ridx];
