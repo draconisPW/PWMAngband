@@ -1182,7 +1182,6 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                 struct loc grid;
                 bool found = false;
                 int tries = 50;
-                struct chunk *c = chunk;
 
                 /* The monster must be an unseen quest monster/fixed encounter of this depth. */
                 if (race->lore.spawned) continue;
