@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 12
+New features in PWMAngband 1.4.0 beta 13
 ========================================
 
 User interface
@@ -108,6 +108,7 @@ PWMAngband:
 - Add custom fountains to dungeon.txt
 - Add "ascii_mon" option to display monsters using ASCII symbols instead
   of tiles when using a tileset
+- Add message when using chargeable items from the ground
 
 Gameplay changes
 ----------------
@@ -202,7 +203,8 @@ PWMAngband:
 - Replace specific skeletons with general skeletons, rework Raise effect
 - Allow more that 3 types of terrain for dungeons
 - Make breathing consume food
-- Wipe townies every dawn
+- Wipe townies every dawn (for towns: only if the number of townies has reached
+  the max for that town)
 - Decrease satiation in town areas if full
 - Add NO_STAIRS flag on terrain to prevent generating stairs
 - Allow multiple "force-locations" for monsters
@@ -262,6 +264,7 @@ PWMAngband:
 - Prevent recalling on harmful terrain
 - Use custom floor under a mimic when it is revealed or deleted
 - Fix critical bug that made wraithed players totally invisible to monsters
+- Fix ghostly powers for deceased warriors/unbelievers/monks
 
 Coding changes
 --------------
@@ -309,6 +312,10 @@ PWMAngband:
   error" when too many features
 - Replace fake permawall terrain with SQUARE_FAKE flag
 - Switch tval/sval pair from byte to u16b
+- Don't close VERSION_BETA servers if an object cannot be placed, but just
+  discard the object
+- Allow full home capacity on VERSION_BETA servers
+- Don't generate custom stores in the base town
 
 Compilation
 -----------

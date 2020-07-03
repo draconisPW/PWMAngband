@@ -1004,6 +1004,15 @@ bool square_isemptywater(struct chunk *c, struct loc *grid)
 
 
 /*
+ * True if the square is a training square.
+ */
+bool square_istraining(struct chunk *c, struct loc *grid)
+{
+    return (square(c, grid)->feat == FEAT_TRAINING);
+}
+
+
+/*
  * True if the square is an "empty" floor grid.
  */
 bool square_isemptyfloor(struct chunk *c, struct loc *grid)
@@ -1470,7 +1479,7 @@ void square_excise_object(struct chunk *c, struct loc *grid, struct object *obj)
     }
 
     /* Redraw */
-    redraw_floor(&c->wpos, grid);
+    redraw_floor(&c->wpos, grid, NULL);
 
     /* Visual update */
     square_light_spot(c, grid);
@@ -1512,7 +1521,7 @@ void square_excise_pile(struct chunk *c, struct loc *grid)
     square_set_obj(c, grid, NULL);
 
     /* Redraw */
-    redraw_floor(&c->wpos, grid);
+    redraw_floor(&c->wpos, grid, NULL);
 
     /* Visual update */
     square_light_spot(c, grid);

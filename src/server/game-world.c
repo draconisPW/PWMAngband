@@ -1270,6 +1270,15 @@ static void process_various(void)
                 /* Only if no one is actually on this level */
                 if (num_on_depth) continue;
 
+                /* Count the number of townies actually on this level if this is a town */
+                if (in_town(&c->wpos))
+                {
+                    int max_townies = get_town(&c->wpos)->max_townies;
+
+                    /* Only if max number of townies is reached */
+                    if ((max_townies == -1) || (cave_monster_count(c) < max_townies)) continue;
+                }
+
                 /* Mimic stuff */
                 for (m_idx = cave_monster_max(c) - 1; m_idx >= 1; m_idx--)
                 {
@@ -1507,11 +1516,13 @@ static void generate_new_level(struct player *p)
                 if (race->lore.spawned) continue;
                 if (!rf_has(race->flags, RF_PWMANG_FIXED)) continue;
                 if (race->level != c->wpos.depth) continue;
+                if (!allow_location(race, &c->wpos)) continue;
 
                 /* Pick a location and place the monster */
                 while (tries-- && !found)
                 {
                     if (rf_has(race->flags, RF_AQUATIC)) found = find_emptywater(c, &grid);
+                    else if (rf_has(race->flags, RF_NO_DEATH)) found = find_training(c, &grid);
                     else found = find_empty(c, &grid);
                 }
                 if (found)

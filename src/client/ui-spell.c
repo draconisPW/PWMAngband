@@ -159,10 +159,13 @@ static const menu_iter spell_menu_iter =
 static int spell_collect_from_book(int book)
 {
     int i = 0, n_spells = 0;
+    const struct player_class *c = player->clazz;
+
+    if (player->ghost && !player_can_undead(player)) c = lookup_player_class("Ghost");
 
     /* Paranoia */
     if (book < 0) return 0;
-    if (book >= player->clazz->magic.num_books) return 0;
+    if (book >= c->magic.num_books) return 0;
 
     /* Check for end of the book */
     while (book_info[book].spell_info[i].info[0] != '\0')

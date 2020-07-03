@@ -919,7 +919,7 @@ static bool artifact_pass_checks(struct artifact *art, int depth)
  *
  * Note -- see "make_artifact()" and "apply_magic()"
  */
-static struct object *make_artifact_special(struct player *p, struct chunk *c, int level)
+static struct object *make_artifact_special(struct player *p, struct chunk *c, int level, int tval)
 {
     int i;
     struct object *new_obj = NULL;
@@ -954,6 +954,9 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
 
             /* Cannot generate an artifact if disallowed by preservation mode  */
             if (p && (p->art_info[i] > cfg_preserve_artifacts)) continue;
+
+            /* Must have the correct fields */
+            if (tval && (art->tval != tval)) continue;
 
             /* We must pass depth and rarity checks */
             if (!artifact_pass_checks(art, c->wpos.depth)) continue;
@@ -1016,6 +1019,9 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
 
             /* Skip non-special artifacts */
             if (!kf_has(kind->kind_flags, KF_INSTA_ART)) continue;
+
+            /* Must have the correct fields */
+            if (tval && (art->tval != tval)) continue;
 
             /* Enforce minimum "object" level (loosely) */
             if (kind->level > level)
@@ -1168,8 +1174,7 @@ static bool make_artifact(struct player *p, struct chunk *c, struct object *obj)
             if (art->created) continue;
 
             /* Cannot generate an artifact if disallowed by preservation mode  */
-            if (p && (p->art_info[i] > cfg_preserve_artifacts))
-                continue;
+            if (p && (p->art_info[i] > cfg_preserve_artifacts)) continue;
 
             /* Must have the correct fields */
             if (art->tval != obj->tval) continue;
@@ -1727,7 +1732,7 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     /* Try to make a special artifact */
     if (one_in_(good? 10: 1000))
     {
-        new_obj = make_artifact_special(p, c, lev);
+        new_obj = make_artifact_special(p, c, lev, tval);
         if (new_obj)
         {
             if (value)
@@ -1887,7 +1892,7 @@ struct object_kind *money_kind(const char *name, int value)
  */
 static u16b level_golds[] =
 {
-    10, 20, 25, 30, 35, 40, 50, 50, 50, 50, /* Town - 450' */
+    10, 12, 15, 19, 24, 30, 40, 50, 50, 50, /* Town - 450' */
     50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 500' - 950' */
     50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 1000' - 1450' */
     50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 1500' - 1950' */

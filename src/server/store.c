@@ -158,7 +158,7 @@ static enum parser_error parse_type(struct parser *p)
     s->type = parser_getint(p, "type");
 
     /* PWMAngband: the Home has half capacity if we have access to houses */
-    if ((s->type == STORE_HOME) && (cfg_diving_mode < 2))
+    if ((s->type == STORE_HOME) && (cfg_diving_mode < 2) && !beta_version())
         s->stock_size = z_info->store_inven_max / 2;
 
     return PARSE_ERROR_NONE;

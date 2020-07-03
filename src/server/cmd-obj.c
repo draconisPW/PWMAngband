@@ -152,7 +152,7 @@ void do_cmd_uninscribe(struct player *p, int item)
     p->upkeep->update |= (PU_INVEN);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
     if (!object_is_carried(p, obj))
-        redraw_floor(&p->wpos, &obj->grid);
+        redraw_floor(&p->wpos, &obj->grid, NULL);
 }
 
 
@@ -255,7 +255,7 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     p->upkeep->update |= (PU_INVEN);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
     if (!object_is_carried(p, obj))
-        redraw_floor(&p->wpos, &obj->grid);
+        redraw_floor(&p->wpos, &obj->grid, NULL);
 }
 
 
@@ -1413,7 +1413,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
             /* Redraw */
             else
-                redraw_floor(&p->wpos, &obj->grid);
+                redraw_floor(&p->wpos, &obj->grid, obj);
         }
         else if (use == USE_TIMEOUT)
         {
@@ -1424,7 +1424,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
                 /* Redraw */
                 if (!object_is_carried(p, obj))
-                    redraw_floor(&p->wpos, &obj->grid);
+                    redraw_floor(&p->wpos, &obj->grid, obj);
             }
 
             /* Other activatable items */

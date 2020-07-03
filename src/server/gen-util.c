@@ -244,6 +244,21 @@ bool find_emptywater(struct chunk *c, struct loc *grid)
 
 
 /*
+ * Locate a training square for 0 <= y < ymax, 0 <= x < xmax.
+ *
+ * c current chunk
+ * y found y co-ordinate
+ * x found x co-ordinate
+ *
+ * Returns success
+ */
+bool find_training(struct chunk *c, struct loc *grid)
+{
+    return cave_find(c, grid, square_istraining);
+}
+
+
+/*
  * Locate a grid within +/- yd, xd of a centre.
  *
  * c current chunk

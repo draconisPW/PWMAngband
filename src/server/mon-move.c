@@ -95,8 +95,8 @@ static bool monster_can_smell(struct player *p, struct monster *mon)
  */
 static int compare_monsters(const struct monster *mon1, const struct monster *mon2)
 {
-    u32b mexp1 = mon1->race->mexp;
-    u32b mexp2 = mon2->race->mexp;
+    u32b mexp1 = (mon1->original_race? mon1->original_race->mexp: mon1->race->mexp);
+    u32b mexp2 = (mon2->original_race? mon2->original_race->mexp: mon2->race->mexp);
 
     /* Compare */
     if (mexp1 < mexp2) return (-1);

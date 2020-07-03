@@ -1026,7 +1026,7 @@ void update_player_object_knowledge(struct player *p)
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
-    if (c) redraw_floor(&p->wpos, &p->grid);
+    if (c) redraw_floor(&p->wpos, &p->grid, NULL);
 }
 
 

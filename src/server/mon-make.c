@@ -306,19 +306,8 @@ static bool allow_race(struct monster_race *race, struct worldpos *wpos)
         return false;
 
     /* Some monsters never appear out of their dungeon/town (wilderness) */
-    if ((cfg_diving_mode < 2) && race->locations)
-    {
-        bool found = false;
-        struct worldpos *location = race->locations;
-
-        while (location && !found)
-        {
-            if (loc_eq(&location->grid, &wpos->grid)) found = true;
-            else location = location->next;
-        }
-
-        if (!found) return false;
-    }
+    if (!allow_location(race, wpos))
+        return false;
 
     /* Some monsters only appear in the wilderness */
     if (rf_has(race->flags, RF_WILD_ONLY) && !in_wild(wpos))
@@ -609,7 +598,8 @@ void delete_monster_idx(struct chunk *c, int m_idx)
     my_assert(square_in_bounds(c, &mon->grid));
 
     /* Unique is dead */
-    mon->race->lore.spawned = 0;
+    if (mon->original_race) mon->original_race->lore.spawned = 0;
+    else mon->race->lore.spawned = 0;
 
     /* Decrease the number of clones */
     if (mon->clone) c->num_repro--;
@@ -889,7 +879,8 @@ void wipe_mon_list(struct chunk *c)
         }
 
         /* Unique is dead */
-        mon->race->lore.spawned = 0;
+        if (mon->original_race) mon->original_race->lore.spawned = 0;
+        else mon->race->lore.spawned = 0;
 
         /* Remove him from everybody's view */
         for (i = 1; i <= NumPlayers; i++)
@@ -1417,6 +1408,10 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
     /* Increase the number of clones */
     if (new_mon->race->ridx && new_mon->clone) c->num_repro++;
 
+    /* Unique has spawned */
+    if (new_mon->original_race) new_mon->original_race->lore.spawned = 1;
+    else new_mon->race->lore.spawned = 1;
+
     /* Done */
     if (!origin) return m_idx;
 
@@ -1543,6 +1538,7 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
     /* Hack -- check if monster race can be generated at that location */
     if (!allow_race(race, &c->wpos)) return false;
     if (race_hates_grid(c, race, grid)) return false;
+    if (rf_has(race->flags, RF_NO_DEATH) && !square_istraining(c, grid)) return false;
 
     /* Get local monster */
     mon = &monster_body;
@@ -1626,16 +1622,13 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
         mon->energy = randint0(move_energy(0) >> 4);
 
     /* Affect light? */
-    if (mon->race->light != 0) update_view_all(&c->wpos, 0);
+    if (race->light != 0) update_view_all(&c->wpos, 0);
 
     /* Is this obviously a monster? (Mimics etc. aren't) */
     if (rf_has(race->flags, RF_UNAWARE))
         mflag_on(mon->mflag, MFLAG_CAMOUFLAGE);
     else
         mflag_off(mon->mflag, MFLAG_CAMOUFLAGE);
-
-    /* Unique has spawned */
-    race->lore.spawned = 1;
 
     /* Hack -- increase the number of clones */
     if (mon_flag & MON_CLONE) mon->clone = 1;

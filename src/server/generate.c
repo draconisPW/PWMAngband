@@ -1099,6 +1099,26 @@ void cave_wipe(struct chunk *c)
 }
 
 
+bool allow_location(struct monster_race *race, struct worldpos *wpos)
+{
+    if ((cfg_diving_mode < 2) && race->locations)
+    {
+        bool found = false;
+        struct worldpos *location = race->locations;
+
+        while (location && !found)
+        {
+            if (loc_eq(&location->grid, &wpos->grid)) found = true;
+            else location = location->next;
+        }
+
+        if (!found) return false;
+    }
+
+    return true;
+}
+
+
 /*
  * Generate a random level.
  *
@@ -1162,16 +1182,19 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                 struct loc grid;
                 bool found = false;
                 int tries = 50;
+                struct chunk *c = chunk;
 
                 /* The monster must be an unseen quest monster/fixed encounter of this depth. */
                 if (race->lore.spawned) continue;
                 if (!quest_monster && !fixed_encounter) continue;
                 if (race->level != chunk->wpos.depth) continue;
+                if (!allow_location(race, &chunk->wpos)) continue;
 
                 /* Pick a location and place the monster */
                 while (tries-- && !found)
                 {
                     if (rf_has(race->flags, RF_AQUATIC)) found = find_emptywater(chunk, &grid);
+                    else if (rf_has(race->flags, RF_NO_DEATH)) found = find_training(chunk, &grid);
                     else found = find_empty(chunk, &grid);
                 }
                 if (found)

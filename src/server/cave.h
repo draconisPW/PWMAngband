@@ -204,6 +204,7 @@ extern int FEAT_HOME_OPEN;
 extern int FEAT_HOME_CLOSED;
 
 extern int FEAT_WEB;
+extern int FEAT_TRAINING;
 
 extern s16b ddd[9];
 extern struct loc ddgrid[10];
@@ -377,6 +378,7 @@ extern bool square_isno_stairs(struct chunk *c, struct loc *grid);
 extern bool square_isopen(struct chunk *c, struct loc *grid);
 extern bool square_isempty(struct chunk *c, struct loc *grid);
 extern bool square_isemptywater(struct chunk *c, struct loc *grid);
+extern bool square_istraining(struct chunk *c, struct loc *grid);
 extern bool square_isemptyfloor(struct chunk *c, struct loc *grid);
 extern bool square_canputitem(struct chunk *c, struct loc *grid);
 extern bool square_isdiggable(struct chunk *c, struct loc *grid);

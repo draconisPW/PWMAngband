@@ -2723,7 +2723,7 @@ static bool find_empty_range(struct chunk *c, struct loc *grid, struct loc *top_
 static void town_gen_layout(struct player *p, struct chunk *c)
 {
     int n;
-    struct loc grid, pgrid, xroads, tavern;
+    struct loc grid, pgrid, xroads, tavern, training;
     int num_lava;
     int ruins_percent = 40; /* PWMAngband: we need to place the tavern, so it's halved */
     int max_attempts = 100;
@@ -2767,6 +2767,7 @@ static void town_gen_layout(struct player *p, struct chunk *c)
     while (!success)
     {
         int lot_min_x, lot_max_x, lot_min_y, lot_max_y;
+        bool skip = false;
 
         /* Initialize to ROCK for build_streamer precondition */
         for (grid.y = 1; grid.y < town_hgt - 1; grid.y++)
@@ -2829,6 +2830,11 @@ static void town_gen_layout(struct player *p, struct chunk *c)
 
             /* Skip player store and tavern */
             if ((s->type == STORE_PLAYER) || (s->type == STORE_TAVERN)) continue;
+
+            /* Skip custom stores */
+            if (s->type == STORE_B_MARKET) skip = false;
+            else if (skip) continue;
+            else if (s->type == STORE_BOOKSELLER) skip = true;
 
             while (!found_spot && (num_attempts < max_attempts))
             {
@@ -2928,6 +2934,34 @@ static void town_gen_layout(struct player *p, struct chunk *c)
         }
 
         if (num_attempts >= max_attempts) continue;
+
+        /* Place the training grounds */
+        num_attempts = 0;
+        while (num_attempts < max_attempts)
+        {
+            bool found_non_floor = false;
+
+            num_attempts++;
+
+            find_empty_range(c, &training, &top_left, &bottom_right);
+
+            loc_init(&begin, training.x - 2, training.y - 2);
+            loc_init(&end, training.x + 2, training.y + 2);
+            loc_iterator_first(&iter, &begin, &end);
+
+            do
+            {
+                if (!square_in_bounds_fully(c, &iter.cur) ||!square_isfloor(c, &iter.cur))
+                    found_non_floor = true;
+            }
+            while (loc_iterator_next(&iter));
+
+            if (!found_non_floor) break;
+        }
+
+        if (num_attempts >= max_attempts) continue;
+
+        square_set_feat(c, &training, FEAT_TRAINING);
 
         success = true;
     }

@@ -283,7 +283,7 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->redraw |= (PR_EQUIP | PR_INVEN);
-    if (!carried) redraw_floor(&p->wpos, &grid);
+    if (!carried) redraw_floor(&p->wpos, &grid, NULL);
 
     return true;
 }
@@ -1873,7 +1873,7 @@ static bool effect_handler_BRAND_AMMO(effect_handler_context_t *context)
 
     /* Redraw */
     if (!object_is_carried(context->origin->player, obj))
-        redraw_floor(&context->origin->player->wpos, &obj->grid);
+        redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
     return true;
 }
@@ -4558,7 +4558,7 @@ static bool effect_handler_ENCHANT(effect_handler_context_t *context)
 
     /* Redraw */
     if (!object_is_carried(context->origin->player, obj))
-        redraw_floor(&context->origin->player->wpos, &obj->grid);
+        redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
     /* Something happened */
     return true;
@@ -4708,7 +4708,7 @@ static bool effect_handler_IDENTIFY(effect_handler_context_t *context)
     /* Identify the object */
     object_learn_unknown_rune(context->origin->player, obj);
     if (!object_is_carried(context->origin->player, obj))
-        redraw_floor(&context->origin->player->wpos, &obj->grid);
+        redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
     /* Something happened */
     return true;
@@ -5812,7 +5812,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
 
     /* Redraw */
     context->origin->player->upkeep->redraw |= (PR_INVEN);
-    if (!carried) redraw_floor(&context->origin->player->wpos, &grid);
+    if (!carried) redraw_floor(&context->origin->player->wpos, &grid, NULL);
 
     /* Something was done */
     return true;
@@ -6540,7 +6540,7 @@ static bool effect_handler_TAP_DEVICE(effect_handler_context_t *context)
             /* Redraw */
             context->origin->player->upkeep->redraw |= (PR_INVEN);
             if (!object_is_carried(context->origin->player, obj))
-                redraw_floor(&context->origin->player->wpos, &obj->grid);
+                redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
             /* Increase mana. */
             context->origin->player->csp += energy / 6;

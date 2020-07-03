@@ -808,3 +808,10 @@ graphics:#:w
 priority:10
 flags:LOS | PROJECT | PASSABLE | BORING | EASY
 desc:Looks like this wall is not so real.
+
+name:training grounds
+graphics:.:o
+priority:3
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | EASY
+short-desc:training grounds
+desc:Training grounds suitable for training.

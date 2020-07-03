@@ -1345,7 +1345,7 @@ static int rd_objects_aux(rd_item_t rd_item_version, struct chunk *c)
             {
                 plog_fmt("Cannot place object at row %d, column %d!", obj->grid.y, obj->grid.x);
                 object_delete(&obj);
-                return -1;
+                if (!beta_version()) return -1;
             }
         }
         else

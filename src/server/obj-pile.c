@@ -810,7 +810,7 @@ struct object *floor_object_for_use(struct player *p, struct chunk *c, struct ob
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
-    redraw_floor(&p->wpos, &grid);
+    redraw_floor(&p->wpos, &grid, NULL);
 
     /* Print a message if desired */
     if (message)
@@ -1452,7 +1452,7 @@ void player_know_floor(struct player *p, struct chunk *c)
             if (!ignore_item_ok(p, obj)) assess_object(p, obj, false);
         }
 
-        redraw_floor(&p->wpos, &p->grid);
+        redraw_floor(&p->wpos, &p->grid, NULL);
     }
 }
 
