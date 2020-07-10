@@ -3900,6 +3900,64 @@ static struct file_parser hints_parser =
 
 
 /*
+ * Initialize level_golds
+ */
+
+
+static enum parser_error parse_level_golds(struct parser *p)
+{
+    int depth = parser_getint(p, "depth");
+    u16b rate = parser_getuint(p, "rate");
+
+    if ((depth < 0) || (depth > 127))
+        return PARSE_ERROR_INVALID_VALUE;
+    if ((rate < 10) || (rate > 100))
+        return PARSE_ERROR_INVALID_VALUE;
+
+    level_golds[depth] = rate;
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static struct parser *init_parse_level_golds(void)
+{
+    struct parser *p = parser_new();
+
+    parser_reg(p, "rate int depth uint rate", parse_level_golds);
+    return p;
+}
+
+
+static errr run_parse_level_golds(struct parser *p)
+{
+    return parse_file_quit_not_found(p, "level_golds");
+}
+
+
+static errr finish_parse_level_golds(struct parser *p)
+{
+    parser_destroy(p);
+    return 0;
+}
+
+
+static void cleanup_level_golds(void)
+{
+}
+
+
+static struct file_parser level_golds_parser =
+{
+    "level_golds",
+    init_parse_level_golds,
+    run_parse_level_golds,
+    finish_parse_level_golds,
+    cleanup_level_golds
+};
+
+
+/*
  * Game data initialization
  */
 
@@ -3954,6 +4012,7 @@ static struct
     {"flavours", &flavor_parser},
     {"socials", &soc_parser},
     {"hints", &hints_parser},
+    {"level_golds", &level_golds_parser},
     {"random names", &names_parser}
 };
 

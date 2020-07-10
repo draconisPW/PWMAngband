@@ -21,6 +21,12 @@
 #include "s-angband.h"
 
 
+/*
+ * This table provides for different gold drop rates at different dungeon depths.
+ */
+u16b level_golds[128];
+
+
 /** Arrays holding an index of objects to generate for a given level */
 static u32b *obj_total;
 static byte *obj_alloc;
@@ -1885,27 +1891,6 @@ struct object_kind *money_kind(const char *name, int value)
 
     return lookup_kind(TV_GOLD, money_type[rank].type);
 }
-
-
-/*
- * This table provides for different gold drop rates at different dungeon depths.
- */
-static u16b level_golds[] =
-{
-    10, 12, 15, 19, 24, 30, 40, 50, 50, 50, /* Town - 450' */
-    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 500' - 950' */
-    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 1000' - 1450' */
-    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 1500' - 1950' */
-    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 2000' - 2450' */
-    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 2500' - 2950' */
-    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 3000' - 3450' */
-    50, 50, 50, 50, 50, 50, 50, 50, 50, 50, /* 3500' - 3950' */
-    50, 51, 52, 53, 54, 55, 56, 57, 58, 59, /* 4000' - 4450' */
-    60, 61, 62, 63, 64, 65, 66, 67, 68, 69, /* 4500' - 4950' */
-    70, 70, 70, 70, 70, 70, 70, 70, 70, 70, /* 5000' - 5450' */
-    70, 70, 70, 70, 70, 70, 70, 70, 70, 70, /* 5500' - 5950' */
-    70, 70, 70, 70, 70, 70, 70, 70          /* 6000' - 6350' */
-};
 
 
 /*

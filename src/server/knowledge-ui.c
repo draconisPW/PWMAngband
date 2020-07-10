@@ -1327,8 +1327,8 @@ static void do_cmd_knowledge_uniques(struct player *p, int line)
     {
         race = &r_info[k];
 
-        /* Only print Uniques */
-        if (monster_is_unique(race))
+        /* Only print Uniques that can be killed */
+        if (monster_is_unique(race) && !rf_has(race->flags, RF_NO_DEATH))
         {
             /* Only display "known" uniques */
             if (race->lore.seen)

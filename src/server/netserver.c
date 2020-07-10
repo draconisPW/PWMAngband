@@ -556,8 +556,12 @@ static int Check_names(char *nick_name, char *real_name, char *host_name)
         else break;
     }
 
-    /* The "server" and "account" names are reserved */
-    if (!my_stricmp(nick_name, "server") || !my_stricmp(nick_name, "account")) return E_INVAL;
+    /* The "server", "account" and "players" names are reserved */
+    if (!my_stricmp(nick_name, "server") || !my_stricmp(nick_name, "account") ||
+        !my_stricmp(nick_name, "players"))
+    {
+        return E_INVAL;
+    }
 
     return SUCCESS;
 }

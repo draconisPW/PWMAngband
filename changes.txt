@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 13
+New features in PWMAngband 1.4.0 beta 14
 ========================================
 
 User interface
@@ -109,6 +109,7 @@ PWMAngband:
 - Add "ascii_mon" option to display monsters using ASCII symbols instead
   of tiles when using a tileset
 - Add message when using chargeable items from the ground
+- Add message for projected damage if show_damage option is set
 
 Gameplay changes
 ----------------
@@ -232,6 +233,7 @@ PWMAngband:
 - Add custom number of stairs for dungeons
 - Replace hardcoded QUIT_TIMEOUT with mangband.cfg server option
 - Keep player active during disconnection timeout
+- Don't wipe items on the surface at dawn if there are players on the level
 
 Bugs fixed
 ----------
@@ -316,6 +318,12 @@ PWMAngband:
   discard the object
 - Allow full home capacity on VERSION_BETA servers
 - Don't generate custom stores in the base town
+- Put gold drop rates for no_selling servers into level_golds.txt
+- Save player id counter + player names in a separate file
+- Check saved password vs provided password when loading player savefile
+- Remove duplicates from the player name database when loading player names
+- Use new player id if player id already exists in the player name database
+  when loading player savefile
 
 Compilation
 -----------

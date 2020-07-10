@@ -543,9 +543,6 @@ void wr_misc(void *unused)
 
     /* Current turn */
     wr_hturn(&turn);
-
-    /* PWMAngband */
-    wr_s32b(player_id);
 }
 
 
@@ -1541,6 +1538,9 @@ void wr_player_names(void *unused)
     u32b num;
     size_t i;
     hash_entry *ptr;
+
+    /* Current player ID */
+    wr_s32b(player_id);
 
     /* Get the list of player ID's */
     num = player_id_list(&id_list, 0L);

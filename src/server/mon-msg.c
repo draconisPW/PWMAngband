@@ -71,6 +71,9 @@ void message_pain(struct player *p, struct monster *mon, int dam)
 {
     int msg_code = MON_MSG_UNHARMED;
 
+    /* NO_DEATH monsters don't feel pain */
+    if (rf_has(mon->race->flags, RF_NO_DEATH)) return;
+
     /* Calculate damage levels */
     if (dam > 0)
     {

@@ -1573,6 +1573,15 @@ static bool project_m_player_attack(project_monster_handler_context_t *context)
     if ((context->origin->player->firing_request > 1) && !dam)
         context->origin->player->firing_request = 1;
 
+    /* PWMAngband: add message */
+    if (OPT(context->origin->player, show_damage) && (dam > 0))
+    {
+        char m_name[NORMAL_WID];
+
+        monster_desc(context->origin->player, m_name, sizeof(m_name), mon, MDESC_STANDARD);
+        msg(context->origin->player, "%s is hit for %d damage.", m_name, dam);
+    }
+
     /*
      * The monster is going to be killed, so display a specific death message.
      * If the monster is not visible to the player, use a generic message.
@@ -1581,10 +1590,9 @@ static bool project_m_player_attack(project_monster_handler_context_t *context)
      * ensures it doesn't print any death message and allows correct ordering
      * of messages.
      */
-    if (dam > mon->hp)
+    if ((dam > mon->hp) && !rf_has(mon->race->flags, RF_NO_DEATH))
     {
-        if (!seen)
-            die_msg = MON_MSG_MORIA_DEATH;
+        if (!seen) die_msg = MON_MSG_MORIA_DEATH;
         add_monster_message(context->origin->player, mon, die_msg, false);
     }
 

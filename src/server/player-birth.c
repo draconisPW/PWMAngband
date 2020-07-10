@@ -1231,6 +1231,17 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
             return NULL;
         }
 
+        /* Important: check password */
+        if (strcmp(p->pass, pass))
+        {
+            plog("Invalid password");
+            Destroy_connection(p->conn, "Invalid password");
+            cleanup_player(p);
+            mem_free(p);
+            player_set(id, NULL);
+            return NULL;
+        }
+
         /* Player is dead */
         if (p->is_dead)
         {

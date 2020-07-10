@@ -257,7 +257,7 @@ struct dragon_breed
     byte d_fmt;                 /* Dragon name format ("dragon" or "drake") */
     char *w_name;               /* Wyrm name */
     byte w_fmt;                 /* Wyrm name format ("xxx wyrm" or "wyrm of xxx") */
-    byte commonness;            /* Commonnes of the breed */
+    byte commonness;            /* Commonness of the breed */
     s16b r_exp;                 /* Experience factor */
     byte immune;                /* Immunity to element? */
 };

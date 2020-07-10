@@ -1154,8 +1154,9 @@ static void process_various(void)
     {
         int i;
 
-        /* Save server state */
+        /* Save server state + player names */
         save_server_info();
+        save_account_info();
 
         /* Save each player */
         for (i = 1; i <= NumPlayers; i++)
@@ -1316,8 +1317,25 @@ static void process_various(void)
                 struct object *obj, *next;
                 struct loc begin, end;
                 struct loc_iterator iter;
+                int i, num_on_depth = 0;
+                struct worldpos wpos;
 
+                /* Must exist */
                 if (!c) continue;
+
+                wpos_init(&wpos, &grid, 0);
+
+                /* Count the number of players actually in game on this level */
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    struct player *p = player_get(i);
+
+                    if (!p->upkeep->funeral && wpos_eq(&p->wpos, &wpos))
+                        num_on_depth++;
+                }
+
+                /* Only if no one is actually on this level */
+                if (num_on_depth) continue;
 
                 loc_init(&begin, 0, 0);
                 loc_init(&end, c->width, c->height);
@@ -2294,8 +2312,9 @@ static void close_game(void)
     /* Preserve artifacts on the ground */
     preserve_artifacts();
 
-    /* Try to save the server information */
+    /* Try to save the server information + player names */
     save_server_info();
+    save_account_info();
 }
 
 
@@ -2310,9 +2329,11 @@ void play_game(void)
     /* Flash a message */
     plog("Please wait...");
 
-    /* Attempt to load the server state information */
+    /* Attempt to load the server state information + player names */
     if (!load_server_info())
         quit("Broken server savefile");
+    if (!load_account_info())
+        quit("Broken player names savefile");
 
     /* Initialize server state information */
     if (!server_state_loaded) server_birth();
@@ -2389,11 +2410,13 @@ void shutdown_server(void)
     /* Preserve artifacts on the ground */
     preserve_artifacts();
 
-    /* Try to save the server information */
+    /* Try to save the server information + player names */
     if (!save_server_info()) plog("Server state save failed!");
 
     /* Successful save of server info */
     else plog("Server state save succeeded!");
+
+    save_account_info();
 
     /* Tell the metaserver that we're gone */
     Report_to_meta(META_DIE);
@@ -2461,11 +2484,13 @@ void exit_game_panic(void)
     /* Preserve artifacts on the ground */
     preserve_artifacts();
 
-    /* Try to save the server information */
+    /* Try to save the server information + player names */
     if (!save_server_info()) plog("Server panic info save failed!");
 
     /* Successful panic save of server info */
     else plog("Server panic info save succeeded!");
+
+    save_account_info();
 
     /* Don't re-enter */
     server_generated = false;

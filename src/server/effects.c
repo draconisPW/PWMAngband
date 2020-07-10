@@ -6984,6 +6984,18 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
             false);
     }
 
+    /* Reveal mimics */
+    if (is_player)
+    {
+        if (context->origin->player->k_idx)
+            aware_player(context->origin->player, context->origin->player);
+    }
+    else
+    {
+        if (monster_is_camouflaged(context->origin->monster))
+            become_aware(context->origin->player, context->cave, context->origin->monster);
+    }
+
     /* Move the target */
     monster_swap(context->cave, &start, &iter.cur);
 

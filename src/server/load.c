@@ -531,6 +531,19 @@ int rd_player(struct player *p)
 
     /* Verify player ID */
     if (!p->id) p->id = player_id++;
+    else
+    {
+        hash_entry *ptr = lookup_player_by_name(p->name);
+
+        /* If character exists, ids must match */
+        if (ptr)
+        {
+            if (ptr->id != p->id) p->id = player_id++;
+        }
+
+        /* If character doesn't exist, don't steal the id of someone else */
+        else if (lookup_player(p->id)) p->id = player_id++;
+    }
 
     rd_string(p->died_from, NORMAL_WID);
     rd_string(p->died_flavor, 160);
@@ -816,9 +829,6 @@ int rd_misc(struct player *unused)
 
     /* Current turn */
     rd_hturn(&turn);
-
-    /* PWMAngband */
-    rd_s32b(&player_id);
 
     /* Success */
     return (0);
@@ -1835,9 +1845,7 @@ int rd_header(struct player *p)
     char buf[NORMAL_WID];
 
     rd_string(p->name, NORMAL_WID);
-
-    /* Skip password */
-    strip_string(NORMAL_WID);
+    rd_string(p->pass, NORMAL_WID);
 
     /* Player race */
     rd_string(buf, sizeof(buf));
@@ -2086,6 +2094,9 @@ int rd_player_names(struct player *unused)
     u32b tmp32u;
     char name[NORMAL_WID];
 
+    /* Current player ID */
+    rd_s32b(&player_id);
+
     /* Read the player name database */
     rd_u32b(&tmp32u);
 
@@ -2107,6 +2118,9 @@ int rd_player_names(struct player *unused)
 
         /* Read the time of death */
         rd_hturn(&death_turn);
+
+        /* Remove duplicates from the player name database */
+        delete_player_name(name);
 
         /* Store the player name */
         add_player_name(id, account, name, &death_turn);
