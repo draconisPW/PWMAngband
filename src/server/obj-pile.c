@@ -1088,6 +1088,7 @@ static bool drop_find_grid(struct player *p, struct chunk *c, struct object *dro
             int num_ignored = 0;
             int score;
             struct monster *mon;
+            int size;
 
             loc_init(&loc_try, grid->x + dx, grid->y + dy);
 
@@ -1119,12 +1120,13 @@ static bool drop_find_grid(struct player *p, struct chunk *c, struct object *dro
             }
             if (!combine) num_shown++;
 
+            /* Hack: limit size of pile in houses */
+            size = z_info->floor_size;
+            if (location_in_house(&c->wpos, &loc_try)) size = cfg_house_floor_size;
+
             /* Disallow if the stack size is too big */
-            if (((num_shown + num_ignored) > z_info->floor_size) &&
-                !floor_get_oldest_ignored(p, c, &loc_try))
-            {
+            if (((num_shown + num_ignored) > size) && !floor_get_oldest_ignored(p, c, &loc_try))
                 continue;
-            }
 
             /* Score the location based on how close and how full the grid is */
             score = 1000 - (dist + (prefer_pile? 0: num_shown * 5));

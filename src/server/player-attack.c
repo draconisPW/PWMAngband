@@ -2203,7 +2203,7 @@ bool do_cmd_fire(struct player *p, int dir, int item)
 /*
  * Throw an object from the quiver, pack or floor.
  */
-void do_cmd_throw(struct player *p, int dir, int item)
+bool do_cmd_throw(struct player *p, int dir, int item)
 {
     int num_shots = 1;
     int str = adj_str_blow[p->state.stat_ind[STAT_STR]];
@@ -2211,51 +2211,51 @@ void do_cmd_throw(struct player *p, int dir, int item)
     int weight;
     int range;
     struct object *obj = object_from_index(p, item, true, true);
-    bool magic = false;
+    bool magic = false, more;
 
     /* Paranoia: requires an item */
-    if (!obj) return;
+    if (!obj) return false;
 
     /* Restrict ghosts */
     if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
     {
         msg(p, "You cannot throw items!");
-        return;
+        return false;
     }
 
     /* Check preventive inscription '^v' */
     if (check_prevent_inscription(p, INSCRIPTION_THROW))
     {
         msg(p, "The item's inscription prevents it.");
-        return;
+        return false;
     }
 
     /* Make sure the player isn't throwing wielded items */
     if (object_is_equipped(p->body, obj))
     {
         msg(p, "You cannot throw wielded items.");
-        return;
+        return false;
     }
 
     /* Restricted by choice */
     if (!object_is_carried(p, obj) && !is_owner(p, obj))
     {
         msg(p, "This item belongs to someone else!");
-        return;
+        return false;
     }
 
     /* Must meet level requirement */
     if (!object_is_carried(p, obj) && !has_level_req(p, obj))
     {
         msg(p, "You don't have the required level!");
-        return;
+        return false;
     }
 
     /* Check preventive inscription '!v' */
     if (object_prevent_inscription(p, obj, INSCRIPTION_THROW, false))
     {
         msg(p, "The item's inscription prevents it.");
-        return;
+        return false;
     }
 
     if (tval_is_ammo(obj)) magic = of_has(obj->flags, OF_AMMO_MAGIC);
@@ -2264,21 +2264,21 @@ void do_cmd_throw(struct player *p, int dir, int item)
     if (obj->artifact && (!magic || newbies_cannot_drop(p)))
     {
         msg(p, "You cannot throw that!");
-        return;
+        return false;
     }
 
     /* Never drop deeds of property */
     if (tval_is_deed(obj))
     {
         msg(p, "You cannot throw this.");
-        return;
+        return false;
     }
 
     /* Never in wrong house */
     if (!check_store_drop(p))
     {
         msg(p, "You cannot throw this here.");
-        return;
+        return false;
     }
 
     weight = MAX(obj->weight, 10);
@@ -2287,8 +2287,11 @@ void do_cmd_throw(struct player *p, int dir, int item)
     /* Apply confusion */
     player_confuse_dir(p, &dir);
 
-    ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
+    /* Take shots until energy runs out or monster dies */
+    more = ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
         (int)N_ELEMENTS(ranged_hit_types), magic, false, false);
+
+    return more;
 }
 
 
@@ -2301,6 +2304,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     int i, dir = DIR_TARGET;
     struct object *ammo = NULL;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
+    bool result;
 
     /* Cancel repeat */
     if (!p->firing_request) return true;
@@ -2308,21 +2312,22 @@ bool do_cmd_fire_at_nearest(struct player *p)
     /* Check energy */
     if (!has_energy(p, true)) return false;
 
-    /* Require a usable launcher */
-    if (!bow)
-    {
-        msg(p, "You have nothing to fire with.");
-
-        /* Cancel repeat */
-        disturb(p);
-        return true;
-    }
-
     /* Find first eligible ammo in the quiver */
     for (i = 0; i < z_info->quiver_size; i++)
     {
         if (!p->upkeep->quiver[i]) continue;
-        if (p->upkeep->quiver[i]->tval != p->state.ammo_tval) continue;
+        if (bow)
+        {
+            if (p->upkeep->quiver[i]->tval != p->state.ammo_tval) continue;
+        }
+        else
+        {
+            if (!tval_is_ammo(p->upkeep->quiver[i]) ||
+                !of_has(p->upkeep->quiver[i]->flags, OF_THROWING))
+            {
+                continue;
+            }
+        }
         ammo = p->upkeep->quiver[i];
         break;
     }
@@ -2346,7 +2351,9 @@ bool do_cmd_fire_at_nearest(struct player *p)
     }
 
     /* Fire! */
-    if (!do_cmd_fire(p, dir, ammo->oidx))
+    if (bow) result = do_cmd_fire(p, dir, ammo->oidx);
+    else result = do_cmd_throw(p, dir, ammo->oidx);
+    if (!result)
     {
         /* Cancel repeat */
         disturb(p);

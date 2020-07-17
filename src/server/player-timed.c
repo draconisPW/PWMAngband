@@ -997,6 +997,29 @@ bool player_timed_grade_eq(struct player *p, int idx, char *match)
 
 
 /*
+ * Hack: check if player has permanent protection from confusion (see calc_bonuses)
+ */
+static bool player_of_has_prot_conf(struct player *p)
+{
+    bitflag collect_f[OF_SIZE], f[OF_SIZE];
+    int i;
+
+    player_flags(p, collect_f);
+
+    for (i = 0; i < p->body.count; i++)
+    {
+        struct object *obj = slot_object(p, i);
+
+        if (!obj) continue;
+        object_flags(obj, f);
+        of_union(collect_f, f);
+    }
+
+    return of_has(collect_f, OF_PROT_CONF);
+}
+
+
+/*
  * Set a timed event.
  */
 bool player_set_timed(struct player *p, int idx, int v, bool notify)
@@ -1079,7 +1102,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     if ((idx == TMD_OPP_ELEC) && player_is_immune(p, ELEM_ELEC)) notify = false;
     if ((idx == TMD_OPP_FIRE) && player_is_immune(p, ELEM_FIRE)) notify = false;
     if ((idx == TMD_OPP_COLD) && player_is_immune(p, ELEM_COLD)) notify = false;
-    if ((idx == TMD_OPP_CONF) && player_of_has(p, OF_PROT_CONF)) notify = false;
+    if ((idx == TMD_OPP_CONF) && player_of_has_prot_conf(p)) notify = false;
 
     /* Always mention going up a grade, otherwise on request */
     if (new_grade->grade > current_grade->grade)

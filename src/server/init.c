@@ -70,6 +70,7 @@ bool cfg_double_purse = false;
 bool cfg_level_req = true;
 s16b cfg_constant_time_factor = 5;
 bool cfg_classic_exp_factor = true;
+s16b cfg_house_floor_size = 1;
 s16b cfg_limit_stairs = 0;
 s16b cfg_diving_mode = 0;
 bool cfg_no_artifacts = false;
@@ -567,7 +568,10 @@ static enum parser_error parse_constants_carry_cap(struct parser *p)
     else if (streq(label, "quiver-slot-size"))
         z->quiver_slot_size = value;
     else if (streq(label, "floor-size"))
+    {
         z->floor_size = value;
+        if (cfg_house_floor_size > z->floor_size) cfg_house_floor_size = z->floor_size;
+    }
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
 
@@ -4393,6 +4397,13 @@ static void set_server_option(const char *option, char *value)
     }
     else if (!strcmp(option, "CLASSIC_EXP_FACTOR"))
         cfg_classic_exp_factor = str_to_boolean(value);
+    else if (!strcmp(option, "HOUSE_FLOOR_SIZE"))
+    {
+        cfg_house_floor_size = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_house_floor_size < 1) cfg_house_floor_size = 1;
+    }
     else if (!strcmp(option, "LIMIT_STAIRS"))
     {
         cfg_limit_stairs = atoi(value);

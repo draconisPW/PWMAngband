@@ -836,9 +836,6 @@ static void process_player_world(struct player *p, struct chunk *c)
         }
     }
 
-    /* Timeout various things */
-    decrease_timeouts(p, c);
-
     /* Quest */
     process_quest(p);
 
@@ -1063,6 +1060,11 @@ static void process_player_cleanup(struct player *p)
  */
 static void process_player(struct player *p)
 {
+    int time = move_energy(p->wpos.depth) / (10 * time_factor(p, chunk_get(&p->wpos)));
+
+    /* Timeout various things */
+    if (!(turn.turn % time)) decrease_timeouts(p, chunk_get(&p->wpos));
+
     /* Try to execute any commands on the command queue. */
     /* NB: process_pending_commands may have deleted the connection! */
     if (process_pending_commands(p->conn)) return;
@@ -2056,6 +2058,11 @@ static void process_player_shimmer(struct player *p)
  */
 static void process_player_turn_based(struct player *p)
 {
+    int time = move_energy(p->wpos.depth) / (10 * time_factor(p, chunk_get(&p->wpos)));
+
+    /* Timeout various things */
+    if (!(turn.turn % time)) decrease_timeouts(p, chunk_get(&p->wpos));
+
     /* Try to execute any commands on the command queue. */
     /* NB: process_pending_commands may have deleted the connection! */
     if (process_pending_commands(p->conn)) return;

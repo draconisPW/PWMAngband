@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 14
+New features in PWMAngband 1.4.0 beta 15
 ========================================
 
 User interface
@@ -234,6 +234,8 @@ PWMAngband:
 - Replace hardcoded QUIT_TIMEOUT with mangband.cfg server option
 - Keep player active during disconnection timeout
 - Don't wipe items on the surface at dawn if there are players on the level
+- Allow "fire at nearest" command to throw missiles when no launcher is equipped
+- Add HOUSE_FLOOR_SIZE server option to limit the size of object piles in houses
 
 Bugs fixed
 ----------
@@ -267,6 +269,7 @@ PWMAngband:
 - Use custom floor under a mimic when it is revealed or deleted
 - Fix critical bug that made wraithed players totally invisible to monsters
 - Fix ghostly powers for deceased warriors/unbelievers/monks
+- Fix OPP_CONF timed effect not ending properly
 
 Coding changes
 --------------
@@ -324,6 +327,8 @@ PWMAngband:
 - Remove duplicates from the player name database when loading player names
 - Use new player id if player id already exists in the player name database
   when loading player savefile
+- Move decrease_timeouts() before process_pending_commands() to make effects
+  last the proper amount of turns
 
 Compilation
 -----------

@@ -50,6 +50,7 @@ extern bool cfg_double_purse;
 extern bool cfg_level_req;
 extern s16b cfg_constant_time_factor;
 extern bool cfg_classic_exp_factor;
+extern s16b cfg_house_floor_size;
 extern s16b cfg_limit_stairs;
 extern s16b cfg_diving_mode;
 extern bool cfg_no_artifacts;
