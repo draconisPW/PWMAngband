@@ -2733,6 +2733,32 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 }
 
 
+int house_price(int area, bool town)
+{
+    int price = 0;
+
+    if (town)
+    {
+        price = area;
+        price *= 20;
+        price *= (80 + randint1(40) + cfg_house_floor_size * 4);
+    }
+    else
+    {
+        /* This is the dominant term for large houses */
+        if (area > 40) price = (area - 40) * (area - 40) * (area - 40) * 3;
+
+        /* This is the dominant term for medium houses */
+        price += area * area * 33;
+
+        /* This is the dominant term for small houses */
+        price += area * (900 + randint0(200) + cfg_house_floor_size * 40);
+    }
+
+    return price;
+}
+
+
 /*
  * Adds a building to the wilderness. If the coordinate is not given, find it randomly.
  */
@@ -2934,15 +2960,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
 
         case WILD_TOWN_HOME:
         {
-            /* This is the dominant term for large houses */
-            if (area > 40) price = (area - 40) * (area - 40) * (area - 40) * 3;
-            else price = 0;
-
-            /* This is the dominant term for medium houses */
-            price += area * area * 33;
-
-            /* This is the dominant term for small houses */
-            price += area * (900 + randint0(200));
+            price = house_price(area, false);
 
             /* Hack -- only add a house if it is not already in memory */
             i = pick_house(&p->wpos, &door);

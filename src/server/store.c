@@ -55,7 +55,7 @@ struct hint *hints;
 
 
 /* Store orders */
-char store_orders[STORE_ORDERS][NORMAL_WID];
+struct store_order store_orders[STORE_ORDERS];
 
 
 /* Default welcome messages */
@@ -1101,14 +1101,16 @@ struct object *store_carry(struct player *p, struct store *store, struct object 
 
         for (i = 0; i < STORE_ORDERS; i++)
         {
-            if (STRZERO(store_orders[i])) continue;
+            /* Discard empty and running orders */
+            if (STRZERO(store_orders[i].order)) continue;
+            if (!ht_zero(&store_orders[i].turn)) continue;
 
             /* Check loosely */
-            if (str_contains(o_name, store_orders[i]))
+            if (str_contains(o_name, store_orders[i].order))
             {
                 /* Flag the item as "ordered" */
                 obj->ordered = 1 + i;
-                my_strcpy(store_orders[i], "{ordered}", sizeof(store_orders[0]));
+                ht_copy(&store_orders[i].turn, &turn);
 
                 break;
             }
@@ -1139,7 +1141,7 @@ static void store_delete(struct store *s, struct object *obj, int amt)
 
         /* Remove the corresponding order */
         if (obj->ordered)
-            my_strcpy(store_orders[obj->ordered - 1], "", sizeof(store_orders[0]));
+            memset(&store_orders[obj->ordered - 1], 0, sizeof(struct store_order));
 
         object_delete(&obj);
         my_assert(s->stock_num);
@@ -1197,8 +1199,20 @@ static void store_delete_random(struct store *store)
     obj = store->stock;
     while (what--) obj = obj->next;
 
-    /* Hack -- ordered items stay in the shop until bought */
-    if (obj->ordered) return;
+    /* Hack -- ordered items stay in the shop until bought or expired */
+    if (obj->ordered)
+    {
+        struct store_order *order = &store_orders[obj->ordered - 1];
+
+        /* Remove expired orders */
+        if (!player_expiry(&order->turn))
+        {
+            memset(order, 0, sizeof(struct store_order));
+            obj->ordered = 0;
+        }
+        else
+            return;
+    }
 
     /* Determine how many objects are in the slot */
     num = obj->number;
@@ -1465,7 +1479,7 @@ static void store_maint(struct store *s, bool force)
     /* Check for orders */
     for (j = 0; ((s->type == STORE_XBM) && (j < STORE_ORDERS)); j++)
     {
-        if (!STRZERO(store_orders[j])) n++;
+        if (!STRZERO(store_orders[j].order)) n++;
     }
 
     /*
@@ -3060,7 +3074,7 @@ void store_order(struct player *p, const char *buf)
     /* Check for space */
     for (i = 0; i < STORE_ORDERS; i++)
     {
-        if (STRZERO(store_orders[i]))
+        if (STRZERO(store_orders[i].order))
         {
             idx = i;
             break;
@@ -3093,7 +3107,8 @@ void store_order(struct player *p, const char *buf)
 
             /* Accept the order */
             msg(p, "Order accepted.");
-            my_strcpy(store_orders[idx], "{ordered}", sizeof(store_orders[0]));
+            my_strcpy(store_orders[idx].order, buf, NORMAL_WID);
+            ht_copy(&store_orders[idx].turn, &turn);
 
             return;
         }
@@ -3101,7 +3116,7 @@ void store_order(struct player *p, const char *buf)
 
     /* Not in stock: place an order */
     msg(p, "Order accepted.");
-    my_strcpy(store_orders[idx], buf, sizeof(store_orders[0]));
+    my_strcpy(store_orders[idx].order, buf, NORMAL_WID);
 }
 
 

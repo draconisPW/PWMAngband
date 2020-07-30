@@ -100,8 +100,7 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
     }
 
     /* Use known feature */
-    g->f_idx = square_known_feat(p, c, grid);
-    if (f_info[g->f_idx].mimic) g->f_idx = lookup_feat(f_info[g->f_idx].mimic);
+    g->f_idx = square_apparent_feat(p, c, grid);
 
     /* Use known trap */
     g->trap = square_known_trap(p, c, grid);

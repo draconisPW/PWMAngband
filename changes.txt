@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 15
+New features in PWMAngband 1.4.0 beta 16
 ========================================
 
 User interface
@@ -110,6 +110,7 @@ PWMAngband:
   of tiles when using a tileset
 - Add message when using chargeable items from the ground
 - Add message for projected damage if show_damage option is set
+- Add time limit of 7 days on Expensive Black Market orders
 
 Gameplay changes
 ----------------
@@ -236,6 +237,7 @@ PWMAngband:
 - Don't wipe items on the surface at dawn if there are players on the level
 - Allow "fire at nearest" command to throw missiles when no launcher is equipped
 - Add HOUSE_FLOOR_SIZE server option to limit the size of object piles in houses
+- Make ego torches more common
 
 Bugs fixed
 ----------

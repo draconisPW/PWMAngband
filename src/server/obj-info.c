@@ -773,7 +773,15 @@ static int calc_damage(struct player *p, struct player_state *state, const struc
     }
 
     /* Apply throwing multiplier */
-    if (!weapon && !ammo) dam *= (1 + p->lev / 12);
+    if (!weapon && !ammo)
+    {
+        int might = 2 + obj->weight / 12;
+
+        /* Good at throwing */
+        if (player_has(p, PF_FAST_THROW)) might = 2 + (obj->weight + p->lev) / 12;
+
+        dam *= might;
+    }
 
     /* Calculate missile multiplier from launcher multiplier, slays & brands */
     if (!weapon)

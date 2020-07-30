@@ -3872,9 +3872,7 @@ static void build_feature(struct chunk *c, int n, int yy, int xx)
         while (loc_iterator_next_strict(&iter));
 
         /* Remember price */
-        price = (x2 - x1 - 1) * (y2 - y1 - 1);
-        price *= 20;
-        price *= 80 + randint1(40);
+        price = house_price((x2 - x1 - 1) * (y2 - y1 - 1), true);
 
         /* Hack -- only create houses that aren't already loaded from disk */
         loc_init(&grid, dx, dy);

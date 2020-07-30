@@ -649,7 +649,11 @@ void wr_stores(void *unused)
     wr_u16b(STORE_ORDERS);
 
     /* Dump the store orders */
-    for (i = 0; i < STORE_ORDERS; i++) wr_string(store_orders[i]);
+    for (i = 0; i < STORE_ORDERS; i++)
+    {
+        wr_string(store_orders[i].order);
+        wr_hturn(&store_orders[i].turn);
+    }
 }
 
 

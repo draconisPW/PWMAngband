@@ -3274,7 +3274,7 @@ static bool allowed_foundation_area(struct player *p, struct chunk *c, struct lo
  */
 bool build_house(struct player *p)
 {
-    int x1, x2, y1, y2, house, area, price = 0, tax;
+    int x1, x2, y1, y2, house, area, price, tax;
     struct house_type *h_ptr = NULL;
     struct chunk *c = chunk_get(&p->wpos);
     struct loc begin, end;
@@ -3353,9 +3353,7 @@ bool build_house(struct player *p)
 
     /* Remember price */
     area = (x2 - x1 - 1) * (y2 - y1 - 1);
-    if (area > 40) price = (area - 40) * (area - 40) * (area - 40) * 3;
-    price += area * area * 33;
-    price += area * (900 + randint0(200));
+    price = house_price(area, false);
 
     /* Local tax: price minus amount already paid */
     tax += price;

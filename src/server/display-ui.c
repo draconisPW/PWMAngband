@@ -4275,21 +4275,27 @@ static void master_order(struct player *p, char *parms)
         /* Cancel order */
         case 'c':
         {
-            if (streq(store_orders[dm_order], "{ordered}")) store_cancel_order(dm_order);
-            my_strcpy(store_orders[dm_order], "", sizeof(store_orders[0]));
+            if (!ht_zero(&store_orders[dm_order].turn)) store_cancel_order(dm_order);
+            memset(&store_orders[dm_order], 0, sizeof(struct store_order));
             return;
         }
     }
 
     /* Display */
-    if (STRZERO(store_orders[dm_order]))
+    if (STRZERO(store_orders[dm_order].order))
         my_strcpy(o_desc, "(available)", sizeof(o_desc));
-    else if (streq(store_orders[dm_order], "{ordered}"))
+    else if (!ht_zero(&store_orders[dm_order].turn))
         store_get_order(dm_order, o_desc, sizeof(o_desc));
     else
-        my_strcpy(o_desc, store_orders[dm_order], sizeof(o_desc));
+        my_strcpy(o_desc, store_orders[dm_order].order, sizeof(o_desc));
     desc = format("  Order #%d: %s", 1 + dm_order, o_desc);
     Send_special_line(p, 17, 17, 15, COLOUR_WHITE, desc);
+    if (!ht_zero(&store_orders[dm_order].turn))
+    {
+        int expiry = player_expiry(&store_orders[dm_order].turn);
+        desc = format("  Expire in: %d days", expiry);
+        Send_special_line(p, 17, 17, 16, (expiry? COLOUR_YELLOW: COLOUR_L_RED), desc);
+    }
 }
 
 

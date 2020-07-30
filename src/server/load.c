@@ -1084,7 +1084,11 @@ static int rd_stores_aux(rd_item_t rd_item_version)
 
     /* Read the store orders */
     rd_u16b(&tmp16u);
-    for (i = 0; i < tmp16u; i++) rd_string(store_orders[i], NORMAL_WID);
+    for (i = 0; i < tmp16u; i++)
+    {
+        rd_string(store_orders[i].order, NORMAL_WID);
+        rd_hturn(&store_orders[i].turn);
+    }
 
     /* Success */
     return 0;

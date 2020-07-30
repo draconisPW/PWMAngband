@@ -2307,7 +2307,78 @@ int square_apparent_feat(struct player *p, struct chunk *c, struct loc *grid)
     int actual = square_known_feat(p, c, grid);
     char *mimic_name = f_info[actual].mimic;
 
-    return (mimic_name? lookup_feat(mimic_name): actual);
+    if (mimic_name)
+    {
+        actual = lookup_feat(mimic_name);
+
+        /* Use custom feature for secret doors to avoid leaking info */
+        if (actual == FEAT_GRANITE)
+        {
+            struct worldpos dpos;
+            struct location *dungeon;
+
+            /* Get the dungeon */
+            wpos_init(&dpos, &c->wpos.grid, 0);
+            dungeon = get_dungeon(&dpos);
+            if (dungeon && c->wpos.depth)
+            {
+                int i, chance, maxchance = 0, count = 0;
+                struct dun_feature **walls;
+
+                u32b tmp_seed = Rand_value;
+                bool rand_old = Rand_quick;
+
+                /* Fixed seed for consistence */
+                Rand_quick = true;
+                Rand_value = seed_wild + world_index(&c->wpos) * 600 + c->wpos.depth * 37;
+
+                /* Count custom walls that are not passable */
+                for (i = 0; i < dungeon->n_walls; i++)
+                {
+                    struct dun_feature *feature = &dungeon->walls[i];
+
+                    if (!feat_is_passable(feature->feat))
+                    {
+                        count++;
+                        maxchance += feature->chance;
+                    }
+                }
+
+                /* List custom walls that are not passable */
+                walls = mem_zalloc(count * sizeof(struct dun_feature *));
+                count = 0;
+                for (i = 0; i < dungeon->n_walls; i++)
+                {
+                    struct dun_feature *feature = &dungeon->walls[i];
+                    if (!feat_is_passable(feature->feat)) walls[count++] = feature;
+                }
+
+                /* Basic chance */
+                chance = randint0(maxchance);
+
+                /* Get a random wall tile */
+                for (i = 0; i < count; i++)
+                {
+                    struct dun_feature *feature = walls[i];
+
+                    if (feature->chance > chance)
+                    {
+                        actual = feature->feat;
+                        break;
+                    }
+
+                    chance -= feature->chance;
+                }
+
+                mem_free(walls);
+
+                Rand_value = tmp_seed;
+                Rand_quick = rand_old;
+            }
+        }
+    }
+
+    return actual;
 }
 
 
