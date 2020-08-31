@@ -279,6 +279,7 @@ struct angband_constants
 
     /* Store parameters, read from constants.txt */
     u16b store_inven_max;       /* Maximum number of objects in store inventory */
+    u16b home_inven_max;        /* Maximum number of objects in home inventory */
     u16b store_turns;           /* Number of turns between turnovers */
     u16b store_shuffle;         /* 1/per-day-chance of owner changing */
     u16b store_magic_level;     /* Level for apply_magic() in normal stores */

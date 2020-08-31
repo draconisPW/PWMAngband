@@ -50,7 +50,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 beta 16
+New features in PWMAngband 1.4.0 build 1
 ========================================
 
 User interface
@@ -111,6 +111,8 @@ PWMAngband:
 - Add message when using chargeable items from the ground
 - Add message for projected damage if show_damage option is set
 - Add time limit of 7 days on Expensive Black Market orders
+- Add preferred price info (BM price) when inspecting identified items
+- Use "askprice" for worthless items when selling in player shops
 
 Gameplay changes
 ----------------
@@ -192,6 +194,8 @@ Angband 4.2.x:
 - Use to-hit skill instead of player level in critical calculation
 - Add 'line of sight' through rock, improve PASS_WALL monster behaviour near
   permanent walls
+- Add store:home-inven-max in constants.txt to set home capacity on servers
+  with access to houses
 
 PWMAngband:
 
@@ -238,6 +242,7 @@ PWMAngband:
 - Allow "fire at nearest" command to throw missiles when no launcher is equipped
 - Add HOUSE_FLOOR_SIZE server option to limit the size of object piles in houses
 - Make ego torches more common
+- Remove 2x XBM price cap on items for sale in player shops
 
 Bugs fixed
 ----------
@@ -321,14 +326,13 @@ PWMAngband:
 - Switch tval/sval pair from byte to u16b
 - Don't close VERSION_BETA servers if an object cannot be placed, but just
   discard the object
-- Allow full home capacity on VERSION_BETA servers
 - Don't generate custom stores in the base town
 - Put gold drop rates for no_selling servers into level_golds.txt
 - Save player id counter + player names in a separate file
 - Check saved password vs provided password when loading player savefile
 - Remove duplicates from the player name database when loading player names
 - Use new player id if player id already exists in the player name database
-  when loading player savefile
+  when player logs in
 - Move decrease_timeouts() before process_pending_commands() to make effects
   last the proper amount of turns
 

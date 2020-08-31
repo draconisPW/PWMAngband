@@ -2213,6 +2213,16 @@ static void object_info_out(struct player *p, const struct object *obj, int mode
         }
         text_out_c(p, COLOUR_L_RED, "Level requirement: %d", obj->level_req);
     }
+
+    /* Preferred price */
+    if (object_fully_known(p, obj) && !terse)
+    {
+        /* Use black market price */
+        double price = (double)object_value(p, obj, 1) * 2;
+
+        text_out(p, "\n");
+        text_out_c(p, COLOUR_YELLOW, "Preferred price per unit: %ld au", (s32b)price);
+    }
 }
 
 

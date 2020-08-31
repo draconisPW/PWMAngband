@@ -157,9 +157,9 @@ static enum parser_error parse_type(struct parser *p)
 
     s->type = parser_getint(p, "type");
 
-    /* PWMAngband: the Home has half capacity if we have access to houses */
-    if ((s->type == STORE_HOME) && (cfg_diving_mode < 2) && !beta_version())
-        s->stock_size = z_info->store_inven_max / 2;
+    /* PWMAngband: the Home has its own capacity if we have access to houses */
+    if ((s->type == STORE_HOME) && (cfg_diving_mode < 2))
+        s->stock_size = z_info->home_inven_max;
 
     return PARSE_ERROR_NONE;
 }
@@ -678,32 +678,14 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
     /* Player owned shops */
     if (s->type == STORE_PLAYER)
     {
-        double maxprice, askprice;
-
         /* Disable selling true artifacts */
         if (true_artifact_p(obj)) return (0L);
 
-        /* Get the value of the given quantity of items */
-        price = (double)object_value(p, obj, qty);
-
-        /* Worthless items */
-        if (price <= 0) return (0L);
-
         /* Get the desired value of the given quantity of items */
-        askprice = (double)obj->askprice * qty;
+        price = (double)obj->askprice * qty;
 
         /* Allow items to be "shown" without being "for sale" */
-        if (askprice <= 0) return (0L);
-
-        /* Never get too silly: 2x the expensive black market price is enough! */
-        maxprice = price * 2 * factor;
-
-        /* Use black market price for player owned shops */
-        price = price * 2;
-
-        /* Use sellers asking price as base price */
-        if (askprice > price) price = askprice;
-        if (price > maxprice) price = maxprice;
+        if (price <= 0) return (0L);
 
         /* Paranoia */
         if (price > PY_MAX_GOLD) return PY_MAX_GOLD;
@@ -1947,17 +1929,17 @@ static void display_entry(struct player *p, struct object *obj, bool home)
 
 static bool set_askprice(struct object *obj)
 {
-    const char *c;
+    const char *c = my_stristr(quark_str(obj->note), "for sale");
 
-    c = my_stristr(quark_str(obj->note), "for sale");
     if (c)
     {
         /* Get ask price, skip "for sale" */
-        obj->askprice = 1;
         c += 8;
-        if (*c == ' ') obj->askprice = atoi(c);
-
-        return true;
+        if (*c == ' ')
+        {
+            obj->askprice = atoi(c);
+            return true;
+        }
     }
 
     return false;
@@ -3258,30 +3240,15 @@ bool check_store_drop(struct player *p)
  */
 s32b player_price_item(struct player *p, struct object *obj)
 {
-    double price, maxprice, askprice;
+    double price;
 
     /* Is this item for sale? */
     if (!obj->note) return -1;
     if (!set_askprice(obj)) return -1;
 
-    /* Get the value of all items */
-    price = (double)object_value(p, obj, obj->number);
-
-    /* Worthless items */
-    if (price <= 0) return (0L);
-
     /* Get the desired value of all items */
-    askprice = (double)obj->askprice * obj->number;
-
-    /* Never get too silly: 2x the expensive black market price is enough! */
-    maxprice = price * 20;
-
-    /* BM Prices */
-    price = price * 2;
-
-    /* Use sellers asking price as base price */
-    if (askprice > price) price = askprice;
-    if (price > maxprice) price = maxprice;
+    price = (double)obj->askprice * obj->number;
+    if (price <= 0) return (0L);
 
     /* Paranoia */
     if (price > PY_MAX_GOLD) return PY_MAX_GOLD;

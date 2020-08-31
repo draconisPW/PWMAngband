@@ -593,6 +593,8 @@ static enum parser_error parse_constants_store(struct parser *p)
 
     if (streq(label, "inven-max"))
         z->store_inven_max = value;
+    else if (streq(label, "home-inven-max"))
+        z->home_inven_max = value;
     else if (streq(label, "turns"))
         z->store_turns = value;
     else if (streq(label, "shuffle"))
@@ -601,6 +603,8 @@ static enum parser_error parse_constants_store(struct parser *p)
         z->store_magic_level = value;
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
+
+    /* Sanity checks */
 
     return PARSE_ERROR_NONE;
 }

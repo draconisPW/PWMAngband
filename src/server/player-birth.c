@@ -991,6 +991,9 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
      */
     delete_player_name(p->name);
 
+    /* Verify player ID */
+    if (!p->id || lookup_player(p->id)) p->id = player_id++;
+
     /* Add him to the player name database */
     ht_reset(&death_turn);
     add_player_name(p->id, account, p->name, &death_turn);

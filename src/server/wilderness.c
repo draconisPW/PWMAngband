@@ -2741,7 +2741,7 @@ int house_price(int area, bool town)
     {
         price = area;
         price *= 20;
-        price *= (80 + randint1(40) + cfg_house_floor_size * 4);
+        price *= (80 + randint1(40));
     }
     else
     {
@@ -2752,7 +2752,7 @@ int house_price(int area, bool town)
         price += area * area * 33;
 
         /* This is the dominant term for small houses */
-        price += area * (900 + randint0(200) + cfg_house_floor_size * 40);
+        price += area * (900 + randint0(200));
     }
 
     return price;

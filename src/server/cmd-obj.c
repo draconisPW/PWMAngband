@@ -163,7 +163,6 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
 {
     struct object *obj = object_from_index(p, item, true, true);
     char o_name[NORMAL_WID];
-    s32b price;
     const char *c;
 
     /* Paranoia: requires an item */
@@ -218,16 +217,25 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
             return;
         }
 
-        /* Can't sell overpriced items */
-        c += 8; /* skip "for sale" */
+        /* Get ask price, skip "for sale" */
+        c += 8;
         if (*c == ' ')
         {
-            price = atoi(c);
+            s32b price = atoi(c);
+
+            /* Can't sell overpriced items */
             if (price > PY_MAX_GOLD)
             {
                 msg(p, "Your price is too high!");
                 return;
             }
+        }
+
+        /* Must set the price */
+        else
+        {
+            msg(p, "You must enter a price.");
+            return;
         }
     }
 
