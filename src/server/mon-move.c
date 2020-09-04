@@ -114,13 +114,13 @@ static bool monster_can_kill(struct chunk *c, struct monster *mon, struct loc *g
 {
     struct monster *mon1 = square_monster(c, grid);
 
-    /* Kill weaker monsters */
-    int kill_ok = rf_has(mon->race->flags, RF_KILL_BODY);
-
     /* No monster */
     if (!mon1) return true;
 
-    if (kill_ok && (compare_monsters(mon, mon1) > 0)) return true;
+    /* No trampling uniques */
+    if (rf_has(mon1->race->flags, RF_UNIQUE)) return false;
+
+    if (rf_has(mon->race->flags, RF_KILL_BODY) && (compare_monsters(mon, mon1) > 0)) return true;
 
     return false;
 }
@@ -1040,6 +1040,35 @@ static int get_move_choose_direction(struct loc *offset)
 
 
 /*
+ * Choose a random passable grid adjacent to the monster since is has no better
+ * strategy.
+ */
+static void get_move_random(struct chunk *c, struct monster *mon, struct loc *grid)
+{
+    int attempts[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+    int nleft = 8;
+
+    while (nleft > 0)
+    {
+        int itry = randint0(nleft);
+        int tmp = attempts[itry];
+        struct loc trygrid;
+
+        loc_sum(&trygrid, &mon->grid, &ddgrid_ddd[tmp]);
+        if (square_is_monster_walkable(c, &trygrid) && !monster_hates_grid(c, mon, &trygrid))
+        {
+            loc_copy(grid, &ddgrid_ddd[tmp]);
+            return;
+        }
+
+        --nleft;
+        attempts[itry] = attempts[nleft];
+        attempts[nleft] = tmp;
+    }
+}
+
+
+/*
  * Choose "logical" directions for monster movement
  *
  * This function is responsible for deciding where the monster wants to move,
@@ -1098,10 +1127,25 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
 
             /* Need los? */
             if (tracker && los(c, &mon->grid, &tracker->grid))
+            {
                 loc_diff(&grid, &tracker->grid, &mon->grid);
 
-            /* No longer tracking */
-            mflag_off(mon->mflag, MFLAG_TRACKING);
+                /* No longer tracking */
+                mflag_off(mon->mflag, MFLAG_TRACKING);
+            }
+            else
+            {
+                /* Keep heading to the most recent goal. */
+                if (mflag_has(mon->mflag, MFLAG_TRACKING))
+                    loc_diff(&grid, &mon->target.grid, &mon->grid);
+
+                /* Try a random move and no longer track. */
+                if (loc_is_zero(&grid))
+                {
+                    get_move_random(c, mon, &grid);
+                    mflag_off(mon->mflag, MFLAG_TRACKING);
+                }
+            }
         }
     }
     else
@@ -1343,15 +1387,23 @@ static bool monster_turn_multiply(struct chunk *c, struct monster *mon)
 }
 
 
+enum monster_stagger
+{
+    NO_STAGGER = 0,
+    CONFUSED_STAGGER = 1,
+    INNATE_STAGGER = 2
+};
+
+
 /*
  * Check if a monster should stagger (that is, step at random) or not.
  * Always stagger when confused, but also deal with random movement for
  * RAND_25 and RAND_50 monsters.
  */
-static bool monster_turn_should_stagger(struct player *p, struct monster *mon)
+static enum monster_stagger monster_turn_should_stagger(struct player *p, struct monster *mon)
 {
     struct monster_lore *lore = get_lore(p, mon->race);
-    int chance, accuracy;
+    int chance, accuracy, confused_chance, roll;
 
     /* Blind */
     if (mon->m_timed[MON_TMD_BLIND]) return true;
@@ -1359,6 +1411,7 @@ static bool monster_turn_should_stagger(struct player *p, struct monster *mon)
     /* Increase chance of being erratic for every level of confusion */
     accuracy = monster_effect_accuracy(mon, MON_TMD_CONF, CONF_ERRATIC_CHANCE);
     chance = 100 - accuracy;
+    confused_chance = chance;
 
     /* RAND_25 and RAND_50 are cumulative */
     if (rf_has(mon->race->flags, RF_RAND_25))
@@ -1373,7 +1426,35 @@ static bool monster_turn_should_stagger(struct player *p, struct monster *mon)
         if (monster_is_visible(p, mon->midx)) rf_on(lore->flags, RF_RAND_50);
     }
 
-    return magik(chance);
+    roll = randint0(100);
+    return ((roll < confused_chance)? CONFUSED_STAGGER: ((roll < chance)? INNATE_STAGGER: NO_STAGGER));
+}
+
+
+/*
+ * Helper function for monster_turn_can_move() to display a message for a
+ * confused monster moving into non-passable terrain.
+ */
+static void monster_display_confused_move_msg(struct player *p, struct monster *mon,
+    const char *m_name, struct chunk *c, struct loc *grid)
+{
+    if (monster_is_visible(p, mon->midx) && monster_is_in_view(p, mon->midx))
+    {
+        const char *m = square_feat(c, grid)->confused_msg;
+
+        msg(p, "%s %s.", m_name, (m? m: "stumbles"));
+    }
+}
+
+
+/*
+ * Helper function for monster_turn_can_move() to slightly stun a monster
+ * on occasion due to bumbling into something.
+ */
+static void monster_slightly_stun_by_move(struct player *p, struct monster *mon)
+{
+    if ((mon->m_timed[MON_TMD_STUN] < 5) && one_in_(3))
+        mon_inc_timed(p, mon, MON_TMD_STUN, 3, 0);
 }
 
 
@@ -1384,13 +1465,16 @@ static bool monster_turn_should_stagger(struct player *p, struct monster *mon)
  * Returns true if the monster is able to move through the grid.
  */
 static bool monster_turn_can_move(struct source *who, struct chunk *c, struct monster *mon,
-    struct loc *grid, bool *did_something)
+    const char *m_name, struct loc *grid, bool confused, bool *did_something)
 {
     struct monster_lore *lore = get_lore(who->player, mon->race);
     struct monster *square_mon = NULL;
 
+    /* Always allow an attack upon the player or decoy. */
+    if (square_isplayer(c, grid) || square_isdecoyed(c, grid)) return true;
+
     /* Dangerous terrain in the way */
-    if (monster_hates_grid(c, mon, grid)) return false;
+    if (!confused && monster_hates_grid(c, mon, grid)) return false;
 
     /* Safe floor */
     if (square_issafefloor(c, grid)) return false;
@@ -1399,7 +1483,16 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     if (square_ispassable(c, grid)) return true;
 
     /* Permanent wall in the way */
-    if (square_ispermborder(c, grid)) return false;
+    if (square_ispermborder(c, grid))
+    {
+        if (confused)
+        {
+            *did_something = true;
+            monster_display_confused_move_msg(who->player, mon, m_name, c, grid);
+            monster_slightly_stun_by_move(who->player, mon);
+        }
+        return false;
+    }
 
     /* Normal wall, door, or secret door in the way */
 
@@ -1453,15 +1546,19 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     }
     if (square_basic_iscloseddoor(c, grid) || square_issecretdoor(c, grid))
     {
-        bool can_open = rf_has(mon->race->flags, RF_OPEN_DOOR);
-        bool can_bash = rf_has(mon->race->flags, RF_BASH_DOOR);
+        /* Don't allow a confused move to open a door. */
+        bool can_open = (rf_has(mon->race->flags, RF_OPEN_DOOR) && !confused);
+
+        /* During a confused move, a monster only bashes sometimes. */
+        bool can_bash = (rf_has(mon->race->flags, RF_BASH_DOOR) && (!confused || one_in_(3)));
+
         bool will_bash = false;
 
         /* Take a turn */
-        *did_something = true;
+        if (can_open || can_bash) *did_something = true;
 
         /* Learn about door abilities */
-        if (monster_is_visible(who->player, mon->midx))
+        if (!confused && monster_is_visible(who->player, mon->midx))
         {
             rf_on(lore->flags, RF_OPEN_DOOR);
             rf_on(lore->flags, RF_BASH_DOOR);
@@ -1480,7 +1577,15 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
 
         /* Door is an insurmountable obstacle */
         else
+        {
+            if (confused)
+            {
+                *did_something = true;
+                monster_display_confused_move_msg(who->player, mon, m_name, c, grid);
+                monster_slightly_stun_by_move(who->player, mon);
+            }
             return false;
+        }
 
         /* Now outcome depends on type of door */
         if (square_islockeddoor(c, grid))
@@ -1505,6 +1610,15 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
                 /* Reduce the power of the door by one */
                 square_set_door_lock(c, grid, k - 1);
             }
+
+            if (confused)
+            {
+                /* Didn't learn above; apply now since attempted to bash. */
+                if (monster_is_visible(who->player, mon->midx)) rf_on(lore->flags, RF_BASH_DOOR);
+
+                /* When confused, can stun itself while bashing. */
+                monster_slightly_stun_by_move(who->player, mon);
+            }
         }
         else
         {
@@ -1521,6 +1635,15 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
                 /* Note changes to viewable region */
                 note_viewable_changes(&c->wpos, grid);
 
+                if (confused)
+                {
+                    /* Didn't learn above; apply now since attempted to bash. */
+                    if (monster_is_visible(who->player, mon->midx)) rf_on(lore->flags, RF_BASH_DOOR);
+
+                    /* When confused, can stun itself while bashing. */
+                    monster_slightly_stun_by_move(who->player, mon);
+                }
+
                 /* Fall into doorway */
                 return true;
             }
@@ -1530,6 +1653,12 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
             /* Note changes to viewable region */
             note_viewable_changes(&c->wpos, grid);
         }
+    }
+    else if (confused)
+    {
+        *did_something = true;
+        monster_display_confused_move_msg(who->player, mon, m_name, c, grid);
+        monster_slightly_stun_by_move(who->player, mon);
     }
 
     return false;
@@ -1809,7 +1938,7 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
  * Monster movement
  */
 static void monster_turn_move(struct source *who, struct chunk *c, struct monster *mon,
-    const char *m_name, int dir, bool stagger, bool tracking, bool *did_something)
+    const char *m_name, int dir, enum monster_stagger stagger, bool tracking, bool *did_something)
 {
     struct monster_lore *lore = get_lore(who->player, mon->race);
     int i;
@@ -1833,19 +1962,17 @@ static void monster_turn_move(struct source *who, struct chunk *c, struct monste
         struct loc ngrid;
 
         /* Get the direction (or stagger) */
-        int d = (stagger? ddd[randint0(8)]: side_dirs[dir][i]);
+        int d = ((stagger != NO_STAGGER)? ddd[randint0(8)]: side_dirs[dir][i]);
 
         /* Get the grid to step to or attack */
         next_grid(&ngrid, &mon->grid, d);
 
         /* Tracking monsters have their best direction, don't change */
-        if ((i > 0) && !stagger && tracking) break;
+        if ((i > 0) && (stagger == NO_STAGGER) && tracking) break;
 
         /* Check if we can move */
-        move = monster_turn_can_move(who, c, mon, &ngrid, did_something);
-
-        /* Hack -- a player is in the way */
-        if (square_isplayer(c, &ngrid)) move = true;
+        move = monster_turn_can_move(who, c, mon, m_name, &ngrid, (stagger == CONFUSED_STAGGER),
+            did_something);
 
         if (!move) continue;
 
@@ -1965,7 +2092,7 @@ static void monster_turn(struct source *who, struct chunk *c, struct monster *mo
 {
     bool did_something = false;
     int dir = 0;
-    bool stagger = false;
+    enum monster_stagger stagger;
     bool tracking = false;
     char m_name[NORMAL_WID];
     struct monster_lore *lore = get_lore(who->player, mon->race);
@@ -2036,8 +2163,10 @@ static void monster_turn(struct source *who, struct chunk *c, struct monster *mo
     }
 
     /* Work out what kind of movement to use - random movement or AI */
-    if (monster_turn_should_stagger(who->player, mon)) stagger = true;
-    else if (!get_move(who, c, mon, &dir, &tracking)) return;
+    stagger = monster_turn_should_stagger(who->player, mon);
+
+    /* If there's no sensible move, we're done */
+    if ((stagger == NO_STAGGER) && !get_move(who, c, mon, &dir, &tracking)) return;
 
     /* Movement */
     monster_turn_move(who, c, mon, m_name, dir, stagger, tracking, &did_something);
@@ -2045,9 +2174,14 @@ static void monster_turn(struct source *who, struct chunk *c, struct monster *mo
     if (mon->race->light != 0)
         who->player->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
 
-    /* Hack -- get "bold" if out of options */
+    /* Out of options - monster is paralyzed by fear (unless attacked) */
     if (!did_something && mon->m_timed[MON_TMD_FEAR])
-        mon_clear_timed(who->player, mon, MON_TMD_FEAR, MON_TMD_FLG_NOTIFY);
+    {
+        int amount = mon->m_timed[MON_TMD_FEAR];
+
+        mon_clear_timed(who->player, mon, MON_TMD_FEAR, MON_TMD_FLG_NOMESSAGE);
+        mon_inc_timed(who->player, mon, MON_TMD_HOLD, amount, MON_TMD_FLG_NOTIFY);
+    }
 
     /* If we see a hidden monster do something, become aware of it */
     if (did_something && monster_is_camouflaged(mon)) become_aware(who->player, c, mon);
@@ -2158,25 +2292,27 @@ static bool monster_check_active(struct chunk *c, struct monster *mon, int *targ
     }
 
     /* Character is inside scanning range, monster can go straight there */
-    if (*target_m_dis <= mon->race->hearing) return true;
+    if (*target_m_dis <= mon->race->hearing) mflag_on(mon->mflag, MFLAG_ACTIVE);
 
     /* Monster is hurt */
-    if (is_hurt) return true;
+    else if (is_hurt) mflag_on(mon->mflag, MFLAG_ACTIVE);
 
     /* Monster can "see" the player (checked backwards) */
-    if (target_m_los) return true;
+    else if (target_m_los) mflag_on(mon->mflag, MFLAG_ACTIVE);
 
     /* Monster can hear the player */
-    if (can_hear) return true;
+    else if (can_hear) mflag_on(mon->mflag, MFLAG_ACTIVE);
 
     /* Monster can smell the player */
-    if (can_smell) return true;
+    else if (can_smell) mflag_on(mon->mflag, MFLAG_ACTIVE);
 
     /* Monster is taking damage from the terrain */
-    if (monster_taking_terrain_damage(c, mon)) return true;
+    else if (monster_taking_terrain_damage(c, mon)) mflag_on(mon->mflag, MFLAG_ACTIVE);
 
     /* Otherwise go passive */
-    return false;
+    else mflag_off(mon->mflag, MFLAG_ACTIVE);
+
+    return (mflag_has(mon->mflag, MFLAG_ACTIVE)? true: false);
 }
 
 
@@ -2339,7 +2475,7 @@ static bool process_monster_timed(struct monster *mon, bool mvm)
     }
 
     /* Awake, active monsters may become aware */
-    if (one_in_(10)) mflag_on(mon->mflag, MFLAG_AWARE);
+    if (one_in_(10) && mflag_has(mon->mflag, MFLAG_ACTIVE)) mflag_on(mon->mflag, MFLAG_AWARE);
 
     if (mon->m_timed[MON_TMD_FAST])
         mon_dec_timed(p, mon, MON_TMD_FAST, 1, 0);

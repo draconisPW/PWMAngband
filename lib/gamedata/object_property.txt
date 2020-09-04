@@ -109,7 +109,7 @@ code:DAM_RED
 power:5
 mult:6
 
-name:attack speed
+name:extra blows
 type:mod
 code:BLOWS
 power:0
@@ -178,7 +178,7 @@ type-mult:light:0
 type-mult:amulet:0
 type-mult:ring:0
 
-name:movement speed
+name:extra moves
 type:mod
 code:MOVES
 power:0
@@ -1169,6 +1169,11 @@ power:20
 name:mana resistance
 type:resistance
 code:MANA
+power:20
+
+name:water resistance
+type:resistance
+code:WATER
 power:20
 
 name:acid vulnerability

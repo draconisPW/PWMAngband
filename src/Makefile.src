@@ -6,8 +6,8 @@
 #
 
 NAME = PWMAngband
-VERSION = 1.3.0
-COPYRIGHT = (c) 1995-2017 PWMAngband contributors
+VERSION = 1.4.0
+COPYRIGHT = (c) 1995-2020 PWMAngband contributors
 PROGNAME = pwmangband
 CLIENT_PROGNAME = pwmangclient
 
@@ -139,6 +139,7 @@ SERVER_ANGFILES = \
 	server/cmd-pickup.o \
 	common/datafile.o \
 	server/effects.o \
+	server/effects-info.o \
 	server/game-world.o \
 	server/generate.o \
 	server/gen-cave.o \

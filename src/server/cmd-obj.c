@@ -1680,7 +1680,8 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
     my_assert(effect);
 
     /* Check for unknown objects to prevent wasted player turns. */
-    if ((effect->index == EF_IDENTIFY) && !spell_identify_unknown_available(p))
+    /* PWMAngband: allow to ID the effect by use */
+    if ((effect->index == EF_IDENTIFY) && p->was_aware && !spell_identify_unknown_available(p))
     {
         msg(p, "You have nothing to identify.");
         return;
@@ -1918,7 +1919,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
             used->timeout = 0;
 
             /* Carry or drop */
-            if (object_is_carried(p, obj))
+            if (object_is_carried(p, obj) && inven_carry_okay(p, used))
                 inven_carry(p, used, true, true);
             else
                 drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE, true);

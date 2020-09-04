@@ -647,8 +647,7 @@ static void project_feature_handler_MAKE_DOOR(project_feature_handler_context_t 
     if (!square_isanyfloor(context->cave, &grid)) return;
 
     /* Push objects off the grid */
-    if (square_object(context->cave, &grid))
-        push_object(context->origin->player, context->cave, &grid);
+    push_object(context->origin->player, context->cave, &grid);
 
     /* Create a closed door */
     square_close_door(context->cave, &grid);

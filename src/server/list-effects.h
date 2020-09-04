@@ -16,6 +16,7 @@
 EFFECT(ACQUIRE, false, NULL, 1, EFINFO_CONST, "creates %s good item(s) nearby")
 EFFECT(ALTER, true, NULL, 1, EFINFO_BOLT, "creates a line which %s")
 EFFECT(ALTER_REALITY, false, NULL, 0, EFINFO_NONE, "creates a new dungeon level")
+EFFECT(ARC, true, NULL, 2, EFINFO_BREATH, "produces a cone of %s for %s points of damage")
 EFFECT(BALL, true, "dam", 3, EFINFO_BALL, "shoots a radius-{%d} %s ball that inflicts %s points of damage at the centre")
 EFFECT(BALL_OBVIOUS, true, NULL, 3, EFINFO_BALL, "shoots a radius-{%d} %s ball that inflicts %s points of damage")
 EFFECT(BANISH, false, NULL, 0, EFINFO_NONE, "removes all non-unique monsters represented by a chosen symbol from the level, inflicting {1d4} points of damage for every monster removed")

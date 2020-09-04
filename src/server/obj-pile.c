@@ -1316,9 +1316,15 @@ void drop_near(struct player *p, struct chunk *c, struct object **dropped, int c
 void push_object(struct player *p, struct chunk *c, struct loc *grid)
 {
     int feat_old;
-    struct object *obj = square_object(c, grid);
+    struct object *obj;
     struct queue *queue = q_new(z_info->floor_size);
     bool rune = square_iswarded(c, grid), glyph = square_isdecoyed(c, grid);
+    struct monster *mon = square_monster(c, grid);
+
+    /* XXX */
+    if (mon && monster_is_camouflaged(mon)) become_aware(p, c, mon);
+    obj = square_object(c, grid);
+    if (!obj) return;
 
     /* Save the original terrain feature */
     feat_old = square(c, grid)->feat;

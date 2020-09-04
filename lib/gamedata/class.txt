@@ -918,7 +918,7 @@ desc:Enables you to see invisible monsters for 24+1d24 turns.
 spell:Dispel Undead:12:14:55:6:0
 effect:PROJECT_LOS_AWARE:DISP_UNDEAD:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 4
+expr:S:PLAYER_LEVEL:* 5
 msg_other: dispels undead.
 desc:Inflicts unresistable damage on each undead monster within line of sight.
 
@@ -937,7 +937,7 @@ desc:Brings back to life a ghost character standing next to the caster.
 spell:Dispel Evil:18:20:70:10:0
 effect:PROJECT_LOS_AWARE:DISP_EVIL:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 4
+expr:S:PLAYER_LEVEL:* 5
 msg_other: dispels evil.
 desc:Inflicts unresistable damage on each evil monster within line of sight.
 
@@ -1520,7 +1520,7 @@ desc:Enables you to see invisible monsters for 24+1d24 turns.
 spell:Dispel Undead:20:24:60:3:0
 effect:PROJECT_LOS_AWARE:DISP_UNDEAD:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 3
+expr:S:PLAYER_LEVEL:* 4
 msg_other: dispels undead.
 desc:Inflicts unresistable damage on each undead monster within line of sight.
 
@@ -1550,7 +1550,7 @@ desc:Temporarily makes your melee attacks powerfully slay demons.
 spell:Dispel Evil:25:32:70:4:0
 effect:PROJECT_LOS_AWARE:DISP_EVIL:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 3
+expr:S:PLAYER_LEVEL:* 4
 msg_other: dispels evil.
 desc:Inflicts unresistable damage on each evil monster within line of sight.
 
@@ -2093,11 +2093,10 @@ desc:Your mind becomes too focused to be slowed, paralyzed or confused
 desc: for 12+1d12 turns.
 
 spell:Maim Foe:15:6:35:14:0
-effect:BOLT_MELEE:MON_STUN
+effect:MELEE_BLOWS:MON_STUN
 dice:5+1d5
-effect:MELEE_BLOWS
-desc:Stuns an adjacent enemy for 5+1d5 turns. Attempts a melee attack against
-desc: that enemy.
+desc:Attempts a melee attack against the targeted monster. Stuns the enemy
+desc: for 5+1d5 turns if hit.
 
 spell:Unholy Pact:16:8:32:16:0
 effect:TIMED_INC:REGEN
@@ -2203,10 +2202,9 @@ desc:Grants you resistance to acid, cold, fire, lightning and poison for
 desc: 20+1d20 turns.
 
 spell:Forceful Blow:38:16:50:150:0
-effect:BOLT_MELEE:FORCE
+effect:MELEE_BLOWS:FORCE
 dice:2d$B
 expr:B:PLAYER_LEVEL:* 4
-effect:MELEE_BLOWS
 desc:Attempts a melee attack and hits the target with force, knocking it back
 desc: with a chance to stun it.
 

@@ -23,7 +23,7 @@ enum
 #define ELEM_BASE_MAX   ELEM_COLD
 #define ELEM_HIGH_MIN   ELEM_POIS
 #define ELEM_HIGH_MAX   ELEM_DISEN
-#define ELEM_XHIGH_MAX  ELEM_MANA
+#define ELEM_XHIGH_MAX  ELEM_WATER
 
 /* The object flags */
 enum

@@ -1439,7 +1439,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
             case '+':
             {
                 /* Push objects off the grid */
-                if (square_object(c, &mon->grid)) push_object(p, c, &mon->grid);
+                push_object(p, c, &mon->grid);
 
                 /* Create a door */
                 square_close_door(c, &mon->grid);
@@ -1451,7 +1451,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
             case '<':
             {
                 /* Push objects off the grid */
-                if (square_object(c, &mon->grid)) push_object(p, c, &mon->grid);
+                push_object(p, c, &mon->grid);
 
                 /* Create a staircase */
                 square_add_stairs(c, &mon->grid, FEAT_LESS);
@@ -1463,7 +1463,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
             case '>':
             {
                 /* Push objects off the grid */
-                if (square_object(c, &mon->grid)) push_object(p, c, &mon->grid);
+                push_object(p, c, &mon->grid);
 
                 /* Create a staircase */
                 square_add_stairs(c, &mon->grid, FEAT_MORE);

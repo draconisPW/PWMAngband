@@ -112,15 +112,6 @@ bool feat_is_shop(int feat)
 
 
 /*
- * True if the feature is a vendor.
- */
-bool feat_is_vendor(int feat)
-{
-    return tf_has(f_info[feat].flags, TF_VENDOR);
-}
-
-
-/*
  * True if the feature is passable by the player.
  */
 bool feat_is_passable(int feat)
@@ -201,13 +192,6 @@ bool feat_issafefloor(int feat)
 bool feat_isterrain(int feat)
 {
     return !tf_has(f_info[feat].flags, TF_FLOOR);
-}
-
-
-bool feat_isprefixed(int feat)
-{
-    return (tf_has(f_info[feat].flags, TF_DOOR_CLOSED) || tf_has(f_info[feat].flags, TF_ROCK) ||
-        tf_has(f_info[feat].flags, TF_PREFIXED));
 }
 
 
@@ -2391,6 +2375,24 @@ const char *square_apparent_name(struct player *p, struct chunk *c, struct loc *
 }
 
 
+const char *square_apparent_look_prefix(struct player *p, struct chunk *c, struct loc *grid)
+{
+    struct feature *f = &f_info[square_apparent_feat(p, c, grid)];
+
+    if (f->look_prefix) return f->look_prefix;
+    return (is_a_vowel(f->name[0])? "an ": "a ");
+}
+
+
+const char *square_apparent_look_in_preposition(struct player *p, struct chunk *c, struct loc *grid)
+{
+    struct feature *f = &f_info[square_apparent_feat(p, c, grid)];
+
+    if (f->look_in_preposition) return f->look_in_preposition;
+    return "on ";
+}
+
+
 /* Memorize the terrain */
 void square_memorize(struct player *p, struct chunk *c, struct loc *grid)
 {
@@ -2583,7 +2585,10 @@ void square_illuminate(struct player *p, struct chunk *c, struct loc *grid, bool
     else
     {
         square_unglow(c, grid);
-        if (p) square_forget(p, grid);
+
+        /* Hack -- like cave_unlight(), forget "boring" grids */
+        if (p && square_isview(p, grid) && !square_isnormal(c, grid))
+            square_forget(p, grid);
     }
 }
 

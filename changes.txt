@@ -86,6 +86,11 @@ Angband 4.2.x:
 - Add option to sort monsters by experience instead of depth in the monster list
 - Allow alter command to close doors and open chests
 - Only describe brands and slays that come from the object
+- Don't automatically repeat the digging command if there's no chance to clear
+  the obstacle
+- Use a white asterisk rather than an orange asterisk for detected gold lying
+  on the floor
+- Add terrain configuration items to help phrase messages for looking/targeting
 
 PWMAngband:
 
@@ -194,8 +199,19 @@ Angband 4.2.x:
 - Use to-hit skill instead of player level in critical calculation
 - Add 'line of sight' through rock, improve PASS_WALL monster behaviour near
   permanent walls
-- Add store:home-inven-max in constants.txt to set home capacity on servers
-  with access to houses
+- Use ARC for wands of Dragon's Breath etc, allowing device boost
+- Drop the empty lantern after refueling if there's no room in the pack
+- Allow confused monster to move into non-passable terrain (+ message)
+- Allow monster to hit player/decoy standing in non-passable terrain
+- Allow a monster's confusion to affect breath targeting
+- Increase the damage on Dispel Evil and Undead
+- Increase chest frequency
+- Make healing potions that used to add to food cost food
+- Stop trampling of uniques
+- For spell decisions in mon-attack.c, use the decoy position, if it is present
+- Set so smart monsters won't use TELE_SELF_TO when next to the target
+- Turn fear into hold if a monster has nowhere to run
+- Don't allow a monster to cast if the player cannot witness the attack
 
 PWMAngband:
 
@@ -243,6 +259,8 @@ PWMAngband:
 - Add HOUSE_FLOOR_SIZE server option to limit the size of object piles in houses
 - Make ego torches more common
 - Remove 2x XBM price cap on items for sale in player shops
+- Add store:home-inven-max in constants.txt to set home capacity on servers
+  with access to houses
 
 Bugs fixed
 ----------
@@ -277,6 +295,9 @@ PWMAngband:
 - Fix critical bug that made wraithed players totally invisible to monsters
 - Fix ghostly powers for deceased warriors/unbelievers/monks
 - Fix OPP_CONF timed effect not ending properly
+- Fix ID-by-use not working on Identify scrolls
+- Fix a mon->cdis instance used in MvM code instead of target_m_dis
+- Fix water resistance not being able to be learned as a rune
 
 Coding changes
 --------------
@@ -310,6 +331,11 @@ Angband 4.2.x:
 - Tightened code for unique generation
 - Small optimisation for resting
 - Add sval validity check in parse_ego_item()
+- Only forget floors when going dark in cave_illuminate()
+- Add check for failed ego search in brand_object()
+- Move describe_effect() code to effects-info.c
+- Add handling for unrevealed mimics in push_object()
+- Change names of BLOWS and MOVES modifiers
 
 PWMAngband:
 
@@ -343,3 +369,5 @@ Compilation
 - Add README file
 - Update help
 - Improve datafile documentation
+- Upgrade FREETYPE to version 2.10.2
+- Upgrade PYTHON to version 2.7.18

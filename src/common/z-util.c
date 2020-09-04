@@ -651,14 +651,10 @@ void strescape(char *s, const char c)
  */
 bool contains_only_spaces(const char *s)
 {
-    char spaces[] = " \t";
+    const char spaces[] = " \t";
+    size_t nsp = strspn(s, spaces);
 
-    while (*s)
-    {
-        if (strchr(spaces, *s) != NULL) return false;
-        s++;
-    }
-    return true;
+    return s[nsp] == '\0';
 }
 
 

@@ -830,10 +830,9 @@ static bool create_house_door(struct player *p, struct chunk *c, struct loc *gri
 static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *grid)
 {
     bool more = false;
-    int digging_chances[DIGGING_MAX];
+    int digging_chances[DIGGING_MAX], chance = 0, digging;
     bool okay = false;
     bool gold, rubble, tree, web;
-    int digging;
 
     gold = square_hasgoldvein(c, grid);
     rubble = square_isrubble(c, grid);
@@ -847,7 +846,8 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
 
     /* Do we succeed? */
     digging = square_digging(c, grid);
-    if (digging > 0) okay = CHANCE(digging_chances[digging - 1], 1600);
+    if (digging > 0) chance = digging_chances[digging - 1];
+    okay = CHANCE(chance, 1600);
 
     /* Hack -- house walls */
     if (square_ispermhouse(c, grid))
@@ -925,7 +925,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     }
 
     /* Failure, continue digging */
-    else
+    else if (chance > 0)
     {
         if (tree || web)
             msg(p, "You attempt to clear a path.");
@@ -934,6 +934,17 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
         else
             msg(p, "You tunnel into the %s.", square_apparent_name(p, c, grid));
          more = true;
+    }
+
+    /* Don't automatically repeat if there's no hope. */
+    else
+    {
+        if (tree || web)
+            msg(p, "You fail to clear a path.");
+        else if (rubble)
+            msg(p, "You dig in the rubble with little effect.");
+        else
+            msg(p, "You chip away futilely at the %s.", square_apparent_name(p, c, grid));
     }
 
     /* Result */

@@ -47,19 +47,22 @@ struct feature
     char *name;             /* Name */
     char *shortdesc;
     char *desc;
-    unsigned int fidx;      /* Index */
+    unsigned int fidx;          /* Index */
     struct feature *next;
-    char *mimic;            /* Name of feature to mimic */
-    byte priority;          /* Display priority */
-    byte shopnum;           /* Which shop does it take you to? */
-    byte dig;               /* How hard is it to dig through? */
-    bitflag flags[TF_SIZE]; /* Terrain flags */
-    byte d_attr;            /* Default feature attribute */
-    char d_char;            /* Default feature character */
-    char *hurt_msg;         /* Message on being hurt by feature */
-    char *died_flavor;      /* Flavored message on dying to feature */
-    char *die_msg;          /* Message on dying to feature */
-    int resist_flag;        /* Monster resist flag for entering feature */
+    char *mimic;                /* Name of feature to mimic */
+    byte priority;              /* Display priority */
+    byte shopnum;               /* Which shop does it take you to? */
+    byte dig;                   /* How hard is it to dig through? */
+    bitflag flags[TF_SIZE];     /* Terrain flags */
+    byte d_attr;                /* Default feature attribute */
+    char d_char;                /* Default feature character */
+    char *hurt_msg;             /* Message on being hurt by feature */
+    char *died_flavor;          /* Flavored message on dying to feature */
+    char *die_msg;              /* Message on dying to feature */
+    char *confused_msg;         /* Message on confused monster moving into feature */
+    char *look_prefix;          /* Prefix for name in look result */
+    char *look_in_preposition;  /* Preposition in look result when on the terrain */
+    int resist_flag;            /* Monster resist flag for entering feature */
 };
 
 extern struct feature *f_info;
@@ -282,7 +285,6 @@ extern bool feat_is_trap_holding(int feat);
 extern bool feat_is_object_holding(int feat);
 extern bool feat_is_monster_walkable(int feat);
 extern bool feat_is_shop(int feat);
-extern bool feat_is_vendor(int feat);
 extern bool feat_is_passable(int feat);
 extern bool feat_is_projectable(int feat);
 extern bool feat_is_torch(int feat);
@@ -293,7 +295,6 @@ extern bool feat_is_no_scent(int feat);
 extern bool feat_is_smooth(int feat);
 extern bool feat_issafefloor(int feat);
 extern bool feat_isterrain(int feat);
-extern bool feat_isprefixed(int feat);
 extern int feat_order_special(int feat);
 extern int feat_pseudo(char d_char);
 extern bool feat_ishomedoor(int feat);
@@ -456,6 +457,9 @@ extern int square_shopnum(struct chunk *c, struct loc *grid);
 extern int square_digging(struct chunk *c, struct loc *grid);
 extern int square_apparent_feat(struct player *p, struct chunk *c, struct loc *grid);
 extern const char *square_apparent_name(struct player *p, struct chunk *c, struct loc *grid);
+extern const char *square_apparent_look_prefix(struct player *p, struct chunk *c, struct loc *grid);
+extern const char *square_apparent_look_in_preposition(struct player *p, struct chunk *c,
+    struct loc *grid);
 extern void square_memorize(struct player *p, struct chunk *c, struct loc *grid);
 extern void square_forget(struct player *p, struct loc *grid);
 extern void square_mark(struct player *p, struct loc *grid);
