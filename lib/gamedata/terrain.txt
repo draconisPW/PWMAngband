@@ -295,6 +295,7 @@ priority:14
 flags:WALL | ROCK | NO_SCENT | NO_FLOW | QUARTZ | TORCH
 info:0:4
 confused-msg:bashes into a wall
+look-in-preposition:in
 desc:A seam of hardish rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
