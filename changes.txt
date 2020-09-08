@@ -118,6 +118,7 @@ PWMAngband:
 - Add time limit of 7 days on Expensive Black Market orders
 - Add preferred price info (BM price) when inspecting identified items
 - Use "askprice" for worthless items when selling in player shops
+- Add LEVEL_FEELINGS server option to hide or limit level feelings
 
 Gameplay changes
 ----------------
@@ -261,6 +262,8 @@ PWMAngband:
 - Remove 2x XBM price cap on items for sale in player shops
 - Add store:home-inven-max in constants.txt to set home capacity on servers
   with access to houses
+- Add lab-depth parameter in constants.txt to set the depth where labyrinths
+  start to be generated unlit/unknown
 
 Bugs fixed
 ----------
@@ -298,6 +301,10 @@ PWMAngband:
 - Fix ID-by-use not working on Identify scrolls
 - Fix a mon->cdis instance used in MvM code instead of target_m_dis
 - Fix water resistance not being able to be learned as a rune
+- Fix broken ENLIGHTENMENT effect
+- Fix level feeling squares not set for a player entering a level with another
+  player on it
+- Add hack to try fixing keypresses not being processed in some cases
 
 Coding changes
 --------------

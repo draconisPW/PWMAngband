@@ -1342,6 +1342,24 @@ struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
 }
 
 
+void player_place_feeling(struct player *p, struct chunk *c)
+{
+    struct loc begin, end;
+    struct loc_iterator iter;
+
+    loc_init(&begin, 0, 0);
+    loc_init(&end, c->width, c->height);
+    loc_iterator_first(&iter, &begin, &end);
+
+    do
+    {
+        if (square_isfeel(c, &iter.cur))
+            sqinfo_on(square_p(p, &iter.cur)->info, SQUARE_FEEL);
+    }
+    while (loc_iterator_next_strict(&iter));
+}
+
+
 /*
  * The generate module, which initialises template rooms and vaults
  */

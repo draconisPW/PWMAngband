@@ -6056,6 +6056,10 @@ static int Enter_player(int ind)
         msg(p, "Server is no-recall.");
     if (cfg_no_artifacts)
         msg(p, "Server has no artifacts.");
+    if (cfg_level_feelings == 0)
+        msg(p, "Server has no level feelings.");
+    if (cfg_level_feelings == 1)
+        msg(p, "Server has limited level feelings.");
     if (cfg_no_selling)
         msg(p, "Server is no-selling.");
     if (cfg_no_stores)

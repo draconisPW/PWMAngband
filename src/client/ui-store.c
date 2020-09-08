@@ -792,7 +792,7 @@ static bool store_menu_handle(struct menu *m, const ui_event *event, int oid)
         if (leave_store) return true;
 
         /* Loop, looking for net input and responding to keypresses */
-        Net_loop(Term_inkey, store_callback_begin, NULL, SCAN_OFF);
+        Net_loop(Term_inkey, store_callback_begin, NULL, SCAN_OFF, false);
 
         if (storechange) store_menu_recalc(m);
 

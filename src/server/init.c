@@ -74,6 +74,7 @@ s16b cfg_house_floor_size = 1;
 s16b cfg_limit_stairs = 0;
 s16b cfg_diving_mode = 0;
 bool cfg_no_artifacts = false;
+s16b cfg_level_feelings = 2;
 bool cfg_no_selling = true;
 bool cfg_gold_drop_vanilla = true;
 bool cfg_no_stores = false;
@@ -503,6 +504,8 @@ static enum parser_error parse_constants_dun_gen(struct parser *p)
         z->both_gold_av = value;
     else if (streq(label, "pit-max"))
         z->level_pit_max = value;
+    else if (streq(label, "lab-depth"))
+        z->lab_depth = value;
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
 
@@ -4472,6 +4475,14 @@ static void set_server_option(const char *option, char *value)
     }
     else if (!strcmp(option, "NO_ARTIFACTS"))
         cfg_no_artifacts = str_to_boolean(value);
+    else if (!strcmp(option, "LEVEL_FEELINGS"))
+    {
+        cfg_level_feelings = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_level_feelings < 0) cfg_level_feelings = 0;
+        if (cfg_level_feelings > 2) cfg_level_feelings = 2;
+    }
     else if (!strcmp(option, "NO_SELLING"))
         cfg_no_selling = str_to_boolean(value);
     else if (!strcmp(option, "GOLD_DROP_VANILLA"))

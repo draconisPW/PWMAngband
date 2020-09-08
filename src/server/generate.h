@@ -334,5 +334,6 @@ extern bool alloc_object(struct player *p, struct chunk *c, int set, int typ, in
 extern void cave_wipe(struct chunk *c);
 extern bool allow_location(struct monster_race *race, struct worldpos *wpos);
 extern struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos);
+extern void player_place_feeling(struct player *p, struct chunk *c);
 
 #endif /* GENERATE_H */

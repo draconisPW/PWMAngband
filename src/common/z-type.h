@@ -258,6 +258,7 @@ struct angband_constants
     u16b both_item_av;          /* Average number of items in random places */
     u16b both_gold_av;          /* Average number of money items */
     u16b level_pit_max;         /* Maximum number of pits on a level */
+    u16b lab_depth;             /* Maximum number of pits on a level */
 
     /* World shape constants, read from constants.txt */
     u16b max_depth;             /* Maximum dungeon level */

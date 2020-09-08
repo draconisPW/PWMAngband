@@ -2301,7 +2301,7 @@ void display_feeling(struct player *p, bool obj_only)
     byte set = 0;
 
     /* Don't show feelings for cold-hearted characters */
-    if (!OPT(p, birth_feelings)) return;
+    if (!cfg_level_feelings || !OPT(p, birth_feelings)) return;
 
     /* No feeling in towns */
     if (forbid_town(&p->wpos))
@@ -2323,6 +2323,8 @@ void display_feeling(struct player *p, bool obj_only)
         msg(p, "Looks like a typical wilderness level.");
         return;
     }
+
+    if ((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 1)) return;
 
     /* Hack -- player entering a static level */
     if (p->feeling < 0)
@@ -2362,7 +2364,7 @@ void display_feeling(struct player *p, bool obj_only)
         obj_feeling = N_ELEMENTS(obj_feeling_text) - 1;
 
     /* Display only the object feeling when it's first discovered. */
-    if (obj_only)
+    if (obj_only && (cfg_level_feelings == 2))
     {
         disturb(p);
         msg(p, "You feel that %s", obj_feeling_text[obj_feeling][set]);
@@ -2375,7 +2377,8 @@ void display_feeling(struct player *p, bool obj_only)
         mon_feeling = N_ELEMENTS(mon_feeling_text) - 1;
 
     /* Players automatically get a monster feeling. */
-    if (p->cave->feeling_squares < z_info->feeling_need)
+    if (((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 2)) ||
+        (cfg_level_feelings == 1))
     {
         msg(p, "%s.", mon_feeling_text[mon_feeling][set]);
         p->mon_feeling = mon_feeling;

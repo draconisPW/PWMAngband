@@ -904,6 +904,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
             /* Clear the flags for each cave grid (cave dimensions may have changed) */
             player_cave_new(p, c->height, c->width);
             player_cave_clear(p, true);
+            player_place_feeling(p, c);
             done = true;
         }
 

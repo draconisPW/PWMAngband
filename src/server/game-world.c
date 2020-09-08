@@ -1516,6 +1516,7 @@ static void generate_new_level(struct player *p)
         /* Clear the flags for each cave grid (cave dimensions may have changed) */
         player_cave_new(p, c->height, c->width);
         player_cave_clear(p, true);
+        player_place_feeling(p, c);
 
         /* Illuminate */
         cave_illuminate(p, c, is_daytime());

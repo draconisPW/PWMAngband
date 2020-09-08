@@ -1651,10 +1651,10 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     int w = 51 + randint0(wpos->depth / 10) * 2;
 
     /* Most labyrinths are lit */
-    bool lit = ((randint0(wpos->depth) < 25) || (randint0(2) < 1));
+    bool lit = ((randint0(wpos->depth) < z_info->lab_depth) || (randint0(2) < 1));
 
     /* Many labyrinths are known */
-    bool known = (lit && (randint0(wpos->depth) < 25));
+    bool known = (lit && (randint0(wpos->depth) < z_info->lab_depth));
 
     /* Most labyrinths have soft (diggable) walls */
     bool soft = ((randint0(wpos->depth) < 35) || (randint0(3) < 2));

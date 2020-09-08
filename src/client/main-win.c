@@ -2230,7 +2230,7 @@ static void windows_map(void)
     while (last_line_info != -1)
     {
         /* Wait for net input, or a key */
-        ke = Net_loop(Term_inkey, map_callback_begin, NULL, SCAN_OFF);
+        ke = Net_loop(Term_inkey, map_callback_begin, NULL, SCAN_OFF, true);
 
         /* Check for user abort */
         if (is_exit(ke)) break;

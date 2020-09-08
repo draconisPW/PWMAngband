@@ -4905,7 +4905,7 @@ static bool effect_handler_LIGHT_AREA(effect_handler_context_t *context)
 
 static bool effect_handler_LIGHT_LEVEL(effect_handler_context_t *context)
 {
-    bool full = (context->other? true: false);
+    bool full = (context->radius? true: false);
 
     if (full)
         msg(context->origin->player, "An image of your surroundings forms in your mind...");
@@ -6927,6 +6927,13 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
         msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
+    /* Don't teleport NO_DEATH monsters */
+    if (!is_player && rf_has(context->origin->monster->race->flags, RF_NO_DEATH))
+    {
+        if (context->origin->player) msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
     }
 

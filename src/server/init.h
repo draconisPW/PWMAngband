@@ -54,6 +54,7 @@ extern s16b cfg_house_floor_size;
 extern s16b cfg_limit_stairs;
 extern s16b cfg_diving_mode;
 extern bool cfg_no_artifacts;
+extern s16b cfg_level_feelings;
 extern bool cfg_no_selling;
 extern bool cfg_gold_drop_vanilla;
 extern bool cfg_no_stores;

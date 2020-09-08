@@ -173,7 +173,7 @@ static void view_map_aux(byte mode)
     while (last_line_info != -1)
     {
         /* Loop, looking for net input and responding to keypresses */
-        ke = Net_loop(Term_inkey, map_callback_begin, NULL, SCAN_OFF);
+        ke = Net_loop(Term_inkey, map_callback_begin, NULL, SCAN_OFF, true);
 
         /* Check for user abort */
         if (is_exit(ke)) break;
