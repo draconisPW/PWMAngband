@@ -1126,7 +1126,7 @@ void disturb(struct player *p)
     }
 
     /* Get out of icky screen */
-    if (p->screen_save_depth && OPT(p, disturb_icky))
+    if (p->screen_save_depth && OPT(p, disturb_icky) && !p->no_disturb_icky)
         Send_term_info(p, NTERM_HOLD, 1);
 
     /* Cancel looking around */

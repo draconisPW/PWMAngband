@@ -351,7 +351,12 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
         if (p->timed[i] == -1) decr = 0;
 
         /* Decrement the effect */
-        if (decr > 0) player_dec_timed(p, i, decr, false);
+        if (decr > 0)
+        {
+            p->no_disturb_icky = true;
+            player_dec_timed(p, i, decr, false);
+            p->no_disturb_icky = false;
+        }
     }
 
     /* Curse effects always decrement by 1 */
@@ -957,7 +962,7 @@ static void process_player_cleanup(struct player *p)
     if (!(turn.turn % 5))
     {
         /* Flicker self if multi-hued */
-        if (p->poly_race && monster_shimmer(p->poly_race) && allow_shimmer(p))
+        if (p->poly_race && monster_shimmer(p->poly_race) && monster_allow_shimmer(p))
             square_light_spot_aux(p, c, &p->grid);
 
         /* Flicker multi-hued players, party leaders and elementalists */
@@ -980,7 +985,7 @@ static void process_player_cleanup(struct player *p)
                 if (q->upkeep->new_level_method) continue;
 
                 /* Flicker multi-hued players */
-                if (p->poly_race && monster_shimmer(p->poly_race) && allow_shimmer(q))
+                if (p->poly_race && monster_shimmer(p->poly_race) && monster_allow_shimmer(q))
                     square_light_spot_aux(q, c, &p->grid);
 
                 /* Flicker party leaders */
@@ -2032,7 +2037,7 @@ static void process_player_shimmer(struct player *p)
         square_light_spot_aux(p, c, &p->grid);
 
     /* Shimmer multi-hued objects */
-    shimmer_objects(p, c);
+    if (allow_shimmer(p)) shimmer_objects(p, c);
 
     /* Efficiency */
     if (!c->scan_monsters) return;
@@ -2069,7 +2074,7 @@ static void process_player_turn_based(struct player *p)
     if (process_pending_commands(p->conn)) return;
 
     /* Shimmer multi-hued things if idle */
-    if (allow_shimmer(p) && has_energy(p, false)) process_player_shimmer(p);
+    if (monster_allow_shimmer(p) && has_energy(p, false)) process_player_shimmer(p);
 
     /* Process the player until they use some energy */
     if (has_energy(p, false)) return;

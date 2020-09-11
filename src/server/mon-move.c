@@ -597,9 +597,17 @@ static bool get_move_advance(struct player *p, struct chunk *c, struct monster *
     /* If the player can see monster, set target and run towards them */
     if (monster_can_see_player(p, mon))
     {
-        loc_copy(&mon->target.grid, &target);
-        *track = true;
-        return true;
+        int num_path_grids;
+        struct loc path_grid[512];
+
+        /* Check path for damaging grid */
+        num_path_grids = project_path(NULL, path_grid, z_info->max_range, c, &mon->grid, &target, 0);
+        if ((num_path_grids > 0) && !monster_hates_grid(c, mon, &path_grid[0]))
+        {
+          loc_copy(&mon->target.grid, &target);
+          *track = true;
+          return true;
+        }
     }
 
     for (i = 0; i < 8; i++) loc_init(&best_grid[i], 0, 0);
@@ -887,6 +895,7 @@ static bool get_move_find_hiding(struct player *p, struct chunk *c, struct monst
 static bool get_move_flee(struct player *p, struct monster *mon)
 {
     int i;
+    struct loc best;
     int best_score = -1;
 
     /* Taking damage from terrain makes moving vital */
@@ -931,8 +940,11 @@ static bool get_move_flee(struct player *p, struct monster *mon)
         best_score = score;
 
         /* Save the location */
-        loc_copy(&mon->target.grid, &grid);
+        loc_copy(&best, &grid);
     }
+
+    /* Set the immediate target */
+    loc_copy(&mon->target.grid, &best);
 
     /* Success */
     return true;
@@ -2776,7 +2788,7 @@ void process_monsters(struct chunk *c, bool more_energy)
             if (!wpos_eq(&q->wpos, &mon->wpos)) continue;
 
             /* Actually light that spot for that player */
-            if (allow_shimmer(q)) square_light_spot_aux(q, c, &mon->grid);
+            if (monster_allow_shimmer(q)) square_light_spot_aux(q, c, &mon->grid);
         }
     }
 }

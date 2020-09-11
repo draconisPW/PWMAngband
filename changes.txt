@@ -50,8 +50,39 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 build 1
+New features in PWMAngband 1.4.0 build 2
 ========================================
+
+User interface
+--------------
+
+PWMAngband:
+
+- Allow shimmering of multi-hued monsters when using a tileset with
+  "ASCII monsters" option active
+- Change hint when choosing sex during birth phase to something more meaningful
+
+Gameplay changes
+----------------
+
+PWMAngband:
+
+- Don't apply disturb_icky option when self-buffs end
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Fix monsters not able to path around damaging terrain
+
+Compilation
+-----------
+
+- Fix makefile.bcc (missing effects-info file)
+
+Features in PWMAngband 1.4.0 build 1
+====================================
 
 User interface
 --------------

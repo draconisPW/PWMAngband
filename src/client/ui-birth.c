@@ -586,7 +586,7 @@ static void setup_menus(void)
     init_birth_menu(&sex_menu, MAX_SEXES, player->psex, &gender_region, true, NULL);
     mdata = sex_menu.menu_data;
     for (i = 0; i < MAX_SEXES; i++) mdata->items[i] = sex_info[i].title;
-    mdata->hint = "Sex does not have any significant gameplay effects.";
+    mdata->hint = "Man, woman or beast... what is it going to be?";
 
     /* Count the races */
     n = player_rmax();

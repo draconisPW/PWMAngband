@@ -1282,6 +1282,8 @@ bool player_dec_timed(struct player *p, int idx, int v, bool notify)
     my_assert(idx < TMD_MAX);
     new_value = p->timed[idx] - v;
 
+    if (p->no_disturb_icky && (new_value > 0)) p->no_disturb_icky = false;
+
     /* Obey `notify` if not finishing; if finishing, always notify */
     if (new_value > 0) return player_set_timed(p, idx, new_value, notify);
 

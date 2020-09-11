@@ -418,7 +418,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
         }
 
         /* Efficiency -- notice multi-hued monsters */
-        if (monster_shimmer(mon->race) && allow_shimmer(p))
+        if (monster_shimmer(mon->race) && monster_allow_shimmer(p))
             c->scan_monsters = true;
     }
 
@@ -1367,12 +1367,7 @@ void monster_take_terrain_damage(struct chunk *c, struct monster *mon)
  */
 bool monster_taking_terrain_damage(struct chunk *c, struct monster *mon)
 {
-    struct loc *grid = &mon->grid;
-
-    if (square_isdamaging(c, grid) && !rf_has(mon->race->flags, square_feat(c, grid)->resist_flag))
-        return true;
-
-    return false;
+    return monster_hates_grid(c, mon, &mon->grid);
 }
 
 
@@ -1646,7 +1641,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
         }
 
         /* Efficiency -- notice multi-hued players */
-        if (q->poly_race && monster_shimmer(q->poly_race) && allow_shimmer(p))
+        if (q->poly_race && monster_shimmer(q->poly_race) && monster_allow_shimmer(p))
             q->shimmer = true;
 
         /* Efficiency -- notice party leaders */

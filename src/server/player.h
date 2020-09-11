@@ -78,6 +78,8 @@ enum
  */
 #define allow_shimmer(P) \
     (OPT(P, animate_flicker) && !(P)->use_graphics)
+#define monster_allow_shimmer(P) \
+    (OPT(P, animate_flicker) && (!(P)->use_graphics || OPT(P, ascii_mon)))
 
 /*
  * Prevents abuse from level 1 characters
