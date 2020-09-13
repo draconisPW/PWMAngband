@@ -616,7 +616,8 @@ dice:$Dd4
 expr:D:PLAYER_LEVEL:/ 4 + 1
 msg_other: strikes lightning from above.
 desc:Strikes a target from above with a lightning bolt, followed by a clap
-desc: of thunder.
+desc: of thunder. Target grid must be targetable and known to the player;
+desc: no target grid will mean the player grid is hit.
 
 spell:Earth Rising:14:5:40:12:0
 effect:BEAM:SHARD
@@ -917,7 +918,7 @@ desc:Enables you to see invisible monsters for 24+1d24 turns.
 spell:Dispel Undead:12:14:55:6:0
 effect:PROJECT_LOS_AWARE:DISP_UNDEAD:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 4
+expr:S:PLAYER_LEVEL:* 5
 msg_other: dispels undead.
 desc:Inflicts unresistable damage on each undead monster within line of sight.
 
@@ -936,7 +937,7 @@ desc:Brings back to life a ghost character standing next to the caster.
 spell:Dispel Evil:18:20:70:10:0
 effect:PROJECT_LOS_AWARE:DISP_EVIL:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 4
+expr:S:PLAYER_LEVEL:* 5
 msg_other: dispels evil.
 desc:Inflicts unresistable damage on each evil monster within line of sight.
 
@@ -1519,7 +1520,7 @@ desc:Enables you to see invisible monsters for 24+1d24 turns.
 spell:Dispel Undead:20:24:60:3:0
 effect:PROJECT_LOS_AWARE:DISP_UNDEAD:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 3
+expr:S:PLAYER_LEVEL:* 4
 msg_other: dispels undead.
 desc:Inflicts unresistable damage on each undead monster within line of sight.
 
@@ -1549,7 +1550,7 @@ desc:Temporarily makes your melee attacks powerfully slay demons.
 spell:Dispel Evil:25:32:70:4:0
 effect:PROJECT_LOS_AWARE:DISP_EVIL:0:1
 dice:1d$S
-expr:S:PLAYER_LEVEL:* 3
+expr:S:PLAYER_LEVEL:* 4
 msg_other: dispels evil.
 desc:Inflicts unresistable damage on each evil monster within line of sight.
 
@@ -2047,9 +2048,10 @@ book:shadow book:town:[Shadows for Beginners]:5:shadow
 equip:shadow book:[Shadows for Beginners]:1:1:1
 
 spell:Seek Battle:1:1:15:2:0
-effect:DETECT_LIVING_MONSTERS
+effect:DETECT_FEARFUL_MONSTERS
 effect-yx:22:40
-desc:Detects all living monsters in the immediate area, for one turn only.
+desc:Detects all monsters susceptible to fear in the immediate area,
+desc: for one turn only.
 
 spell:Berserk Strength:3:2:20:4:0
 effect:TIMED_INC:SHERO:0:5
@@ -2091,11 +2093,10 @@ desc:Your mind becomes too focused to be slowed, paralyzed or confused
 desc: for 12+1d12 turns.
 
 spell:Maim Foe:15:6:35:14:0
-effect:BOLT_MELEE:MON_STUN
+effect:MELEE_BLOWS:MON_STUN
 dice:5+1d5
-effect:MELEE_BLOWS
-desc:Attempts a melee attack against an adjacent enemy.
-desc: Stuns that enemy for 5+1d5 turns.
+desc:Attempts a melee attack against the targeted monster. Stuns the enemy
+desc: for 5+1d5 turns if hit.
 
 spell:Unholy Pact:16:8:32:16:0
 effect:TIMED_INC:REGEN
@@ -2126,9 +2127,9 @@ expr:S:PLAYER_LEVEL:* 2 + 30
 desc:This heals you by a substantial amount every time you kill a monster
 desc: within its duration.
 
-spell:Relentless Taunting:24:10:35:20:0
+spell:Relentless Taunting:24:10:32:20:0
 effect:TIMED_INC:TAUNT
-dice:10+d10
+dice:12+1d12
 desc:Makes any monster that can move more inclined to run toward you, and less
 desc: likely to use a ranged attack (including spells and innate abilities).
 
@@ -2147,10 +2148,10 @@ desc: the duration if they get become afraid for 20+1d20 turns.
 
 book:shadow book:dungeon:[Dark Evocations]:5:shadow
 
-spell:Venom:28:20:40:30:0
+spell:Venom:28:18:35:30:0
 effect:TIMED_INC:ATT_POIS:0:5
-dice:20+1d20
-desc:Coats all your melee weapons with poison for 20+1d20 turns.
+dice:18+1d18
+desc:Coats all your melee weapons with poison for 18+1d18 turns.
 
 spell:Dark Minions:28:14:56:28:0
 effect:SUMMON:DEMON:0:20
@@ -2161,7 +2162,7 @@ msg_other: summons some minions.
 desc:Attempts to summon one undead monster and one demon generated at the
 desc: current dungeon level. This spell has no effect when used in the town.
 
-spell:Bloodlust:30:30:40:100:0
+spell:Bloodlust:30:25:37:80:0
 effect:TIMED_INC:BLOODLUST:0:-1
 dice:10
 desc:Gives you a powerful desire to kill, increased every time you satisfy it.
@@ -2201,10 +2202,9 @@ desc:Grants you resistance to acid, cold, fire, lightning and poison for
 desc: 20+1d20 turns.
 
 spell:Forceful Blow:38:16:50:150:0
-effect:BOLT_MELEE:FORCE
+effect:MELEE_BLOWS:FORCE
 dice:2d$B
 expr:B:PLAYER_LEVEL:* 4
-effect:MELEE_BLOWS
 desc:Attempts a melee attack and hits the target with force, knocking it back
 desc: with a chance to stun it.
 

@@ -693,6 +693,36 @@ static enum parser_error parse_location_info_rubble(struct parser *p)
 }
 
 
+static enum parser_error parse_location_info_fountain(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    struct dun_feature *f;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f = t->fountains;
+
+    /* Go to the last valid feature, then allocate a new one */
+    if (!f)
+    {
+        t->fountains = mem_zalloc(sizeof(struct dun_feature));
+        f = t->fountains;
+    }
+    else
+    {
+        while (f->next) f = f->next;
+        f->next = mem_zalloc(sizeof(struct dun_feature));
+        f = f->next;
+    }
+
+    /* Now read the data */
+    f->feat = lookup_feat(parser_getsym(p, "feat"));
+    f->feat2 = lookup_feat(parser_getsym(p, "dried"));
+    f->chance = parser_getint(p, "chance");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_location_info_rule(struct parser *p)
 {
     struct location *t = parser_priv(p);
@@ -795,6 +825,31 @@ static enum parser_error parse_location_info_rule_symbols(struct parser *p)
 }
 
 
+static enum parser_error parse_location_info_stairs(struct parser *p)
+{
+    struct location *t = parser_priv(p);
+    dice_t *dice;
+
+    if (!t) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    dice = dice_new();
+    if (!dice_parse_string(dice, parser_getsym(p, "up")))
+    {
+        dice_free(dice);
+        return PARSE_ERROR_NOT_RANDOM;
+    }
+    dice_random_value(dice, NULL, &t->up);
+    if (!dice_parse_string(dice, parser_getstr(p, "down")))
+    {
+        dice_free(dice);
+        return PARSE_ERROR_NOT_RANDOM;
+    }
+    dice_random_value(dice, NULL, &t->down);
+    dice_free(dice);
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static struct parser *init_parse_location_info(void)
 {
     struct parser *p = parser_new();
@@ -815,10 +870,12 @@ static struct parser *init_parse_location_info(void)
     parser_reg(p, "door sym feat sym open sym broken int chance", parse_location_info_door);
     parser_reg(p, "stair sym feat sym up int chance", parse_location_info_stair);
     parser_reg(p, "rubble sym feat sym pass int chance", parse_location_info_rubble);
+    parser_reg(p, "fountain sym feat sym dried int chance", parse_location_info_fountain);
     parser_reg(p, "rule int chance uint all", parse_location_info_rule);
     parser_reg(p, "rule-flags ?str flags", parse_location_info_rule_flags);
     parser_reg(p, "rule-spells ?str flags", parse_location_info_rule_spells);
     parser_reg(p, "rule-symbols str symbols", parse_location_info_rule_symbols);
+    parser_reg(p, "stairs sym up str down", parse_location_info_stairs);
 
     return p;
 }
@@ -895,6 +952,11 @@ static errr finish_parse_town_info(struct parser *p)
             mem_free(f);
         }
         for (i = 0, f = t->rubbles; f; i++, f = fn)
+        {
+            fn = f->next;
+            mem_free(f);
+        }
+        for (i = 0, f = t->fountains; f; i++, f = fn)
         {
             fn = f->next;
             mem_free(f);
@@ -1072,6 +1134,21 @@ static errr finish_parse_dungeon_info(struct parser *p)
             fn = f->next;
             mem_free(f);
         }
+        dungeons[count].n_fountains = 0;
+        for (i = 0, f = t->fountains; f; i++, f = fn)
+        {
+            dungeons[count].n_fountains++;
+            fn = f->next;
+        }
+        dungeons[count].fountains = mem_zalloc(dungeons[count].n_fountains *
+            sizeof(struct dun_feature));
+        for (i = 0, f = t->fountains; f; i++, f = fn)
+        {
+            memcpy(&dungeons[count].fountains[i], f, sizeof(*f));
+            dungeons[count].fountains[i].next = NULL;
+            fn = f->next;
+            mem_free(f);
+        }
 
         mem_free(t);
     }
@@ -1098,6 +1175,7 @@ static void cleanup_dungeon_info(void)
         mem_free(dungeons[i].doors);
         mem_free(dungeons[i].stairs);
         mem_free(dungeons[i].rubbles);
+        mem_free(dungeons[i].fountains);
         mem_free(dungeons[i].rules);
     }
     mem_free(dungeons);
@@ -1787,7 +1865,7 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
 
     /* Drop food */
     set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
-    drop_near(NULL, c, &food, 0, grid, false, DROP_FADE);
+    drop_near(NULL, c, &food, 0, grid, false, DROP_FADE, false);
 }
 
 
@@ -2558,7 +2636,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
             set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
 
-            drop_near(NULL, c, &food, 0, &grid, false, DROP_FADE);
+            drop_near(NULL, c, &food, 0, &grid, false, DROP_FADE, false);
 
             num_food--;
         }
@@ -2652,6 +2730,32 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
     /* Restore the RNG */
     Rand_value = old_seed;
+}
+
+
+int house_price(int area, bool town)
+{
+    int price = 0;
+
+    if (town)
+    {
+        price = area;
+        price *= 20;
+        price *= (80 + randint1(40));
+    }
+    else
+    {
+        /* This is the dominant term for large houses */
+        if (area > 40) price = (area - 40) * (area - 40) * (area - 40) * 3;
+
+        /* This is the dominant term for medium houses */
+        price += area * area * 33;
+
+        /* This is the dominant term for small houses */
+        price += area * (900 + randint0(200));
+    }
+
+    return price;
 }
 
 
@@ -2856,15 +2960,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
 
         case WILD_TOWN_HOME:
         {
-            /* This is the dominant term for large houses */
-            if (area > 40) price = (area - 40) * (area - 40) * (area - 40) * 3;
-            else price = 0;
-
-            /* This is the dominant term for medium houses */
-            price += area * area * 33;
-
-            /* This is the dominant term for small houses */
-            price += area * (900 + randint0(200));
+            price = house_price(area, false);
 
             /* Hack -- only add a house if it is not already in memory */
             i = pick_house(&p->wpos, &door);

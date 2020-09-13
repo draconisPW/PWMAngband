@@ -368,7 +368,8 @@ void monster_list_show_interactive(struct player *p, int height, int width)
     text_out_init(p);
 
 	monster_list_collect(p, list);
-	monster_list_sort(list, monster_list_standard_compare);
+	monster_list_sort(list, OPT(p, sort_exp)? monster_list_compare_exp:
+        monster_list_standard_compare);
 
 	/*
 	 * Figure out optimal display rect. Large numbers are passed as the height and

@@ -542,7 +542,7 @@ bool tval_can_be_fired(const struct object *shooter, const struct object *ammo)
     }
 
     /* No shooter */
-    return (ammo->tval == TV_ROCK);
+    return false;
 }
 
 

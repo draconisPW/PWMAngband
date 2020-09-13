@@ -9,7 +9,6 @@
 #define FREE_TIMEOUT    15
 #define SETUP_TIMEOUT   180
 #define PLAY_TIMEOUT    30
-#define QUIT_TIMEOUT    5
 
 /*
  * The types of communication that we send to the metaserver
@@ -146,10 +145,10 @@ extern int Send_spell_info(struct player *p, int book, int i, const char *out_va
     spell_flags *flags);
 extern int Send_book_info(struct player *p, int book, const char *name);
 extern int Send_floor(struct player *p, byte num, const struct object *obj,
-    struct object_xtra *info_xtra);
+    struct object_xtra *info_xtra, byte force);
 extern int Send_special_other(struct player *p, char *header, byte peruse, bool protect);
 extern int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number,
-    byte owned, s32b price, byte tval, byte max, s16b bidx, const char *name);
+    byte owned, s32b price, u16b tval, byte max, s16b bidx, const char *name);
 extern int Send_store_info(struct player *p, int num, char *name, char *owner, char *welcome,
     int items, s32b purse);
 extern int Send_target_info(struct player *p, int x, int y, bool dble, const char *buf);
@@ -167,6 +166,7 @@ extern int Send_spell_desc(struct player *p, int book, int i, char *out_val);
 extern int Send_dtrap(struct player *p, byte dtrap);
 extern int Send_term_info(struct player *p, int mode, u16b arg);
 extern int Send_player_pos(struct player *p);
+extern int Send_minipos(struct player *p, int y, int x);
 extern int Send_play(int ind);
 extern int Send_features(int ind, int lighting, int off);
 extern int Send_text_screen(int ind, int type, s32b offset);

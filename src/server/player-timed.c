@@ -500,7 +500,7 @@ static bool set_bow_brand(struct player *p, int v)
     if (!notice) return false;
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the "brand" */
     p->upkeep->redraw |= (PR_STATUS);
@@ -551,7 +551,7 @@ static bool player_set_timed_perma(struct player *p, int idx)
     if (!notify) return false;
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Reveal hidden players */
     if (p->k_idx) aware_player(p, p);
@@ -729,7 +729,7 @@ static bool set_adrenaline(struct player *p, int v)
     p->upkeep->update |= (PU_BONUS);
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the "adrenaline" */
     p->upkeep->redraw |= (PR_STATUS);
@@ -805,7 +805,7 @@ static bool set_biofeedback(struct player *p, int v)
     p->upkeep->update |= (PU_BONUS);
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the "biofeedback" */
     p->upkeep->redraw |= (PR_STATUS);
@@ -961,7 +961,7 @@ static bool set_harmony(struct player *p, int v)
     p->upkeep->update |= (PU_BONUS);
 
     /* Disturb */
-    disturb(p, 0);
+    disturb(p);
 
     /* Redraw the status */
     p->upkeep->redraw |= (PR_STATUS);
@@ -997,6 +997,29 @@ bool player_timed_grade_eq(struct player *p, int idx, char *match)
 
 
 /*
+ * Hack: check if player has permanent protection from confusion (see calc_bonuses)
+ */
+static bool player_of_has_prot_conf(struct player *p)
+{
+    bitflag collect_f[OF_SIZE], f[OF_SIZE];
+    int i;
+
+    player_flags(p, collect_f);
+
+    for (i = 0; i < p->body.count; i++)
+    {
+        struct object *obj = slot_object(p, i);
+
+        if (!obj) continue;
+        object_flags(obj, f);
+        of_union(collect_f, f);
+    }
+
+    return of_has(collect_f, OF_PROT_CONF);
+}
+
+
+/*
  * Set a timed event.
  */
 bool player_set_timed(struct player *p, int idx, int v, bool notify)
@@ -1016,7 +1039,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     weapon = equipped_item_by_slot_name(p, "weapon");
 
     /* Lower bound */
-    v = MAX(v, 0);
+    v = MAX(v, (idx == TMD_FOOD)? 1: 0);
 
     /* No change */
     if (p->timed[idx] == v) return false;
@@ -1079,7 +1102,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     if ((idx == TMD_OPP_ELEC) && player_is_immune(p, ELEM_ELEC)) notify = false;
     if ((idx == TMD_OPP_FIRE) && player_is_immune(p, ELEM_FIRE)) notify = false;
     if ((idx == TMD_OPP_COLD) && player_is_immune(p, ELEM_COLD)) notify = false;
-    if ((idx == TMD_OPP_CONF) && player_of_has(p, OF_PROT_CONF)) notify = false;
+    if ((idx == TMD_OPP_CONF) && player_of_has_prot_conf(p)) notify = false;
 
     /* Always mention going up a grade, otherwise on request */
     if (new_grade->grade > current_grade->grade)
@@ -1142,7 +1165,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     if (notify)
     {
         /* Disturb */
-        if (!no_disturb) disturb(p, 0);
+        if (!no_disturb) disturb(p);
 
         /* Reveal hidden players */
         if (p->k_idx) aware_player(p, p);
@@ -1258,6 +1281,8 @@ bool player_dec_timed(struct player *p, int idx, int v, bool notify)
     my_assert(idx >= 0);
     my_assert(idx < TMD_MAX);
     new_value = p->timed[idx] - v;
+
+    if (p->no_disturb_icky && (new_value > 0)) p->no_disturb_icky = false;
 
     /* Obey `notify` if not finishing; if finishing, always notify */
     if (new_value > 0) return player_set_timed(p, idx, new_value, notify);

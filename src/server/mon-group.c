@@ -205,7 +205,7 @@ void monster_remove_from_groups(struct chunk *c, struct monster *mon)
             quit_fmt("Bad group: index=%d, monster=%d", mon->group_info[i].index, mon->midx);
 
         /* We have to look further down the member list */
-        while (list_entry)
+        while (list_entry->next)
         {
             if (list_entry->next->midx == mon->midx)
             {
@@ -491,7 +491,11 @@ struct monster *group_monster_tracking(struct chunk *c, const struct monster *mo
     {
         struct monster *tracker = cave_monster(c, entry->midx);
 
-        if (mflag_has(tracker->mflag, MFLAG_TRACKING)) return tracker;
+        if (tracker != mon && mflag_has(tracker->mflag, MFLAG_TRACKING) &&
+            mflag_has(tracker->mflag, MFLAG_ACTIVE))
+        {
+            return tracker;
+        }
         entry = entry->next;
     }
 

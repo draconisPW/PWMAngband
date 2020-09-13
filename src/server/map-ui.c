@@ -332,7 +332,7 @@ static void player_pict(struct player *p, struct chunk *cv, struct player *q, bo
         else *c = p->r_char[q->poly_race->ridx];
 
         /* Multi-hued monster */
-        if (!p->use_graphics && monster_shimmer(q->poly_race) && allow_shimmer(p))
+        if (monster_shimmer(q->poly_race) && monster_allow_shimmer(p))
         {
             if (rf_has(q->poly_race->flags, RF_ATTR_MULTI))
                 *a = multi_hued_attr_breath(q->poly_race);
@@ -726,7 +726,8 @@ void grid_data_as_text(struct player *p, struct chunk *cv, bool server, struct g
             char dc;
 
             /* Desired attr & char */
-            if (server)
+            /* Hack -- use ASCII symbols instead of tiles if wanted */
+            if (server || OPT(p, ascii_mon))
             {
                 da = monster_x_attr[mon->race->ridx];
                 dc = monster_x_char[mon->race->ridx];
@@ -757,7 +758,7 @@ void grid_data_as_text(struct player *p, struct chunk *cv, bool server, struct g
                 c = dc;
 
                 /* Shimmer the monster */
-                if (allow_shimmer(p))
+                if (monster_allow_shimmer(p))
                 {
                     /* Multi-hued attr */
                     if (rf_has(mon->race->flags, RF_ATTR_MULTI))
@@ -1029,6 +1030,8 @@ void display_map(struct player *p, bool subwindow)
 
         /* Set the "player" char */
         mc[row][col] = tc;
+
+        Send_minipos(p, row, col);
     }
 
     /* Activate mini-map window */

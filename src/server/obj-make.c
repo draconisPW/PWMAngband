@@ -21,6 +21,12 @@
 #include "s-angband.h"
 
 
+/*
+ * This table provides for different gold drop rates at different dungeon depths.
+ */
+u16b level_golds[128];
+
+
 /** Arrays holding an index of objects to generate for a given level */
 static u32b *obj_total;
 static byte *obj_alloc;
@@ -919,7 +925,7 @@ static bool artifact_pass_checks(struct artifact *art, int depth)
  *
  * Note -- see "make_artifact()" and "apply_magic()"
  */
-static struct object *make_artifact_special(struct player *p, struct chunk *c, int level)
+static struct object *make_artifact_special(struct player *p, struct chunk *c, int level, int tval)
 {
     int i;
     struct object *new_obj = NULL;
@@ -954,6 +960,9 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
 
             /* Cannot generate an artifact if disallowed by preservation mode  */
             if (p && (p->art_info[i] > cfg_preserve_artifacts)) continue;
+
+            /* Must have the correct fields */
+            if (tval && (art->tval != tval)) continue;
 
             /* We must pass depth and rarity checks */
             if (!artifact_pass_checks(art, c->wpos.depth)) continue;
@@ -1016,6 +1025,9 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
 
             /* Skip non-special artifacts */
             if (!kf_has(kind->kind_flags, KF_INSTA_ART)) continue;
+
+            /* Must have the correct fields */
+            if (tval && (art->tval != tval)) continue;
 
             /* Enforce minimum "object" level (loosely) */
             if (kind->level > level)
@@ -1168,8 +1180,7 @@ static bool make_artifact(struct player *p, struct chunk *c, struct object *obj)
             if (art->created) continue;
 
             /* Cannot generate an artifact if disallowed by preservation mode  */
-            if (p && (p->art_info[i] > cfg_preserve_artifacts))
-                continue;
+            if (p && (p->art_info[i] > cfg_preserve_artifacts)) continue;
 
             /* Must have the correct fields */
             if (art->tval != obj->tval) continue;
@@ -1717,7 +1728,7 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     bool extra_roll, s32b *value, int tval)
 {
     int base;
-    struct object_kind *kind;
+    struct object_kind *kind = NULL;
     struct object *new_obj;
     int i;
     int tries = 1;
@@ -1727,7 +1738,7 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     /* Try to make a special artifact */
     if (one_in_(good? 10: 1000))
     {
-        new_obj = make_artifact_special(p, c, lev);
+        new_obj = make_artifact_special(p, c, lev, tval);
         if (new_obj)
         {
             if (value)
@@ -1843,7 +1854,7 @@ void acquirement(struct player *p, struct chunk *c, int num, quark_t quark)
         if (quark > 0) nice_obj->note = quark;
 
         /* Drop the object */
-        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_FADE);
+        drop_near(p, c, &nice_obj, 0, &p->grid, true, DROP_CARRY, false);
     }
 }
 
@@ -1908,18 +1919,10 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     if (p && (cfg_no_selling || OPT(p, birth_no_selling)))
     {
         /* Classic method: multiply by 5 in the dungeon */
-        if ((cfg_gold_drop_noselling == 0) && (p->wpos.depth > 0)) value *= 5;
+        if (cfg_gold_drop_vanilla && (p->wpos.depth > 0)) value *= 5;
 
-        /* Legacy method: multiply by 5 starting at depth 5 */
-        else if ((cfg_gold_drop_noselling == -1) && (p->wpos.depth >= 5)) value *= 5;
-
-        /* Linear method: multiply by a factor depending on depth */
-        else
-        {
-            int boost = value * cfg_gold_drop_noselling * MIN(p->wpos.depth, 100) / 100;
-
-            value += boost;
-        }
+        /* PWMAngband method: multiply by a depth dependent factor */
+        else value = (value * level_golds[p->wpos.depth]) / 10;
     }
 
     /* Cap gold at max short (or alternatively make pvals s32b) */
@@ -2096,7 +2099,7 @@ void reroll_randart(struct player *p, struct chunk *c)
     if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
     if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
 
-    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+    drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE, true);
 }
 
 

@@ -152,7 +152,7 @@ void do_cmd_uninscribe(struct player *p, int item)
     p->upkeep->update |= (PU_INVEN);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
     if (!object_is_carried(p, obj))
-        redraw_floor(&p->wpos, &obj->grid);
+        redraw_floor(&p->wpos, &obj->grid, NULL);
 }
 
 
@@ -163,7 +163,6 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
 {
     struct object *obj = object_from_index(p, item, true, true);
     char o_name[NORMAL_WID];
-    s32b price;
     const char *c;
 
     /* Paranoia: requires an item */
@@ -218,16 +217,25 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
             return;
         }
 
-        /* Can't sell overpriced items */
-        c += 8; /* skip "for sale" */
+        /* Get ask price, skip "for sale" */
+        c += 8;
         if (*c == ' ')
         {
-            price = atoi(c);
+            s32b price = atoi(c);
+
+            /* Can't sell overpriced items */
             if (price > PY_MAX_GOLD)
             {
                 msg(p, "Your price is too high!");
                 return;
             }
+        }
+
+        /* Must set the price */
+        else
+        {
+            msg(p, "You must enter a price.");
+            return;
         }
     }
 
@@ -255,7 +263,7 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     p->upkeep->update |= (PU_INVEN);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
     if (!object_is_carried(p, obj))
-        redraw_floor(&p->wpos, &obj->grid);
+        redraw_floor(&p->wpos, &obj->grid, NULL);
 }
 
 
@@ -1066,7 +1074,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (!obj)
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1077,7 +1085,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (!player_can_cast(p, true))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1087,7 +1095,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "The item's inscription prevents it.");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1097,7 +1105,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "This item belongs to someone else!");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1107,7 +1115,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "You don't have the required level!");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1118,7 +1126,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (!book)
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1128,7 +1136,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "The item's inscription prevents it.");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1140,7 +1148,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "You cannot %s that %s.", book->realm->verb, book->realm->spell_noun);
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1150,7 +1158,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (sidx == -1)
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1163,7 +1171,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "You have nothing to identify.");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1175,7 +1183,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
             spell->realm->spell_noun);
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1186,7 +1194,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "This %s is on cooldown.", spell->realm->spell_noun);
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1196,7 +1204,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         use_energy(p);
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1208,7 +1216,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         (spell_index >= p->clazz->magic.total_spells)? true: false))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -1413,7 +1421,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
             /* Redraw */
             else
-                redraw_floor(&p->wpos, &obj->grid);
+                redraw_floor(&p->wpos, &obj->grid, obj);
         }
         else if (use == USE_TIMEOUT)
         {
@@ -1424,7 +1432,7 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
                 /* Redraw */
                 if (!object_is_carried(p, obj))
-                    redraw_floor(&p->wpos, &obj->grid);
+                    redraw_floor(&p->wpos, &obj->grid, obj);
             }
 
             /* Other activatable items */
@@ -1458,7 +1466,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
 {
     struct beam_info beam;
     int boost, level;
-    byte tval;
+    u16b tval;
     quark_t note;
     bool no_ident = false;
     struct effect *e = effect;
@@ -1672,7 +1680,8 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
     my_assert(effect);
 
     /* Check for unknown objects to prevent wasted player turns. */
-    if ((effect->index == EF_IDENTIFY) && !spell_identify_unknown_available(p))
+    /* PWMAngband: allow to ID the effect by use */
+    if ((effect->index == EF_IDENTIFY) && p->was_aware && !spell_identify_unknown_available(p))
     {
         msg(p, "You have nothing to identify.");
         return;
@@ -1910,10 +1919,10 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
             used->timeout = 0;
 
             /* Carry or drop */
-            if (object_is_carried(p, obj))
+            if (object_is_carried(p, obj) && inven_carry_okay(p, used))
                 inven_carry(p, used, true, true);
             else
-                drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE);
+                drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE, true);
         }
 
         /* Empty a single lamp */

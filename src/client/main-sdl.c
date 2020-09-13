@@ -3299,6 +3299,10 @@ static errr Term_text_sdl(int col, int row, int n, u16b a, const char *s)
         }
     }
 
+    /* Highlight the player */
+    if (Term->minimap_active && (win->Term_idx == 0) && cursor_x && cursor_y)
+        Term_curs_sdl(cursor_x + COL_MAP, cursor_y + ROW_MAP);
+
     /* Success */
     return 0;
 }
@@ -3414,6 +3418,10 @@ static errr Term_pict_sdl(int col, int row, int n, const u16b *ap, const char *c
         /* Advance */
         rc.x += rc.w;
     }
+
+    /* Highlight the player */
+    if (Term->minimap_active && (win->Term_idx == 0) && cursor_x && cursor_y)
+        Term_curs_sdl(cursor_x + COL_MAP, cursor_y + ROW_MAP);
 
     return (0);
 }

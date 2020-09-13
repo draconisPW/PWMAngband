@@ -526,6 +526,25 @@ static void project_feature_handler_KILL_WALL(project_feature_handler_context_t 
         /* Fully update the flow */
         fully_update_flow(&context->cave->wpos);
     }
+    else
+    {
+        /* Message */
+        if (context->line_sound)
+        {
+            msg(context->origin->player, "The %s turns into mud!",
+                square_apparent_name(context->origin->player, context->cave, &grid));
+            context->obvious = true;
+        }
+
+        /* Destroy the wall */
+        square_destroy_wall(context->cave, &grid);
+
+        /* Update the visuals */
+        update_visuals(&context->cave->wpos);
+
+        /* Fully update the flow */
+        fully_update_flow(&context->cave->wpos);
+    }
 }
 
 
@@ -628,8 +647,7 @@ static void project_feature_handler_MAKE_DOOR(project_feature_handler_context_t 
     if (!square_isanyfloor(context->cave, &grid)) return;
 
     /* Push objects off the grid */
-    if (square_object(context->cave, &grid))
-        push_object(context->origin->player, context->cave, &grid);
+    push_object(context->origin->player, context->cave, &grid);
 
     /* Create a closed door */
     square_close_door(context->cave, &grid);

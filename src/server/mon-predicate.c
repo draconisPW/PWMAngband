@@ -268,6 +268,15 @@ bool monster_is_evil(const struct monster *mon)
 
 
 /*
+ * Monster can be frightened
+ */
+bool monster_is_fearful(const struct monster *mon)
+{
+    return (rf_has(mon->race->flags, RF_NO_FEAR)? false: true);
+}
+
+
+/*
  * Monster is not evil
  */
 bool monster_is_nonevil(const struct monster *mon)

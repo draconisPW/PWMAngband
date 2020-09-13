@@ -48,6 +48,7 @@
 #define PROJECT_INFO    0x1000
 #define PROJECT_SHORT   0x2000
 #define PROJECT_CONST   0x4000
+#define PROJECT_ROCK    0x8000
 
 /*
  * Projection struct
@@ -66,6 +67,7 @@ struct projection
     int damage_cap;
     int msgt;
     bool obvious;
+    bool wake;
     int color;
     byte flags;
     char *threat;

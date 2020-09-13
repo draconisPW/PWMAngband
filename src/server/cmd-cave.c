@@ -350,7 +350,7 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
             /* Player owned store! */
 
             /* Disturb */
-            disturb(p, 0);
+            disturb(p);
 
             /* Hack -- enter store */
             do_cmd_store(p, i);
@@ -534,7 +534,7 @@ void do_cmd_open(struct player *p, int dir, bool easy)
     if (!obj && !do_cmd_open_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return;
     }
 
@@ -564,7 +564,7 @@ void do_cmd_open(struct player *p, int dir, bool easy)
         more = do_cmd_open_aux(p, c, &grid);
 
     /* Cancel repeat unless we may continue */
-    if (!more) disturb(p, 0);
+    if (!more) disturb(p);
 }
 
 
@@ -712,7 +712,7 @@ void do_cmd_close(struct player *p, int dir, bool easy)
     if (!do_cmd_close_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return;
     }
 
@@ -735,7 +735,7 @@ void do_cmd_close(struct player *p, int dir, bool easy)
         more = do_cmd_close_aux(p, c, &grid);
 
     /* Cancel repeat unless we may continue */
-    if (!more) disturb(p, 0);
+    if (!more) disturb(p);
 }
 
 
@@ -830,10 +830,9 @@ static bool create_house_door(struct player *p, struct chunk *c, struct loc *gri
 static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *grid)
 {
     bool more = false;
-    int digging_chances[DIGGING_MAX];
+    int digging_chances[DIGGING_MAX], chance = 0, digging;
     bool okay = false;
     bool gold, rubble, tree, web;
-    int digging;
 
     gold = square_hasgoldvein(c, grid);
     rubble = square_isrubble(c, grid);
@@ -847,7 +846,8 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
 
     /* Do we succeed? */
     digging = square_digging(c, grid);
-    if (digging > 0) okay = CHANCE(digging_chances[digging - 1], 1600);
+    if (digging > 0) chance = digging_chances[digging - 1];
+    okay = CHANCE(chance, 1600);
 
     /* Hack -- house walls */
     if (square_ispermhouse(c, grid))
@@ -925,7 +925,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     }
 
     /* Failure, continue digging */
-    else
+    else if (chance > 0)
     {
         if (tree || web)
             msg(p, "You attempt to clear a path.");
@@ -934,6 +934,17 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
         else
             msg(p, "You tunnel into the %s.", square_apparent_name(p, c, grid));
          more = true;
+    }
+
+    /* Don't automatically repeat if there's no hope. */
+    else
+    {
+        if (tree || web)
+            msg(p, "You fail to clear a path.");
+        else if (rubble)
+            msg(p, "You dig in the rubble with little effect.");
+        else
+            msg(p, "You chip away futilely at the %s.", square_apparent_name(p, c, grid));
     }
 
     /* Result */
@@ -964,7 +975,7 @@ bool do_cmd_tunnel(struct player *p)
     if (!dir || !VALID_DIR(dir))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -975,7 +986,7 @@ bool do_cmd_tunnel(struct player *p)
     if (!do_cmd_tunnel_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -998,7 +1009,7 @@ bool do_cmd_tunnel(struct player *p)
         more = do_cmd_tunnel_aux(p, c, &grid);
 
     /* Cancel repetition unless we can continue */
-    if (!more) disturb(p, 0);
+    if (!more) disturb(p);
 
     /* Repeat */
     if (p->digging_request > 0) p->digging_request--;
@@ -1228,7 +1239,7 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
     if (!obj && !do_cmd_disarm_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return;
     }
 
@@ -1262,7 +1273,7 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
         more = do_cmd_disarm_aux(p, c, &grid, dir);
 
     /* Cancel repeat unless told not to */
-    if (!more) disturb(p, 0);
+    if (!more) disturb(p);
 }     
 
 
@@ -1282,10 +1293,12 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
  */
 void do_cmd_alter(struct player *p, int dir)
 {
+    struct loc grid;
     bool more = false;
+    struct object *o_chest_closed;
+    struct object *o_chest_trapped;
     bool spend = true;
     struct chunk *c = chunk_get(&p->wpos);
-    struct loc grid;
 
     /* Get a direction (or abort) */
     if (!dir || !VALID_DIR(dir)) return;
@@ -1306,6 +1319,12 @@ void do_cmd_alter(struct player *p, int dir)
         /* Get location */
         next_grid(&grid, &p->grid, dir);
     }
+
+    /* Check for closed chest */
+    o_chest_closed = chest_check(p, c, &grid, CHEST_OPENABLE);
+
+    /* Check for trapped chest */
+    o_chest_trapped = chest_check(p, c, &grid, CHEST_TRAPPED);
 
     /* Something in the way */
     if (square(c, &grid)->mon != 0)
@@ -1330,6 +1349,18 @@ void do_cmd_alter(struct player *p, int dir)
     else if (square_isdisarmabletrap(c, &grid))
         more = do_cmd_disarm_aux(p, c, &grid, dir);
 
+    /* Trapped chest */
+    else if (o_chest_trapped)
+        more = do_cmd_disarm_chest(p, c, &grid, o_chest_trapped);
+
+    /* Open chest */
+    else if (o_chest_closed)
+        more = do_cmd_open_chest(p, c, &grid, o_chest_closed);
+
+    /* Close door */
+    else if (square_isopendoor(c, &grid))
+        more = do_cmd_close_aux(p, c, &grid);
+
     /* Oops */
     else
     {
@@ -1343,7 +1374,7 @@ void do_cmd_alter(struct player *p, int dir)
     if (spend) use_energy(p);
 
     /* Cancel repetition unless we can continue */
-    if (!more) disturb(p, 0);
+    if (!more) disturb(p);
 }
 
 
@@ -1461,7 +1492,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                     msg(p, "There is a wall blocking your way.");
                 else
                     msg(p, ONE_OF(comment_ironman));
-                disturb(p, 1);
+                disturb(p);
                 return;
             }
 
@@ -1504,7 +1535,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 case 1: msg(p, "You cannot go beyond the Walls of the World."); break;
             }
 
-            disturb(p, 1);
+            disturb(p);
             return;
         }
 
@@ -1526,7 +1557,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         wild_set_explored(p, &w_ptr->wpos);
 
         /* Disturb if necessary */
-        if (OPT(p, disturb_panel)) disturb(p, 0);
+        if (OPT(p, disturb_panel)) disturb(p);
 
         return;
     }
@@ -1575,8 +1606,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                     msg(who->player, "You switch places with %s.", p_name);
 
                     /* Disturb both of them */
-                    disturb(p, 1);
-                    disturb(who->player, 1);
+                    disturb(p);
+                    disturb(who->player);
                 }
 
                 /* Unhack both of them */
@@ -1599,8 +1630,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 msg(who->player, "%s bumps into you.", p_name);
 
                 /* Disturb both parties */
-                disturb(p, 1);
-                disturb(who->player, 1);
+                disturb(p);
+                disturb(who->player);
             }
         }
 
@@ -1667,14 +1698,14 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     /* Stop running before known traps */
     if (trap && p->upkeep->running && !trapsafe)
     {
-        disturb(p, 0);
+        disturb(p);
         return;
     }
 
     /* Normal players can not walk through "walls" */
     if (!player_passwall(p) && !square_ispassable(c, &grid))
     {
-        disturb(p, 0);
+        disturb(p);
 
         /* Notice unknown obstacles */
         if (!square_isknown(p, &grid))
@@ -1744,7 +1775,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
             /* Message */
             msg(p, "The wall blocks your movement.");
 
-            disturb(p, 0);
+            disturb(p);
             return;
         }
     }
@@ -1774,7 +1805,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     if (p->upkeep->running && !p->upkeep->running_firststep && old_dtrap && !new_dtrap &&
         random_level(&p->wpos))
     {
-        disturb(p, 0);
+        disturb(p);
         return;
     }
 
@@ -1795,7 +1826,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     /* Handle store doors, or notice objects */
     if (!p->ghost && square_isshop(c, &grid))
     {
-        disturb(p, 0);
+        disturb(p);
 
         /* Hack -- enter store */
         do_cmd_store(p, -1);
@@ -1828,21 +1859,21 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     /* Discover invisible traps */
     else if (square_issecrettrap(c, &grid))
     {
-        disturb(p, 0);
+        disturb(p);
         hit_trap(p, &p->grid, delayed);
     }
 
     /* Set off a visible trap */
     else if (square_isdisarmabletrap(c, &grid) && !trapsafe)
     {
-        disturb(p, 0);
+        disturb(p);
         hit_trap(p, &p->grid, delayed);
     }
 
     /* Mention fountains */
     else if (square_isfountain(c, &grid))
     {
-        disturb(p, 0);
+        disturb(p);
         msg(p, "A fountain is located at this place.");
     }
 
@@ -1926,6 +1957,61 @@ static bool erratic_dir(struct player *p, int *dp)
 }
 
 
+static bool clear_web(struct player *p, struct chunk *c)
+{
+    if (!square_iswebbed(c, &p->grid)) return false;
+
+    /* Handle polymorphed players */
+    if (p->poly_race)
+    {
+        /* If we can pass, no need to clear */
+        if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
+        {
+            /* Insubstantial monsters go right through */
+            if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
+
+            /* If you can pass through walls, you can destroy a web */
+            else if (monster_passes_walls(p->poly_race))
+            {
+                msg(p, "You clear the web.");
+                square_clear_feat(c, &p->grid);
+                update_visuals(&p->wpos);
+                fully_update_flow(&p->wpos);
+                use_energy(p);
+                return true;
+            }
+
+            /* Clearing costs a turn */
+            else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
+            {
+                msg(p, "You clear the web.");
+                square_clear_feat(c, &p->grid);
+                update_visuals(&p->wpos);
+                fully_update_flow(&p->wpos);
+                use_energy(p);
+                return true;
+            }
+
+            /* Stuck */
+            else return true;
+        }
+    }
+
+    /* Clear the web, finish turn */
+    else
+    {
+        msg(p, "You clear the web.");
+        square_clear_feat(c, &p->grid);
+        update_visuals(&p->wpos);
+        fully_update_flow(&p->wpos);
+        use_energy(p);
+        return true;
+    }
+
+    return false;
+}
+
+
 /*
  * Walk in the given direction.
  */
@@ -1939,55 +2025,7 @@ void do_cmd_walk(struct player *p, int dir)
     if (!dir) return;
 
     /* If we're in a web, deal with that */
-    if (square_iswebbed(c, &p->grid))
-    {
-        /* Handle polymorphed players */
-        if (p->poly_race)
-        {
-            /* If we can pass, no need to clear */
-            if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
-            {
-                /* Insubstantial monsters go right through */
-                if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
-
-                /* If you can pass through walls, you can destroy a web */
-                else if (monster_passes_walls(p->poly_race))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Clearing costs a turn */
-                else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Stuck */
-                else return;
-            }
-        }
-
-        /* Clear the web, finish turn */
-        else
-        {
-            msg(p, "You clear the web.");
-            square_clear_feat(c, &p->grid);
-            update_visuals(&p->wpos);
-            fully_update_flow(&p->wpos);
-            use_energy(p);
-            return;
-        }
-    }
+    if (clear_web(p, c)) return;
 
     /* Verify legality */
     if (!do_cmd_walk_test(p)) return;
@@ -2021,55 +2059,7 @@ void do_cmd_jump(struct player *p, int dir)
     if (!dir) return;
 
     /* If we're in a web, deal with that */
-    if (square_iswebbed(c, &p->grid))
-    {
-        /* Handle polymorphed players */
-        if (p->poly_race)
-        {
-            /* If we can pass, no need to clear */
-            if (!rf_has(p->poly_race->flags, RF_PASS_WEB))
-            {
-                /* Insubstantial monsters go right through */
-                if (rf_has(p->poly_race->flags, RF_PASS_WALL)) {}
-
-                /* If you can pass through walls, you can destroy a web */
-                else if (monster_passes_walls(p->poly_race))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Clearing costs a turn */
-                else if (rf_has(p->poly_race->flags, RF_CLEAR_WEB))
-                {
-                    msg(p, "You clear the web.");
-                    square_clear_feat(c, &p->grid);
-                    update_visuals(&p->wpos);
-                    fully_update_flow(&p->wpos);
-                    use_energy(p);
-                    return;
-                }
-
-                /* Stuck */
-                else return;
-            }
-        }
-
-        /* Clear the web, finish turn */
-        else
-        {
-            msg(p, "You clear the web.");
-            square_clear_feat(c, &p->grid);
-            update_visuals(&p->wpos);
-            fully_update_flow(&p->wpos);
-            use_energy(p);
-            return;
-        }
-    }
+    if (clear_web(p, c)) return;
 
     /* Verify legality */
     if (!do_cmd_walk_test(p)) return;
@@ -2133,7 +2123,7 @@ static bool do_cmd_run_test(struct player *p, struct loc *grid)
             msgt(p, MSG_HITWALL, "There is a wall in the way!");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
 
         /* Nope */
         return false;
@@ -2177,6 +2167,9 @@ void do_cmd_run(struct player *p, int dir)
     /* Ignore non-direction if we are not running */
     if (!p->upkeep->running && !dir) return;
 
+    /* If we're in a web, deal with that */
+    if (clear_web(p, chunk_get(&p->wpos))) return;
+
     /* Continue running if we are already running in this direction */
     if (p->upkeep->running && (dir == p->run_cur_dir)) dir = 0;
 
@@ -2213,7 +2206,7 @@ bool do_cmd_rest(struct player *p, s16b resting)
     if (!player_is_resting(p))
     {
         /* Disturb us: reset running if needed */
-        disturb(p, 1);
+        disturb(p);
 
         /* Redraw the state */
         p->upkeep->redraw |= (PR_STATE);
@@ -2308,7 +2301,7 @@ void display_feeling(struct player *p, bool obj_only)
     byte set = 0;
 
     /* Don't show feelings for cold-hearted characters */
-    if (!OPT(p, birth_feelings)) return;
+    if (!cfg_level_feelings || !OPT(p, birth_feelings)) return;
 
     /* No feeling in towns */
     if (forbid_town(&p->wpos))
@@ -2330,6 +2323,8 @@ void display_feeling(struct player *p, bool obj_only)
         msg(p, "Looks like a typical wilderness level.");
         return;
     }
+
+    if ((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 1)) return;
 
     /* Hack -- player entering a static level */
     if (p->feeling < 0)
@@ -2369,9 +2364,9 @@ void display_feeling(struct player *p, bool obj_only)
         obj_feeling = N_ELEMENTS(obj_feeling_text) - 1;
 
     /* Display only the object feeling when it's first discovered. */
-    if (obj_only)
+    if (obj_only && (cfg_level_feelings == 2))
     {
-        disturb(p, 0);
+        disturb(p);
         msg(p, "You feel that %s", obj_feeling_text[obj_feeling][set]);
         p->obj_feeling = obj_feeling;
         return;
@@ -2382,7 +2377,8 @@ void display_feeling(struct player *p, bool obj_only)
         mon_feeling = N_ELEMENTS(mon_feeling_text) - 1;
 
     /* Players automatically get a monster feeling. */
-    if (p->cave->feeling_squares < z_info->feeling_need)
+    if (((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 2)) ||
+        (cfg_level_feelings == 1))
     {
         msg(p, "%s.", mon_feeling_text[mon_feeling][set]);
         p->mon_feeling = mon_feeling;
@@ -3292,7 +3288,7 @@ static bool allowed_foundation_area(struct player *p, struct chunk *c, struct lo
  */
 bool build_house(struct player *p)
 {
-    int x1, x2, y1, y2, house, area, price = 0, tax;
+    int x1, x2, y1, y2, house, area, price, tax;
     struct house_type *h_ptr = NULL;
     struct chunk *c = chunk_get(&p->wpos);
     struct loc begin, end;
@@ -3371,9 +3367,7 @@ bool build_house(struct player *p)
 
     /* Remember price */
     area = (x2 - x1 - 1) * (y2 - y1 - 1);
-    if (area > 40) price = (area - 40) * (area - 40) * (area - 40) * 3;
-    price += area * area * 33;
-    price += area * (900 + randint0(200));
+    price = house_price(area, false);
 
     /* Local tax: price minus amount already paid */
     tax += price;

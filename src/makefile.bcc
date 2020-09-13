@@ -112,6 +112,7 @@ SERV_SRCS = \
   server\control.c \
   server\display-ui.c \
   server\effects.c \
+  server\effects-info.c \
   server\game-world.c \
   server\generate.c \
   server\gen-cave.c \
@@ -240,6 +241,7 @@ SERV_OBJS = \
   server\control.obj \
   server\display-ui.obj \
   server\effects.obj \
+  server\effects-info.obj \
   server\game-world.obj \
   server\generate.obj \
   server\gen-cave.obj \

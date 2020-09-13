@@ -70,11 +70,26 @@
 static void add_stairs(struct chunk *c, int feat)
 {
     random_value *dir;
+    int num;
+    struct worldpos dpos;
+    struct location *dungeon;
 
+    /* Get number of stairs from dungeon profile */
     if (feat == FEAT_MORE) dir = &((struct cave_profile *)dun->profile)->down;
     else dir = &((struct cave_profile *)dun->profile)->up;
+    num = dir->base + damroll(dir->dice, dir->sides);
 
-    alloc_stairs(c, feat, dir->base + damroll(dir->dice, dir->sides));
+    /* Get extra number of stairs from dungeon itself */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+    if (dungeon && c->wpos.depth)
+    {
+        if (feat == FEAT_MORE) dir = &dungeon->down;
+        else dir = &dungeon->up;
+        num = num + dir->base + damroll(dir->dice, dir->sides);
+    }
+
+    alloc_stairs(c, feat, num);
 }
 
 
@@ -175,7 +190,7 @@ static void add_streamer(struct chunk *c, int feat, int flag, int chance)
 
 
 /*
- * Replace floors/walls/doors/stairs/rubbles with custom features specific to a dungeon.
+ * Replace floors/walls/doors/stairs/rubbles/fountains with custom features specific to a dungeon.
  *
  * c is the current chunk
  */
@@ -195,7 +210,7 @@ static void customize_features(struct chunk *c)
 
     /* Nothing to do */
     if (dungeon->n_floors + dungeon->n_walls + dungeon->n_permas + dungeon->n_doors +
-        dungeon->n_stairs + dungeon->n_rubbles == 0)
+        dungeon->n_stairs + dungeon->n_rubbles + dungeon->n_fountains == 0)
     {
         return;
     }
@@ -210,8 +225,10 @@ static void customize_features(struct chunk *c)
         int i, chance;
 
         /* Floors */
-        if (square_isfloor(c, &iter.cur))
+        if (square_isfloor(c, &iter.cur) && !square_ispitfloor(c, &iter.cur))
         {
+            struct monster *mon = square_monster(c, &iter.cur);
+
             /* Basic chance */
             chance = randint0(10000);
 
@@ -219,9 +236,31 @@ static void customize_features(struct chunk *c)
             for (i = 0; i < dungeon->n_floors; i++)
             {
                 struct dun_feature *feature = &dungeon->floors[i];
+                int current_feat = square(c, &iter.cur)->feat;
+                bool ok = true;
+
+                /* Make the change for testing */
+                square(c, &iter.cur)->feat = feature->feat;
+
+                /* Damaging or blocking terrain */
+                if (mon && (monster_hates_grid(c, mon, &iter.cur) ||
+                    !square_ispassable(c, &iter.cur)))
+                {
+                    ok = false;
+                }
+
+                /* Floor can't hold objects */
+                if (square_isanyfloor(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
+                    ok = false;
+
+                /* Skip */
+                if (feature->chance <= chance) ok = false;
+
+                /* Revert the change */
+                square(c, &iter.cur)->feat = current_feat;
 
                 /* Fill the level with that feature */
-                if (feature->chance > chance)
+                if (ok)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
                     break;
@@ -241,12 +280,30 @@ static void customize_features(struct chunk *c)
             for (i = 0; i < dungeon->n_walls; i++)
             {
                 struct dun_feature *feature = &dungeon->walls[i];
+                int current_feat = square(c, &iter.cur)->feat;
+                bool ok = true;
+
+                /* Make the change for testing */
+                square(c, &iter.cur)->feat = feature->feat;
+
+                /* Floor can't hold objects */
+                if (square_isanyfloor(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
+                    ok = false;
+
+                /* Skip */
+                if (feature->chance <= chance) ok = false;
+
+                /* Revert the change */
+                square(c, &iter.cur)->feat = current_feat;
 
                 /* Fill the level with that feature */
-                if (feature->chance > chance)
+                if (ok)
                 {
                     if (!square_ispermfake(c, &iter.cur) || !feat_is_passable(feature->feat))
+                    {
                         square_set_feat(c, &iter.cur, feature->feat);
+                        sqinfo_on(square(c, &iter.cur)->info, SQUARE_CUSTOM_WALL);
+                    }
                     break;
                 }
 
@@ -267,6 +324,7 @@ static void customize_features(struct chunk *c)
                 if (feature->chance > chance)
                 {
                     square_set_feat(c, &iter.cur, feature->feat);
+                    sqinfo_on(square(c, &iter.cur)->info, SQUARE_CUSTOM_WALL);
                     break;
                 }
 
@@ -342,6 +400,31 @@ static void customize_features(struct chunk *c)
                 if (feature->chance > chance)
                 {
                     if (!square_ispassable(c, &iter.cur))
+                        square_set_feat(c, &iter.cur, feature->feat);
+                    else
+                        square_set_feat(c, &iter.cur, feature->feat2);
+                    break;
+                }
+
+                chance -= feature->chance;
+            }
+        }
+
+        /* Fountains */
+        if (square_isfountain(c, &iter.cur))
+        {
+            /* Basic chance */
+            chance = randint0(10000);
+
+            /* Process all features */
+            for (i = 0; i < dungeon->n_fountains; i++)
+            {
+                struct dun_feature *feature = &dungeon->fountains[i];
+
+                /* Fill the level with that feature */
+                if (feature->chance > chance)
+                {
+                    if (!square_isdryfountain(c, &iter.cur))
                         square_set_feat(c, &iter.cur, feature->feat);
                     else
                         square_set_feat(c, &iter.cur, feature->feat2);
@@ -1568,10 +1651,10 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     int w = 51 + randint0(wpos->depth / 10) * 2;
 
     /* Most labyrinths are lit */
-    bool lit = ((randint0(wpos->depth) < 25) || (randint0(2) < 1));
+    bool lit = ((randint0(wpos->depth) < z_info->lab_depth) || (randint0(2) < 1));
 
     /* Many labyrinths are known */
-    bool known = (lit && (randint0(wpos->depth) < 25));
+    bool known = (lit && (randint0(wpos->depth) < z_info->lab_depth));
 
     /* Most labyrinths have soft (diggable) walls */
     bool soft = ((randint0(wpos->depth) < 35) || (randint0(3) < 2));
@@ -2640,7 +2723,7 @@ static bool find_empty_range(struct chunk *c, struct loc *grid, struct loc *top_
 static void town_gen_layout(struct player *p, struct chunk *c)
 {
     int n;
-    struct loc grid, pgrid, xroads, tavern;
+    struct loc grid, pgrid, xroads, tavern, training;
     int num_lava;
     int ruins_percent = 40; /* PWMAngband: we need to place the tavern, so it's halved */
     int max_attempts = 100;
@@ -2684,6 +2767,7 @@ static void town_gen_layout(struct player *p, struct chunk *c)
     while (!success)
     {
         int lot_min_x, lot_max_x, lot_min_y, lot_max_y;
+        bool skip = false;
 
         /* Initialize to ROCK for build_streamer precondition */
         for (grid.y = 1; grid.y < town_hgt - 1; grid.y++)
@@ -2746,6 +2830,11 @@ static void town_gen_layout(struct player *p, struct chunk *c)
 
             /* Skip player store and tavern */
             if ((s->type == STORE_PLAYER) || (s->type == STORE_TAVERN)) continue;
+
+            /* Skip custom stores */
+            if (s->type == STORE_B_MARKET) skip = false;
+            else if (skip) continue;
+            else if (s->type == STORE_BOOKSELLER) skip = true;
 
             while (!found_spot && (num_attempts < max_attempts))
             {
@@ -2845,6 +2934,34 @@ static void town_gen_layout(struct player *p, struct chunk *c)
         }
 
         if (num_attempts >= max_attempts) continue;
+
+        /* Place the training grounds */
+        num_attempts = 0;
+        while (num_attempts < max_attempts)
+        {
+            bool found_non_floor = false;
+
+            num_attempts++;
+
+            find_empty_range(c, &training, &top_left, &bottom_right);
+
+            loc_init(&begin, training.x - 2, training.y - 2);
+            loc_init(&end, training.x + 2, training.y + 2);
+            loc_iterator_first(&iter, &begin, &end);
+
+            do
+            {
+                if (!square_in_bounds_fully(c, &iter.cur) ||!square_isfloor(c, &iter.cur))
+                    found_non_floor = true;
+            }
+            while (loc_iterator_next(&iter));
+
+            if (!found_non_floor) break;
+        }
+
+        if (num_attempts >= max_attempts) continue;
+
+        square_set_feat(c, &training, FEAT_TRAINING);
 
         success = true;
     }
@@ -3755,9 +3872,7 @@ static void build_feature(struct chunk *c, int n, int yy, int xx)
         while (loc_iterator_next_strict(&iter));
 
         /* Remember price */
-        price = (x2 - x1 - 1) * (y2 - y1 - 1);
-        price *= 20;
-        price *= 80 + randint1(40);
+        price = house_price((x2 - x1 - 1) * (y2 - y1 - 1), true);
 
         /* Hack -- only create houses that aren't already loaded from disk */
         loc_init(&grid, dx, dy);

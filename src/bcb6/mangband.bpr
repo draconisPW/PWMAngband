@@ -17,32 +17,32 @@
       ..\..\obj\channel.obj ..\..\obj\cmd-cave.obj ..\..\obj\cmd-innate.obj 
       ..\..\obj\cmd-misc.obj ..\..\obj\cmd-obj.obj ..\..\obj\cmd-pickup.obj 
       ..\..\obj\control.obj ..\..\obj\display-ui.obj ..\..\obj\effects.obj 
-      ..\..\obj\game-world.obj ..\..\obj\generate.obj ..\..\obj\gen-cave.obj 
-      ..\..\obj\gen-chunk.obj ..\..\obj\gen-monster.obj ..\..\obj\gen-room.obj 
-      ..\..\obj\gen-util.obj ..\..\obj\help-ui.obj ..\..\obj\history-ui.obj 
-      ..\..\obj\house.obj ..\..\obj\init.obj ..\..\obj\knowledge-ui.obj 
-      ..\..\obj\load.obj ..\..\obj\main.obj ..\..\obj\map-ui.obj 
-      ..\..\obj\message.obj ..\..\obj\metaclient.obj ..\..\obj\mon-attack.obj 
-      ..\..\obj\mon-blows.obj ..\..\obj\mon-desc.obj ..\..\obj\mon-group.obj 
-      ..\..\obj\mon-init.obj ..\..\obj\mon-list.obj ..\..\obj\mon-list-ui.obj 
-      ..\..\obj\mon-lore.obj ..\..\obj\mon-lore-ui.obj ..\..\obj\mon-make.obj 
-      ..\..\obj\mon-move.obj ..\..\obj\mon-msg.obj ..\..\obj\mon-predicate.obj 
-      ..\..\obj\mon-spell.obj ..\..\obj\mon-summon.obj ..\..\obj\mon-timed.obj 
-      ..\..\obj\mon-util.obj ..\..\obj\netserver.obj ..\..\obj\obj-chest.obj 
-      ..\..\obj\obj-curse.obj ..\..\obj\obj-desc.obj ..\..\obj\obj-gear.obj 
-      ..\..\obj\obj-ignore.obj ..\..\obj\obj-info.obj ..\..\obj\obj-init.obj 
-      ..\..\obj\obj-inscrip.obj ..\..\obj\obj-knowledge.obj 
-      ..\..\obj\obj-list.obj ..\..\obj\obj-list-ui.obj ..\..\obj\obj-make.obj 
-      ..\..\obj\obj-pile.obj ..\..\obj\obj-power.obj 
-      ..\..\obj\obj-properties.obj ..\..\obj\obj-randart.obj 
-      ..\..\obj\obj-slays.obj ..\..\obj\obj-ui.obj ..\..\obj\obj-util.obj 
-      ..\..\obj\party.obj ..\..\obj\player.obj ..\..\obj\player-attack.obj 
-      ..\..\obj\player-birth.obj ..\..\obj\player-calcs.obj 
-      ..\..\obj\player-history.obj ..\..\obj\player-path.obj 
-      ..\..\obj\player-quest.obj ..\..\obj\player-spell.obj 
-      ..\..\obj\player-timed.obj ..\..\obj\player-ui.obj 
-      ..\..\obj\player-util.obj ..\..\obj\prefs-ui.obj ..\..\obj\project.obj 
-      ..\..\obj\project-feat.obj ..\..\obj\project-mon.obj 
+      ..\..\obj\effects-info.obj ..\..\obj\game-world.obj ..\..\obj\generate.obj 
+      ..\..\obj\gen-cave.obj ..\..\obj\gen-chunk.obj ..\..\obj\gen-monster.obj 
+      ..\..\obj\gen-room.obj ..\..\obj\gen-util.obj ..\..\obj\help-ui.obj 
+      ..\..\obj\history-ui.obj ..\..\obj\house.obj ..\..\obj\init.obj 
+      ..\..\obj\knowledge-ui.obj ..\..\obj\load.obj ..\..\obj\main.obj 
+      ..\..\obj\map-ui.obj ..\..\obj\message.obj ..\..\obj\metaclient.obj 
+      ..\..\obj\mon-attack.obj ..\..\obj\mon-blows.obj ..\..\obj\mon-desc.obj 
+      ..\..\obj\mon-group.obj ..\..\obj\mon-init.obj ..\..\obj\mon-list.obj 
+      ..\..\obj\mon-list-ui.obj ..\..\obj\mon-lore.obj ..\..\obj\mon-lore-ui.obj 
+      ..\..\obj\mon-make.obj ..\..\obj\mon-move.obj ..\..\obj\mon-msg.obj 
+      ..\..\obj\mon-predicate.obj ..\..\obj\mon-spell.obj 
+      ..\..\obj\mon-summon.obj ..\..\obj\mon-timed.obj ..\..\obj\mon-util.obj 
+      ..\..\obj\netserver.obj ..\..\obj\obj-chest.obj ..\..\obj\obj-curse.obj 
+      ..\..\obj\obj-desc.obj ..\..\obj\obj-gear.obj ..\..\obj\obj-ignore.obj 
+      ..\..\obj\obj-info.obj ..\..\obj\obj-init.obj ..\..\obj\obj-inscrip.obj 
+      ..\..\obj\obj-knowledge.obj ..\..\obj\obj-list.obj 
+      ..\..\obj\obj-list-ui.obj ..\..\obj\obj-make.obj ..\..\obj\obj-pile.obj 
+      ..\..\obj\obj-power.obj ..\..\obj\obj-properties.obj 
+      ..\..\obj\obj-randart.obj ..\..\obj\obj-slays.obj ..\..\obj\obj-ui.obj 
+      ..\..\obj\obj-util.obj ..\..\obj\party.obj ..\..\obj\player.obj 
+      ..\..\obj\player-attack.obj ..\..\obj\player-birth.obj 
+      ..\..\obj\player-calcs.obj ..\..\obj\player-history.obj 
+      ..\..\obj\player-path.obj ..\..\obj\player-quest.obj 
+      ..\..\obj\player-spell.obj ..\..\obj\player-timed.obj 
+      ..\..\obj\player-ui.obj ..\..\obj\player-util.obj ..\..\obj\prefs-ui.obj 
+      ..\..\obj\project.obj ..\..\obj\project-feat.obj ..\..\obj\project-mon.obj 
       ..\..\obj\project-obj.obj ..\..\obj\project-player.obj ..\..\obj\save.obj 
       ..\..\obj\savefile.obj ..\..\obj\sched-win.obj ..\..\obj\score.obj 
       ..\..\obj\score-ui.obj ..\..\obj\store.obj ..\..\obj\s-util.obj 
@@ -58,7 +58,7 @@
     <LIBRARIES value="rtl.lib"/>
     <SPARELIBS value="rtl.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi vclx.bpi"/>
-    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server"/>
+    <PATHCPP value=".;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\common;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server;..\server"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;..\win;..\win"/>
     <PATHASM value=".;"/>
@@ -133,6 +133,7 @@
       <FILE FILENAME="..\server\control.c" FORMNAME="" UNITNAME="control.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\display-ui.c" FORMNAME="" UNITNAME="display-ui" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\effects.c" FORMNAME="" UNITNAME="effects.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\server\effects-info.c" FORMNAME="" UNITNAME="effects-info" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\game-world.c" FORMNAME="" UNITNAME="game-world" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\generate.c" FORMNAME="" UNITNAME="generate.c" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\server\gen-cave.c" FORMNAME="" UNITNAME="gen-cave" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>

@@ -249,7 +249,7 @@ static void do_quit(int ind)
     {
         /* Otherwise wait for the timeout */
         connp->quit_msg = string_make("Client quit");
-        Conn_set_state(connp, CONN_QUIT, QUIT_TIMEOUT);
+        Conn_set_state(connp, CONN_QUIT, cfg_quit_timeout);
     }
 }
 
@@ -556,8 +556,12 @@ static int Check_names(char *nick_name, char *real_name, char *host_name)
         else break;
     }
 
-    /* The "server" and "account" names are reserved */
-    if (!my_stricmp(nick_name, "server") || !my_stricmp(nick_name, "account")) return E_INVAL;
+    /* The "server", "account" and "players" names are reserved */
+    if (!my_stricmp(nick_name, "server") || !my_stricmp(nick_name, "account") ||
+        !my_stricmp(nick_name, "players"))
+    {
+        return E_INVAL;
+    }
 
     return SUCCESS;
 }
@@ -1496,7 +1500,7 @@ int Send_class_struct_info(int ind)
 
     for (c = classes; c; c = c->next)
     {
-        byte tval = 0;
+        u16b tval = 0;
 
         if (c->magic.num_books)
             tval = c->magic.books[0].tval;
@@ -1563,7 +1567,7 @@ int Send_class_struct_info(int ind)
                 return -1;
             }
         }
-        if (Packet_printf(&connp->c, "%b%b%c", (unsigned)c->magic.total_spells, (unsigned)tval,
+        if (Packet_printf(&connp->c, "%b%hu%c", (unsigned)c->magic.total_spells, (unsigned)tval,
             c->magic.num_books) <= 0)
         {
             Destroy_connection(ind, "Send_class_struct_info write error");
@@ -1573,7 +1577,7 @@ int Send_class_struct_info(int ind)
         {
             struct class_book *book = &c->magic.books[j];
 
-            if (Packet_printf(&connp->c, "%b%b%s", (unsigned)book->tval, (unsigned)book->sval,
+            if (Packet_printf(&connp->c, "%hu%hu%s", (unsigned)book->tval, (unsigned)book->sval,
                 book->realm->name) <= 0)
             {
                 Destroy_connection(ind, "Send_class_struct_info write error");
@@ -1702,7 +1706,7 @@ int Send_kind_struct_info(int ind)
         }
 
         /* Transfer other fields here */
-        if (Packet_printf(&connp->c, "%b%b%lu%hd", (unsigned)k_info[i].tval,
+        if (Packet_printf(&connp->c, "%hu%hu%lu%hd", (unsigned)k_info[i].tval,
             (unsigned)k_info[i].sval, k_info[i].kidx, (int)ac) <= 0)
         {
             Destroy_connection(ind, "Send_kind_struct_info write error");
@@ -2649,14 +2653,15 @@ int Send_book_info(struct player *p, int book, const char *name)
 }
 
 
-int Send_floor(struct player *p, byte num, const struct object *obj, struct object_xtra *info_xtra)
+int Send_floor(struct player *p, byte num, const struct object *obj, struct object_xtra *info_xtra,
+    byte force)
 {
     byte ignore = ((obj->known->notice & OBJ_NOTICE_IGNORE)? 1: 0);
     connection_t *connp = get_connp(p, "floor");
     if (connp == NULL) return 0;
 
-    Packet_printf(&connp->c, "%b%b", (unsigned)PKT_FLOOR, (unsigned)num);
-    Packet_printf(&connp->c, "%b%b%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
+    Packet_printf(&connp->c, "%b%b%b", (unsigned)PKT_FLOOR, (unsigned)num, (unsigned)force);
+    Packet_printf(&connp->c, "%hu%hu%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
     Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
@@ -2689,12 +2694,12 @@ int Send_special_other(struct player *p, char *header, byte peruse, bool protect
 
 
 int Send_store(struct player *p, char pos, byte attr, s16b wgt, byte number, byte owned,
-    s32b price, byte tval, byte max, s16b bidx, const char *name)
+    s32b price, u16b tval, byte max, s16b bidx, const char *name)
 {
     connection_t *connp = get_connp(p, "store");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%b%b%hd%s", (unsigned)PKT_STORE,
+    return Packet_printf(&connp->c, "%b%c%b%hd%b%b%ld%hu%b%hd%s", (unsigned)PKT_STORE,
         (int)pos, (unsigned)attr, (int)wgt, (unsigned)number, (unsigned)owned,
         price, (unsigned)tval, (unsigned)max, (int)bidx, name);
 }
@@ -2940,6 +2945,15 @@ int Send_player_pos(struct player *p)
 }
 
 
+int Send_minipos(struct player *p, int y, int x)
+{
+    connection_t *connp = get_connp(p, "minipos");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->c, "%b%hd%hd", (unsigned)PKT_MINIPOS, y, x);
+}
+
+
 int Send_play(int ind)
 {
     connection_t *connp = get_connection(ind);
@@ -3115,11 +3129,11 @@ int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
     if (connp == NULL) return 0;
 
     /* Packet and base info */
-    Packet_printf(&connp->c, "%b%b%b", (unsigned)PKT_ITEM, (unsigned)obj->tval,
+    Packet_printf(&connp->c, "%b%hu%b", (unsigned)PKT_ITEM, (unsigned)obj->tval,
         (unsigned)info_xtra->equipped);
 
     /* Object info */
-    Packet_printf(&connp->c, "%b%hd%hd%ld%lu%ld%b%hd", (unsigned)obj->sval, wgt, obj->number,
+    Packet_printf(&connp->c, "%hu%hd%hd%ld%lu%ld%b%hd", (unsigned)obj->sval, wgt, obj->number,
         price, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
 
     /* Extra info */
@@ -3621,7 +3635,7 @@ static int Receive_walk(int ind)
         /* Disturb if running or resting */
         if (p->upkeep->running || player_is_resting(p))
         {
-            disturb(p, 0);
+            disturb(p);
             return 1;
         }
 
@@ -5287,7 +5301,7 @@ static int Receive_jump(int ind)
         /* Disturb if running or resting */
         if (p->upkeep->running || player_is_resting(p))
         {
-            disturb(p, 0);
+            disturb(p);
             return 1;
         }
 
@@ -5645,6 +5659,35 @@ static int Receive_track_object(int ind)
 
         /* Track the object */
         track_object(p->upkeep, object_from_index(p, item, false, false));
+    }
+
+    return 1;
+}
+
+
+static int Receive_floor_ack(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    struct player *p;
+    byte ch;
+    int n;
+
+    if ((n = Packet_scanf(&connp->r, "%b", &ch)) <= 0)
+    {
+        if (n == -1) Destroy_connection(ind, "Receive_floor_ack read error");
+        return n;
+    }
+
+    if (connp->id != -1)
+    {
+        p = player_get(get_player_index(connp));
+
+        /* Break mind link */
+        break_mind_link(p);
+
+        /* Get item for pickup */
+        p->current_action = ACTION_PICKUP;
+        get_item(p, HOOK_CARRY, "");
     }
 
     return 1;
@@ -6013,6 +6056,10 @@ static int Enter_player(int ind)
         msg(p, "Server is no-recall.");
     if (cfg_no_artifacts)
         msg(p, "Server has no artifacts.");
+    if (cfg_level_feelings == 0)
+        msg(p, "Server has no level feelings.");
+    if (cfg_level_feelings == 1)
+        msg(p, "Server has limited level feelings.");
     if (cfg_no_selling)
         msg(p, "Server is no-selling.");
     if (cfg_no_stores)
@@ -7375,7 +7422,10 @@ bool process_pending_commands(int ind)
     int last_pos, data_advance = 0;
 
     /* Paranoia: ignore input from client if not in SETUP or PLAYING state */
-    if ((connp->state != CONN_PLAYING) && (connp->state != CONN_SETUP)) return true;
+    /*if ((connp->state != CONN_PLAYING) && (connp->state != CONN_SETUP)) return true;*/
+    if ((connp->state == CONN_FREE) || (connp->state == CONN_CONSOLE)) return true;
+    if (connp->state == CONN_QUIT)
+        return false;
 
     /* SETUP state */
     if (connp->state == CONN_SETUP) receive_tbl = &setup_receive[0];
@@ -7463,7 +7513,7 @@ bool process_pending_commands(int ind)
         if (result == 0)
         {
             /* Hack -- if we tried to do something while resting, wake us up. */
-            if ((type != PKT_REST) && player_is_resting(p)) disturb(p, 0);
+            if ((type != PKT_REST) && player_is_resting(p)) disturb(p);
 
             /*
              * If we didn't have enough energy to execute this

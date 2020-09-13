@@ -257,7 +257,7 @@ struct dragon_breed
     byte d_fmt;                 /* Dragon name format ("dragon" or "drake") */
     char *w_name;               /* Wyrm name */
     byte w_fmt;                 /* Wyrm name format ("xxx wyrm" or "wyrm of xxx") */
-    byte commonness;            /* Commonnes of the breed */
+    byte commonness;            /* Commonness of the breed */
     s16b r_exp;                 /* Experience factor */
     byte immune;                /* Immunity to element? */
 };
@@ -313,7 +313,7 @@ struct class_spell
  */
 struct class_book
 {
-    byte tval;                          /* Item type of the book */
+    u16b tval;                          /* Item type of the book */
     int sval;                           /* Item sub-type for book (book number) */
     bool dungeon;                       /* Whether this is a dungeon book */
     const struct magic_realm *realm;    /* The magic realm of this book */
@@ -326,7 +326,7 @@ struct class_book
  */
 struct class_magic
 {
-    byte spell_first;                       /* Level of first spell */
+    u16b spell_first;                       /* Level of first spell */
     int spell_weight;                       /* Max armor weight to avoid mana penalties */
     int num_books;                          /* Number of spellbooks */
     struct class_book *books;               /* Details of spellbooks */
@@ -834,6 +834,7 @@ struct player
     byte digging_request;
     byte digging_dir;
     byte firing_request;
+    bool cancel_firing;
     bool shimmer;                   /* Hack -- optimize multi-hued code (players) */
     bool delayed_display;           /* Hack -- delay messages after character creation */
     bool did_visuals;               /* Hack -- projection indicator (visuals) */
@@ -853,6 +854,7 @@ struct player
     s16b square_light;              /* Square light (for display) */
     char terrain[40];               /* Displayed terrain */
     byte flicker;                   /* A counter to select the step color from the flicker table */
+    bool no_disturb_icky;
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

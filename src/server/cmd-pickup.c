@@ -88,7 +88,7 @@ static void player_pickup_gold(struct player *p, struct chunk *c)
         char buf[100];
 
         /* Disturb */
-        disturb(p, 0);
+        disturb(p);
 
         /* Build a message */
         strnfmt(buf, sizeof(buf), "You have found %d gold piece%s worth of ", total_gold,
@@ -602,11 +602,8 @@ byte player_pickup_item(struct player *p, struct chunk *c, int pickup, struct ob
         /* No item -> get one */
         if (p->current_value == ITEM_REQUEST)
         {
-            /* Update the floor on the client */
-            display_floor(p, c, floor_list, floor_num);
-
-            p->current_action = ACTION_PICKUP;
-            get_item(p, HOOK_CARRY, "");
+            /* Update the floor on the client, force response */
+            display_floor(p, c, floor_list, floor_num, true);
             mem_free(floor_list);
             return objs_picked_up;
         }
@@ -750,7 +747,7 @@ byte do_autopickup(struct player *p, struct chunk *c, int pickup)
             bool auto_pickup;
 
             /* Hack -- disturb */
-            if (!p->ghost) disturb(p, 0);
+            if (!p->ghost) disturb(p);
 
             /* Hack -- ghosts don't pick up gold automatically */
             auto_pickup = (pickup? true: false);

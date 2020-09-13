@@ -40,7 +40,7 @@ extern char *rune_desc(size_t i);
 extern bool player_knows_brand(struct player *p, int i);
 extern bool player_knows_slay(struct player *p, int i);
 extern bool player_knows_curse(struct player *p, int index);
-extern bool player_knows_ego(struct player *p, struct ego_item *ego);
+extern bool player_knows_ego(struct player *p, struct ego_item *ego, const struct object *obj);
 extern bool object_effect_is_known(const struct object *obj, bool aware);
 extern bool object_is_known_artifact(const struct object *obj);
 extern bool object_has_standard_to_h(const struct object *obj);

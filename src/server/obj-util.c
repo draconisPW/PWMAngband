@@ -57,7 +57,7 @@ static void flavor_assign_fixed(void)
 }
 
 
-static void flavor_assign_random(byte tval)
+static void flavor_assign_random(u16b tval)
 {
     int i;
     int flavor_count = 0;
@@ -957,7 +957,7 @@ void process_objects(struct chunk *c)
             obj = next;
         }
 
-        if (redraw) redraw_floor(&c->wpos, &iter.cur);
+        if (redraw) redraw_floor(&c->wpos, &iter.cur, NULL);
     }
     while (loc_iterator_next_strict(&iter));
 }
@@ -1129,7 +1129,7 @@ bool use_object(struct player *p, struct object *obj, int amount, bool describe)
  * Note: this is similar to square_note_spot(), but we don't memorize the grid -- we redraw
  * the floor instead.
  */
-void redraw_floor(struct worldpos *wpos, struct loc *grid)
+void redraw_floor(struct worldpos *wpos, struct loc *grid, struct object *obj)
 {
     int i;
 
@@ -1155,6 +1155,15 @@ void redraw_floor(struct worldpos *wpos, struct loc *grid)
 
         /* Redraw */
         p->upkeep->redraw |= PR_FLOOR;
+
+        /* Print a message */
+        if (obj)
+        {
+            char o_name[NORMAL_WID];
+
+            object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
+            msg(p, "On the ground: %s.", o_name);
+        }
     }
 }
 

@@ -579,19 +579,6 @@ static void lore_adjective_speed(struct player *p, const struct monster_race *ra
 }
 
 
-static void lore_multiplier_speed_aux(struct player *p, int speed1, int speed2, const char *suffix,
-    byte attr)
-{
-    char buf[13] = "";
-    int multiplier = 10 * frame_energy(speed1) / frame_energy(speed2);
-    byte int_mul = multiplier / 10;
-    byte dec_mul = multiplier % 10;
-
-    strnfmt(buf, sizeof(buf), "%d.%dx%s", int_mul, dec_mul, suffix);
-    text_out_c(p, attr, buf);
-}
-
-
 /*
  * Append the monster speed, in multipliers, to a textblock.
  *
@@ -599,21 +586,40 @@ static void lore_multiplier_speed_aux(struct player *p, int speed1, int speed2, 
  */
 static void lore_multiplier_speed(struct player *p, const struct monster_race *race)
 {
+    char buf[13] = "";
+    int multiplier = 10 * frame_energy(race->speed) / frame_energy(110);
+    byte int_mul = multiplier / 10;
+    byte dec_mul = multiplier % 10;
+    byte attr = COLOUR_ORANGE;
+
     text_out(p, "at ");
 
-    lore_multiplier_speed_aux(p, race->speed, 110, "", COLOUR_L_BLUE);
+    strnfmt(buf, sizeof(buf), "%d.%dx", int_mul, dec_mul);
+    text_out_c(p, COLOUR_L_BLUE, buf);
 
     text_out(p, " normal speed, which is ");
+    multiplier = 100 * frame_energy(race->speed) / frame_energy(p->state.speed);
+    int_mul = multiplier / 100;
+    dec_mul = multiplier % 100;
+    if (!dec_mul)
+        strnfmt(buf, sizeof(buf), "%dx", int_mul);
+    else if (!(dec_mul % 10))
+        strnfmt(buf, sizeof(buf), "%d.%dx", int_mul, dec_mul / 10);
+    else
+        strnfmt(buf, sizeof(buf), "%d.%02dx", int_mul, dec_mul);
 
     if (p->state.speed > race->speed)
-        lore_multiplier_speed_aux(p, p->state.speed, race->speed, " slower ", COLOUR_L_GREEN);
+        attr = COLOUR_L_GREEN;
     else if (p->state.speed < race->speed)
-        lore_multiplier_speed_aux(p, race->speed, p->state.speed, " faster ", COLOUR_RED);
+        attr = COLOUR_RED;
 
     if (p->state.speed == race->speed)
         text_out(p, "the same as you");
     else
-        text_out(p, "than you");
+    {
+        text_out_c(p, attr, buf);
+        text_out(p, " your speed");
+    }
 }
 
 
@@ -1396,7 +1402,6 @@ void lore_append_friends(struct player *p, const struct monster_race *race,
 void lore_append_spells(struct player *p, const struct monster_race *race,
     const struct monster_lore *lore, bitflag known_flags[RF_SIZE])
 {
-    int average_frequency;
     monster_sex_t msex = MON_SEX_NEUTER;
     bool breath = false;
     bool magic = false;
@@ -1460,10 +1465,10 @@ void lore_append_spells(struct player *p, const struct monster_race *race,
     }
 
     /* End the sentence about innate/other spells */
-    if (breath || magic)
+    if ((breath || magic) && race->freq_spell)
     {
         /* Calculate total casting and average frequency */
-        average_frequency = race->freq_spell;
+        int average_frequency = race->freq_spell;
 
         /* Describe the spell frequency */
         if (lore->spell_freq_known)
@@ -1477,7 +1482,8 @@ void lore_append_spells(struct player *p, const struct monster_race *race,
         /* Guess at the frequency */
         else if (lore->cast_innate || lore->cast_spell)
         {
-            average_frequency = ((average_frequency + 9) / 10) * 10;
+            average_frequency = MAX(((average_frequency + 9) / 10) * 10, 1);
+
             text_out(p, "; about ");
             text_out_c(p, COLOUR_L_GREEN, "1");
             text_out(p, " time in ");
@@ -1605,7 +1611,7 @@ void lore_append_attack(struct player *p, const struct monster_race *race,
     if (known_attacks < total_attacks)
         text_out_c(p, COLOUR_ORANGE, " at least");
     text_out_c(p, COLOUR_L_GREEN, " %d", total_centidamage / 100);
-    text_out(p, " damage. ");
+    text_out(p, " damage on each of %s turns. ", lore_pronoun_possessive(msex, false));
 }
 
 

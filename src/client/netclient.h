@@ -9,6 +9,8 @@ extern u16b flavor_max;
 extern s16b section_icky_col;
 extern byte section_icky_row;
 extern bool allow_disturb_icky;
+extern int cursor_x;
+extern int cursor_y;
 
 /*** Utilities ***/
 extern int Flush_queue(void);
@@ -84,6 +86,7 @@ extern int Send_toggle_ignore(void);
 extern int Send_use_any(struct command *cmd);
 extern int Send_store_order(const char *buf);
 extern int Send_track_object(int item);
+extern int Send_floor_ack(void);
 extern int Send_play(int phase);
 extern int Send_text_screen(int type, s32b off);
 extern int Send_keepalive(void);

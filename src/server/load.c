@@ -62,7 +62,7 @@ static byte trf_size = 0;
 typedef struct object *(*rd_item_t)(void);
 
 
-static void rd_tval_sval(byte *tval, byte *sval)
+static void rd_tval_sval(u16b *tval, u16b *sval)
 {
 #ifdef SAVE_AS_STRINGS
     char buf[MSG_LEN];
@@ -72,8 +72,8 @@ static void rd_tval_sval(byte *tval, byte *sval)
     rd_string(buf, sizeof(buf));
     if (buf[0]) *sval = lookup_sval(*tval, buf);
 #else
-    rd_byte(tval);
-    rd_byte(sval);
+    rd_u16b(tval);
+    rd_u16b(sval);
 #endif
 }
 
@@ -531,6 +531,19 @@ int rd_player(struct player *p)
 
     /* Verify player ID */
     if (!p->id) p->id = player_id++;
+    else
+    {
+        hash_entry *ptr = lookup_player_by_name(p->name);
+
+        /* If character exists, ids must match */
+        if (ptr)
+        {
+            if (ptr->id != p->id) p->id = player_id++;
+        }
+
+        /* If character doesn't exist, don't steal the id of someone else */
+        else if (lookup_player(p->id)) p->id = player_id++;
+    }
 
     rd_string(p->died_from, NORMAL_WID);
     rd_string(p->died_flavor, 160);
@@ -817,9 +830,6 @@ int rd_misc(struct player *unused)
     /* Current turn */
     rd_hturn(&turn);
 
-    /* PWMAngband */
-    rd_s32b(&player_id);
-
     /* Success */
     return (0);
 }
@@ -1074,7 +1084,11 @@ static int rd_stores_aux(rd_item_t rd_item_version)
 
     /* Read the store orders */
     rd_u16b(&tmp16u);
-    for (i = 0; i < tmp16u; i++) rd_string(store_orders[i], NORMAL_WID);
+    for (i = 0; i < tmp16u; i++)
+    {
+        rd_string(store_orders[i].order, NORMAL_WID);
+        rd_hturn(&store_orders[i].turn);
+    }
 
     /* Success */
     return 0;
@@ -1345,7 +1359,7 @@ static int rd_objects_aux(rd_item_t rd_item_version, struct chunk *c)
             {
                 plog_fmt("Cannot place object at row %d, column %d!", obj->grid.y, obj->grid.x);
                 object_delete(&obj);
-                return -1;
+                if (!beta_version()) return -1;
             }
         }
         else
@@ -1699,8 +1713,11 @@ int rd_player_traps(struct player *p)
         if (loc_is_zero(&trap->grid)) break;
 
         /* Put the trap at the front of the grid trap list */
-        trap->next = square_p(p, &trap->grid)->trap;
-        square_p(p, &trap->grid)->trap = trap;
+        if (player_square_in_bounds_fully(p, &trap->grid))
+        {
+            trap->next = square_p(p, &trap->grid)->trap;
+            square_p(p, &trap->grid)->trap = trap;
+        }
     }
 
     mem_free(trap);
@@ -1832,9 +1849,7 @@ int rd_header(struct player *p)
     char buf[NORMAL_WID];
 
     rd_string(p->name, NORMAL_WID);
-
-    /* Skip password */
-    strip_string(NORMAL_WID);
+    rd_string(p->pass, NORMAL_WID);
 
     /* Player race */
     rd_string(buf, sizeof(buf));
@@ -2083,6 +2098,9 @@ int rd_player_names(struct player *unused)
     u32b tmp32u;
     char name[NORMAL_WID];
 
+    /* Current player ID */
+    rd_s32b(&player_id);
+
     /* Read the player name database */
     rd_u32b(&tmp32u);
 
@@ -2104,6 +2122,9 @@ int rd_player_names(struct player *unused)
 
         /* Read the time of death */
         rd_hturn(&death_turn);
+
+        /* Remove duplicates from the player name database */
+        delete_player_name(name);
 
         /* Store the player name */
         add_player_name(id, account, name, &death_turn);

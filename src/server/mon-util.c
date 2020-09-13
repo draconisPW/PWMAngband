@@ -418,7 +418,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
         }
 
         /* Efficiency -- notice multi-hued monsters */
-        if (monster_shimmer(mon->race) && allow_shimmer(p))
+        if (monster_shimmer(mon->race) && monster_allow_shimmer(p))
             c->scan_monsters = true;
     }
 
@@ -455,7 +455,10 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
             if (OPT(p, disturb_near) && (mon->level > 0) && pvm_check(p, mon) &&
                 !monster_is_camouflaged(mon))
             {
-                disturb(p, (p->firing_request? 3: 1));
+                /* Hack -- do not cancel fire_till_kill on appearance */
+                if (p->firing_request) p->cancel_firing = false;
+
+                disturb(p);
             }
 
             /* Redraw */
@@ -764,7 +767,7 @@ void become_aware(struct player *p, struct chunk *c, struct monster *mon)
         if (p) msg(p, "The %s was really a monster!", f_info[square(c, &mon->grid)->feat].name);
 
         /* Clear the feature */
-        square_set_feat(c, &mon->grid, mon->feat);
+        square_set_floor(c, &mon->grid, mon->feat);
     }
 
     /* Update monster and item lists */
@@ -1065,7 +1068,6 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
     /* Shapechanged monsters revert on death */
     if (mon->original_race)
     {
-        msg(p, "A change comes over %s", m_name);
         monster_revert_shape(p, mon);
         lore = get_lore(p, mon->race);
         monster_desc(p, m_name, sizeof(m_name), mon, MDESC_DEFAULT);
@@ -1365,12 +1367,7 @@ void monster_take_terrain_damage(struct chunk *c, struct monster *mon)
  */
 bool monster_taking_terrain_damage(struct chunk *c, struct monster *mon)
 {
-    struct loc *grid = &mon->grid;
-
-    if (square_isdamaging(c, grid) && !rf_has(mon->race->flags, square_feat(c, grid)->resist_flag))
-        return true;
-
-    return false;
+    return monster_hates_grid(c, mon, &mon->grid);
 }
 
 
@@ -1644,7 +1641,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
         }
 
         /* Efficiency -- notice multi-hued players */
-        if (q->poly_race && monster_shimmer(q->poly_race) && allow_shimmer(p))
+        if (q->poly_race && monster_shimmer(q->poly_race) && monster_allow_shimmer(p))
             q->shimmer = true;
 
         /* Efficiency -- notice party leaders */
@@ -1684,7 +1681,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
                  !p->firing_request)
             {
                 /* Disturb */
-                disturb(p, 1);
+                disturb(p);
             }
         }
     }

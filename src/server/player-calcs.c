@@ -1931,9 +1931,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Set various defaults */
     state->speed = 110;
     state->num_blows = 100;
-    state->num_shots = 10;
-    state->ammo_tval = TV_ROCK;
-    state->ammo_mult = 1;
 
     /* Extract race/class info */
     for (i = 0; i < SKILL_MAX; i++)
@@ -2048,7 +2045,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             {
                 /* Note vulnerability for later processing */
                 if (el_info[j].res_level == -1)
-                    vuln[i] = true;
+                    vuln[j] = true;
 
                 /* OK because res_level has not included vulnerability yet */
                 if (el_info[j].res_level > state->el_info[j].res_level)
@@ -2335,6 +2332,8 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     }
 
     /* Other timed effects */
+    player_flags_timed(p, state->flags);
+
     if (player_timed_grade_eq(p, TMD_STUN, "Heavy Stun"))
     {
         state->to_h -= 20;
@@ -2371,9 +2370,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->to_a += 40;
         state->speed -= 5;
     }
-    if (p->timed[TMD_BOLD]) of_on(state->flags, OF_PROT_FEAR);
-    if (p->timed[TMD_HOLD_LIFE]) of_on(state->flags, OF_HOLD_LIFE);
-    if (p->timed[TMD_FLIGHT]) of_on(state->flags, OF_FEATHER);
     if (p->timed[TMD_HERO])
     {
         state->to_h += 12;
@@ -2389,15 +2385,11 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     if (p->timed[TMD_FLIGHT]) state->speed += 5;
     if (p->timed[TMD_SLOW]) state->speed -= 10;
     if (p->timed[TMD_SINFRA]) state->see_infra += 5;
-    if (p->timed[TMD_ESP]) of_on(state->flags, OF_ESP_ALL);
     if (of_has(state->flags, OF_ESP_ALL))
     {
         of_diff(state->flags, f2);
         of_on(state->flags, OF_ESP_ALL);
     }
-    if (p->timed[TMD_SINVIS]) of_on(state->flags, OF_SEE_INVIS);
-    if (p->timed[TMD_FREE_ACT]) of_on(state->flags, OF_FREE_ACT);
-    if (p->timed[TMD_AFRAID] || p->timed[TMD_TERROR]) of_on(state->flags, OF_AFRAID);
     if (p->timed[TMD_TERROR]) state->speed += 10;
     if (p->timed[TMD_OPP_ACID])
     {
@@ -2429,7 +2421,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->el_info[ELEM_TIME].res_level++;
         state->el_info[ELEM_GRAVITY].res_level = 1;
     }
-    if (p->timed[TMD_OPP_CONF]) of_on(state->flags, OF_PROT_CONF);
     if (p->timed[TMD_CONFUSED])
         state->skills[SKILL_DEVICE] = state->skills[SKILL_DEVICE] * 75 / 100;
     if (p->timed[TMD_AMNESIA])
@@ -2519,6 +2510,8 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             state->heavy_shoot = true;
         }
 
+        state->num_shots = 10;
+
         /* Type of ammo */
         if (kf_has(launcher->kind->kind_flags, KF_SHOOTS_SHOTS))
             state->ammo_tval = TV_SHOT;
@@ -2540,22 +2533,18 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             if (player_has(p, PF_FAST_SHOT) && (state->ammo_tval == TV_ARROW))
                 state->num_shots += p->lev / 3;
         }
+
+        /* Handle polymorphed players */
+        if (p->poly_race && (rsf_has(p->poly_race->spell_flags, RSF_SHOT) ||
+            rsf_has(p->poly_race->spell_flags, RSF_ARROW) ||
+            rsf_has(p->poly_race->spell_flags, RSF_BOLT)))
+        {
+            state->num_shots += 5;
+        }
+
+        /* Require at least one shot */
+        if (state->num_shots < 10) state->num_shots = 10;
     }
-
-    /* Monks and archers are good at throwing */
-    if (player_has(p, PF_FAST_THROW) && (state->ammo_tval == TV_ROCK))
-        state->num_shots += p->lev / 2;
-
-    /* Handle polymorphed players */
-    if (p->poly_race && (rsf_has(p->poly_race->spell_flags, RSF_SHOT) ||
-        rsf_has(p->poly_race->spell_flags, RSF_ARROW) ||
-        rsf_has(p->poly_race->spell_flags, RSF_BOLT)))
-    {
-        state->num_shots += 5;
-    }
-
-    /* Require at least one shot */
-    if (state->num_shots < 10) state->num_shots = 10;
 
     /* Temporary "Farsight" */
     if (p->timed[TMD_FARSIGHT])

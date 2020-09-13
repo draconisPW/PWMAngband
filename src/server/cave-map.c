@@ -100,8 +100,7 @@ void map_info(struct player *p, struct chunk *c, struct loc *grid, struct grid_d
     }
 
     /* Use known feature */
-    g->f_idx = square_known_feat(p, c, grid);
-    if (f_info[g->f_idx].mimic) g->f_idx = lookup_feat(f_info[g->f_idx].mimic);
+    g->f_idx = square_apparent_feat(p, c, grid);
 
     /* Use known trap */
     g->trap = square_known_trap(p, c, grid);
@@ -488,18 +487,25 @@ void wiz_light(struct player *p, struct chunk *c, bool full)
         /* Process all non-walls */
         if (!square_seemslikewall(c, &iter.cur))
         {
-            /* Scan all neighbors */
-            for (i = 0; i < 9; i++)
+            /* Perma-light the grid */
+            sqinfo_on(square(c, &iter.cur)->info, SQUARE_GLOW);
+
+            /* Memorize normal features, mark grids as processed */
+            if (square_isnormal(c, &iter.cur))
+            {
+                square_memorize(p, c, &iter.cur);
+                square_mark(p, &iter.cur);
+            }
+
+            /* Memorize known walls */
+            for (i = 0; i < 8; i++)
             {
                 struct loc a_grid;
 
                 loc_sum(&a_grid, &iter.cur, &ddgrid_ddd[i]);
 
-                /* Perma-light the grid */
-                sqinfo_on(square(c, &a_grid)->info, SQUARE_GLOW);
-
-                /* Memorize normal features, mark grids as processed */
-                if (square_isnormal(c, &a_grid))
+                /* Memorize walls (etc), mark grids as processed */
+                if (square_seemslikewall(c, &a_grid))
                 {
                     square_memorize(p, c, &a_grid);
                     square_mark(p, &a_grid);
@@ -562,18 +568,25 @@ void wiz_dark(struct player *p, struct chunk *c, bool full)
         /* Process all non-walls */
         if (!square_seemslikewall(c, &iter.cur))
         {
-            /* Scan all neighbors */
-            for (i = 0; i < 9; i++)
+            /* PWMAngband: unlight the grid */
+            square_unglow(c, &iter.cur);
+
+            /* Memorize normal features, mark grids as processed */
+            if (square_isnormal(c, &iter.cur))
+            {
+                square_memorize(p, c, &iter.cur);
+                square_mark(p, &iter.cur);
+            }
+
+            /* Memorize known walls */
+            for (i = 0; i < 8; i++)
             {
                 struct loc a_grid;
 
                 loc_sum(&a_grid, &iter.cur, &ddgrid_ddd[i]);
 
-                /* PWMAngband: unlight the grid */
-                square_unglow(c, &a_grid);
-
-                /* Memorize normal features, mark grids as processed */
-                if (square_isnormal(c, &a_grid))
+                /* Memorize walls (etc), mark grids as processed */
+                if (square_seemslikewall(c, &a_grid))
                 {
                     square_memorize(p, c, &a_grid);
                     square_mark(p, &a_grid);

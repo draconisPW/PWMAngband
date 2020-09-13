@@ -763,6 +763,13 @@ static errr Term_curs_gcu(int x, int y)
 {
     term_data *td = (term_data *)(Term->data);
 
+    /* Highlight the player */
+    if (Term->minimap_active && cursor_x && cursor_y)
+    {
+        x = cursor_x + COL_MAP;
+        y = cursor_y + ROW_MAP;
+    }
+
     gcu_move_cursor(td, y, x);
     return 0;
 }

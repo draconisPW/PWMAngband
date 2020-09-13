@@ -302,7 +302,7 @@ void target_release(struct player *p)
         struct monster *mon = p->old_target.target_who.monster;
         struct player *player = p->old_target.target_who.player;
 
-        if ((mon && !mon->race) || (player && player->is_dead))
+        if ((mon && (!mon->race || !monster_is_in_view(p, mon->midx))) || (player && player->is_dead))
             loc_init(&p->target.grid, 0, 0);
     }
 }

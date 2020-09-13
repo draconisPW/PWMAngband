@@ -52,6 +52,7 @@ bool cfg_more_towns = false;
 bool cfg_artifact_drop_shallow = true;
 bool cfg_limit_player_connections = true;
 s32b cfg_tcp_port = 18346;
+s16b cfg_quit_timeout = 5;
 bool cfg_chardump_color = false;
 s16b cfg_pvp_hostility = PVP_SAFE;
 bool cfg_base_monsters = true;
@@ -69,11 +70,13 @@ bool cfg_double_purse = false;
 bool cfg_level_req = true;
 s16b cfg_constant_time_factor = 5;
 bool cfg_classic_exp_factor = true;
+s16b cfg_house_floor_size = 1;
 s16b cfg_limit_stairs = 0;
 s16b cfg_diving_mode = 0;
 bool cfg_no_artifacts = false;
+s16b cfg_level_feelings = 2;
 bool cfg_no_selling = true;
-s16b cfg_gold_drop_noselling = 0;
+bool cfg_gold_drop_vanilla = true;
 bool cfg_no_stores = false;
 bool cfg_no_ghost = false;
 bool cfg_ai_learn = true;
@@ -501,6 +504,8 @@ static enum parser_error parse_constants_dun_gen(struct parser *p)
         z->both_gold_av = value;
     else if (streq(label, "pit-max"))
         z->level_pit_max = value;
+    else if (streq(label, "lab-depth"))
+        z->lab_depth = value;
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
 
@@ -566,7 +571,10 @@ static enum parser_error parse_constants_carry_cap(struct parser *p)
     else if (streq(label, "quiver-slot-size"))
         z->quiver_slot_size = value;
     else if (streq(label, "floor-size"))
+    {
         z->floor_size = value;
+        if (cfg_house_floor_size > z->floor_size) cfg_house_floor_size = z->floor_size;
+    }
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
 
@@ -588,6 +596,8 @@ static enum parser_error parse_constants_store(struct parser *p)
 
     if (streq(label, "inven-max"))
         z->store_inven_max = value;
+    else if (streq(label, "home-inven-max"))
+        z->home_inven_max = value;
     else if (streq(label, "turns"))
         z->store_turns = value;
     else if (streq(label, "shuffle"))
@@ -596,6 +606,8 @@ static enum parser_error parse_constants_store(struct parser *p)
         z->store_magic_level = value;
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
+
+    /* Sanity checks */
 
     return PARSE_ERROR_NONE;
 }
@@ -1521,6 +1533,39 @@ static enum parser_error parse_feat_die_msg(struct parser *p)
 }
 
 
+static enum parser_error parse_feat_confused_msg(struct parser *p)
+{
+    struct feature *f = parser_priv(p);
+
+    if (!f) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f->confused_msg = string_append(f->confused_msg, parser_getstr(p, "text"));
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_feat_look_prefix(struct parser *p)
+{
+    struct feature *f = parser_priv(p);
+
+    if (!f) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f->look_prefix = string_append(f->look_prefix, parser_getstr(p, "text"));
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_feat_look_in_preposition(struct parser *p)
+{
+    struct feature *f = parser_priv(p);
+
+    if (!f) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    f->look_in_preposition = string_append(f->look_in_preposition, parser_getstr(p, "text"));
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_feat_resist_flag(struct parser *p)
 {
     int flag;
@@ -1551,6 +1596,9 @@ static struct parser *init_parse_feat(void)
     parser_reg(p, "hurt-msg str text", parse_feat_hurt_msg);
     parser_reg(p, "died-flavor str text", parse_feat_died_flavor);
     parser_reg(p, "die-msg str text", parse_feat_die_msg);
+    parser_reg(p, "confused-msg str text", parse_feat_confused_msg);
+    parser_reg(p, "look-prefix str text", parse_feat_look_prefix);
+    parser_reg(p, "look-in-preposition str text", parse_feat_look_in_preposition);
     parser_reg(p, "resist-flag sym flag", parse_feat_resist_flag);
 
     return p;
@@ -1583,6 +1631,13 @@ static errr finish_parse_feat(struct parser *p)
     for (f = parser_priv(p); f; f = n, fidx--)
     {
         memcpy(&f_info[fidx], f, sizeof(*f));
+
+        /* Add trailing space for ease of use with targeting code. */
+        if (f_info[fidx].look_prefix)
+            f_info[fidx].look_prefix = string_append(f_info[fidx].look_prefix, " ");
+        if (f_info[fidx].look_in_preposition)
+            f_info[fidx].look_in_preposition = string_append(f_info[fidx].look_in_preposition, " ");
+
         f_info[fidx].fidx = fidx;
         n = f->next;
         if (fidx < z_info->f_max - 1) f_info[fidx].next = &f_info[fidx + 1];
@@ -1607,6 +1662,9 @@ static void cleanup_feat(void)
 
     for (i = 0; i < z_info->f_max; i++)
     {
+        string_free(f_info[i].look_in_preposition);
+        string_free(f_info[i].look_prefix);
+        string_free(f_info[i].confused_msg);
         string_free(f_info[i].die_msg);
         string_free(f_info[i].died_flavor);
         string_free(f_info[i].hurt_msg);
@@ -3899,6 +3957,64 @@ static struct file_parser hints_parser =
 
 
 /*
+ * Initialize level_golds
+ */
+
+
+static enum parser_error parse_level_golds(struct parser *p)
+{
+    int depth = parser_getint(p, "depth");
+    u16b rate = parser_getuint(p, "rate");
+
+    if ((depth < 0) || (depth > 127))
+        return PARSE_ERROR_INVALID_VALUE;
+    if ((rate < 10) || (rate > 100))
+        return PARSE_ERROR_INVALID_VALUE;
+
+    level_golds[depth] = rate;
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static struct parser *init_parse_level_golds(void)
+{
+    struct parser *p = parser_new();
+
+    parser_reg(p, "rate int depth uint rate", parse_level_golds);
+    return p;
+}
+
+
+static errr run_parse_level_golds(struct parser *p)
+{
+    return parse_file_quit_not_found(p, "level_golds");
+}
+
+
+static errr finish_parse_level_golds(struct parser *p)
+{
+    parser_destroy(p);
+    return 0;
+}
+
+
+static void cleanup_level_golds(void)
+{
+}
+
+
+static struct file_parser level_golds_parser =
+{
+    "level_golds",
+    init_parse_level_golds,
+    run_parse_level_golds,
+    finish_parse_level_golds,
+    cleanup_level_golds
+};
+
+
+/*
  * Game data initialization
  */
 
@@ -3953,6 +4069,7 @@ static struct
     {"flavours", &flavor_parser},
     {"socials", &soc_parser},
     {"hints", &hints_parser},
+    {"level_golds", &level_golds_parser},
     {"random names", &names_parser}
 };
 
@@ -4267,6 +4384,14 @@ static void set_server_option(const char *option, char *value)
         if ((cfg_tcp_port > 65535) || (cfg_tcp_port < 1))
             cfg_tcp_port = 18346;
     }
+    else if (!strcmp(option, "QUIT_TIMEOUT"))
+    {
+        cfg_quit_timeout = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_quit_timeout < 0) cfg_quit_timeout = 0;
+        if (cfg_quit_timeout > 60) cfg_quit_timeout = 60;
+    }
     else if (!strcmp(option, "CHARACTER_DUMP_COLOR"))
         cfg_chardump_color = str_to_boolean(value);
     else if (!strcmp(option, "PVP_HOSTILITY"))
@@ -4325,6 +4450,13 @@ static void set_server_option(const char *option, char *value)
     }
     else if (!strcmp(option, "CLASSIC_EXP_FACTOR"))
         cfg_classic_exp_factor = str_to_boolean(value);
+    else if (!strcmp(option, "HOUSE_FLOOR_SIZE"))
+    {
+        cfg_house_floor_size = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_house_floor_size < 1) cfg_house_floor_size = 1;
+    }
     else if (!strcmp(option, "LIMIT_STAIRS"))
     {
         cfg_limit_stairs = atoi(value);
@@ -4343,10 +4475,18 @@ static void set_server_option(const char *option, char *value)
     }
     else if (!strcmp(option, "NO_ARTIFACTS"))
         cfg_no_artifacts = str_to_boolean(value);
+    else if (!strcmp(option, "LEVEL_FEELINGS"))
+    {
+        cfg_level_feelings = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_level_feelings < 0) cfg_level_feelings = 0;
+        if (cfg_level_feelings > 2) cfg_level_feelings = 2;
+    }
     else if (!strcmp(option, "NO_SELLING"))
         cfg_no_selling = str_to_boolean(value);
-    else if (!strcmp(option, "GOLD_DROP_NOSELLING"))
-        cfg_gold_drop_noselling = atoi(value);
+    else if (!strcmp(option, "GOLD_DROP_VANILLA"))
+        cfg_gold_drop_vanilla = str_to_boolean(value);
     else if (!strcmp(option, "NO_STORES"))
         cfg_no_stores = str_to_boolean(value);
     else if (!strcmp(option, "NO_GHOST"))

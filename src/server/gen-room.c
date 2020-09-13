@@ -398,11 +398,16 @@ static void generate_hole(struct chunk *c, int y1, int x1, int y2, int x2, int f
     /* Open random side */
     switch (randint0(4))
     {
-        case 0: loc_init(&grid, x0, y1); square_set_feat(c, &grid, feat); break;
-        case 1: loc_init(&grid, x1, y0); square_set_feat(c, &grid, feat); break;
-        case 2: loc_init(&grid, x0, y2); square_set_feat(c, &grid, feat); break;
-        case 3: loc_init(&grid, x2, y0); square_set_feat(c, &grid, feat); break;
+        case 0: loc_init(&grid, x0, y1); break;
+        case 1: loc_init(&grid, x1, y0); break;
+        case 2: loc_init(&grid, x0, y2); break;
+        case 3: loc_init(&grid, x2, y0); break;
     }
+
+    square_set_feat(c, &grid, feat);
+
+    /* Remove permanent flag */
+    sqinfo_off(square(c, &grid)->info, SQUARE_FAKE);
 }
 
 

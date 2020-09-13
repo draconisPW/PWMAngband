@@ -93,6 +93,9 @@ dun-gen:amt-gold:3
 # Maximum number of pits or nests allowed per level
 dun-gen:pit-max:2
 
+# Depth where labyrinths start to be generated unlit/unknown
+dun-gen:lab-depth:25
+
 
 #---------------------------------------------------------------------
 # Game World
@@ -161,6 +164,10 @@ carry-cap:floor-size:23
 
 # Maximum number of discrete objects in store inventory
 store:inven-max:24
+
+# Maximum number of discrete objects in home inventory
+# Note: by default, half of inven-max -- should not be higher than inven-max
+store:home-inven-max:12
 
 # Number of turns between turnovers
 store:turns:250

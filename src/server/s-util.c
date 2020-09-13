@@ -414,12 +414,30 @@ void clean_name(char *buf, char *name)
 {
     char *str;
     char *dst;
+    bool amp = false;
 
     dst = buf;
     for (str = name; *str; str++)
     {
-        if (isalpha(*str) || isdigit(*str) || (*str == ' ') || (*str == '-') || (*str == '*'))
-            *dst++ = tolower((unsigned char)*str);
+        /* Hack -- notice '&' */
+        if (*str == '&')
+            amp = true;
+        else
+        {
+            /* Lowercase string */
+            if (isalpha(*str))
+                *dst++ = tolower((unsigned char)*str);
+
+            /* Other allowed symbols */
+            else if (isdigit(*str) || (*str == '-') || (*str == '*') || (*str == '\''))
+                *dst++ = *str;
+
+            /* Hack -- allow space if not after '&' */
+            else if ((*str == ' ') && !amp)
+                *dst++ = *str;
+
+            amp = false;
+        }
     }
     *dst++ = '\0';
 }

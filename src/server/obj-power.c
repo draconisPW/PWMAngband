@@ -78,6 +78,14 @@ static int object_power_calculation_DICE(void *data)
 }
 
 
+static int object_power_calculation_DICE_DICE(void *data)
+{
+    int dice_pwr = (object_power_calculation_DICE(data) * 5) / 4;
+
+    return dice_pwr * dice_pwr;
+}
+
+
 static int object_power_calculation_IS_EGO(void *data)
 {
     struct power_calc_data *calc = (struct power_calc_data *)data;
@@ -734,6 +742,7 @@ expression_base_value_f power_calculation_by_name(const char *name)
     {
         {"OBJ_POWER_TO_DAM", object_power_calculation_TO_DAM},
         {"OBJ_POWER_DICE", object_power_calculation_DICE},
+        {"OBJ_POWER_DICE_DICE", object_power_calculation_DICE_DICE},
         {"OBJ_POWER_IS_EGO", object_power_calculation_IS_EGO},
         {"OBJ_POWER_EXTRA_BLOWS", object_power_calculation_EXTRA_BLOWS},
         {"OBJ_POWER_EXTRA_SHOTS", object_power_calculation_EXTRA_SHOTS},

@@ -244,6 +244,21 @@ bool find_emptywater(struct chunk *c, struct loc *grid)
 
 
 /*
+ * Locate a training square for 0 <= y < ymax, 0 <= x < xmax.
+ *
+ * c current chunk
+ * y found y co-ordinate
+ * x found x co-ordinate
+ *
+ * Returns success
+ */
+bool find_training(struct chunk *c, struct loc *grid)
+{
+    return cave_find(c, grid, square_istraining);
+}
+
+
+/*
  * Locate a grid within +/- yd, xd of a centre.
  *
  * c current chunk
@@ -805,7 +820,10 @@ bool alloc_object(struct player *p, struct chunk *c, int set, int typ, int depth
     {
         tries++;
 
-        find_empty(c, &grid);
+        if (!find_empty(c, &grid)) continue;
+
+        /* Prevent objects from being placed in remote areas */
+        if (!square_is_monster_walkable(c, &grid)) continue;
 
         /* If we are ok with a corridor and we're in one, we're done */
         if (set & SET_CORR && !square_isroom(c, &grid)) break;
@@ -869,7 +887,7 @@ void vault_objects(struct player *p, struct chunk *c, struct loc *grid, int num)
             struct loc nearby;
 
             /* Pick a random location */
-            find_nearby_grid(c, &nearby, grid, 2, 3);
+            if (!find_nearby_grid(c, &nearby, grid, 2, 3)) continue;
 
             /* Require "clean" floor space */
             if (!square_canputitem(c, &nearby)) continue;
@@ -903,7 +921,7 @@ static void vault_trap_aux(struct chunk *c, struct loc *grid, int yd, int xd)
     {
         struct loc nearby;
 
-        find_nearby_grid(c, &nearby, grid, yd, xd);
+        if (!find_nearby_grid(c, &nearby, grid, yd, xd)) continue;
         if (!square_isempty(c, &nearby)) continue;
 
         square_add_trap(c, &nearby);

@@ -76,7 +76,7 @@ static ui_event inkey_aux(char scan_cutoff)
     ui_event ke;
 
     /* Loop, looking for net input and responding to keypresses */
-    ke = Net_loop(Term_inkey, NULL, NULL, scan_cutoff);
+    ke = Net_loop(Term_inkey, NULL, NULL, scan_cutoff, false);
 
     /* Excessive delay */
     if (ke.type == EVT_DELAY)
@@ -1241,7 +1241,7 @@ const char *extract_file_name(const char *s)
  * Loop, looking for net input and responding to keypresses.
  */
 ui_event Net_loop(errr (*inkey_handler)(ui_event*, bool, bool),
-    void (*callback_begin)(ui_event*), void (*callback_end)(void), char scan_cutoff)
+    void (*callback_begin)(ui_event*), void (*callback_end)(bool), char scan_cutoff, bool inmap)
 {
     ui_event ke = EVENT_EMPTY;
     int net_fd;
@@ -1327,11 +1327,13 @@ ui_event Net_loop(errr (*inkey_handler)(ui_event*, bool, bool),
         }
 
         /* Call our callback */
-        if (callback_end) callback_end();
+        if (callback_end) callback_end(inmap);
 
         /* Redraw */
         if (player && player->upkeep) redraw_stuff();
     }
+
+    if (!inmap) flush_now();
 
     return ke;
 }

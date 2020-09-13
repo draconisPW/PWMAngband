@@ -161,7 +161,7 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     }
 
     /* Disturb */
-    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 1);
+    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p);
 
     /* Disruption shield: damage is subtracted from mana first */
     if (p->timed[TMD_MANASHIELD] && (p->csp > 0))
@@ -343,8 +343,8 @@ void player_regen_mana(struct player *p)
     /* Default regeneration */
     percent = PY_REGEN_NORMAL;
 
-    /* Various things speed up regeneration, but don't punish blackguards */
-    if (!(player_has(p, PF_COMBAT_REGEN) && p->chp == p->mhp))
+    /* Various things speed up regeneration, but shouldn't punish healthy blackguards */
+    if (!(player_has(p, PF_COMBAT_REGEN) && (p->chp > p->mhp / 2)))
     {
         if (player_of_has(p, OF_REGEN)) percent *= 2;
         if (player_resting_can_regenerate(p)) percent *= 2;
@@ -356,7 +356,7 @@ void player_regen_mana(struct player *p)
 
     /* Regenerate mana */
     sp_gain = (s32b)(p->msp * percent);
-    sp_gain += ((percent < 0)? -PY_REGEN_MNBASE: PY_REGEN_MNBASE);
+    if (percent >= 0) sp_gain += PY_REGEN_MNBASE;
     sp_gain = player_adjust_mana_precise(p, sp_gain);
 
     /* SP degen heals blackguards at double efficiency vs casting */
@@ -386,7 +386,7 @@ void player_adjust_hp_precise(struct player *p, s32b hp_gain)
 
 	/* Check for overflow */
 	if ((new_chp < 0) && (old_chp > 0) && (hp_gain > 0))
-		new_chp = LONG_MAX;
+        new_chp = LONG_MAX;
 	else if ((new_chp > 0) && (old_chp < 0) && (hp_gain < 0))
 		new_chp = LONG_MIN;
 
@@ -435,7 +435,7 @@ s32b player_adjust_mana_precise(struct player *p, s32b sp_gain)
 		sp_gain = 0;
 	}
 
-	/* Break it back down*/
+	/* Break it back down */
 	p->csp = (s16b)(new_csp_long >> 16);   /* div 65536 */
 	p->csp_frac = (u16b)(new_csp_long & 0xFFFF);    /* mod 65536 */
 
@@ -534,7 +534,7 @@ void player_update_light(struct player *p)
             /* The light is now out */
             else if (obj->timeout == 0)
             {
-                disturb(p, 0);
+                disturb(p);
                 msg(p, "Your light has gone out!");
 
                 /* If it's a torch, now is the time to delete it */
@@ -548,7 +548,7 @@ void player_update_light(struct player *p)
             /* The light is getting dim */
             else if ((obj->timeout < 50) && (!(obj->timeout % 20)))
             {
-                disturb(p, 0);
+                disturb(p);
                 msg(p, "Your light is growing faint.");
             }
         }
@@ -915,7 +915,7 @@ void player_resting_complete_special(struct player *p)
     }
 
     /* Stop resting */
-    if (done) disturb(p, 0);
+    if (done) disturb(p);
 }
 
 
@@ -1097,23 +1097,15 @@ void cancel_running(struct player *p)
  *
  * All disturbance cancels repeated commands, resting, and running.
  */
-void disturb(struct player *p, int stop_search)
+void disturb(struct player *p)
 {
-    bool cancel_firing = true;
-
     /* Dungeon Master is never disturbed */
     /*if (p->dm_flags & DM_NEVER_DISTURB) return;*/
 
-    /* Hack -- do not cancel fire_till_kill on appearance or movement */
-    if (stop_search >= 2)
-    {
-        stop_search -= 2;
-        cancel_firing = false;
-    }
-
     /* Cancel repeated commands */
     p->digging_request = 0;
-    if (cancel_firing) p->firing_request = 0;
+    if (p->cancel_firing) p->firing_request = 0;
+    else p->cancel_firing = true;
 
     /* Cancel Resting */
     if (player_is_resting(p))
@@ -1125,22 +1117,21 @@ void disturb(struct player *p, int stop_search)
     /* Cancel running */
     if (p->upkeep->running) cancel_running(p);
 
-    /* Cancel stealth mode if requested */
-    if (stop_search && p->stealthy)
+    /* Cancel stealth mode */
+    if (p->stealthy)
     {
         p->stealthy = false;
         p->upkeep->update |= (PU_BONUS);
         p->upkeep->redraw |= (PR_STATE);
     }
 
-    /* Get out of icky screen if requested */
-    if (stop_search && p->screen_save_depth && OPT(p, disturb_icky))
+    /* Get out of icky screen */
+    if (p->screen_save_depth && OPT(p, disturb_icky) && !p->no_disturb_icky)
         Send_term_info(p, NTERM_HOLD, 1);
 
-    /* Cancel looking around if requested */
-    if (stop_search &&
-        (((p->offset_grid.y != p->old_offset_grid.y) && (p->old_offset_grid.y != -1)) ||
-        ((p->offset_grid.x != p->old_offset_grid.x) && (p->old_offset_grid.x != -1))))
+    /* Cancel looking around */
+    if (((p->offset_grid.y != p->old_offset_grid.y) && (p->old_offset_grid.y != -1)) ||
+        ((p->offset_grid.x != p->old_offset_grid.x) && (p->old_offset_grid.x != -1)))
     {
         /* Cancel input */
         Send_term_info(p, NTERM_HOLD, 0);
@@ -1180,7 +1171,7 @@ void search(struct player *p, struct chunk *c)
         {
             msg(p, "You have found a secret door.");
             place_closed_door(c, &iter.cur);
-            disturb(p, 0);
+            disturb(p);
         }
 
         /* Traps on chests */
@@ -1192,7 +1183,7 @@ void search(struct player *p, struct chunk *c)
             if (!ignore_item_ok(p, obj))
             {
                 msg(p, "You have discovered a trap on the chest!");
-                disturb(p, 0);
+                disturb(p);
             }
         }
     }
@@ -1665,7 +1656,7 @@ void recall_player(struct player *p, struct chunk *c)
     }
 
     /* Disturbing! */
-    disturb(p, 0);
+    disturb(p);
 
     /* Messages */
     msgt(p, MSG_TPLEVEL, msg_self);
@@ -1685,9 +1676,17 @@ void recall_player(struct player *p, struct chunk *c)
 int player_digest(struct player *p)
 {
     int i;
+    int speed = p->state.speed;
+    int excess = p->timed[TMD_FOOD] - PY_FOOD_FULL;
 
     /* Basic digestion rate based on speed */
-    i = turn_energy(p->state.speed);
+    /* PWMAngband: remove speed penalty from being Full to avoid double penalty */
+    if ((excess > 0) && !p->timed[TMD_ATT_VAMP])
+    {
+        excess = (excess * 10) / (PY_FOOD_MAX - PY_FOOD_FULL);
+        speed += excess;
+    }
+    i = turn_energy(speed);
 
     /* Some effects require more food */
     if (p->timed[TMD_ADRENALINE]) i *= 2;
@@ -1726,7 +1725,7 @@ void use_energy(struct player *p)
 /*
  * Check for nearby players/monsters and attack the current target.
  */
-bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
+bool auto_retaliate(struct player *p, struct chunk *c, int mode)
 {
     int i, n = 0;
     bool found = false;
@@ -1736,7 +1735,8 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     struct loc target, targets[8];
     s16b target_dir, targets_dir[8];
     struct object *weapon = equipped_item_by_slot_name(p, "weapon");
-    struct object *launcher = (bypass_inscription? NULL: equipped_item_by_slot_name(p, "shooting"));
+    struct object *launcher = ((mode == AR_BLOODLUST)? NULL:
+        equipped_item_by_slot_name(p, "shooting"));
 
     /* Hack -- shoppers don't auto-retaliate */
     if (in_store(p)) return false;
@@ -1751,11 +1751,11 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     if (get_connection(p->conn)->q.len > 0) return false;
 
     /* Check preventive inscription '^O' */
-    if (check_prevent_inscription(p, INSCRIPTION_RETALIATE) && !bypass_inscription) return false;
+    if (check_prevent_inscription(p, INSCRIPTION_RETALIATE) && (mode == AR_NORMAL)) return false;
 
     /* Check melee weapon inscription '!O' */
     if (weapon && object_prevent_inscription(p, weapon, INSCRIPTION_RETALIATE, false) &&
-        !bypass_inscription)
+        (mode == AR_NORMAL))
     {
         return false;
     }
@@ -1823,7 +1823,7 @@ bool auto_retaliate(struct player *p, struct chunk *c, bool bypass_inscription)
     }
 
     /* If there's at least one valid target around, attack one (active auto-retaliator only) */
-    if ((OPT(p, active_auto_retaliator) || bypass_inscription) && !found)
+    if ((OPT(p, active_auto_retaliator) || (mode != AR_NORMAL)) && !found)
     {
         /* Choose randomly */
         i = randint0(n);
@@ -1888,7 +1888,7 @@ bool has_energy(struct player *p, bool real_command)
     {
         struct chunk *c = chunk_get(&p->wpos);
 
-        if (auto_retaliate(p, c, true)) return false;
+        if (auto_retaliate(p, c, AR_BLOODLUST)) return false;
     }
 
     return true;

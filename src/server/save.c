@@ -41,7 +41,7 @@ void wr_description(void *data)
 }
 
 
-static void wr_tval_sval(byte tval, byte sval)
+static void wr_tval_sval(u16b tval, u16b sval)
 {
 #ifdef SAVE_AS_STRINGS
     wr_string(tval_find_name(tval));
@@ -55,8 +55,8 @@ static void wr_tval_sval(byte tval, byte sval)
     else
         wr_string("");
 #else
-    wr_byte(tval);
-    wr_byte(sval);
+    wr_u16b(tval);
+    wr_u16b(sval);
 #endif
 }
 
@@ -543,9 +543,6 @@ void wr_misc(void *unused)
 
     /* Current turn */
     wr_hturn(&turn);
-
-    /* PWMAngband */
-    wr_s32b(player_id);
 }
 
 
@@ -652,7 +649,11 @@ void wr_stores(void *unused)
     wr_u16b(STORE_ORDERS);
 
     /* Dump the store orders */
-    for (i = 0; i < STORE_ORDERS; i++) wr_string(store_orders[i]);
+    for (i = 0; i < STORE_ORDERS; i++)
+    {
+        wr_string(store_orders[i].order);
+        wr_hturn(&store_orders[i].turn);
+    }
 }
 
 
@@ -1541,6 +1542,9 @@ void wr_player_names(void *unused)
     u32b num;
     size_t i;
     hash_entry *ptr;
+
+    /* Current player ID */
+    wr_s32b(player_id);
 
     /* Get the list of player ID's */
     num = player_id_list(&id_list, 0L);

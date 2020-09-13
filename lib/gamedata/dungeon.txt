@@ -22,10 +22,13 @@
 #        chance of getting the feature
 # stair : stairs down : stairs up : 1/10000 chance of getting the feature
 # rubble : rubble : passable rubble : 1/10000 chance of getting the feature
+# fountain : fountain : dried out fountain : 1/10000 chance of getting
+#            the feature
 # rule : 1/10000 chance of using the rule : apply to all monsters
 # rule-flags : monster flags
 # rule-spells : monster spell flags
 # rule-symbols : monster symbols
+# stairs : extra ups : extra downs
 
 # Set min-depth to the depth of the first level of the dungeon.
 # Leaving min-depth unset means that the first level of the dungeon has a
@@ -49,11 +52,16 @@
 # 'door' are dungeon features that can replace basic doors
 # 'stair' are dungeon features that can replace basic stairs
 # 'rubble' are dungeon features that can replace basic rubbles
+# 'fountain' are dungeon features that can replace basic fountains
 
 # 'rule' are dungeon rules to restrict the possible monsters
 # 'rule-flags' are monster flags checked by the rule
 # 'rule-spells' are monster spell flags checked by the rule
 # 'rule-symbols' are monster symbols checked by the rule
+
+# 'stairs' are extra stairs up and down generated in the dungeon
+# up is the random value used for extra up staircases
+# down is the random value used for extra down staircases
 
 
 # Main Angband dungeon
@@ -103,6 +111,22 @@ rule:3000:0
 rule-flags:UNDEAD
 rule-symbols:hl
 rule:3000:1
+
+# The Ettenmoors (boss: Bert/Bill/Tom)
+name:The Ettenmoors
+wpos:-6:30
+min-depth:18
+max-depth:30
+max-level:35
+flags:CAVERN | STREAMS
+floor:packed dirt:1000
+wall:mountain:1000
+rule:5000:0
+rule-flags:TROLL
+rule:3000:0
+rule-flags:GIANT
+rule-symbols:O
+rule:2000:1
 
 # The Sandworm Lair (boss: The Sandworm Queen)
 name:The Sandworm Lair

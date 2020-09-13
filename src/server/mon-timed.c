@@ -367,7 +367,7 @@ int monster_effect_level(struct monster *mon, int effect_type)
 
 int monster_effect_accuracy(struct monster *mon, int effect_type, int chance)
 {
-    int conf_level = monster_effect_level(mon, MON_TMD_CONF);
+    int conf_level = monster_effect_level(mon, effect_type);
     int accuracy = 100;
 
     while (conf_level)

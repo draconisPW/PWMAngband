@@ -1327,8 +1327,8 @@ static void do_cmd_knowledge_uniques(struct player *p, int line)
     {
         race = &r_info[k];
 
-        /* Only print Uniques */
-        if (monster_is_unique(race))
+        /* Only print Uniques that can be killed */
+        if (monster_is_unique(race) && !rf_has(race->flags, RF_NO_DEATH))
         {
             /* Only display "known" uniques */
             if (race->lore.seen)
@@ -1734,7 +1734,7 @@ void do_cmd_drop_gold(struct player *p, s32b amt)
     obj->owner = p->id;
 
     /* Drop it */
-    drop_near(p, chunk_get(&p->wpos), &obj, 0, &p->grid, false, DROP_FADE);
+    drop_near(p, chunk_get(&p->wpos), &obj, 0, &p->grid, false, DROP_FADE, true);
 }
 
 
@@ -2540,7 +2540,7 @@ void do_cmd_fountain(struct player *p, int item)
         apply_magic(p, c, obj, p->wpos.depth, false, false, false, false);
 
         /* Drop it in the dungeon */
-        drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE);
+        drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE, false);
     }
 
     /* Drink from a fountain */

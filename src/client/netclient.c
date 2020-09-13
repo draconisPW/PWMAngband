@@ -45,6 +45,11 @@ byte section_icky_row;
 bool allow_disturb_icky = true;
 
 
+/* Hack -- player position for the minimap */
+int cursor_x = 0;
+int cursor_y = 0;
+
+
 /* Similar to server's connp->state */
 static int conn_state;
 static u32b last_sent = 0, last_received = 0;
@@ -580,7 +585,8 @@ static int Receive_struct_info(void)
         case STRUCT_INFO_CLASS:
         {
             s16b base, dice, sides, m_bonus, c_skills, res_level;
-            byte cidx, c_mhp, total_spells, tval, sval, flag, lvl;
+            byte cidx, c_mhp, total_spells, flag, lvl;
+            u16b tval, sval;
             char num_books;
             char realm[NORMAL_WID];
 
@@ -719,7 +725,7 @@ static int Receive_struct_info(void)
                     c->el_info[j].res_level = res_level;
                     c->el_info[j].lvl = lvl;
                 }
-                if ((n = Packet_scanf(&rbuf, "%b%b%c", &total_spells, &tval, &num_books)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%hu%c", &total_spells, &tval, &num_books)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -729,7 +735,7 @@ static int Receive_struct_info(void)
                     mem_free(c);
                     return n;
                 }
-                bytes_read += 3;
+                bytes_read += 4;
 
                 c->c_mhp = c_mhp;
                 c->magic.total_spells = total_spells;
@@ -743,7 +749,7 @@ static int Receive_struct_info(void)
                 {
                     struct class_book *book = &c->magic.books[j];
 
-                    if ((n = Packet_scanf(&rbuf, "%b%b%s", &tval, &sval, realm)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%hu%hu%s", &tval, &sval, realm)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -753,7 +759,7 @@ static int Receive_struct_info(void)
                         mem_free(c);
                         return n;
                     }
-                    bytes_read += string_bytes(realm) + 2;
+                    bytes_read += string_bytes(realm) + 4;
 
                     book->tval = tval;
                     book->sval = sval;
@@ -866,7 +872,7 @@ static int Receive_struct_info(void)
         /* Object kinds */
         case STRUCT_INFO_KINDS:
         {
-            byte tval, sval;
+            u16b tval, sval;
             u32b kidx;
             s16b ac;
 
@@ -894,7 +900,7 @@ static int Receive_struct_info(void)
                 if (strlen(name)) kind->name = string_make(name);
 
                 /* Transfer other fields here */
-                if ((n = Packet_scanf(&rbuf, "%b%b%lu%hd", &tval, &sval, &kidx, &ac)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%hu%hu%lu%hd", &tval, &sval, &kidx, &ac)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -902,7 +908,7 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += 8;
+                bytes_read += 10;
 
                 kind->tval = tval;
                 kind->sval = sval;
@@ -2433,8 +2439,9 @@ static int Receive_book_info(void)
 static int Receive_floor(void)
 {
     int n, bytes_read;
-    byte ch, num, tval, sval, notice, attr, act, aim, fuel, fail, known, known_effect, carry,
-        quality_ignore, ignored, magic, throwable;
+    byte ch, num, notice, attr, act, aim, fuel, fail, known, known_effect, carry, quality_ignore,
+        ignored, magic, throwable, force;
+    u16b tval, sval;
     s16b amt, slot, oidx, eidx, bidx;
     s32b pval;
     quark_t note;
@@ -2445,11 +2452,11 @@ static int Receive_floor(void)
     char name_power[NORMAL_WID];
     struct object *obj;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b", &ch, &num)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b", &ch, &num, &force)) <= 0)
         return n;
-    bytes_read = 2;
+    bytes_read = 3;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b%hd%lu%ld%b%hd", &tval, &sval, &amt, &note, &pval, &notice,
+    if ((n = Packet_scanf(&rbuf, "%hu%hu%hd%lu%ld%b%hd", &tval, &sval, &amt, &note, &pval, &notice,
         &oidx)) <= 0)
     {
         /* Rollback the socket buffer */
@@ -2458,7 +2465,7 @@ static int Receive_floor(void)
         /* Packet isn't complete, graceful failure */
         return n;
     }
-    bytes_read += 15;
+    bytes_read += 17;
 
     if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
         &fail, &slot, &known, &known_effect, &carry, &quality_ignore, &ignored, &eidx, &magic,
@@ -2485,12 +2492,19 @@ static int Receive_floor(void)
     /* Paranoia */
     if (num >= z_info->floor_size) return 1;
 
-    /* Clear */
+    /* No item */
     if (!tval)
     {
-        cleanup_floor();
-        floor_num = 0;
-        player->upkeep->redraw |= (PR_EQUIP);
+        /* Force response */
+        if (force) Send_floor_ack();
+
+        /* Clear */
+        else
+        {
+            cleanup_floor();
+            floor_num = 0;
+            player->upkeep->redraw |= (PR_EQUIP);
+        }
     }
 
     /* Add the item */
@@ -2576,10 +2590,11 @@ static int Receive_store(void)
     s16b wgt, bidx;
     char pos;
     s32b price;
-    byte num, owned, tval, max;
+    byte num, owned, max;
+    u16b tval;
     byte ch;
 
-    if ((n = Packet_scanf(&rbuf, "%b%c%b%hd%b%b%ld%b%b%hd%s", &ch, &pos, &attr, &wgt, &num, &owned,
+    if ((n = Packet_scanf(&rbuf, "%b%c%b%hd%b%b%ld%hu%b%hd%s", &ch, &pos, &attr, &wgt, &num, &owned,
         &price, &tval, &max, &bidx, name)) <= 0)
     {
         return n;
@@ -3113,6 +3128,20 @@ static int Receive_player_pos(void)
 }
 
 
+static int Receive_minipos(void)
+{
+    int n;
+    byte ch;
+
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd", &ch, &cursor_y, &cursor_x)) <= 0)
+    {
+        return n;
+    }
+
+    return 1;
+}
+
+
 static int Receive_message_flush(void)
 {
     int n;
@@ -3563,8 +3592,9 @@ static int Receive_message(void)
 static int Receive_item(void)
 {
     int n, bytes_read;
-    byte ch, tval, equipped, sval, notice, attr, act, aim, fuel, fail, stuck, known, known_effect,
-        sellable, quality_ignore, ignored, magic, throwable;
+    byte ch, equipped, notice, attr, act, aim, fuel, fail, stuck, known, known_effect, sellable,
+        quality_ignore, ignored, magic, throwable;
+    u16b tval, sval;
     s16b wgt, amt, oidx, slot, eidx, bidx;
     s32b price, pval;
     quark_t note;
@@ -3575,12 +3605,12 @@ static int Receive_item(void)
     char name_power[NORMAL_WID];
 
     /* Packet and base info */
-    if ((n = Packet_scanf(&rbuf, "%b%b%b", &ch, &tval, &equipped)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hu%b", &ch, &tval, &equipped)) <= 0)
         return n;
-    bytes_read = 3;
+    bytes_read = 4;
 
     /* Object info */
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%ld%lu%ld%b%hd", &sval, &wgt, &amt, &price, &note, &pval,
+    if ((n = Packet_scanf(&rbuf, "%hu%hd%hd%ld%lu%ld%b%hd", &sval, &wgt, &amt, &price, &note, &pval,
         &notice, &oidx)) <= 0)
     {
         /* Rollback the socket buffer */
@@ -3589,7 +3619,7 @@ static int Receive_item(void)
         /* Packet isn't complete, graceful failure */
         return n;
     }
-    bytes_read += 20;
+    bytes_read += 21;
 
     /* Extra info */
     if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
@@ -5439,6 +5469,17 @@ int Send_track_object(int item)
     int n;
 
     if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_TRACK_OBJECT, item)) <= 0)
+        return n;
+
+    return 1;
+}
+
+
+int Send_floor_ack(void)
+{
+    int n;
+
+    if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_FLOOR_ACK)) <= 0)
         return n;
 
     return 1;

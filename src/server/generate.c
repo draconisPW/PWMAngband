@@ -816,6 +816,29 @@ static int calc_mon_feeling(struct chunk *c)
 
 
 /*
+ * Find a cave_profile by name
+ *
+ * name is the name of the cave_profile being looked for
+ */
+static const struct cave_profile *find_cave_profile(char *name)
+{
+    int i;
+
+    for (i = 0; i < z_info->profile_max; i++)
+    {
+        const struct cave_profile *profile;
+
+        profile = &cave_profiles[i];
+        if (!strcmp(name, profile->name))
+            return profile;
+    }
+
+    /* Not there */
+    return NULL;
+}
+
+
+/*
  * Do prime check for labyrinths
  *
  * depth is the depth where we're trying to generate a labyrinth
@@ -899,29 +922,6 @@ static bool arena_check(struct worldpos *wpos)
 
 
 /*
- * Find a cave_profile by name
- *
- * name is the name of the cave_profile being looked for
- */
-static const struct cave_profile *find_cave_profile(char *name)
-{
-    int i;
-
-    for (i = 0; i < z_info->profile_max; i++)
-    {
-        const struct cave_profile *profile;
-
-        profile = &cave_profiles[i];
-        if (!strcmp(name, profile->name))
-            return profile;
-    }
-
-    /* Not there */
-    return NULL;
-}
-
-
-/*
  * Choose a cave profile
  *
  * wpos is the coordinates of the cave the profile will be used to generate
@@ -929,6 +929,8 @@ static const struct cave_profile *find_cave_profile(char *name)
 static const struct cave_profile *choose_profile(struct worldpos *wpos)
 {
     const struct cave_profile *profile = NULL;
+    int moria_cutoff = find_cave_profile("moria")->cutoff;
+    int labyrinth_cutoff = find_cave_profile("labyrinth")->cutoff;
 
     /* Make the profile choice */
     if (wpos->depth > 0)
@@ -941,9 +943,9 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
             profile = find_cave_profile("arena");
         else if (cavern_check(wpos))
             profile = find_cave_profile("cavern");
-        else if (labyrinth_check(wpos))
+        else if (labyrinth_check(wpos) && (labyrinth_cutoff >= -1))
             profile = find_cave_profile("labyrinth");
-        else if ((wpos->depth >= 10) && (wpos->depth < 40) && one_in_(40))
+        else if ((wpos->depth >= 10) && (wpos->depth < 40) && one_in_(40) && (moria_cutoff >= -1))
             profile = find_cave_profile("moria");
         else
         {
@@ -1097,6 +1099,26 @@ void cave_wipe(struct chunk *c)
 }
 
 
+bool allow_location(struct monster_race *race, struct worldpos *wpos)
+{
+    if ((cfg_diving_mode < 2) && race->locations)
+    {
+        bool found = false;
+        struct worldpos *location = race->locations;
+
+        while (location && !found)
+        {
+            if (loc_eq(&location->grid, &wpos->grid)) found = true;
+            else location = location->next;
+        }
+
+        if (!found) return false;
+    }
+
+    return true;
+}
+
+
 /*
  * Generate a random level.
  *
@@ -1165,11 +1187,13 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                 if (race->lore.spawned) continue;
                 if (!quest_monster && !fixed_encounter) continue;
                 if (race->level != chunk->wpos.depth) continue;
+                if (!allow_location(race, &chunk->wpos)) continue;
 
                 /* Pick a location and place the monster */
                 while (tries-- && !found)
                 {
                     if (rf_has(race->flags, RF_AQUATIC)) found = find_emptywater(chunk, &grid);
+                    else if (rf_has(race->flags, RF_NO_DEATH)) found = find_training(chunk, &grid);
                     else found = find_empty(chunk, &grid);
                 }
                 if (found)
@@ -1315,6 +1339,24 @@ struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
     ht_copy(&c->generated, &turn);
 
     return c;
+}
+
+
+void player_place_feeling(struct player *p, struct chunk *c)
+{
+    struct loc begin, end;
+    struct loc_iterator iter;
+
+    loc_init(&begin, 0, 0);
+    loc_init(&end, c->width, c->height);
+    loc_iterator_first(&iter, &begin, &end);
+
+    do
+    {
+        if (square_isfeel(c, &iter.cur))
+            sqinfo_on(square_p(p, &iter.cur)->info, SQUARE_FEEL);
+    }
+    while (loc_iterator_next_strict(&iter));
 }
 
 

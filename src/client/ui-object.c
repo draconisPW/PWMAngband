@@ -1415,6 +1415,8 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
 
         while (true)
         {
+            bool hack_no_wield;
+
             /* Redraw */
             if (inven_up) event_signal(EVENT_INVENTORY);
             if (equip_up) event_signal(EVENT_EQUIPMENT);
@@ -1449,9 +1451,15 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
             /* The top line is icky */
             topline_icky = true;
 
-            /* Hack -- quick floor for single items */
-            if (OPT(player, quick_floor) && (command_wrk == USE_FLOOR) && (f1 == f2))
+            /* Hack -- disable quick floor on wield if no wieldable item in inventory */
+            hack_no_wield = ((cmd == CMD_WIELD) && (i1 > i2));
+
+            /* Hack -- quick floor for single items (except on pickup) */
+            if (OPT(player, quick_floor) && (command_wrk == USE_FLOOR) && (f1 == f2) &&
+                (cmd != CMD_PICKUP) && !hack_no_wield)
+            {
                 *choice = floor_list[f2];
+            }
 
             /* Get an item choice */
             else

@@ -283,7 +283,7 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->redraw |= (PR_EQUIP | PR_INVEN);
-    if (!carried) redraw_floor(&p->wpos, &grid);
+    if (!carried) redraw_floor(&p->wpos, &grid, NULL);
 
     return true;
 }
@@ -436,6 +436,32 @@ static bool enchant(struct player *p, struct object *obj, int n, int eflag)
 }
 
 
+static struct ego_item *ego_brand(struct object *obj, const char *brand)
+{
+    int i;
+
+    for (i = 0; i < z_info->e_max; i++)
+    {
+        struct ego_item *ego = &e_info[i];
+
+        /* Match the name */
+        if (!ego->name) continue;
+        if (streq(ego->name, brand))
+        {
+            struct poss_item *poss;
+
+            for (poss = ego->poss_items; poss; poss = poss->next)
+            {
+                if (poss->kidx == obj->kind->kidx)
+                    return ego;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+
 static struct ego_item *ego_elemental(void)
 {
     int i;
@@ -456,9 +482,7 @@ static struct ego_item *ego_elemental(void)
  */
 static void brand_object(struct player *p, struct object *obj, const char *brand, const char *name)
 {
-    int i;
     struct ego_item *ego;
-    bool ok = false;
 
     /* You can never modify artifacts, ego items or worthless items */
     if (obj && obj->kind->cost && !obj->artifact && !obj->ego)
@@ -472,27 +496,16 @@ static void brand_object(struct player *p, struct object *obj, const char *brand
             ((obj->number > 1)? "are": "is"), name);
 
         /* Get the right ego type for the object */
-        for (i = 0; i < z_info->e_max; i++)
-        {
-            ego = &e_info[i];
-
-            /* Match the name */
-            if (!ego->name) continue;
-            if (streq(ego->name, brand))
-            {
-                struct poss_item *poss;
-
-                for (poss = ego->poss_items; poss; poss = poss->next)
-                {
-                    if (poss->kidx == obj->kind->kidx)
-                        ok = true;
-                }
-            }
-            if (ok) break;
-        }
+        ego = ego_brand(obj, brand);
 
         /* Hack -- BRAND_COOL */
         if (streq(brand, "BRAND_COOL")) ego = ego_elemental();
+
+        if (!ego)
+        {
+            msg(p, "The branding failed.");
+            return;
+        }
 
         /* Make it an ego item */
         obj->ego = ego;
@@ -1223,6 +1236,185 @@ static bool effect_handler_ALTER_REALITY(effect_handler_context_t *context)
 }
 
 
+static bool handler_breath(effect_handler_context_t *context, bool use_boost)
+{
+    int dam = effect_calculate_value(context, use_boost);
+    int type = context->subtype;
+    struct loc target;
+    struct source who_body;
+    struct source *who = &who_body;
+
+    /*
+     * Diameter of source starts at 4, so full strength up to 3 grids from
+     * the breather.
+     */
+    int diameter_of_source = 4;
+
+    /* Minimum breath width is 20 degrees */
+    int degrees_of_arc = MAX(context->other, 20);
+
+    int flg = PROJECT_ARC | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL | PROJECT_PLAY;
+
+    /* Distance breathed has no fixed limit. */
+    int rad = z_info->max_range;
+
+    /* Hack -- already used up */
+    bool used = (context->radius == 1);
+
+    /* Ensure "dir" is in ddx/ddy array bounds */
+    if (!VALID_DIR(context->dir)) return false;
+
+    /* Player or monster? */
+    if (context->origin->monster)
+    {
+        int accuracy = monster_effect_accuracy(context->origin->monster, MON_TMD_CONF,
+            CONF_RANDOM_CHANCE);
+
+        source_monster(who, context->origin->monster);
+
+        /* Breath parameters for monsters are monster-dependent */
+        dam = breath_dam(type, context->origin->monster->hp);
+
+        /* Powerful monster */
+        if (monster_is_powerful(context->origin->monster->race))
+        {
+            /* Breath is now full strength at 5 grids */
+            diameter_of_source *= 3;
+            diameter_of_source /= 2;
+        }
+
+        /* Target player or monster? */
+        if (randint1(100) > accuracy)
+        {
+            /* Confused direction. */
+            int dir = ddd[randint0(8)];
+
+            next_grid(&target, &context->origin->monster->grid, dir);
+        }
+        else if (context->target_mon)
+        {
+            /* Target monster. */
+            loc_copy(&target, &context->target_mon->grid);
+        }
+        else
+        {
+            /* Target player. */
+            struct loc *decoy = cave_find_decoy(context->cave);
+
+            if (!loc_is_zero(decoy))
+                loc_copy(&target, decoy);
+            else
+                loc_copy(&target, &context->origin->player->grid);
+            who->target = context->origin->player;
+        }
+    }
+    else
+    {
+        /* PWMAngband: let Power Dragon Scale Mails breathe a random element */
+        if (type == PROJ_MISSILE)
+        {
+            bitflag mon_breath[RSF_SIZE];
+
+            /* Allow all elements */
+            rsf_wipe(mon_breath);
+            init_spells(mon_breath);
+            set_breath(mon_breath);
+
+            /* Get breath effect */
+            type = breath_effect(context->origin->player, mon_breath);
+        }
+
+        /* Handle polymorphed players */
+        else if (context->origin->player->poly_race && (dam == 0))
+        {
+            const char *pself = player_self(context->origin->player);
+            char df[160];
+
+            /* Damage */
+            dam = breath_dam(type, context->origin->player->chp);
+
+            /* Boost damage to take into account player hp vs monster hp */
+            dam = (dam * 6) / 5;
+
+            /* Breathing damages health instead of costing mana */
+            strnfmt(df, sizeof(df), "exhausted %s with breathing", pself);
+            take_hit(context->origin->player, context->origin->player->mhp / 20,
+                "the strain of breathing", false, df);
+            if (context->origin->player->is_dead) return !used;
+
+            /* Breathing also consumes food */
+            player_dec_timed(context->origin->player, TMD_FOOD, 50, false);
+
+            /* Powerful breath */
+            if (monster_is_powerful(context->origin->player->poly_race))
+            {
+                diameter_of_source *= 3;
+                diameter_of_source /= 2;
+            }
+        }
+
+        source_player(who, get_player_index(get_connection(context->origin->player->conn)),
+            context->origin->player);
+
+        /* Ask for a target if no direction given */
+        if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
+            target_get(context->origin->player, &target);
+        else
+        {
+            /* Hack -- no target available, default to random direction */
+            if (context->dir == DIR_TARGET) context->dir = 0;
+
+            /* Hack -- no direction given, default to random direction */
+            if (!context->dir) context->dir = ddd[randint0(8)];
+
+            /* Use the given direction */
+            next_grid(&target, &context->origin->player->grid, context->dir);
+        }
+    }
+
+    /* Adjust the diameter of the energy source */
+    if (degrees_of_arc < 60)
+    {
+        /*
+         * Narrower cone means energy drops off less quickly. We now have:
+         * - 30 degree regular breath  | full strength at 5 grids
+         * - 30 degree powerful breath | full strength at 9 grids
+         * - 20 degree regular breath  | full strength at 11 grids
+         * - 20 degree powerful breath | full strength at 17 grids
+         * where grids are measured from the breather.
+         */
+        diameter_of_source = diameter_of_source * 60 / degrees_of_arc;
+
+        /* Max */
+        if (diameter_of_source > 25) diameter_of_source = 25;
+    }
+
+    /* Breathe at the target */
+    context->origin->player->current_sound = -2;
+    if (project(who, rad, context->cave, &target, dam, type, flg, degrees_of_arc, diameter_of_source,
+        "vaporized"))
+    {
+        context->ident = true;
+    }
+    context->origin->player->current_sound = -1;
+
+    return !used;
+}
+
+
+/*
+ * Breathe an element, in a cone from the breath
+ * Affect grids, objects, and monsters
+ * context->subtype is element, context->other degrees of arc
+ *
+ * PWMAngband: if context->radius is set, object is already used up; use device boost
+ */
+static bool effect_handler_ARC(effect_handler_context_t *context)
+{
+    return handler_breath(context, true);
+}
+
+
 /*
  * Cast a ball spell
  * Stop if we hit a monster or the player, act as a ball
@@ -1873,7 +2065,7 @@ static bool effect_handler_BRAND_AMMO(effect_handler_context_t *context)
 
     /* Redraw */
     if (!object_is_carried(context->origin->player, obj))
-        redraw_floor(&context->origin->player->wpos, &obj->grid);
+        redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
     return true;
 }
@@ -1920,157 +2112,11 @@ static bool effect_handler_BRAND_WEAPON(effect_handler_context_t *context)
  * Affect grids, objects, and monsters
  * context->subtype is element, context->other degrees of arc
  *
- * PWMAngband: if context->radius is set, object is already used up
+ * PWMAngband: if context->radius is set, object is already used up; don't use device boost
  */
 static bool effect_handler_BREATH(effect_handler_context_t *context)
 {
-    int dam = effect_calculate_value(context, false);
-    int type = context->subtype;
-    struct loc target;
-    struct source who_body;
-    struct source *who = &who_body;
-
-    /*
-     * Diameter of source starts at 40, so full strength up to 3 grids from
-     * the breather.
-     */
-    int diameter_of_source = 40;
-
-    /* Minimum breath width is 20 degrees */
-    int degrees_of_arc = MAX(context->other, 20);
-
-    int flg = PROJECT_ARC | PROJECT_GRID | PROJECT_ITEM | PROJECT_KILL | PROJECT_PLAY;
-
-    /* Distance breathed has no fixed limit. */
-    int rad = z_info->max_range;
-
-    /* Hack -- already used up */
-    bool used = (context->radius == 1);
-
-    /* Ensure "dir" is in ddx/ddy array bounds */
-    if (!VALID_DIR(context->dir)) return false;
-
-    /* Player or monster? */
-    if (context->origin->monster)
-    {
-        source_monster(who, context->origin->monster);
-
-        /* Breath parameters for monsters are monster-dependent */
-        dam = breath_dam(type, context->origin->monster->hp);
-
-        /* Powerful monster */
-        if (monster_is_powerful(context->origin->monster->race))
-        {
-            /* Breath is now full strength at 5 grids */
-            diameter_of_source *= 3;
-            diameter_of_source /= 2;
-        }
-
-        /* Target player or monster? */
-        if (context->target_mon)
-            loc_copy(&target, &context->target_mon->grid);
-        else
-        {
-            struct loc *decoy = cave_find_decoy(context->cave);
-
-            if (!loc_is_zero(decoy))
-                loc_copy(&target, decoy);
-            else
-                loc_copy(&target, &context->origin->player->grid);
-            who->target = context->origin->player;
-        }
-    }
-    else
-    {
-        /* PWMAngband: let Power Dragon Scale Mails breathe a random element */
-        if (type == PROJ_MISSILE)
-        {
-            bitflag mon_breath[RSF_SIZE];
-
-            /* Allow all elements */
-            rsf_wipe(mon_breath);
-            init_spells(mon_breath);
-            set_breath(mon_breath);
-
-            /* Get breath effect */
-            type = breath_effect(context->origin->player, mon_breath);
-        }
-
-        /* Handle polymorphed players */
-        else if (context->origin->player->poly_race && (dam == 0))
-        {
-            const char *pself = player_self(context->origin->player);
-            char df[160];
-
-            /* Damage */
-            dam = breath_dam(type, context->origin->player->chp);
-
-            /* Boost damage to take into account player hp vs monster hp */
-            dam = (dam * 6) / 5;
-
-            /* Breathing damages health instead of costing mana */
-            strnfmt(df, sizeof(df), "exhausted %s with breathing", pself);
-            take_hit(context->origin->player, context->origin->player->mhp / 20,
-                "the strain of breathing", false, df);
-            if (context->origin->player->is_dead) return !used;
-
-            /* Breathing also consumes food */
-            player_dec_timed(context->origin->player, TMD_FOOD, 50, false);
-
-            /* Powerful breath */
-            if (monster_is_powerful(context->origin->player->poly_race))
-            {
-                diameter_of_source *= 3;
-                diameter_of_source /= 2;
-            }
-        }
-
-        source_player(who, get_player_index(get_connection(context->origin->player->conn)),
-            context->origin->player);
-
-        /* Ask for a target if no direction given */
-        if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
-            target_get(context->origin->player, &target);
-        else
-        {
-            /* Hack -- no target available, default to random direction */
-            if (context->dir == DIR_TARGET) context->dir = 0;
-
-            /* Hack -- no direction given, default to random direction */
-            if (!context->dir) context->dir = ddd[randint0(8)];
-
-            /* Use the given direction */
-            next_grid(&target, &context->origin->player->grid, context->dir);
-        }
-    }
-
-    /* Adjust the diameter of the energy source */
-    if (degrees_of_arc < 60)
-    {
-        /*
-         * Narrower cone means energy drops off less quickly. We now have:
-         * - 30 degree regular breath  | full strength at 5 grids
-         * - 30 degree powerful breath | full strength at 9 grids
-         * - 20 degree regular breath  | full strength at 11 grids
-         * - 20 degree powerful breath | full strength at 17 grids
-         * where grids are measured from the breather.
-         */
-        diameter_of_source = diameter_of_source * 60 / degrees_of_arc;
-
-        /* Max */
-        if (diameter_of_source > 250) diameter_of_source = 250;
-    }
-
-    /* Breathe at the target */
-    context->origin->player->current_sound = -2;
-    if (project(who, rad, context->cave, &target, dam, type, flg, degrees_of_arc, diameter_of_source,
-        "vaporized"))
-    {
-        context->ident = true;
-    }
-    context->origin->player->current_sound = -1;
-
-    return !used;
+    return handler_breath(context, false);
 }
 
 
@@ -2189,7 +2235,7 @@ static bool effect_handler_CREATE_ARROWS(effect_handler_context_t *context)
     set_origin(arrows, ORIGIN_ACQUIRE, context->origin->player->wpos.depth, NULL);
 
     drop_near(context->origin->player, context->cave, &arrows, 0, &context->origin->player->grid,
-        true, DROP_FADE);
+        true, DROP_FADE, true);
 
     return true;
 }
@@ -2265,7 +2311,7 @@ static bool effect_handler_CREATE_POISON(effect_handler_context_t *context)
     set_origin(poison, ORIGIN_ACQUIRE, context->origin->player->wpos.depth, NULL);
 
     drop_near(context->origin->player, context->cave, &poison, 0, &context->origin->player->grid,
-        true, DROP_FADE);
+        true, DROP_FADE, true);
 
     return true;
 }
@@ -2302,8 +2348,7 @@ static bool effect_handler_CREATE_STAIRS(effect_handler_context_t *context)
     }
 
     /* Push objects off the grid */
-    if (square_object(context->cave, &context->origin->player->grid))
-        push_object(context->origin->player, context->cave, &context->origin->player->grid);
+    push_object(context->origin->player, context->cave, &context->origin->player->grid);
 
     /* Surface: always down */
     if (context->cave->wpos.depth == 0)
@@ -2488,6 +2533,8 @@ static bool effect_handler_CURSE_ARMOR(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
+        object_know_curses(obj);
+        object_check_for_ident(context->origin->player, obj);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
@@ -2541,6 +2588,8 @@ static bool effect_handler_CURSE_WEAPON(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
+        object_know_curses(obj);
+        object_check_for_ident(context->origin->player, obj);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
@@ -2838,7 +2887,7 @@ static bool effect_handler_DEEP_DESCENT(effect_handler_context_t *context)
         }
 
         /* Change location */
-        disturb(context->origin->player, 0);
+        disturb(context->origin->player);
         msgt(context->origin->player, MSG_TPLEVEL, "The floor opens beneath you!");
         msg_misc(context->origin->player, " sinks through the floor!");
         dungeon_change_level(context->origin->player, context->cave, &wpos, LEVEL_RAND);
@@ -3162,6 +3211,46 @@ static bool effect_handler_DETECT_EVIL(effect_handler_context_t *context)
     }
     else if (context->aware)
         msg(context->origin->player, "You sense no evil creatures.");
+
+    context->ident = true;
+    return true;
+}
+
+
+/*
+ * Detect lmonsters susceptible to fear around the player. The height to detect
+ * above and below the player is context->y, the width either side of
+ * the player context->x.
+ */
+static bool effect_handler_DETECT_FEARFUL_MONSTERS(effect_handler_context_t *context)
+{
+    bool monsters = detect_monsters(context->origin->player, context->y, context->x,
+        monster_is_fearful, 0, NULL);
+
+    /* Note effects and clean up */
+    if (monsters)
+    {
+        /* Hack -- fix the monsters */
+        update_monsters(context->cave, false);
+
+        /* Full refresh (includes monster/object lists) */
+        context->origin->player->full_refresh = true;
+
+        /* Handle Window stuff */
+        handle_stuff(context->origin->player);
+
+        /* Normal refresh (without monster/object lists) */
+        context->origin->player->full_refresh = false;
+
+        /* Describe, and wait for acknowledgement */
+        msg(context->origin->player, "These monsters could provide good sport.");
+        party_msg_near(context->origin->player, " senses the presence of fearful creatures!");
+
+        /* Hack -- pause */
+        if (OPT(context->origin->player, pause_after_detect)) Send_pause(context->origin->player);
+    }
+    else if (context->aware)
+        msg(context->origin->player, "You smell no fear in the air.");
 
     context->ident = true;
     return true;
@@ -3532,7 +3621,7 @@ static bool effect_handler_DETECT_TRAPS(effect_handler_context_t *context)
                 if (!ignore_item_ok(context->origin->player, obj))
                 {
                     /* Notice it */
-                    disturb(context->origin->player, 0);
+                    disturb(context->origin->player);
 
                     /* We found something to detect */
                     detect = true;
@@ -4514,7 +4603,7 @@ static bool effect_handler_ENCHANT(effect_handler_context_t *context)
 
     /* Redraw */
     if (!object_is_carried(context->origin->player, obj))
-        redraw_floor(&context->origin->player->wpos, &obj->grid);
+        redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
     /* Something happened */
     return true;
@@ -4664,7 +4753,7 @@ static bool effect_handler_IDENTIFY(effect_handler_context_t *context)
     /* Identify the object */
     object_learn_unknown_rune(context->origin->player, obj);
     if (!object_is_carried(context->origin->player, obj))
-        redraw_floor(&context->origin->player->wpos, &obj->grid);
+        redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
     /* Something happened */
     return true;
@@ -4692,10 +4781,10 @@ static bool effect_handler_LASH(effect_handler_context_t *context)
     if (rad > z_info->max_range) rad = z_info->max_range;
 
     /*
-     * Diameter of source is 10 times radius, so the effect is essentially
-     * tfull strength for its entire length.
+     * Diameter of source is the same as the radius, so the effect is
+     * essentially full strength for its entire length.
      */
-    diameter_of_source = rad * 10;
+    diameter_of_source = rad;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(context->dir)) return false;
@@ -4764,7 +4853,7 @@ static bool effect_handler_LASH(effect_handler_context_t *context)
     if (!dam) return false;
 
     /* Check bounds */
-    if (diameter_of_source > 250) diameter_of_source = 250;
+    if (diameter_of_source > 25) diameter_of_source = 25;
 
     /* Lash the target */
     context->origin->player->current_sound = -2;
@@ -4816,7 +4905,7 @@ static bool effect_handler_LIGHT_AREA(effect_handler_context_t *context)
 
 static bool effect_handler_LIGHT_LEVEL(effect_handler_context_t *context)
 {
-    bool full = (context->other? true: false);
+    bool full = (context->radius? true: false);
 
     if (full)
         msg(context->origin->player, "An image of your surroundings forms in your mind...");
@@ -5088,10 +5177,11 @@ static bool effect_handler_MASS_BANISH(effect_handler_context_t *context)
 }
 
 
-static void py_attack_grid(struct player *p, struct chunk *c, struct loc *grid)
+static bool py_attack_grid(struct player *p, struct chunk *c, struct loc *grid)
 {
     struct source who_body;
     struct source *who = &who_body;
+    int oldhp, newhp;
 
     square_actor(c, grid, who);
 
@@ -5108,8 +5198,12 @@ static void py_attack_grid(struct player *p, struct chunk *c, struct loc *grid)
                 monster_wake(p, who->monster, false, 100);
         }
 
+        oldhp = who->monster->hp;
+
         /* Attack */
         if (pvm_check(p, who->monster)) py_attack(p, c, grid);
+
+        newhp = who->monster->hp;
     }
 
     /* Player */
@@ -5119,15 +5213,27 @@ static void py_attack_grid(struct player *p, struct chunk *c, struct loc *grid)
         if (who->player->k_idx)
             aware_player(p, who->player);
 
+        oldhp = who->player->chp;
+
         /* Attack */
         if (pvp_check(p, who->player, PVP_DIRECT, true, square(c, grid)->feat))
             py_attack(p, c, grid);
+
+        newhp = who->player->chp;
     }
+
+    /* Nobody */
+    else
+        return false;
+
+    /* Lame test for hitting the target */
+    return ((newhp > 0) && (newhp != oldhp));
 }
 
 
 static bool effect_handler_MELEE_BLOWS(effect_handler_context_t *context)
 {
+    int dam = effect_calculate_value(context, false);
     struct loc target;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
@@ -5150,7 +5256,21 @@ static bool effect_handler_MELEE_BLOWS(effect_handler_context_t *context)
         }
     }
 
-    py_attack_grid(context->origin->player, context->cave, &target);
+    if (py_attack_grid(context->origin->player, context->cave, &target))
+    {
+        struct source who_body;
+        struct source *who = &who_body;
+
+        source_player(who, get_player_index(get_connection(context->origin->player->conn)),
+            context->origin->player);
+
+        /* Analyze the "dir" and the "target", do NOT explode */
+        if (project(who, 0, context->cave, &target, dam, context->subtype,
+            PROJECT_GRID | PROJECT_KILL | PROJECT_PLAY, 0, 0, "annihilated"))
+        {
+            context->ident = true;
+        }
+    }
 
     return true;
 }
@@ -5333,16 +5453,26 @@ static bool effect_handler_NOURISH(effect_handler_context_t *context)
         msg(context->origin->player, context->self_msg);
 
     amount *= z_info->food_value;
+
+    /* Increase food level by amount */
     if (context->subtype == 0)
         player_inc_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false, false);
+
+    /* Decrease food level by amount */
     else if (context->subtype == 1)
+        player_dec_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
+
+    /* Set food level to amount, vomiting if necessary */
+    else if (context->subtype == 2)
     {
         bool message = (context->origin->player->timed[TMD_FOOD] > amount);
 
         if (message) msg(context->origin->player, "You vomit!");
         player_set_timed(context->origin->player, TMD_FOOD, MAX(amount, 0), false);
     }
-    else if ((context->subtype == 2) && (context->origin->player->timed[TMD_FOOD] < amount))
+
+    /* Increase food level to amount if needed */
+    else if ((context->subtype == 3) && (context->origin->player->timed[TMD_FOOD] < amount))
         player_set_timed(context->origin->player, TMD_FOOD, MAX(amount + 1, 0), false);
 
     context->ident = true;
@@ -5768,7 +5898,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
 
     /* Redraw */
     context->origin->player->upkeep->redraw |= (PR_INVEN);
-    if (!carried) redraw_floor(&context->origin->player->wpos, &grid);
+    if (!carried) redraw_floor(&context->origin->player->wpos, &grid, NULL);
 
     /* Something was done */
     return true;
@@ -6099,8 +6229,7 @@ static bool effect_handler_GLYPH(effect_handler_context_t *context)
     }
 
     /* Push objects off the grid */
-    if (square_object(context->cave, &context->origin->player->grid))
-        push_object(context->origin->player, context->cave, &context->origin->player->grid);
+    push_object(context->origin->player, context->cave, &context->origin->player->grid);
 
     /* Create a glyph */
     square_add_glyph(context->cave, &context->origin->player->grid, context->subtype);
@@ -6240,9 +6369,18 @@ static bool effect_handler_STRIKE(effect_handler_context_t *context)
     /* Ask for a target; if no direction given, the player is struck  */
     if ((context->dir == DIR_TARGET) && target_okay(context->origin->player))
         target_get(context->origin->player, &target);
+    else
+    {
+        msg(context->origin->player, "You must have a target.");
+        return false;
+    }
 
     /* Enforce line of sight */
-    if (!los(context->cave, &context->origin->player->grid, &target)) return false;
+    if (!projectable(context->origin->player, context->cave, &context->origin->player->grid,
+        &target, PROJECT_NONE, true) || !square_isknown(context->origin->player, &target))
+    {
+        return false;
+    }
 
     /* Aim at the target. Hurt items on floor. */
     context->origin->player->current_sound = -2;
@@ -6487,7 +6625,7 @@ static bool effect_handler_TAP_DEVICE(effect_handler_context_t *context)
             /* Redraw */
             context->origin->player->upkeep->redraw |= (PR_INVEN);
             if (!object_is_carried(context->origin->player, obj))
-                redraw_floor(&context->origin->player->wpos, &obj->grid);
+                redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
             /* Increase mana. */
             context->origin->player->csp += energy / 6;
@@ -6661,7 +6799,7 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     /* Actually teleport the object to the player inventory */
     teled = object_new();
     object_copy(teled, obj);
-    assess_object(q, teled);
+    assess_object(q, teled, true);
     inven_carry(q, teled, true, false);
 
     /* Combine the pack */
@@ -6702,7 +6840,7 @@ static bool allow_teleport(struct chunk *c, struct loc *grid, bool safe_ghost, b
     if (!is_player && square_iswarded(c, grid)) return false;
 
     /* No teleporting into vaults and such */
-    if (square_isvault(c, grid)) return false;
+    if (square_isvault(c, grid) || !square_is_monster_walkable(c, grid)) return false;
 
     return true;
 }
@@ -6789,6 +6927,13 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
         msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
+    /* Don't teleport NO_DEATH monsters */
+    if (!is_player && rf_has(context->origin->monster->race->flags, RF_NO_DEATH))
+    {
+        if (context->origin->player) msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
     }
 
@@ -6929,6 +7074,18 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
     {
         add_monster_message(context->origin->player, context->origin->monster, MON_MSG_DISAPPEAR,
             false);
+    }
+
+    /* Reveal mimics */
+    if (is_player)
+    {
+        if (context->origin->player->k_idx)
+            aware_player(context->origin->player, context->origin->player);
+    }
+    else
+    {
+        if (monster_is_camouflaged(context->origin->monster))
+            become_aware(context->origin->player, context->cave, context->origin->monster);
     }
 
     /* Move the target */
@@ -8030,6 +8187,7 @@ int effect_subtype(int index, const char *type)
     {
         /* Projection name */
         case EF_ALTER:
+        case EF_ARC:
         case EF_BALL:
         case EF_BALL_OBVIOUS:
         case EF_BEAM:
@@ -8049,6 +8207,7 @@ int effect_subtype(int index, const char *type)
         case EF_DESTRUCTION:
         case EF_LASH:
         case EF_LINE:
+        case EF_MELEE_BLOWS:
         case EF_PROJECT:
         case EF_PROJECT_LOS:
         case EF_PROJECT_LOS_AWARE:
@@ -8095,8 +8254,9 @@ int effect_subtype(int index, const char *type)
         case EF_NOURISH:
         {
             if (streq(type, "INC_BY")) val = 0;
-            else if (streq(type, "SET_TO")) val = 1;
-            else if (streq(type, "INC_TO")) val = 2;
+            else if (streq(type, "DEC_BY")) val = 1;
+            else if (streq(type, "SET_TO")) val = 2;
+            else if (streq(type, "INC_TO")) val = 3;
             break;
         }
 

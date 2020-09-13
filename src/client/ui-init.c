@@ -241,10 +241,12 @@ static void initialize_all_pref_files(void)
 
 
 /* Loop callback */
-static void input_callback_end()
+static void input_callback_end(bool inmap)
 {
     /* Process any commands we got */
     textui_process_command();
+
+    if (!inmap) return;
 
     /* Hack -- don't redraw the screen until we have all of it */
     if (last_line_info != -1) return;
@@ -266,7 +268,7 @@ static void Input_loop(void)
     }
 
     /* Loop, looking for net input and responding to keypresses */
-    Net_loop(NULL, NULL, input_callback_end, SCAN_OFF);
+    Net_loop(NULL, NULL, input_callback_end, SCAN_OFF, false);
 }
 
 

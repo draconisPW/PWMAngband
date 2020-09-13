@@ -81,7 +81,7 @@ static void init_rune(void)
     }
     for (i = 0; i < OBJ_MOD_MAX; i++)
         count++;
-    for (i = 0; i <= ELEM_XHIGH_MAX; i++) /* PWMAngband: some items have resist TIME/MANA */
+    for (i = 0; i <= ELEM_XHIGH_MAX; i++) /* PWMAngband: resist TIME/MANA/WATER */
         count++;
 
     /* Note brand runes cover all brands with the same name */
@@ -139,7 +139,7 @@ static void init_rune(void)
         rune_list[count].name = prop->name;
         count++;
     }
-    for (i = 0; i <= ELEM_XHIGH_MAX; i++) /* PWMAngband: some items have resist TIME/MANA */
+    for (i = 0; i <= ELEM_XHIGH_MAX; i++) /* PWMAngband: resist TIME/MANA/WATER */
     {
         rune_list[count].variety = RUNE_VAR_RESIST;
         rune_list[count].index = i;
@@ -485,8 +485,14 @@ bool player_knows_curse(struct player *p, int index)
  *
  * p is the player
  * ego is the ego item type
+ * obj may be NULL to test whether the player knows the ego in general;
+ *   if obj is not NULL, the test is for whether the ego is know for that
+ *   specific object (allows for the ego to be known for the object in the
+ *   case where an ego has range of at least two values, including zero, for
+ *   a modifier, the player doesn't know that modifier, and the object has
+ *   zero for that modifier)
  */
-bool player_knows_ego(struct player *p, struct ego_item *ego)
+bool player_knows_ego(struct player *p, struct ego_item *ego, const struct object *obj)
 {
     int i;
 
@@ -498,8 +504,18 @@ bool player_knows_ego(struct player *p, struct ego_item *ego)
     /* All modifiers known */
     for (i = 0; i < OBJ_MOD_MAX; i++)
     {
-        if (randcalc(ego->modifiers[i], MAX_RAND_DEPTH, MAXIMISE) && !p->obj_k->modifiers[i])
-            return false;
+        int modmax = randcalc(ego->modifiers[i], MAX_RAND_DEPTH, MAXIMISE);
+        int modmin = randcalc(ego->modifiers[i], MAX_RAND_DEPTH, MINIMISE);
+
+        if ((modmax > 0 || modmin < 0) && !p->obj_k->modifiers[i])
+        {
+            /*
+             * If testing a specific object, can possibly know if the range includes zero
+             * (i.e. product of bounds is not positive) and the object has zero for that modifier.
+             */
+            if (!obj || modmax * modmin > 0 || obj->modifiers[i] != 0)
+                return false;
+        }
     }
 
     /* All elements known */
@@ -840,7 +856,7 @@ void object_set_base_known(struct player *p, struct object *obj)
     obj->known->number = obj->number;
 
     /* Unresistables have no hidden properties */
-    /* PWMAngband: some items have resist TIME/MANA */
+    /* PWMAngband: resist TIME/MANA/WATER */
     for (i = ELEM_XHIGH_MAX + 1; i < ELEM_MAX; i++)
         obj->known->el_info[i].res_level = 1;
 
@@ -936,7 +952,7 @@ void player_know_object(struct player *p, struct object *obj)
     }
 
     /* Set ego type if known */
-    if (player_knows_ego(p, obj->ego))
+    if (player_knows_ego(p, obj->ego, obj))
     {
         seen = p->ego_everseen[obj->ego->eidx];
         obj->known->ego = (struct ego_item *)1;
@@ -1026,7 +1042,7 @@ void update_player_object_knowledge(struct player *p)
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
-    if (c) redraw_floor(&p->wpos, &p->grid);
+    if (c) redraw_floor(&p->wpos, &p->grid, NULL);
 }
 
 

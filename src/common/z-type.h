@@ -64,7 +64,7 @@ extern bool wpos_eq(struct worldpos *wpos1, struct worldpos *wpos2);
  */
 typedef struct
 {
-	byte tval;
+	u16b tval;
 	const char *name;
 } grouper;
 
@@ -258,6 +258,7 @@ struct angband_constants
     u16b both_item_av;          /* Average number of items in random places */
     u16b both_gold_av;          /* Average number of money items */
     u16b level_pit_max;         /* Maximum number of pits on a level */
+    u16b lab_depth;             /* Maximum number of pits on a level */
 
     /* World shape constants, read from constants.txt */
     u16b max_depth;             /* Maximum dungeon level */
@@ -279,6 +280,7 @@ struct angband_constants
 
     /* Store parameters, read from constants.txt */
     u16b store_inven_max;       /* Maximum number of objects in store inventory */
+    u16b home_inven_max;        /* Maximum number of objects in home inventory */
     u16b store_turns;           /* Number of turns between turnovers */
     u16b store_shuffle;         /* 1/per-day-chance of owner changing */
     u16b store_magic_level;     /* Level for apply_magic() in normal stores */

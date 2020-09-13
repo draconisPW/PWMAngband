@@ -439,7 +439,7 @@ static void prt_floor_item(struct player *p)
     if (!c) return;
 
     floor_num = scan_floor(p, c, floor_list, floor_max, OFLOOR_SENSE | OFLOOR_VISIBLE, NULL);
-    display_floor(p, c, floor_list, floor_num);
+    display_floor(p, c, floor_list, floor_num, false);
     mem_free(floor_list);
 }
 
@@ -1703,7 +1703,7 @@ static void player_strip(struct player *p, bool perma_death)
 
         /* Excise the object and drop it */
         gear_excise_object(p, obj);
-        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE, false);
     }
 
     mem_free(gear);
@@ -1724,7 +1724,7 @@ static void player_strip(struct player *p, bool perma_death)
         p->au = 0;
 
         /* Drop it */
-        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE);
+        drop_near(p, c, &obj, 0, &p->grid, false, DROP_FADE, false);
     }
 }
 
@@ -2990,10 +2990,29 @@ static struct object_kind *item_kind_fuzzy(char *name)
     /* Lowercase our search string */
     for (str = name; *str; str++) *str = tolower((unsigned char)*str);
 
+    /* Kind prefixed by '#': search from exact name */
+    if (*name == '#')
+    {
+        for (i = 0; i < z_info->k_max; i++)
+        {
+            struct object_kind *kind = &k_info[i];
+
+            if (!kind->name) continue;
+
+            /* Clean up its name */
+            clean_name(match, kind->name);
+
+            /* If cleaned name matches our search string, return it */
+            if (streq(match, name + 1)) return kind;
+        }
+
+        return NULL;
+    }
+
     /* Check if a symbol has been passed (!speed, =strength...) */
     if ((*name < 'a') || (*name > 'z')) d_char = *name;
 
-    /* For each item kind race */
+    /* For each item kind */
     for (i = 0; i < z_info->k_max; i++)
     {
         struct object_kind *kind = &k_info[i];
@@ -3845,7 +3864,7 @@ static void master_generate(struct player *p, char *parms)
                     object_copy(drop, obj);
                     if (object_has_standard_to_h(drop)) drop->known->to_h = 1;
                     if (object_flavor_is_aware(p, drop)) object_id_set_aware(drop);
-                    drop_near(p, c, &drop, 0, &p->grid, true, DROP_FADE);
+                    drop_near(p, c, &drop, 0, &p->grid, true, DROP_FADE, true);
 
                     /* Reinitialize some stuff */
                     undo_fixed_powers(obj, power, resist);
@@ -3991,7 +4010,7 @@ static void master_generate(struct player *p, char *parms)
             if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
 
             /* Drop the object from heaven */
-            drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE);
+            drop_near(p, c, &obj, 0, &p->grid, true, DROP_FADE, true);
 
             break;
         }
@@ -4256,21 +4275,27 @@ static void master_order(struct player *p, char *parms)
         /* Cancel order */
         case 'c':
         {
-            if (streq(store_orders[dm_order], "{ordered}")) store_cancel_order(dm_order);
-            my_strcpy(store_orders[dm_order], "", sizeof(store_orders[0]));
+            if (!ht_zero(&store_orders[dm_order].turn)) store_cancel_order(dm_order);
+            memset(&store_orders[dm_order], 0, sizeof(struct store_order));
             return;
         }
     }
 
     /* Display */
-    if (STRZERO(store_orders[dm_order]))
+    if (STRZERO(store_orders[dm_order].order))
         my_strcpy(o_desc, "(available)", sizeof(o_desc));
-    else if (streq(store_orders[dm_order], "{ordered}"))
+    else if (!ht_zero(&store_orders[dm_order].turn))
         store_get_order(dm_order, o_desc, sizeof(o_desc));
     else
-        my_strcpy(o_desc, store_orders[dm_order], sizeof(o_desc));
+        my_strcpy(o_desc, store_orders[dm_order].order, sizeof(o_desc));
     desc = format("  Order #%d: %s", 1 + dm_order, o_desc);
     Send_special_line(p, 17, 17, 15, COLOUR_WHITE, desc);
+    if (!ht_zero(&store_orders[dm_order].turn))
+    {
+        int expiry = player_expiry(&store_orders[dm_order].turn);
+        desc = format("  Expire in: %d days", expiry);
+        Send_special_line(p, 17, 17, 16, (expiry? COLOUR_YELLOW: COLOUR_L_RED), desc);
+    }
 }
 
 

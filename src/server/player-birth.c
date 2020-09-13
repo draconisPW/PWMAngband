@@ -699,6 +699,8 @@ static void player_outfit_dm(struct player *p)
 static void player_generate(struct player *p, byte psex, const struct player_race *r,
     const struct player_class *c)
 {
+    int i;
+
     p->psex = psex;
     p->clazz = c;
     p->race = r;
@@ -721,11 +723,18 @@ static void player_generate(struct player *p, byte psex, const struct player_rac
     /* Hitdice */
     p->hitdie = p->race->r_mhp + p->clazz->c_mhp;
 
-    /* Initial hitpoints */
-    p->mhp = p->hitdie;
-
     /* Pre-calculate level 1 hitdice */
     p->player_hp[0] = p->hitdie;
+
+    /*
+     * Fill in overestimates of hitpoints for additional levels. Do not
+     * do the actual rolls so the player can not reset the birth screen
+     * to get a desirable set of initial rolls.
+     */
+    for (i = 1; i < p->lev; i++) p->player_hp[i] = p->player_hp[i - 1] + p->hitdie;
+
+    /* Initial hitpoints */
+    p->mhp = p->player_hp[p->lev - 1];
 }
 
 
@@ -895,6 +904,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
             /* Clear the flags for each cave grid (cave dimensions may have changed) */
             player_cave_new(p, c->height, c->width);
             player_cave_clear(p, true);
+            player_place_feeling(p, c);
             done = true;
         }
 
@@ -990,6 +1000,9 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
      * This is also useful when the savefile has been manually deleted.
      */
     delete_player_name(p->name);
+
+    /* Verify player ID */
+    if (!p->id || lookup_player(p->id)) p->id = player_id++;
 
     /* Add him to the player name database */
     ht_reset(&death_turn);
@@ -1225,6 +1238,17 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     {
         if (!load_player(p))
         {
+            cleanup_player(p);
+            mem_free(p);
+            player_set(id, NULL);
+            return NULL;
+        }
+
+        /* Important: check password */
+        if (strcmp(p->pass, pass))
+        {
+            plog("Invalid password");
+            Destroy_connection(p->conn, "Invalid password");
             cleanup_player(p);
             mem_free(p);
             player_set(id, NULL);

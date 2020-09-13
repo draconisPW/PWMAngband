@@ -161,7 +161,7 @@ struct cave_profile
     int max_rarity;                     /* Max number of rarity levels used in room generation */
     int n_room_profiles;                /* Number of room profiles */
     struct tunnel_profile tun;          /* Used to build tunnels */
-    struct streamer_profile str;        /* Used to build mineral streamers*/
+    struct streamer_profile str;        /* Used to build mineral streamers */
     struct room_profile *room_profiles; /* Used to build rooms */
     int cutoff;                         /* Used to see if we should try this dungeon */
     random_value up;
@@ -221,7 +221,7 @@ struct room_template
     byte hgt;                   /* Room height */
     byte wid;                   /* Room width */
     byte dor;                   /* Random door options */
-    byte tval;                  /* tval for objects in this room */
+    u16b tval;                  /* tval for objects in this room */
 };
 
 extern struct dun_data *dun;
@@ -306,6 +306,7 @@ extern bool cave_find_in_range(struct chunk *c, struct loc *grid, struct loc *to
     struct loc *bottom_right, square_predicate pred);
 extern bool find_empty(struct chunk *c, struct loc *grid);
 extern bool find_emptywater(struct chunk *c, struct loc *grid);
+extern bool find_training(struct chunk *c, struct loc *grid);
 extern bool find_nearby_grid(struct chunk *c, struct loc *grid, struct loc *centre, int yd, int xd);
 extern void correct_dir(struct loc *offset, struct loc *grid1, struct loc *grid2);
 extern void rand_dir(struct loc *offset);
@@ -331,6 +332,8 @@ extern bool alloc_object(struct player *p, struct chunk *c, int set, int typ, in
 
 /* generate.c */
 extern void cave_wipe(struct chunk *c);
+extern bool allow_location(struct monster_race *race, struct worldpos *wpos);
 extern struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos);
+extern void player_place_feeling(struct player *p, struct chunk *c);
 
 #endif /* GENERATE_H */

@@ -585,6 +585,8 @@ static size_t format_len[FORMAT_CYCLE_MAX] = { 0 };
 
 #ifdef WINDOWS
 #define VA_COPY(DST, SRC) (DST) = (SRC)
+#else
+#define VA_COPY(DST, SRC) va_copy(DST, SRC)
 #endif
 
 

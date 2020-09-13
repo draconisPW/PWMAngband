@@ -297,7 +297,7 @@ static int restrict_monster_to_dungeon(struct monster_race *race, struct worldpo
 /* Checks if a monster race can be generated at that location */
 static bool allow_race(struct monster_race *race, struct worldpos *wpos)
 {
-    /* Only one copy of a a unique must be around at the same time */
+    /* Only one copy of a unique must be around at the same time */
     if (monster_is_unique(race) && !allow_unique_level(race, wpos))
         return false;
 
@@ -306,19 +306,8 @@ static bool allow_race(struct monster_race *race, struct worldpos *wpos)
         return false;
 
     /* Some monsters never appear out of their dungeon/town (wilderness) */
-    if ((cfg_diving_mode < 2) && race->locations)
-    {
-        bool found = false;
-        struct worldpos *location = race->locations;
-
-        while (location && !found)
-        {
-            if (loc_eq(&location->grid, &wpos->grid)) found = true;
-            else location = location->next;
-        }
-
-        if (!found) return false;
-    }
+    if (!allow_location(race, wpos))
+        return false;
 
     /* Some monsters only appear in the wilderness */
     if (rf_has(race->flags, RF_WILD_ONLY) && !in_wild(wpos))
@@ -609,7 +598,8 @@ void delete_monster_idx(struct chunk *c, int m_idx)
     my_assert(square_in_bounds(c, &mon->grid));
 
     /* Unique is dead */
-    mon->race->lore.spawned = 0;
+    if (mon->original_race) mon->original_race->lore.spawned = 0;
+    else mon->race->lore.spawned = 0;
 
     /* Decrease the number of clones */
     if (mon->clone) c->num_repro--;
@@ -657,7 +647,7 @@ void delete_monster_idx(struct chunk *c, int m_idx)
 
     /* Delete mimicked features */
     if (mon->race->base == lookup_monster_base("feature mimic"))
-        square_set_feat(c, &mon->grid, mon->feat);
+        square_set_floor(c, &mon->grid, mon->feat);
 
     loc_copy(&grid, &mon->grid);
 
@@ -889,7 +879,8 @@ void wipe_mon_list(struct chunk *c)
         }
 
         /* Unique is dead */
-        mon->race->lore.spawned = 0;
+        if (mon->original_race) mon->original_race->lore.spawned = 0;
+        else mon->race->lore.spawned = 0;
 
         /* Remove him from everybody's view */
         for (i = 1; i <= NumPlayers; i++)
@@ -1417,6 +1408,10 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
     /* Increase the number of clones */
     if (new_mon->race->ridx && new_mon->clone) c->num_repro++;
 
+    /* Unique has spawned */
+    if (new_mon->original_race) new_mon->original_race->lore.spawned = 1;
+    else new_mon->race->lore.spawned = 1;
+
     /* Done */
     if (!origin) return m_idx;
 
@@ -1444,7 +1439,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
             case '+':
             {
                 /* Push objects off the grid */
-                if (square_object(c, &mon->grid)) push_object(p, c, &mon->grid);
+                push_object(p, c, &mon->grid);
 
                 /* Create a door */
                 square_close_door(c, &mon->grid);
@@ -1456,7 +1451,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
             case '<':
             {
                 /* Push objects off the grid */
-                if (square_object(c, &mon->grid)) push_object(p, c, &mon->grid);
+                push_object(p, c, &mon->grid);
 
                 /* Create a staircase */
                 square_add_stairs(c, &mon->grid, FEAT_LESS);
@@ -1468,7 +1463,7 @@ s16b place_monster(struct player *p, struct chunk *c, struct monster *mon, byte 
             case '>':
             {
                 /* Push objects off the grid */
-                if (square_object(c, &mon->grid)) push_object(p, c, &mon->grid);
+                push_object(p, c, &mon->grid);
 
                 /* Create a staircase */
                 square_add_stairs(c, &mon->grid, FEAT_MORE);
@@ -1542,6 +1537,8 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
 
     /* Hack -- check if monster race can be generated at that location */
     if (!allow_race(race, &c->wpos)) return false;
+    if (race_hates_grid(c, race, grid)) return false;
+    if (rf_has(race->flags, RF_NO_DEATH) && !square_istraining(c, grid)) return false;
 
     /* Get local monster */
     mon = &monster_body;
@@ -1625,16 +1622,13 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
         mon->energy = randint0(move_energy(0) >> 4);
 
     /* Affect light? */
-    if (mon->race->light != 0) update_view_all(&c->wpos, 0);
+    if (race->light != 0) update_view_all(&c->wpos, 0);
 
     /* Is this obviously a monster? (Mimics etc. aren't) */
     if (rf_has(race->flags, RF_UNAWARE))
         mflag_on(mon->mflag, MFLAG_CAMOUFLAGE);
     else
         mflag_off(mon->mflag, MFLAG_CAMOUFLAGE);
-
-    /* Unique has spawned */
-    race->lore.spawned = 1;
 
     /* Hack -- increase the number of clones */
     if (mon_flag & MON_CLONE) mon->clone = 1;
@@ -1776,8 +1770,7 @@ static bool place_friends(struct player *p, struct chunk *c, struct loc *grid,
     bool is_unique = monster_is_unique(friends_race);
 
     /* Make sure the unique hasn't been killed already */
-    if (is_unique)
-        total = (allow_unique_level(friends_race, &c->wpos)? 1: 0);
+    if (is_unique && !allow_unique_level(friends_race, &c->wpos)) return false;
 
     /* More than 4 levels OoD, no groups allowed */
     if ((level_difference <= 0) && !is_unique) return false;
@@ -2161,7 +2154,7 @@ void monster_drop_carried(struct player *p, struct chunk *c, struct monster *mon
             }
         }
 
-        drop_near(p, c, &obj, 0, &mon->grid, true, DROP_FADE);
+        drop_near(p, c, &obj, 0, &mon->grid, true, DROP_FADE, false);
         obj = next;
     }
 
@@ -2208,7 +2201,7 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
         set_origin(corpse, ORIGIN_DROP, mon->wpos.depth, mon->race);
 
         /* Drop it in the dungeon */
-        drop_near(p, c, &corpse, 0, &mon->grid, true, DROP_FADE);
+        drop_near(p, c, &corpse, 0, &mon->grid, true, DROP_FADE, false);
     }
 
     /* Sometimes, a dead monster leaves a skeleton */
@@ -2230,7 +2223,7 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
         set_origin(skeleton, ORIGIN_DROP, mon->wpos.depth, mon->race);
 
         /* Drop it in the dungeon */
-        drop_near(p, c, &skeleton, 0, &mon->grid, true, DROP_FADE);
+        drop_near(p, c, &skeleton, 0, &mon->grid, true, DROP_FADE, false);
     }
 }
 

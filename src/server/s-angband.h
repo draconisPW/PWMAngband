@@ -25,7 +25,7 @@
 #include "channel.h"
 #include "cmds.h"
 #include "display-ui.h"
-
+#include "effects-info.h"
 #include "game-world.h"
 #include "generate.h"
 #include "help-ui.h"
@@ -72,7 +72,6 @@
 #include "obj-power.h"
 #include "obj-properties.h"
 #include "obj-randart.h"
-
 #include "obj-ui.h"
 #include "obj-util.h"
 #include "party.h"

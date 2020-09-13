@@ -197,13 +197,17 @@ int project_path(struct player *p, struct loc *gp, int range, struct chunk *c, s
                 if (loc_eq(&gp[n - 1], grid2)) break;
             }
 
-            /* Stop at non-initial wall grids, except where that would leak info during targeting */
-            if (!(flg & (PROJECT_INFO)))
+            /* Don't stop if making paths through rock for generation */
+            if (!(flg & (PROJECT_ROCK)))
             {
-                if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
+                /* Stop at non-initial wall grids, except where that would leak info during targeting */
+                if (!(flg & (PROJECT_INFO)))
+                {
+                    if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
+                }
+                else
+                    if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
             }
-            else
-                if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
 
             /* Sometimes stop at non-initial targets */
             if (flg & (PROJECT_STOP))
@@ -265,13 +269,17 @@ int project_path(struct player *p, struct loc *gp, int range, struct chunk *c, s
                 if (loc_eq(&gp[n - 1], grid2)) break;
             }
 
-            /* Stop at non-initial wall grids, except where that would leak info during targeting */
-            if (!(flg & (PROJECT_INFO)))
+            /* Don't stop if making paths through rock for generation */
+            if (!(flg & (PROJECT_ROCK)))
             {
-                if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
+                /* Stop at non-initial wall grids, except where that would leak info during targeting */
+                if (!(flg & (PROJECT_INFO)))
+                {
+                    if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
+                }
+                else
+                    if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
             }
-            else
-                if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
 
             /* Sometimes stop at non-initial targets */
             if (flg & (PROJECT_STOP))
@@ -327,13 +335,17 @@ int project_path(struct player *p, struct loc *gp, int range, struct chunk *c, s
                 if (loc_eq(&gp[n - 1], grid2)) break;
             }
 
-            /* Stop at non-initial wall grids, except where that would leak info during targeting */
-            if (!(flg & (PROJECT_INFO)))
+            /* Don't stop if making paths through rock for generation */
+            if (!(flg & (PROJECT_ROCK)))
             {
-                if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
+                /* Stop at non-initial wall grids, except where that would leak info during targeting */
+                if (!(flg & (PROJECT_INFO)))
+                {
+                    if ((n > 0) && !square_isprojectable(c, &gp[n - 1])) break;
+                }
+                else
+                    if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
             }
-            else
-                if ((n > 0) && p && square_isbelievedwall(p, c, &gp[n - 1])) break;
 
             /* Sometimes stop at non-initial targets */
             if (flg & (PROJECT_STOP))
@@ -973,7 +985,7 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
          */
         else
         {
-            dam_temp = (diameter_of_source * dam) / ((i + 1) * 10);
+            dam_temp = (diameter_of_source * dam) / (i + 1);
             if (dam_temp > (u32b)dam) dam_temp = dam;
         }
 

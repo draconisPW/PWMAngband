@@ -45,7 +45,8 @@ int breakage_chance(const struct object *obj, bool hit_target)
     int perc = obj->kind->base->break_perc;
 
     if (obj->artifact) return 0;
-    if (of_has(obj->flags, OF_THROWING) && !of_has(obj->flags, OF_EXPLODE)) perc = 1;
+    if (of_has(obj->flags, OF_THROWING) && !of_has(obj->flags, OF_EXPLODE) && !tval_is_ammo(obj))
+        perc = 1;
     if (!hit_target) return (perc * perc) / 100;
 
     return perc;
@@ -199,8 +200,9 @@ static int critical_melee(struct player *p, struct source *target, int weight, i
     u32b *msg_type)
 {
     int debuff_to_hit = (is_debuffed(target)? DEBUFF_CRITICAL_HIT: 0);
-    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 5 + p->lev * 3;
     int power = weight + randint1(650);
+    int chance = weight + (p->state.to_h + plus + debuff_to_hit) * 5 +
+        (p->state.skills[SKILL_TO_HIT_MELEE] - 60);
     int new_dam = dam;
 
     /* Apply Touch of Death */
@@ -316,11 +318,16 @@ static int ranged_damage(struct player *p, struct object *missile, struct object
     }
     else if (of_has(missile->flags, OF_THROWING))
     {
-        /* Multiply the damage dice by the throwing weapon multiplier. */
-        dam *= (1 + p->lev / 12);
+        /* Adjust damage for throwing weapons */
+        int might = 2 + missile->weight / 12;
+
+        /* Good at throwing */
+        if (player_has(p, PF_FAST_THROW)) might = 2 + (missile->weight + p->lev) / 12;
+
+        dam *= might;
     }
     dam *= mult;
-    if (p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam;
+    if (tval_is_ammo(missile) && p->timed[TMD_BOWBRAND] && !p->brand.blast) dam += p->brand.dam;
 
     return dam;
 }
@@ -718,7 +725,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         mon_clear_timed(p, target->monster, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
     }
     else
-        disturb(target->player, 0);
+        disturb(target->player);
 
     /* See if the player hit */
     success = test_hit(chance, ac, visible);
@@ -757,7 +764,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         int best_mult = 1;
 
         /* Handle polymorphed players + temp branding */
-        improve_attack_modifier(p, NULL, target, &best_mult, &seffects, verb, sizeof(verb), false);
+        player_attack_modifier(p, target, &best_mult, &seffects, verb, sizeof(verb), false, false);
 
         /* Best attack from all slays or brands on all non-launcher equipment */
         for (i = 2; i < (size_t)p->body.count; i++)
@@ -1153,7 +1160,7 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
     }
 
     /* Disturb the player */
-    disturb(p, 0);
+    disturb(p);
 
     /* Calculate number of blows */
     num_blows = (p->state.num_blows + p->frac_blow) / 100;
@@ -1949,7 +1956,7 @@ static bool ranged_helper(struct player *p, struct object *obj, int dir, int ran
             if (newbies_cannot_drop(p)) j = 100;
 
             /* Drop (or break) near that location */
-            drop_near(p, c, &missile, j, &grid, true, DROP_FADE);
+            drop_near(p, c, &missile, j, &grid, true, DROP_FADE, false);
         }
 
         shots++;
@@ -1987,7 +1994,7 @@ static struct attack_result make_ranged_shot(struct player *p, struct object *am
     struct attack_result result;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
     int chance = chance_of_missile_hit(p, ammo, bow, grid);
-    int multiplier = p->state.ammo_mult;
+    int multiplier = (bow? p->state.ammo_mult: 1);
     int best_mult = 1;
     struct chunk *c = chunk_get(&p->wpos);
     struct source target_body;
@@ -2016,8 +2023,8 @@ static struct attack_result make_ranged_shot(struct player *p, struct object *am
 
     result.success = true;
 
-    improve_attack_modifier(p, NULL, target, &best_mult, &result.effects, result.verb,
-        sizeof(result.verb), true);
+    player_attack_modifier(p, target, &best_mult, &result.effects, result.verb,
+        sizeof(result.verb), true, true);
     improve_attack_modifier(p, ammo, target, &best_mult, &result.effects, result.verb,
         sizeof(result.verb), true);
     if (bow)
@@ -2072,8 +2079,8 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
 
     result.success = true;
 
-    improve_attack_modifier(p, NULL, target, &best_mult, &result.effects, result.verb,
-        sizeof(result.verb), true);
+    player_attack_modifier(p, target, &best_mult, &result.effects, result.verb,
+        sizeof(result.verb), true, tval_is_ammo(obj));
     improve_attack_modifier(p, obj, target, &best_mult, &result.effects, result.verb,
         sizeof(result.verb), true);
 
@@ -2196,7 +2203,7 @@ bool do_cmd_fire(struct player *p, int dir, int item)
 /*
  * Throw an object from the quiver, pack or floor.
  */
-void do_cmd_throw(struct player *p, int dir, int item)
+bool do_cmd_throw(struct player *p, int dir, int item)
 {
     int num_shots = 1;
     int str = adj_str_blow[p->state.stat_ind[STAT_STR]];
@@ -2204,51 +2211,51 @@ void do_cmd_throw(struct player *p, int dir, int item)
     int weight;
     int range;
     struct object *obj = object_from_index(p, item, true, true);
-    bool magic = false;
+    bool magic = false, more;
 
     /* Paranoia: requires an item */
-    if (!obj) return;
+    if (!obj) return false;
 
     /* Restrict ghosts */
     if (p->ghost && !(p->dm_flags & DM_GHOST_HANDS))
     {
         msg(p, "You cannot throw items!");
-        return;
+        return false;
     }
 
     /* Check preventive inscription '^v' */
     if (check_prevent_inscription(p, INSCRIPTION_THROW))
     {
         msg(p, "The item's inscription prevents it.");
-        return;
+        return false;
     }
 
     /* Make sure the player isn't throwing wielded items */
     if (object_is_equipped(p->body, obj))
     {
         msg(p, "You cannot throw wielded items.");
-        return;
+        return false;
     }
 
     /* Restricted by choice */
     if (!object_is_carried(p, obj) && !is_owner(p, obj))
     {
         msg(p, "This item belongs to someone else!");
-        return;
+        return false;
     }
 
     /* Must meet level requirement */
     if (!object_is_carried(p, obj) && !has_level_req(p, obj))
     {
         msg(p, "You don't have the required level!");
-        return;
+        return false;
     }
 
     /* Check preventive inscription '!v' */
     if (object_prevent_inscription(p, obj, INSCRIPTION_THROW, false))
     {
         msg(p, "The item's inscription prevents it.");
-        return;
+        return false;
     }
 
     if (tval_is_ammo(obj)) magic = of_has(obj->flags, OF_AMMO_MAGIC);
@@ -2257,21 +2264,21 @@ void do_cmd_throw(struct player *p, int dir, int item)
     if (obj->artifact && (!magic || newbies_cannot_drop(p)))
     {
         msg(p, "You cannot throw that!");
-        return;
+        return false;
     }
 
     /* Never drop deeds of property */
     if (tval_is_deed(obj))
     {
         msg(p, "You cannot throw this.");
-        return;
+        return false;
     }
 
     /* Never in wrong house */
     if (!check_store_drop(p))
     {
         msg(p, "You cannot throw this here.");
-        return;
+        return false;
     }
 
     weight = MAX(obj->weight, 10);
@@ -2280,8 +2287,11 @@ void do_cmd_throw(struct player *p, int dir, int item)
     /* Apply confusion */
     player_confuse_dir(p, &dir);
 
-    ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
+    /* Take shots until energy runs out or monster dies */
+    more = ranged_helper(p, obj, dir, range, num_shots, attack, ranged_hit_types,
         (int)N_ELEMENTS(ranged_hit_types), magic, false, false);
+
+    return more;
 }
 
 
@@ -2294,6 +2304,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     int i, dir = DIR_TARGET;
     struct object *ammo = NULL;
     struct object *bow = equipped_item_by_slot_name(p, "shooting");
+    bool result;
 
     /* Cancel repeat */
     if (!p->firing_request) return true;
@@ -2301,21 +2312,22 @@ bool do_cmd_fire_at_nearest(struct player *p)
     /* Check energy */
     if (!has_energy(p, true)) return false;
 
-    /* Require a usable launcher */
-    if (!bow && (p->state.ammo_tval != TV_ROCK))
-    {
-        msg(p, "You have nothing to fire with.");
-
-        /* Cancel repeat */
-        disturb(p, 0);
-        return true;
-    }
-
     /* Find first eligible ammo in the quiver */
     for (i = 0; i < z_info->quiver_size; i++)
     {
         if (!p->upkeep->quiver[i]) continue;
-        if (p->upkeep->quiver[i]->tval != p->state.ammo_tval) continue;
+        if (bow)
+        {
+            if (p->upkeep->quiver[i]->tval != p->state.ammo_tval) continue;
+        }
+        else
+        {
+            if (!tval_is_ammo(p->upkeep->quiver[i]) ||
+                !of_has(p->upkeep->quiver[i]->flags, OF_THROWING))
+            {
+                continue;
+            }
+        }
         ammo = p->upkeep->quiver[i];
         break;
     }
@@ -2326,7 +2338,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
         msg(p, "You have no ammunition in the quiver to fire.");
 
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
@@ -2334,15 +2346,17 @@ bool do_cmd_fire_at_nearest(struct player *p)
     if (!target_set_closest(p, TARGET_KILL | TARGET_QUIET))
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
     /* Fire! */
-    if (!do_cmd_fire(p, dir, ammo->oidx))
+    if (bow) result = do_cmd_fire(p, dir, ammo->oidx);
+    else result = do_cmd_throw(p, dir, ammo->oidx);
+    if (!result)
     {
         /* Cancel repeat */
-        disturb(p, 0);
+        disturb(p);
         return true;
     }
 
