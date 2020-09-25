@@ -3477,6 +3477,69 @@ void get_town_file(char *buf, size_t len, const char *name)
 }
 
 
+bool customize_feature(struct chunk *c, struct loc *grid, struct dun_feature *dun_feats, int size,
+    bool (*test)(struct chunk *, struct loc *),
+    bool (*post_test)(struct chunk *, struct loc *, int), int *feat)
+{
+    int i, chance = 0, maxchance = 0, count = 0;
+    struct dun_feature **feats = mem_zalloc(size * sizeof(struct dun_feature *));
+    bool result = false;
+
+    /* List valid custom features */
+    for (i = 0; i < size; i++)
+    {
+        struct dun_feature *feature = &dun_feats[i];
+        int current_feat = square(c, grid)->feat;
+        bool ok = true;
+
+        /* Make the change for testing */
+        square(c, grid)->feat = feature->feat;
+
+        /* Apply testing function */
+        if (!test(c, grid)) ok = false;
+
+        /* Revert the change */
+        square(c, grid)->feat = current_feat;
+
+        /* Apply post-testing function */
+        if (post_test && !post_test(c, grid, feature->feat)) ok = false;
+
+        if (ok)
+        {
+            feats[count++] = feature;
+            maxchance += feature->chance;
+        }
+
+        chance += feature->chance;
+    }
+
+    /* Default feature is always valid, so get its chance */
+    chance = MIN(chance, 10000);
+    maxchance += (10000 - chance);
+
+    /* Basic chance */
+    chance = randint0(maxchance);
+
+    /* Get a random custom feature */
+    for (i = 0; i < count; i++)
+    {
+        struct dun_feature *feature = feats[i];
+
+        if (feature->chance > chance)
+        {
+            *feat = feature->feat;
+            result = true;
+            break;
+        }
+
+        chance -= feature->chance;
+    }
+
+    mem_free(feats);
+    return result;
+}
+
+
 /*
  * Generate wilderness towns for the first time
  *

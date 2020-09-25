@@ -265,6 +265,9 @@ extern struct wild_type *get_neighbor(struct wild_type *origin, char dir);
 extern int world_index(struct worldpos *wpos);
 extern int house_price(int area, bool town);
 extern void get_town_file(char *buf, size_t len, const char *name);
+extern bool customize_feature(struct chunk *c, struct loc *grid, struct dun_feature *dun_feats,
+    int size, bool (*test)(struct chunk *, struct loc *),
+    bool (*post_test)(struct chunk *, struct loc *, int), int *feat);
 
 extern struct chunk *wilderness_gen(struct player *p, struct worldpos *wpos, int min_height,
     int min_width);
