@@ -496,6 +496,9 @@ extern void square_set_join_rand(struct chunk *c, struct loc *grid);
 extern void square_set_upstairs(struct chunk *c, struct loc *grid);
 extern void square_set_downstairs(struct chunk *c, struct loc *grid, int feat);
 extern void square_set_rubble(struct chunk *c, struct loc *grid, int feat);
+extern bool customize_feature(struct chunk *c, struct loc *grid, struct dun_feature *dun_feats,
+    int size, bool (*test)(struct chunk *, struct loc *),
+    bool (*post_test)(struct chunk *, struct loc *, int), int *feat);
 
 /* cave-view.c */
 extern int distance(struct loc *grid1, struct loc *grid2);

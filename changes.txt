@@ -50,8 +50,47 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.4.0 build 2
+New features in PWMAngband 1.4.0 build 3
 ========================================
+
+User interface
+--------------
+
+PWMAngband:
+
+- Add custom wall features for "core" walls to dungeon.txt
+
+Gameplay changes
+----------------
+
+PWMAngband:
+
+- Allow negative value for BLOWS
+- Activate DAM_RED as a race/class modifier
+- Remove positive restriction on MIGHT, add lower cap of 1 on shooters
+- Activate MOVES as a race/class modifier, add lower cap of 1
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Fix party members not always visible when LIMITED_ESP is on
+- Fix stupid door mimic generation bug
+- Fix description of branded weapon when resulting damage is zero for all brands
+- Don't convert pit walls when building streamers
+- Don't customize pit/vault walls with passable or projectable terrain
+- Fix dungeon boss monsters not always being generated
+
+Coding changes
+--------------
+
+PWMAngband:
+
+- Refactor feature customization using a generic function
+
+Features in PWMAngband 1.4.0 build 2
+====================================
 
 User interface
 --------------

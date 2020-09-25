@@ -1194,7 +1194,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
                 {
                     if (rf_has(race->flags, RF_AQUATIC)) found = find_emptywater(chunk, &grid);
                     else if (rf_has(race->flags, RF_NO_DEATH)) found = find_training(chunk, &grid);
-                    else found = find_empty(chunk, &grid);
+                    else found = (find_empty(chunk, &grid) && square_is_monster_walkable(chunk, &grid));
                 }
                 if (found)
                 {

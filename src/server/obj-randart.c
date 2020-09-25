@@ -2602,7 +2602,6 @@ static void remove_contradictory(struct artifact *art)
     if (art->modifiers[OBJ_MOD_WIS] < 0) of_off(art->flags, OF_SUST_WIS);
     if (art->modifiers[OBJ_MOD_DEX] < 0) of_off(art->flags, OF_SUST_DEX);
     if (art->modifiers[OBJ_MOD_CON] < 0) of_off(art->flags, OF_SUST_CON);
-    if (art->modifiers[OBJ_MOD_BLOWS] < 0) art->modifiers[OBJ_MOD_BLOWS] = 0;
 
     if (of_has(art->flags, OF_DRAIN_EXP)) of_off(art->flags, OF_HOLD_LIFE);
 
@@ -2667,7 +2666,7 @@ static void make_bad(struct artifact *art)
     /* Reverse mods and bonuses */
     for (i = 0; i < OBJ_MOD_MAX; i++)
     {
-        if ((art->modifiers[i] > 0) && one_in_(2) && (i != OBJ_MOD_MIGHT))
+        if ((art->modifiers[i] > 0) && one_in_(2))
             art->modifiers[i] = 0 - art->modifiers[i];
     }
     if ((art->to_a > 0) && one_in_(2)) art->to_a = 0 - art->to_a;

@@ -1505,6 +1505,9 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
 
     bool isDM = ((p->dm_flags & DM_SEE_PLAYERS)? true: false);
 
+    /* Players in the same party are always visible */
+    bool inParty = in_party(p, q->party);
+
     /* Compute distance */
     d = distance(&q->grid, &p->grid);
 
@@ -1525,14 +1528,14 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
         telepathy_ok = false;
 
     /* Nearby */
-    if ((d <= z_info->max_sight) || !cfg_limited_esp || isDM)
+    if ((d <= z_info->max_sight) || !cfg_limited_esp || isDM || inParty)
     {
         bool hasESP = is_detected_p(p, q, d_esp);
         bool isTL = (player_has(p, PF_THUNDERLORD) &&
             (d_esp <= (p->lev * z_info->max_sight / PY_MAX_LEVEL)));
 
         /* Basic telepathy */
-        if (isDM || ((hasESP || isTL) && telepathy_ok))
+        if (isDM || inParty || ((hasESP || isTL) && telepathy_ok))
         {
             /* Empty mind, no telepathy */
             if (q->poly_race && rf_has(q->poly_race->flags, RF_EMPTY_MIND)) {}
@@ -1561,8 +1564,8 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
                 if (square_isview(p, &q->grid)) easy = true;
             }
 
-            /* DM has perfect ESP */
-            if (isDM)
+            /* DM or party members have perfect ESP */
+            if (isDM || inParty)
             {
                 /* Detectable */
                 flag = true;
@@ -1614,9 +1617,6 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             /* Learn about intervening squares */
             path_analyse(p, c, &q->grid);
         }
-
-        /* Players in the same party are always visible */
-        if (in_party(p, q->party)) easy = flag = true;
 
         /* Hack -- dungeon masters are invisible */
         if (q->dm_flags & DM_SECRET_PRESENCE) easy = flag = false;

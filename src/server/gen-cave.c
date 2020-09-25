@@ -147,7 +147,8 @@ static void build_streamer(struct chunk *c, int feat, int chance)
             find_nearby_grid(c, &change, &grid, d, d);
 
             /* Only convert walls */
-            if (square_isrock(c, &change))
+            /* PWMAngband: don't convert pit walls */
+            if (square_isrock(c, &change) && !square_ispermfake(c, &change))
             {
                 /* Turn the rock into the vein type */
                 square_set_feat(c, &change, feat);
@@ -189,6 +190,62 @@ static void add_streamer(struct chunk *c, int feat, int flag, int chance)
 }
 
 
+static bool customize_floor_valid(struct chunk *c, struct loc *grid)
+{
+    struct monster *mon = square_monster(c, grid);
+
+    /* Damaging or blocking terrain */
+    if (mon && (monster_hates_grid(c, mon, grid) || !square_ispassable(c, grid)))
+        return false;
+
+    /* Floor can't hold objects */
+    if (square_isanyfloor(c, grid) && !square_isobjectholding(c, grid))
+        return false;
+
+    return true;
+}
+
+
+static bool customize_wall_valid(struct chunk *c, struct loc *grid)
+{
+    /* Floor can't hold objects */
+    if (square_isanyfloor(c, grid) && !square_isobjectholding(c, grid))
+        return false;
+
+    return true;
+}
+
+
+static bool customize_wall_post_valid(struct chunk *c, struct loc *grid, int feat)
+{
+    /* Don't convert pit walls with passable or projectable terrain */
+    if (square_ispermfake(c, grid) && (feat_is_passable(feat) || feat_is_projectable(feat)))
+        return false;
+
+    /* Don't convert vault walls with passable or projectable terrain */
+    if (square_isvault(c, grid) && (feat_is_passable(feat) || feat_is_projectable(feat)))
+        return false;
+
+    return true;
+}
+
+
+static bool entombed(struct chunk *c, struct loc *grid)
+{
+    int d, count = 0;
+
+    for (d = 0; d < 8; d++)
+    {
+        struct loc adjacent;
+
+        loc_sum(&adjacent, grid, &ddgrid_ddd[d]);
+        if (square_seemslikewall(c, &adjacent)) count++;
+    }
+
+    return (count == 8);
+}
+
+
 /*
  * Replace floors/walls/doors/stairs/rubbles/fountains with custom features specific to a dungeon.
  *
@@ -209,8 +266,8 @@ static void customize_features(struct chunk *c)
     if (!dungeon || !c->wpos.depth) return;
 
     /* Nothing to do */
-    if (dungeon->n_floors + dungeon->n_walls + dungeon->n_permas + dungeon->n_doors +
-        dungeon->n_stairs + dungeon->n_rubbles + dungeon->n_fountains == 0)
+    if (dungeon->n_floors + dungeon->n_walls + dungeon->n_fills + dungeon->n_permas +
+        dungeon->n_doors + dungeon->n_stairs + dungeon->n_rubbles + dungeon->n_fountains == 0)
     {
         return;
     }
@@ -227,87 +284,30 @@ static void customize_features(struct chunk *c)
         /* Floors */
         if (square_isfloor(c, &iter.cur) && !square_ispitfloor(c, &iter.cur))
         {
-            struct monster *mon = square_monster(c, &iter.cur);
+            int feat = 0;
 
-            /* Basic chance */
-            chance = randint0(10000);
-
-            /* Process all features */
-            for (i = 0; i < dungeon->n_floors; i++)
+            /* Get a random floor tile */
+            if (customize_feature(c, &iter.cur, dungeon->floors, dungeon->n_floors,
+                customize_floor_valid, NULL, &feat))
             {
-                struct dun_feature *feature = &dungeon->floors[i];
-                int current_feat = square(c, &iter.cur)->feat;
-                bool ok = true;
-
-                /* Make the change for testing */
-                square(c, &iter.cur)->feat = feature->feat;
-
-                /* Damaging or blocking terrain */
-                if (mon && (monster_hates_grid(c, mon, &iter.cur) ||
-                    !square_ispassable(c, &iter.cur)))
-                {
-                    ok = false;
-                }
-
-                /* Floor can't hold objects */
-                if (square_isanyfloor(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
-                    ok = false;
-
-                /* Skip */
-                if (feature->chance <= chance) ok = false;
-
-                /* Revert the change */
-                square(c, &iter.cur)->feat = current_feat;
-
-                /* Fill the level with that feature */
-                if (ok)
-                {
-                    square_set_feat(c, &iter.cur, feature->feat);
-                    break;
-                }
-
-                chance -= feature->chance;
+                square_set_feat(c, &iter.cur, feat);
             }
         }
 
         /* Walls */
         if (square_isrock(c, &iter.cur))
         {
-            /* Basic chance */
-            chance = randint0(10000);
+            int feat = 0;
+            bool fill = entombed(c, &iter.cur);
 
-            /* Process all features */
-            for (i = 0; i < dungeon->n_walls; i++)
+            /* Get a random wall tile */
+            if (customize_feature(c, &iter.cur,
+                fill? dungeon->fills: dungeon->walls,
+                fill? dungeon->n_fills: dungeon->n_walls,
+                customize_wall_valid, customize_wall_post_valid, &feat))
             {
-                struct dun_feature *feature = &dungeon->walls[i];
-                int current_feat = square(c, &iter.cur)->feat;
-                bool ok = true;
-
-                /* Make the change for testing */
-                square(c, &iter.cur)->feat = feature->feat;
-
-                /* Floor can't hold objects */
-                if (square_isanyfloor(c, &iter.cur) && !square_isobjectholding(c, &iter.cur))
-                    ok = false;
-
-                /* Skip */
-                if (feature->chance <= chance) ok = false;
-
-                /* Revert the change */
-                square(c, &iter.cur)->feat = current_feat;
-
-                /* Fill the level with that feature */
-                if (ok)
-                {
-                    if (!square_ispermfake(c, &iter.cur) || !feat_is_passable(feature->feat))
-                    {
-                        square_set_feat(c, &iter.cur, feature->feat);
-                        sqinfo_on(square(c, &iter.cur)->info, SQUARE_CUSTOM_WALL);
-                    }
-                    break;
-                }
-
-                chance -= feature->chance;
+                square_set_feat(c, &iter.cur, feat);
+                sqinfo_on(square(c, &iter.cur)->info, SQUARE_CUSTOM_WALL);
             }
         }
         if (square_isperm(c, &iter.cur))

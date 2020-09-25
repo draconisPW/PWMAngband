@@ -128,6 +128,8 @@ struct location
     int n_floors;
     struct dun_feature *walls;      /* Unusual dungeon walls */
     int n_walls;
+    struct dun_feature *fills;      /* Unusual dungeon filler walls */
+    int n_fills;
     struct dun_feature *permas;     /* Unusual dungeon permawalls */
     int n_permas;
     struct dun_feature *doors;      /* Unusual dungeon doors */

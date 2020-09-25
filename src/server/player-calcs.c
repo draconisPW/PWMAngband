@@ -2214,6 +2214,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
             state->speed += (r_adj + c_adj);
         }
 
+        /* Affect damage reduction */
+        if (i == OBJ_MOD_DAM_RED) state->dam_red += (r_adj + c_adj);
+
         /* Affect blows */
         if (i == OBJ_MOD_BLOWS)
         {
@@ -2228,6 +2231,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
 
         /* Affect Might */
         if (i == OBJ_MOD_MIGHT) extra_might += (r_adj + c_adj);
+
+        /* Affect movement speed */
+        if (i == OBJ_MOD_MOVES) extra_moves += (r_adj + c_adj);
     }
 
     /* Unencumbered monks get extra ac for wearing very light or no armour at all */
@@ -2544,6 +2550,9 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
 
         /* Require at least one shot */
         if (state->num_shots < 10) state->num_shots = 10;
+
+        /* PWMAngband: require at least a multiplier of one */
+        if (state->ammo_mult < 1) state->ammo_mult = 1;
     }
 
     /* Temporary "Farsight" */
@@ -2615,6 +2624,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
 
     /* Movement speed */
     state->num_moves = 1 + extra_moves;
+    if (state->num_moves < 1) state->num_moves = 1;
     if (update && (p->state.num_moves != state->num_moves))
         p->upkeep->redraw |= (PR_STATE);
 

@@ -998,79 +998,112 @@ static void describe_damage(struct player *p, const struct object *obj, bool thr
             }
         }
 
-        /* Sort. Since the number is small, insertion sort is fine. */
-        for (i = 0; i < nsort - 1; i++)
+        if (nsort > 0)
         {
-            int maxdam = ((sortind[i] < z_info->brand_max + 4)? brand_damage[sortind[i]]:
-                slay_damage[sortind[i] - z_info->brand_max - 4]);
-            int maxind = i;
-            int j;
-
-            for (j = i + 1; j < nsort; j++)
+            /* Sort. Since the number is small, insertion sort is fine. */
+            for (i = 0; i < nsort - 1; i++)
             {
-                int dam = ((sortind[j] < z_info->brand_max + 4)? brand_damage[sortind[j]]:
-                    slay_damage[sortind[j] - z_info->brand_max - 4]);
+                int maxdam = ((sortind[i] < z_info->brand_max + 4)? brand_damage[sortind[i]]:
+                    slay_damage[sortind[i] - z_info->brand_max - 4]);
+                int maxind = i;
+                int j;
 
-                if (maxdam < dam)
+                for (j = i + 1; j < nsort; j++)
                 {
-                    maxdam = dam;
-                    maxind = j;
+                    int dam = ((sortind[j] < z_info->brand_max + 4)? brand_damage[sortind[j]]:
+                        slay_damage[sortind[j] - z_info->brand_max - 4]);
+
+                    if (maxdam < dam)
+                    {
+                        maxdam = dam;
+                        maxind = j;
+                    }
+                }
+                if (maxind != i)
+                {
+                    int tmp = sortind[maxind];
+
+                    sortind[maxind] = sortind[i];
+                    sortind[i] = tmp;
                 }
             }
-            if (maxind != i)
+
+            /* Output */
+            lastdam = 0;
+            groupn = 0;
+            lastnm = NULL;
+            last_is_brand = false;
+            last_is_fire = false;
+            last_is_cold = false;
+            for (i = 0; i < nsort; i++)
             {
-                int tmp = sortind[maxind];
+                const char *tgt;
+                int dam;
+                bool is_brand, is_fire = false, is_cold = false;
 
-                sortind[maxind] = sortind[i];
-                sortind[i] = tmp;
-            }
-        }
-
-        /* Output */
-        lastdam = 0;
-        groupn = 0;
-        lastnm = NULL;
-        last_is_brand = false;
-        last_is_fire = false;
-        last_is_cold = false;
-        for (i = 0; i < nsort; i++)
-        {
-            const char *tgt;
-            int dam;
-            bool is_brand, is_fire = false, is_cold = false;
-
-            if (sortind[i] < z_info->brand_max + 4)
-            {
-                is_brand = true;
-                if (sortind[i] < z_info->brand_max)
-                    tgt = brands[sortind[i]].name;
-                else if (sortind[i] < z_info->brand_max + 2)
+                if (sortind[i] < z_info->brand_max + 4)
                 {
-                    is_fire = true;
-                    tgt = "fire";
+                    is_brand = true;
+                    if (sortind[i] < z_info->brand_max)
+                        tgt = brands[sortind[i]].name;
+                    else if (sortind[i] < z_info->brand_max + 2)
+                    {
+                        is_fire = true;
+                        tgt = "fire";
+                    }
+                    else
+                    {
+                        is_cold = true;
+                        tgt = "cold";
+                    }
+                    dam = brand_damage[sortind[i]];
                 }
                 else
                 {
-                    is_cold = true;
-                    tgt = "cold";
+                    is_brand = false;
+                    tgt = slays[sortind[i] - z_info->brand_max - 4].name;
+                    dam = slay_damage[sortind[i] - z_info->brand_max - 4];
                 }
-                dam = brand_damage[sortind[i]];
-            }
-            else
-            {
-                is_brand = false;
-                tgt = slays[sortind[i] - z_info->brand_max - 4].name;
-                dam = slay_damage[sortind[i] - z_info->brand_max - 4];
-            }
 
-            if (groupn > 0)
-            {
+                if (groupn > 0)
+                {
+                    if (dam != lastdam)
+                    {
+                        if (groupn > 2) text_out(p, ", and");
+                        else if (groupn == 2) text_out(p, " and");
+                    }
+                    else if (groupn > 1) text_out(p, ",");
+                    if (last_is_brand)
+                    {
+                        if (last_is_fire || last_is_cold)
+                            text_out(p, " creatures susceptible to");
+                        else
+                            text_out(p, " creatures not resistant to");
+                    }
+                    text_out(p, " %s", lastnm);
+                }
                 if (dam != lastdam)
                 {
-                    if (groupn > 2) text_out(p, ", and");
-                    else if (groupn == 2) text_out(p, " and");
+                    if (i != 0) text_out(p, ", ");
+                    if (dam % 10) text_out_c(p, COLOUR_L_GREEN, "%d.%d vs", dam / 10, dam % 10);
+                    else text_out_c(p, COLOUR_L_GREEN, "%d vs", dam / 10);
+                    groupn = 1;
+                    lastdam = dam;
                 }
-                else if (groupn > 1) text_out(p, ",");
+                else
+                {
+                    my_assert(groupn > 0);
+                    ++groupn;
+                }
+                lastnm = tgt;
+                last_is_brand = is_brand;
+                last_is_fire = is_fire;
+                last_is_cold = is_cold;
+            }
+            if (groupn > 0)
+            {
+                if (groupn > 2) text_out(p, ", and");
+                else if (groupn == 2) text_out(p, " and");
                 if (last_is_brand)
                 {
                     if (last_is_fire || last_is_cold)
@@ -1080,39 +1113,12 @@ static void describe_damage(struct player *p, const struct object *obj, bool thr
                 }
                 text_out(p, " %s", lastnm);
             }
-            if (dam != lastdam)
-            {
-                if (i != 0) text_out(p, ", ");
-                if (dam % 10) text_out_c(p, COLOUR_L_GREEN, "%d.%d vs", dam / 10, dam % 10);
-                else text_out_c(p, COLOUR_L_GREEN, "%d vs", dam / 10);
-                groupn = 1;
-                lastdam = dam;
-            }
-            else
-            {
-                my_assert(groupn > 0);
-                ++groupn;
-            }
-            lastnm = tgt;
-            last_is_brand = is_brand;
-            last_is_fire = is_fire;
-            last_is_cold = is_cold;
-        }
-        if (groupn > 0)
-        {
-            if (groupn > 2) text_out(p, ", and");
-            else if (groupn == 2) text_out(p, " and");
-            if (last_is_brand)
-            {
-                if (last_is_fire || last_is_cold)
-                    text_out(p, " creatures susceptible to");
-                else
-                    text_out(p, " creatures not resistant to");
-            }
-            text_out(p, " %s", lastnm);
-        }
 
-        text_out(p, ((nsort == 1)? " and ": ", and "));
+            text_out(p, ((nsort == 1)? " and ": ", and "));
+        }
+        else
+            has_brands_or_slays = false;
+
         mem_free(sortind);
     }
 

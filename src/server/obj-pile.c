@@ -1322,7 +1322,7 @@ void push_object(struct player *p, struct chunk *c, struct loc *grid)
     struct monster *mon = square_monster(c, grid);
 
     /* XXX */
-    if (mon && monster_is_camouflaged(mon)) become_aware(p, c, mon);
+    if (mon && mon->mimicked_obj) become_aware(p, c, mon);
     obj = square_object(c, grid);
     if (!obj) return;
 

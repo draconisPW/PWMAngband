@@ -2032,6 +2032,18 @@ void square_unlock_door(struct chunk *c, struct loc *grid)
 }
 
 
+static bool square_set_floor_valid(struct chunk *c, struct loc *grid)
+{
+    /* Need to be passable */
+    if (!square_ispassable(c, grid)) return false;
+
+    /* Floor can't hold objects */
+    if (square_isanyfloor(c, grid) && !square_isobjectholding(c, grid)) return false;
+
+    return true;
+}
+
+
 void square_set_floor(struct chunk *c, struct loc *grid, int feat)
 {
     struct worldpos dpos;
@@ -2042,43 +2054,12 @@ void square_set_floor(struct chunk *c, struct loc *grid, int feat)
     /* Get the dungeon */
     wpos_init(&dpos, &c->wpos.grid, 0);
     dungeon = get_dungeon(&dpos);
+
+    /* Get a random custom floor */
     if (dungeon && c->wpos.depth && !feat_ispitfloor)
     {
-        int i, chance;
-
-        /* Basic chance */
-        chance = randint0(10000);
-
-        /* Get a random floor tile */
-        for (i = 0; i < dungeon->n_floors; i++)
-        {
-            struct dun_feature *feature = &dungeon->floors[i];
-            int current_feat = square(c, grid)->feat;
-            bool ok = true;
-
-            /* Make the change for testing */
-            square(c, grid)->feat = feature->feat;
-
-            /* Need to be passable */
-            if (!square_ispassable(c, grid)) ok = false;
-
-            /* Floor can't hold objects */
-            if (square_isanyfloor(c, grid) && !square_isobjectholding(c, grid)) ok = false;
-
-            /* Skip */
-            if (feature->chance <= chance) ok = false;
-
-            /* Revert the change */
-            square(c, grid)->feat = current_feat;
-
-            if (ok)
-            {
-                feat = feature->feat;
-                break;
-            }
-
-            chance -= feature->chance;
-        }
+        customize_feature(c, grid, dungeon->floors, dungeon->n_floors, square_set_floor_valid, NULL,
+            &feat);
     }
 
     square_set_feat(c, grid, feat);
@@ -2169,6 +2150,16 @@ void square_smash_wall(struct chunk *c, struct loc *grid)
 }
 
 
+static bool square_set_wall_valid(struct chunk *c, struct loc *grid)
+{
+    /* Floor can't hold objects */
+    if (square_isanyfloor(c, grid) && !square_isobjectholding(c, grid))
+        return false;
+
+    return true;
+}
+
+
 static void square_set_wall(struct chunk *c, struct loc *grid, int feat)
 {
     struct worldpos dpos;
@@ -2179,38 +2170,13 @@ static void square_set_wall(struct chunk *c, struct loc *grid, int feat)
     dungeon = get_dungeon(&dpos);
     if (dungeon && c->wpos.depth)
     {
-        int i, chance;
-
-        /* Basic chance */
-        chance = randint0(10000);
+        int feat = 0;
 
         /* Get a random wall tile */
-        for (i = 0; i < dungeon->n_walls; i++)
+        if (customize_feature(c, grid, dungeon->walls, dungeon->n_walls, square_set_wall_valid,
+            NULL, &feat))
         {
-            struct dun_feature *feature = &dungeon->walls[i];
-            int current_feat = square(c, grid)->feat;
-            bool ok = true;
-
-            /* Make the change for testing */
-            square(c, grid)->feat = feature->feat;
-
-            /* Floor can't hold objects */
-            if (square_isanyfloor(c, grid) && !square_isobjectholding(c, grid)) ok = false;
-
-            /* Skip */
-            if (feature->chance <= chance) ok = false;
-
-            /* Revert the change */
-            square(c, grid)->feat = current_feat;
-
-            if (ok)
-            {
-                feat = feature->feat;
-                sqinfo_on(square(c, grid)->info, SQUARE_CUSTOM_WALL);
-                break;
-            }
-
-            chance -= feature->chance;
+            sqinfo_on(square(c, grid)->info, SQUARE_CUSTOM_WALL);
         }
     }
 
@@ -2286,6 +2252,13 @@ int square_digging(struct chunk *c, struct loc *grid)
 }
 
 
+static bool square_apparent_feat_valid(struct chunk *c, struct loc *grid)
+{
+    if (square_ispassable(c, grid)) return false;
+    return true;
+}
+
+
 int square_apparent_feat(struct player *p, struct chunk *c, struct loc *grid)
 {
     int actual = square_known_feat(p, c, grid);
@@ -2306,9 +2279,6 @@ int square_apparent_feat(struct player *p, struct chunk *c, struct loc *grid)
             dungeon = get_dungeon(&dpos);
             if (dungeon && c->wpos.depth)
             {
-                int i, chance, maxchance = 0, count = 0;
-                struct dun_feature **walls;
-
                 u32b tmp_seed = Rand_value;
                 bool rand_old = Rand_quick;
 
@@ -2316,45 +2286,9 @@ int square_apparent_feat(struct player *p, struct chunk *c, struct loc *grid)
                 Rand_quick = true;
                 Rand_value = seed_wild + world_index(&c->wpos) * 600 + c->wpos.depth * 37;
 
-                /* Count custom walls that are not passable */
-                for (i = 0; i < dungeon->n_walls; i++)
-                {
-                    struct dun_feature *feature = &dungeon->walls[i];
-
-                    if (!feat_is_passable(feature->feat))
-                    {
-                        count++;
-                        maxchance += feature->chance;
-                    }
-                }
-
-                /* List custom walls that are not passable */
-                walls = mem_zalloc(count * sizeof(struct dun_feature *));
-                count = 0;
-                for (i = 0; i < dungeon->n_walls; i++)
-                {
-                    struct dun_feature *feature = &dungeon->walls[i];
-                    if (!feat_is_passable(feature->feat)) walls[count++] = feature;
-                }
-
-                /* Basic chance */
-                chance = randint0(maxchance);
-
                 /* Get a random wall tile */
-                for (i = 0; i < count; i++)
-                {
-                    struct dun_feature *feature = walls[i];
-
-                    if (feature->chance > chance)
-                    {
-                        actual = feature->feat;
-                        break;
-                    }
-
-                    chance -= feature->chance;
-                }
-
-                mem_free(walls);
+                customize_feature(c, grid, dungeon->walls, dungeon->n_walls,
+                    square_apparent_feat_valid, NULL, &actual);
 
                 Rand_value = tmp_seed;
                 Rand_quick = rand_old;
@@ -2752,4 +2686,67 @@ void square_set_rubble(struct chunk *c, struct loc *grid, int feat)
     }
 
     square_set_feat(c, grid, feat);
+}
+
+
+bool customize_feature(struct chunk *c, struct loc *grid, struct dun_feature *dun_feats, int size,
+    bool (*test)(struct chunk *, struct loc *),
+    bool (*post_test)(struct chunk *, struct loc *, int), int *feat)
+{
+    int i, chance = 0, maxchance = 0, count = 0;
+    struct dun_feature **feats = mem_zalloc(size * sizeof(struct dun_feature *));
+    bool result = false;
+
+    /* List valid custom features */
+    for (i = 0; i < size; i++)
+    {
+        struct dun_feature *feature = &dun_feats[i];
+        int current_feat = square(c, grid)->feat;
+        bool ok = true;
+
+        /* Make the change for testing */
+        square(c, grid)->feat = feature->feat;
+
+        /* Apply testing function */
+        if (!test(c, grid)) ok = false;
+
+        /* Revert the change */
+        square(c, grid)->feat = current_feat;
+
+        /* Apply post-testing function */
+        if (post_test && !post_test(c, grid, feature->feat)) ok = false;
+
+        if (ok)
+        {
+            feats[count++] = feature;
+            maxchance += feature->chance;
+        }
+
+        chance += feature->chance;
+    }
+
+    /* Default feature is always valid, so get its chance */
+    chance = MIN(chance, 10000);
+    maxchance += (10000 - chance);
+
+    /* Basic chance */
+    chance = randint0(maxchance);
+
+    /* Get a random custom feature */
+    for (i = 0; i < count; i++)
+    {
+        struct dun_feature *feature = feats[i];
+
+        if (feature->chance > chance)
+        {
+            *feat = feature->feat;
+            result = true;
+            break;
+        }
+
+        chance -= feature->chance;
+    }
+
+    mem_free(feats);
+    return result;
 }

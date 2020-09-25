@@ -1549,7 +1549,7 @@ static void generate_new_level(struct player *p)
                 {
                     if (rf_has(race->flags, RF_AQUATIC)) found = find_emptywater(c, &grid);
                     else if (rf_has(race->flags, RF_NO_DEATH)) found = find_training(c, &grid);
-                    else found = find_empty(c, &grid);
+                    else found = (find_empty(c, &grid) && square_is_monster_walkable(c, &grid));
                 }
                 if (found)
                     place_new_monster(p, c, &grid, race, MON_ASLEEP | MON_GROUP, &info, ORIGIN_DROP);
