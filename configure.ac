@@ -198,7 +198,7 @@ AC_ARG_ENABLE(curses,
 	[enable_curses=$enableval],
 	[enable_curses=yes])
 AC_ARG_ENABLE(x11,
-	[AS_HELP_STRING([--enable-x11],       [Enables X11 frontend (default: enabled)])],
+	[AS_HELP_STRING([--enable-x11],       [Enables X11 frontend (default: disabled)])],
 	[enable_x11=$enableval],
 	[enable_x11=no])
 AC_ARG_ENABLE(sdl,
