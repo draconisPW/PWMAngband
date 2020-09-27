@@ -37,6 +37,43 @@
 /*static char *termtype;
 static bool loaded_terminfo;*/
 
+/* PDCurses-specific key */
+#define CTL_LEFT      0x1bb  /* Control-Left-Arrow */
+#define CTL_RIGHT     0x1bc
+#define CTL_PGUP      0x1bd
+#define CTL_PGDN      0x1be
+#define CTL_HOME      0x1bf
+#define CTL_END       0x1c0
+
+#define KEY_A2        0x1c2  /* upper middle on Virt. keypad */
+#define KEY_B1        0x1c4  /* middle left on Virt. keypad */
+#define KEY_B3        0x1c6  /* middle right on Vir. keypad */
+#define KEY_C2        0x1c8  /* lower middle on Virt. keypad */
+
+#define PADSLASH      0x1ca  /* slash on keypad */
+#define PADENTER      0x1cb  /* enter on keypad */
+#define PADSTOP       0x1ce  /* stop on keypad */
+#define PADSTAR       0x1cf  /* star on keypad */
+#define PADMINUS      0x1d0  /* minus on keypad */
+#define PADPLUS       0x1d1  /* plus on keypad */
+#define CTL_UP        0x1e0  /* ctl-up arrow */
+#define CTL_DOWN      0x1e1  /* ctl-down arrow */
+#define PAD0          0x1fa  /* keypad 0 */
+
+#define CTL_PAD0      0x1fb  /* ctl-keypad 0 */
+#define CTL_PAD1      0x1fc
+#define CTL_PAD2      0x1fd
+#define CTL_PAD3      0x1fe
+#define CTL_PAD4      0x1ff
+#define CTL_PAD5      0x200
+#define CTL_PAD6      0x201
+#define CTL_PAD7      0x202
+#define CTL_PAD8      0x203
+#define CTL_PAD9      0x204
+
+#define KEY_SUP       0x223  /* Shifted up arrow */
+#define KEY_SDOWN     0x224  /* Shifted down arrow */
+
 /*
  * Information about a term
  */
@@ -933,8 +970,12 @@ static errr term_data_init_gcu(term_data *td, int rows, int cols, int y, int x)
  */
 static void hook_plog(const char *str)
 {
+#ifdef WINDOWS
     /* Warning */
     if (str) MessageBox(NULL, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
+#else
+    printf("%s\n", str);
+#endif
 }
 
 
@@ -961,11 +1002,14 @@ static void hook_quit(const char *str)
     /* Cleanup network stuff */
     Net_cleanup();
 
+#ifdef WINDOWS
     /* Cleanup WinSock */
     WSACleanup();
+#endif
 }
 
 
+#ifdef WINDOWS
 static BOOL CtrlHandler(DWORD fdwCtrlType)
 {
     switch (fdwCtrlType)
@@ -977,6 +1021,7 @@ static BOOL CtrlHandler(DWORD fdwCtrlType)
             return TRUE;
     }
 }
+#endif
 
 
 /*
@@ -1008,9 +1053,11 @@ errr init_gcu(void)
     plog_aux = hook_plog;
     quit_aux = hook_quit;
 
+#ifdef WINDOWS
     /* Register a control handler */
     if (!SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, true))
         quit("Could not set control handler");
+#endif
 
     /* Require standard size screen */
     if (LINES < MIN_TERM0_LINES || COLS < MIN_TERM0_COLS)
