@@ -302,8 +302,8 @@ static void customize_features(struct chunk *c)
 
             /* Get a random wall tile */
             if (customize_feature(c, &iter.cur,
-                fill? dungeon->fills: dungeon->walls,
-                fill? dungeon->n_fills: dungeon->n_walls,
+                (fill && dungeon->fills)? dungeon->fills: dungeon->walls,
+                (fill && dungeon->fills)? dungeon->n_fills: dungeon->n_walls,
                 customize_wall_valid, customize_wall_post_valid, &feat))
             {
                 square_set_feat(c, &iter.cur, feat);

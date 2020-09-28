@@ -17,6 +17,7 @@
 # flags : dungeon flags
 # floor : floor feature : 1/10000 chance of getting the feature
 # wall : wall feature : 1/10000 chance of getting the feature
+# fill : wall feature : 1/10000 chance of getting the feature
 # perma : permawall feature : 1/10000 chance of getting the feature
 # door : closed door feature : open door feature : broken door feature : 1/10000
 #        chance of getting the feature
@@ -48,6 +49,7 @@
 
 # 'floor' are dungeon features that can replace basic floors
 # 'wall' are dungeon features that can replace basic walls
+# 'fill' are dungeon features that can replace "core" walls
 # 'perma' are dungeon features that can replace basic permawalls
 # 'door' are dungeon features that can replace basic doors
 # 'stair' are dungeon features that can replace basic stairs
@@ -87,7 +89,8 @@ max-depth:23
 max-level:30
 flags:CAVERN | STREAMS
 floor:packed dirt:1000
-wall:mountain:1000
+wall:mountain:1200
+fill:mountain:600
 rule:5000:0
 rule-flags:ORC
 rule-symbols:koO
@@ -104,7 +107,8 @@ max-level:30
 flags:NO_DOORS | WATER_RIVER | STREAMS
 floor:packed dirt:8
 floor:water:200
-wall:tree:1000
+wall:tree:1200
+fill:tree:600
 rule:4000:0
 rule-flags:ANIMAL
 rule:3000:0
@@ -120,7 +124,8 @@ max-depth:30
 max-level:35
 flags:CAVERN | STREAMS
 floor:packed dirt:1000
-wall:mountain:1000
+wall:mountain:1200
+fill:mountain:600
 rule:5000:0
 rule-flags:TROLL
 rule:3000:0
@@ -136,7 +141,8 @@ max-depth:30
 max-level:35
 flags:NO_DOORS | SAND_VEIN | STREAMS
 floor:sand:1000
-wall:sandwall:1000
+wall:sandwall:1200
+fill:sandwall:600
 rule:9000:0
 rule-symbols:w
 rule:1000:0
@@ -150,8 +156,10 @@ max-depth:34
 max-level:40
 flags:STREAMS
 floor:grass:1000
-wall:tree:300
-wall:water:300
+wall:tree:400
+wall:water:400
+fill:tree:200
+fill:water:200
 rule:3000:0
 rule-symbols:ph
 rule:3000:0
@@ -167,8 +175,10 @@ max-level:40
 flags:STREAMS
 floor:packed dirt:800
 floor:grass:200
-wall:tree:300
-wall:mountain:700
+wall:tree:400
+wall:mountain:800
+fill:tree:200
+fill:mountain:400
 rule:2500:0
 rule-flags:UNDEAD
 rule:7500:1
@@ -205,7 +215,8 @@ max-depth:45
 max-level:45
 flags:STREAMS
 floor:water:1000
-wall:mountain:1000
+wall:mountain:1200
+fill:mountain:600
 rule:4000:0
 rule-flags:IM_COLD
 rule:4000:0
@@ -222,7 +233,8 @@ max-depth:50
 max-level:45
 flags:CAVERN | WATER_RIVER | STREAMS
 floor:ice:1000
-wall:ice wall:1000
+wall:ice wall:1200
+fill:ice wall:600
 rule:10000:0
 rule-flags:IM_COLD
 
@@ -234,7 +246,8 @@ max-depth:50
 max-level:45
 flags:WATER_RIVER | STREAMS
 floor:packed dirt:1000
-wall:mountain:1000
+wall:mountain:1200
+fill:mountain:600
 rule:4000:0
 rule-flags:ORC
 rule:3000:0
@@ -250,8 +263,10 @@ min-depth:35
 max-depth:52
 max-level:45
 flags:STREAMS
-wall:glass wall:500
-wall:illusion wall:500
+wall:glass wall:600
+wall:illusion wall:600
+fill:glass wall:300
+fill:illusion wall:300
 rule:7000:0
 rule-flags:STUPID | WEIRD_MIND | ATTR_MULTI | ATTR_FLICKER | RAND_25 |
 rule-flags:RAND_50 | EMPTY_MIND | INVISIBLE | PASS_WALL | KILL_WALL | MULTIPLY
@@ -267,8 +282,10 @@ max-level:45
 flags:CIRCULAR_ROOMS | STREAMS
 floor:packed dirt:700
 floor:web:300
-wall:mountain:900
-wall:web:100
+wall:mountain:1000
+wall:web:120
+fill:mountain:500
+fill:web:60
 rule:4900:0
 rule-symbols:caIS
 rule:4900:0
@@ -284,7 +301,8 @@ max-depth:55
 max-level:45
 flags:STREAMS
 floor:water:1000
-wall:water:900
+wall:water:1000
+fill:water:500
 rule:8000:0
 rule-flags:IM_WATER
 rule:2000:1
@@ -296,7 +314,8 @@ min-depth:11
 max-depth:64
 flags:NO_DOORS | STREAMS
 floor:grass:1000
-wall:tree:1000
+wall:tree:1200
+fill:tree:600
 rule:2500:0
 rule-symbols:S
 rule:7500:1
@@ -309,7 +328,8 @@ max-depth:65
 flags:CAVERN | LAVA_RIVER | STREAMS
 floor:packed dirt:700
 floor:ash:300
-wall:mountain:500
+wall:mountain:600
+fill:mountain:300
 rule:10000:1
 
 # Erebor (boss: Glaurung, Father of the Dragons)
@@ -319,8 +339,10 @@ min-depth:58
 max-depth:70
 flags:CAVERN | LAVA_RIVER | STREAMS
 floor:packed dirt:1000
-wall:mountain:900
-wall:dark wall:100
+wall:mountain:1000
+wall:dark wall:120
+fill:mountain:500
+fill:dark wall:60
 rule:6000:0
 rule-symbols:D
 rule:3000:0
@@ -334,7 +356,8 @@ min-depth:45
 max-depth:72
 flags:STREAMS
 floor:grass:1000
-wall:mountain:1000
+wall:mountain:1200
+fill:mountain:600
 rule:10000:1
 
 # Dol Guldur (boss: The Necromancer of Dol Guldur)
@@ -362,7 +385,8 @@ max-depth:77
 flags:STREAMS
 floor:packed dirt:900
 floor:water:100
-wall:dark wall:300
+wall:dark wall:400
+fill:dark wall:200
 rule:8500:0
 rule-flags:UNDEAD | NONLIVING
 rule:1000:0
@@ -376,7 +400,8 @@ min-depth:84
 max-depth:98
 flags:CAVERN | LAVA_RIVER
 floor:lava stream:1000
-wall:lava:1000
+wall:lava:1200
+fill:lava:600
 rule:10000:0
 rule-flags:IM_FIRE
 
@@ -388,8 +413,10 @@ max-depth:126
 flags:EMPTY | LAVA_RIVER | WINNERS_ONLY | STREAMS
 floor:nether mist:800
 floor:lava stream:200
-wall:lava:800
-wall:dark wall:200
+wall:lava:900
+wall:dark wall:300
+fill:lava:450
+fill:dark wall:150
 rule:9500:0
 rule-flags:IM_NETHER
 rule-symbols:GWU
