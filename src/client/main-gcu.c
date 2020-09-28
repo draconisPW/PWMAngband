@@ -37,7 +37,7 @@
 /*static char *termtype;
 static bool loaded_terminfo;*/
 
-/* Windows already has this in \src\curses\curses.h
+/* Windows already has this in curses.h */
 #ifndef WINDOWS
 /* PDCurses-specific key */
 #define CTL_LEFT      0x1bb  /* Control-Left-Arrow */
