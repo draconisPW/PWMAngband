@@ -225,6 +225,17 @@ static enum parser_error parse_profile_room(struct parser *p)
 }
 
 
+static enum parser_error parse_profile_min_level(struct parser *p)
+{
+    struct cave_profile *c = parser_priv(p);
+
+    if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    c->min_level = parser_getint(p, "min");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_profile_cutoff(struct parser *p)
 {
     struct cave_profile *c = parser_priv(p);
@@ -251,6 +262,7 @@ static struct parser *init_parse_profile(void)
         "room sym name int rating int height int width int level int pit int rarity int cutoff",
         parse_profile_room);
     parser_reg(p, "cutoff int cutoff", parse_profile_cutoff);
+    parser_reg(p, "min-level int min", parse_profile_min_level);
 
     return p;
 }
@@ -949,14 +961,25 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
             profile = find_cave_profile("moria");
         else
         {
-            int pick = randint0(200);
-            int i;
+            int tries = 100;
 
-            for (i = 0; i < z_info->profile_max; i++)
+            while (tries)
             {
-                profile = &cave_profiles[i];
-                if (profile->cutoff >= pick) break;
+                int pick = randint0(200);
+                int i;
+
+                for (i = 0; i < z_info->profile_max; i++)
+                {
+                    profile = &cave_profiles[i];
+                    if (wpos->depth < profile->min_level) continue;
+                    if (profile->cutoff > pick) break;
+                }
+
+                if (profile) break;
+                tries--;
             }
+
+            if (!profile) profile = find_cave_profile("classic");
         }
     }
     else if (in_base_town(wpos))

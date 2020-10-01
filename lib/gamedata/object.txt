@@ -3078,7 +3078,7 @@ dice:20
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:20
-effect:NOURISH:DEC_BY
+effect:NOURISH:INC_BY
 dice:1
 
 name:Cure Serious Wounds
@@ -3094,7 +3094,7 @@ effect:CURE:BLIND
 effect:CURE:CUT
 effect:HEAL_HP
 dice:40
-effect:NOURISH:DEC_BY
+effect:NOURISH:INC_BY
 dice:1
 
 name:Cure Critical Wounds
@@ -3113,7 +3113,7 @@ effect:CURE:CONFUSED
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:60
-effect:NOURISH:DEC_BY
+effect:NOURISH:INC_BY
 dice:1
 
 name:Healing
@@ -3132,7 +3132,7 @@ effect:CURE:CONFUSED
 effect:CURE:BLIND
 effect:HEAL_HP
 dice:300+m35
-effect:NOURISH:DEC_BY
+effect:NOURISH:INC_BY
 dice:1
 
 name:*Healing*

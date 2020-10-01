@@ -80,6 +80,7 @@ bool cfg_gold_drop_vanilla = true;
 bool cfg_no_stores = false;
 bool cfg_no_ghost = false;
 bool cfg_ai_learn = true;
+bool cfg_challenging_levels = false;
 
 
 static const char *slots[] =
@@ -4493,6 +4494,8 @@ static void set_server_option(const char *option, char *value)
         cfg_no_ghost = str_to_boolean(value);
     else if (!strcmp(option, "AI_LEARN"))
         cfg_ai_learn = str_to_boolean(value);
+    else if (!strcmp(option, "CHALLENGING_LEVELS"))
+        cfg_challenging_levels = str_to_boolean(value);
     else plog_fmt("Error : unrecognized mangband.cfg option %s", option);
 }
 

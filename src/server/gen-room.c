@@ -78,7 +78,7 @@ static struct room_template *random_room_template(int typ, int rating)
  *
  * Returns a pointer to the vault template.
  */
-static struct vault *random_vault(int depth, const char *typ)
+struct vault *random_vault(int depth, const char *typ)
 {
     struct vault *v = vaults;
     struct vault *r = NULL;
@@ -1357,6 +1357,12 @@ bool build_vault(struct player *p, struct chunk *c, struct loc *centre, struct v
 
                 /* Lava */
                 case '`': square_set_feat(c, &grid, FEAT_LAVA); break;
+
+                /* Water */
+                case '/': square_set_feat(c, &grid, FEAT_WATER); break;
+
+                /* Tree */
+                case ';': square_set_feat(c, &grid, FEAT_TREE); break;
             }
 
             /* Part of a vault */
