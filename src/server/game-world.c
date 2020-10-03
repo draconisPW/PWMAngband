@@ -496,11 +496,11 @@ static void digest_food(struct player *p)
     /* Ghosts don't need food */
     if (p->ghost) return;
 
-    /* Don't use food in towns (except when full) */
-    if (forbid_town(&p->wpos) && !player_timed_grade_eq(p, TMD_FOOD, "Full")) return;
+    /* Don't use food in towns */
+    if (forbid_town(&p->wpos)) return;
 
     /* Don't use food near towns (to avoid starving in one's own house) */
-    if (town_area(&p->wpos) && !player_timed_grade_eq(p, TMD_FOOD, "Full")) return;
+    if (town_area(&p->wpos)) return;
 
     /* Digest some food */
     player_dec_timed(p, TMD_FOOD, player_digest(p), false);
@@ -679,7 +679,7 @@ static void update_scent(struct player *p)
  */
 static void process_player_world(struct player *p, struct chunk *c)
 {
-    int i, time;
+    int i;
 
     /* Hack -- fade monster detect over time */
     for (i = 1; i < cave_monster_max(c); i++)
@@ -778,18 +778,27 @@ static void process_player_world(struct player *p, struct chunk *c)
 
     /*** Check the Food, and Regenerate ***/
 
-    /* Every 100 "scaled" turns */
-    time = move_energy(p->wpos.depth) / time_factor(p, c);
-
-    /* Digest normally */
-    if (!(turn.turn % time)) digest_food(p);
-
-    /* Fast metabolism */
-    if (p->timed[TMD_HEAL])
+    /* Digest */
+    if (!player_timed_grade_eq(p, TMD_FOOD, "Full"))
     {
-        player_dec_timed(p, TMD_FOOD, 8 * z_info->food_value, false);
-        if (p->timed[TMD_FOOD] < PY_FOOD_HUNGRY)
-            player_set_timed(p, TMD_HEAL, 0, true);
+        /* Every 100 "scaled" turns */
+        int time = move_energy(p->wpos.depth) / time_factor(p, c);
+
+        /* Digest normally */
+        if (!(turn.turn % time)) digest_food(p);
+
+        /* Fast metabolism */
+        if (p->timed[TMD_HEAL] && !p->ghost)
+        {
+            player_dec_timed(p, TMD_FOOD, 8 * z_info->food_value, false);
+            if (p->timed[TMD_FOOD] < PY_FOOD_HUNGRY)
+                player_set_timed(p, TMD_HEAL, 0, true);
+        }
+    }
+    else
+    {
+        /* Digest quickly when gorged */
+        player_dec_timed(p, TMD_FOOD, 5000 / z_info->food_value, false);
     }
 
     /* Faint or starving */

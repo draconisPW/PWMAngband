@@ -147,14 +147,18 @@ static void build_streamer(struct chunk *c, int feat, int chance)
             find_nearby_grid(c, &change, &grid, d, d);
 
             /* Only convert walls */
-            /* PWMAngband: don't convert pit walls */
-            if (square_isrock(c, &change) && !square_ispermfake(c, &change))
+            if (square_isrock(c, &change))
             {
-                /* Turn the rock into the vein type */
-                square_set_feat(c, &change, feat);
+                /* PWMAngband: don't convert pit walls except sometimes on challenging levels */
+                if (!square_ispermfake(c, &change) ||
+                    (cfg_challenging_levels && one_in_(c->wpos.depth)))
+                {
+                    /* Turn the rock into the vein type */
+                    square_set_feat(c, &change, feat);
 
-                /* Sometimes add known treasure */
-                if (one_in_(chance)) square_upgrade_mineral(c, &change);
+                    /* Sometimes add known treasure */
+                    if (one_in_(chance)) square_upgrade_mineral(c, &change);
+                }
             }
         }
 
@@ -302,8 +306,8 @@ static void customize_features(struct chunk *c)
 
             /* Get a random wall tile */
             if (customize_feature(c, &iter.cur,
-                fill? dungeon->fills: dungeon->walls,
-                fill? dungeon->n_fills: dungeon->n_walls,
+                (fill && dungeon->fills)? dungeon->fills: dungeon->walls,
+                (fill && dungeon->fills)? dungeon->n_fills: dungeon->n_walls,
                 customize_wall_valid, customize_wall_post_valid, &feat))
             {
                 square_set_feat(c, &iter.cur, feat);
@@ -3130,6 +3134,7 @@ struct chunk *town_gen(struct player *p, struct worldpos *wpos, int min_height, 
     struct chunk *c = cave_new(z_info->dungeon_hgt, z_info->dungeon_wid);
 
     memcpy(&c->wpos, wpos, sizeof(struct worldpos));
+    player_cave_new(p, z_info->dungeon_hgt, z_info->dungeon_wid);
 
     /* Base town */
     if (wpos->depth == 0)
@@ -3144,8 +3149,6 @@ struct chunk *town_gen(struct player *p, struct worldpos *wpos, int min_height, 
         residents = 0;
         daytime = true;
     }
-
-    player_cave_new(p, z_info->dungeon_hgt, z_info->dungeon_wid);
 
     /* Build stuff */
     town_gen_layout(p, c);
@@ -3699,6 +3702,306 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
 }
 
 
+/* ------------------ HARD CENTRE ---------------- */
+
+
+/*
+ * Make a chunk consisting only of a greater vault
+ *
+ * p is the player
+ * wpos is the position on the world map
+ * (height, width) are the dimensions of the chunk
+ */
+static struct chunk *vault_chunk(struct player *p, struct worldpos *wpos, int height, int width,
+    int *vhgt, int *vwid)
+{
+    struct vault *v;
+    struct chunk *c;
+    struct loc centre;
+    int y1, x1, y2, x2;
+
+    if (one_in_(2)) v = random_vault(wpos->depth, "Greater vault (new)");
+    else v = random_vault(wpos->depth, "Greater vault");
+
+    /* Paranoia */
+    if (!v) return NULL;
+
+    /* Make the chunk */
+    c = cave_new(height, width);
+    memcpy(&c->wpos, wpos, sizeof(struct worldpos));
+    player_cave_new(p, height, width);
+
+    /* Fill cave area with basic granite */
+    fill_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_GRANITE, SQUARE_NONE);
+
+    /* Get the vault corners */
+    y1 = (height / 2) - (v->hgt / 2);
+    x1 = (width / 2) - (v->wid / 2);
+    y2 = y1 + v->hgt - 1;
+    x2 = x1 + v->wid - 1;
+
+    /* Fill vault area with basic floor */
+    fill_rectangle(c, y1, x1, y2, x2, FEAT_FLOOR, SQUARE_NONE);
+
+    /* Build the vault in it */
+    loc_init(&centre, width / 2, height / 2);
+    build_vault(p, c, &centre, v, false);
+
+    *vhgt = v->hgt;
+    *vwid = v->wid;
+
+    return c;
+}
+
+
+/*
+ * Make sure that all the caverns surrounding the centre are connected.
+ *
+ * c is the entire current chunk (containing the caverns)
+ * floor is an array of sample floor grids, one from each cavern in the
+ * order left, upper, lower, right
+ */
+static void connect_caverns(struct chunk *c, struct loc floor[])
+{
+    int i;
+    int size = c->height * c->width;
+    int *colors = mem_zalloc(size * sizeof(int));
+    int *counts = mem_zalloc(size * sizeof(int));
+    int color_of_floor[4];
+
+    /* Color the regions, find which cavern is which color */
+    build_colors(c, colors, counts, true);
+    for (i = 0; i < 4; i++)
+    {
+        int spot = grid_to_i(&floor[i], c->width);
+
+        color_of_floor[i] = colors[spot];
+    }
+
+    /* Join left and upper, right and lower */
+    join_region(c, colors, counts, color_of_floor[0], color_of_floor[1]);
+    join_region(c, colors, counts, color_of_floor[2], color_of_floor[3]);
+
+    /* Redo the colors, join the two big caverns */
+    build_colors(c, colors, counts, true);
+    for (i = 1; i < 3; i++)
+    {
+        int spot = grid_to_i(&floor[i], c->width);
+
+        color_of_floor[i] = colors[spot];
+    }
+    join_region(c, colors, counts, color_of_floor[1], color_of_floor[2]);
+
+    mem_free(colors);
+    mem_free(counts);
+}
+
+
+/*
+ * Write a chunk to a given offset in another chunk.
+ *
+ * dest the chunk where the copy is going
+ * source the chunk being copied
+ * (y0,x0) offset to use
+ */
+static void cavern_copy(struct chunk *dest, struct chunk *source, int y0, int x0)
+{
+    struct loc begin, end, offset;
+    struct loc_iterator iter;
+
+    loc_init(&begin, 0, 0);
+    loc_init(&end, source->width, source->height);
+    loc_init(&offset, x0, y0);
+    loc_iterator_first(&iter, &begin, &end);
+
+    do
+    {
+        struct loc dest_grid;
+
+        /* Work out where we're going */
+        loc_sum(&dest_grid, &iter.cur, &offset);
+
+        /* Terrain */
+        square(dest, &dest_grid)->feat = square(source, &iter.cur)->feat;
+        sqinfo_copy(square(dest, &dest_grid)->info, square(source, &iter.cur)->info);
+    }
+    while (loc_iterator_next_strict(&iter));
+}
+
+
+
+/*
+ * Generate a hard centre level - a greater vault surrounded by caverns
+ *
+ * p is the player
+ * wpos is the position on the world map
+ */
+struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width)
+{
+    int vhgt = 0, vwid = 0;
+
+    /* Make a vault for the centre */
+    struct chunk *c = vault_chunk(p, wpos, z_info->dungeon_hgt, z_info->dungeon_wid, &vhgt, &vwid);
+
+    /* Dimensions for the surrounding caverns */
+    /* PWMAngband: beware of rounding to avoid vault being one horizontal or vertical line off */
+    int centre_cavern_hgt;
+    int centre_cavern_wid;
+    struct chunk *upper_cavern;
+    struct chunk *lower_cavern;
+    int lower_cavern_ypos;
+    int side_cavern_wid;
+    struct chunk *left_cavern;
+    struct chunk *right_cavern;
+    int i, k, y, x, cavern_area;
+    struct loc grid;
+    struct loc floor[4];
+    struct loc top_left, bottom_right;
+
+    /* Paranoia */
+    if (!c) return NULL;
+
+    /* Measure the vault */
+    centre_cavern_hgt = (z_info->dungeon_hgt / 2) - (vhgt / 2);
+    centre_cavern_wid = vwid;
+    lower_cavern_ypos = centre_cavern_hgt + vhgt;
+
+    /* Make the caverns */
+    upper_cavern = cavern_chunk(p, wpos, centre_cavern_hgt, centre_cavern_wid);
+    lower_cavern = cavern_chunk(p, wpos, z_info->dungeon_hgt - centre_cavern_hgt - vhgt,
+        centre_cavern_wid);
+    side_cavern_wid = (z_info->dungeon_wid / 2) - (centre_cavern_wid / 2);
+    left_cavern = cavern_chunk(p, wpos, z_info->dungeon_hgt, side_cavern_wid);
+    right_cavern = cavern_chunk(p, wpos, z_info->dungeon_hgt,
+        z_info->dungeon_wid - side_cavern_wid - vwid);
+
+    /* Return on failure */
+    if (!upper_cavern || !lower_cavern || !left_cavern || !right_cavern) return NULL;
+
+    player_cave_new(p, z_info->dungeon_hgt, z_info->dungeon_wid);
+
+    /* Copy and find a floor square in each cavern */
+
+    /* Left */
+    cavern_copy(c, left_cavern, 0, 0);
+    loc_init(&top_left, 0, 0);
+    loc_init(&bottom_right, side_cavern_wid - 1, z_info->dungeon_hgt - 1);
+    find_empty_range(c, &floor[0], &top_left, &bottom_right);
+
+    /* Upper */
+    cavern_copy(c, upper_cavern, 0, side_cavern_wid);
+    loc_init(&top_left, side_cavern_wid, 0);
+    loc_init(&bottom_right, side_cavern_wid + centre_cavern_wid - 1, centre_cavern_hgt - 1);
+    find_empty_range(c, &floor[1], &top_left, &bottom_right);
+
+    /* Lower */
+    cavern_copy(c, lower_cavern, lower_cavern_ypos, side_cavern_wid);
+    loc_init(&top_left, side_cavern_wid, lower_cavern_ypos);
+    loc_init(&bottom_right, side_cavern_wid + centre_cavern_wid - 1, z_info->dungeon_hgt - 1);
+    find_empty_range(c, &floor[3], &top_left, &bottom_right);
+
+    /* Right */
+    cavern_copy(c, right_cavern, 0, side_cavern_wid + centre_cavern_wid);
+    loc_init(&top_left, side_cavern_wid + centre_cavern_wid, 0);
+    loc_init(&bottom_right, z_info->dungeon_wid - 1, z_info->dungeon_hgt - 1);
+    find_empty_range(c, &floor[2], &top_left, &bottom_right);
+
+    /* Encase in perma-rock */
+    draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
+
+    /* Connect up all the caverns */
+    connect_caverns(c, floor);
+
+    /* Connect to the centre */
+    ensure_connectedness(c);
+
+    /* Temporary until connecting to vault entrances works better */
+    for (y = 0; y < vhgt; y++)
+    {
+        loc_init(&grid, side_cavern_wid, y + centre_cavern_hgt);
+        square_set_feat(c, &grid, FEAT_FLOOR);
+        loc_init(&grid, side_cavern_wid + centre_cavern_wid - 1, y + centre_cavern_hgt);
+        square_set_feat(c, &grid, FEAT_FLOOR);
+    }
+
+    for (x = 0; x < vwid; x++)
+    {
+        loc_init(&grid, x + side_cavern_wid, centre_cavern_hgt);
+        square_set_feat(c, &grid, FEAT_FLOOR);
+        loc_init(&grid, x + side_cavern_wid, centre_cavern_hgt + vhgt - 1);
+        square_set_feat(c, &grid, FEAT_FLOOR);
+    }
+
+    /* Free all the chunks */
+    cave_free(upper_cavern);
+    cave_free(lower_cavern);
+    cave_free(left_cavern);
+    cave_free(right_cavern);
+
+    cavern_area = 2 * (side_cavern_wid * z_info->dungeon_hgt + centre_cavern_wid * centre_cavern_hgt);
+
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
+
+    /* General amount of rubble, traps and monsters */
+    k = MAX(MIN(wpos->depth / 3, 10), 2);
+
+    /* Scale number by total cavern size - caverns are fairly sparse */
+    k = (k * cavern_area) / (z_info->dungeon_hgt * z_info->dungeon_wid);
+
+    /* Put some rubble in corridors */
+    alloc_objects(p, c, SET_BOTH, TYP_RUBBLE, randint1(k), wpos->depth, 0);
+
+    /* Place some traps in the dungeon */
+    alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
+
+    /* Determine the character location */
+    new_player_spot(c, p);
+
+    /* Put some monsters in the dungeon */
+    for (i = randint1(8) + k; i > 0; i--)
+        pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
+
+    /* Put some objects/gold in the dungeon */
+    alloc_objects(p, c, SET_BOTH, TYP_OBJECT, Rand_normal(k, 2), wpos->depth + 5, ORIGIN_CAVERN);
+    alloc_objects(p, c, SET_BOTH, TYP_GOLD, Rand_normal(k / 2, 2), wpos->depth, ORIGIN_CAVERN);
+    alloc_objects(p, c, SET_BOTH, TYP_GOOD, randint0(k / 4), wpos->depth, ORIGIN_CAVERN);
+
+    /* Clear the flags for each cave grid */
+    player_cave_clear(p, true);
+
+    return c;
+}
+
+
+/*
+ * lair_gen (not implemented yet)
+ *
+ * p is the player
+ * wpos is the position on the world map
+ */
+struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width)
+{
+    return NULL;
+}
+
+
+/*
+ * gauntlet_gen (not implemented yet)
+ *
+ * p is the player
+ * wpos is the position on the world map
+ */
+struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width)
+{
+    return NULL;
+}
+
+
 /* ------------------ MANGBAND TOWN ---------------- */
 
 
@@ -4149,7 +4452,6 @@ struct chunk *mang_town_gen(struct player *p, struct worldpos *wpos, int min_hei
     struct chunk *c = cave_new(z_info->dungeon_hgt, z_info->dungeon_wid);
 
     memcpy(&c->wpos, wpos, sizeof(struct worldpos));
-
     player_cave_new(p, z_info->dungeon_hgt, z_info->dungeon_wid);
 
     /* Build stuff */

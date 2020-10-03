@@ -37,6 +37,8 @@
 /*static char *termtype;
 static bool loaded_terminfo;*/
 
+/* Windows already has this in curses.h */
+#ifndef WINDOWS
 /* PDCurses-specific key */
 #define CTL_LEFT      0x1bb  /* Control-Left-Arrow */
 #define CTL_RIGHT     0x1bc
@@ -73,6 +75,7 @@ static bool loaded_terminfo;*/
 
 #define KEY_SUP       0x223  /* Shifted up arrow */
 #define KEY_SDOWN     0x224  /* Shifted down arrow */
+#endif
 
 /*
  * Information about a term

@@ -1343,7 +1343,8 @@ static bool handler_breath(effect_handler_context_t *context, bool use_boost)
             if (context->origin->player->is_dead) return !used;
 
             /* Breathing also consumes food */
-            player_dec_timed(context->origin->player, TMD_FOOD, 50, false);
+            if (!context->origin->player->ghost)
+                player_dec_timed(context->origin->player, TMD_FOOD, 50, false);
 
             /* Powerful breath */
             if (monster_is_powerful(context->origin->player->poly_race))

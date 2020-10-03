@@ -60,6 +60,7 @@ extern bool cfg_gold_drop_vanilla;
 extern bool cfg_no_stores;
 extern bool cfg_no_ghost;
 extern bool cfg_ai_learn;
+extern bool cfg_challenging_levels;
 
 extern const char *list_obj_flag_names[];
 extern const char *obj_mods[];

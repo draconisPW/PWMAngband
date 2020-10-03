@@ -164,6 +164,7 @@ struct cave_profile
     struct streamer_profile str;        /* Used to build mineral streamers */
     struct room_profile *room_profiles; /* Used to build rooms */
     int cutoff;                         /* Used to see if we should try this dungeon */
+    int min_level;                      /* Shallowest level to use this profile */
     random_value up;
     random_value down;
 };
@@ -241,6 +242,12 @@ extern struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int m
     int min_width);
 extern struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     int min_width);
+extern struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_height,
+    int min_width);
+extern struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height,
+    int min_width);
+extern struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_height,
+    int min_width);
 extern struct chunk *mang_town_gen(struct player *p, struct worldpos *wpos, int min_height,
     int min_width);
 extern struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
@@ -269,6 +276,7 @@ extern void get_chamber_monsters(struct player *p, struct chunk *c, int y1, int 
 
 /* gen-room.c */
 extern void fill_rectangle(struct chunk *c, int y1, int x1, int y2, int x2, int feat, int flag);
+extern struct vault *random_vault(int depth, const char *typ);
 extern void generate_mark(struct chunk *c, int y1, int x1, int y2, int x2, int flag);
 extern void draw_rectangle(struct chunk *c, int y1, int x1, int y2, int x2, int feat, int flag);
 extern void set_marked_granite(struct chunk *c, struct loc *grid, int flag);
