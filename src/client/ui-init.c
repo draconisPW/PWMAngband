@@ -126,6 +126,21 @@ void init_file_paths(const char *configpath, const char *libpath, const char *da
 }
 
 
+/*
+ * Create any missing directories.
+ *
+ * We create only those dirs which may be empty. The others are assumed
+ * to contain required files and therefore must exist at startup.
+ */
+void create_needed_dirs(void)
+{
+    char dirpath[MSG_LEN];
+
+    path_build(dirpath, sizeof(dirpath), ANGBAND_DIR_USER, "");
+	if (!dir_create(dirpath)) quit_fmt("Cannot create '%s'", dirpath);
+}
+
+
 static void init_arrays(void)
 {
     /* Message variables */
@@ -206,6 +221,9 @@ void init_stuff(void)
 
     /* Initialize */
     init_file_paths(configpath, libpath, datapath);
+
+    /* Create any missing directories */
+    create_needed_dirs();
 }
 
 
