@@ -59,7 +59,7 @@ Gameplay changes
 Angband 4.2.x:
 
 - Adjust food again
-- Activate "hard centre" dungeon profile
+- Activate "hard centre" and "lair" dungeon profiles
 
 PWMAngband:
 

@@ -368,7 +368,7 @@ static bool square_suits_stairs(struct chunk *c, struct loc *grid, int walls)
  *
  * Returns success
  */
-static bool find_start(struct chunk *c, struct loc *grid)
+bool find_start(struct chunk *c, struct loc *grid)
 {
     int walls = 3;
 
@@ -575,7 +575,7 @@ static void place_fountain(struct chunk *c, struct loc *grid)
  *
  * All stairs from the surface go down. All stairs from bottom go up.
  */
-static void place_stairs(struct chunk *c, struct loc *grid, int feat)
+void place_stairs(struct chunk *c, struct loc *grid, int feat)
 {
     struct wild_type *w_ptr = get_wt_info_at(&c->wpos.grid);
 

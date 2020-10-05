@@ -318,8 +318,10 @@ extern bool find_training(struct chunk *c, struct loc *grid);
 extern bool find_nearby_grid(struct chunk *c, struct loc *grid, struct loc *centre, int yd, int xd);
 extern void correct_dir(struct loc *offset, struct loc *grid1, struct loc *grid2);
 extern void rand_dir(struct loc *offset);
+extern bool find_start(struct chunk *c, struct loc *grid);
 extern void add_down_stairs(struct chunk *c);
 extern void new_player_spot(struct chunk *c, struct player *p);
+extern void place_stairs(struct chunk *c, struct loc *grid, int feat);
 extern void place_random_stairs(struct chunk *c, struct loc *grid);
 extern void place_object(struct player *p, struct chunk *c, struct loc *grid, int level,
     bool good, bool great, byte origin, int tval);

@@ -3866,17 +3866,40 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
     centre_cavern_wid = vwid;
     lower_cavern_ypos = centre_cavern_hgt + vhgt;
 
-    /* Make the caverns */
+    /* Make the caverns, return on failure */
     upper_cavern = cavern_chunk(p, wpos, centre_cavern_hgt, centre_cavern_wid);
+    if (!upper_cavern)
+    {
+        cave_free(c);
+        return NULL;
+    }
     lower_cavern = cavern_chunk(p, wpos, z_info->dungeon_hgt - centre_cavern_hgt - vhgt,
         centre_cavern_wid);
+    if (!lower_cavern)
+    {
+        cave_free(c);
+        cave_free(upper_cavern);
+        return NULL;
+    }
     side_cavern_wid = (z_info->dungeon_wid / 2) - (centre_cavern_wid / 2);
     left_cavern = cavern_chunk(p, wpos, z_info->dungeon_hgt, side_cavern_wid);
+    if (!left_cavern)
+    {
+        cave_free(c);
+        cave_free(upper_cavern);
+        cave_free(lower_cavern);
+        return NULL;
+    }
     right_cavern = cavern_chunk(p, wpos, z_info->dungeon_hgt,
         z_info->dungeon_wid - side_cavern_wid - vwid);
-
-    /* Return on failure */
-    if (!upper_cavern || !lower_cavern || !left_cavern || !right_cavern) return NULL;
+    if (!right_cavern)
+    {
+        cave_free(c);
+        cave_free(upper_cavern);
+        cave_free(lower_cavern);
+        cave_free(left_cavern);
+        return NULL;
+    }
 
     player_cave_new(p, z_info->dungeon_hgt, z_info->dungeon_wid);
 
@@ -3978,15 +4001,195 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
 }
 
 
+/* ------------------ LAIR ---------------- */
+
+
 /*
- * lair_gen (not implemented yet)
+ * Generate a lair level - a regular cave generated with the modified
+ * algorithm, connected to a cavern with themed monsters
  *
  * p is the player
  * wpos is the position on the world map
  */
 struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width)
 {
-    return NULL;
+    int i, k, y, x;
+    int size_percent, y_size, x_size;
+    struct chunk *c;
+    struct chunk *lair;
+    struct loc up, down;
+
+    /* Scale the level */
+    i = randint1(10) + wpos->depth / 24;
+    if (is_quest(wpos->depth)) size_percent = 100;
+    else if (i < 2) size_percent = 75;
+    else if (i < 3) size_percent = 80;
+    else if (i < 4) size_percent = 85;
+    else if (i < 5) size_percent = 90;
+    else if (i < 6) size_percent = 95;
+    else size_percent = 100;
+    y_size = z_info->dungeon_hgt * (size_percent - 5 + randint0(10)) / 100;
+    x_size = z_info->dungeon_wid * (size_percent - 5 + randint0(10)) / 100;
+
+    /* Enforce minimum dimensions */
+    y_size = MAX(y_size, min_height);
+    x_size = MAX(x_size, min_width);
+
+    y_size = MIN(z_info->dungeon_hgt, y_size);
+    x_size = MIN(z_info->dungeon_wid, x_size);
+
+    /* Set the block height and width */
+    dun->block_hgt = dun->profile->block_size;
+    dun->block_wid = dun->profile->block_size;
+
+    /* Build the normal half */
+    c = modified_chunk(p, wpos, y_size, x_size / 2);
+    if (!c) return NULL;
+
+    /* Add some magma streamers */
+    for (i = 0; i < dun->profile->str.mag; i++)
+        add_streamer(c, FEAT_MAGMA, DF_STREAMS, dun->profile->str.mc);
+
+    /* Add some quartz streamers */
+    for (i = 0; i < dun->profile->str.qua; i++)
+        add_streamer(c, FEAT_QUARTZ, DF_STREAMS, dun->profile->str.qc);
+
+    /* Add some streamers */
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_WATER, DF_WATER_RIVER, 0);
+    }
+    k = 3 + randint0(3);
+    for (i = 0; i < k; i++)
+    {
+        if (one_in_(3)) add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN, 0);
+    }
+
+    /* General amount of rubble, traps and monsters */
+    k = MAX(MIN(wpos->depth / 3, 10), 2) / 2;
+
+    /* Put some rubble in corridors */
+    alloc_objects(p, c, SET_CORR, TYP_RUBBLE, randint1(k), wpos->depth, 0);
+
+    /* Place some traps in the dungeon, reduce frequency by factor of 5 */
+    alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
+
+    /* Place some fountains in rooms */
+    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
+
+    /* Put the character in the normal half */
+    new_player_spot(c, p);
+    if (!cfg_limit_stairs)
+    {
+        find_start(c, &up);
+        find_start(c, &down);
+    }
+
+    /* Pick a smallish number of monsters for the normal half */
+    i = randint1(4) + k;
+
+    /* Put some monsters in the dungeon */
+    for (; i > 0; i--)
+        pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
+
+    /* Build the lair */
+    lair = cavern_chunk(p, wpos, y_size, x_size / 2);
+    if (!lair)
+    {
+        cave_free(c);
+        return NULL;
+    }
+
+    /* Put some rubble in corridors */
+    alloc_objects(p, lair, SET_BOTH, TYP_RUBBLE, randint1(k), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(lair);
+
+    /* PWMAngband: resize the main chunk */
+    for (y = 0; y < y_size; y++)
+    {
+        c->squares[y] = mem_realloc(c->squares[y], x_size * sizeof(struct square));
+        for (x = x_size / 2; x < x_size; x++)
+        {
+            memset(&c->squares[y][x], 0, sizeof(struct square));
+            c->squares[y][x].info = mem_zalloc(SQUARE_SIZE * sizeof(bitflag));
+        }
+    }
+    player_cave_new(p, y_size, x_size);
+    c->width = x_size;
+
+    /* Make the level */
+    cavern_copy(c, lair, 0, x_size / 2);
+
+    /* Free the chunks */
+    cave_free(lair);
+
+    /* Pick a larger number of monsters for the lair */
+    i = (z_info->level_monster_min + randint1(20) + k);
+
+    /* Find appropriate monsters */
+    while (true)
+    {
+        /* Choose a pit profile */
+        set_pit_type(wpos->depth, 0);
+
+        /* Set monster generation restrictions */
+        if (mon_restrict(p, dun->pit_type->name, wpos->depth, true)) break;
+    }
+
+    /* Place lair monsters */
+    spread_monsters(p, c, dun->pit_type->name, wpos->depth, i, y_size / 2,
+        x_size / 2 + x_size / 4, y_size / 2, x_size / 4, ORIGIN_CAVERN);
+
+    /* Remove our restrictions. */
+    mon_restrict(p, NULL, wpos->depth, false);
+
+    /* Generate permanent walls around the edge of the generated area */
+    draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
+
+    /* Connect */
+    ensure_connectedness(c);
+
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
+    if (!cfg_limit_stairs)
+    {
+        place_stairs(c, &up, FEAT_LESS);
+        place_stairs(c, &down, FEAT_MORE);
+    }
+
+    /* Remove holes in corridors that were not used for stair placement */
+    remove_unused_holes(c);
+
+    /* Place some traps in the dungeon, reduce frequency by factor of 5 */
+    alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
+
+    /* Put some objects in rooms */
+    alloc_objects(p, c, SET_ROOM, TYP_OBJECT, Rand_normal(z_info->room_item_av, 3), wpos->depth,
+        ORIGIN_FLOOR);
+
+    /* Put some objects/gold in the dungeon */
+    alloc_objects(p, c, SET_BOTH, TYP_OBJECT, Rand_normal(z_info->both_item_av, 3), wpos->depth,
+        ORIGIN_FLOOR);
+    alloc_objects(p, c, SET_BOTH, TYP_GOLD, Rand_normal(z_info->both_gold_av, 3), wpos->depth,
+        ORIGIN_FLOOR);
+
+    /* Apply illumination */
+    player_cave_clear(p, true);
+    cave_illuminate(p, c, true);
+
+    return c;
 }
 
 
