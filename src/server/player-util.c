@@ -272,6 +272,18 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
 
 
 /*
+ * Energy per move, taking extra moves into account
+ */
+int energy_per_move(struct player *p)
+{
+    int num = p->state.num_moves;
+    int energy = move_energy(p->wpos.depth);
+
+    return (energy * (1 + ABS(num) - num)) / (1 + ABS(num));
+}
+
+
+/*
  * Regenerate one turn's worth of hit points
  */
 void player_regen_hp(struct player *p, struct chunk *c)

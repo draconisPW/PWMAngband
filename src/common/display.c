@@ -1027,15 +1027,14 @@ static size_t prt_moves(struct player *p, int row, int col)
 {
     int i = p->state.num_moves;
 
-    /* 1 move is normal and requires no display */
-    if (i > 1)
-    {
-        /* Display the number of moves */
-        put_str_hook(col, row, -1, COLOUR_L_TEAL, format("Moves +%d ", i - 1));
-    }
+    /* Display the number of moves */
+    if (i > 0)
+        put_str_hook(col, row, -1, COLOUR_L_TEAL, format("Moves +%d ", i));
+    else if (i < 0)
+        put_str_hook(col, row, -1, COLOUR_L_TEAL, format("Moves -%d ", ABS(i)));
 
     /* Shouldn't be double digits, but be paranoid */
-    return ((i > 1)? 9 + (i - 1) / 10: 0);
+    return ((i != 0)? (9 + ABS(i) / 10): 0);
 }
 
 

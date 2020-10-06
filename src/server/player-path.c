@@ -636,7 +636,7 @@ void run_step(struct player *p, int dir)
     }
 
     /* Take a turn */
-    p->energy -= move_energy(p->wpos.depth) / p->state.num_moves;
+    p->energy -= energy_per_move(p);
     if (p->energy < 0) p->energy = 0;
 
     /* Move the player, attempts to disarm if running straight at a trap */

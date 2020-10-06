@@ -60,6 +60,7 @@ Angband 4.2.x:
 
 - Adjust food again
 - Activate "hard centre" and "lair" dungeon profiles
+- Allow negative MOVES
 
 PWMAngband:
 
@@ -73,6 +74,15 @@ Angband 4.2.x:
 
 - Changed some vaults and interesting rooms so the tunneling code can always
   connect them properly
+- When loading a savefile discovers a mimic with no mimicked object, just delete
+  the mimic instead of making a new object
+
+Coding changes
+--------------
+
+Angband 4.2.x:
+  
+- Add a facility to dump a level (as HTML) for post-mortem analysis
 
 Features in PWMAngband 1.4.0 build 3
 ====================================

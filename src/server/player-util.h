@@ -64,6 +64,7 @@ extern void dungeon_change_level(struct player *p, struct chunk *c, struct world
     byte new_level_method);
 extern bool take_hit(struct player *p, int damage, const char *kb_str, bool non_physical,
     const char *died_flavor);
+extern int energy_per_move(struct player *p);
 extern void player_regen_hp(struct player *p, struct chunk *c);
 extern void player_regen_mana(struct player *p);
 extern void player_adjust_hp_precise(struct player *p, s32b hp_gain);

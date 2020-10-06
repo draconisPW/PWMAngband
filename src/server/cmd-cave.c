@@ -2031,7 +2031,7 @@ void do_cmd_walk(struct player *p, int dir)
     if (!do_cmd_walk_test(p)) return;
 
     /* Take a turn */
-    p->energy -= move_energy(p->wpos.depth) / p->state.num_moves;
+    p->energy -= energy_per_move(p);
     if (p->energy < 0) p->energy = 0;
 
     /* Apply confusion/erratic movement */
@@ -2065,7 +2065,7 @@ void do_cmd_jump(struct player *p, int dir)
     if (!do_cmd_walk_test(p)) return;
 
     /* Take a turn */
-    p->energy -= move_energy(p->wpos.depth) / p->state.num_moves;
+    p->energy -= energy_per_move(p);
     if (p->energy < 0) p->energy = 0;
 
     /* Apply confusion/erratic movement */

@@ -335,6 +335,12 @@ extern void vault_traps(struct chunk *c, struct loc *grid, int yd, int xd, int n
 extern void vault_monsters(struct player *p, struct chunk *c, struct loc *grid, int depth,
     int num);
 
+extern void dump_level_simple(const char *basefilename, const char *title, struct chunk *c);
+extern void dump_level(ang_file *fo, const char *title, struct chunk *c, int **dist);
+extern void dump_level_header(ang_file *fo, const char *title);
+extern void dump_level_body(ang_file *fo, const char *title, struct chunk *c, int **dist);
+extern void dump_level_footer(ang_file *fo);
+
 extern void alloc_objects(struct player *p, struct chunk *c, int set, int typ, int num,
     int depth, byte origin);
 extern bool alloc_object(struct player *p, struct chunk *c, int set, int typ, int depth,
