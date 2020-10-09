@@ -154,6 +154,30 @@ void generate_mark(struct chunk *c, int y1, int x1, int y2, int x2, int flag)
 
 
 /*
+ * Unmark a rectangle with a set of info flags
+ *
+ * c the current chunk
+ * y1, x1, y2, x2 inclusive room boundaries
+ * flag the SQUARE_* flag we are marking with
+ */
+void generate_unmark(struct chunk *c, int y1, int x1, int y2, int x2, int flag)
+{
+    struct loc begin, end;
+    struct loc_iterator iter;
+
+    loc_init(&begin, x1, y1);
+    loc_init(&end, x2, y2);
+    loc_iterator_first(&iter, &begin, &end);
+
+    do
+    {
+        sqinfo_off(square(c, &iter.cur)->info, flag);
+    }
+    while (loc_iterator_next(&iter));
+}
+
+
+/*
  * Fill a rectangle with a feature.
  *
  * c the current chunk

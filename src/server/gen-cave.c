@@ -1027,6 +1027,20 @@ static void remove_unused_holes(struct chunk *c)
 }
 
 
+static int percent_size(struct worldpos *wpos)
+{
+    int i = randint1(10) + wpos->depth / 24;
+
+    if (is_quest(wpos->depth)) return 100;
+    if (i < 2) return 75;
+    if (i < 3) return 80;
+    if (i < 4) return 85;
+    if (i < 5) return 90;
+    if (i < 6) return 95;
+    return 100;
+}
+
+
 /*
  * Generate a new dungeon level
  *
@@ -1049,14 +1063,7 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
      * gives the same "room density" no matter what size the level turns out
      * to be.
      */
-    i = randint1(10) + wpos->depth / 24;
-    if (is_quest(wpos->depth)) size_percent = 100;
-    else if (i < 2) size_percent = 75;
-    else if (i < 3) size_percent = 80;
-    else if (i < 4) size_percent = 85;
-    else if (i < 5) size_percent = 90;
-    else if (i < 6) size_percent = 95;
-    else size_percent = 100;
+    size_percent = percent_size(wpos);
 
     /* Scale the various generation variables */
     num_rooms = dun->profile->dun_rooms * size_percent / 100;
@@ -1438,6 +1445,8 @@ static bool lab_is_wide_tunnel(struct chunk *c, struct loc *grid, struct loc *ch
  * lit is whether the labyrinth is lit
  * soft is true if we use regular walls, false if permanent walls
  * wide is true if the labyrinth has wide corridors
+ *
+ * PWMAngband: we don't generate the objects here to be able to move the chunk easily.
  */
 static struct chunk *labyrinth_chunk(struct player *p, struct worldpos *wpos, int h, int w,
     bool lit, bool soft, bool wide)
@@ -1607,14 +1616,6 @@ static struct chunk *labyrinth_chunk(struct player *p, struct worldpos *wpos, in
         }
     }
 
-    /* Unlit labyrinths will have some good items */
-    if (!lit)
-        alloc_objects(p, c, SET_BOTH, TYP_GOOD, Rand_normal(3, 2), wpos->depth, ORIGIN_LABYRINTH);
-
-    /* Hard (non-diggable) labyrinths will have some great items */
-    if (!soft)
-        alloc_objects(p, c, SET_BOTH, TYP_GREAT, Rand_normal(2, 1), wpos->depth, ORIGIN_LABYRINTH);
-
     /* Deallocate our lists */
     mem_free(sets);
     mem_free(walls);
@@ -1673,6 +1674,14 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
 
     /* Generate the actual labyrinth */
     c = labyrinth_chunk(p, wpos, h, w, lit, soft, wide);
+
+    /* Unlit labyrinths will have some good items */
+    if (!lit)
+        alloc_objects(p, c, SET_BOTH, TYP_GOOD, Rand_normal(3, 2), wpos->depth, ORIGIN_LABYRINTH);
+
+    /* Hard (non-diggable) labyrinths will have some great items */
+    if (!soft)
+        alloc_objects(p, c, SET_BOTH, TYP_GREAT, Rand_normal(2, 1), wpos->depth, ORIGIN_LABYRINTH);
 
     /* Hack -- allow wide corridors */
     if (wide)
@@ -3335,14 +3344,7 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     struct chunk *c;
 
     /* Scale the level */
-    i = randint1(10) + wpos->depth / 24;
-    if (is_quest(wpos->depth)) size_percent = 100;
-    else if (i < 2) size_percent = 75;
-    else if (i < 3) size_percent = 80;
-    else if (i < 4) size_percent = 85;
-    else if (i < 5) size_percent = 90;
-    else if (i < 6) size_percent = 95;
-    else size_percent = 100;
+    size_percent = percent_size(wpos);
     y_size = z_info->dungeon_hgt * (size_percent - 5 + randint0(10)) / 100;
     x_size = z_info->dungeon_wid * (size_percent - 5 + randint0(10)) / 100;
 
@@ -3597,14 +3599,7 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     struct chunk *c;
 
     /* Scale the level */
-    i = randint1(10) + wpos->depth / 24;
-    if (is_quest(wpos->depth)) size_percent = 100;
-    else if (i < 2) size_percent = 75;
-    else if (i < 3) size_percent = 80;
-    else if (i < 4) size_percent = 85;
-    else if (i < 5) size_percent = 90;
-    else if (i < 6) size_percent = 95;
-    else size_percent = 100;
+    size_percent = percent_size(wpos);
     y_size = z_info->dungeon_hgt * (size_percent - 5 + randint0(10)) / 100;
     x_size = z_info->dungeon_wid * (size_percent - 5 + randint0(10)) / 100;
 
@@ -3804,7 +3799,7 @@ static void connect_caverns(struct chunk *c, struct loc floor[])
  * source the chunk being copied
  * (y0,x0) offset to use
  */
-static void cavern_copy(struct chunk *dest, struct chunk *source, int y0, int x0)
+static void chunk_copy(struct chunk *dest, struct chunk *source, int y0, int x0)
 {
     struct loc begin, end, offset;
     struct loc_iterator iter;
@@ -3909,25 +3904,25 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
     /* Copy and find a floor square in each cavern */
 
     /* Left */
-    cavern_copy(c, left_cavern, 0, 0);
+    chunk_copy(c, left_cavern, 0, 0);
     loc_init(&top_left, 0, 0);
     loc_init(&bottom_right, left_cavern_wid - 1, z_info->dungeon_hgt - 1);
     find_empty_range(c, &floor[0], &top_left, &bottom_right);
 
     /* Upper */
-    cavern_copy(c, upper_cavern, 0, left_cavern_wid);
+    chunk_copy(c, upper_cavern, 0, left_cavern_wid);
     loc_init(&top_left, left_cavern_wid, 0);
     loc_init(&bottom_right, left_cavern_wid + centre_cavern_wid - 1, upper_cavern_hgt - 1);
     find_empty_range(c, &floor[1], &top_left, &bottom_right);
 
     /* Lower */
-    cavern_copy(c, lower_cavern, lower_cavern_ypos, left_cavern_wid);
+    chunk_copy(c, lower_cavern, lower_cavern_ypos, left_cavern_wid);
     loc_init(&top_left, left_cavern_wid, lower_cavern_ypos);
     loc_init(&bottom_right, left_cavern_wid + centre_cavern_wid - 1, z_info->dungeon_hgt - 1);
     find_empty_range(c, &floor[3], &top_left, &bottom_right);
 
     /* Right */
-    cavern_copy(c, right_cavern, 0, left_cavern_wid + centre_cavern_wid);
+    chunk_copy(c, right_cavern, 0, left_cavern_wid + centre_cavern_wid);
     loc_init(&top_left, left_cavern_wid + centre_cavern_wid, 0);
     loc_init(&bottom_right, z_info->dungeon_wid - 1, z_info->dungeon_hgt - 1);
     find_empty_range(c, &floor[2], &top_left, &bottom_right);
@@ -4017,21 +4012,14 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
  */
 struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width)
 {
-    int i, k, y, x;
+    int i, k, y, x, n;
     int size_percent, y_size, x_size;
     struct chunk *c;
     struct chunk *lair;
-    struct loc up, down;
+    struct loc grid;
 
     /* Scale the level */
-    i = randint1(10) + wpos->depth / 24;
-    if (is_quest(wpos->depth)) size_percent = 100;
-    else if (i < 2) size_percent = 75;
-    else if (i < 3) size_percent = 80;
-    else if (i < 4) size_percent = 85;
-    else if (i < 5) size_percent = 90;
-    else if (i < 6) size_percent = 95;
-    else size_percent = 100;
+    size_percent = percent_size(wpos);
     y_size = z_info->dungeon_hgt * (size_percent - 5 + randint0(10)) / 100;
     x_size = z_info->dungeon_wid * (size_percent - 5 + randint0(10)) / 100;
 
@@ -4046,9 +4034,18 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     dun->block_hgt = dun->profile->block_size;
     dun->block_wid = dun->profile->block_size;
 
-    /* Build the normal half */
     c = modified_chunk(p, wpos, y_size, x_size / 2);
     if (!c) return NULL;
+
+    lair = cavern_chunk(p, wpos, y_size, x_size / 2);
+    if (!lair)
+    {
+        cave_free(c);
+        return NULL;
+    }
+
+    /* General amount of rubble, traps and monsters */
+    k = MAX(MIN(wpos->depth / 3, 10), 2) / 2;
 
     /* Add some magma streamers */
     for (i = 0; i < dun->profile->str.mag; i++)
@@ -4059,43 +4056,20 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
         add_streamer(c, FEAT_QUARTZ, DF_STREAMS, dun->profile->str.qc);
 
     /* Add some streamers */
-    k = 3 + randint0(3);
-    for (i = 0; i < k; i++)
+    n = 3 + randint0(3);
+    for (i = 0; i < n; i++)
     {
         if (one_in_(3)) add_streamer(c, FEAT_LAVA, DF_LAVA_RIVER, 0);
     }
-    k = 3 + randint0(3);
-    for (i = 0; i < k; i++)
+    n = 3 + randint0(3);
+    for (i = 0; i < n; i++)
     {
         if (one_in_(3)) add_streamer(c, FEAT_WATER, DF_WATER_RIVER, 0);
     }
-    k = 3 + randint0(3);
-    for (i = 0; i < k; i++)
+    n = 3 + randint0(3);
+    for (i = 0; i < n; i++)
     {
         if (one_in_(3)) add_streamer(c, FEAT_SANDWALL, DF_SAND_VEIN, 0);
-    }
-
-    /* General amount of rubble, traps and monsters */
-    k = MAX(MIN(wpos->depth / 3, 10), 2) / 2;
-
-    /* Put some rubble in corridors */
-    alloc_objects(p, c, SET_CORR, TYP_RUBBLE, randint1(k), wpos->depth, 0);
-
-    /* Place some traps in the dungeon, reduce frequency by factor of 5 */
-    alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
-
-    /* Place some fountains in rooms */
-    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
-
-    /* Customize */
-    customize_features(c);
-
-    /* Put the character in the normal half */
-    new_player_spot(c, p);
-    if (!cfg_limit_stairs)
-    {
-        find_start(c, &up);
-        find_start(c, &down);
     }
 
     /* Pick a smallish number of monsters for the normal half */
@@ -4104,20 +4078,6 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     /* Put some monsters in the dungeon */
     for (; i > 0; i--)
         pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
-
-    /* Build the lair */
-    lair = cavern_chunk(p, wpos, y_size, x_size / 2);
-    if (!lair)
-    {
-        cave_free(c);
-        return NULL;
-    }
-
-    /* Put some rubble in corridors */
-    alloc_objects(p, lair, SET_BOTH, TYP_RUBBLE, randint1(k), wpos->depth, 0);
-
-    /* Customize */
-    customize_features(lair);
 
     /* PWMAngband: resize the main chunk */
     for (y = 0; y < y_size; y++)
@@ -4133,10 +4093,49 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     c->width = x_size;
 
     /* Make the level */
-    cavern_copy(c, lair, 0, x_size / 2);
+    chunk_copy(c, lair, 0, x_size / 2);
 
     /* Free the chunks */
     cave_free(lair);
+
+    /* Generate permanent walls around the edge of the generated area */
+    draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
+
+    /* Connect */
+    ensure_connectedness(c);
+
+    /* Place stairs near some walls */
+    add_stairs(c, FEAT_MORE);
+    add_stairs(c, FEAT_LESS);
+    if (!cfg_limit_stairs)
+    {
+        generate_mark(c, 0, x_size / 2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
+        find_start(c, &grid);
+        place_stairs(c, &grid, FEAT_LESS);
+        find_start(c, &grid);
+        place_stairs(c, &grid, FEAT_MORE);
+        generate_unmark(c, 0, x_size / 2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
+    }
+
+    /* Remove holes in corridors that were not used for stair placement */
+    remove_unused_holes(c);
+
+    /* Put some rubble in corridors */
+    alloc_objects(p, c, SET_CORR, TYP_RUBBLE, randint1(k), wpos->depth, 0);
+
+    /* Place some traps in the dungeon, reduce frequency by factor of 5 */
+    alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
+
+    /* Place some fountains in rooms */
+    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
+
+    /* Put the character in the normal half */
+    generate_mark(c, 0, x_size / 2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
+    new_player_spot(c, p);
+    generate_unmark(c, 0, x_size / 2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
 
     /* Pick a larger number of monsters for the lair */
     i = (z_info->level_monster_min + randint1(20) + k);
@@ -4158,27 +4157,6 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     /* Remove our restrictions. */
     mon_restrict(p, NULL, wpos->depth, false);
 
-    /* Generate permanent walls around the edge of the generated area */
-    draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
-
-    /* Connect */
-    ensure_connectedness(c);
-
-    /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
-    if (!cfg_limit_stairs)
-    {
-        place_stairs(c, &up, FEAT_LESS);
-        place_stairs(c, &down, FEAT_MORE);
-    }
-
-    /* Remove holes in corridors that were not used for stair placement */
-    remove_unused_holes(c);
-
-    /* Place some traps in the dungeon, reduce frequency by factor of 5 */
-    alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
-
     /* Put some objects in rooms */
     alloc_objects(p, c, SET_ROOM, TYP_OBJECT, Rand_normal(z_info->room_item_av, 3), wpos->depth,
         ORIGIN_FLOOR);
@@ -4197,15 +4175,200 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
 }
 
 
+/* ------------------ GAUNTLET ---------------- */
+
+
 /*
- * gauntlet_gen (not implemented yet)
+ * Generate a gauntlet level - two separate caverns with an unmappable labyrinth
+ * between them, and no teleport and only upstairs from the side where the
+ * player starts.
  *
  * p is the player
  * wpos is the position on the world map
  */
 struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width)
 {
-    return NULL;
+    int i, k, y;
+    struct chunk *c;
+    struct chunk *arrival;
+    struct chunk *gauntlet;
+    struct chunk *departure;
+    int gauntlet_hgt = 2 * randint1(5) + 3;
+    int gauntlet_wid = 2 * randint1(10) + 19;
+    int y_size = z_info->dungeon_hgt * gauntlet_hgt / (15 + randint1(5));
+    int x_size = z_info->dungeon_wid * gauntlet_wid / ((30 + randint1(10)) * 2);
+    int line1, line2;
+    struct loc grid;
+
+    /* PWMAngband: ensure 2 * x_size + gauntlet_wid < z_info->dungeon_wid */
+    x_size = MIN(x_size, (z_info->dungeon_wid - gauntlet_wid) / 2 - 1);
+
+    /* No wide corridors to keep generation easy */
+    gauntlet = labyrinth_chunk(p, wpos, gauntlet_hgt, gauntlet_wid, false, false, false);
+    if (!gauntlet) return NULL;
+
+    arrival = cavern_chunk(p, wpos, y_size, x_size);
+    if (!arrival)
+    {
+        cave_free(gauntlet);
+        return NULL;
+    }
+
+    departure = cavern_chunk(p, wpos, y_size, x_size);
+    if (!departure)
+    {
+        cave_free(gauntlet);
+        cave_free(arrival);
+        return NULL;
+    }
+
+    /* Record lines between chunks */
+    line1 = arrival->width;
+    line2 = line1 + gauntlet->width;
+
+    /* Set the movement and mapping restrictions */
+    generate_mark(arrival, 0, 0, arrival->height - 1, arrival->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_MAP);
+    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_TELEPORT);
+
+    /* Open the ends of the gauntlet */
+    loc_init(&grid, 0, randint1(gauntlet->height - 2));
+    square_set_feat(gauntlet, &grid, FEAT_GRANITE);
+    loc_init(&grid, gauntlet->width - 1, randint1(gauntlet->height - 2));
+    square_set_feat(gauntlet, &grid, FEAT_GRANITE);
+
+    /* General amount of rubble, traps and monsters */
+    k = MAX(MIN(wpos->depth / 3, 10), 2) / 2;
+
+    /* Make the level */
+    c = cave_new(y_size, arrival->width + gauntlet->width + departure->width);
+    memcpy(&c->wpos, wpos, sizeof(struct worldpos));
+    player_cave_new(p, y_size, arrival->width + gauntlet->width + departure->width);
+
+    /* Fill cave area with basic granite */
+    fill_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_GRANITE, SQUARE_NONE);
+
+    /* Fill the area between the caverns with permanent rock */
+    fill_rectangle(c, 0, line1, c->height - 1, line2 - 1, FEAT_PERM, SQUARE_NONE);
+
+    /* PWMAngband: copy the gauntlet first */
+    chunk_copy(c, gauntlet, (y_size - gauntlet->height) / 2, line1);
+
+    /* Unlit labyrinths will have some good items */
+    alloc_objects(p, c, SET_BOTH, TYP_GOOD, Rand_normal(3, 2), wpos->depth, ORIGIN_LABYRINTH);
+
+    /* Hard (non-diggable) labyrinths will have some great items */
+    alloc_objects(p, c, SET_BOTH, TYP_GREAT, Rand_normal(2, 1), wpos->depth, ORIGIN_LABYRINTH);
+
+    /* Pick a larger number of monsters for the gauntlet */
+    i = (z_info->level_monster_min + randint1(6) + k);
+
+    /* Find appropriate monsters */
+    while (true)
+    {
+        /* Choose a pit profile */
+        set_pit_type(wpos->depth, 0);
+
+        /* Set monster generation restrictions */
+        if (mon_restrict(p, dun->pit_type->name, wpos->depth, true)) break;
+    }
+
+    /* Place labyrinth monsters */
+    spread_monsters(p, c, dun->pit_type->name, wpos->depth, i, y_size / 2,
+        x_size + gauntlet->width / 2, gauntlet->height / 2, gauntlet->width / 2, ORIGIN_LABYRINTH);
+
+    /* Remove our restrictions. */
+    mon_restrict(p, NULL, wpos->depth, false);
+
+    /* PWMAngband: add the departure cavern */
+    chunk_copy(c, departure, 0, line2);
+
+    /* Place down stairs in the departure cavern */
+    generate_mark(c, 0, line1, c->height - 1, line2 - 1, SQUARE_NO_STAIRS);
+    add_stairs(c, FEAT_MORE);
+
+    /* Pick some of monsters for the departure cavern */
+    i = z_info->level_monster_min + randint1(4) + k;
+
+    /* Place the monsters */
+    generate_mark(c, 0, line1, c->height - 1, line2 - 1, SQUARE_MON_RESTRICT);
+    for (; i > 0; i--)
+        pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
+
+    /* PWMAngband: add the arrival cavern */
+    chunk_copy(c, arrival, 0, 0);
+
+    /* Place up stairs in the arrival cavern */
+    generate_mark(c, 0, line2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
+    add_stairs(c, FEAT_LESS);
+    generate_unmark(c, 0, 0, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
+
+    /* Pick some monsters for the arrival cavern */
+    i = z_info->level_monster_min + randint1(4) + k;
+
+    /* Place the monsters */
+    generate_mark(c, 0, line2, c->height - 1, c->width - 1, SQUARE_MON_RESTRICT);
+    for (; i > 0; i--)
+        pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
+    generate_unmark(c, 0, 0, c->height - 1, c->width - 1, SQUARE_MON_RESTRICT);
+
+    /* Free the chunks */
+    cave_free(arrival);
+    cave_free(gauntlet);
+    cave_free(departure);
+
+    /* Generate permanent walls around the edge of the generated area */
+    draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
+
+    /* Temporary until connecting to vault entrances works better */
+    for (y = 0; y < gauntlet_hgt; y++)
+    {
+        loc_init(&grid, line1 - 1, y + (y_size - gauntlet_hgt) / 2);
+        square_set_feat(c, &grid, FEAT_FLOOR);
+        loc_init(&grid, line2, y + (y_size - gauntlet_hgt) / 2);
+        square_set_feat(c, &grid, FEAT_FLOOR);
+    }
+
+    /* Connect */
+    ensure_connectedness(c);
+
+    /* Put some rubble in corridors */
+    alloc_objects(p, c, SET_CORR, TYP_RUBBLE, randint1(k), wpos->depth, 0);
+
+    /* Place some traps in the dungeon */
+    alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k), wpos->depth, 0);
+
+    /* Customize */
+    customize_features(c);
+
+    /* Put the character in the arrival cavern */
+    generate_mark(c, 0, line1, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
+    new_player_spot(c, p);
+    generate_unmark(c, 0, line1, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
+
+    /* PWMAngband: we put players going up in the departure cavern */
+    if (cfg_limit_stairs)
+    {
+        generate_mark(c, 0, 0, c->height - 1, line2 - 1, SQUARE_NO_STAIRS);
+        find_start(c, &grid);
+        square_set_join_up(c, &grid);
+        generate_unmark(c, 0, 0, c->height - 1, line2 - 1, SQUARE_NO_STAIRS);
+    }
+
+    /* Put some objects in rooms */
+	alloc_objects(p, c, SET_ROOM, TYP_OBJECT, Rand_normal(z_info->room_item_av, 3), wpos->depth,
+        ORIGIN_FLOOR);
+
+	/* Put some objects/gold in the dungeon */
+	alloc_objects(p, c, SET_BOTH, TYP_OBJECT, Rand_normal(z_info->both_item_av, 3), wpos->depth,
+        ORIGIN_FLOOR);
+    alloc_objects(p, c, SET_BOTH, TYP_GOLD, Rand_normal(z_info->both_gold_av, 3), wpos->depth,
+        ORIGIN_FLOOR);
+
+    /* Clear the flags for each cave grid */
+    player_cave_clear(p, true);
+
+    return c;
 }
 
 

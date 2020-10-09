@@ -128,6 +128,7 @@ static void Term_what_hack(int x, int y, u16b *a, char *c)
 
     /* Hack -- display walls and floors properly */
     if (*c == 7) *c = '.';
+    if (*c == 8) *c = '.';
     if (*c == 127) *c = '#';
 }
 
