@@ -66,6 +66,7 @@ PWMAngband:
 
 - Implement water and tree tiles in vaults
 - Add CHALLENGING_LEVELS server option to make dungeon levels more challenging
+- Adjust damage per mana value of some spells
 
 Bugs fixed
 ----------
