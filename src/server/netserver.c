@@ -5941,6 +5941,15 @@ static int Enter_player(int ind)
     /* Hack -- ensure his settings are allowed, disconnect otherwise */
     if (!screen_compatible(ind)) return -1;
 
+    /* Hack -- do not allow new characters to be created? */
+    if (cfg_instance_closed)
+    {
+        errno = 0;
+        plog("No new characters can be created on this server.");
+        Destroy_connection(ind, "No new characters can be created on this server");
+        return -1;
+    }
+
     /* Create the character */
     p = player_birth(NumPlayers + 1, connp->account, connp->nick, connp->pass, ind, connp->ridx,
         connp->cidx, connp->psex, connp->stat_roll, connp->options[OPT_birth_start_kit],

@@ -3105,7 +3105,9 @@ void store_order(struct player *p, const char *buf)
 /*
  * Enter a store, and interact with it.
  *
- * pstore is -1 for normal stores or house index for player owned store
+ * "pstore" can have the following values:
+ * [ 0 -> (MAX_HOUSES-1) ] player owned shop, "pstore" is house index.
+ * [ -1 ] normal shop, index should be deducted from the cave grid.
  */
 void do_cmd_store(struct player *p, int pstore)
 {

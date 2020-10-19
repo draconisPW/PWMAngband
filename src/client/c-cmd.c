@@ -1436,7 +1436,7 @@ static int cmd_master_aux_generate(void)
                 memset(name, 0, sizeof(name));
 
                 /* Artifact by kind */
-                res = get_string_ex("Artifact kind: ", kind, sizeof(kind), false);
+                res = get_string_ex("Artifact kind ($=any): ", kind, sizeof(kind), false);
                 if (res == 1) return 1;
                 if ((res == 2) || !kind[0]) continue;
 

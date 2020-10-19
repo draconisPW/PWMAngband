@@ -165,7 +165,8 @@ static void init_minor(void)
     for (i = 0; i < MAX_CHANNELS; i++)
     {
         channels[i].name[0] = '\0';
-        channels[i].id = channels[i].num = 0;
+        channels[i].id = 0;
+        channels[i].num = 0;
         player->on_channel[i] = 0;
     }
     player->main_channel = 0;

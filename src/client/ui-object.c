@@ -694,6 +694,42 @@ static bool get_tag(struct object **tagged_obj, char tag, cmd_code cmd, bool qui
 
 
 /*
+ * Prompt player for a string, then try to find an item matching it
+ */
+static bool get_item_by_name(int *k)
+{
+    char buf[256];
+    char *tok;
+    int i;
+
+    buf[0] = '\0';
+    if (!get_string("Item name: ", buf, NORMAL_WID)) return false;
+
+    /* Split entry */
+    tok = strtok(buf, "|");
+    while (tok)
+    {
+        if (STRZERO(tok)) continue;
+
+        /* Match against valid items */
+        for (i = 0; i < num_obj; i++)
+        {
+            if (!items[i].object) continue;
+
+            if (my_stristr(items[i].o_name, tok))
+            {
+                (*k) = i;
+                return true;
+            }
+        }
+        tok = strtok(NULL, "|");
+    }
+
+    return false;
+}
+
+
+/*
  * Object selection menu
  */
 
@@ -960,6 +996,25 @@ static bool get_item_action(struct menu *menu, const ui_event *event, int oid)
                 newmenu = true;
             }
         }
+
+        else if (key == '@')
+        {
+            int k;
+
+            /* Lookup item by name */
+            if (get_item_by_name(&k))
+            {
+                selection = choice[k].object;
+                return true;
+            }
+            else
+            {
+                bell("Cannot select item!");
+
+                /* Macros are supposed to be accurate */
+                if (hidden) return true;
+            }
+        }
     }
 
     return false;
@@ -1057,7 +1112,7 @@ static struct object *item_menu(cmd_code cmd, int prompt_size, int mode)
         m->selections = "01234567";
     else
         m->selections = lower_case;
-    m->switch_keys = "/|-";
+    m->switch_keys = "/|-@";
     m->flags = (MN_PVT_TAGS | MN_INSCRIP_TAGS);
     m->browse_hook = item_menu_browser;
 

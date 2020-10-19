@@ -18,9 +18,13 @@ Angband 4.2.x:
 
 -
 
+MAngband 1.5.x:
+
+- Add possibility to macro by item names
+
 PWMAngband:
 
--
+- Dungeon Master menu: allow generating true artifact directly by name
 
 Gameplay changes
 ----------------
@@ -28,6 +32,11 @@ Gameplay changes
 Angband 4.2.x:
 
 -
+
+MAngband 1.5.x:
+
+- Change rules for stealth/noise checks
+- Do not speed up time with monsters in LoS
 
 PWMAngband:
 
@@ -40,9 +49,14 @@ Angband 4.2.x:
 
 -
 
+MAngband 1.5.x:
+
+- Handle topline ickyness when confirming suicide
+- Open correct directory when selecting fonts
+
 PWMAngband:
 
--
+- Fix crash when quitting GCU client in debug mode
 
 Coding changes
 --------------
@@ -50,6 +64,13 @@ Coding changes
 Angband 4.2.x:
 
 -
+
+MAngband 1.5.x:
+
+- Improve comments for do_cmd_store
+- Collapse "mangclient_xxx.ini" into "mangclient.ini" (sdl + gcu)
+- Add "instance_closed" option
+- Fix some really obvious warnings
 
 PWMAngband:
 

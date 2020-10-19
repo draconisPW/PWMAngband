@@ -245,7 +245,7 @@ static void copy_file_info(struct player *p, const char *name, int line, int col
         if (next <= line) continue;
 
         /* Too much */
-        if (line + MAX_TXT_INFO < next) continue;
+        if (i >= MAX_TXT_INFO) continue;
 
         /* Extract color */
         if (color) attr = color_char_to_attr(buf[0]);

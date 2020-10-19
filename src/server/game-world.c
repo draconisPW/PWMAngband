@@ -1701,7 +1701,7 @@ static void energize_player(struct player *p)
     energy = energy * time_factor(p, c) / 100;
 
     /* Running speeds up time */
-    if (p->upkeep->running) energy = energy * RUNNING_FACTOR / 100;
+    if (p->upkeep->running && !monsters_in_los(p, c)) energy = energy * RUNNING_FACTOR / 100;
 
     /* Hack -- record that amount for player turn calculation */
     p->charge += energy;
@@ -1766,7 +1766,7 @@ static void energize_monsters(struct chunk *c)
             energy = energy * time_factor(mon->closest_player, c) / 100;
 
             /* Speed up time if the player is running, except in town */
-            if (!in_town(&c->wpos) && mon->closest_player->upkeep->running)
+            if (!in_town(&c->wpos) && mon->closest_player->upkeep->running && !monsters_in_los(mon->closest_player, c))
                 energy = energy * RUNNING_FACTOR / 100;
         }
 

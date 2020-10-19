@@ -297,6 +297,13 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
     if (square_home_iscloseddoor(c, grid))
     {
         i = pick_house(&p->wpos, grid);
+        if (i == -1)
+        {
+            plog_fmt("No house found at W (%d, %d), X=%d, Y=%d !", p->wpos.grid.x, p->wpos.grid.y,
+                grid->x, grid->y);
+            return false;
+        }
+
         house = house_get(i);
 
         /* Tell the DM who owns the house */

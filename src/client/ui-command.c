@@ -60,9 +60,11 @@ void textui_cmd_suicide(void)
     if (!get_check("Do you really want to kill this character? ")) return;
 
     /* Check again */
+    topline_icky = true;
     prt("Please verify KILLING THIS CHARACTER by typing the '@' sign: ", 0, 0);
     event_signal(EVENT_INPUT_FLUSH);
     ch = inkey();
+    topline_icky = false;
     prt("", 0, 0);
     if (ch.code != '@') return;
 

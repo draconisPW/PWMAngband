@@ -1167,10 +1167,21 @@ static void force_font(term_data *td, char *tmp, int len)
 static void term_change_font(term_data *td)
 {
     OPENFILENAME ofn;
+    TCHAR fullFileName[2048];
     char tmp[MSG_LEN] = "";
 
     /* Extract a default if possible */
     if (td->font_file) my_strcpy(tmp, td->font_file, sizeof(tmp));
+
+    /* No default? Let's build it */
+    if (STRZERO(tmp)) strnfmt(tmp, MSG_LEN, "%s%s", ANGBAND_DIR_FONTS, "\\*.fon");
+
+    /* Resolve absolute path */
+    if (_fullpath(fullFileName, tmp, 2048) == NULL)
+    {
+        /* Complete and utter despair... */
+        my_strcpy(fullFileName, "\\*.fon", 2048);
+    }
 
     /* Ask for a choice */
     memset(&ofn, 0, sizeof(ofn));
@@ -1178,14 +1189,14 @@ static void term_change_font(term_data *td)
     ofn.hwndOwner = data[0].w;
     ofn.lpstrFilter = "Angband Font Files (*.fon)\0*.fon\0";
     ofn.nFilterIndex = 1;
-    ofn.lpstrFile = tmp;
+    ofn.lpstrFile = fullFileName;
     ofn.nMaxFile = 128;
-    ofn.lpstrInitialDir = ANGBAND_DIR_FONTS;
+    ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
     ofn.lpstrDefExt = "fon";
 
     /* Force choice if legal */
-    if (GetOpenFileName(&ofn)) force_font(td, tmp, sizeof(tmp));
+    if (GetOpenFileName(&ofn)) force_font(td, fullFileName, sizeof(fullFileName));
 }
 
 
@@ -3928,7 +3939,7 @@ static LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
 static void hack_plog(const char *str)
 {
     /* Give a warning */
-    if (str) MessageBox(NULL, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
+    if (str && str[0]) MessageBox(NULL, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
 }
 
 
@@ -3938,8 +3949,7 @@ static void hack_plog(const char *str)
 static void hack_quit(const char *str)
 {
     /* Give a warning */
-    if (str)
-        MessageBox(NULL, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
+    if (str && str[0]) MessageBox(NULL, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
 
     /* Unregister the classes */
     UnregisterClass(AppName, hInstance);
@@ -3972,7 +3982,7 @@ static void hack_quit(const char *str)
 static void hook_plog(const char *str)
 {
     /* Warning */
-    if (str) MessageBox(data[0].w, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
+    if (str && str[0]) MessageBox(data[0].w, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
 }
 
 
@@ -3984,8 +3994,7 @@ static void hook_quit(const char *str)
     int i;
 
     /* Give a warning */
-    if (str)
-        MessageBox(data[0].w, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
+    if (str && str[0]) MessageBox(data[0].w, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
 
     /* Save the preferences */
     save_prefs();

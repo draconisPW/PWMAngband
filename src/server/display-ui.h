@@ -48,6 +48,7 @@ extern bool change_panel(struct player *p, int dir);
 extern void verify_panel(struct player *p);
 extern void center_panel(struct player *p);
 extern int move_energy(int depth);
+extern bool monsters_in_los(struct player *p, struct chunk *c);
 extern int time_factor(struct player *p, struct chunk *c);
 extern int pick_arena(struct worldpos *wpos, struct loc *grid);
 extern void access_arena(struct player *p, struct loc *grid);

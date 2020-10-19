@@ -29,7 +29,7 @@
 static void quit_hook(const char *s)
 {
     /* Quit with error */
-    if (s) exit_game_panic();
+    if (s && s[0]) exit_game_panic();
 
     /* Free resources */
     else cleanup_angband();
