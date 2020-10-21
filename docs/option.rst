@@ -228,6 +228,11 @@ Display monsters in ASCII ``ascii_mon``
   This option displays monsters using ASCII symbols instead of tiles when using
   a tileset.
 
+..
+
+Nonmoving monsters disturb running ``disturb_nomove``
+  Disturb the player when trying to run in line of sight of a nonmoving monster.
+
 Birth options
 -------------
 

@@ -140,7 +140,7 @@ static void sense_object(struct player *p, struct object *obj, bool tocarry)
     marker = object_marker(obj);
 
     /* Stop everything */
-    disturb(p);
+    disturb(p, 0);
 
     if (cursed) text = "cursed";
     else if (worthless) text = "worthless";

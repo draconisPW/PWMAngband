@@ -1033,6 +1033,29 @@ static void term_remove_font(const char *name)
 
 
 /*
+ * See if any other term is already using font_file
+ */
+static bool term_font_inuse(term_data* td)
+{
+    int i;
+    bool used = false;
+
+    /* Scan windows */
+    for (i = 0; i < MAX_TERM_DATA; i++)
+    {
+        /* Check "screen" */
+        if ((td != &data[i]) && data[i].font_file && streq(data[i].font_file, td->font_file))
+        {
+            used = true;
+            break;
+        }
+    }
+
+    return used;
+}
+
+
+/*
  * Force the use of a new "font file" for a term_data
  *
  * This function may be called before the "window" is ready
@@ -1043,7 +1066,6 @@ static void term_remove_font(const char *name)
  */
 static errr term_force_font(term_data *td, const char *path)
 {
-    int i;
     int wid, hgt;
     char *base;
     char buf[MSG_LEN];
@@ -1057,15 +1079,7 @@ static errr term_force_font(term_data *td, const char *path)
     /* Forget old font */
     if (td->font_file)
     {
-        bool used = false;
-
-        /* Scan windows */
-        for (i = 0; i < MAX_TERM_DATA; i++)
-        {
-            /* Check "screen" */
-            if ((td != &data[i]) && data[i].font_file && streq(data[i].font_file, td->font_file))
-                used = true;
-        }
+        bool used = term_font_inuse(td);
 
         /* Remove unused font resources */
         if (!used) term_remove_font(td->font_file);
@@ -1086,11 +1100,15 @@ static errr term_force_font(term_data *td, const char *path)
     /* Verify file */
     if (!file_exists(buf)) return (1);
 
-    /* Load the new font */
-    if (!AddFontResourceEx(buf, FR_PRIVATE, 0)) return (1);
-
     /* Save new font name */
     td->font_file = string_make(base);
+
+    /* If this font is used for the first time */
+    if (!term_font_inuse(td))
+    {
+        /* Load the new font */
+        if (!AddFontResourceEx(buf, FR_PRIVATE, 0)) return (1);
+    }
 
     /* Remove the "suffix" */
     base[strlen(base) - 4] = '\0';

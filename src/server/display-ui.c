@@ -2231,7 +2231,12 @@ bool monsters_in_los(struct player *p, struct chunk *c)
         struct monster *mon = cave_monster(c, i);
         bool incapacitated = (mon->m_timed[MON_TMD_SLEEP] || mon->m_timed[MON_TMD_HOLD]);
 
-        if (!mon->race) continue;
+        /* PWMAngband: don't count non hostile monsters */
+        if (!pvm_check(p, mon)) continue;
+
+        /* PWMAngband: if disturb_nomove isn't set, allow nonmovable monsters */
+        if (rf_has(mon->race->flags, RF_NEVER_MOVE) && !OPT(p, disturb_nomove))
+            incapacitated = true;
 
         /* Check this monster */
         if (monster_is_in_view(p, i) && !incapacitated)

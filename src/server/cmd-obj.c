@@ -1074,7 +1074,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (!obj)
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1085,7 +1085,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (!player_can_cast(p, true))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1095,7 +1095,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "The item's inscription prevents it.");
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1105,7 +1105,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "This item belongs to someone else!");
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1115,7 +1115,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "You don't have the required level!");
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1126,7 +1126,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (!book)
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1136,7 +1136,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "The item's inscription prevents it.");
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1148,7 +1148,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "You cannot %s that %s.", book->realm->verb, book->realm->spell_noun);
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1158,7 +1158,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
     if (sidx == -1)
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1171,7 +1171,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "You have nothing to identify.");
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1183,7 +1183,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
             spell->realm->spell_noun);
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1194,7 +1194,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         msg(p, "This %s is on cooldown.", spell->realm->spell_noun);
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1204,7 +1204,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         use_energy(p);
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1216,7 +1216,7 @@ bool do_cmd_cast(struct player *p, int book_index, int spell_index, int dir)
         (spell_index >= p->clazz->magic.total_spells)? true: false))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 

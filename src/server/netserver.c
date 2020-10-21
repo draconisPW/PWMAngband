@@ -602,7 +602,7 @@ static void Contact(int fd, int arg)
     char real_name[NORMAL_WID], nick_name[NORMAL_WID], host_name[NORMAL_WID], pass_word[NORMAL_WID];
     u32b account = 0L;
     int *id_list = NULL;
-    u16b num = 0;
+    u16b num = 0, max = 0;
     size_t i, j;
 
     /*
@@ -762,7 +762,15 @@ static void Contact(int fd, int arg)
 
     /* Get characters attached to this account */
     if (!status)
+    {
         num = (u16b)player_id_list(&id_list, account);
+        max = (u16b)cfg_max_account_chars;
+    }
+    else
+    {
+        num = current_version();
+        max = (beta_version()? 1: 0);
+    }
 
     /* Clear buffer */
     Sockbuf_clear(&ibuf);
@@ -770,7 +778,7 @@ static void Contact(int fd, int arg)
     /* Send reply */
     Packet_printf(&ibuf, "%c", (int)status);
     Packet_printf(&ibuf, "%hu", (unsigned)num);
-    Packet_printf(&ibuf, "%hu", (unsigned)cfg_max_account_chars);
+    Packet_printf(&ibuf, "%hu", (unsigned)max);
 
     /* Some error */
     if (status)
@@ -3635,7 +3643,7 @@ static int Receive_walk(int ind)
         /* Disturb if running or resting */
         if (p->upkeep->running || player_is_resting(p))
         {
-            disturb(p);
+            disturb(p, 1);
             return 1;
         }
 
@@ -5301,7 +5309,7 @@ static int Receive_jump(int ind)
         /* Disturb if running or resting */
         if (p->upkeep->running || player_is_resting(p))
         {
-            disturb(p);
+            disturb(p, 1);
             return 1;
         }
 
@@ -7522,7 +7530,7 @@ bool process_pending_commands(int ind)
         if (result == 0)
         {
             /* Hack -- if we tried to do something while resting, wake us up. */
-            if ((type != PKT_REST) && player_is_resting(p)) disturb(p);
+            if ((type != PKT_REST) && player_is_resting(p)) disturb(p, 1);
 
             /*
              * If we didn't have enough energy to execute this

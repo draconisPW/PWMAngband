@@ -458,7 +458,7 @@ static void update_mon_aux(struct player *p, struct monster *mon, struct chunk *
                 /* Hack -- do not cancel fire_till_kill on appearance */
                 if (p->firing_request) p->cancel_firing = false;
 
-                disturb(p);
+                disturb(p, 1);
             }
 
             /* Redraw */
@@ -1681,7 +1681,7 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
                  !p->firing_request)
             {
                 /* Disturb */
-                disturb(p);
+                disturb(p, 0);
             }
         }
     }

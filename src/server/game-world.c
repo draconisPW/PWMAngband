@@ -130,7 +130,7 @@ static void recharged_notice(struct player *p, const struct object *obj, bool al
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_BASE);
 
     /* Disturb the player */
-    disturb(p);
+    disturb(p, 0);
 
     /* Notify the player */
     if (obj->number > 1)
@@ -809,7 +809,7 @@ static void process_player_world(struct player *p, struct chunk *c)
         {
             /* Message */
             msg(p, "You faint from the lack of food.");
-            disturb(p);
+            disturb(p, 0);
 
             /* Hack -- faint (bypass free action) */
             player_inc_timed(p, TMD_PARALYZED, 1 + randint0(5), true, false);
@@ -1690,6 +1690,7 @@ static void energize_player(struct player *p)
 {
     int energy;
     struct chunk *c = chunk_get(&p->wpos);
+    bool allow_running = (in_town(&c->wpos) || !monsters_in_los(p, c));
 
     /* Player is idle */
     p->is_idle = has_energy(p, false);
@@ -1701,7 +1702,7 @@ static void energize_player(struct player *p)
     energy = energy * time_factor(p, c) / 100;
 
     /* Running speeds up time */
-    if (p->upkeep->running && !monsters_in_los(p, c)) energy = energy * RUNNING_FACTOR / 100;
+    if (p->upkeep->running && allow_running) energy = energy * RUNNING_FACTOR / 100;
 
     /* Hack -- record that amount for player turn calculation */
     p->charge += energy;
@@ -1763,10 +1764,12 @@ static void energize_monsters(struct chunk *c)
         /* If we are within a player's time bubble, scale our energy */
         if (mon->closest_player)
         {
+            bool allow_running = (!in_town(&c->wpos) && !monsters_in_los(mon->closest_player, c));
+
             energy = energy * time_factor(mon->closest_player, c) / 100;
 
             /* Speed up time if the player is running, except in town */
-            if (!in_town(&c->wpos) && mon->closest_player->upkeep->running && !monsters_in_los(mon->closest_player, c))
+            if (mon->closest_player->upkeep->running && allow_running)
                 energy = energy * RUNNING_FACTOR / 100;
         }
 
@@ -2210,7 +2213,7 @@ bool level_keep_allocated(struct chunk *c)
 static void save_game(struct player *p)
 {
     /* Disturb the player */
-    disturb(p);
+    disturb(p, 0);
 
     /* Clear messages */
     message_flush(p);
@@ -2484,7 +2487,7 @@ void exit_game_panic(void)
         }
 
         /* Hack -- turn off some things */
-        disturb(p);
+        disturb(p, 0);
 
         /* Hack -- delay death */
         if (p->chp < 0) p->is_dead = false;

@@ -21,10 +21,13 @@ Angband 4.2.x:
 MAngband 1.5.x:
 
 - Add possibility to macro by item names
+- Add version number to "incompatible client version" error message
 
 PWMAngband:
 
 - Dungeon Master menu: allow generating true artifact directly by name
+- Add client option to disable running when in line of sight of a nonmovable
+  monster
 
 Gameplay changes
 ----------------
@@ -37,10 +40,11 @@ MAngband 1.5.x:
 
 - Change rules for stealth/noise checks
 - Do not speed up time with monsters in LoS
+- Fix DM_NEVER_DISTURB
 
 PWMAngband:
 
--
+- Make Dungeon Master trap immune
 
 Bugs fixed
 ----------
@@ -53,6 +57,7 @@ MAngband 1.5.x:
 
 - Handle topline ickyness when confirming suicide
 - Open correct directory when selecting fonts
+- Stop allocating too much font resources
 
 PWMAngband:
 

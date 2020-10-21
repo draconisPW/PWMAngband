@@ -357,7 +357,7 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
             /* Player owned store! */
 
             /* Disturb */
-            disturb(p);
+            disturb(p, 0);
 
             /* Hack -- enter store */
             do_cmd_store(p, i);
@@ -541,7 +541,7 @@ void do_cmd_open(struct player *p, int dir, bool easy)
     if (!obj && !do_cmd_open_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return;
     }
 
@@ -571,7 +571,7 @@ void do_cmd_open(struct player *p, int dir, bool easy)
         more = do_cmd_open_aux(p, c, &grid);
 
     /* Cancel repeat unless we may continue */
-    if (!more) disturb(p);
+    if (!more) disturb(p, 1);
 }
 
 
@@ -719,7 +719,7 @@ void do_cmd_close(struct player *p, int dir, bool easy)
     if (!do_cmd_close_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return;
     }
 
@@ -742,7 +742,7 @@ void do_cmd_close(struct player *p, int dir, bool easy)
         more = do_cmd_close_aux(p, c, &grid);
 
     /* Cancel repeat unless we may continue */
-    if (!more) disturb(p);
+    if (!more) disturb(p, 1);
 }
 
 
@@ -982,7 +982,7 @@ bool do_cmd_tunnel(struct player *p)
     if (!dir || !VALID_DIR(dir))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -993,7 +993,7 @@ bool do_cmd_tunnel(struct player *p)
     if (!do_cmd_tunnel_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -1016,7 +1016,7 @@ bool do_cmd_tunnel(struct player *p)
         more = do_cmd_tunnel_aux(p, c, &grid);
 
     /* Cancel repetition unless we can continue */
-    if (!more) disturb(p);
+    if (!more) disturb(p, 1);
 
     /* Repeat */
     if (p->digging_request > 0) p->digging_request--;
@@ -1246,7 +1246,7 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
     if (!obj && !do_cmd_disarm_test(p, c, &grid))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return;
     }
 
@@ -1280,7 +1280,7 @@ void do_cmd_disarm(struct player *p, int dir, bool easy)
         more = do_cmd_disarm_aux(p, c, &grid, dir);
 
     /* Cancel repeat unless told not to */
-    if (!more) disturb(p);
+    if (!more) disturb(p, 1);
 }     
 
 
@@ -1381,7 +1381,7 @@ void do_cmd_alter(struct player *p, int dir)
     if (spend) use_energy(p);
 
     /* Cancel repetition unless we can continue */
-    if (!more) disturb(p);
+    if (!more) disturb(p, 1);
 }
 
 
@@ -1499,7 +1499,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                     msg(p, "There is a wall blocking your way.");
                 else
                     msg(p, ONE_OF(comment_ironman));
-                disturb(p);
+                disturb(p, 0);
                 return;
             }
 
@@ -1542,7 +1542,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 case 1: msg(p, "You cannot go beyond the Walls of the World."); break;
             }
 
-            disturb(p);
+            disturb(p, 0);
             return;
         }
 
@@ -1564,7 +1564,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         wild_set_explored(p, &w_ptr->wpos);
 
         /* Disturb if necessary */
-        if (OPT(p, disturb_panel)) disturb(p);
+        if (OPT(p, disturb_panel)) disturb(p, 0);
 
         return;
     }
@@ -1613,8 +1613,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                     msg(who->player, "You switch places with %s.", p_name);
 
                     /* Disturb both of them */
-                    disturb(p);
-                    disturb(who->player);
+                    disturb(p, 0);
+                    disturb(who->player, 0);
                 }
 
                 /* Unhack both of them */
@@ -1637,8 +1637,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 msg(who->player, "%s bumps into you.", p_name);
 
                 /* Disturb both parties */
-                disturb(p);
-                disturb(who->player);
+                disturb(p, 0);
+                disturb(who->player, 0);
             }
         }
 
@@ -1705,14 +1705,14 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     /* Stop running before known traps */
     if (trap && p->upkeep->running && !trapsafe)
     {
-        disturb(p);
+        disturb(p, 0);
         return;
     }
 
     /* Normal players can not walk through "walls" */
     if (!player_passwall(p) && !square_ispassable(c, &grid))
     {
-        disturb(p);
+        disturb(p, 0);
 
         /* Notice unknown obstacles */
         if (!square_isknown(p, &grid))
@@ -1782,7 +1782,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
             /* Message */
             msg(p, "The wall blocks your movement.");
 
-            disturb(p);
+            disturb(p, 0);
             return;
         }
     }
@@ -1812,7 +1812,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     if (p->upkeep->running && !p->upkeep->running_firststep && old_dtrap && !new_dtrap &&
         random_level(&p->wpos))
     {
-        disturb(p);
+        disturb(p, 0);
         return;
     }
 
@@ -1833,7 +1833,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     /* Handle store doors, or notice objects */
     if (!p->ghost && square_isshop(c, &grid))
     {
-        disturb(p);
+        disturb(p, 0);
 
         /* Hack -- enter store */
         do_cmd_store(p, -1);
@@ -1866,21 +1866,21 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     /* Discover invisible traps */
     else if (square_issecrettrap(c, &grid))
     {
-        disturb(p);
+        disturb(p, 0);
         hit_trap(p, &p->grid, delayed);
     }
 
     /* Set off a visible trap */
     else if (square_isdisarmabletrap(c, &grid) && !trapsafe)
     {
-        disturb(p);
+        disturb(p, 0);
         hit_trap(p, &p->grid, delayed);
     }
 
     /* Mention fountains */
     else if (square_isfountain(c, &grid))
     {
-        disturb(p);
+        disturb(p, 0);
         msg(p, "A fountain is located at this place.");
     }
 
@@ -2130,7 +2130,7 @@ static bool do_cmd_run_test(struct player *p, struct loc *grid)
             msgt(p, MSG_HITWALL, "There is a wall in the way!");
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
 
         /* Nope */
         return false;
@@ -2213,7 +2213,7 @@ bool do_cmd_rest(struct player *p, s16b resting)
     if (!player_is_resting(p))
     {
         /* Disturb us: reset running if needed */
-        disturb(p);
+        disturb(p, 1);
 
         /* Redraw the state */
         p->upkeep->redraw |= (PR_STATE);
@@ -2373,7 +2373,7 @@ void display_feeling(struct player *p, bool obj_only)
     /* Display only the object feeling when it's first discovered. */
     if (obj_only && (cfg_level_feelings == 2))
     {
-        disturb(p);
+        disturb(p, 0);
         msg(p, "You feel that %s", obj_feeling_text[obj_feeling][set]);
         p->obj_feeling = obj_feeling;
         return;

@@ -656,6 +656,7 @@ static void player_outfit_dm(struct player *p)
         set_ghost_flag(p, 1, false);
         p->noscore = 1;
         get_bonuses(p);
+        p->timed[TMD_TRAPSAFE] = -1;
     }
 
     /*

@@ -1711,7 +1711,7 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     obvious = context.obvious;
 
     /* Disturb */
-    disturb(p);
+    disturb(p, 0);
 
     /* Track this player */
     *did_hit = true;

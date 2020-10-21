@@ -204,7 +204,7 @@ void msg_format_complex_far(struct player *p, u16b type, const char *fmt, const 
             msg_print(player, buf_vis, type);
 
             /* Disturb player */
-            disturb(player);
+            disturb(player, 0);
         }
         else
         {
