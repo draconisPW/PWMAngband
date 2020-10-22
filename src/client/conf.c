@@ -53,8 +53,16 @@ void conf_init(void* param)
 
     /* Get full path to executable */
     GetModuleFileName(hInstance, path, sizeof(path));
-    my_strcpy(path + strlen(path) - 4, ".ini", 5);
+
+    /* Remove ".exe" */
+    path[strlen(path) - 4] = '\0';
+
+    /* Remove ANGBAND_SYS suffix */
+    if (suffix(path, "_sdl") || suffix(path, "_gcu")) path[strlen(path) - 4] = '\0';
+
+    /* Append ".ini" */
     my_strcpy(config_name, path, sizeof(config_name));
+    my_strcat(config_name, ".ini", sizeof(config_name));
 }
 
 

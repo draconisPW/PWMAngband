@@ -1086,6 +1086,7 @@ bool target_set_interactive(struct player *p, int mode, u32b query)
                     loc_copy(&p->tt_grid, &p->grid);
                 }
 
+                /* fallthrough */
                 case 'o':
                 {
                     p->tt_flag = false;

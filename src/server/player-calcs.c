@@ -2623,8 +2623,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->skills[SKILL_DIGGING] += (tool->weight / 10);
 
     /* Movement speed */
-    state->num_moves = 1 + extra_moves;
-    if (state->num_moves < 1) state->num_moves = 1;
+    state->num_moves = extra_moves;
     if (update && (p->state.num_moves != state->num_moves))
         p->upkeep->redraw |= (PR_STATE);
 

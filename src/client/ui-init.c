@@ -165,7 +165,8 @@ static void init_minor(void)
     for (i = 0; i < MAX_CHANNELS; i++)
     {
         channels[i].name[0] = '\0';
-        channels[i].id = channels[i].num = 0;
+        channels[i].id = 0;
+        channels[i].num = 0;
         player->on_channel[i] = 0;
     }
     player->main_channel = 0;
@@ -432,6 +433,19 @@ static void cleanup_player(void)
 }
 
 
+static char *server_version(u16b version, u16b beta)
+{
+    u16b major, minor, patch, extra;
+
+    major = version >> 12;
+    minor = (version % (1 << 12)) >> 8;
+    patch = ((version % (1 << 12)) % (1 << 8)) >> 4;
+    extra = ((version % (1 << 12)) % (1 << 8)) % (1 << 4);
+
+    return format("%d.%d.%d.%d%s", major, minor, patch, extra, (beta? " beta": ""));
+}
+
+
 /*
  * Initialize everything, contact the server, and start the loop.
  */
@@ -603,7 +617,10 @@ void client_init(bool new_game)
 
         /* The server didn't like us.... */
         case E_VERSION_OLD:
-            quit("Your client will not work on that server (client version is too old).");
+        {
+            quit_fmt("Your old client will not work on that server. You need version %s.",
+                server_version(num, max));
+        }
         case E_INVAL:
             quit("The server didn't like your nickname, realname, or hostname.");
         case E_ACCOUNT:
@@ -613,7 +630,10 @@ void client_init(bool new_game)
         case E_SOCKET:
             quit("Socket error.");
         case E_VERSION_NEW:
-            quit("Your client will not work on that server (server version is too old).");
+        {
+            quit_fmt("Your client will not work on that old server. You need version %s.",
+                server_version(num, max));
+        }
         default:
             quit("Your client will not work on that server (not a PWMAngband server).");
     }

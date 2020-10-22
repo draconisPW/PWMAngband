@@ -1033,6 +1033,29 @@ static void term_remove_font(const char *name)
 
 
 /*
+ * See if any other term is already using font_file
+ */
+static bool term_font_inuse(term_data* td)
+{
+    int i;
+    bool used = false;
+
+    /* Scan windows */
+    for (i = 0; i < MAX_TERM_DATA; i++)
+    {
+        /* Check "screen" */
+        if ((td != &data[i]) && data[i].font_file && streq(data[i].font_file, td->font_file))
+        {
+            used = true;
+            break;
+        }
+    }
+
+    return used;
+}
+
+
+/*
  * Force the use of a new "font file" for a term_data
  *
  * This function may be called before the "window" is ready
@@ -1043,7 +1066,6 @@ static void term_remove_font(const char *name)
  */
 static errr term_force_font(term_data *td, const char *path)
 {
-    int i;
     int wid, hgt;
     char *base;
     char buf[MSG_LEN];
@@ -1057,15 +1079,7 @@ static errr term_force_font(term_data *td, const char *path)
     /* Forget old font */
     if (td->font_file)
     {
-        bool used = false;
-
-        /* Scan windows */
-        for (i = 0; i < MAX_TERM_DATA; i++)
-        {
-            /* Check "screen" */
-            if ((td != &data[i]) && data[i].font_file && streq(data[i].font_file, td->font_file))
-                used = true;
-        }
+        bool used = term_font_inuse(td);
 
         /* Remove unused font resources */
         if (!used) term_remove_font(td->font_file);
@@ -1086,11 +1100,15 @@ static errr term_force_font(term_data *td, const char *path)
     /* Verify file */
     if (!file_exists(buf)) return (1);
 
-    /* Load the new font */
-    if (!AddFontResourceEx(buf, FR_PRIVATE, 0)) return (1);
-
     /* Save new font name */
     td->font_file = string_make(base);
+
+    /* If this font is used for the first time */
+    if (!term_font_inuse(td))
+    {
+        /* Load the new font */
+        if (!AddFontResourceEx(buf, FR_PRIVATE, 0)) return (1);
+    }
 
     /* Remove the "suffix" */
     base[strlen(base) - 4] = '\0';
@@ -1167,10 +1185,21 @@ static void force_font(term_data *td, char *tmp, int len)
 static void term_change_font(term_data *td)
 {
     OPENFILENAME ofn;
+    TCHAR fullFileName[2048];
     char tmp[MSG_LEN] = "";
 
     /* Extract a default if possible */
     if (td->font_file) my_strcpy(tmp, td->font_file, sizeof(tmp));
+
+    /* No default? Let's build it */
+    if (STRZERO(tmp)) strnfmt(tmp, MSG_LEN, "%s%s", ANGBAND_DIR_FONTS, "\\*.fon");
+
+    /* Resolve absolute path */
+    if (_fullpath(fullFileName, tmp, 2048) == NULL)
+    {
+        /* Complete and utter despair... */
+        my_strcpy(fullFileName, "\\*.fon", 2048);
+    }
 
     /* Ask for a choice */
     memset(&ofn, 0, sizeof(ofn));
@@ -1178,14 +1207,14 @@ static void term_change_font(term_data *td)
     ofn.hwndOwner = data[0].w;
     ofn.lpstrFilter = "Angband Font Files (*.fon)\0*.fon\0";
     ofn.nFilterIndex = 1;
-    ofn.lpstrFile = tmp;
+    ofn.lpstrFile = fullFileName;
     ofn.nMaxFile = 128;
-    ofn.lpstrInitialDir = ANGBAND_DIR_FONTS;
+    ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
     ofn.lpstrDefExt = "fon";
 
     /* Force choice if legal */
-    if (GetOpenFileName(&ofn)) force_font(td, tmp, sizeof(tmp));
+    if (GetOpenFileName(&ofn)) force_font(td, fullFileName, sizeof(fullFileName));
 }
 
 
@@ -3928,7 +3957,7 @@ static LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
 static void hack_plog(const char *str)
 {
     /* Give a warning */
-    if (str) MessageBox(NULL, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
+    if (str && str[0]) MessageBox(NULL, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
 }
 
 
@@ -3938,8 +3967,7 @@ static void hack_plog(const char *str)
 static void hack_quit(const char *str)
 {
     /* Give a warning */
-    if (str)
-        MessageBox(NULL, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
+    if (str && str[0]) MessageBox(NULL, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
 
     /* Unregister the classes */
     UnregisterClass(AppName, hInstance);
@@ -3972,7 +4000,7 @@ static void hack_quit(const char *str)
 static void hook_plog(const char *str)
 {
     /* Warning */
-    if (str) MessageBox(data[0].w, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
+    if (str && str[0]) MessageBox(data[0].w, str, "Warning", MB_ICONEXCLAMATION | MB_OK);
 }
 
 
@@ -3984,8 +4012,7 @@ static void hook_quit(const char *str)
     int i;
 
     /* Give a warning */
-    if (str)
-        MessageBox(data[0].w, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
+    if (str && str[0]) MessageBox(data[0].w, str, "Error", MB_ICONEXCLAMATION | MB_OK | MB_ICONSTOP);
 
     /* Save the preferences */
     save_prefs();

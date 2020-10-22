@@ -429,7 +429,7 @@ bool do_curse_effect(struct player *p, int i)
     source_obj(who, obj);
     who->player = p;
     effect_do(effect, who, &ident, was_aware, dir, NULL, 0, 0, NULL);
-    disturb(p);
+    disturb(p, 0);
     return !was_aware && ident;
 }
 

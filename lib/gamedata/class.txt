@@ -697,7 +697,7 @@ desc: damage to each monster in its area of effect.
 desc: If this kills the monster that blocked the path to the target
 desc: location, the next meteor may continue to find another target.
 
-spell:Toxic Moisture:33:40:75:24:0
+spell:Toxic Moisture:33:20:75:24:0
 effect:BALL:ICE:3
 dice:$B
 expr:B:PLAYER_LEVEL:+ 50
@@ -1748,7 +1748,7 @@ effect:DETECT_MONSTERS
 effect-yx:22:40
 desc:Detects all monsters in the immediate area, for one turn only.
 
-spell:Cloudkill:26:20:60:15:0
+spell:Cloudkill:26:10:60:15:0
 effect:BALL:POIS:3
 dice:$B
 expr:B:PLAYER_LEVEL:/ 2 + 40
@@ -2452,7 +2452,7 @@ desc: Only artifacts and permanent features (stairs and permanent
 desc: doors/walls) will not be affected by this spell.
 desc: This spell has no effect when used in the town.
 
-spell:Sunfire:28:20:70:35:0
+spell:Sunfire:28:15:60:35:0
 effect:BALL:LIGHT:2
 dice:$B
 expr:B:PLAYER_LEVEL:* 2 + 130
@@ -2559,7 +2559,7 @@ msg_other: invokes a mana storm.
 desc:Shoots a radius-3 mana ball that does unresistable
 desc: damage to each monster in its area of effect.
 
-spell:Tidal Wave:45:27:55:250:0
+spell:Tidal Wave:45:22:55:250:0
 effect:BALL:WATER:3
 dice:$B
 expr:B:PLAYER_LEVEL:* 2 + 450
@@ -2979,7 +2979,7 @@ book-properties:25:30:1600
 book-alloc:20:25 to 100
 book-desc:A glowing stone, engraved with runes of power.
 
-spell:Kinetic Blast:20:11:46:20:0
+spell:Kinetic Blast:20:10:46:20:0
 effect:BEAM:FORCE
 dice:$B+1d$S
 expr:B:PLAYER_LEVEL:+ 50
@@ -3035,7 +3035,7 @@ dice:20+1d20
 desc:Grants you resistance to acid, cold, fire, lightning and poison for
 desc: 20+1d20 turns.
 
-spell:Mind Wave:30:17:61:35:0
+spell:Mind Wave:30:15:61:35:0
 effect:BLAST:INERTIA:2:10
 dice:$B
 expr:B:PLAYER_LEVEL:+ 0
@@ -3123,7 +3123,7 @@ effect:LIGHT_LEVEL
 desc:Lights up, maps out and senses all objects on the complete current
 desc: dungeon level.
 
-spell:Kinetic Wave:42:23:79:59:0
+spell:Kinetic Wave:42:20:79:59:0
 effect:BLAST:FORCE:3:10
 dice:$B
 expr:B:PLAYER_LEVEL:* 4
@@ -3141,7 +3141,7 @@ msg_self:Your body begins to rapidly recover.
 desc:Cures 1000 points of damage, cures all stunning, heals all
 desc: cut damage, neutralizes poison, and cures amnesia.
 
-spell:Brain Smash:48:25:77:70:0
+spell:Brain Smash:48:24:77:70:0
 effect:BOLT_OR_BEAM:SMASH
 dice:$Dd15
 expr:D:PLAYER_LEVEL:* 3 / 5

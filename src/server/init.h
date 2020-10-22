@@ -44,6 +44,7 @@ extern char *cfg_chardump_label;
 extern s16b cfg_preserve_artifacts;
 extern bool cfg_safe_recharge;
 extern s16b cfg_party_sharelevel;
+extern bool cfg_instance_closed;
 extern bool cfg_turn_based;
 extern bool cfg_limited_esp;
 extern bool cfg_double_purse;

@@ -1642,7 +1642,7 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
                 msg(who->player, "You hear a door burst open!");
 
                 /* Disturb if necessary */
-                if (!who->monster && OPT(who->player, disturb_bash)) disturb(who->player);
+                if (!who->monster && OPT(who->player, disturb_bash)) disturb(who->player, 0);
 
                 /* Note changes to viewable region */
                 note_viewable_changes(&c->wpos, grid);
@@ -2070,7 +2070,7 @@ static void monster_turn_move(struct source *who, struct chunk *c, struct monste
                 /* Hack -- do not cancel fire_till_kill on movement */
                 if (who->player->firing_request) who->player->cancel_firing = false;
 
-                disturb(who->player);
+                disturb(who->player, 1);
             }
         }
     }
@@ -2427,10 +2427,14 @@ static void monster_reduce_sleep(struct monster *mon, bool mvm)
     int notice = randint0(1024);
     struct monster_lore *lore = get_lore(p, mon->race);
 
-    /* PWMAngband: idle players are less susceptible to get noticed */
-    if (has_energy(p, false)) stealth += 3;
-    stealth = MIN(stealth, 30);
-    player_noise = 1 << (30 - stealth);
+    /* If player has acted this turn, use that noise value */
+    if (!has_energy(p, false)) player_noise = 1 << (30 - stealth);
+
+    /* If player hasn't acted, 1/100 chance to make noise */
+    else if (one_in_(100)) player_noise = 1 << (30 - stealth);
+
+    /* Player is totally silent */
+    else player_noise = 0;
 
     /* MvM or aggravation */
     if (mvm || player_of_has(p, OF_AGGRAVATE))

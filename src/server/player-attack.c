@@ -725,7 +725,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
         mon_clear_timed(p, target->monster, MON_TMD_HOLD, MON_TMD_FLG_NOTIFY);
     }
     else
-        disturb(target->player);
+        disturb(target->player, 0);
 
     /* See if the player hit */
     success = test_hit(chance, ac, visible);
@@ -1160,7 +1160,7 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
     }
 
     /* Disturb the player */
-    disturb(p);
+    disturb(p, 0);
 
     /* Calculate number of blows */
     num_blows = (p->state.num_blows + p->frac_blow) / 100;
@@ -2338,7 +2338,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
         msg(p, "You have no ammunition in the quiver to fire.");
 
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -2346,7 +2346,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     if (!target_set_closest(p, TARGET_KILL | TARGET_QUIET))
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 
@@ -2356,7 +2356,7 @@ bool do_cmd_fire_at_nearest(struct player *p)
     if (!result)
     {
         /* Cancel repeat */
-        disturb(p);
+        disturb(p, 1);
         return true;
     }
 

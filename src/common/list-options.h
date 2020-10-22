@@ -38,6 +38,7 @@ OP(hide_terrain, "Hide terrain description on status line", MANGBAND, false, tru
 OP(disable_enter, "Disable Enter menu", MANGBAND, false, false)
 OP(sort_exp, "Sort monsters by experience", MANGBAND, false, true)
 OP(ascii_mon, "Display monsters in ASCII", MANGBAND, false, true)
+OP(disturb_nomove, "Nonmoving monsters disturb running", MANGBAND, true, true)
 OP(birth_force_descend, "Force player descent", BIRTH, false, true)
 OP(birth_no_recall, "Word of Recall has no effect", BIRTH, false, true)
 OP(birth_no_artifacts, "Restrict creation of artifacts", BIRTH, false, true)

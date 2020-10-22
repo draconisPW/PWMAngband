@@ -2888,7 +2888,7 @@ static bool effect_handler_DEEP_DESCENT(effect_handler_context_t *context)
         }
 
         /* Change location */
-        disturb(context->origin->player);
+        disturb(context->origin->player, 0);
         msgt(context->origin->player, MSG_TPLEVEL, "The floor opens beneath you!");
         msg_misc(context->origin->player, " sinks through the floor!");
         dungeon_change_level(context->origin->player, context->cave, &wpos, LEVEL_RAND);
@@ -3622,7 +3622,7 @@ static bool effect_handler_DETECT_TRAPS(effect_handler_context_t *context)
                 if (!ignore_item_ok(context->origin->player, obj))
                 {
                     /* Notice it */
-                    disturb(context->origin->player);
+                    disturb(context->origin->player, 0);
 
                     /* We found something to detect */
                     detect = true;

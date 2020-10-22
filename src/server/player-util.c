@@ -161,7 +161,7 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     }
 
     /* Disturb */
-    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p);
+    if (strcmp(hit_from, "fading") && strcmp(hit_from, "hypoxia") && !nodisturb) disturb(p, 0);
 
     /* Disruption shield: damage is subtracted from mana first */
     if (p->timed[TMD_MANASHIELD] && (p->csp > 0))
@@ -268,6 +268,18 @@ bool take_hit(struct player *p, int damage, const char *hit_from, bool non_physi
     /* Alive */
     p->died_flavor[0] = '\0';
     return false;
+}
+
+
+/*
+ * Energy per move, taking extra moves into account
+ */
+int energy_per_move(struct player *p)
+{
+    int num = p->state.num_moves;
+    int energy = move_energy(p->wpos.depth);
+
+    return (energy * (1 + ABS(num) - num)) / (1 + ABS(num));
 }
 
 
@@ -534,7 +546,7 @@ void player_update_light(struct player *p)
             /* The light is now out */
             else if (obj->timeout == 0)
             {
-                disturb(p);
+                disturb(p, 0);
                 msg(p, "Your light has gone out!");
 
                 /* If it's a torch, now is the time to delete it */
@@ -548,7 +560,7 @@ void player_update_light(struct player *p)
             /* The light is getting dim */
             else if ((obj->timeout < 50) && (!(obj->timeout % 20)))
             {
-                disturb(p);
+                disturb(p, 0);
                 msg(p, "Your light is growing faint.");
             }
         }
@@ -915,7 +927,7 @@ void player_resting_complete_special(struct player *p)
     }
 
     /* Stop resting */
-    if (done) disturb(p);
+    if (done) disturb(p, 1);
 }
 
 
@@ -1093,14 +1105,19 @@ void cancel_running(struct player *p)
 /*
  * Something has happened to disturb the player.
  *
- * The first arg indicates a major disturbance, which affects search.
- *
  * All disturbance cancels repeated commands, resting, and running.
+ *
+ * MAngband-specific: the "unused_flag" is actually used, to tell apart
+ * disturb calls provoked by Player intent (1) and calls provoked by
+ * some external event (0).
  */
-void disturb(struct player *p)
+void disturb(struct player *p, int unused_flag)
 {
+    /* Used */
+    int player_intent = unused_flag;
+
     /* Dungeon Master is never disturbed */
-    /*if (p->dm_flags & DM_NEVER_DISTURB) return;*/
+    if ((p->dm_flags & DM_NEVER_DISTURB) && !player_intent) return;
 
     /* Cancel repeated commands */
     p->digging_request = 0;
@@ -1171,7 +1188,7 @@ void search(struct player *p, struct chunk *c)
         {
             msg(p, "You have found a secret door.");
             place_closed_door(c, &iter.cur);
-            disturb(p);
+            disturb(p, 0);
         }
 
         /* Traps on chests */
@@ -1183,7 +1200,7 @@ void search(struct player *p, struct chunk *c)
             if (!ignore_item_ok(p, obj))
             {
                 msg(p, "You have discovered a trap on the chest!");
-                disturb(p);
+                disturb(p, 0);
             }
         }
     }
@@ -1656,7 +1673,7 @@ void recall_player(struct player *p, struct chunk *c)
     }
 
     /* Disturbing! */
-    disturb(p);
+    disturb(p, 0);
 
     /* Messages */
     msgt(p, MSG_TPLEVEL, msg_self);

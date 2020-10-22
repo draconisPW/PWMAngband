@@ -310,6 +310,9 @@ void textui_process_command()
 {
     ui_event e;
 
+    /* Paranoia */
+    if (!player) return;
+
     /* See if we have a command waiting */
     e = textui_get_command();
 

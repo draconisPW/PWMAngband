@@ -278,6 +278,7 @@ extern void get_chamber_monsters(struct player *p, struct chunk *c, int y1, int 
 extern void fill_rectangle(struct chunk *c, int y1, int x1, int y2, int x2, int feat, int flag);
 extern struct vault *random_vault(int depth, const char *typ);
 extern void generate_mark(struct chunk *c, int y1, int x1, int y2, int x2, int flag);
+extern void generate_unmark(struct chunk *c, int y1, int x1, int y2, int x2, int flag);
 extern void draw_rectangle(struct chunk *c, int y1, int x1, int y2, int x2, int feat, int flag);
 extern void set_marked_granite(struct chunk *c, struct loc *grid, int flag);
 extern bool generate_starburst_room(struct chunk *c, int y1, int x1, int y2, int x2, bool light,
@@ -318,8 +319,10 @@ extern bool find_training(struct chunk *c, struct loc *grid);
 extern bool find_nearby_grid(struct chunk *c, struct loc *grid, struct loc *centre, int yd, int xd);
 extern void correct_dir(struct loc *offset, struct loc *grid1, struct loc *grid2);
 extern void rand_dir(struct loc *offset);
+extern bool find_start(struct chunk *c, struct loc *grid);
 extern void add_down_stairs(struct chunk *c);
 extern void new_player_spot(struct chunk *c, struct player *p);
+extern void place_stairs(struct chunk *c, struct loc *grid, int feat);
 extern void place_random_stairs(struct chunk *c, struct loc *grid);
 extern void place_object(struct player *p, struct chunk *c, struct loc *grid, int level,
     bool good, bool great, byte origin, int tval);
@@ -332,6 +335,12 @@ extern void vault_objects(struct player *p, struct chunk *c, struct loc *grid, i
 extern void vault_traps(struct chunk *c, struct loc *grid, int yd, int xd, int num);
 extern void vault_monsters(struct player *p, struct chunk *c, struct loc *grid, int depth,
     int num);
+
+extern void dump_level_simple(const char *basefilename, const char *title, struct chunk *c);
+extern void dump_level(ang_file *fo, const char *title, struct chunk *c, int **dist);
+extern void dump_level_header(ang_file *fo, const char *title);
+extern void dump_level_body(ang_file *fo, const char *title, struct chunk *c, int **dist);
+extern void dump_level_footer(ang_file *fo);
 
 extern void alloc_objects(struct player *p, struct chunk *c, int set, int typ, int num,
     int depth, byte origin);

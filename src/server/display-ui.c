@@ -2218,6 +2218,39 @@ int move_energy(int depth)
 
 
 /*
+ * Hack -- return TRUE if there are monsters in LoS, FALSE otherwise.
+ */
+bool monsters_in_los(struct player *p, struct chunk *c)
+{
+    int i;
+    bool los = false;
+
+    /* If nothing in LoS */
+    for (i = 1; i < cave_monster_max(c); i++)
+    {
+        struct monster *mon = cave_monster(c, i);
+        bool incapacitated = (mon->m_timed[MON_TMD_SLEEP] || mon->m_timed[MON_TMD_HOLD]);
+
+        /* PWMAngband: don't count non hostile monsters */
+        if (!pvm_check(p, mon)) continue;
+
+        /* PWMAngband: if disturb_nomove isn't set, allow nonmovable monsters */
+        if (rf_has(mon->race->flags, RF_NEVER_MOVE) && !OPT(p, disturb_nomove))
+            incapacitated = true;
+
+        /* Check this monster */
+        if (monster_is_in_view(p, i) && !incapacitated)
+        {
+            los = true;
+            break;
+        }
+    }
+
+    return los;
+}
+
+
+/*
  * Determine the speed of a given players "time bubble" and return a percentage
  * scaling factor which should be applied to any amount of energy granted to
  * players/monsters within the bubble.
@@ -2233,6 +2266,7 @@ int move_energy(int depth)
 static int base_time_factor(struct player *p, struct chunk *c, int slowest)
 {
     int i, timefactor, health;
+    bool los;
 
     /* Paranoia */
     if (!p) return NORMAL_TIME;
@@ -2264,8 +2298,11 @@ static int base_time_factor(struct player *p, struct chunk *c, int slowest)
             timefactor = timefactor * health / 100;
     }
 
+    /* If nothing in LoS */
+    los = monsters_in_los(p, c);
+
     /* Resting speeds up time disregarding health time scaling */
-    if (player_is_resting(p)) timefactor = MAX_TIME_SCALE;
+    if (player_is_resting(p) && !los) timefactor = MAX_TIME_SCALE;
 
     /*
      * If this is a check for another player give way to their time
@@ -2273,24 +2310,6 @@ static int base_time_factor(struct player *p, struct chunk *c, int slowest)
      */
     if (slowest && (timefactor == NORMAL_TIME))
     {
-        bool los = false;
-
-        /* If nothing in LoS */
-        for (i = 1; i < cave_monster_max(c); i++)
-        {
-            struct monster *mon = cave_monster(c, i);
-            bool incapacitated = (mon->m_timed[MON_TMD_SLEEP] || mon->m_timed[MON_TMD_HOLD]);
-
-            if (!mon->race) continue;
-
-            /* Check this monster */
-            if (monster_is_in_view(p, i) && !incapacitated)
-            {
-                los = true;
-                break;
-            }
-        }
-
         /* We don't really care about our time */
         if (!los) timefactor = MAX_TIME_SCALE;
     }
@@ -3508,12 +3527,15 @@ static struct artifact *item_art_fuzzy(const struct object *obj, char *name)
     char *str;
     int i;
     char *t;
-    struct object_kind *kind;
+    struct object_kind *kind = NULL;
 
-    /* Get the kind */
+    /* Get the kind, '$' means any */
     t = strtok(name, "|");
-    kind = item_kind_fuzzy(t);
-    if (!kind) return NULL;
+    if (*name != '$')
+    {
+        kind = item_kind_fuzzy(t);
+        if (!kind) return NULL;
+    }
 
     /* Get the name */
     t = strtok(NULL, "|");
@@ -3528,7 +3550,7 @@ static struct artifact *item_art_fuzzy(const struct object *obj, char *name)
 
         if (!art->name) continue;
         if (art->created) continue;
-        if (kind != lookup_kind(art->tval, art->sval)) continue;
+        if (kind && (kind != lookup_kind(art->tval, art->sval))) continue;
 
         /* Clean up its name */
         clean_name(match, art->name);

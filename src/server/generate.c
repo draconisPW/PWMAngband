@@ -975,11 +975,11 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
                     if (profile->cutoff > pick) break;
                 }
 
-                if (profile) break;
+                if (profile && (i < z_info->profile_max)) break;
                 tries--;
             }
 
-            if (!profile) profile = find_cave_profile("classic");
+            if (!profile || !tries) profile = find_cave_profile("classic");
         }
     }
     else if (in_base_town(wpos))

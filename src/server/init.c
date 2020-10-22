@@ -64,6 +64,7 @@ char *cfg_chardump_label = NULL;
 s16b cfg_preserve_artifacts = 3;
 bool cfg_safe_recharge = false;
 s16b cfg_party_sharelevel = -1;
+bool cfg_instance_closed = false;
 bool cfg_turn_based = false;
 bool cfg_limited_esp = false;
 bool cfg_double_purse = false;
@@ -4439,6 +4440,8 @@ static void set_server_option(const char *option, char *value)
         cfg_safe_recharge = str_to_boolean(value);
     else if (!strcmp(option, "PARTY_SHARELEVEL"))
         cfg_party_sharelevel = atoi(value);
+    else if (!strcmp(option, "INSTANCE_CLOSED"))
+        cfg_instance_closed = str_to_boolean(value);
     else if (!strcmp(option, "TURN_BASED"))
         cfg_turn_based = str_to_boolean(value);
     else if (!strcmp(option, "LIMITED_ESP"))

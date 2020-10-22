@@ -64,6 +64,7 @@ extern void dungeon_change_level(struct player *p, struct chunk *c, struct world
     byte new_level_method);
 extern bool take_hit(struct player *p, int damage, const char *kb_str, bool non_physical,
     const char *died_flavor);
+extern int energy_per_move(struct player *p);
 extern void player_regen_hp(struct player *p, struct chunk *c);
 extern void player_regen_mana(struct player *p);
 extern void player_adjust_hp_precise(struct player *p, s32b hp_gain);
@@ -89,7 +90,7 @@ extern bool player_is_immune(struct player *p, int element);
 extern bool player_can_cast(struct player *p, bool show_msg);
 extern bool player_book_has_unlearned_spells(struct player *p);
 extern void cancel_running(struct player *p);
-extern void disturb(struct player *p);
+extern void disturb(struct player *p, int unused_flag);
 extern void search(struct player *p, struct chunk *c);
 extern bool has_bowbrand(struct player *p, bitflag type, bool blast);
 extern bool can_swim(struct player *p);

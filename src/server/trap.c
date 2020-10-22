@@ -485,7 +485,7 @@ void hit_trap(struct player *p, struct loc *grid, int delayed)
         if ((delayed != trf_has(trap->kind->flags, TRF_DELAY)) && (delayed != -1)) continue;
 
         /* Disturb the player */
-        disturb(p);
+        disturb(p, 0);
 
         if (trf_has(trap->kind->flags, TRF_DOWN))
         {
