@@ -6107,6 +6107,10 @@ static int Enter_player(int ind)
     if (random_level(&p->wpos)) display_feeling(p, false);
     p->upkeep->redraw |= (PR_STATE);
 
+    /* PWMAngband: give a warning when entering a gauntlet level */
+    if (square_isno_teleport(chunk_get(&p->wpos), &p->grid))
+        msgt(p, MSG_ENTER_PIT, "The air feels very still!");
+
     /*
      * Hack -- when processing a quickstart character, body has changed so we need to
      * resend the equipment indices

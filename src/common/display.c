@@ -20,7 +20,7 @@
 #include "angband.h"
 
 
-s16b cfg_fps = 1;
+s16b cfg_fps = 50;
 
 
 /*
