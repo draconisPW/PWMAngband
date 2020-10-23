@@ -1642,6 +1642,10 @@ static void generate_new_level(struct player *p)
     /* Place the player */
     place_player(p, c, &grid);
 
+    /* PWMAngband: give a warning when entering a gauntlet level */
+    if (square_isno_teleport(c, &p->grid))
+        msgt(p, MSG_ENTER_PIT, "The air feels very still!");
+
     /* Add the player */
     square_set_mon(c, &p->grid, 0 - id);
 

@@ -28,6 +28,7 @@ PWMAngband:
 - Dungeon Master menu: allow generating true artifact directly by name
 - Add client option to disable running when in line of sight of a nonmovable
   monster
+- Give a warning when entering a gauntlet level
 
 Gameplay changes
 ----------------
@@ -79,7 +80,7 @@ MAngband 1.5.x:
 
 PWMAngband:
 
--
+- Change default FPS from 1 to 50
 
 Compilation
 -----------
