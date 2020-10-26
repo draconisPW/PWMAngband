@@ -27,7 +27,11 @@
 /*
  * Include the proper "header" file
  */
-#include <curses.h>
+#ifdef USE_NCURSES
+# include <ncurses.h>
+#else
+# include <curses.h>
+#endif
 #include <errno.h>
 
 /*
