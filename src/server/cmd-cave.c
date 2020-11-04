@@ -2331,6 +2331,7 @@ void display_feeling(struct player *p, bool obj_only)
         return;
     }
 
+    /* PWMAngband: monster feeling on exploration + no object feeling at level 1 */
     if ((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 1)) return;
 
     /* Hack -- player entering a static level */
@@ -2371,7 +2372,7 @@ void display_feeling(struct player *p, bool obj_only)
         obj_feeling = N_ELEMENTS(obj_feeling_text) - 1;
 
     /* Display only the object feeling when it's first discovered. */
-    if (obj_only && (cfg_level_feelings == 2))
+    if (obj_only && (cfg_level_feelings == 3))
     {
         disturb(p, 0);
         msg(p, "You feel that %s", obj_feeling_text[obj_feeling][set]);
@@ -2379,13 +2380,16 @@ void display_feeling(struct player *p, bool obj_only)
         return;
     }
 
+    /* PWMAngband: no object feeling at level 2 */
+    if (obj_only && (cfg_level_feelings == 2)) return;
+
     /* Verify the feeling */
     if (mon_feeling >= N_ELEMENTS(mon_feeling_text))
         mon_feeling = N_ELEMENTS(mon_feeling_text) - 1;
 
     /* Players automatically get a monster feeling. */
-    if (((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 2)) ||
-        (cfg_level_feelings == 1))
+    if (((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 3)) ||
+        (cfg_level_feelings == 1) || (cfg_level_feelings == 2))
     {
         msg(p, "%s.", mon_feeling_text[mon_feeling][set]);
         p->mon_feeling = mon_feeling;

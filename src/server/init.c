@@ -75,7 +75,7 @@ s16b cfg_house_floor_size = 1;
 s16b cfg_limit_stairs = 0;
 s16b cfg_diving_mode = 0;
 bool cfg_no_artifacts = false;
-s16b cfg_level_feelings = 2;
+s16b cfg_level_feelings = 3;
 bool cfg_no_selling = true;
 bool cfg_gold_drop_vanilla = true;
 bool cfg_no_stores = false;
@@ -4491,7 +4491,7 @@ static void set_server_option(const char *option, char *value)
 
         /* Sanity checks */
         if (cfg_level_feelings < 0) cfg_level_feelings = 0;
-        if (cfg_level_feelings > 2) cfg_level_feelings = 2;
+        if (cfg_level_feelings > 3) cfg_level_feelings = 3;
     }
     else if (!strcmp(option, "NO_SELLING"))
         cfg_no_selling = str_to_boolean(value);

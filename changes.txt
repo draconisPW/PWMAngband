@@ -29,6 +29,8 @@ PWMAngband:
 - Add client option to disable running when in line of sight of a nonmovable
   monster
 - Give a warning when entering a gauntlet level
+- Add "monster feeling always, no object feeling" choice to LEVEL_FEELINGS
+  server option
 
 Gameplay changes
 ----------------
@@ -63,6 +65,7 @@ MAngband 1.5.x:
 PWMAngband:
 
 - Fix crash when quitting GCU client in debug mode
+- Fix lag bar under Linux
 
 Coding changes
 --------------

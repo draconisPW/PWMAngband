@@ -6075,7 +6075,7 @@ static int Enter_player(int ind)
         msg(p, "Server has no artifacts.");
     if (cfg_level_feelings == 0)
         msg(p, "Server has no level feelings.");
-    if (cfg_level_feelings == 1)
+    if ((cfg_level_feelings == 1) || (cfg_level_feelings == 2))
         msg(p, "Server has limited level feelings.");
     if (cfg_no_selling)
         msg(p, "Server is no-selling.");

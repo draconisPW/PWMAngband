@@ -115,61 +115,36 @@ int Flush_queue(void)
 
 
 /* Keep track of time in milliseconds */
-/* BACK-Ported update_ticks from MAngband 1.4.0: */
-// Update the current time, which is stored in 100 ms "ticks".
-// I hope that Windows systems have gettimeofday on them by default.
-// If not there should hopefully be some simmilar efficient call with the same
-// functionality. 
-// I hope this doesn't prove to be a bottleneck on some systems.  On my linux system
-// calling gettimeofday seems to be very very fast.
 static void updateTicks(void)
 {
-	struct timeval cur_time;
-	int newticks;
-	float scale = 100000;
-	float mscale = 100;
-	int mins,hours;
-
-// [grk] We do this slightly differently on WIN32 
-
 #ifdef WINDOWS
-	LPSYSTEMTIME lpst;
 	SYSTEMTIME st;
-	lpst = &st;
-	GetSystemTime(lpst);
 
-	cur_time.tv_usec = lpst->wMilliseconds; 
-	cur_time.tv_sec = lpst->wSecond; 
-	mins = lpst->wMinute; 
-	hours = lpst->wHour; 
-	scale = 100;
-	mscale = 0.1;
+    /* Retrieve the current system date and time */
+    GetSystemTime(&st);
+
+    /* Keep track of time in milliseconds */
+    mticks = ((st.wHour * 60L + st.wMinute) * 60L + st.wSecond) * 1000L + st.wMilliseconds;
 #else
-/* 	
-	hours = time(NULL) % 86400;
-	mins = time(NULL) % 3600;
-*/
-	gettimeofday(&cur_time, NULL);
-	hours = mins = 0;
-#endif
+    struct timeval cur_time;
+    float scale = 100000;
+    float mscale = 100;
 
-	// Set the new ticks to the old ticks rounded down to the number of seconds.
-	newticks = ticks-(ticks%10);
-	// Find the new least significant digit of the ticks
+	/* Set the new ticks to the old ticks rounded down to the number of seconds. */
+	int newticks = ticks - (ticks % 10);
+
+    gettimeofday(&cur_time, NULL);
+
+	/* Find the new least significant digit of the ticks */
 	newticks += cur_time.tv_usec / scale;
 
-	// Assume that it has not been more than one second since this function was last called
+	/* Assume that it has not been more than one second since this function was last called */
 	if (newticks < ticks) newticks += 10;
-	ticks = newticks;	
-	/*RLS*/
-	mticks = (long)(hours*3600*100) + 
-		(long)(mins*60*100) +
-		(cur_time.tv_sec*10000) +
-		(long)(cur_time.tv_usec/mscale/10);
-/* 
-	mticks = (long)(ticks*1000 ) + cur_time.tv_usec/(scale/100) ;
-	mticks = (long) ticks;
-*/
+	ticks = newticks;
+
+	/* RLS */
+	mticks = (cur_time.tv_sec * 10000) + (long)(cur_time.tv_usec / mscale / 10);
+#endif
     /* Wrap every day */
     if ((mticks < last_sent) || (mticks < last_received))
         last_sent = last_received = 0;
