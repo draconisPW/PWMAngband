@@ -53,6 +53,23 @@ char *char_expiry;
 static int Socket;
 
 
+/*
+ * Hack -- The special Angband "System Suffix"
+ * This variable is used to choose an appropriate "pref-xxx" file
+ */
+const char *ANGBAND_SYS = "xxx";
+
+/**
+ * Various directories. These are no longer necessarily all subdirs of "lib"
+ */
+char *ANGBAND_DIR_CUSTOMIZE;
+char *ANGBAND_DIR_SCREENS;
+char *ANGBAND_DIR_FONTS;
+char *ANGBAND_DIR_TILES;
+char *ANGBAND_DIR_SOUNDS;
+char *ANGBAND_DIR_ICONS;
+char *ANGBAND_DIR_USER;
+
 /* Free the sub-paths */
 static void free_file_paths(void)
 {
@@ -119,8 +136,36 @@ void init_file_paths(const char *configpath, const char *libpath, const char *da
     BUILD_DIRECTORY_PATH(ANGBAND_DIR_SOUNDS, libpath, "sounds");
     BUILD_DIRECTORY_PATH(ANGBAND_DIR_ICONS, libpath, "icons");
 
-    /* Build the path to the user specific directory */
-    BUILD_DIRECTORY_PATH(ANGBAND_DIR_USER, datapath, "user");
+#ifdef PRIVATE_USER_PATH
+
+	/* Build the path to the user specific directory */
+	if (strncmp(ANGBAND_SYS, "test", 4) == 0)
+		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, "Test");
+	else
+		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, VERSION_NAME);
+	ANGBAND_DIR_USER = string_make(buf);
+
+#else /* !PRIVATE_USER_PATH */
+
+#ifdef MACH_O_CARBON
+	/* Remove any trailing separators, since some deeper path creation functions
+	 * don't like directories with trailing slashes. */
+	if (suffix(datapath, PATH_SEP)) {
+		/* Hacky way to trim the separator. Since this is just for OS X, we can
+		 * assume a one char separator. */
+		int last_char_index = strlen(datapath) - 1;
+		my_strcpy(buf, datapath, sizeof(buf));
+		buf[last_char_index] = '\0';
+		ANGBAND_DIR_USER = string_make(buf);
+	}
+	else {
+		ANGBAND_DIR_USER = string_make(datapath);
+	}
+#else /* !MACH_O_CARBON */
+	BUILD_DIRECTORY_PATH(ANGBAND_DIR_USER, datapath, "user");
+#endif /* MACH_O_CARBON */
+
+#endif /* PRIVATE_USER_PATH */
 
 #undef BUILD_DIRECTORY_PATH
 }
