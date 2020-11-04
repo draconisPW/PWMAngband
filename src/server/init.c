@@ -84,6 +84,24 @@ bool cfg_ai_learn = true;
 bool cfg_challenging_levels = false;
 
 
+/*
+ * Hack -- The special Angband "System Suffix"
+ * This variable is used to choose an appropriate "pref-xxx" file
+ */
+const char *ANGBAND_SYS = "xxx";
+
+/**
+ * Various directories. These are no longer necessarily all subdirs of "lib"
+ */
+char *ANGBAND_DIR_GAMEDATA;
+char *ANGBAND_DIR_CUSTOMIZE;
+char *ANGBAND_DIR_HELP;
+char *ANGBAND_DIR_SCREENS;
+char *ANGBAND_DIR_TILES;
+char *ANGBAND_DIR_USER;
+char *ANGBAND_DIR_SAVE;
+char *ANGBAND_DIR_SCORES;
+
 static const char *slots[] =
 {
     #define EQUIP(a, b, c, d, e, f) #a,
@@ -354,8 +372,36 @@ void init_file_paths(const char *configpath, const char *libpath, const char *da
     BUILD_DIRECTORY_PATH(ANGBAND_DIR_SCREENS, libpath, "screens");
     BUILD_DIRECTORY_PATH(ANGBAND_DIR_TILES, libpath, "tiles");
 
-    /* Build the path to the user specific directory */
-    BUILD_DIRECTORY_PATH(ANGBAND_DIR_USER, datapath, "user");
+#ifdef PRIVATE_USER_PATH
+
+	/* Build the path to the user specific directory */
+	if (strncmp(ANGBAND_SYS, "test", 4) == 0)
+		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, "Test");
+	else
+		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, VERSION_NAME);
+	ANGBAND_DIR_USER = string_make(buf);
+
+#else /* !PRIVATE_USER_PATH */
+
+#ifdef MACH_O_CARBON
+	/* Remove any trailing separators, since some deeper path creation functions
+	 * don't like directories with trailing slashes. */
+	if (suffix(datapath, PATH_SEP)) {
+		/* Hacky way to trim the separator. Since this is just for OS X, we can
+		 * assume a one char separator. */
+		int last_char_index = strlen(datapath) - 1;
+		my_strcpy(buf, datapath, sizeof(buf));
+		buf[last_char_index] = '\0';
+		ANGBAND_DIR_USER = string_make(buf);
+	}
+	else {
+		ANGBAND_DIR_USER = string_make(datapath);
+	}
+#else /* !MACH_O_CARBON */
+	BUILD_DIRECTORY_PATH(ANGBAND_DIR_USER, datapath, "user");
+#endif /* MACH_O_CARBON */
+
+#endif /* PRIVATE_USER_PATH */
 
 #ifdef USE_PRIVATE_PATHS
     userpath = ANGBAND_DIR_USER;
