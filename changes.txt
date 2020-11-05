@@ -32,6 +32,7 @@ PWMAngband:
 - Add "monster feeling always, no object feeling" choice to LEVEL_FEELINGS
   server option
 - Sort killed list (for polymorphing) from highest to lowest level
+- Display forms that are 50%/75% learnt in orange/yellow on the killed list
 
 Gameplay changes
 ----------------
@@ -45,6 +46,7 @@ MAngband 1.5.x:
 - Change rules for stealth/noise checks
 - Do not speed up time with monsters in LoS
 - Fix DM_NEVER_DISTURB
+- Allow filling empty bottles from water tiles
 
 PWMAngband:
 

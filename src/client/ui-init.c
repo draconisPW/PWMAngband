@@ -53,6 +53,7 @@ char *char_expiry;
 static int Socket;
 
 
+#ifdef PRIVATE_USER_PATH
 /*
  * Hack -- The special Angband "System Suffix"
  * This variable is used to choose an appropriate "pref-xxx" file
@@ -69,6 +70,8 @@ char *ANGBAND_DIR_TILES;
 char *ANGBAND_DIR_SOUNDS;
 char *ANGBAND_DIR_ICONS;
 char *ANGBAND_DIR_USER;
+#endif
+
 
 /* Free the sub-paths */
 static void free_file_paths(void)
@@ -137,16 +140,13 @@ void init_file_paths(const char *configpath, const char *libpath, const char *da
     BUILD_DIRECTORY_PATH(ANGBAND_DIR_ICONS, libpath, "icons");
 
 #ifdef PRIVATE_USER_PATH
-
 	/* Build the path to the user specific directory */
 	if (strncmp(ANGBAND_SYS, "test", 4) == 0)
 		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, "Test");
 	else
 		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, VERSION_NAME);
 	ANGBAND_DIR_USER = string_make(buf);
-
 #else /* !PRIVATE_USER_PATH */
-
 #ifdef MACH_O_CARBON
 	/* Remove any trailing separators, since some deeper path creation functions
 	 * don't like directories with trailing slashes. */
@@ -164,7 +164,6 @@ void init_file_paths(const char *configpath, const char *libpath, const char *da
 #else /* !MACH_O_CARBON */
 	BUILD_DIRECTORY_PATH(ANGBAND_DIR_USER, datapath, "user");
 #endif /* MACH_O_CARBON */
-
 #endif /* PRIVATE_USER_PATH */
 
 #undef BUILD_DIRECTORY_PATH

@@ -284,7 +284,7 @@ Steal (``s``)
 
 ..
 
-Drink/fill an empty bottle from a fountain (``_``)
+Drink from a fountain/fill an empty bottle (``_``)
   When standing on a fountain square, this command allows you to interact with
   the fountain. Dried out fountains will produce no effect. If you carry empty
   bottles, the command will allow you to fill one empty bottle and generate
@@ -292,7 +292,8 @@ Drink/fill an empty bottle from a fountain (``_``)
   fill a bottle, the command will allow you to drink from the fountain.
   Drinking from a fountain will produce a random potion effect, which will
   range from very good to very bad. Sometimes, other effects may be
-  experienced. This command takes some energy.
+  experienced. This command has been extended to allow filling empty bottles
+  from water tiles. This command takes some energy.
 
 Spell Commands
 --------------

@@ -84,6 +84,7 @@ bool cfg_ai_learn = true;
 bool cfg_challenging_levels = false;
 
 
+#ifdef PRIVATE_USER_PATH
 /*
  * Hack -- The special Angband "System Suffix"
  * This variable is used to choose an appropriate "pref-xxx" file
@@ -101,6 +102,8 @@ char *ANGBAND_DIR_TILES;
 char *ANGBAND_DIR_USER;
 char *ANGBAND_DIR_SAVE;
 char *ANGBAND_DIR_SCORES;
+#endif
+
 
 static const char *slots[] =
 {
@@ -373,16 +376,13 @@ void init_file_paths(const char *configpath, const char *libpath, const char *da
     BUILD_DIRECTORY_PATH(ANGBAND_DIR_TILES, libpath, "tiles");
 
 #ifdef PRIVATE_USER_PATH
-
 	/* Build the path to the user specific directory */
 	if (strncmp(ANGBAND_SYS, "test", 4) == 0)
 		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, "Test");
 	else
 		path_build(buf, sizeof(buf), PRIVATE_USER_PATH, VERSION_NAME);
 	ANGBAND_DIR_USER = string_make(buf);
-
 #else /* !PRIVATE_USER_PATH */
-
 #ifdef MACH_O_CARBON
 	/* Remove any trailing separators, since some deeper path creation functions
 	 * don't like directories with trailing slashes. */
@@ -400,7 +400,6 @@ void init_file_paths(const char *configpath, const char *libpath, const char *da
 #else /* !MACH_O_CARBON */
 	BUILD_DIRECTORY_PATH(ANGBAND_DIR_USER, datapath, "user");
 #endif /* MACH_O_CARBON */
-
 #endif /* PRIVATE_USER_PATH */
 
 #ifdef USE_PRIVATE_PATHS

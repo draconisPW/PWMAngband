@@ -123,7 +123,7 @@ Original Keyset Command Summary
 ``[``  Display visible monster list  ``^M`` (special - return)
 ``]``  Display visible object list   ``^N`` (unused)
 ``-``  (unused)                      ``^O`` Show previous message
-``_``  Drink/fill from a fountain    ``^P`` Show previous messages
+``_``  Drink/fill an empty bottle    ``^P`` Show previous messages
 ``+``  Alter grid                    ``^Q`` Get a quest
 ``=``  Set options                   ``^R`` Redraw the screen
 ``;``  Walk (with pickup)            ``^S`` Socials
@@ -184,7 +184,7 @@ Roguelike Keyset Command Summary
   [    Display visible monster list    ^M   (special - return)
   ]    Display visible object list     ^N   (alter - south east)
  '-'   Walk into a trap                ^O   Show previous message
-  _    Drink/fill from a fountain      ^P   Show previous messages
+  _    Drink/fill an empty bottle      ^P   Show previous messages
  '+'   Alter grid                      ^Q   Get a quest
   =    Set options                     ^R   Redraw the screen
   ;    Walk (with pickup)              ^S   Socials
