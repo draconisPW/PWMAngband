@@ -6666,7 +6666,7 @@ blow:CLAW:HURT:2d10
 blow:CLAW:HURT:2d10
 blow:BITE:HURT:3d8
 flags:NO_FEAR
-flags:DROP_CORPSE | WILD_WOOD
+flags:DROP_CORPSE | WILD_WOOD | NO_PIT
 desc:A blinding whirlwind of fear and feathers. Its razor sharp beak and talons
 desc: fill its foes with terror as it seeks to rend flesh from bone with
 desc: unbridled ferocity.
@@ -20961,7 +20961,7 @@ flags:ONLY_ITEM | DROP_3
 flags:MOVE_BODY | KILL_ITEM | BASH_DOOR
 flags:IM_WATER | IM_PLASMA | IM_NEXUS | IM_FIRE | IM_POIS | IM_ACID
 flags:IM_NETHER | NO_STUN | IM_COLD
-flags:FORCE_DEPTH
+flags:FORCE_DEPTH | NO_PIT
 spell-freq:5
 spells:HEAL | TELE_TO
 spells:BA_NETH

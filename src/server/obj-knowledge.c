@@ -879,7 +879,8 @@ void object_sense(struct player *p, struct object *obj)
     struct object *new_obj = object_new();
 
     /* Give it a fake kind */
-    object_prep(p, new_obj, (tval_is_money(obj)? unknown_gold_kind: unknown_item_kind), 0, MINIMISE);
+    object_prep(p, chunk_get(&p->wpos), new_obj,
+        (tval_is_money(obj)? unknown_gold_kind: unknown_item_kind), 0, MINIMISE);
 
     /* Attach it to the current floor pile */
     loc_copy(&new_obj->grid, &obj->grid);
@@ -1491,8 +1492,7 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     }
 
     /* Hack -- know activation on rings of polymorphing to bypass (unfair) learning by use */
-    if (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")))
-        object_notice_effect(p, obj);
+    if (tval_is_poly(obj)) object_notice_effect(p, obj);
 }
 
 

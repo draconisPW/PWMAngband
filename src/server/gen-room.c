@@ -869,6 +869,9 @@ bool mon_pit_hook(struct monster_race *race)
     /* Decline monsters that can kill other monsters */
     if (rf_has(race->flags, RF_KILL_BODY)) return false;
 
+    /* Decline NO_PIT monsters */
+    if (rf_has(race->flags, RF_NO_PIT)) return false;
+
     /* Hack -- decline PWMANG_BASE dragons */
     if (rf_has(race->flags, RF_DRAGON) && rf_has(race->flags, RF_PWMANG_BASE)) return false;
 

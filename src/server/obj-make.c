@@ -884,7 +884,7 @@ bool make_fake_artifact(struct object **obj_address, const struct artifact *arti
 
     /* Create the artifact */
     *obj_address = object_new();
-    object_prep(NULL, *obj_address, kind, 0, MAXIMISE);
+    object_prep(NULL, NULL, *obj_address, kind, 0, MAXIMISE);
     (*obj_address)->artifact = &a_info[artifact->aidx];
     copy_artifact_data(*obj_address, artifact);
 
@@ -979,7 +979,7 @@ static struct object *make_artifact_special(struct player *p, struct chunk *c, i
 
             /* Assign the template */
             new_obj = object_new();
-            object_prep(p, new_obj, kind, art->alloc_min, RANDOMISE);
+            object_prep(p, c, new_obj, kind, art->alloc_min, RANDOMISE);
 
             /* Mark the item as an artifact */
             new_obj->artifact = art;
@@ -1088,7 +1088,7 @@ bool create_randart_drop(struct player *p, struct chunk *c, struct object **obj_
     if (*obj_address == NULL)
     {
         *obj_address = object_new();
-        object_prep(p, *obj_address, lookup_kind(art->tval, art->sval), art->alloc_min, RANDOMISE);
+        object_prep(p, c, *obj_address, lookup_kind(art->tval, art->sval), art->alloc_min, RANDOMISE);
     }
 
     /* Mark the item as a random artifact */
@@ -1318,8 +1318,8 @@ static void apply_magic_armour(struct object *obj, int level, int power)
 /*
  * Wipe an object clean and make it a standard object of the specified kind.
  */
-void object_prep(struct player *p, struct object *obj, struct object_kind *k, int lev,
-    aspect rand_aspect)
+void object_prep(struct player *p, struct chunk *c, struct object *obj, struct object_kind *k,
+    int lev, aspect rand_aspect)
 {
     int i;
 
@@ -1355,19 +1355,11 @@ void object_prep(struct player *p, struct object *obj, struct object_kind *k, in
         obj->modifiers[OBJ_MOD_SPEED] = randint1(obj->modifiers[OBJ_MOD_SPEED]);
 
     /* Hack -- rings of polymorphing get a random race */
-    if (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")))
+    if (tval_is_poly(obj))
     {
-        struct monster_race *race;
-        int rarity;
-
-        /* Pick a race (try to roughly match monster power) */
-        do
-        {
-            race = get_mon_num_poly(lev);
-            if (!race) break;
-            rarity = 1 + MAX(race->level, 1) * race->mexp / 25000;
-        }
-        while (randint0(rarity) || !race->name);
+        /* Pick a race based on current depth */
+        bool in_dungeon = (p && c && (c->wpos.depth > 0));
+        struct monster_race *race = (in_dungeon? get_mon_num_poly(&c->wpos): NULL);
 
         /* Handle failure smartly: create a useless ring of <player> */
         if (!race) race = &r_info[0];
@@ -1766,6 +1758,7 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     {
         s16b res;
         int reroll = 3;
+        bool in_dungeon = (p && c && (c->wpos.depth > 0));
 
         /* Try to choose an object kind */
         kind = get_obj_num(base, good || great, tval);
@@ -1780,9 +1773,12 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
             if (!kind) return NULL;
         }
 
+        /* No rings of polymorphing outside the dungeon */
+        if (tval_is_poly_k(kind) && !in_dungeon) continue;
+
         /* Make the object, prep it and apply magic */
         new_obj = object_new();
-        object_prep(p, new_obj, kind, lev, RANDOMISE);
+        object_prep(p, c, new_obj, kind, lev, RANDOMISE);
         res = apply_magic(p, c, new_obj, lev, true, good, great, extra_roll);
 
         /* Reroll "good" objects of incorrect kind (diggers, light sources...) */
@@ -1913,7 +1909,7 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     while (one_in_(100) && (value * 10 <= SHRT_MAX)) value *= 10;
 
     /* Prepare a gold object */
-    object_prep(p, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
+    object_prep(p, chunk_get(&p->wpos), new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
     if (p && (cfg_no_selling || OPT(p, birth_no_selling)))
@@ -2079,7 +2075,7 @@ void reroll_randart(struct player *p, struct chunk *c)
 
     /* Assign the template */
     obj = object_new();
-    object_prep(p, obj, lookup_kind(art->tval, art->sval), art->alloc_min, RANDOMISE);
+    object_prep(p, c, obj, lookup_kind(art->tval, art->sval), art->alloc_min, RANDOMISE);
     set_origin(obj, origin, origin_depth, origin_race);
 
     /* Mark the item as a random artifact */

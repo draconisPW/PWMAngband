@@ -1343,11 +1343,14 @@ static bool store_create_random(struct store *store)
         /* No chests in stores XXX */
         if (tval_is_chest_k(kind)) continue;
 
+        /* No rings of polymorphing in stores XXX */
+        if (tval_is_poly_k(kind)) continue;
+
         /*** Generate the item ***/
 
         /* Create a new object of the chosen kind */
         obj = object_new();
-        object_prep(NULL, obj, kind, level, RANDOMISE);
+        object_prep(NULL, NULL, obj, kind, level, RANDOMISE);
 
         /* Apply some "low-level" magic (no artifacts) */
         apply_magic(NULL, chunk_get(base_wpos()), obj, level, false, false, false, false);
@@ -1410,7 +1413,7 @@ static struct object *store_create_item(struct store *store, struct object_kind 
     struct object *obj = object_new();
 
     /* Create a new object of the chosen kind */
-    object_prep(NULL, obj, kind, 0, RANDOMISE);
+    object_prep(NULL, NULL, obj, kind, 0, RANDOMISE);
 
     /* Know everything but flavor, no origin yet */
     object_notice_everything_aux(NULL, obj, true, false);
@@ -2336,7 +2339,7 @@ static void sell_player_item(struct player *p, struct object *original, struct o
         struct object *gold_obj = object_new();
 
         /* Make some gold */
-        object_prep(p, gold_obj, money_kind("gold", price), 0, MINIMISE);
+        object_prep(p, chunk_get(&p->wpos), gold_obj, money_kind("gold", price), 0, MINIMISE);
 
         /* How much gold to leave */
         gold_obj->pval = price;

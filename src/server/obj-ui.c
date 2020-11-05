@@ -124,7 +124,7 @@ void display_inven(struct player *p)
 
     /* Clear */
     obj = object_new();
-    object_prep(p, obj, pile_kind, 0, MINIMISE);
+    object_prep(p, chunk_get(&p->wpos), obj, pile_kind, 0, MINIMISE);
     display_item(p, obj, 0);
     object_delete(&obj);
 
@@ -162,7 +162,7 @@ void display_equip(struct player *p)
 
     /* Clear */
     obj = object_new();
-    object_prep(p, obj, pile_kind, 0, MINIMISE);
+    object_prep(p, chunk_get(&p->wpos), obj, pile_kind, 0, MINIMISE);
     display_item(p, obj, 1);
     object_delete(&obj);
 

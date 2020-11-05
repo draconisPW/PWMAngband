@@ -1715,7 +1715,7 @@ static void player_strip(struct player *p, bool perma_death)
     {
         /* Setup the object */
         obj = object_new();
-        object_prep(p, obj, money_kind("gold", p->au), 0, MINIMISE);
+        object_prep(p, c, obj, money_kind("gold", p->au), 0, MINIMISE);
 
         /* Set the amount */
         obj->pval = p->au;
@@ -3380,7 +3380,7 @@ static void mod_add(struct object *obj, int mod, int incr)
     value = obj->modifiers[mod];
 
     /* Hack -- check monster race for rings of polymorphing */
-    if (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")))
+    if (tval_is_poly(obj))
     {
         struct monster_race *race;
 
@@ -3629,7 +3629,7 @@ static void master_generate(struct player *p, char *parms)
                         resist = -1;
 
                         /* Prepare the object */
-                        object_prep(p, obj, kind, z_info->max_depth - 1, RANDOMISE);
+                        object_prep(p, c, obj, kind, z_info->max_depth - 1, RANDOMISE);
                         apply_base_magic(obj);
 
                         /* Set extra powers */
@@ -3678,7 +3678,7 @@ static void master_generate(struct player *p, char *parms)
                         resist = -1;
 
                         /* Prepare the object */
-                        object_prep(p, obj, kind, z_info->max_depth - 1, RANDOMISE);
+                        object_prep(p, c, obj, kind, z_info->max_depth - 1, RANDOMISE);
                         obj->ego = ego;
                         apply_base_magic(obj);
 
@@ -4011,7 +4011,7 @@ static void master_generate(struct player *p, char *parms)
             obj = object_new();
 
             /* Create the artifact */
-            object_prep(p, obj, kind, art->alloc_min, RANDOMISE);
+            object_prep(p, c, obj, kind, art->alloc_min, RANDOMISE);
 
             /* Save the artifact type */
             obj->artifact = art;

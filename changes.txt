@@ -31,13 +31,14 @@ PWMAngband:
 - Give a warning when entering a gauntlet level
 - Add "monster feeling always, no object feeling" choice to LEVEL_FEELINGS
   server option
+- Sort killed list (for polymorphing) from highest to lowest level
 
 Gameplay changes
 ----------------
 
 Angband 4.2.x:
 
--
+- Allow inscribed throwing weapons to be quivered
 
 MAngband 1.5.x:
 
@@ -48,13 +49,22 @@ MAngband 1.5.x:
 PWMAngband:
 
 - Make Dungeon Master trap immune
+- Prevent level 0 monster races from being used as shapechanger forms
+- Allow BASH_DOOR forms to open/close house doors and bash down other doors
+- Only allow rings of polymorphing to be generated in the dungeon
+- Make rings of polymorphing more powerful but much rarer
+- Decrease the kill requirement with perfect affinity from 1/2 to 1/4
+- Give +1 moves every 10 speed instead of +5 speed to shapechangers under
+  level 20
+- Halve the energy gained from extra moves
 
 Bugs fixed
 ----------
 
 Angband 4.2.x:
 
--
+- Adjust size of gauntlet levels
+- Stop SMASH_WALL removing floor features
 
 MAngband 1.5.x:
 
@@ -89,3 +99,4 @@ Compilation
 -----------
 
 - Update help
+- USE_NCURSES define

@@ -249,16 +249,6 @@ static bool do_cmd_open_test(struct player *p, struct chunk *c, struct loc *grid
         return false;
     }
 
-    /* Handle polymorphed players */
-    if (p->poly_race && !OPT(p, birth_fruit_bat))
-    {
-        if (!rf_has(p->poly_race->flags, RF_OPEN_DOOR))
-        {
-            msg(p, "You cannot open things!");
-            return false;
-        }
-    }
-
     /* Must have knowledge */
     if (!square_isknown(p, grid))
     {
@@ -271,6 +261,19 @@ static bool do_cmd_open_test(struct player *p, struct chunk *c, struct loc *grid
     {
         msgt(p, MSG_NOTHING_TO_OPEN, "You see nothing there to open.");
         return false;
+    }
+
+    /* Handle polymorphed players */
+    if (p->poly_race && !OPT(p, birth_fruit_bat))
+    {
+        bool can_open = rf_has(p->poly_race->flags, RF_OPEN_DOOR);
+        bool can_bash = rf_has(p->poly_race->flags, RF_BASH_DOOR);
+
+        if (!can_open && !can_bash)
+        {
+            msg(p, "You cannot open things!");
+            return false;
+        }
     }
 
     return true;
@@ -289,6 +292,10 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
     int i, j, k;
     bool more = false;
     struct house_type *house;
+    bool can_open = (OPT(p, birth_fruit_bat) || !p->poly_race ||
+        rf_has(p->poly_race->flags, RF_OPEN_DOOR));
+    bool can_bash = (p->poly_race && !OPT(p, birth_fruit_bat) &&
+        rf_has(p->poly_race->flags, RF_BASH_DOOR));
 
     /* Verify legality */
     if (!do_cmd_open_test(p, c, grid)) return false;
@@ -393,11 +400,19 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
         /* Success */
         if (magik(j))
         {
-            /* Message */
-            msgt(p, MSG_LOCKPICK, "You have picked the lock.");
+            if (can_bash && !can_open)
+            {
+                msgt(p, MSG_HIT, "You have bashed down the door.");
+                square_smash_door(c, grid);
+            }
+            else
+            {
+                /* Message */
+                msgt(p, MSG_LOCKPICK, "You have picked the lock.");
 
-            /* Open the door */
-            square_open_door(c, grid);
+                /* Open the door */
+                square_open_door(c, grid);
+            }
 
             /* Update the visuals */
             square_memorize(p, c, grid);
@@ -409,7 +424,10 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
         else
         {
             /* Message */
-            msgt(p, MSG_LOCKPICK_FAIL, "You failed to pick the lock.");
+            if (can_bash && !can_open)
+                msgt(p, MSG_MISS, "You failed to bash down the door.");
+            else
+                msgt(p, MSG_LOCKPICK_FAIL, "You failed to pick the lock.");
 
             /* We may keep trying */
             more = true;
@@ -420,7 +438,8 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
     else
     {
         /* Open the door */
-        square_open_door(c, grid);
+        if (can_bash && !can_open) square_smash_door(c, grid);
+        else square_open_door(c, grid);
 
         /* Update the visuals */
         square_memorize(p, c, grid);
@@ -428,7 +447,8 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
         update_visuals(&p->wpos);
 
         /* Sound */
-        sound(p, MSG_OPENDOOR);
+        if (can_bash && !can_open) sound(p, MSG_HIT);
+        else sound(p, MSG_OPENDOOR);
     }
 
     /* Result */
@@ -590,19 +610,6 @@ static bool do_cmd_close_test(struct player *p, struct chunk *c, struct loc *gri
         return false;
     }
 
-    /* Handle polymorphed players */
-    if (p->poly_race && !OPT(p, birth_fruit_bat))
-    {
-        if (!rf_has(p->poly_race->flags, RF_OPEN_DOOR))
-        {
-            /* Message */
-            msg(p, "You cannot close things!");
-
-            /* Nope */
-            return false;
-        }
-    }
-
     /* Check preventive inscription '^c' */
     if (check_prevent_inscription(p, INSCRIPTION_CLOSE))
     {
@@ -630,6 +637,22 @@ static bool do_cmd_close_test(struct player *p, struct chunk *c, struct loc *gri
         return false;
     }
 
+    /* Handle polymorphed players */
+    if (p->poly_race && !OPT(p, birth_fruit_bat))
+    {
+        bool can_open = rf_has(p->poly_race->flags, RF_OPEN_DOOR);
+        bool can_bash = rf_has(p->poly_race->flags, RF_BASH_DOOR);
+
+        if (!can_open && !can_bash)
+        {
+            /* Message */
+            msg(p, "You cannot close things!");
+
+            /* Nope */
+            return false;
+        }
+    }
+
     /* Okay */
     return true;
 }
@@ -646,6 +669,10 @@ static bool do_cmd_close_aux(struct player *p, struct chunk *c, struct loc *grid
 {
     bool more = false;
     int i;
+    bool can_open = (OPT(p, birth_fruit_bat) || !p->poly_race ||
+        rf_has(p->poly_race->flags, RF_OPEN_DOOR));
+    bool can_bash = (p->poly_race && !OPT(p, birth_fruit_bat) &&
+        rf_has(p->poly_race->flags, RF_BASH_DOOR));
 
     /* Verify legality */
     if (!do_cmd_close_test(p, c, grid)) return false;
@@ -671,6 +698,9 @@ static bool do_cmd_close_aux(struct player *p, struct chunk *c, struct loc *grid
         /* Sound */
         sound(p, MSG_SHUTDOOR);
     }
+
+    else if (can_bash && !can_open)
+        msg(p, "You cannot close things!");
 
     /* Close the door */
     else

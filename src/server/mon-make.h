@@ -21,7 +21,7 @@ extern void compact_monsters(struct chunk *c, int num_to_compact);
 extern void wipe_mon_list(struct chunk *c);
 extern void get_mon_num_prep(bool (*get_mon_num_hook)(struct monster_race *race));
 extern struct monster_race *get_mon_num(struct chunk *c, int level, bool summon);
-extern struct monster_race *get_mon_num_poly(int level);
+extern struct monster_race *get_mon_num_poly(struct worldpos *wpos);
 extern int mon_create_drop_count(const struct monster_race *race, bool maximize);
 extern void mon_create_drops(struct player *p, struct chunk *c, struct monster *mon);
 extern void mon_create_mimicked_object(struct player *p, struct chunk *c, struct monster *mon,

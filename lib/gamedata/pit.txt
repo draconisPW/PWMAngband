@@ -325,7 +325,6 @@ mon-base:golem
 flags-ban:DRAGON
 flags-ban:UNDEAD
 flags-ban:DEMON
-flags-ban:IM_NETHER
 
 name:Gold dragons
 room:1

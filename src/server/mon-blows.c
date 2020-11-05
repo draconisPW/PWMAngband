@@ -130,7 +130,7 @@ static void eat_gold(struct player *p, struct source *who)
         struct object *obj = object_new();
 
         /* Create a new temporary object */
-        object_prep(p, obj, money_kind("gold", gold), 0, MINIMISE);
+        object_prep(p, chunk_get(&p->wpos), obj, money_kind("gold", gold), 0, MINIMISE);
 
         /* Amount of gold to put in this object */
         obj->pval = gold;

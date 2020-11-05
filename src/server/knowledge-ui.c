@@ -1725,7 +1725,7 @@ void do_cmd_drop_gold(struct player *p, s32b amt)
 
     /* Setup the object */
     obj = object_new();
-    object_prep(p, obj, money_kind("gold", amt), 0, MINIMISE);
+    object_prep(p, chunk_get(&p->wpos), obj, money_kind("gold", amt), 0, MINIMISE);
 
     /* Setup the "worth" */
     obj->pval = amt;
@@ -2511,7 +2511,7 @@ void do_cmd_fountain(struct player *p, int item)
 
     /* Prepare the object */
     obj = object_new();
-    object_prep(p, obj, kind, p->wpos.depth, RANDOMISE);
+    object_prep(p, c, obj, kind, p->wpos.depth, RANDOMISE);
 
     /* Set origin */
     set_origin(obj, ORIGIN_FOUNTAIN, p->wpos.depth, NULL);
@@ -2828,6 +2828,16 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
         return;
     }
 
+    /* Don't learn level 0 forms */
+    if (race->level == 0)
+    {
+        if (domsg)
+            msg(p, "You cannot learn this monster race.");
+        else
+            plog("You cannot learn this monster race.");
+        return;
+    }
+
     /* Must not be unique (allow it to the DM for debug purposes) */
     if (monster_is_unique(race) && !is_dm_p(p))
     {
@@ -2856,8 +2866,8 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
             struct monster_lore *lore = get_lore(p, race);
             int rkills = 1;
 
-            /* Perfect affinity lowers the requirement to half of the required kills */
-            if (lore->pkills) rkills = ((race->level * (200 - affinity(p, race))) / 200);
+            /* Perfect affinity lowers the requirement to 25% of the required kills */
+            if (lore->pkills) rkills = ((race->level * (400 - 3 * affinity(p, race))) / 400);
 
             learnt = (lore->pkills >= rkills);
         }
@@ -2977,8 +2987,8 @@ void do_cmd_check_poly(struct player *p, int line)
         for (str = p->tempbuf; *str; str++) *str = tolower((unsigned char)*str);
     }
 
-    /* Scan the monster races */
-    for (k = 1; k < z_info->r_max; k++)
+    /* Scan the monster races (backwards for easiness of use) */
+    for (k = z_info->r_max - 1; k > 0; k--)
     {
         bool ok;
 
@@ -2986,6 +2996,9 @@ void do_cmd_check_poly(struct player *p, int line)
 
         /* Skip non-entries */
         if (!race->name) continue;
+
+        /* Skip level 0 forms */
+        if (race->level == 0) continue;
 
         /* Only print non uniques */
         if (monster_is_unique(race)) continue;
@@ -3032,9 +3045,9 @@ void do_cmd_check_poly(struct player *p, int line)
             /* Only display "known" races */
             if (!lore->pkills) continue;
 
-            /* Perfect affinity lowers the requirement to half of the required kills */
+            /* Perfect affinity lowers the requirement to 25% of the required kills */
             aff = affinity(p, race);
-            rkills = ((race->level * (200 - aff)) / 200);
+            rkills = ((race->level * (400 - 3 * aff)) / 400);
 
             /* Check required kill count */
             if (lore->pkills >= rkills)

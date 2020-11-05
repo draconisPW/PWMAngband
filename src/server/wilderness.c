@@ -1856,19 +1856,20 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
     switch (type)
     {
         case WILD_CROP_POTATO:
-            object_prep(NULL, food, lookup_kind_by_name(TV_CROP, "Potato"), 0, RANDOMISE);
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Potato"), 0, RANDOMISE);
             break;
 
         case WILD_CROP_CABBAGE:
-            object_prep(NULL, food, lookup_kind_by_name(TV_CROP, "Head of Cabbage"), 0, RANDOMISE);
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Head of Cabbage"), 0,
+                RANDOMISE);
             break;
 
         case WILD_CROP_CARROT:
-            object_prep(NULL, food, lookup_kind_by_name(TV_CROP, "Carrot"), 0, RANDOMISE);
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Carrot"), 0, RANDOMISE);
             break;
 
         case WILD_CROP_BEET:
-            object_prep(NULL, food, lookup_kind_by_name(TV_CROP, "Beet"), 0, RANDOMISE);
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Beet"), 0, RANDOMISE);
             break;
 
         case WILD_CROP_MUSHROOM:
@@ -1899,17 +1900,17 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
             do {i = randint0(N_ELEMENTS(shroom_chance));}
             while (!magik(shroom_chance[i].chance));
 
-            object_prep(NULL, food,
+            object_prep(NULL, NULL, food,
                 lookup_kind_by_name(shroom_chance[i].tval, shroom_chance[i].name), 0, RANDOMISE);
             break;
         }
 
         case WILD_CROP_SQUASH:
-            object_prep(NULL, food, lookup_kind_by_name(TV_CROP, "Squash"), 0, RANDOMISE);
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Squash"), 0, RANDOMISE);
             break;
 
         case WILD_CROP_CORN:
-            object_prep(NULL, food, lookup_kind_by_name(TV_CROP, "Ear of Corn"), 0, RANDOMISE);
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Ear of Corn"), 0, RANDOMISE);
             break;
     }
 
@@ -2682,7 +2683,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
                 kind = lookup_kind(TV_FOOD, randint1(kb_info[TV_FOOD].num_svals));
             else
                 kind = lookup_kind(TV_CROP, randint1(kb_info[TV_CROP].num_svals));
-            object_prep(NULL, food, kind, 0, RANDOMISE);
+            object_prep(NULL, NULL, food, kind, 0, RANDOMISE);
 
             set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
 

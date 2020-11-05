@@ -1589,24 +1589,28 @@ void calc_inventory(struct player *p)
         /* Find the first quiver object with the correct label */
         for (current = p->gear; current; current = current->next)
         {
-            /* Ignore non-ammo */
-            if (!tval_is_ammo(current)) continue;
+            bool throwing = of_has(current->flags, OF_THROWING);
+
+            /* Only allow ammo and throwing weapons */
+            if (!(tval_is_ammo(current) || throwing)) continue;
 
             /* Allocate inscribed objects if it's the right slot */
             if (current->note)
             {
                 char *s = strchr(quark_str(current->note), '@');
 
-                if (s && (s[1] == 'f'))
+                if (s && (s[1] == 'f' || s[1] == 'v'))
                 {
                     int choice = s[2] - '0';
 
                     /* Correct slot, fill it straight away */
                     if (choice == i)
                     {
+                        int mult = (tval_is_ammo(current)? 1: 5);
+
                         current->oidx = z_info->pack_size + p->body.count + i;
                         p->upkeep->quiver[i] = current;
-                        p->upkeep->quiver_cnt += current->number;
+                        p->upkeep->quiver_cnt += current->number * mult;
 
                         /* In the quiver counts as worn */
                         object_learn_on_wield(p, current);
@@ -1958,10 +1962,15 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     if (p->poly_race)
     {
         state->to_d += getAvgDam(p->poly_race);
-        state->speed += (p->poly_race->speed - 110) / 2;
 
-        /* Fruit bat mode: get double speed bonus */
-        if (OPT(p, birth_fruit_bat)) state->speed += (p->poly_race->speed - 110) / 2;
+        /* Fruit bat mode: get regular speed bonus */
+        if (OPT(p, birth_fruit_bat)) state->speed += (p->poly_race->speed - 110);
+
+        /* At low level, we get MOVES instead */
+        else if (p->lev < 20) extra_moves = (p->poly_race->speed - 110) / 10;
+
+        /* At higher level, we get 50% of speed bonus */
+        else state->speed += (p->poly_race->speed - 110) / 2;
     }
 
     /* Analyze equipment */

@@ -476,18 +476,14 @@ struct monster_race *get_mon_num(struct chunk *c, int level, bool summon)
 
 /*
  * Chooses a monster race for rings of polymorphing that seems "appropriate" to the given level.
- * This function uses most of the code from get_mon_num(), except depth checks.
+ * This function uses a simplified version of the code from get_mon_num().
  */
-struct monster_race *get_mon_num_poly(int level)
+struct monster_race *get_mon_num_poly(struct worldpos *wpos)
 {
-    int i, p;
+    int i, level = wpos->depth;
     long total;
     struct monster_race *race;
     alloc_entry *table = alloc_race_table;
-
-    /* Occasionally produce a nastier monster */
-    if (one_in_(z_info->ood_monster_chance))
-        level += MIN(level / 4 + 2, z_info->ood_monster_amount);
 
     total = 0L;
 
@@ -500,11 +496,17 @@ struct monster_race *get_mon_num_poly(int level)
         /* Default */
         table[i].prob3 = 0;
 
+        /* No town monsters */
+        if (table[i].level <= 0) continue;
+
         /* Get the chosen monster */
         race = &r_info[table[i].index];
 
         /* Skip uniques */
         if (monster_is_unique(race)) continue;
+
+        /* Pick from specific dungeon */
+        if (!allow_location(race, wpos)) continue;
 
         /* Handle PWMAngband base monsters */
         if (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters)
@@ -526,31 +528,6 @@ struct monster_race *get_mon_num_poly(int level)
 
     /* Pick a monster */
     race = get_mon_race_aux(total, table);
-
-    /* Try for a "harder" monster once (50%) or twice (10%) */
-    p = randint0(100);
-    if (p < 60)
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
-
-    /* Try for a "harder" monster twice (10%) */
-    if (p < 10)
-    {
-        struct monster_race *old = race;
-
-        /* Pick a new monster */
-        race = get_mon_race_aux(total, table);
-
-        /* Keep the deepest one */
-        if (race->level < old->level) race = old;
-    }
 
     /* Result */
     return race;
@@ -1107,7 +1084,7 @@ static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *m
 
             /* Allocate by hand, prep, apply magic */
             obj = object_new();
-            object_prep(p, obj, kind, mon->level, RANDOMISE);
+            object_prep(p, c, obj, kind, mon->level, RANDOMISE);
             obj->artifact = art;
             copy_artifact_data(obj, obj->artifact);
             obj->artifact->created++;
@@ -1139,7 +1116,7 @@ static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *m
 
             /* Allocate by hand, prep, apply magic */
             obj = object_new();
-            object_prep(p, obj, drop->kind, level, RANDOMISE);
+            object_prep(p, c, obj, drop->kind, level, RANDOMISE);
 
             /* Hack -- "Nine rings for mortal men doomed to die" */
             if (drop_nazgul)
@@ -1285,7 +1262,7 @@ void mon_create_mimicked_object(struct player *p, struct chunk *c, struct monste
     else
     {
         obj = object_new();
-        object_prep(p, obj, kind, mon->race->level, RANDOMISE);
+        object_prep(p, c, obj, kind, mon->race->level, RANDOMISE);
         apply_magic(p, c, obj, mon->race->level, false, false, false, false);
         if (object_has_standard_to_h(obj)) obj->known->to_h = 1;
         if (object_flavor_is_aware(p, obj)) object_id_set_aware(obj);
@@ -2184,7 +2161,7 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
         /* Prepare to make the corpse */
         if (human) sval = lookup_sval(TV_CORPSE, "corpse (humanoid)");
         else sval = lookup_sval(TV_CORPSE, "corpse (other)");
-        object_prep(p, corpse, lookup_kind(TV_CORPSE, sval), 0, MINIMISE);
+        object_prep(p, c, corpse, lookup_kind(TV_CORPSE, sval), 0, MINIMISE);
 
         /* Remember the type of corpse */
         corpse->pval = mon->race->ridx;
@@ -2211,7 +2188,7 @@ void monster_drop_corpse(struct player *p, struct chunk *c, struct monster *mon)
         int sval = lookup_sval(TV_SKELETON, "skeleton");
 
         /* Prepare to make the skeleton */
-        object_prep(p, skeleton, lookup_kind(TV_SKELETON, sval), 0, MINIMISE);
+        object_prep(p, c, skeleton, lookup_kind(TV_SKELETON, sval), 0, MINIMISE);
 
         /* Remember the type of skeleton */
         skeleton->pval = mon->race->ridx;
