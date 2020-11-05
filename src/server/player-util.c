@@ -279,7 +279,7 @@ int energy_per_move(struct player *p)
     int num = p->state.num_moves;
     int energy = move_energy(p->wpos.depth);
 
-    return (energy * (1 + ABS(num) - num)) / (1 + ABS(num));
+    return (energy * (2 + ABS(num) - num)) / (2 + ABS(num));
 }
 
 

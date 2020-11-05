@@ -5561,10 +5561,10 @@ desc:A suit of armour made of the hide of a dead water dragon.
 name:Polymorphing
 graphics:=:d
 type:ring
-level:10
+level:1
 weight:2
 cost:100
-alloc:30:10 to 127
+alloc:3:1 to 127
 values:POLY_RACE[d1000]
 effect:POLY_RACE
 

@@ -23,8 +23,8 @@ extern void inc_resist(const struct object *obj, int *power, int *resist);
 extern void do_fixed_powers(struct object *obj, int power, int resist);
 extern void undo_fixed_powers(struct object *obj, int power, int resist);
 extern void get_power_descs(int power, int resist, char *buf, int len);
-extern void object_prep(struct player *p, struct object *obj, struct object_kind *k, int lev,
-    aspect rand_aspect);
+extern void object_prep(struct player *p, struct chunk *c, struct object *obj,
+    struct object_kind *k, int lev, aspect rand_aspect);
 extern int apply_magic(struct player *p, struct chunk *c, struct object *obj, int lev,
     bool allow_artifacts, bool good, bool great, bool extra_roll);
 extern struct object *make_object(struct player *p, struct chunk *c, int lev, bool good,

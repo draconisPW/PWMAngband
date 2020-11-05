@@ -1727,7 +1727,7 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
     if (do_cmd_use_end(p, obj, ident, used, p_cmd->use)) return;
 
     /* Hack -- rings of polymorphing get destroyed when activated */
-    if (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")) && used)
+    if (tval_is_poly(obj) && used)
     {
         msg(p, "Your ring explodes in a bright flash of light!");
         use_object(p, obj, 1, true);

@@ -2304,8 +2304,8 @@ static bool effect_handler_CREATE_POISON(effect_handler_context_t *context)
 
     /* Create the potions */
     poison = object_new();
-    object_prep(context->origin->player, poison, lookup_kind_by_name(TV_POTION, "Poison"), 0,
-        MINIMISE);
+    object_prep(context->origin->player, context->cave, poison,
+        lookup_kind_by_name(TV_POTION, "Poison"), 0, MINIMISE);
     poison->number = amt;
 
     /* Set origin */

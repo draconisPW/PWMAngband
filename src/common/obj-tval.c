@@ -651,3 +651,15 @@ int tval_wielding_cut(const struct object *obj)
         default: return 0;
     }
 }
+
+
+bool tval_is_poly(const struct object *obj)
+{
+    return (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")));
+}
+
+
+bool tval_is_poly_k(const struct object_kind *kind)
+{
+    return (tval_is_ring_k(kind) && (kind->sval == lookup_sval(kind->tval, "Polymorphing")));
+}

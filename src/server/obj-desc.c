@@ -414,7 +414,7 @@ static size_t obj_desc_mods(const struct object *obj, char *buf, size_t max, siz
     object_modifiers(obj, modifiers);
 
     /* Hack -- rings of polymorphing append the race name instead of its modifier */
-    if (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")))
+    if (tval_is_poly(obj))
     {
         struct monster_race *race = &r_info[obj->modifiers[OBJ_MOD_POLY_RACE]];
 

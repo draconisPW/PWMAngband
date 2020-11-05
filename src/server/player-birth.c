@@ -519,7 +519,7 @@ static void player_outfit_aux(struct player *p, struct object_kind *k, byte numb
     struct object *obj = object_new();
 
     /* Prepare the item */
-    object_prep(p, obj, k, 0, MINIMISE);
+    object_prep(p, chunk_get(&p->wpos), obj, k, 0, MINIMISE);
     if (number) obj->number = number;
 
     /* Hack -- ring of speed (for DM) */
@@ -616,7 +616,7 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
 
           /* Prepare the item */
           obj = object_new();
-          object_prep(p, obj, kind, 0, MINIMISE);
+          object_prep(p, chunk_get(&p->wpos), obj, kind, 0, MINIMISE);
           obj->number = si->min;
           object_notice_everything_aux(p, obj, false, false);
 

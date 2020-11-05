@@ -1104,7 +1104,7 @@ int object_value_real(struct player *p, const struct object *obj, int qty)
         if (tval_is_ammo(obj) && obj->artifact) value += 10000L;
 
         /* PWMAngband -- boost rings of polymorphing */
-        if (tval_is_ring(obj) && (obj->sval == lookup_sval(obj->tval, "Polymorphing")))
+        if (tval_is_poly(obj))
         {
             struct monster_race *race = &r_info[obj->modifiers[OBJ_MOD_POLY_RACE]];
 

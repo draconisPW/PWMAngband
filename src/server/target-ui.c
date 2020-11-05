@@ -240,7 +240,7 @@ static bool target_set_interactive_aux(struct player *p, struct loc *grid, int m
                         struct object_kind *kind = &k_info[who->player->k_idx];
                         struct object *fake = object_new();
 
-                        object_prep(p, fake, kind, 0, MINIMISE);
+                        object_prep(p, c, fake, kind, 0, MINIMISE);
                         if (tval_is_money_k(kind)) fake->pval = 1;
                         object_desc(p, player_name, sizeof(player_name), fake,
                             ODESC_PREFIX | ODESC_BASE);

@@ -4190,44 +4190,41 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
 {
     int i, k, y;
     struct chunk *c;
-    struct chunk *arrival;
+    struct chunk *left;
     struct chunk *gauntlet;
-    struct chunk *departure;
+    struct chunk *right;
     int gauntlet_hgt = 2 * randint1(5) + 3;
     int gauntlet_wid = 2 * randint1(10) + 19;
-    int y_size = z_info->dungeon_hgt * gauntlet_hgt / (15 + randint1(5));
-    int x_size = z_info->dungeon_wid * gauntlet_wid / ((30 + randint1(10)) * 2);
+    int y_size = z_info->dungeon_hgt - randint0(25 - gauntlet_hgt);
+    int x_size = (z_info->dungeon_wid - gauntlet_wid) / 2 - randint1(45 - gauntlet_wid);
     int line1, line2;
     struct loc grid;
-
-    /* PWMAngband: ensure 2 * x_size + gauntlet_wid < z_info->dungeon_wid */
-    x_size = MIN(x_size, (z_info->dungeon_wid - gauntlet_wid) / 2 - 1);
 
     /* No wide corridors to keep generation easy */
     gauntlet = labyrinth_chunk(p, wpos, gauntlet_hgt, gauntlet_wid, false, false, false);
     if (!gauntlet) return NULL;
 
-    arrival = cavern_chunk(p, wpos, y_size, x_size);
-    if (!arrival)
+    left = cavern_chunk(p, wpos, y_size, x_size);
+    if (!left)
     {
         cave_free(gauntlet);
         return NULL;
     }
 
-    departure = cavern_chunk(p, wpos, y_size, x_size);
-    if (!departure)
+    right = cavern_chunk(p, wpos, y_size, x_size);
+    if (!right)
     {
         cave_free(gauntlet);
-        cave_free(arrival);
+        cave_free(left);
         return NULL;
     }
 
     /* Record lines between chunks */
-    line1 = arrival->width;
+    line1 = left->width;
     line2 = line1 + gauntlet->width;
 
     /* Set the movement and mapping restrictions */
-    generate_mark(arrival, 0, 0, arrival->height - 1, arrival->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(left, 0, 0, left->height - 1, left->width - 1, SQUARE_NO_TELEPORT);
     generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_MAP);
     generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_TELEPORT);
 
@@ -4241,9 +4238,9 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     k = MAX(MIN(wpos->depth / 3, 10), 2) / 2;
 
     /* Make the level */
-    c = cave_new(y_size, arrival->width + gauntlet->width + departure->width);
+    c = cave_new(y_size, left->width + gauntlet->width + right->width);
     memcpy(&c->wpos, wpos, sizeof(struct worldpos));
-    player_cave_new(p, y_size, arrival->width + gauntlet->width + departure->width);
+    player_cave_new(p, y_size, left->width + gauntlet->width + right->width);
 
     /* Fill cave area with basic granite */
     fill_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_GRANITE, SQUARE_NONE);
@@ -4280,14 +4277,14 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     /* Remove our restrictions. */
     mon_restrict(p, NULL, wpos->depth, false);
 
-    /* PWMAngband: add the departure cavern */
-    chunk_copy(c, departure, 0, line2);
+    /* PWMAngband: add the right cavern */
+    chunk_copy(c, right, 0, line2);
 
-    /* Place down stairs in the departure cavern */
+    /* Place down stairs in the right cavern */
     generate_mark(c, 0, line1, c->height - 1, line2 - 1, SQUARE_NO_STAIRS);
     add_stairs(c, FEAT_MORE);
 
-    /* Pick some of monsters for the departure cavern */
+    /* Pick some of monsters for the right cavern */
     i = z_info->level_monster_min + randint1(4) + k;
 
     /* Place the monsters */
@@ -4295,15 +4292,15 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     for (; i > 0; i--)
         pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
 
-    /* PWMAngband: add the arrival cavern */
-    chunk_copy(c, arrival, 0, 0);
+    /* PWMAngband: add the left cavern */
+    chunk_copy(c, left, 0, 0);
 
-    /* Place up stairs in the arrival cavern */
+    /* Place up stairs in the left cavern */
     generate_mark(c, 0, line2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
     add_stairs(c, FEAT_LESS);
     generate_unmark(c, 0, 0, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
 
-    /* Pick some monsters for the arrival cavern */
+    /* Pick some monsters for the left cavern */
     i = z_info->level_monster_min + randint1(4) + k;
 
     /* Place the monsters */
@@ -4313,9 +4310,9 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     generate_unmark(c, 0, 0, c->height - 1, c->width - 1, SQUARE_MON_RESTRICT);
 
     /* Free the chunks */
-    cave_free(arrival);
+    cave_free(left);
     cave_free(gauntlet);
-    cave_free(departure);
+    cave_free(right);
 
     /* Generate permanent walls around the edge of the generated area */
     draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
@@ -4345,8 +4342,6 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     generate_mark(c, 0, line1, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
     new_player_spot(c, p);
     generate_unmark(c, 0, line1, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
-
-    /* PWMAngband: we put players going up in the departure cavern */
     if (cfg_limit_stairs)
     {
         generate_mark(c, 0, 0, c->height - 1, line2 - 1, SQUARE_NO_STAIRS);
