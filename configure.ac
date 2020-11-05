@@ -406,7 +406,7 @@ echo "  var path:                               ${displayedvardatadir}"
 if test "x$wsetgid" = "xyes"; then
 	echo "  (as group ${SETEGID})"
 elif test "x$with_private_dirs" = "xyes"; then
-	echo "  (with private save and score files in ~/.pwmangband/Angband/)"
+	echo "  (with private save and score files in ~/.pwmangband/PWMAngband/)"
 fi
 
 echo
