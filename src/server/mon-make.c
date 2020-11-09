@@ -552,6 +552,30 @@ static bool clear_vis(struct player *p, struct worldpos *wpos, int m)
  */
 
 
+/* Clear all visibility and tracking flags. */
+static void forget_monster(struct player *p, struct chunk *c, int m_idx)
+{
+    struct source *health_who = &p->upkeep->health_who;
+    struct monster *mon = cave_monster(c, m_idx);
+    struct source who_body;
+    struct source *who = &who_body;
+
+    source_monster(who, mon);
+
+    /* If he's not here, skip him */
+    if (!clear_vis(p, &c->wpos, m_idx)) return;
+
+    /* Hack -- remove target monster */
+    if (target_equals(p, who)) target_set_monster(p, NULL);
+
+    /* Hack -- remove tracked monster */
+    if (source_equal(health_who, who)) health_track(p->upkeep, NULL);
+
+    /* Hack -- one less slave */
+    if (p->id == mon->master) p->slaves--;
+}
+
+
 /*
  * Deletes a monster by index.
  *
@@ -562,14 +586,11 @@ void delete_monster_idx(struct chunk *c, int m_idx)
     int i;
     struct object *obj, *next;
     struct monster *mon;
-    struct source who_body;
-    struct source *who = &who_body;
     struct loc grid;
 
     my_assert(m_idx > 0);
 
     mon = cave_monster(c, m_idx);
-    source_monster(who, mon);
 
     /* Monster location */
     my_assert(square_in_bounds(c, &mon->grid));
@@ -585,19 +606,8 @@ void delete_monster_idx(struct chunk *c, int m_idx)
     for (i = 1; i <= NumPlayers; i++)
     {
         struct player *p = player_get(i);
-        struct source *health_who = &p->upkeep->health_who;
 
-        /* If he's not here, skip him */
-        if (!clear_vis(p, &c->wpos, m_idx)) continue;
-
-        /* Hack -- remove target monster */
-        if (target_equals(p, who)) target_set_monster(p, NULL);
-
-        /* Hack -- remove tracked monster */
-        if (source_equal(health_who, who)) health_track(p->upkeep, NULL);
-
-        /* Hack -- one less slave */
-        if (p->id == mon->master) p->slaves--;
+        forget_monster(p, c, m_idx);
     }
 
     /* Monster is gone from square and group */

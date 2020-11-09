@@ -47,6 +47,7 @@ MAngband 1.5.x:
 - Do not speed up time with monsters in LoS
 - Fix DM_NEVER_DISTURB
 - Allow filling empty bottles from water tiles
+- Make hostile visible players prevent running
 
 PWMAngband:
 
@@ -73,6 +74,7 @@ MAngband 1.5.x:
 - Handle topline ickyness when confirming suicide
 - Open correct directory when selecting fonts
 - Stop allocating too much font resources
+- Make sure player-player visibility is refreshed when changing level
 
 PWMAngband:
 

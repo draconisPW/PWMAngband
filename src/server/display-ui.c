@@ -2223,7 +2223,6 @@ int move_energy(int depth)
 bool monsters_in_los(struct player *p, struct chunk *c)
 {
     int i;
-    bool los = false;
 
     /* If nothing in LoS */
     for (i = 1; i < cave_monster_max(c); i++)
@@ -2239,14 +2238,22 @@ bool monsters_in_los(struct player *p, struct chunk *c)
             incapacitated = true;
 
         /* Check this monster */
-        if (monster_is_in_view(p, i) && !incapacitated)
-        {
-            los = true;
-            break;
-        }
+        if (monster_is_in_view(p, i) && !incapacitated) return true;
     }
 
-    return los;
+    /* Hostile players count as monsters */
+    for (i = 1; i <= NumPlayers; i++)
+    {
+        struct player *q = player_get(i);
+
+        /* Don't count non hostile players */
+        if (!pvp_check(p, q, PVP_CHECK_BOTH, true, 0x00)) continue;
+
+        /* Check this player */
+        if (player_is_in_view(p, i) && !q->timed[TMD_PARALYZED]) return true;
+    }
+
+    return false;
 }
 
 

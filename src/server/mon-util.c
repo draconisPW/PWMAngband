@@ -1653,21 +1653,17 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             q->shimmer = true;
     }
 
-    /* The player is not visible */
-    else
+    /* Not visible but was previously seen */
+    else if (player_is_visible(p, id))
     {
-        /* It was previously seen */
-        if (player_is_visible(p, id))
-        {
-            /* Mark as not visible */
-            mflag_off(p->pflag[id], MFLAG_VISIBLE);
+        /* Mark as not visible */
+        mflag_off(p->pflag[id], MFLAG_VISIBLE);
 
-            /* Erase the player */
-            square_light_spot_aux(p, c, &q->grid);
-        }
+        /* Erase the player */
+        square_light_spot_aux(p, c, &q->grid);
     }
 
-    /* The player is now easily visible */
+    /* Is the player now easily visible? */
     if (easy)
     {
         /* Change */
@@ -1685,8 +1681,6 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
             }
         }
     }
-
-    /* The player is not easily visible */
     else
     {
         /* Change */
@@ -1722,6 +1716,9 @@ void update_player(struct player *q)
         {
             mflag_wipe(p->pflag[id]);
             p->play_det[id] = 0;
+            source_player(who, 0, q);
+            update_cursor(who);
+            update_health(who);
             continue;
         }
 
