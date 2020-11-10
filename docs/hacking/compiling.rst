@@ -3,8 +3,8 @@ Compiling Instructions
 
 PWMAngband is usually built and run under Windows. If you're using Linux, you
 can get the PWMAngband binaries directly and use WinE. Otherwise, a few
-makefiles have been added to compile under Linux. Check the compiling.txt for
-that.
+makefiles have been added to compile under Linux. Check the compiling.txt file
+for instructions.
 
 PWMAngband comes with various text files that explain how to compile the game
 and several batch files that actually do the job.

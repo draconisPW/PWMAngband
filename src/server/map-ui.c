@@ -504,7 +504,7 @@ static void grid_get_attr(struct player *p, struct grid_data *g, u16b *a)
             }
             case LIGHTING_LIT: *a = get_color(*a, ATTR_DARK, 1); break;
             case LIGHTING_DARK: *a = get_color(*a, ATTR_DARK, 2); break;
-			default: break;
+            default: break;
         }
     }
 

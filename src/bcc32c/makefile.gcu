@@ -36,7 +36,7 @@ CLI_EXE = mangclient_gcu.exe
 # Set any compiler options
 
 CCOPTS = -tW -lGn \
-	-D_WIN32_WINNT=0x0500 -DWINVER=0x0500 \
+	-D_WIN32_WINNT=0x0500 -DWINVER=0x0500 -D__BCC7__ \
 	-DWIN32 -D_WINDOWS -DSTRICT -DWINDOWS -DUSE_GCU -DBCC_IDE \
 	-I$(BCCDIR)\include -I..\curses
 
@@ -192,4 +192,3 @@ $(CLI_EXE): $(CLI_OBJS) ..\win\angband.res
 
 .obj.exe:
 	$(CPP) $(CPPFLAGS) $<
-

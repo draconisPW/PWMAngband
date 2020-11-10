@@ -1023,7 +1023,7 @@ static enum birth_stage menu_question(enum birth_stage current, struct menu *cur
                         player->clazz = player_id2class(current_menu->cursor);
                         break;
                     case BIRTH_ROLLER_CHOICE: roller_type = current_menu->cursor; break;
-					default: break;
+                    default: break;
                 }
 
                 menu_refresh(current_menu, false);
@@ -1480,8 +1480,8 @@ void textui_do_birth(void)
             case BIRTH_QUIT:
                 free_birth_menus();
                 quit(NULL);
-				
-			default: break;
+
+            default: break;
         }
 
         current_stage = next;

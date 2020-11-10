@@ -196,4 +196,3 @@ $(CLI_EXE): $(CLI_OBJS) ..\win\angband.res
 
 .obj.exe:
 	$(CPP) $(CPPFLAGS) $<
-

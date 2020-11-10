@@ -104,3 +104,4 @@ Compilation
 
 - Update help
 - USE_NCURSES define
+- Compiling with Embarcadero C++ 7.20
