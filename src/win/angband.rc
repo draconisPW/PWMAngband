@@ -1,4 +1,5 @@
 /* File: angband.rc */
+#include <winres.h>
 #include "win-menu.h"
 
 ANGBAND MENU
