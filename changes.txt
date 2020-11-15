@@ -32,6 +32,7 @@ PWMAngband:
 - Add "monster feeling always, no object feeling" choice to LEVEL_FEELINGS
   server option
 - Sort killed list (for polymorphing) from highest to lowest level
+- Display forms that are 50%/75% learnt in orange/yellow on the killed list
 
 Gameplay changes
 ----------------
@@ -45,6 +46,8 @@ MAngband 1.5.x:
 - Change rules for stealth/noise checks
 - Do not speed up time with monsters in LoS
 - Fix DM_NEVER_DISTURB
+- Allow filling empty bottles from water tiles
+- Make hostile visible players prevent running
 
 PWMAngband:
 
@@ -71,6 +74,7 @@ MAngband 1.5.x:
 - Handle topline ickyness when confirming suicide
 - Open correct directory when selecting fonts
 - Stop allocating too much font resources
+- Make sure player-player visibility is refreshed when changing level
 
 PWMAngband:
 
@@ -100,3 +104,4 @@ Compilation
 
 - Update help
 - USE_NCURSES define
+- Compiling with Embarcadero C++ 7.20

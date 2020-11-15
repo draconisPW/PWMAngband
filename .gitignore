@@ -4,13 +4,7 @@
 /mangclient.ini
 /mangclient_gcu.ini
 /mangclient_sdl.ini
-/pdcurses.dll
 /Roadmap.txt
-/SDL.dll
-/SDL_image.dll
-/SDL_mixer.dll
-/SDL_ttf.dll
-/freetype.dll
 /mangband.cfg
 *.o
 # Vanilla stuff:

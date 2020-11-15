@@ -1,0 +1,9 @@
+How to build all libraries required to run the WIN client:
+
+- Download and unzip ZLIB 1.2.11 in the same root directory as your \PWMAngband folder:
+	http://zlib.net
+- Copy \PWMAngband\src\bcc32c\Makefile.zlib into \zlib-1.2.11\win32
+- Download and unzip LIBPNG 1.6.37 in the same root directory as your \PWMAngband folder:
+	http://sourceforge.net/projects/libpng/files
+- Copy \PWMAngband\src\bcc32c\Makefile.libpng into \lpng1637\scripts
+- Run \PWMAngband\src\bcc32c\WIN.bat

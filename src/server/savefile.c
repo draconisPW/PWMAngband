@@ -773,7 +773,6 @@ static errr next_blockheader(ang_file *f, struct blockheader *b, bool scoop)
 {
     byte savefile_head[SAVEFILE_HEAD_SIZE];
     size_t len;
-    const char *header = "header";
 
     len = file_read(f, (char *)savefile_head, SAVEFILE_HEAD_SIZE);
 
@@ -784,7 +783,7 @@ static errr next_blockheader(ang_file *f, struct blockheader *b, bool scoop)
         return -1;
 
     /* Determine the block ID */
-    if (scoop && (strncmp((char *)savefile_head, header, sizeof(header)) != 0))
+    if (scoop && (strncmp((char *)savefile_head, "header", 6) != 0))
         return -1;
 
 #define RECONSTRUCT_U32B(from) \

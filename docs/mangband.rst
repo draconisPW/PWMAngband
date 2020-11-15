@@ -55,7 +55,7 @@ Alter Commands
 ====== ========================== ====== ==========================
 'c'    Close a door               'T'    Dig a tunnel
 'o'    Open a door or chest       '+'    Alter grid
-'_'    Drink/fill from a fountain
+'_'    Drink/fill an empty bottle
 'D'    Disarm a trap or chest     's'    Steal
 ====== ========================== ====== ==========================
  

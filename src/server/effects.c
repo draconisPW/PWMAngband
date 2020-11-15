@@ -981,7 +981,7 @@ static void set_descent(struct player *p)
  *
  * Returns 0 if valid, 1 if invalid, 2 if asking for recall depth
  */
-static int valid_inscription(struct player *p, unsigned char *inscription, int current_value,
+static int valid_inscription(struct player *p, const char *inscription, int current_value,
     const char *where)
 {
     struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
@@ -1016,7 +1016,7 @@ static int valid_inscription(struct player *p, unsigned char *inscription, int c
                     if (STRZERO(where)) return 0;
 
                     /* Use recall depth */
-                    inscription = (unsigned char *)where;
+                    inscription = where;
                 }
 
                 /* Convert the inscription into wilderness coordinates */
@@ -1097,7 +1097,7 @@ static int valid_inscription(struct player *p, unsigned char *inscription, int c
  */
 static bool set_recall_depth(struct player *p, quark_t note, int current_value, const char *where)
 {
-    unsigned char *inscription = (unsigned char *)quark_str(note);
+    const char *inscription = quark_str(note);
     struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
 
     /* Default to the players maximum depth */

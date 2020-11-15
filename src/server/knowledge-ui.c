@@ -2357,18 +2357,19 @@ static void drink_fountain(struct player *p, struct object *obj)
 
 
 /*
- * Drink/fill an empty bottle from a fountain
+ * Drink from a fountain/fill an empty bottle
  */
 void do_cmd_fountain(struct player *p, int item)
 {
     struct object *obj;
     struct object_kind *kind;
     struct chunk *c = chunk_get(&p->wpos);
+    bool fountain = false;
 
     /* Restrict ghosts */
     if (p->ghost && !(p->dm_flags & DM_GHOST_BODY))
     {
-        msg(p, "You need a tangible body to interact with fountains!");
+        msg(p, "You need a tangible body to do that!");
         return;
     }
 
@@ -2379,17 +2380,22 @@ void do_cmd_fountain(struct player *p, int item)
         return;
     }
 
-    /* We must stand on a fountain */
-    if (!square_isfountain(c, &p->grid))
+    /* If we stand on a fountain, ensure it is not dried out */
+    if (square_isfountain(c, &p->grid))
     {
-        msg(p, "There is no fountain here.");
-        return;
+        if (square_isdryfountain(c, &p->grid))
+        {
+            msg(p, "The fountain is dried out.");
+            return;
+        }
+
+        fountain = true;
     }
 
-    /* Dried out */
-    if (square_isdryfountain(c, &p->grid))
+    /* Allow filling empty bottles from water tiles */
+    else if (!square_iswater(c, &p->grid) || (item == -1))
     {
-        msg(p, "The fountain is dried out.");
+        msg(p, "You need an empty bottle and a source of water.");
         return;
     }
 
@@ -2447,7 +2453,7 @@ void do_cmd_fountain(struct player *p, int item)
     }
 
     /* Fall in */
-    if (one_in_(20))
+    if (fountain && one_in_(20))
     {
         msg(p, "You slip and fall in the water.");
         if (!player_passwall(p) && !can_swim(p))
@@ -2461,14 +2467,14 @@ void do_cmd_fountain(struct player *p, int item)
     if (item == -1) msg(p, "You drink from the fountain.");
 
     /* Ale */
-    if (one_in_(10))
+    if (fountain && one_in_(10))
     {
         msg(p, "Wow! Pure dwarven ale!");
         kind = lookup_kind_by_name(TV_FOOD, "Pint of Fine Ale");
     }
 
     /* Plain water */
-    else if (one_in_(2))
+    else if (fountain? one_in_(2): magik(90))
     {
         msg(p, "The water is clear and fresh.");
         kind = lookup_kind_by_name(TV_POTION, "Water");
@@ -2551,7 +2557,7 @@ void do_cmd_fountain(struct player *p, int item)
     }
 
     /* Fountain dries out */
-    if (one_in_(3))
+    if (fountain && one_in_(3))
     {
         msg(p, "The fountain suddenly dries up.");
         square_dry_fountain(c, &p->grid);
@@ -3054,8 +3060,18 @@ void do_cmd_check_poly(struct player *p, int line)
                 file_putf(fff, "G[%d] %s: %d (learnt)\n", k, race->name, lore->pkills);
             else
             {
-                file_putf(fff, "w[%d] %s: %d (%d more to go, affinity = %d%%)\n", k, race->name,
-                    lore->pkills, rkills - lore->pkills, aff);
+                char color = 'w';
+
+                if (rkills > 0)
+                {
+                    int perc = 100 * lore->pkills / rkills;
+
+                    if (perc >= 75) color = 'y';
+                    else if (perc >= 50) color = 'o';
+                }
+
+                file_putf(fff, "%c[%d] %s: %d (%d more to go, affinity = %d%%)\n", color, k,
+                    race->name, lore->pkills, rkills - lore->pkills, aff);
             }
 
             total++;
