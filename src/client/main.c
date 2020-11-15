@@ -164,6 +164,9 @@ int main(int argc, char *argv[])
 
     turn_off_numlock();
 
+    /* Create save default config */
+    conf_default_save();
+
     /* Initialize everything, contact the server, and start the loop */
     client_init(true);
 
