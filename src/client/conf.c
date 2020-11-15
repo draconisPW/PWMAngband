@@ -464,9 +464,9 @@ void conf_init(void* param)
 
 	/* EMX Hack */
 #ifdef USE_EMX
-	strcpy(buf, "\\mang.rc");
+	strcpy(buf, "\\pwmang.rc");
 #else
-	strcpy(buf, "/.mangrc");
+	strcpy(buf, "/.pwmangrc");
 #endif
 
 	/* Hack -- make this file easier to find */
@@ -580,7 +580,7 @@ void conf_save()
 			file_putf(config, "[%s]\n", s_ptr->name);
 			for (v_ptr = s_ptr->first; v_ptr; v_ptr = v_ptr->next)
 			{
-				file_putf(config, "%s %s\n", v_ptr->name, v_ptr->value);
+				file_putf(config, "%s=%s\n", v_ptr->name, v_ptr->value);
 			}
 			if (s_ptr->next)
 				file_putf(config, "\n");
@@ -589,6 +589,30 @@ void conf_save()
 		file_close(config);
 		conf_need_save = false;
 	}
+}
+/* Save default config file if it is scheduled */
+void conf_default_save()
+{
+	ang_file* config;
+
+	config = file_open(config_name, MODE_READ, -1);
+	if (config)
+	{
+	conf_need_save = false;
+	if (!conf_need_save) return;
+	}
+
+	conf_set_string("MAngband", "nick", "PLAYER1Test");
+	conf_set_string("MAngband", "pass", "pass");
+	conf_set_string("MAngband", "\;host", "localhost");
+	conf_set_string("MAngband", "meta_address", "mangband.org");
+	conf_set_string("MAngband", "meta_port", "8802");
+//	conf_set_int("MAngband", "meta_port", meta_port);
+	conf_set_string("MAngband", "DisableNumlock", "1");
+	conf_set_string("MAngband", "LighterBlue", "1");
+
+	/* Save config */
+	conf_save();
 }
 /* Scheduler */
 void conf_timer(int ticks)
