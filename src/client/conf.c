@@ -601,7 +601,7 @@ void conf_default_save()
 	if (!conf_need_save) return;
 	}
 
-	conf_set_string("MAngband", "nick", "PLAYER1Test");
+	conf_set_string("MAngband", "nick", "PLAYER");
 	conf_set_string("MAngband", "pass", "pass");
 	conf_set_string("MAngband", "\;host", "localhost");
 	conf_set_string("MAngband", "meta_address", "mangband.org");
