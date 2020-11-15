@@ -595,8 +595,7 @@ void conf_default_save()
 {
 	ang_file* config;
 
-	config = file_open(config_name, MODE_READ, -1);
-	if (config)
+	if (config = file_open(config_name, MODE_READ, -1))
 	{
 	conf_need_save = false;
 	if (!conf_need_save) return;
