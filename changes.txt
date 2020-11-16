@@ -22,6 +22,8 @@ MAngband 1.5.x:
 
 - Add possibility to macro by item names
 - Add version number to "incompatible client version" error message
+- Enter and leave query-item-by-name mode via quote symbol
+- Add possibility to macro by spell names
 
 PWMAngband:
 
@@ -48,6 +50,7 @@ MAngband 1.5.x:
 - Fix DM_NEVER_DISTURB
 - Allow filling empty bottles from water tiles
 - Make hostile visible players prevent running
+- Disable banishment in dwarven halls
 
 PWMAngband:
 

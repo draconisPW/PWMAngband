@@ -1559,6 +1559,13 @@ static bool effect_handler_BANISH(effect_handler_context_t *context)
 
     context->ident = true;
 
+    /* Not in dynamically generated towns */
+    if (dynamic_town(&context->cave->wpos))
+    {
+        msg(context->origin->player, "Nothing happens.");
+        return true;
+    }
+
     /* Search all monsters and find the closest */
     for (i = 1; i < cave_monster_max(context->cave); i++)
     {
@@ -5140,6 +5147,13 @@ static bool effect_handler_MASS_BANISH(effect_handler_context_t *context)
     char df[160];
 
     context->ident = true;
+
+    /* Not in dynamically generated towns */
+    if (dynamic_town(&context->cave->wpos))
+    {
+        msg(context->origin->player, "Nothing happens.");
+        return true;
+    }
 
     /* Delete the (nearby) monsters */
     for (i = 1; i < cave_monster_max(context->cave); i++)

@@ -54,6 +54,18 @@ int dis_to_shit;
 int dis_to_sdam;
 
 
+/* Allow '"' to be used in place of '\r' */
+bool prompt_quote_hack = false;
+
+
+/* Selecting a magic book */
+bool spellcasting = false;
+
+
+/* Select-by-name spell */
+int spellcasting_spell = -1;
+
+
 /*
  * Flush all pending input.
  *
@@ -461,6 +473,9 @@ bool askfor_aux(char *buf, int len, keypress_handler keypress_h)
         /* Get a key */
         ch = inkey();
 
+        /* Evil hack -- pretend quote is Return */
+        if (prompt_quote_hack && (ch.code == '"')) ch.code = KC_ENTER;
+
         /* Let the keypress handler deal with the keypress */
         done = keypress_h(buf, len, &k, &nul, ch, firsttime);
 
@@ -475,6 +490,9 @@ bool askfor_aux(char *buf, int len, keypress_handler keypress_h)
     /* The top line is OK now */
     topline_icky = false;
     Flush_queue();
+
+    /* Reset global flags */
+    prompt_quote_hack = false;
 
     /* Done */
     return (ch.code != ESCAPE);

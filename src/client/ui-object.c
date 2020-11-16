@@ -701,9 +701,32 @@ static bool get_item_by_name(int *k)
     char buf[256];
     char *tok;
     int i;
+    size_t len;
+    char *prompt = "Item name: ";
+
+    /* Hack -- spellcasting mode (select book by spell) */
+    if (spellcasting)
+    {
+        int sn = -1;
+        bool ok = get_spell_by_name(k, &sn);
+
+        /* Remember spell index */
+        spellcasting_spell = sn;
+
+        /* Don't do any other tests */
+        return ok;
+    }
+
+    /* Hack -- show opening quote symbol */
+    if (prompt_quote_hack) prompt = "Item name: \"";
 
     buf[0] = '\0';
-    if (!get_string("Item name: ", buf, NORMAL_WID)) return false;
+    if (!get_string(prompt, buf, NORMAL_WID)) return false;
+
+    /* Hack -- remove final quote */
+    len = strlen(buf);
+    if (len == 0) return false;
+    if (buf[len - 1] == '"') buf[len - 1] = '\0';
 
     /* Split entry */
     tok = strtok(buf, "|");
@@ -939,80 +962,99 @@ static bool get_item_action(struct menu *menu, const ui_event *event, int oid)
 
     if (event->type == EVT_KBRD)
     {
-        if (key == '/')
+        switch (key)
         {
-            /* Toggle if allowed */
-            if ((i1 <= i2) && (command_wrk != USE_INVEN))
+            case '/':
             {
-                command_wrk = USE_INVEN;
-                newmenu = true;
-            }
-            else if ((e1 <= e2) && (command_wrk != USE_EQUIP))
-            {
-                command_wrk = USE_EQUIP;
-                newmenu = true;
-            }
-            else
-            {
-                bell("Cannot switch item selector!");
+                /* Toggle if allowed */
+                if ((i1 <= i2) && (command_wrk != USE_INVEN))
+                {
+                    command_wrk = USE_INVEN;
+                    newmenu = true;
+                }
+                else if ((e1 <= e2) && (command_wrk != USE_EQUIP))
+                {
+                    command_wrk = USE_EQUIP;
+                    newmenu = true;
+                }
+                else
+                {
+                    bell("Cannot switch item selector!");
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+
+                break;
             }
-        }
 
-        else if (key == '|')
-        {
-            /* No toggle allowed */
-            if (q1 > q2)
+            case '|':
             {
-                bell("Cannot select quiver!");
+                /* No toggle allowed */
+                if (q1 > q2)
+                {
+                    bell("Cannot select quiver!");
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+                else
+                {
+                    /* Toggle to quiver */
+                    command_wrk = USE_QUIVER;
+                    newmenu = true;
+                }
+
+                break;
             }
-            else
+
+            case '-':
             {
-                /* Toggle to quiver */
-                command_wrk = USE_QUIVER;
-                newmenu = true;
+                /* No toggle allowed */
+                if (f1 > f2)
+                {
+                    bell("Cannot select floor!");
+
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+                else
+                {
+                    /* Toggle to floor */
+                    command_wrk = USE_FLOOR;
+                    newmenu = true;
+                }
+
+                break;
             }
-        }
 
-        else if (key == '-')
-        {
-            /* No toggle allowed */
-            if (f1 > f2)
+            case '"':
             {
-                bell("Cannot select floor!");
+                /* Allow '"' to be used as terminator */
+                prompt_quote_hack = true;
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                /* fallthrough */
             }
-            else
-            {
-                /* Toggle to floor */
-                command_wrk = USE_FLOOR;
-                newmenu = true;
-            }
-        }
 
-        else if (key == '@')
-        {
-            int k;
-
-            /* Lookup item by name */
-            if (get_item_by_name(&k))
+            case '@':
             {
-                selection = choice[k].object;
-                return true;
-            }
-            else
-            {
-                bell("Cannot select item!");
+                int k;
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                /* Lookup item by name */
+                if (get_item_by_name(&k))
+                {
+                    selection = choice[k].object;
+                    return true;
+                }
+                else
+                {
+                    bell("Cannot select item!");
+
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+
+                break;
             }
         }
     }
@@ -1112,7 +1154,7 @@ static struct object *item_menu(cmd_code cmd, int prompt_size, int mode)
         m->selections = "01234567";
     else
         m->selections = lower_case;
-    m->switch_keys = "/|-@";
+    m->switch_keys = "/|-@\"";
     m->flags = (MN_PVT_TAGS | MN_INSCRIP_TAGS);
     m->browse_hook = item_menu_browser;
 

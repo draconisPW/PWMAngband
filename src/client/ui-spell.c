@@ -553,3 +553,55 @@ int textui_obj_project(int book, int *dir)
 {
     return textui_obj_cast_aux(book, true, dir);
 }
+
+
+/*
+ * Get spell by name
+ */
+bool get_spell_by_name(int *book, int *spell)
+{
+    char buf[256];
+    char *tok;
+    int i, sn;
+    size_t len;
+    char *prompt = "Spell name: ";
+
+    /* Hack -- show opening quote symbol */
+    if (prompt_quote_hack) prompt = "Spell name: \"";
+
+    buf[0] = '\0';
+    if (!get_string(prompt, buf, NORMAL_WID)) return false;
+
+    /* Hack -- remove final quote */
+    len = strlen(buf);
+    if (len == 0) return false;
+    if (buf[len - 1] == '"') buf[len - 1] = '\0';
+
+    /* Split entry */
+    tok = strtok(buf, "|");
+    while (tok)
+    {
+        if (STRZERO(tok)) continue;
+
+        /* Match against valid items */
+        for (i = 0; i < player->clazz->magic.num_books; i++)
+        {
+            sn = 0;
+
+            while (book_info[i].spell_info[sn].info[0] != '\0')
+            {
+                if (my_stristr(book_info[i].spell_info[sn].info, tok))
+                {
+                    (*book) = i;
+                    (*spell) = sn;
+                    return true;
+                }
+
+                sn++;
+            }
+        }
+        tok = strtok(NULL, "|");
+    }
+
+    return false;
+}

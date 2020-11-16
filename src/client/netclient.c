@@ -5867,6 +5867,7 @@ int cmd_cast(struct command *cmd)
     allow_disturb_icky = false;
 
     /* Get arguments */
+    spellcasting = true;
     n = cmd_get_item(cmd, "item", &book,
         /* Prompt */ "Use which book? ",
         /* Error */ "You have no books you can use.",
@@ -5874,12 +5875,40 @@ int cmd_cast(struct command *cmd)
         /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS);
 
     allow_disturb_icky = true;
-    if (n != CMD_OK) return 0;
+    if (n != CMD_OK)
+    {
+        spellcasting = false;
+        spellcasting_spell = -1;
+        return 0;
+    }
 
     /* Track the object kind */
     Send_track_object(book->oidx);
 
-    spell = textui_obj_cast(book->info_xtra.bidx, &dir);
+    /* Hack -- spellcasting mode (spell already selected) */
+    if (spellcasting_spell > -1)
+    {
+        spell_flags flag = book_info[book->info_xtra.bidx].spell_info[spellcasting_spell].flag;
+
+        /* Needs a direction */
+        if (flag.dir_attr)
+        {
+            if (!get_aim_dir(&dir))
+            {
+                spellcasting = false;
+                spellcasting_spell = -1;
+                return 0;
+            }
+        }
+
+        spell = spellcasting_spell;
+    }
+    else
+        spell = textui_obj_cast(book->info_xtra.bidx, &dir);
+
+    spellcasting = false;
+    spellcasting_spell = -1;
+
     if (spell != -1) Send_cast(book->oidx, spell, dir);
     return 1;
 }
