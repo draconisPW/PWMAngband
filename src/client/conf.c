@@ -71,6 +71,11 @@ void conf_save(void)
 }
 
 
+void conf_default_save(void)
+{
+}
+
+
 void conf_timer(int ticks)
 {
 }
