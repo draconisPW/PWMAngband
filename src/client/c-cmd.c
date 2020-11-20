@@ -584,15 +584,79 @@ void do_cmd_help(void)
 }
 
 
+static char* has_addr_aux(char *pmsgbuf, int mode, char* addrbuf, int addrmax, int* addrlen)
+{
+    int nicklen;
+    char *startmsg;
+    char search_for = ':';
+
+    if (mode == 1)
+    {
+        search_for = ' ';
+        if (pmsgbuf[0] != '#')
+        {
+            *addrlen = 0;
+            return pmsgbuf;
+        }
+    }
+
+    for (startmsg = pmsgbuf; *startmsg; startmsg++)
+    {
+        if (*startmsg == search_for) break;
+    }
+    if (*startmsg && (startmsg - pmsgbuf < addrmax))
+    {
+        my_strcpy(addrbuf, pmsgbuf, (startmsg - pmsgbuf) + 2);
+        nicklen = strlen(addrbuf);
+        startmsg += 1;
+        while (*startmsg == ' ') startmsg += 1;
+    }
+    else
+    {
+        startmsg = pmsgbuf;
+        nicklen = 0;
+    }
+
+    *addrlen = nicklen;
+    return startmsg;
+}
+
+
+static char* has_addr(char *pmsgbuf, char* addrbuf, int addrmax, int* addrlen)
+{
+    char *r;
+
+    /* Check channel */
+    r = has_addr_aux(pmsgbuf, 1, addrbuf, addrmax, addrlen);
+    if (*addrlen > 0) return r;
+
+    /* Check privmsg */
+    r = has_addr_aux(pmsgbuf, 0, addrbuf, addrmax, addrlen);
+    if (*addrlen > 0) return r;
+
+    /* OK, got nothing */
+    *addrlen = 0;
+    return pmsgbuf;
+}
+
+
 void send_msg_chunks(char *pmsgbuf, int msglen)
 {
-    char pmsg[60];
+    char pmsg[MSG_LEN + 2];
     char nickbuf[30];
     int offset = 0, breakpoint, nicklen;
     char *startmsg;
+    int CUTOFF = 0;
 
-    /* Send the text in chunks of 58 characters, or nearest break before 58 chars */
-    if (msglen < 58)
+    /*
+     * Max message length depends on our nick (known)
+     * and recepient nick (unknown, assume max length)
+     */
+    CUTOFF = MSG_LEN - strlen(nick) - 3;
+    CUTOFF -= (MAX_NAME_LEN + 1);
+
+    /* Send the text in chunks of CUTOFF characters, or nearest break before CUTOFF chars */
+    if (msglen < CUTOFF)
     {
         Send_msg(pmsgbuf);
         return;
@@ -601,40 +665,26 @@ void send_msg_chunks(char *pmsgbuf, int msglen)
     memset(nickbuf, 0, sizeof(nickbuf));
 
     /* See if this was a privmsg, if so, pull off the nick */
-    for (startmsg = pmsgbuf; *startmsg; startmsg++)
-    {
-        if (*startmsg == ':') break;
-    }
-    if (*startmsg && (startmsg - pmsgbuf < 29))
-    {
-        my_strcpy(nickbuf, pmsgbuf, (startmsg - pmsgbuf) + 2);
-        nicklen = strlen(nickbuf);
-        startmsg += 2;
-    }
-    else
-    {
-        startmsg = pmsgbuf;
-        nicklen = 0;
-    }
+    startmsg = has_addr(pmsgbuf, nickbuf, 29, &nicklen);
 
     /* Now deal with what's left */
     while (msglen > 0)
     {
         memset(pmsg, 0, sizeof(pmsg));
 
-        if (msglen < (58 - nicklen))
+        if (msglen < CUTOFF)
             breakpoint = msglen;
         else
         {
             /* Try to find a breaking char */
-            for (breakpoint = 58 - nicklen; breakpoint > 0; breakpoint--)
+            for (breakpoint = CUTOFF; breakpoint > 0; breakpoint--)
             {
                 if (startmsg[offset + breakpoint] == ' ') break;
                 if (startmsg[offset + breakpoint] == ',') break;
                 if (startmsg[offset + breakpoint] == '.') break;
                 if (startmsg[offset + breakpoint] == ';') break;
             }
-            if (!breakpoint) breakpoint = 58 - nicklen; /* nope */
+            if (!breakpoint) breakpoint = CUTOFF; /* nope */
         }
 
         /* If we pulled off a nick above, prepend it. */

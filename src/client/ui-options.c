@@ -472,7 +472,19 @@ static void ui_keymap_query(const char *title, int row)
 }
 
 
-static void ui_keymap_create(const char *title, int row)
+#define KEYMAP_CREATE_MANUAL    1
+#define KEYMAP_CREATE_ACTION    2
+#define KEYMAP_CREATE_ITEM      3
+#define KEYMAP_CREATE_SPELL     4
+
+
+static bool obj_is_macroable(struct player *p, const struct object *obj)
+{
+    return (obj_is_useable(p, obj) || tval_is_ammo(obj));
+}
+
+
+static void keymap_create(const char *title, int kmode)
 {
     bool done = false;
     size_t n = 0;
@@ -511,6 +523,101 @@ static void ui_keymap_create(const char *title, int row)
     esc.code = ESCAPE;
     esc.mods = 0;
     keymap_buffer[n++] = esc;
+
+    if (kmode == KEYMAP_CREATE_ACTION)
+    {
+        struct cmd_info *cmd;
+
+        screen_save();
+        clear_from(0);
+        cmd = textui_action_menu_choose();
+
+        if (!cmd)
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        command_as_keystroke(cmd->key[mode], keymap_buffer, &n);
+        screen_load(false);
+    }
+
+    if (kmode == KEYMAP_CREATE_ITEM)
+    {
+        struct object *obj;
+        unsigned char cmd;
+
+        screen_save();
+        clear_from(0);
+        if (!get_item(&obj, "Select Item: ", NULL, CMD_NULL, obj_is_macroable,
+            (USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR)))
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        cmd = command_by_item(obj, mode);
+        if (!cmd)
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        item_as_keystroke(obj, cmd, keymap_buffer, &n);
+        screen_load(false);
+    }
+
+    if (kmode == KEYMAP_CREATE_SPELL)
+    {
+        struct object *book_obj;
+        int spell, book;
+        unsigned char cmd;
+        spell_flags flag;
+        bool project = false;
+
+        screen_save();
+        clear_from(0);
+        if (!get_item(&book_obj, "Select Book: ", NULL, CMD_NULL, obj_can_cast_from,
+            (USE_INVEN | USE_FLOOR | BOOK_TAGS)))
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        book = book_obj->info_xtra.bidx;
+        spell = get_spell(book, book_info[book].realm->verb, spell_okay_to_cast);
+
+        /* No spell selected */
+        if (spell == -1)
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        cmd = command_by_item(book_obj, mode);
+        if (!cmd)
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        /* Can this spell be projected? */
+        flag = book_info[book].spell_info[spell].flag;
+        if (flag.proj_attr && get_check("Project spell? "))
+        {
+            cmd = cmd_lookup_key(CMD_PROJECT, mode);
+            project = true;
+        }
+
+        spell_as_keystroke(book, spell, project, cmd, keymap_buffer, &n);
+        screen_load(false);
+    }
 
     /* Get an encoded action, with a default response */
     while (!done)
@@ -588,6 +695,12 @@ static void ui_keymap_create(const char *title, int row)
         ke = inkey_ex();
         if (is_abort(ke)) Term_event_push(&ea);
     }
+}
+
+
+static void ui_keymap_create(const char *title, int row)
+{
+    keymap_create(title, KEYMAP_CREATE_MANUAL);
 }
 
 
@@ -737,6 +850,27 @@ static void keymap_browse_hook(int oid, void *db, const region *loc)
 }
 
 
+static void ui_keymap_command(const char *title, int row)
+{
+    /* Enter a new action (via menu) */
+    keymap_create(title, KEYMAP_CREATE_ACTION);
+}
+
+
+static void ui_keymap_item(const char *title, int row)
+{
+    /* Enter a new action (via items) */
+    keymap_create(title, KEYMAP_CREATE_ITEM);
+}
+
+
+static void ui_keymap_spell(const char *title, int row)
+{
+    /* Enter a new action (spell) */
+    keymap_create(title, KEYMAP_CREATE_SPELL);
+}
+
+
 static struct menu *keymap_menu;
 static menu_action keymap_actions[] =
 {
@@ -745,7 +879,10 @@ static menu_action keymap_actions[] =
     {0, 0, "Query a keymap", ui_keymap_query},
     {0, 0, "Create a keymap", ui_keymap_create},
     {0, 0, "Remove a keymap", ui_keymap_remove},
-    {0, 0, "Browse keymaps", ui_keymap_browse}
+    {0, 0, "Browse keymaps", ui_keymap_browse},
+    {0, 0, "Keymap by command", ui_keymap_command},
+    {0, 0, "Keymap by item", ui_keymap_item},
+    {0, 0, "Keymap by spell", ui_keymap_spell}
 };
 
 

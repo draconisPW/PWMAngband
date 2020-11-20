@@ -253,5 +253,188 @@ int keymap_browse(int o, int *j)
         Term_putstr(20, 2 + i - o, -1, a, act);
     }
 
+    /* Move cursor there */
+    Term_gotoxy(0, 2 + *j - o);
+
     return total;
+}
+
+
+void command_as_keystroke(unsigned char cmd, struct keypress *kp, size_t *n)
+{
+    struct keypress c;
+
+    if (*n == KEYMAP_ACTION_MAX) return;
+
+    c.type = EVT_KBRD;
+    c.code = cmd;
+    c.mods = 0;
+
+    kp[(*n)++] = c;
+}
+
+
+static cmd_code command_by_item_aux(struct object *obj)
+{
+    if (obj_can_cast_from(player, obj)) return CMD_CAST;
+    if (obj_is_useable(player, obj))
+    {
+        if (tval_is_wand(obj)) return CMD_USE_WAND;
+        if (tval_is_rod(obj)) return CMD_USE_ROD;
+        if (tval_is_staff(obj)) return CMD_USE_STAFF;
+        if (tval_is_scroll(obj)) return CMD_READ_SCROLL;
+        if (tval_is_potion(obj)) return CMD_QUAFF;
+        if (tval_is_edible(obj)) return CMD_EAT;
+        if (obj_is_activatable(player, obj)) return CMD_ACTIVATE;
+        if (item_tester_hook_fire(player, obj)) return CMD_FIRE;
+        return CMD_USE;
+    }
+    if (tval_is_ammo(obj)) return CMD_THROW;
+    return CMD_NULL;
+}
+
+
+unsigned char command_by_item(struct object *obj, int mode)
+{
+    cmd_code lookup_cmd = command_by_item_aux(obj);
+
+    if (lookup_cmd == CMD_NULL) return 0;
+    return cmd_lookup_key(lookup_cmd, mode);
+}
+
+
+/*
+ * Given an "item", return keystrokes that could be used to select this item.
+ *
+ * For items tagged @x1, the tagged version will be returned.
+ * For non-tagged items, full item name in quotes will be returned.
+ */
+void item_as_keystroke(struct object *obj, unsigned char cmd, struct keypress *kp, size_t *n)
+{
+    /* Step one, see if it's tagged */
+    char buf[MSG_LEN];
+    char *s, *p;
+    int tag = -1;
+    cmd_code lookup_cmd;
+
+    command_as_keystroke(cmd, kp, n);
+
+    /* Find a '@' */
+    my_strcpy(buf, obj->info_xtra.name, sizeof(buf));
+    s = strchr(buf, '@');
+
+    /* Process all tags */
+    while (s)
+    {
+        /* Check the special tags */
+        if ((s[1] == cmd) && isdigit(s[2]))
+        {
+            tag = s[2] - '0';
+
+            /* Success */
+            break;
+        }
+
+        /* Find another '@' */
+        s = strchr(s + 1, '@');
+    }
+
+    /* We have a nice tag */
+    if (tag > -1)
+    {
+        command_as_keystroke('0' + tag, kp, n);
+        return;
+    }
+
+    /* PWMAngband: let's keep it simple, just use basic kind name */
+    s = obj->kind->name;
+    p = buf;
+    while (*s)
+    {
+        if (*s == '&') s += 2;
+        else if (*s == '~') s++;
+        else
+        {
+            *p = *s;
+            p++;
+            s++;
+        }
+    }
+    *p = '\0';
+
+    command_as_keystroke('\"', kp, n);
+
+    p = buf;
+    while (*p)
+    {
+        command_as_keystroke(*p, kp, n);
+        p++;
+    }
+
+    command_as_keystroke('\"', kp, n);
+
+    /* PWMAngband: add targeting */
+    lookup_cmd = command_by_item_aux(obj);
+    switch (lookup_cmd)
+    {
+        case CMD_USE_ROD:
+        case CMD_QUAFF:
+        case CMD_ACTIVATE:
+        case CMD_USE:
+        {
+            if (need_dir(obj) == DIR_SKIP) break;
+
+            /* fallthrough */
+        }
+
+        case CMD_USE_WAND:
+        case CMD_FIRE:
+        case CMD_THROW:
+        {
+            command_as_keystroke('\'', kp, n);
+            break;
+        }
+
+        default: break;
+    }
+}
+
+
+/*
+ * Given a "spell" in item "book", return keystrokes that could be used to select this spell.
+ */
+void spell_as_keystroke(int book, int spell, bool project, unsigned char cmd, struct keypress *kp,
+    size_t *n)
+{
+    char buf[MSG_LEN];
+    char *s, *p;
+    spell_flags flag;
+
+    command_as_keystroke(cmd, kp, n);
+
+    /* Trim full name */
+    my_strcpy(buf, book_info[book].spell_info[spell].info, sizeof(buf));
+    s = strstr(buf, "  ");
+    if (s) *s = '\0';
+
+    command_as_keystroke('\"', kp, n);
+
+    p = buf;
+    while (*p)
+    {
+        command_as_keystroke(*p, kp, n);
+        p++;
+    }
+
+    command_as_keystroke('\"', kp, n);
+
+    /* PWMAngband: add targeting */
+    flag = book_info[book].spell_info[spell].flag;
+    if (flag.proj_attr && project)
+    {
+        command_as_keystroke('(', kp, n);
+        command_as_keystroke('t', kp, n);
+    }
+    else if (flag.dir_attr)
+        command_as_keystroke('\'', kp, n);
 }

@@ -5890,6 +5890,8 @@ int cmd_cast(struct command *cmd)
     {
         spell_flags flag = book_info[book->info_xtra.bidx].spell_info[spellcasting_spell].flag;
 
+        spell = spellcasting_spell;
+
         /* Needs a direction */
         if (flag.dir_attr)
         {
@@ -5900,8 +5902,6 @@ int cmd_cast(struct command *cmd)
                 return 0;
             }
         }
-
-        spell = spellcasting_spell;
     }
     else
         spell = textui_obj_cast(book->info_xtra.bidx, &dir);
@@ -5921,19 +5921,49 @@ int cmd_project(struct command *cmd)
     int spell;
 
     /* Get arguments */
+    spellcasting = true;
     if (cmd_get_item(cmd, "item", &book,
         /* Prompt */ "Use which book? ",
         /* Error */ "You have no books you can use.",
         /* Filter */ obj_can_cast_from,
         /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS) != CMD_OK)
     {
+        spellcasting = false;
+        spellcasting_spell = -1;
         return 0;
     }
 
     /* Track the object kind */
     Send_track_object(book->oidx);
 
-    spell = textui_obj_project(book->info_xtra.bidx, &dir);
+    /* Hack -- spellcasting mode (spell already selected) */
+    if (spellcasting_spell > -1)
+    {
+        spell_flags flag = book_info[book->info_xtra.bidx].spell_info[spellcasting_spell].flag;
+        const struct player_class *c = player->clazz;
+
+        spell = spellcasting_spell;
+
+        /* Projectable */
+        if (flag.proj_attr) spell += c->magic.total_spells;
+
+        /* Needs a direction */
+        if (flag.dir_attr || flag.proj_attr)
+        {
+            if (!get_aim_dir(&dir))
+            {
+                spellcasting = false;
+                spellcasting_spell = -1;
+                return 0;
+            }
+        }
+    }
+    else
+        spell = textui_obj_project(book->info_xtra.bidx, &dir);
+
+    spellcasting = false;
+    spellcasting_spell = -1;
+
     if (spell != -1) Send_cast(book->oidx, spell, dir);
     return 1;
 }

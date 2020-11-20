@@ -4234,10 +4234,27 @@ static LRESULT APIENTRY SubClassFunc(HWND hWnd, UINT Message, WPARAM wParam, LPA
     char pmsgbuf[1000]; /* overkill */
 
     /* Allow ESCAPE to return focus to main window. */
-    if ((Message == WM_KEYDOWN) && (wParam == VK_ESCAPE))
+    if (Message == WM_KEYDOWN)
     {
-        unset_chat_focus();
-        return 0;
+        if (wParam == VK_ESCAPE)
+        {
+            unset_chat_focus();
+            return 0;
+        }
+
+        /* PGUP */
+        if (wParam == 33)
+        {
+            cmd_chat_cycle(-1);
+            return 0;
+        }
+
+        /* PGDN */
+        if (wParam == 34)
+        {
+            cmd_chat_cycle(+1);
+            return 0;
+        }
     }
 
     if (Message == WM_CHAR)

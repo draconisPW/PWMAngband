@@ -24,6 +24,7 @@ MAngband 1.5.x:
 - Add version number to "incompatible client version" error message
 - Enter and leave query-item-by-name mode via quote symbol
 - Add possibility to macro by spell names
+- Macro Action Generator (3 new options to keymap screen)
 
 PWMAngband:
 
@@ -78,6 +79,7 @@ MAngband 1.5.x:
 - Open correct directory when selecting fonts
 - Stop allocating too much font resources
 - Make sure player-player visibility is refreshed when changing level
+- Fix message truncation in windows client
 
 PWMAngband:
 
@@ -101,6 +103,7 @@ MAngband 1.5.x:
 PWMAngband:
 
 - Change default FPS from 1 to 50
+- KEYMAP_ACTION_MAX increased from 20 to 30
 
 Compilation
 -----------

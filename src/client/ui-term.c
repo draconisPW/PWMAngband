@@ -1199,11 +1199,26 @@ errr Term_fresh(void)
             int tx = old->cx;
             int ty = old->cy;
 
+            #if !defined(USE_GCU) && !defined(USE_SDL)
+            if ((old->a[ty][tx] == scr->a[ty][tx]) && (old->c[ty][tx] == scr->c[ty][tx]) &&
+                (old->ta[ty][tx] == scr->ta[ty][tx]) && (old->tc[ty][tx] == scr->tc[ty][tx]) &&
+                (tx == scr->cx) && (ty == scr->cy) && (old->cv == scr->cv))
+            {
+                /* Do nothing */
+            }
+            else
+            {
+            #endif
+
             old->c[ty][tx] = ~scr->c[ty][tx];
             if (y1 > ty) y1 = ty;
             if (y2 < ty) y2 = ty;
             if (Term->x1[ty] > tx) Term->x1[ty] = tx;
             if (Term->x2[ty] < tx) Term->x2[ty] = tx;
+
+            #if !defined(USE_GCU) && !defined(USE_SDL)
+            }
+            #endif
         }
     }
     else
