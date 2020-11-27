@@ -1775,28 +1775,21 @@ static struct object *get_random_player_object(struct player *p)
  */
 static struct object *get_random_monster_object(struct monster *mon)
 {
-    struct object *obj = mon->held_obj;
-    int count = 0;
+    struct object *obj, *pick = NULL;
+    int i = 1;
 
-    if (!obj) return NULL;
-
-    /* Count the objects */
-    while (obj)
+    /* Pick a random object */
+    for (obj = mon->held_obj; obj; obj = obj->next)
     {
-        count++;
-        obj = obj->next;
+        /* Check it isn't a quest artifact */
+        if (obj->artifact && kf_has(obj->kind->kind_flags, KF_QUEST_ART))
+            continue;
+
+        if (one_in_(i)) pick = obj;
+        i++;
     }
 
-    /* Now pick one... */
-    obj = mon->held_obj;
-    count -= randint1(count);
-    while (count)
-    {
-        obj = obj->next;
-        count--;
-    }
-
-    return obj;
+    return pick;
 }
 
 

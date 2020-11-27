@@ -905,7 +905,7 @@ static void update_message_chat_subwindow(game_event_type type, game_event_data 
     int line = 0, l = 0;
     int xoff = 0, yoff = 0; /* Hor. & Vert. Offsets */
     int tab;
-    char text[NORMAL_WID];
+    char text[MSG_LEN];
     message_iter iter;
 
     /* Activate */

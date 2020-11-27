@@ -13,6 +13,7 @@ typedef struct
     u16b type;
     u16b count;
     byte color;
+    byte first;
 } message_iter;
 
 /* Functions */
@@ -32,9 +33,11 @@ extern const char *message_last(void);
 extern void message_del(u16b age);
 extern void message_first(message_iter *iter);
 extern void message_next(message_iter *iter);
+extern void message_previous(message_iter *iter);
 extern void sound(int type);
 extern void bell(const char *reason);
-extern void c_msg_print_aux(const char *msg, u16b type);
+extern void msg_flush(void);
+extern void c_msg_print_aux(const char *msg, u16b type, bool memorize);
 extern void c_msg_print(const char *msg);
 
 #endif /* INCLUDED_UI_MESSAGE_H */

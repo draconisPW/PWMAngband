@@ -132,6 +132,50 @@ static bool option_toggle_handle(struct menu *m, const ui_event *event, int oid)
             if (!(m->flags == MN_NO_TAGS))
                 option_set(player->opts.opt, option_name(oid), !player->opts.opt[oid]);
         }
+        else if (event->key.code == 's' || event->key.code == 'S')
+        {
+            /* Hack -- birth options can not be saved after birth */
+            if (!(m->flags == MN_NO_TAGS))
+            {
+                struct keypress dummy;
+
+                screen_save();
+                if (options_save_custom_birth(player->opts.opt))
+                    get_com("Successfully saved. Press any key to continue.", &dummy);
+                else
+                    get_com("Save failed. Press any key to continue.", &dummy);
+                screen_load(false);
+            }
+        }
+        else if (event->key.code == 'r' || event->key.code == 'R')
+        {
+            /* Hack -- birth options can not be restored after birth */
+            if (!(m->flags == MN_NO_TAGS))
+            {
+                screen_save();
+                if (options_restore_custom_birth(player->opts.opt))
+                {
+                    screen_load(false);
+                    menu_refresh(m, false);
+                }
+                else
+                {
+                    struct keypress dummy;
+
+                    get_com("Save failed. Press any key to continue.", &dummy);
+                    screen_load(false);
+                }
+            }
+        }
+        else if (event->key.code == 'm' || event->key.code == 'M')
+        {
+            /* Hack -- birth options can not be reset after birth */
+            if (!(m->flags == MN_NO_TAGS))
+            {
+                options_reset_birth(player->opts.opt);
+                menu_refresh(m, false);
+            }
+        }
         else if (event->key.code == '?')
         {
             /*
@@ -194,7 +238,11 @@ static void option_toggle_menu(const char *name, int page)
         m->flags = MN_NO_TAGS;
     }
     else if (page == OP_BIRTH + 10)
+    {
+        m->prompt = "Set option (y/n/t), 's' to save, 'r' to restore, 'm' to reset, '?' for help";
+        m->cmd_keys = "?YyNnTtSsRrMm";
         page -= 10;
+    }
 
     /* For this particular menu */
     m->title = name;

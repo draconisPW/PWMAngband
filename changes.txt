@@ -16,7 +16,7 @@ User interface
 
 Angband 4.2.x:
 
--
+- Added commands to birth option screen to save and restore custom birth options
 
 MAngband 1.5.x:
 
@@ -25,6 +25,7 @@ MAngband 1.5.x:
 - Enter and leave query-item-by-name mode via quote symbol
 - Add possibility to macro by spell names
 - Macro Action Generator (3 new options to keymap screen)
+- Change the way topline message is displayed
 
 PWMAngband:
 
@@ -72,6 +73,7 @@ Angband 4.2.x:
 
 - Adjust size of gauntlet levels
 - Stop SMASH_WALL removing floor features
+- Stop quest artifacts being stealable
 
 MAngband 1.5.x:
 
@@ -104,6 +106,7 @@ PWMAngband:
 
 - Change default FPS from 1 to 50
 - KEYMAP_ACTION_MAX increased from 20 to 30
+- Move message truncation from server to client
 
 Compilation
 -----------

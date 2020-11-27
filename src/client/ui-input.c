@@ -1564,6 +1564,8 @@ bool textui_process_key(struct keypress kp, unsigned char *c)
 {
     keycode_t key = kp.code;
 
+    if (key == ' ') msg_flush();
+
     /* Null command */
     if ((key == '\0') || (key == ESCAPE) || (key == ' ') || (key == '\a'))
         return true;

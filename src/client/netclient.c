@@ -3548,7 +3548,7 @@ static int Receive_message(void)
     }
 
     if (!topline_icky && (party_mode || store_ctx || !player->screen_save_depth))
-        c_msg_print_aux(buf, type);
+        c_msg_print_aux(buf, type, true);
     else
         message_add(buf, type);
 

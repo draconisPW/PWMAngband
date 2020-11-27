@@ -3119,8 +3119,7 @@ int Send_message(struct player *p, const char *msg, u16b typ)
     if (connp == NULL) return 0;
 
     /* Flush messages */
-    if (msg == NULL)
-        return Packet_printf(&connp->c, "%b", (unsigned)PKT_MESSAGE_FLUSH);
+    if (msg == NULL) return Packet_printf(&connp->c, "%b", (unsigned)PKT_MESSAGE_FLUSH);
 
     /* Clip end of msg if too long */
     my_strcpy(buf, msg, sizeof(buf));
