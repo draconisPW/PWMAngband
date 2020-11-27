@@ -21,7 +21,7 @@ enum
 /*
  * Information for "do_cmd_options()".
  */
-#define OPT_PAGE_PER    17
+#define OPT_PAGE_PER    18
 
 /*
  * Option indexes

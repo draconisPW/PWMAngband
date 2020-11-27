@@ -13,7 +13,6 @@ typedef struct
     u16b type;
     u16b count;
     byte color;
-    byte first;
 } message_iter;
 
 /* Functions */
@@ -33,7 +32,6 @@ extern const char *message_last(void);
 extern void message_del(u16b age);
 extern void message_first(message_iter *iter);
 extern void message_next(message_iter *iter);
-extern void message_previous(message_iter *iter);
 extern void sound(int type);
 extern void bell(const char *reason);
 extern void msg_flush(void);

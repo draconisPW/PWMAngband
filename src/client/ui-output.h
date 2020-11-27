@@ -43,6 +43,7 @@ extern void c_put_str(byte attr, const char *str, int row, int col);
 extern void put_str(const char *str, int row, int col);
 extern void c_prt(byte attr, const char *str, int row, int col);
 extern void prt(const char *str, int row, int col);
+extern int prt_multi(int sx, int sy, int n, int m, int attr, const char *msg);
 
 /*
  * Miscellaneous things

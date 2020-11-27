@@ -26,6 +26,7 @@ MAngband 1.5.x:
 - Add possibility to macro by spell names
 - Macro Action Generator (3 new options to keymap screen)
 - Change the way topline message is displayed
+- Add "wrap_messages" option to word-wrap long messages in sub-windows
 
 PWMAngband:
 

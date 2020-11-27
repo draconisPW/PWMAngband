@@ -426,17 +426,6 @@ void message_next(message_iter *iter)
 }
 
 
-/* Previous message */
-void message_previous(message_iter *iter)
-{
-    /* Advance iterator */
-    if (m_iter) m_iter = m_iter->newer;
-
-    /* Fill */
-    message_fill(iter);
-}
-
-
 /*
  * Make a noise, without a message. Sound modules hook into this event.
  */

@@ -233,6 +233,12 @@ Display monsters in ASCII ``ascii_mon``
 Nonmoving monsters disturb running ``disturb_nomove``
   Disturb the player when trying to run in line of sight of a nonmoving monster.
 
+..
+
+Wrap long messages in sub-windows ``wrap_messages``
+  This option displays long messages on multiple lines instead of single lines
+  in sub-windows.
+
 Birth options
 -------------
 

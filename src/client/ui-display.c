@@ -757,16 +757,24 @@ static void update_messages_subwindow(game_event_type type, game_event_data *dat
         if (term_chat->user && ((type >= MSG_WHISPER) || TYPE_BROADCAST(type))) continue;
 #endif
 
-        /* Dump the message on the appropriate line */
-        Term_putstr(0, (h - 1) - line, -1, color, msg);
+        /* No wrapping, do it the old way */
+        if (!OPT(player, wrap_messages))
+        {
+            /* Dump the message on the appropriate line */
+            Term_putstr(0, (h - 1) - line, -1, color, msg);
 
-        /* Cursor */
-        Term_locate(&x, &y);
+            /* Cursor */
+            Term_locate(&x, &y);
 
-        /* Clear to end of line */
-        Term_erase(x, y, 255);
+            /* Clear to end of line */
+            Term_erase(x, y, 255);
 
-        line++;
+            line++;
+        }
+
+        /* Dump the message on the appropriate line(s) */
+        else
+            line += prt_multi(0, (h - 1) - line, -1, -(h - line), color, msg);
     }
 
     Term_fresh();
@@ -1000,6 +1008,7 @@ static void update_message_chat_subwindow(game_event_type type, game_event_data 
 
         /* Dump the message */
         display_chat_message(msg, color, h, yoff, &l, &line);
+        /*j += prt_multi(0, (h - 1) - j, -1, -(h - 1 - (t + 1) - j), a, msg);*/
     }
 
     /* Erase rest */
