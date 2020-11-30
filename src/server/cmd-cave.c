@@ -2080,6 +2080,13 @@ void do_cmd_walk(struct player *p, int dir)
 
     next_grid(&grid, &p->grid, dir);
 
+    /* Paranoia */
+    if (!square_in_bounds(c, &grid))
+    {
+        plog("Trying to walk out of bounds, please report this bug.");
+        return;
+    }
+
     /* Attempt to disarm unless it's a trap and we're trapsafe */
     move_player(p, c, dir, !(square_isdisarmabletrap(c, &grid) && trapsafe), true, false, 0);
 }

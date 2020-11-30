@@ -1897,7 +1897,7 @@ struct object_kind *money_kind(const char *name, int value)
  *
  * Returns a pointer to the newly minted cash (cannot fail)
  */
-struct object *make_gold(struct player *p, int lev, char *coin_type)
+struct object *make_gold(struct player *p, struct chunk *c, int lev, char *coin_type)
 {
     /* This average is 16 at dlev0, 80 at dlev40, 176 at dlev100. */
     int avg = (16 * lev) / 10 + 16;
@@ -1909,7 +1909,7 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     while (one_in_(100) && (value * 10 <= SHRT_MAX)) value *= 10;
 
     /* Prepare a gold object */
-    object_prep(p, chunk_get(&p->wpos), new_gold, money_kind(coin_type, value), lev, RANDOMISE);
+    object_prep(p, c, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
     if (p && (cfg_no_selling || OPT(p, birth_no_selling)))

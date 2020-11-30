@@ -88,6 +88,7 @@ PWMAngband:
 
 - Fix crash when quitting GCU client in debug mode
 - Fix lag bar under Linux
+- Fix crash when calling make_gold() with NULL player parameter
 
 Coding changes
 --------------
@@ -108,6 +109,7 @@ PWMAngband:
 - Change default FPS from 1 to 50
 - KEYMAP_ACTION_MAX increased from 20 to 30
 - Move message truncation from server to client
+- Add paranoia check to avoid walking out of bounds
 
 Compilation
 -----------

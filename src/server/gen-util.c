@@ -669,7 +669,7 @@ void place_gold(struct player *p, struct chunk *c, struct loc *grid, int level, 
     if (!square_canputitem(c, grid)) return;
 
     /* Make some gold */
-    money = make_gold(p, level, "any");
+    money = make_gold(p, c, level, "any");
     set_origin(money, origin, c->wpos.depth, NULL);
 
     /* Give it to the floor */

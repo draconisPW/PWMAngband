@@ -1174,7 +1174,7 @@ static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *m
     for (j = 0; j < number; j++)
     {
         if (gold_ok && (!item_ok || magik(50)))
-            obj = make_gold(p, level, "any");
+            obj = make_gold(p, c, level, "any");
         else
         {
             obj = make_object(p, c, level, good, great, extra_roll, NULL, 0);
@@ -1267,7 +1267,7 @@ void mon_create_mimicked_object(struct player *p, struct chunk *c, struct monste
         level = MAX((mon->level + object_level(&c->wpos)) / 2, mon->level);
         level = MIN(level, 100);
 
-        obj = make_gold(p, level, kind->name);
+        obj = make_gold(p, c, level, kind->name);
     }
     else
     {
