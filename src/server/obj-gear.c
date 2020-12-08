@@ -587,7 +587,7 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
 
     if (message)
     {
-        char o_name[NORMAL_WID];
+        char o_name[120];
 
         object_desc(p, o_name, sizeof(o_name), local_obj, ODESC_PREFIX | ODESC_FULL);
         msg(p, "You have %s (%c).", o_name, gear_to_label(p, local_obj));

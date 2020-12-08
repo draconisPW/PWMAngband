@@ -276,8 +276,19 @@ void do_cmd_players(void)
  */
 void do_cmd_message_one(void)
 {
+    byte color = message_color(0);
+    u16b count = message_count(0);
+    const char *str = message_str(0);
+    const char *msg;
+
+    if (count <= 1) msg = str;
+    else msg = format("%s <%dx>", str, count);
+
+    /* Hack -- re-color message from string template */
+    message_color_hack(msg, &color);
+
     /* Recall one message XXX XXX XXX */
-    c_prt(message_color(0), format( "> %s", message_str(0)), 0, 0);
+    c_prt(color, format( "> %s", msg), 0, 0);
 }
 
 

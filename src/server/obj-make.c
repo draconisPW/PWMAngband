@@ -1716,8 +1716,8 @@ static struct object *make_fake_object(const struct object *obj)
  *
  * Returns a pointer to the newly allocated object, or NULL on failure.
  */
-struct object *make_object(struct player *p, struct chunk *c, int lev, bool good, bool great,
-    bool extra_roll, s32b *value, int tval)
+static struct object *make_object_aux(struct player *p, struct chunk *c, int lev, bool good,
+    bool great, bool extra_roll, s32b *value, int tval)
 {
     int base;
     struct object_kind *kind = NULL;
@@ -1827,6 +1827,38 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
     {
         if (value) *value += (new_obj->kind->alloc_min - olvl) * (*value / 5);
     }
+
+    return new_obj;
+}
+
+
+/*
+ * Attempt to make an object
+ *
+ * c is the current dungeon level
+ * lev is the creation level of the object (not necessarily == depth)
+ * good is whether the object is to be good
+ * great is whether the object is to be great
+ * extra_roll is whether we get an extra roll in apply_magic()
+ * value is the value to be returned to the calling function
+ * tval is the desired tval, or 0 if we allow any tval
+ *
+ * Returns a pointer to the newly allocated object, or NULL on failure.
+ */
+struct object *make_object(struct player *p, struct chunk *c, int lev, bool good, bool great,
+    bool extra_roll, s32b *value, int tval)
+{
+    struct object *new_obj = make_object_aux(p, c, lev, good, great, extra_roll, value, tval);
+
+#ifdef DEBUG_MODE
+    if (new_obj)
+    {
+        char o_name[NORMAL_WID];
+
+        object_desc(p, o_name, sizeof(o_name), new_obj, ODESC_PREFIX | ODESC_FULL);
+        cheat(format("%s %s", (new_obj->artifact? "+a":"+o"), o_name));
+    }
+#endif
 
     return new_obj;
 }

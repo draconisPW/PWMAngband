@@ -767,7 +767,7 @@ struct object *floor_object_for_use(struct player *p, struct chunk *c, struct ob
     int num, bool message, bool *none_left)
 {
     struct object *usable;
-    char name[NORMAL_WID];
+    char name[120];
     struct loc grid;
 
     /* Save object info (if we use the entire stack) */
@@ -813,8 +813,7 @@ struct object *floor_object_for_use(struct player *p, struct chunk *c, struct ob
     redraw_floor(&p->wpos, &grid, NULL);
 
     /* Print a message if desired */
-    if (message)
-        msg(p, "You see %s.", name);
+    if (message) msg(p, "You see %s.", name);
 
     return usable;
 }

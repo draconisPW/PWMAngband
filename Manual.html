@@ -1610,7 +1610,7 @@ If running doesn't work, try pressing Numlock.</p>
 <col width="41%" />
 </colgroup>
 <tbody valign="top">
-<tr><td>'^E'</td>
+<tr><td>'H'</td>
 <td>Buy a house</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -1737,6 +1737,11 @@ To view your own shop inventory, press this key inside a house.</p>
 <td>Center map</td>
 <td>'U'</td>
 <td>Use an item</td>
+</tr>
+<tr><td>'^E'</td>
+<td>Toggle inven/equip window</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>
@@ -4935,7 +4940,7 @@ which is most convenient when using the original keyset.</p>
 <tr><td><tt class="docutils literal">h</tt></td>
 <td>Fire default ammo at target</td>
 <td><tt class="docutils literal">H</tt></td>
-<td>(unused)</td>
+<td>Buy a house</td>
 </tr>
 <tr><td><tt class="docutils literal">i</tt></td>
 <td>Inventory list</td>
@@ -5050,7 +5055,7 @@ which is most convenient when using the original keyset.</p>
 <tr><td><tt class="docutils literal">%</tt></td>
 <td>Display current time</td>
 <td><tt class="docutils literal">^E</tt></td>
-<td>Buy a house</td>
+<td>Toggle inven/equip window</td>
 </tr>
 <tr><td><tt class="docutils literal">^</tt></td>
 <td>(special - control key)</td>
@@ -5338,7 +5343,7 @@ which is most convenient when using the original keyset.</p>
 <tr><td>%</td>
 <td>Display current time</td>
 <td>^E</td>
-<td>Buy a house</td>
+<td>Toggle inven/equip window</td>
 </tr>
 <tr><td>^</td>
 <td>(special - control key)</td>
@@ -5459,6 +5464,11 @@ which is most convenient when using the original keyset.</p>
 <td>Identify monster</td>
 <td>'|'</td>
 <td>Quiver list</td>
+</tr>
+<tr><td>§</td>
+<td>Buy a house</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 </tr>
 <tr><td>TAB</td>
 <td>Fire default ammo at target</td>
@@ -6191,7 +6201,7 @@ inventory in the chat window.</dd>
 <h3><a class="toc-backref" href="#id157">3.5.13&nbsp;&nbsp;&nbsp;Player House Commands</a></h3>
 <!--  -->
 <dl class="docutils">
-<dt>Buy a house ('^E')</dt>
+<dt>Buy a house ('H') or Buy a house ('§')</dt>
 <dd>Allows you to purchase a house to store extra objects once your inventory is
 full. You must stand in front of the house door, outside of the house to do
 so. Use the same command to sell a house once you don't have any use for it
@@ -6332,6 +6342,12 @@ that name.</dd>
 <h3><a class="toc-backref" href="#id162">3.5.18&nbsp;&nbsp;&nbsp;Extra Commands</a></h3>
 <!--  -->
 <dl class="docutils">
+<dt>Toggle Choice Window ('^E')</dt>
+<dd>Toggles the display in any sub-windows (if available) which are
+displaying your inventory or equipment.</dd>
+</dl>
+<!--  -->
+<dl class="docutils">
 <dt>Redraw Screen ('^R')</dt>
 <dd>This command adapts to various changes in global options, and redraws all
 of the windows. It is normally only necessary in abnormal situations,
@@ -6405,8 +6421,6 @@ interface to the various sets of options available to the player.</p>
 <p>In the descriptions below, each option is listed as the textual summary
 which is shown on the &quot;options&quot; screen, plus the internal name of the
 option in brackets, followed by a textual description of the option.</p>
-<p>Note that the internal name of the option can be used in user pref files to
-force the option to a given setting, see &quot;customize.txt&quot; for more info.</p>
 <p>Various concepts are mentioned in the descriptions below, including
 &quot;disturb&quot;, (cancel any running, resting, or repeated commands, which are in
 progress), &quot;flush&quot; (forget any keypresses waiting in the keypress queue),
@@ -6633,9 +6647,23 @@ a tileset.</dd>
 <dd>This option displays long messages on multiple lines instead of single lines
 in sub-windows.</dd>
 </dl>
+<!--  -->
+<dl class="docutils">
+<dt>Compare equipment when examining items <tt class="docutils literal">expand_inspect</tt></dt>
+<dd>This option displays extra information about the currently equipped item
+in the slot corresponding to the item that is examined.</dd>
+</dl>
 </div>
 <div class="section" id="birth-options">
 <h3><a class="toc-backref" href="#id167">3.6.3&nbsp;&nbsp;&nbsp;Birth options</a></h3>
+<p>The birth options may only be changed when creating a character or using
+the quick restart option for a dead character. When setting the birth
+options, there are handful of commands to make it easier to get to a
+well-known state for all the birth options. They are: 's' to save the
+current selections so that they will be used as the starting point for
+future characters, 'r' to reset the current selections to the defaults
+for a new character, and 'm' to reset the current selections to the
+Angband maintainer's defaults for the birth options.</p>
 <!--  -->
 <dl class="docutils">
 <dt>Force player descent <tt class="docutils literal">birth_force_descend</tt></dt>
@@ -6825,8 +6853,9 @@ These include:</p>
 <li><a class="reference internal" href="#keymaps">Keymaps</a> - a way to assign commonly-used actions to specific keys</li>
 <li><a class="reference internal" href="#colours">Colours</a> - allowing you to make a given color brighter, darker, or even completely different</li>
 </ul>
-<p>You can save your preferences for these into files, which are called
-<cite>user pref files</cite>.</p>
+<p>Except for the options, which are linked to the save file, you can save your
+preferences for these into files, which are called <cite>user pref files</cite>. For
+the options, customize those using the <tt class="docutils literal">=</tt> command while playing.</p>
 <div class="section" id="user-pref-files">
 <h3><a class="toc-backref" href="#id171">3.7.1&nbsp;&nbsp;&nbsp;User Pref Files</a></h3>
 <p>User pref files are PWMAngband's way of saving and loading certain settings.
@@ -8481,6 +8510,11 @@ for a normal level.</dd>
 <dl class="docutils">
 <dt>Advance time</dt>
 <dd>Advances time by 1 to 12 hours.</dd>
+</dl>
+<!--  -->
+<dl class="docutils">
+<dt>Write a map of the current level</dt>
+<dd>Writes out a map of the current level as an HTML file.</dd>
 </dl>
 </div>
 </div>

@@ -564,17 +564,9 @@ static bool store_process_command_key(struct keypress kp)
             break;
         }
 
-        case 'i':
-        {
-            do_cmd_inven();
-            break;
-        }
-
-        case '|':
-        {
-            do_cmd_quiver();
-            break;
-        }
+        case 'i': do_cmd_inven(); break;
+        case '|': do_cmd_quiver(); break;
+        case KTRL('E'): toggle_inven_equip(); break;
 
         default:
         {

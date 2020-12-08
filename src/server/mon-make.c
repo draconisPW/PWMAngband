@@ -1647,6 +1647,10 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
     /* Update the monster */
     update_mon(square_monster(c, grid), c, true);
 
+#ifdef DEBUG_MODE
+    cheat(format("+m %s", mon->race->name));
+#endif
+
     /* Success */
     return true;
 }

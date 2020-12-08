@@ -1016,7 +1016,8 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     loc_init(&p->old_offset_grid, -1, -1);
 
     /* Make sure his party still exists */
-    if (p->party && parties[p->party].num == 0)
+    if (p->party &&
+        ((parties[p->party].num == 0) || (ht_cmp(&parties[p->party].created, &p->quit_turn) > 0)))
     {
         /* Reset to neutral */
         p->party = 0;

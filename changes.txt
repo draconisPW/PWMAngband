@@ -27,6 +27,8 @@ MAngband 1.5.x:
 - Macro Action Generator (3 new options to keymap screen)
 - Change the way topline message is displayed
 - Add "wrap_messages" option to word-wrap long messages in sub-windows
+- New option: Compare equipment when examining items
+- Add Ctrl+E toggle_inven_equip command from V
 
 PWMAngband:
 
@@ -38,6 +40,7 @@ PWMAngband:
   server option
 - Sort killed list (for polymorphing) from highest to lowest level
 - Display forms that are 50%/75% learnt in orange/yellow on the killed list
+- Buying house command moved to 'H' (original keyset) and '§' (roguelike keyset)
 
 Gameplay changes
 ----------------
@@ -54,6 +57,8 @@ MAngband 1.5.x:
 - Allow filling empty bottles from water tiles
 - Make hostile visible players prevent running
 - Disable banishment in dwarven halls
+- Add Acenoid's vaults
+- Change House Foundation allocation/rarity
 
 PWMAngband:
 
@@ -75,6 +80,7 @@ Angband 4.2.x:
 - Adjust size of gauntlet levels
 - Stop SMASH_WALL removing floor features
 - Stop quest artifacts being stealable
+- Ensure grids on the target path are hit by projections in project()
 
 MAngband 1.5.x:
 
@@ -95,7 +101,8 @@ Coding changes
 
 Angband 4.2.x:
 
--
+- Make dungeon profile selection less error-prone
+- Added a debugging command to dump the current level as an HTML file
 
 MAngband 1.5.x:
 
@@ -103,6 +110,9 @@ MAngband 1.5.x:
 - Collapse "mangclient_xxx.ini" into "mangclient.ini" (sdl + gcu)
 - Add "instance_closed" option
 - Fix some really obvious warnings
+- Dump each item/monster/vault allocation to #cheat channel in debug mode
+- Ensure old players are not placed into newly created parties with colliding
+  party ids
 
 PWMAngband:
 
@@ -114,6 +124,6 @@ PWMAngband:
 Compilation
 -----------
 
-- Update help
 - USE_NCURSES define
 - Compiling with Embarcadero C++ 7.20
+- Update docs for option customization

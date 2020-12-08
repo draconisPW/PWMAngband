@@ -2246,6 +2246,9 @@ bool monsters_in_los(struct player *p, struct chunk *c)
     {
         struct player *q = player_get(i);
 
+        /* Only count connected players XXX */
+        if (q->conn == -1) continue;
+
         /* Don't count non hostile players */
         if (!pvp_check(p, q, PVP_CHECK_BOTH, true, 0x00)) continue;
 
@@ -4450,6 +4453,26 @@ static void master_debug(struct player *p, char *parms)
                     if ((player->wpos.depth == 0) && (is_daytime() != daytime))
                         dusk_or_dawn(player, chunk_get(&player->wpos), is_daytime());
                 }
+            }
+
+            break;
+        }
+
+        /* Write a map of the current level */
+        case 'M':
+        {
+            char path[MSG_LEN];
+            char title[NORMAL_WID];
+            ang_file *fo;
+
+            path_build(path, sizeof(path), ANGBAND_DIR_USER, "level.html");
+            strnfmt(title, sizeof(title), "Map of level %s", p->depths);
+
+            fo = file_open(path, MODE_WRITE, FTYPE_TEXT);
+            if (fo)
+            {
+                dump_level(fo, title, chunk_get(&p->wpos), NULL);
+                if (file_close(fo)) msg(p, "Level dumped to %s.", path);
             }
 
             break;

@@ -1402,6 +1402,7 @@ static int scan_throwable(struct object **item_list, size_t item_max)
 bool textui_get_item(struct object **choice, const char *pmt, const char *str, cmd_code cmd,
     item_tester tester, int mode)
 {
+    bool toggle = false;
     int floor_max = z_info->floor_size;
     int floor_nb = -1;
     int throwing_max = z_info->pack_size + z_info->quiver_size + z_info->floor_size;
@@ -1512,7 +1513,60 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
 
         while (true)
         {
+            int j;
+            int ni = 0;
+            int ne = 0;
             bool hack_no_wield;
+
+            /*
+             * If inven or equip is on the main screen, and only one of them
+             * is slated for a subwindow, we should show the opposite there
+             */
+            for (j = 0; j < ANGBAND_TERM_MAX; j++)
+            {
+                /* Unused */
+                if (!angband_term[j]) continue;
+
+                /* Count windows displaying inven */
+                if (window_flag[j] & PW_INVEN) ni++;
+
+                /* Count windows displaying equip */
+                if (window_flag[j] & PW_EQUIP) ne++;
+            }
+
+            /* Are we in the situation where toggling makes sense? */
+            if ((ni && !ne) || (!ni && ne))
+            {
+                /* Main screen is equipment, so is subwindow */
+                if (command_wrk == USE_EQUIP)
+                {
+                    if ((ne && !toggle) || (ni && toggle))
+                    {
+                        toggle_inven_equip();
+                        toggle = !toggle;
+                    }
+                }
+
+                /* Main screen is inventory, so is subwindow */
+                else if (command_wrk == USE_INVEN)
+                {
+                    if ((ni && !toggle) || (ne && toggle))
+                    {
+                        toggle_inven_equip();
+                        toggle = !toggle;
+                    }
+                }
+
+                /* Quiver or floor, go back to the original */
+                else
+                {
+                    if (toggle)
+                    {
+                        toggle_inven_equip();
+                        toggle = !toggle;
+                    }
+                }
+            }
 
             /* Redraw */
             if (inven_up) event_signal(EVENT_INVENTORY);
@@ -1533,6 +1587,10 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
                 build_obj_list(f2, floor_list, tester, olist_mode);
             else if (command_wrk == SHOW_THROWING)
                 build_obj_list(throwing_num, throwing_list, tester, olist_mode);
+
+            /* Always add floor items for macros */
+            if (hidden && (mode & USE_FLOOR) && !(command_wrk == USE_FLOOR))
+                build_obj_list(f2, floor_list, tester, olist_mode);
 
             /* Show the prompt */
             menu_header();
@@ -1603,7 +1661,11 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
             prt("", 0, 0);
 
             /* We have a selection, or are backing out */
-            if (*choice || !newmenu) break;
+            if (*choice || !newmenu)
+            {
+                if (toggle) toggle_inven_equip();
+                break;
+            }
         }
     }
     else

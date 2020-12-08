@@ -10,8 +10,9 @@ These include:
 * `Keymaps`_ - a way to assign commonly-used actions to specific keys
 * `Colours`_ - allowing you to make a given color brighter, darker, or even completely different
 
-You can save your preferences for these into files, which are called
-`user pref files`.
+Except for the options, which are linked to the save file, you can save your
+preferences for these into files, which are called `user pref files`. For
+the options, customize those using the ``=`` command while playing.
 
 User Pref Files
 ---------------

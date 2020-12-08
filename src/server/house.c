@@ -380,6 +380,9 @@ void house_dump(struct player *p, ang_file *fp)
         struct chunk *c = chunk_get(&houses[i].wpos);
         struct loc_iterator iter;
 
+        /* Paranoia */
+        if (!c) continue;
+
         if (!house_owned_by(p, i)) continue;
 
         loc_iterator_first(&iter, &houses[i].grid_1, &houses[i].grid_2);

@@ -95,6 +95,10 @@ struct vault *random_vault(int depth, const char *typ)
     }
     while (v);
 
+#ifdef DEBUG_MODE
+    if (r) cheat(format("+v %s", r->name));
+#endif
+
     return r;
 }
 

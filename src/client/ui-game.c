@@ -145,7 +145,7 @@ struct cmd_info cmd_util[] =
     {"Kill character and quit", {'Q'}, CMD_NULL, textui_cmd_suicide, NULL},
     {"Redraw the screen", {KTRL('R')}, CMD_NULL, do_cmd_redraw, NULL},
     {"Save \"screen dump\"", {')'}, CMD_NULL, do_cmd_save_screen, NULL},
-    {"Purchase a house", {KTRL('E')}, CMD_NULL, do_cmd_purchase_house, NULL},
+    {"Purchase a house", {'H', '§'}, CMD_NULL, do_cmd_purchase_house, NULL},
     {"Take a quest", {KTRL('Q')}, CMD_NULL, do_cmd_quest, NULL},
     {"Socials", {KTRL('S')}, CMD_NULL, do_cmd_social, NULL}
 };
@@ -157,6 +157,7 @@ struct cmd_info cmd_util[] =
 struct cmd_info cmd_hidden[] =
 {
     {"Load a single pref line", {'"'}, CMD_NULL, do_cmd_pref, NULL},
+    {"Toggle windows", {KTRL('E')}, CMD_NULL, toggle_inven_equip, NULL},
     {"Alter a grid", {'+'}, CMD_ALTER, NULL, NULL},
     {"Steal an item", {'s'}, CMD_STEAL, NULL, NULL},
     {"Walk", {';'}, CMD_WALK, NULL, NULL},
@@ -207,11 +208,14 @@ void cmd_init(void)
         /* Fill everything in */
         for (i = 0; i < cmds_all[j].len; i++)
         {
-            /* If a roguelike key isn't set, use default */
-            if (!commands[i].key[1]) commands[i].key[1] = commands[i].key[0];
+            byte key0 = (byte)commands[i].key[0];
+            byte key1 = (byte)commands[i].key[1];
 
-            converted_list[0][commands[i].key[0]] = &commands[i];
-            converted_list[1][commands[i].key[1]] = &commands[i];
+            /* If a roguelike key isn't set, use default */
+            if (!key1) key1 = key0;
+
+            converted_list[0][key0] = &commands[i];
+            converted_list[1][key1] = &commands[i];
         }
     }
 }

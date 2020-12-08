@@ -125,7 +125,7 @@ Player House Commands
 *********************
 
 ====== ========================== ====== ==========================
-'^E'   Buy a house
+'H'    Buy a house
 ====== ========================== ====== ==========================
  
 To buy or sell a house, press this key outside a house.
@@ -172,6 +172,7 @@ Extra Commands
 '^Q'   Get a quest                '^S'   Socials
 '^R'   Redraw the screen          ')'    Save screen dump
 '^L'   Center map                 'U'    Use an item
+'^E'   Toggle inven/equip window
 ====== ========================== ====== ==========================
 
 Pressing Enter will display the command menu.
