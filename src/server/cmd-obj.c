@@ -163,7 +163,7 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
 {
     struct object *obj = object_from_index(p, item, true, true);
     char o_name[NORMAL_WID];
-    const char *c;
+    s32b price;
 
     /* Paranoia: requires an item */
     if (!obj) return;
@@ -207,8 +207,8 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     }
 
     /* Don't allow certain inscriptions when selling */
-    c = my_stristr(inscription, "for sale");
-    if (c)
+    price = get_askprice(inscription);
+    if (price >= 0)
     {
         /* Can't sell unindentified items */
         if (!object_is_known(p, obj))
@@ -217,24 +217,10 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
             return;
         }
 
-        /* Get ask price, skip "for sale" */
-        c += 8;
-        if (*c == ' ')
+        /* Can't sell overpriced items */
+        if (price > PY_MAX_GOLD)
         {
-            s32b price = atoi(c);
-
-            /* Can't sell overpriced items */
-            if (price > PY_MAX_GOLD)
-            {
-                msg(p, "Your price is too high!");
-                return;
-            }
-        }
-
-        /* Must set the price */
-        else
-        {
-            msg(p, "You must enter a price.");
+            msg(p, "Your price is too high!");
             return;
         }
     }

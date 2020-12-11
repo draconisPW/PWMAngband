@@ -71,5 +71,6 @@ extern struct ego_item *lookup_ego_item(const char *name, struct object_kind *ki
 extern struct artifact *lookup_artifact_name(const char *name);
 extern void print_custom_message(struct player *p, struct object *obj, const char *string,
     int msg_type);
+extern s32b get_askprice(const char *inscription);
 
 #endif /* OBJECT_UTIL_H */

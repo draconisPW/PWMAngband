@@ -1932,17 +1932,12 @@ static void display_entry(struct player *p, struct object *obj, bool home)
 
 static bool set_askprice(struct object *obj)
 {
-    const char *c = my_stristr(quark_str(obj->note), "for sale");
+    s32b price = get_askprice(quark_str(obj->note));
 
-    if (c)
+    if (price >= 0)
     {
-        /* Get ask price, skip "for sale" */
-        c += 8;
-        if (*c == ' ')
-        {
-            obj->askprice = atoi(c);
-            return true;
-        }
+        obj->askprice = price;
+        return true;
     }
 
     return false;

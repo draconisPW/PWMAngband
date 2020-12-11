@@ -1407,3 +1407,29 @@ void print_custom_message(struct player *p, struct object *obj, const char *stri
 
     msgt(p, msg_type, buf);
 }
+
+
+/*
+ * Get price from an inscription
+ */
+s32b get_askprice(const char *inscription)
+{
+    const char *c;
+    int len = 0;
+
+    /* Check if the inscription contains "for sale " */
+    c = my_stristr(inscription, "for sale ");
+    if (c) len = 9;
+
+    /* Check if the inscription contains "~" */
+    else
+    {
+        c = my_stristr(inscription, "~");
+        if (c) len = 1;
+        else return -1;
+    }
+
+    /* Get ask price, skip inscription */
+    c += len;
+    return atoi(c);
+}

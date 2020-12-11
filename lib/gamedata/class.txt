@@ -2062,10 +2062,9 @@ effect:CURE:AFRAID
 desc:Removes fear and grants you berserk strength (resistance to fear,
 desc: a bonus of +24 to-hit and a penalty of -10 to AC) for 25+1d25 turns.
 
-spell:Leap into Battle:5:4:25:6:0
-effect:TELEPORT_TO
-dice:4
-desc:Teleports you next to a chosen target up to 4 squares away.
+spell:Whirlwind Attack:5:4:25:6:0
+effect:SWEEP
+desc:Deals a melee attack to each adjacent enemy.
 
 spell:Shatter Stone:7:3:20:8:0
 effect:BOLT_MELEE:KILL_WALL
@@ -2073,9 +2072,10 @@ dice:20+1d30
 desc:Destroys an adjacent section of wall or rubble, unless it is a permanent
 desc: wall. Deals 20+1d30 damage to monsters vulnerable to rock remover.
 
-spell:Whirlwind Attack:10:5:30:10:0
-effect:SWEEP
-desc:Deals a melee attack to each adjacent enemy.
+spell:Leap into Battle:10:5:30:10:0
+effect:TELEPORT_TO
+dice:4
+desc:Teleports you next to a chosen target up to 4 squares away.
 
 book:shadow book:town:[Dark Conjurings]:5:shadow
 
@@ -2094,9 +2094,9 @@ desc: for 12+1d12 turns.
 
 spell:Maim Foe:15:6:35:14:0
 effect:MELEE_BLOWS:MON_STUN
-dice:5+1d5
+dice:6
 desc:Attempts a melee attack against the targeted monster. Stuns the enemy
-desc: for 5+1d5 turns if hit.
+desc: for 6 turns if hit.
 
 spell:Unholy Pact:16:8:32:16:0
 effect:TIMED_INC:REGEN

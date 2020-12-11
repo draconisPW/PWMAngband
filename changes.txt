@@ -41,6 +41,8 @@ PWMAngband:
 - Sort killed list (for polymorphing) from highest to lowest level
 - Display forms that are 50%/75% learnt in orange/yellow on the killed list
 - Buying house command moved to 'H' (original keyset) and '§' (roguelike keyset)
+- Implement the '/house' chat command to purchase a house
+- Allow '~xxx' inscription along 'for sale xxx' to price items in player shops
 
 Gameplay changes
 ----------------
@@ -48,6 +50,7 @@ Gameplay changes
 Angband 4.2.x:
 
 - Allow inscribed throwing weapons to be quivered
+- Blackguard tweaks
 
 MAngband 1.5.x:
 
@@ -103,6 +106,7 @@ Angband 4.2.x:
 
 - Make dungeon profile selection less error-prone
 - Added a debugging command to dump the current level as an HTML file
+- Slightly tightened shape change logic
 
 MAngband 1.5.x:
 
@@ -120,6 +124,7 @@ PWMAngband:
 - KEYMAP_ACTION_MAX increased from 20 to 30
 - Move message truncation from server to client
 - Add paranoia check to avoid walking out of bounds
+- Add pre-processing to chat messages to look for '/' commands
 
 Compilation
 -----------

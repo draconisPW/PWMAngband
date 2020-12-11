@@ -633,6 +633,8 @@ void toggle_inven_equip(void)
     /* Redraw any subwindows showing the inventory/equipment lists */
     for (i = 0; i < ANGBAND_TERM_MAX; i++)
     {
+        if (!angband_term[i]) continue;
+
         Term_activate(angband_term[i]);
 
         if (window_flag[i] & PW_INVEN)

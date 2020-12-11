@@ -931,7 +931,17 @@ void do_cmd_message(void)
 
     buf[0] = '\0';
     ok = get_string_msg("Message: ", buf, sizeof(buf) - 1);
-    if (ok && buf[0]) send_msg_chunks(buf, strlen(buf));
+    if (ok && buf[0])
+    {
+        /* Hack -- pre-process message to look for "/" commands */
+        if (buf[0] == '/')
+        {
+            /* Purchase a house */
+            if (strstr(buf, "house")) do_cmd_purchase_house();
+        }
+        else
+            send_msg_chunks(buf, strlen(buf));
+    }
 }
 
 
