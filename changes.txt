@@ -40,7 +40,7 @@ PWMAngband:
   server option
 - Sort killed list (for polymorphing) from highest to lowest level
 - Display forms that are 50%/75% learnt in orange/yellow on the killed list
-- Buying house command moved to 'H' (original keyset) and '§' (roguelike keyset)
+- Buying house command moved to 'H' (original keyset) and '£' (roguelike keyset)
 - Implement the '/house' chat command to purchase a house
 - Allow '~xxx' inscription along 'for sale xxx' to price items in player shops
 
@@ -98,6 +98,9 @@ PWMAngband:
 - Fix crash when quitting GCU client in debug mode
 - Fix lag bar under Linux
 - Fix crash when calling make_gold() with NULL player parameter
+- Forget memory of the old level when a player that saved during day connects
+  back during night (or vice versa)
+- Respawn NO_DEATH monsters every dawn if they somehow disappeared
 
 Coding changes
 --------------
@@ -107,6 +110,8 @@ Angband 4.2.x:
 - Make dungeon profile selection less error-prone
 - Added a debugging command to dump the current level as an HTML file
 - Slightly tightened shape change logic
+- Account for throwing weapons in the quiver within pack_slots_used() and
+  quiver_absorb_num()
 
 MAngband 1.5.x:
 

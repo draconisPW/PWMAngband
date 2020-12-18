@@ -528,7 +528,7 @@ static void ui_keymap_query(const char *title, int row)
 
 static bool obj_is_macroable(struct player *p, const struct object *obj)
 {
-    return (obj_is_useable(p, obj) || tval_is_ammo(obj));
+    return (obj_is_useable(p, obj) || tval_is_ammo(obj) || obj_can_wear(p, obj));
 }
 
 
@@ -620,7 +620,6 @@ static void keymap_create(const char *title, int kmode)
 
     if (kmode == KEYMAP_CREATE_SPELL)
     {
-        struct object *book_obj;
         int spell, book;
         unsigned char cmd;
         spell_flags flag;
@@ -628,27 +627,61 @@ static void keymap_create(const char *title, int kmode)
 
         screen_save();
         clear_from(0);
-        if (!get_item(&book_obj, "Select Book: ", NULL, CMD_NULL, obj_can_cast_from,
-            (USE_INVEN | USE_FLOOR | BOOK_TAGS)))
+
+        /* Use a ghost ability */
+        if (player->ghost && !player_can_undead(player))
+            book = 0;
+
+        /* Cast a monster spell */
+        else if (player_has(player, PF_MONSTER_SPELLS))
         {
-            Term_event_push(&ea);
-            screen_load(false);
-            return;
+            int chosen_page;
+            char tmp[NORMAL_WID];
+
+            /* Number of pages */
+            int page = spell_count_pages();
+
+            /* Forms with no spells */
+            if (!page)
+            {
+                Term_event_push(&ea);
+                screen_load(false);
+                return;
+            }
+
+            /* Pick a page */
+            strnfmt(tmp, sizeof(tmp), "Select Page (1-%d): ", page);
+            chosen_page = get_quantity(tmp, page);
+            if (!chosen_page)
+            {
+                Term_event_push(&ea);
+                screen_load(false);
+                return;
+            }
+
+            book = chosen_page - 1;
         }
 
-        book = book_obj->info_xtra.bidx;
+        /* Cast a spell from a book */
+        else
+        {
+            struct object *book_obj;
+
+            if (!get_item(&book_obj, "Select Book: ", NULL, CMD_NULL, obj_can_cast_from,
+                (USE_INVEN | USE_FLOOR | BOOK_TAGS)))
+            {
+                Term_event_push(&ea);
+                screen_load(false);
+                return;
+            }
+
+            book = book_obj->info_xtra.bidx;
+        }
+
         spell = get_spell(book, book_info[book].realm->verb, spell_okay_to_cast);
 
         /* No spell selected */
         if (spell == -1)
-        {
-            Term_event_push(&ea);
-            screen_load(false);
-            return;
-        }
-
-        cmd = command_by_item(book_obj, mode);
-        if (!cmd)
         {
             Term_event_push(&ea);
             screen_load(false);
@@ -662,6 +695,8 @@ static void keymap_create(const char *title, int kmode)
             cmd = cmd_lookup_key(CMD_PROJECT, mode);
             project = true;
         }
+        else
+            cmd = cmd_lookup_key(CMD_CAST, mode);
 
         spell_as_keystroke(book, spell, project, cmd, keymap_buffer, &n);
         screen_load(false);

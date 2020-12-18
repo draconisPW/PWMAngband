@@ -20,7 +20,6 @@
 
 #include "s-angband.h"
 
-
 /*
  * Hack -- hallucinatory monster
  */

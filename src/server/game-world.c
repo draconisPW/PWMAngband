@@ -71,11 +71,20 @@ static const byte extract_energy[200] =
 
 
 /*
+ * Say whether a turn is during day or not
+ */
+bool is_daytime_turn(hturn *ht_ptr)
+{
+    return ((ht_ptr->turn % (10L * z_info->day_length)) < (u32b)((10L * z_info->day_length) / 2));
+}
+
+
+/*
  * Say whether it's daytime or not
  */
 bool is_daytime(void)
 {
-    return ((turn.turn % (10L * z_info->day_length)) < (u32b)((10L * z_info->day_length) / 2));
+    return is_daytime_turn(&turn);
 }
 
 
@@ -1156,6 +1165,26 @@ static void on_leave_level(void)
 }
 
 
+static struct chunk *get_location(struct monster_race *race)
+{
+    struct loc grid;
+
+    /* Get location */
+    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    {
+        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        {
+            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct chunk *c = w_ptr->chunk_list[0];
+
+            if (c && allow_location(race, &c->wpos)) return c;
+        }
+    }
+
+    return NULL;
+}
+
+
 /*
  * Handles "global" things on the server
  */
@@ -1377,6 +1406,34 @@ static void process_various(void)
                 }
                 while (loc_iterator_next_strict(&iter));
             }
+        }
+    }
+
+    /* Paranoia -- respawn NO_DEATH monsters */
+    if (!(turn.turn % (10L * z_info->day_length)))
+    {
+        int i;
+
+        for (i = 1; i < z_info->r_max; i++)
+        {
+            struct monster_race *race = &r_info[i];
+            struct chunk *c;
+            struct loc grid;
+            bool found = false;
+            int tries = 50;
+            struct monster_group_info info = {0, 0};
+
+            if (!rf_has(race->flags, RF_NO_DEATH)) continue;
+            if (race->lore.spawned) continue;
+
+            /* Get location */
+            c = get_location(race);
+            if (!c) continue;
+
+            /* Pick a location and place the monster */
+            while (tries-- && !found) found = find_training(c, &grid);
+            if (found)
+                place_new_monster(NULL, c, &grid, race, MON_ASLEEP | MON_GROUP, &info, ORIGIN_DROP);
         }
     }
 }

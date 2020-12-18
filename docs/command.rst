@@ -683,7 +683,7 @@ Player House Commands
 
 ..
 
-Buy a house ('H') or Buy a house ('§')
+Buy a house ('H') or Buy a house ('£')
   Allows you to purchase a house to store extra objects once your inventory is
   full. You must stand in front of the house door, outside of the house to do
   so. Use the same command to sell a house once you don't have any use for it

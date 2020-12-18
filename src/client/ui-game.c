@@ -145,7 +145,7 @@ struct cmd_info cmd_util[] =
     {"Kill character and quit", {'Q'}, CMD_NULL, textui_cmd_suicide, NULL},
     {"Redraw the screen", {KTRL('R')}, CMD_NULL, do_cmd_redraw, NULL},
     {"Save \"screen dump\"", {')'}, CMD_NULL, do_cmd_save_screen, NULL},
-    {"Purchase a house", {'H', '§'}, CMD_NULL, do_cmd_purchase_house, NULL},
+    {"Purchase a house", {'H', '£'}, CMD_NULL, do_cmd_purchase_house, NULL},
     {"Take a quest", {KTRL('Q')}, CMD_NULL, do_cmd_quest, NULL},
     {"Socials", {KTRL('S')}, CMD_NULL, do_cmd_social, NULL}
 };

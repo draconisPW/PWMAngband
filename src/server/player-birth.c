@@ -898,6 +898,8 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     else
     {
         bool done = false;
+        bool quit_daytime = is_daytime_turn(&p->quit_turn);
+        bool join_daytime = is_daytime();
 
         /* If we need to reposition the player, do it */
         if (reposition)
@@ -925,7 +927,14 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         }
 
         /* Hack -- night time in wilderness */
-        if (in_wild(&p->wpos) && !is_daytime())
+        if (in_wild(&p->wpos) && !join_daytime)
+        {
+            player_cave_clear(p, false);
+            done = true;
+        }
+
+        /* Hack -- player that saved during day and comes back at night (or vice versa) */
+        if ((quit_daytime && !join_daytime) || (!quit_daytime && join_daytime))
         {
             player_cave_clear(p, false);
             done = true;
@@ -935,7 +944,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         if (!done) memorize_houses(p);
 
         /* Illuminate */
-        cave_illuminate(p, c, is_daytime());
+        cave_illuminate(p, c, join_daytime);
     }
 
     /* Player gets to go first */

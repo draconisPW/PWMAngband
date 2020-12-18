@@ -198,7 +198,7 @@ Roguelike Keyset Command Summary
   \    (special - bypass keymap)        ~   Check knowledge
  '`'   (special - escape)               ?   Help
   /    Identify monster                '|'  Quiver list
-  §    Buy a house
+  £    Buy a house
  TAB   Fire default ammo at target     BKS  Describe object
 ====== ============================= ====== ============================
 

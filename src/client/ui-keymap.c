@@ -290,6 +290,7 @@ static cmd_code command_by_item_aux(struct object *obj)
         return CMD_USE;
     }
     if (tval_is_ammo(obj)) return CMD_THROW;
+    if (obj_can_wear(player, obj)) return CMD_WIELD;
     return CMD_NULL;
 }
 

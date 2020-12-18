@@ -166,6 +166,45 @@ bool obj_can_cast_from(struct player *p, const struct object *obj)
 }
 
 
+static bool get_mimic_spell_by_name(int *book, int *spell)
+{
+    char buf[NORMAL_WID];
+    int i, num;
+    int cur_page = 0;
+
+    buf[0] = '\0';
+    prompt_quote_hack = true;
+
+    if (!get_string("Spell name: ", buf, NORMAL_WID) || STRZERO(buf)) return false;
+
+    do
+    {
+        i = 0;
+        num = 0;
+
+        /* Check for end of the book */
+        while (book_info[cur_page].spell_info[i].info[0] != '\0')
+        {
+            /* Spell is available */
+            num++;
+
+            if (my_stristr(book_info[cur_page].spell_info[i].info, buf))
+            {
+                *book = cur_page;
+                *spell = i;
+                return true;
+            }
+
+            i++;
+        }
+        if (num > 0) cur_page++;
+    }
+    while ((num > 0) && (cur_page < MAX_PAGES));
+
+    return false;
+}
+
+
 /* A prerequisite to casting */
 bool obj_cast_pre(void)
 {
@@ -182,27 +221,12 @@ bool obj_cast_pre(void)
     /* Cast a monster spell */
     if (player_has(player, PF_MONSTER_SPELLS))
     {
-        int page = 0, chosen_page;
-        int i, num;
+        int chosen_page;
         char tmp[NORMAL_WID];
+        char buf[NORMAL_WID];
 
         /* Number of pages */
-        do
-        {
-            i = 0;
-            num = 0;
-
-            /* Check for end of the book */
-            while (book_info[page].spell_info[i].info[0] != '\0')
-            {
-                /* Spell is available */
-                num++;
-
-                i++;
-            }
-            if (num > 0) page++;
-        }
-        while ((num > 0) && (page < MAX_PAGES));
+        int page = spell_count_pages();
 
         /* Forms with no spells */
         if (!page)
@@ -215,8 +239,53 @@ bool obj_cast_pre(void)
         allow_disturb_icky = false;
 
         /* Pick a page */
-        strnfmt(tmp, sizeof(tmp), "Select a page (1-%d, *=don't select): ", page);
-        chosen_page = get_quantity(tmp, page + 1);
+        strnfmt(tmp, sizeof(tmp), "Select a page (1-%d, *=select by flag, #=select by name): ", page);
+        my_strcpy(buf, "#", sizeof(buf));
+        prompt_quote_hack = true;
+        if (!get_string(tmp, buf, NORMAL_WID))
+        {
+            allow_disturb_icky = true;
+            return false;
+        }
+
+        chosen_page = atoi(buf);
+
+        /* Select spell by name */
+        if (buf[0] == '#')
+        {
+            int book, spell;
+            spell_flags flag;
+            int dir = 0;
+
+            if (!get_mimic_spell_by_name(&book, &spell))
+            {
+                allow_disturb_icky = true;
+                return false;
+            }
+
+            flag = book_info[book].spell_info[spell].flag;
+
+            /* Needs a direction */
+            if (flag.dir_attr)
+            {
+                if (!get_aim_dir(&dir))
+                {
+                    allow_disturb_icky = true;
+                    return false;
+                }
+            }
+
+            if (spell != -1) Send_mimic(book, spell, dir);
+            allow_disturb_icky = true;
+            return false;
+        }
+
+        /* Select spell by flag */
+        else if ((buf[0] == '*') || isalpha((unsigned char)buf[0]))
+            chosen_page = page + 1;
+
+        if (chosen_page > page + 1) chosen_page = page + 1;
+        if (chosen_page < 0) chosen_page = 0;
 
         allow_disturb_icky = true;
 
