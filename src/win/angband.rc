@@ -1,7 +1,5 @@
 /* File: angband.rc */
-#ifdef __BCC7__
 #include <winres.h>
-#endif
 #include "win-menu.h"
 
 ANGBAND MENU
