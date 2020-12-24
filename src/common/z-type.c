@@ -25,7 +25,7 @@
  * Hack -- the special Angband "System Suffix"
  * This variable is used to choose an appropriate "pref-xxx" file
  */
-const char *ANGBAND_SYS;
+const char *ANGBAND_SYS = "xxx";
 
 
 /*

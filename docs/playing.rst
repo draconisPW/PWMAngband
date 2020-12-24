@@ -112,7 +112,7 @@ Original Keyset Command Summary
 ``@``  Display connected players     ``^B`` (unused)
 ``#``  See abilities                 ``^C`` End character & quit
 ``$``  Drop gold                     ``^D`` Describe object
-``%``  Display current time          ``^E`` Toggle inven/equip window
+``%``  Interact with keymaps         ``^E`` Toggle inven/equip window
 ``^``  (special - control key)       ``^F`` Repeat level feeling
 ``&``  Enter Dungeon Master menu     ``^G`` (special - bell)
 ``*``  Target monster or location    ``^H`` (unused)
@@ -173,7 +173,7 @@ Roguelike Keyset Command Summary
   @    Center map                      ^B   (alter - south west)
   #    See abilities                   ^C   End character & quit
   $    Drop gold                       ^D   Ignore an item
-  %    Display current time            ^E   Toggle inven/equip window
+  %    Interact with keymaps           ^E   Toggle inven/equip window
   ^    (special - control key)         ^F   Repeat level feeling
   &    Enter Dungeon Master menu       ^G   (special - bell)
  '*'   Target monster or location      ^H   (alter - west)

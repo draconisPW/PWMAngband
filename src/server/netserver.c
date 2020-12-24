@@ -1817,7 +1817,8 @@ int Send_rinfo_struct_info(int ind)
 
     for (i = 0; i < (u32b)z_info->r_max; i++)
     {
-        if (Packet_printf(&connp->c, "%s", (r_info[i].name? r_info[i].name: "")) <= 0)
+        if (Packet_printf(&connp->c, "%b%s", r_info[i].d_attr,
+            (r_info[i].name? r_info[i].name: "")) <= 0)
         {
             Destroy_connection(ind, "Send_rinfo_struct_info write error");
             return -1;
@@ -2671,11 +2672,12 @@ int Send_floor(struct player *p, byte num, const struct object *obj, struct obje
     Packet_printf(&connp->c, "%b%b%b", (unsigned)PKT_FLOOR, (unsigned)num, (unsigned)force);
     Packet_printf(&connp->c, "%hu%hu%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->known,
-        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->carry,
-        (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
+        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->known_effect,
+        (unsigned)info_xtra->identified, (unsigned)info_xtra->quality_ignore,
+        (unsigned)info_xtra->ignored, info_xtra->eidx,
         (unsigned)info_xtra->magic, info_xtra->bidx, (unsigned)info_xtra->throwable);
     Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,
         info_xtra->name_base, info_xtra->name_curse, info_xtra->name_power);
@@ -3144,10 +3146,11 @@ int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
         price, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
 
     /* Extra info */
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->stuck,
-        (unsigned)info_xtra->known, (unsigned)info_xtra->known_effect, (unsigned)info_xtra->sellable,
+        (unsigned)info_xtra->known, (unsigned)info_xtra->known_effect,
+        (unsigned)info_xtra->identified, (unsigned)info_xtra->sellable,
         (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
         (unsigned)info_xtra->magic, info_xtra->bidx, (unsigned)info_xtra->throwable);
 

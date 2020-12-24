@@ -136,7 +136,7 @@ Game Status Commands
 
 ====== ========================== ====== ==========================
 '~'    Check knowledge            'P'    Access party menu
-'@'    Display connected players  '%'    Display current time
+'@'    Display connected players  '%'    Interact with keymaps
 'C'    Character description      '#'    See abilities
 ====== ========================== ====== ==========================
  

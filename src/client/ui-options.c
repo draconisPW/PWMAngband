@@ -528,6 +528,9 @@ static void ui_keymap_query(const char *title, int row)
 
 static bool obj_is_macroable(struct player *p, const struct object *obj)
 {
+    /* Hack -- must be identified to avoid leaking flavors! */
+    if (!obj->info_xtra.identified) return false;
+
     return (obj_is_useable(p, obj) || tval_is_ammo(obj) || obj_can_wear(p, obj));
 }
 
@@ -2356,4 +2359,10 @@ const char *ignore_name_for_type(ignore_type_t type)
 const char *quality_name_for_value(byte value)
 {
     return quality_values[value].name;
+}
+
+
+void do_cmd_keymaps_shortcut(void)
+{
+    do_cmd_keymaps("", 0);
 }

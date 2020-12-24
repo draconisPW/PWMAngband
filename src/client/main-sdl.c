@@ -62,7 +62,7 @@ static char *sdl_settings_file;
  */
 static const char *DEFAULT_FONT_FILE = "6x10x.fon";
 
-#define MAX_FONTS 40
+#define MAX_FONTS 60
 char *FontList[MAX_FONTS];
 static int num_fonts = 0;
 
@@ -3837,7 +3837,7 @@ static void init_paths(void)
     while (my_dread(dir, buf, sizeof(buf)))
     {
         /* Check for file extension */
-        if (suffix(buf, ".fon"))
+        if (suffix(buf, ".fon") || suffix(buf, ".FON"))
             FontList[num_fonts++] = string_make(buf);
 
         /* Don't grow to long */

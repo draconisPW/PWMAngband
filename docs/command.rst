@@ -732,9 +732,9 @@ Display connected players (``@``) or Display connected players ('^V')
 
 ..
 
-Display current time (``%``)
-  This command allows you to see what time it is on server. Useful to keep track
-  of sunrise/sunset.
+Interact with keymaps (``%``)
+  This command allows you to interact with kemaps. Same as pressing '='
+  then 'k'.
 
 ..
 

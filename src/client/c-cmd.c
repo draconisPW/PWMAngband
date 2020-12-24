@@ -938,6 +938,9 @@ void do_cmd_message(void)
         {
             /* Purchase a house */
             if (strstr(buf, "house")) do_cmd_purchase_house();
+
+            /* Display current time */
+            else if (strstr(buf, "time")) do_cmd_time();
         }
         else
             send_msg_chunks(buf, strlen(buf));

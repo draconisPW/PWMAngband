@@ -427,6 +427,7 @@ struct object_xtra
     byte stuck;             /* Stuck flag */
     byte known;             /* Known flag */
     byte known_effect;      /* Known effect flag */
+    byte identified;        /* Identified flag */
     byte sellable;          /* Sellable flag */
     byte carry;             /* Carry flag */
     byte quality_ignore;    /* Quality ignoring */

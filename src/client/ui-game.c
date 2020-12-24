@@ -131,7 +131,7 @@ struct cmd_info cmd_info[] =
     {"Display connected players", {'@', KTRL('V')}, CMD_NULL, do_cmd_players, NULL},
     {"Describe an item in chat window", {KTRL('D'), KC_BACKSPACE}, CMD_NULL, do_cmd_describe, NULL},
     {"Full wilderness map", {KTRL('W')}, CMD_NULL, do_cmd_wild_map, NULL},
-    {"Display current time", {'%'}, CMD_NULL, do_cmd_time, NULL}
+    {"Interact with keymaps", {'%'}, CMD_NULL, do_cmd_keymaps_shortcut, NULL}
 };
 
 

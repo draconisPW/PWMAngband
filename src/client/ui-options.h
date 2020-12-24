@@ -21,5 +21,6 @@ extern void cleanup_options(void);
 extern const char *ignore_name_for_type(ignore_type_t type);
 extern const char *quality_name_for_value(byte value);
 extern bool ignore_tval(int tval);
+extern void do_cmd_keymaps_shortcut(void);
 
 #endif /* INCLUDED_UI_OPTIONS_H */

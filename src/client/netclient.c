@@ -992,6 +992,8 @@ static int Receive_struct_info(void)
         /* Monster races */
         case STRUCT_INFO_RINFO:
         {
+            byte attr;
+
             /* Alloc */
             r_info = mem_zalloc(max * sizeof(struct monster_race));
 
@@ -1000,7 +1002,7 @@ static int Receive_struct_info(void)
             {
                 struct monster_race *race = &r_info[i];
 
-                if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%s", &attr, name)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -1008,8 +1010,9 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += string_bytes(name);
+                bytes_read += string_bytes(name) + 1;
 
+                race->d_attr = attr;
                 if (strlen(name)) race->name = string_make(name);
                 race->ridx = i;
             }
@@ -2426,8 +2429,8 @@ static int Receive_book_info(void)
 static int Receive_floor(void)
 {
     int n, bytes_read;
-    byte ch, num, notice, attr, act, aim, fuel, fail, known, known_effect, carry, quality_ignore,
-        ignored, magic, throwable, force;
+    byte ch, num, notice, attr, act, aim, fuel, fail, known, known_effect, identified, carry,
+        quality_ignore, ignored, magic, throwable, force;
     u16b tval, sval;
     s16b amt, slot, oidx, eidx, bidx;
     s32b pval;
@@ -2454,9 +2457,9 @@ static int Receive_floor(void)
     }
     bytes_read += 17;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
-        &fail, &slot, &known, &known_effect, &carry, &quality_ignore, &ignored, &eidx, &magic,
-        &bidx, &throwable)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
+        &fail, &slot, &known, &known_effect, &identified, &carry, &quality_ignore, &ignored, &eidx,
+        &magic, &bidx, &throwable)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -2521,6 +2524,7 @@ static int Receive_floor(void)
         obj->info_xtra.slot = slot;
         obj->info_xtra.known = known;
         obj->info_xtra.known_effect = known_effect;
+        obj->info_xtra.identified = identified;
         obj->info_xtra.carry = carry;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;
@@ -3579,8 +3583,8 @@ static int Receive_message(void)
 static int Receive_item(void)
 {
     int n, bytes_read;
-    byte ch, equipped, notice, attr, act, aim, fuel, fail, stuck, known, known_effect, sellable,
-        quality_ignore, ignored, magic, throwable;
+    byte ch, equipped, notice, attr, act, aim, fuel, fail, stuck, known, known_effect, identified,
+        sellable, quality_ignore, ignored, magic, throwable;
     u16b tval, sval;
     s16b wgt, amt, oidx, slot, eidx, bidx;
     s32b price, pval;
@@ -3609,9 +3613,9 @@ static int Receive_item(void)
     bytes_read += 21;
 
     /* Extra info */
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
-        &fail, &slot, &stuck, &known, &known_effect, &sellable, &quality_ignore, &ignored, &eidx,
-        &magic, &bidx, &throwable)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
+        &fail, &slot, &stuck, &known, &known_effect, &identified, &sellable, &quality_ignore,
+        &ignored, &eidx, &magic, &bidx, &throwable)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -3676,6 +3680,7 @@ static int Receive_item(void)
         obj->info_xtra.stuck = stuck;
         obj->info_xtra.known = known;
         obj->info_xtra.known_effect = known_effect;
+        obj->info_xtra.identified = identified;
         obj->info_xtra.sellable = sellable;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;

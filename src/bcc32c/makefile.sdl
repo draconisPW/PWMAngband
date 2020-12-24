@@ -185,7 +185,7 @@ $(CLI_EXE): $(CLI_OBJS) ..\win\angband.res
 	$(LINKER) -aa $(LDFLAGS) -x $(CLI_OBJS) c0x32.obj, $(CLI_EXE),, cw32mt.lib import32.lib ws2_32.lib ..\_SDL\SDL.lib ..\_SDL\SDL_ttf.lib ..\_SDL\SDL_image.lib ..\_SDL\SDL_mixer.lib,, ..\win\angband.res
 
 ..\win\angband.res: ..\win\angband.rc
-	$(RC) /i $(BCCDIR)\include\windows\sdk ..\win\angband.rc
+	$(RC) /d __BCC7__ /i $(BCCDIR)\include\windows\sdk ..\win\angband.rc
 
 ########################### Implicit Rules ########################
 .c.obj:

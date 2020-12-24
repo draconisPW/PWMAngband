@@ -242,6 +242,11 @@ Compare equipment when examining items ``expand_inspect``
   This option displays extra information about the currently equipped item
   in the slot corresponding to the item that is examined.
 
+..
+
+Disturb when effects end ``disturb_effect_end``
+  Disturb the player when any effect ends.
+
 Birth options
 -------------
 

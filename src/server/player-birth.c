@@ -1379,6 +1379,14 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
         return p;
     }
 
+    /* Paranoia: ensure that Dragon and Hydra characters have the proper race when logging */
+    if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA))
+    {
+        if (player_has(p, PF_DRAGON)) poly_dragon(p, false);
+        else poly_hydra(p, false);
+        get_bonuses(p);
+    }
+
     /* Loading succeeded */
     player_setup(p, id, account, no_recall);
     return p;

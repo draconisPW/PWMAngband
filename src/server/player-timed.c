@@ -1128,6 +1128,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
         {
             msg_misc(p, effect->near_end);
             print_custom_message(p, weapon, effect->on_end, MSG_RECOVER);
+            if (!OPT(p, disturb_effect_end)) no_disturb = true;
         }
 
         /* Decrementing */

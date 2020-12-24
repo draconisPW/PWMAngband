@@ -626,6 +626,54 @@ static enum parser_error parse_prefs_monster(struct parser *p)
 }
 
 
+static enum parser_error parse_prefs_monster_char(struct parser *p)
+{
+    const char *name;
+    struct monster_race *monster;
+    struct prefs_data *d = parser_priv(p);
+
+    assert(d != NULL);
+    if (d->bypass) return PARSE_ERROR_NONE;
+
+    name = parser_getsym(p, "name");
+    monster = lookup_monster(name);
+    if (!monster) return PARSE_ERROR_NO_KIND_FOUND;
+
+    Client_setup.r_attr[monster->ridx] = monster->d_attr;
+    Client_setup.r_char[monster->ridx] = (char)parser_getint(p, "char");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_prefs_monster_attr(struct parser *p)
+{
+    const char *name;
+    struct monster_race *monster;
+    struct prefs_data *d = parser_priv(p);
+    const char *color;
+    int attr;
+
+    assert(d != NULL);
+    if (d->bypass) return PARSE_ERROR_NONE;
+
+    name = parser_getsym(p, "name");
+    monster = lookup_monster(name);
+    if (!monster) return PARSE_ERROR_NO_KIND_FOUND;
+
+    color = parser_getsym(p, "attr");
+    if (strlen(color) > 1)
+        attr = color_text_to_attr(color);
+    else
+        attr = color_char_to_attr(color[0]);
+    if (attr < 0) return PARSE_ERROR_INVALID_COLOR;
+    Client_setup.r_attr[monster->ridx] = attr;
+    Client_setup.r_char[monster->ridx] = (char)parser_getint(p, "char");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_prefs_monster_base(struct parser *p)
 {
     const char *name;
@@ -1185,6 +1233,8 @@ static struct parser *init_parse_prefs(bool user)
     parser_reg(p, "? str expr", parse_prefs_expr);
     parser_reg(p, "object sym tval sym sval int attr int char", parse_prefs_object);
     parser_reg(p, "monster sym name int attr int char", parse_prefs_monster);
+    parser_reg(p, "monster-char sym name int char", parse_prefs_monster_char);
+    parser_reg(p, "monster-attr sym name sym attr int char", parse_prefs_monster_attr);
     parser_reg(p, "monster-base sym name int attr int char", parse_prefs_monster_base);
     parser_reg(p, "feat sym idx sym lighting int attr int char", parse_prefs_feat);
     parser_reg(p, "glyph sym idx int char", parse_prefs_glyph);

@@ -20,7 +20,7 @@ Angband 4.2.x:
 
 MAngband 1.5.x:
 
-- Add possibility to macro by item names
+- Add possibility to macro by (identified) item names
 - Add version number to "incompatible client version" error message
 - Enter and leave query-item-by-name mode via quote symbol
 - Add possibility to macro by spell names
@@ -43,6 +43,10 @@ PWMAngband:
 - Buying house command moved to 'H' (original keyset) and '£' (roguelike keyset)
 - Implement the '/house' chat command to purchase a house
 - Allow '~xxx' inscription along 'for sale xxx' to price items in player shops
+- Bring back '%' command as "Interact with keymaps" and implement the '/time'
+  chat command to display current time
+- SDL client: allow fonts to be loaded from "xxx.FON" files and raise the
+  maximum number of fonts to 60
 
 Gameplay changes
 ----------------
@@ -62,6 +66,7 @@ MAngband 1.5.x:
 - Disable banishment in dwarven halls
 - Add Acenoid's vaults
 - Change House Foundation allocation/rarity
+- Do not disturb after being hit by a non-threatening projected spell
 
 PWMAngband:
 
@@ -74,6 +79,7 @@ PWMAngband:
 - Give +1 moves every 10 speed instead of +5 speed to shapechangers under
   level 20
 - Halve the energy gained from extra moves
+- Add option to avoid getting disturbed when effects end
 
 Bugs fixed
 ----------
@@ -130,6 +136,10 @@ PWMAngband:
 - Move message truncation from server to client
 - Add paranoia check to avoid walking out of bounds
 - Add pre-processing to chat messages to look for '/' commands
+- Ensure that Dragon and Hydra characters have the proper race when logging
+- Added simplified and alternate versions of "monster" directive in font-xxx.prf
+  files to specify default attribute (monster-char) or attribute by symbol
+  (monster-attr)
 
 Compilation
 -----------

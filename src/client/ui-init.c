@@ -53,26 +53,6 @@ char *char_expiry;
 static int Socket;
 
 
-#ifdef PRIVATE_USER_PATH
-/*
- * Hack -- The special Angband "System Suffix"
- * This variable is used to choose an appropriate "pref-xxx" file
- */
-const char *ANGBAND_SYS = "xxx";
-
-/**
- * Various directories. These are no longer necessarily all subdirs of "lib"
- */
-char *ANGBAND_DIR_CUSTOMIZE;
-char *ANGBAND_DIR_SCREENS;
-char *ANGBAND_DIR_FONTS;
-char *ANGBAND_DIR_TILES;
-char *ANGBAND_DIR_SOUNDS;
-char *ANGBAND_DIR_ICONS;
-char *ANGBAND_DIR_USER;
-#endif
-
-
 /* Free the sub-paths */
 static void free_file_paths(void)
 {

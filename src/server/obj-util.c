@@ -768,6 +768,9 @@ void get_object_info(struct player *p, struct object *obj, byte equipped,
     /* Get the "known_effect" flag */
     info_xtra->known_effect = object_effect_is_known(obj, object_flavor_is_aware(p, obj));
 
+    /* Get the "identified" flag */
+    info_xtra->identified = object_is_known(p, obj);
+
     /* Get the "slot" flag */
     if (equipped) info_xtra->slot = equipped_item_slot(p->body, obj);
     else info_xtra->slot = wield_slot(p, obj);
