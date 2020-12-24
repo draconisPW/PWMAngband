@@ -84,27 +84,6 @@ bool cfg_ai_learn = true;
 bool cfg_challenging_levels = false;
 
 
-#ifdef PRIVATE_USER_PATH
-/*
- * Hack -- The special Angband "System Suffix"
- * This variable is used to choose an appropriate "pref-xxx" file
- */
-const char *ANGBAND_SYS = "xxx";
-
-/**
- * Various directories. These are no longer necessarily all subdirs of "lib"
- */
-char *ANGBAND_DIR_GAMEDATA;
-char *ANGBAND_DIR_CUSTOMIZE;
-char *ANGBAND_DIR_HELP;
-char *ANGBAND_DIR_SCREENS;
-char *ANGBAND_DIR_TILES;
-char *ANGBAND_DIR_USER;
-char *ANGBAND_DIR_SAVE;
-char *ANGBAND_DIR_SCORES;
-#endif
-
-
 static const char *slots[] =
 {
     #define EQUIP(a, b, c, d, e, f) #a,
