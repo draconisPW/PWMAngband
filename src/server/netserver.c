@@ -2675,8 +2675,8 @@ int Send_floor(struct player *p, byte num, const struct object *obj, struct obje
     Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->known,
-        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->known_effect,
-        (unsigned)info_xtra->identified, (unsigned)info_xtra->quality_ignore,
+        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->identified,
+        (unsigned)info_xtra->carry, (unsigned)info_xtra->quality_ignore,
         (unsigned)info_xtra->ignored, info_xtra->eidx,
         (unsigned)info_xtra->magic, info_xtra->bidx, (unsigned)info_xtra->throwable);
     Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,

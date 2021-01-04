@@ -938,7 +938,7 @@ bool floor_carry(struct player *p, struct chunk *c, struct loc *grid, struct obj
             object_absorb(obj, drop);
 
             /* Note the pile */
-            if (square_isview(p, grid)) square_note_spot(c, grid);
+            if (p && square_isview(p, grid)) square_note_spot(c, grid);
 
             /* Don't mention if ignored */
             if (p && ignore_item_ok(p, obj)) *note = false;

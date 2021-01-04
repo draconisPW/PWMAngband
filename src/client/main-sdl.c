@@ -557,7 +557,7 @@ static void sdl_ButtonVisible(sdl_Button *button, bool visible)
 /*
  * Maximum amount of buttons in a bank
  */
-#define MAX_BUTTONS 40
+#define MAX_BUTTONS 60
 
 
 /*

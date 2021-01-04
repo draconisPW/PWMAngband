@@ -107,6 +107,7 @@ PWMAngband:
 - Forget memory of the old level when a player that saved during day connects
   back during night (or vice versa)
 - Respawn NO_DEATH monsters every dawn if they somehow disappeared
+- Fix crash in floor_carry() when player pointer is not defined
 
 Coding changes
 --------------
