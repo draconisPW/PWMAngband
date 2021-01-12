@@ -47,6 +47,8 @@ PWMAngband:
   chat command to display current time
 - SDL client: allow fonts to be loaded from "xxx.FON" files and raise the
   maximum number of fonts to 60
+- Simplify food description
+- Simplify Dragon's Breath description
 
 Gameplay changes
 ----------------
@@ -108,6 +110,10 @@ PWMAngband:
   back during night (or vice versa)
 - Respawn NO_DEATH monsters every dawn if they somehow disappeared
 - Fix crash in floor_carry() when player pointer is not defined
+- Fix description of potions of surprise and mushrooms of shadows
+- Fix description of scraps of flesh
+- Add descriptions for (almost) all summons in summon.txt
+- Fix and simplify summon description (remove hardcoded reference to 1d3)
 
 Coding changes
 --------------

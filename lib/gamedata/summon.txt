@@ -59,41 +59,49 @@ uniques:0
 name:MONSTER
 msgt:SUM_MONSTER
 uniques:0
+desc:a monster
 
 name:MONSTERS
 msgt:SUM_MONSTER
 uniques:0
+desc:monsters
 
 name:ANIMAL
 msgt:SUM_ANIMAL
 uniques:0
 race-flag:ANIMAL
+desc:animals
 
 name:SPIDER
 msgt:SUM_SPIDER
 uniques:0
 base:spider
+desc:spiders
 
 name:HOUND
 msgt:SUM_HOUND
 uniques:0
 base:zephyr hound
 base:canine
+desc:hounds
 
 name:HYDRA
 msgt:SUM_HYDRA
 uniques:0
 base:hydra
+desc:hydras
 
 name:AINU
 msgt:SUM_AINU
 uniques:0
 base:ainu
+desc:ainur
 
 name:DEMON
 msgt:SUM_DEMON
 uniques:0
 race-flag:DEMON
+desc:demons
 
 name:UNDEAD
 msgt:SUM_UNDEAD
@@ -105,11 +113,13 @@ name:DRAGON
 msgt:SUM_DRAGON
 uniques:0
 race-flag:DRAGON
+desc:dragons
 
 name:HI_DEMON
 msgt:SUM_HI_DEMON
 uniques:1
 base:major demon
+desc:major demons
 
 name:HI_UNDEAD
 msgt:SUM_HI_UNDEAD
@@ -117,11 +127,13 @@ uniques:1
 base:vampire
 base:wraith
 base:lich
+desc:major undead monsters
 
 name:HI_DRAGON
 msgt:SUM_HI_DRAGON
 uniques:1
 base:ancient dragon
+desc:ancient dragons
 
 name:WRAITH
 msgt:SUM_WRAITH
@@ -129,12 +141,14 @@ uniques:1
 base:wraith
 race-flag:UNIQUE
 fallback:HI_UNDEAD
+desc:ringwraiths
 
 name:UNIQUE
 msgt:SUM_UNIQUE
 uniques:1
 race-flag:UNIQUE
 fallback:HI_UNDEAD
+desc:unique monsters
 
 ### PWMAngband ###
 
@@ -165,8 +179,10 @@ name:ABOMINATION
 msgt:SUM_MONSTER
 uniques:0
 race-flag:ABOMINATION
+desc:abominations
 
 name:SPIRIT
 msgt:SUM_MONSTER
 uniques:0
 base:ghost
+desc:spirits
