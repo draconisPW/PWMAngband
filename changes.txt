@@ -49,6 +49,7 @@ PWMAngband:
   maximum number of fonts to 60
 - Simplify food description
 - Simplify Dragon's Breath description
+- SDL client: implement support for OGG files
 
 Gameplay changes
 ----------------

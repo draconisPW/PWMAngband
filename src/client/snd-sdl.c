@@ -42,8 +42,8 @@ enum
 
 static const struct sound_file_type supported_sound_files[] =
 {
-    {".mp3", SDL_MUSIC},
     {".ogg", SDL_CHUNK},
+    {".mp3", SDL_MUSIC},
     {"", SDL_NULL}
 };
 
@@ -60,6 +60,9 @@ typedef struct
     } sample_data;
     int sample_type;
 } sdl_sample;
+
+
+static bool use_init = false;
 
 
 /*
@@ -104,6 +107,12 @@ static bool load_sample_sdl(const char *filename, int file_type, sdl_sample *sam
     {
         case SDL_CHUNK:
         {
+            if (!use_init)
+            {
+                Mix_Init(MIX_INIT_OGG);
+                use_init = true;
+            }
+
             sample->sample_data.chunk = Mix_LoadWAV(filename);
             if (sample->sample_data.chunk) return true;
             break;
@@ -167,7 +176,7 @@ static bool play_sound_sdl(struct sound_data *data)
             case SDL_CHUNK:
             {
                 /* If another sound is currently playing, stop it */
-                Mix_HaltChannel(-1);
+                /*Mix_HaltChannel(-1);*/
 
                 if (sample->sample_data.chunk)
                     return (0 == Mix_PlayChannel(-1, sample->sample_data.chunk, 0));
@@ -234,6 +243,8 @@ static bool unload_sound_sdl(struct sound_data *data)
  */
 static bool close_audio_sdl(void)
 {
+    if (use_init) Mix_Quit();
+
     /*
      * Close the audio
      *
