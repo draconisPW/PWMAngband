@@ -205,6 +205,7 @@ MSG(SOCIAL, NULL)
 MSG(PY_SPELL, NULL)
 MSG(PY_PRAYER, NULL)
 MSG(PY_MISC, NULL)
+MSG(MON_OTHER, NULL)
 
 /* Client-side and system messages */
 MSG(LOCAL, NULL)

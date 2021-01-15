@@ -29,6 +29,7 @@ MAngband 1.5.x:
 - Add "wrap_messages" option to word-wrap long messages in sub-windows
 - New option: Compare equipment when examining items
 - Add Ctrl+E toggle_inven_equip command from V
+- Add some shared monster messages
 
 PWMAngband:
 

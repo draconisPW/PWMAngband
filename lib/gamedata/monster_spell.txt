@@ -27,6 +27,7 @@
 #               e.g. {name} points at you, incanting terribly!
 # message-invis - Message printed when spell is cast by an unseen monster,
 #                 e.g. Something utters a terrible incantation!
+# message-near - Message printed for all nearby players
 
 # Text in braces {} will be replaced with the appropriate word when the message
 # is displayed :
@@ -953,6 +954,7 @@ lore:teleport away
 lore-color-base:Yellow
 message-vis:{name} commands {target} to go away.
 message-invis:Something commands you to go away.
+message-near:%s teleports %s away.
 
 name:TELE_LEVEL
 msgt:TPLEVEL

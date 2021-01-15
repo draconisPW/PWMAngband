@@ -179,6 +179,37 @@ static void spell_message(struct player *p, struct monster *mon, const struct mo
 
     if (spell->msgt) msgt(p, spell->msgt, buf);
     else msg(p, buf);
+
+    /* Hack -- print message to nearby players */
+    if (level->near_message && !target_mon)
+    {
+        int i;
+
+        /* Check each player */
+        for (i = 1; i <= NumPlayers; i++)
+        {
+            /* Check this player */
+            struct player *player = player_get(i);
+
+            /* Don't send the message to the player who caused it */
+            if (p == player) continue;
+
+            /* Make sure this player is on this level */
+            if (!wpos_eq(&player->wpos, &p->wpos)) continue;
+
+            /* Can he see this monster? */
+            if (square_isview(player, &mon->grid))
+            {
+                char m_name[NORMAL_WID];
+
+                /* Get the monster name (or "it") */
+                monster_desc(player, m_name, sizeof(m_name), mon, MDESC_STANDARD);
+
+                /* Send the message */
+                msgt(player, MSG_MON_OTHER, level->near_message, m_name, p->name);
+            }
+        }
+    }
 }
 
 

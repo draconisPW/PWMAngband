@@ -1638,9 +1638,21 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
             /* Closed or secret door -- always open or bash */
             if (will_bash)
             {
+                int i;
+
                 square_smash_door(c, grid);
 
-                msg(who->player, "You hear a door burst open!");
+                /* Hack -- print message to nearby players */
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    /* Check this player */
+                    struct player *player = player_get(i);
+
+                    /* Make sure this player is on this level */
+                    if (!wpos_eq(&player->wpos, &who->player->wpos)) continue;
+
+                    msg(player, "You hear a door burst open!");
+                }
 
                 /* Disturb if necessary */
                 if (!who->monster && OPT(who->player, disturb_bash)) disturb(who->player, 0);
@@ -1896,21 +1908,34 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
             continue;
         }
 
-        /* Get the object name */
-        object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
-
         /* React to objects that hurt the monster */
         if (react_to_slay(obj, mon)) safe = true;
 
         /* Try to pick up, or crush */
         if (safe)
         {
-            /* Only give a message for "take_item" */
-            if (rf_has(mon->race->flags, RF_TAKE_ITEM) && visible && square_isview(p, grid) &&
-                !ignore_item_ok(p, obj))
+            int i;
+
+            /* Hack -- print message to nearby players */
+            for (i = 1; i <= NumPlayers; i++)
             {
-                /* Dump a message */
-                msg(p, "%s tries to pick up %s, but fails.", m_name, o_name);
+                /* Check this player */
+                struct player *player = player_get(i);
+
+                /* Make sure this player is on this level */
+                if (!wpos_eq(&player->wpos, &p->wpos)) continue;
+
+                /* Only give a message for "take_item" */
+                if (rf_has(mon->race->flags, RF_TAKE_ITEM) &&
+                    monster_is_visible(player, mon->midx) && square_isview(player, grid) &&
+                    !ignore_item_ok(player, obj))
+                {
+                    /* Get the object name */
+                    object_desc(player, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
+
+                    /* Dump a message */
+                    msg(player, "%s tries to pick up %s, but fails.", m_name, o_name);
+                }
             }
         }
         else if (rf_has(mon->race->flags, RF_TAKE_ITEM))
@@ -1918,9 +1943,27 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
             /* Controlled monsters don't take objects */
             if (!mon->master)
             {
-                /* Describe observable situations */
-                if (square_isseen(p, grid) && !ignore_item_ok(p, obj))
-                    msg(p, "%s picks up %s.", m_name, o_name);
+                int i;
+
+                /* Hack -- print message to nearby players */
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    /* Check this player */
+                    struct player *player = player_get(i);
+
+                    /* Make sure this player is on this level */
+                    if (!wpos_eq(&player->wpos, &p->wpos)) continue;
+
+                    /* Describe observable situations */
+                    if (square_isseen(player, grid) && !ignore_item_ok(player, obj))
+                    {
+                        /* Get the object name */
+                        object_desc(player, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
+
+                        /* Dump a message */
+                        msg(player, "%s picks up %s.", m_name, o_name);
+                    }
+                }
 
                 /* Carry the object */
                 square_excise_object(c, grid, obj);
@@ -1933,9 +1976,27 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
         }
         else
         {
-            /* Describe observable situations */
-            if (square_isseen(p, grid) && !ignore_item_ok(p, obj))
-                msgt(p, MSG_DESTROY, "%s crushes %s.", m_name, o_name);
+            int i;
+
+            /* Hack -- print message to nearby players */
+            for (i = 1; i <= NumPlayers; i++)
+            {
+                /* Check this player */
+                struct player *player = player_get(i);
+
+                /* Make sure this player is on this level */
+                if (!wpos_eq(&player->wpos, &p->wpos)) continue;
+
+                /* Describe observable situations */
+                if (square_isseen(player, grid) && !ignore_item_ok(player, obj))
+                {
+                    /* Get the object name */
+                    object_desc(player, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
+
+                    /* Dump a message */
+                    msgt(player, MSG_DESTROY, "%s crushes %s.", m_name, o_name);
+                }
+            }
 
             /* Delete the object */
             square_delete_object(c, grid, obj, true, true);

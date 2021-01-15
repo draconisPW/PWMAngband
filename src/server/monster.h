@@ -106,6 +106,7 @@ struct monster_spell_level
     char *blind_message;    /* Description of the attack if unseen */
     char *miss_message;     /* Description of a missed attack */
     char *save_message;     /* Message on passing saving throw, if any */
+    char *near_message;     /* Message printed for all nearby players */
 };
 
 /*
