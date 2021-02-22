@@ -1895,7 +1895,7 @@ alloc:8:15 to 80
 attack:1d1:-1:-1
 armor:2:0
 flags:FEATHER | TRAP_IMMUNE
-values:MOVES[1] | INT[2] | DEX[2] | STEALTH[2]
+values:MOVES[10] | INT[2] | DEX[2] | STEALTH[2]
 act:TELE_PHASE
 time:20
 msg:Your {kind} twist{s} space around you.
@@ -3470,7 +3470,7 @@ alloc:0:57 to 127
 attack:1d1:0:0
 armor:0:0
 flags:REGEN | ESP_EVIL
-values:MANA[1] | RES_DARK[1] | RES_NETHER[1] | RES_ELEC[1] | RES_COLD[1]
+values:MANA[2] | RES_DARK[1] | RES_NETHER[1] | RES_ELEC[1] | RES_COLD[1]
 act:DESTRUCTION2
 time:200+d200
 desc:A long sceptre crowned with a ram's skull, imbued with magic allowing you
@@ -3485,7 +3485,7 @@ alloc:0:60 to 127
 attack:1d1:0:0
 armor:0:0
 flags:REGEN | SEE_INVIS | PROT_FEAR
-values:STR[3] | INT[3] | RES_COLD[3] | RES_ELEC[1] | RES_MANA[1]
+values:CON[3] | INT[3] | RES_COLD[3] | RES_ELEC[1] | RES_MANA[1] | MANA[1]
 desc:A stick of white marbled wood with a small blue crystal embedded at the top
 desc: which resembles a perfect globe showing no trace of inclusions and shines
 desc: in every glimpse of light it catches.
@@ -3498,7 +3498,7 @@ alloc:0:70 to 127
 attack:1d1:0:0
 armor:0:0
 flags:KNOWLEDGE | REGEN | SEE_INVIS | ESP_EVIL
-values:CON[3] | INT[3] | RES_FIRE[3] | RES_DISEN[1] | RES_ELEC[1]
+values:CON[3] | INT[3] | RES_FIRE[3] | RES_DISEN[1] | RES_ELEC[1] | MANA[1]
 desc:The ebony staff crowned by three rubies, which evoked the hellraiser's
 desc: power.
 

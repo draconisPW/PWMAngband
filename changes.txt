@@ -30,6 +30,7 @@ MAngband 1.5.x:
 - New option: Compare equipment when examining items
 - Add Ctrl+E toggle_inven_equip command from V
 - Add some shared monster messages
+- Hitpoint warning toggle hotkey
 
 PWMAngband:
 
@@ -51,6 +52,10 @@ PWMAngband:
 - Simplify food description
 - Simplify Dragon's Breath description
 - SDL client: implement support for OGG files
+- Add dungeon max level info to the visited dungeon list
+- Remove redundant "Attempting to uncurse it may destroy it." message when
+  inspecting a "fragile" object
+- Remove disturb_faint option
 
 Gameplay changes
 ----------------
@@ -59,6 +64,7 @@ Angband 4.2.x:
 
 - Allow inscribed throwing weapons to be quivered
 - Blackguard tweaks
+- Nerf to all powerful modifiers
 
 MAngband 1.5.x:
 
@@ -71,6 +77,13 @@ MAngband 1.5.x:
 - Add Acenoid's vaults
 - Change House Foundation allocation/rarity
 - Do not disturb after being hit by a non-threatening projected spell
+- Allow players to drop vegetables on FEAT_CROP terrain to restrict it to that
+  vegetable only
+- Allow players to burn crops to turn them back to random FEAT_CROP terrain
+  again
+- Refactor crop growth functions to allow spontaneous growth on allocated
+  wilderness levels
+- Fix starvation auto-kick
 
 PWMAngband:
 
@@ -84,6 +97,17 @@ PWMAngband:
   level 20
 - Halve the energy gained from extra moves
 - Add option to avoid getting disturbed when effects end
+- Add possible direction choice for scrolls and staves
+- Allow all alter/teleport effects to be used on items
+- Reduce chance of getting ESP_XXX when adding SLAY_XXX on a randart
+- Nerf Black Rings of Power
+- Rename "moves" to "movement speed" and make the modifier act like speed for
+  movement
+- Change no teleportation on gauntlet levels to limited teleportation
+  (10 squares)
+- Increase +mana modifier on mage staves, cap mana bonus at +10
+- Move Plasma Blast to book 4 and Disruption Shield to book 5
+- New dungeon: Fallen Gondolin (boss: Maeglin, the Traitor of Gondolin)
 
 Bugs fixed
 ----------
@@ -94,6 +118,7 @@ Angband 4.2.x:
 - Stop SMASH_WALL removing floor features
 - Stop quest artifacts being stealable
 - Ensure grids on the target path are hit by projections in project()
+- Make SMASH_WALL destroy decoys
 
 MAngband 1.5.x:
 
@@ -102,6 +127,8 @@ MAngband 1.5.x:
 - Stop allocating too much font resources
 - Make sure player-player visibility is refreshed when changing level
 - Fix message truncation in windows client
+- Pluralize message when trying to aim an empty stack of wands/use an empty
+  stack of staves
 
 PWMAngband:
 
@@ -116,6 +143,7 @@ PWMAngband:
 - Fix description of scraps of flesh
 - Add descriptions for (almost) all summons in summon.txt
 - Fix and simplify summon description (remove hardcoded reference to 1d3)
+- Fix enchant scrolls description
 
 Coding changes
 --------------
@@ -137,6 +165,8 @@ MAngband 1.5.x:
 - Dump each item/monster/vault allocation to #cheat channel in debug mode
 - Ensure old players are not placed into newly created parties with colliding
   party ids
+- Write artifact ownership to server savefile
+- Rename "obj_aware" into "kind_aware" and "obj_tried" into "kind_tried"
 
 PWMAngband:
 

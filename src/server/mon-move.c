@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke (attacking code)
  * Copyright (c) 1997 Ben Harrison, David Reeve Sward, Keldon Jones (AI routines).
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1534,7 +1534,7 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     if (rf_has(mon->race->flags, RF_SMASH_WALL))
     {
         /* Remove the wall and much of what's nearby */
-        square_smash_wall(c, grid);
+        square_smash_wall(who->player, c, grid);
 
         /* Note changes to viewable region */
         note_viewable_changes(&c->wpos, grid);

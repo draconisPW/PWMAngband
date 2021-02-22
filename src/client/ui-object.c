@@ -5,7 +5,7 @@
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007-9 Andi Sidwell, Chris Carr, Ed Graham, Erik Osheim
  * Copyright (c) 2015 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1770,7 +1770,7 @@ void textui_cmd_ignore_menu(struct object *obj)
     /* Flavour-aware ignoring */
     artifact = (kf_has(obj->kind->kind_flags, KF_INSTA_ART) ||
         kf_has(obj->kind->kind_flags, KF_QUEST_ART));
-    if (ignore_tval(obj->tval) && player->obj_aware[obj->kind->kidx] &&
+    if (ignore_tval(obj->tval) && player->kind_aware[obj->kind->kidx] &&
         !artifact)
     {
         if (!player->kind_ignore[obj->kind->kidx])

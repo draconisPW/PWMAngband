@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2007 Andi Sidwell
  * Copyright (c) 2016 Ben Semmler, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1205,6 +1205,10 @@ static bool effect_handler_ALTER_REALITY(effect_handler_context_t *context)
 {
     int i;
 
+    /* Hack -- already used up */
+    bool used = (context->radius == 1);
+
+    /* Always notice */
     context->ident = true;
 
     /* Only on random levels */
@@ -1232,7 +1236,8 @@ static bool effect_handler_ALTER_REALITY(effect_handler_context_t *context)
     /* Deallocate the level */
     chunk_list_remove(context->cave);
     cave_wipe(context->cave);
-    return true;
+
+    return !used;
 }
 
 
@@ -2969,6 +2974,7 @@ static bool effect_handler_DESTRUCTION(effect_handler_context_t *context)
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_ROOM);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_VAULT);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_NO_TELEPORT);
+        sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_LIMITED_TELE);
         if (square_ispitfloor(context->cave, &iter.cur))
             square_clear_feat(context->cave, &iter.cur);
 
@@ -4176,6 +4182,7 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
             sqinfo_off(square(context->cave, &grid)->info, SQUARE_ROOM);
             sqinfo_off(square(context->cave, &grid)->info, SQUARE_VAULT);
             sqinfo_off(square(context->cave, &grid)->info, SQUARE_NO_TELEPORT);
+            sqinfo_off(square(context->cave, &grid)->info, SQUARE_LIMITED_TELE);
             if (square_ispitfloor(context->cave, &grid)) square_clear_feat(context->cave, &grid);
 
             /* Forget completely */
@@ -6260,6 +6267,9 @@ static bool effect_handler_SAFE_GUARD(effect_handler_context_t *context)
     struct loc begin, end;
     struct loc_iterator iter;
 
+    /* Always notice */
+    context->ident = true;
+
     /* Only on random levels */
     if (!random_level(&context->origin->player->wpos))
     {
@@ -6937,6 +6947,13 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
         return !used;
     }
 
+    /* Check for a limited teleport grid */
+    if (square_limited_teleport(context->cave, &start) && !safe_ghost && (dis > 10))
+    {
+        if (context->origin->player) msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
     /* Check for a no teleport curse */
     if (is_player && player_of_has(context->origin->player, OF_NO_TELEPORT))
     {
@@ -7184,7 +7201,8 @@ static bool effect_handler_TELEPORT_LEVEL(effect_handler_context_t *context)
     }
 
     /* Check for a no teleport grid */
-    if (square_isno_teleport(context->cave, &context->origin->player->grid))
+    if (square_isno_teleport(context->cave, &context->origin->player->grid) ||
+        square_limited_teleport(context->cave, &context->origin->player->grid))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
@@ -7344,6 +7362,9 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     int tries = 200;
     bool is_player;
 
+    /* Hack -- already used up */
+    bool used = (context->radius == 1);
+
     context->ident = true;
 
     /* Where are we coming from? */
@@ -7367,7 +7388,7 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
         if (!loc_is_zero(decoy) && context->origin->monster)
         {
             square_destroy_decoy(context->origin->player, context->cave, decoy);
-            return true;
+            return !used;
         }
 
         /* Player being teleported */
@@ -7410,13 +7431,13 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
             if (distance(&aim, &start) > rad)
             {
                 msg(context->origin->player, "You cannot blink that far.");
-                return true;
+                return !used;
             }
         }
         else
         {
             msg(context->origin->player, "You must have a target.");
-            return true;
+            return !used;
         }
     }
 
@@ -7424,14 +7445,14 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     if (check_st_anchor(&context->origin->player->wpos, &start))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
     }
 
     /* Check for a no teleport grid */
-    if (square_isno_teleport(context->cave, &start))
+    if (square_isno_teleport(context->cave, &start) || square_limited_teleport(context->cave, &start))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
     }
 
     /* Check for a no teleport curse */
@@ -7439,7 +7460,7 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
     }
 
     /* Find a usable location */
@@ -7479,7 +7500,7 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     if (!tries)
     {
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
     }
 
     /* Move player or monster */
@@ -7494,7 +7515,7 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     /* Hack -- fix store */
     if (is_player && in_store(context->origin->player)) Send_store_leave(context->origin->player);
 
-    return true;
+    return !used;
 }
 
 
@@ -7839,6 +7860,7 @@ static bool effect_handler_WIPE_AREA(effect_handler_context_t *context)
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_VAULT);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_ROOM);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_NO_TELEPORT);
+        sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_LIMITED_TELE);
         if (square_ispitfloor(context->cave, &iter.cur))
             square_clear_feat(context->cave, &iter.cur);
 
@@ -8321,6 +8343,7 @@ int effect_subtype(int index, const char *type)
         case EF_TELEPORT_TO:
         {
             if (streq(type, "SELF")) val = 1;
+            else if (streq(type, "NONE")) val = 0;
             break;
         }
 

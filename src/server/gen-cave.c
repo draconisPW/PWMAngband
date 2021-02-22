@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -4224,9 +4224,9 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     line2 = line1 + gauntlet->width;
 
     /* Set the movement and mapping restrictions */
-    generate_mark(left, 0, 0, left->height - 1, left->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(left, 0, 0, left->height - 1, left->width - 1, SQUARE_LIMITED_TELE);
     generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_MAP);
-    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_LIMITED_TELE);
 
     /* Open the ends of the gauntlet */
     loc_init(&grid, 0, randint1(gauntlet->height - 2));

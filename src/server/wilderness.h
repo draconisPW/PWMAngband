@@ -208,9 +208,9 @@ enum
 #define WILD_CROP_CABBAGE   1
 #define WILD_CROP_CARROT    2
 #define WILD_CROP_BEET      3
-#define WILD_CROP_MUSHROOM  4
-#define WILD_CROP_SQUASH    5
-#define WILD_CROP_CORN      6
+#define WILD_CROP_SQUASH    4
+#define WILD_CROP_CORN      5
+#define WILD_CROP_MUSHROOM  6
 
 enum wild_gen
 {
@@ -260,7 +260,8 @@ extern bool wild_is_explored(struct player *p, struct worldpos *wpos);
 extern void wild_set_explored(struct player *p, struct worldpos *wpos);
 extern void wild_deserted_message(struct player *p);
 extern void wild_add_monster(struct player *p, struct chunk *c);
-extern void wild_add_crop(struct chunk *c, struct loc *grid, int type);
+extern void wild_grow_crops(struct chunk *c, struct loc *grid1, struct loc *grid2, bool regen);
+extern void do_cmd_plant_seed(struct player *p, struct object *obj);
 extern struct wild_type *get_neighbor(struct wild_type *origin, char dir);
 extern int world_index(struct worldpos *wpos);
 extern int house_price(int area, bool town);

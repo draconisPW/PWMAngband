@@ -3,7 +3,7 @@
  * Purpose: Savefile loading and saving main routines
  *
  * Copyright (c) 2009 Andi Sidwell <andi@takkaria.org>
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -66,7 +66,7 @@
 /*
  * Magic bits at beginning of savefile
  */
-static const byte savefile_magic[4] = {1, 4, 0, 1};
+static const byte savefile_magic[4] = {1, 5, 0, 0};
 static const byte savefile_name[4] = "PWMG";
 
 
@@ -342,6 +342,13 @@ void wr_string(const char *str)
 }
 
 
+void wr_quark(quark_t v)
+{
+    if (v) wr_string(quark_str(v));
+    else wr_string("");
+}
+
+
 /** Reading bits **/
 
 
@@ -427,6 +434,15 @@ void rd_string(char *str, int max)
     while (++i);
 
     str[max - 1] = '\0';
+}
+
+
+void rd_quark(quark_t *ip)
+{
+    char buf[128];
+
+    rd_string(buf, sizeof(buf));
+    if (buf[0]) *ip = quark_add(buf);
 }
 
 

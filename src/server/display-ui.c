@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Antony Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -100,7 +100,7 @@ static void prt_equippy(struct player *p)
                 a = obj->kind->d_attr;
                 c = obj->kind->d_char;
 
-                if (obj->kind->flavor && !(p->obj_aware[obj->kind->kidx] && a && c))
+                if (obj->kind->flavor && !(p->kind_aware[obj->kind->kidx] && a && c))
                 {
                     a = obj->kind->flavor->d_attr;
                     c = obj->kind->flavor->d_char;
@@ -2310,6 +2310,9 @@ static int base_time_factor(struct player *p, struct chunk *c, int slowest)
 
     /* If nothing in LoS */
     los = monsters_in_los(p, c);
+
+    /* Hack -- prevent too much manual slowdown */
+    if ((p->opts.hitpoint_warn > 9) && !los) timefactor = NORMAL_TIME;
 
     /* Resting speeds up time disregarding health time scaling */
     if (player_is_resting(p) && !los) timefactor = MAX_TIME_SCALE;

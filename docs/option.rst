@@ -188,12 +188,6 @@ Activate fire-till-kill mode ``fire_till_kill``
 
 ..
 
-Kick out when starving while at full hps ``disturb_faint``
-  Disconnect the player immediately if starving while at full hps. This will
-  prevent people from starving while afk.
-
-..
-
 Risky casting ``risky_casting``
   Allow the player to cast spells while not having the required amount of mana
   at the risk of damaging constitution and getting paralyzed.

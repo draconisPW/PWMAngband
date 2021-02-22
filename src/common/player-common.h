@@ -690,8 +690,8 @@ struct player
     hturn game_turn;                        /* Number of game turns */
     hturn player_turn;                      /* Number of player turns (including resting) */
     hturn active_turn;                      /* Number of active player turns */
-    bool* obj_aware;                        /* Is the player aware of this obj type? */
-    bool* obj_tried;                        /* Has the player tried this obj type? */
+    bool* kind_aware;                       /* Is the player aware of this obj kind? */
+    bool* kind_tried;                       /* Has the player tried this obj kind? */
     char name[NORMAL_WID];                  /* Nickname */
     char pass[NORMAL_WID];                  /* Password */
     s32b id;                                /* Unique ID to each player */
@@ -819,7 +819,7 @@ struct player
     s16b spell_cost;                /* Total cost for spells */
     byte ignore;                    /* Player has auto-ignore activated */
     struct monster_lore current_lore;
-    bool starving;                  /* True if player is starving */
+    bool fainting;                  /* True if player is fainting */
     byte max_hgt;                   /* Max client screen height */
     cave_view_type **info_icky;     /* Info is icky */
     s16b last_info_line_icky;
@@ -829,7 +829,7 @@ struct player
     s16b current_sound;             /* Current sound */
     s32b charge;                    /* Charging energy */
     bool has_energy;                /* Player has energy */
-    bool is_idle;                   /* Player is idle */
+    hturn idle_turn;                /* Turn since last game command */
     bool full_refresh;              /* Full refresh (includes monster/object lists) */
     byte digging_request;
     byte digging_dir;

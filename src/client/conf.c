@@ -3,7 +3,7 @@
  * Purpose: INI file configuration
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -568,7 +568,7 @@ void conf_done()
 	}
 }
 /* Save config file if it is scheduled */
-void conf_save()
+void conf_save(void)
 {
 	section_conf_type *s_ptr;
 	value_conf_type 	*v_ptr;

@@ -33,6 +33,7 @@ extern bool cfg_artifact_drop_shallow;
 extern bool cfg_limit_player_connections;
 extern s32b cfg_tcp_port;
 extern s16b cfg_quit_timeout;
+extern u32b cfg_disconnect_fainting;
 extern bool cfg_chardump_color;
 extern s16b cfg_pvp_hostility;
 extern bool cfg_base_monsters;

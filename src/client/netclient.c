@@ -2,7 +2,7 @@
  * File: netclient.c
  * Purpose: The client side of the networking stuff
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -387,7 +387,7 @@ static int Receive_struct_info(void)
             Client_setup.note_aware = mem_zalloc(z_info->k_max * sizeof(char_note));
 
             /* Alloc */
-            player->obj_aware = mem_zalloc(z_info->k_max * sizeof(bool));
+            player->kind_aware = mem_zalloc(z_info->k_max * sizeof(bool));
             player->kind_ignore = mem_zalloc(z_info->k_max * sizeof(byte));
             player->kind_everseen = mem_zalloc(z_info->k_max * sizeof(byte));
             player->ego_ignore_types = mem_zalloc(z_info->e_max * sizeof(byte*));
@@ -2822,7 +2822,7 @@ static int Receive_aware(void)
             }
             bytes_read++;
 
-            player->obj_aware[i] = (setting? true: false);
+            player->kind_aware[i] = (setting? true: false);
         }
     }
     else
@@ -2837,7 +2837,7 @@ static int Receive_aware(void)
         }
         bytes_read++;
 
-        player->obj_aware[num] = (setting? true: false);
+        player->kind_aware[num] = (setting? true: false);
     }
 
     return 1;
@@ -4605,7 +4605,7 @@ int Send_quaff(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    /* Hack -- potions of Dragon Breath can be aimed when aware */
+    /* Hack -- in case we add an aimed effect to potions */
     dir = need_dir(obj);
 
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
@@ -4621,6 +4621,7 @@ int Send_quaff(struct command *cmd)
 int Send_read(struct command *cmd)
 {
     int n;
+    int dir;
     struct object *obj;
 
     /* Hack -- don't get out of icky screen if disturbed */
@@ -4636,7 +4637,13 @@ int Send_read(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_READ, obj->oidx)) <= 0)
+    /* Hack -- in case we add an aimed effect to scrolls */
+    dir = need_dir(obj);
+
+    if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
+        return 0;
+
+    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_READ, obj->oidx, dir)) <= 0)
         return n;
 
     return 1;
@@ -4668,6 +4675,7 @@ int Send_take_off(struct command *cmd)
 int Send_use(struct command *cmd)
 {
     int n;
+    int dir;
     struct object *obj;
 
     /* Hack -- don't get out of icky screen if disturbed */
@@ -4683,7 +4691,13 @@ int Send_use(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_USE, obj->oidx)) <= 0)
+    /* Hack -- in case we add an aimed effect to staves */
+    dir = need_dir(obj);
+
+    if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
+        return 0;
+
+    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_USE, obj->oidx, dir)) <= 0)
         return n;
 
     return 1;

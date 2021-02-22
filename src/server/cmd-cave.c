@@ -3,7 +3,7 @@
  * Purpose: Chest and door opening/closing, disarming, running, resting, ...
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -935,7 +935,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
             msg(p, "You have removed the rubble.");
 
             /* Place an object */
-            if (magik(10))
+            if (magik(10) && !square_ishardrubble(c, grid))
             {
                 /* Create a simple object */
                 place_object(p, c, grid, object_level(&p->wpos), false, false, ORIGIN_RUBBLE, 0);

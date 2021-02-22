@@ -3,7 +3,7 @@
  * Purpose: Lists of objects and object pictures
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -28,7 +28,7 @@
  */
 byte object_kind_attr(struct player *p, const struct object_kind *kind)
 {
-    return (p->obj_aware[kind->kidx]? p->k_attr[kind->kidx]: p->d_attr[kind->kidx]);
+    return (p->kind_aware[kind->kidx]? p->k_attr[kind->kidx]: p->d_attr[kind->kidx]);
 }
 
 
@@ -39,7 +39,7 @@ byte object_kind_attr(struct player *p, const struct object_kind *kind)
  */
 char object_kind_char(struct player *p, const struct object_kind *kind)
 {
-    return (p->obj_aware[kind->kidx]? p->k_char[kind->kidx]: p->d_char[kind->kidx]);
+    return (p->kind_aware[kind->kidx]? p->k_char[kind->kidx]: p->d_char[kind->kidx]);
 }
 
 

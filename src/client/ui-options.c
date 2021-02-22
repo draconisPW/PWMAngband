@@ -5,7 +5,7 @@
  * Copyright (c) 1997-2000 Robert A. Koeneke, James E. Wilson, Ben Harrison
  * Copyright (c) 2007 Pete Mack
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1241,27 +1241,44 @@ static void do_cmd_delay(const char *name, int row)
  */
 static void do_cmd_hp_warn(const char *name, int row)
 {
-    int res;
-    char tmp[2] = "";
     ui_event ea = EVENT_ABORT;
-
-    strnfmt(tmp, sizeof(tmp), "%i", player->opts.hitpoint_warn);
+    bool done = false;
 
     screen_save();
 
     /* Prompt */
     prt("Command: Hitpoint Warning", 20, 0);
 
-    prt(format("Current hitpoint warning: %d (%d%%)",
-        player->opts.hitpoint_warn, player->opts.hitpoint_warn * 10), 22, 0);
-    prt("New hitpoint warning (0-9): ", 21, 0);
+    /* Get a new value */
+    while (!done)
+    {
+        struct keypress cx;
 
-    /* Ask the user for a string */
-    res = askfor_ex(tmp, sizeof(tmp), askfor_aux_numbers, false);
+        prt(format("Current hitpoint warning: %d (%d%%)",
+            player->opts.hitpoint_warn, player->opts.hitpoint_warn * 10), 22, 0);
+        prt("New hitpoint warning (0-9): ", 21, 0);
 
-    /* Process input */
-    if (!res) player->opts.hitpoint_warn = (byte)strtoul(tmp, NULL, 0);
-    else if (res == 1) Term_event_push(&ea);
+        cx = inkey();
+        done = true;
+        if (cx.code == '0') player->opts.hitpoint_warn_toggle = 0;
+        if (isdigit((unsigned char)cx.code)) player->opts.hitpoint_warn = D2I(cx.code);
+        else if (cx.code == '=') player->opts.hitpoint_warn = 10; /* 100% */
+        else if (cx.code == '-')
+        {
+            /* Toggle between last value and 0% */
+            bool on = ((player->opts.hitpoint_warn > 0)? true: false);
+
+            player->opts.hitpoint_warn_toggle = (on? player->opts.hitpoint_warn:
+                player->opts.hitpoint_warn_toggle);
+            player->opts.hitpoint_warn = (on? 0: player->opts.hitpoint_warn_toggle);
+        }
+        else if (cx.code == ESCAPE) Term_event_push(&ea);
+        else
+        {
+            bell("Illegal hitpoint warning!");
+            done = false;
+        }
+    }
 
     screen_load(false);
 }
@@ -1949,7 +1966,7 @@ static int ignore_collect_kind(int tval, ignore_choice **ch)
 
         /* Do not display the artifact base kinds in this list */
         artifact = (kf_has(kind->kind_flags, KF_INSTA_ART) || kf_has(kind->kind_flags, KF_QUEST_ART));
-        if (player->obj_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
+        if (player->kind_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
         {
             choice[num].kind = kind;
             choice[num++].aware = true;
@@ -2072,7 +2089,7 @@ static int ignore_collect_kind_extra(ignore_choice **ch)
 
         /* Do not display the artifact base kinds in this list */
         artifact = (kf_has(kind->kind_flags, KF_INSTA_ART) || kf_has(kind->kind_flags, KF_QUEST_ART));
-        if (player->obj_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
+        if (player->kind_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
         {
             choice[num].kind = kind;
             choice[num++].aware = true;

@@ -3,7 +3,7 @@
  * Purpose: Implement interfaces for displaying information about effects
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -471,10 +471,11 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
             {
                 const char *what;
 
-                switch (e->radius)
+                switch (e->subtype)
                 {
                     case 1: what = "a weapon's to-hit bonus"; break;
                     case 2: what = "a weapon's to-dam bonus"; break;
+                    case 3: what = "a weapon's to-hit and to-dam bonuses"; break;
                     case 4: what = "a piece of armor"; break;
                     default: what = "something"; /* XXX */
                 }

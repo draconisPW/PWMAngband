@@ -484,7 +484,8 @@ desc:A patch of grass.
 name:crops
 graphics:%:g
 priority:10
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | CROP_BASE | BORING | OBJECT | EASY | NOTICEABLE
+look-prefix:some
 desc:A piece of land used for growing any kind of vegetables.
 
 name:tree
@@ -950,3 +951,72 @@ priority:3
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | EASY
 look-prefix:some
 desc:Training grounds suitable for training.
+
+name:potato crops
+graphics:%:g
+mimic:crops
+priority:10
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
+look-prefix:some
+desc:A piece of land used for growing potatoes.
+
+name:cabbage crops
+graphics:%:g
+mimic:crops
+priority:10
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
+look-prefix:some
+desc:A piece of land used for growing cabbages.
+
+name:carrot crops
+graphics:%:g
+mimic:crops
+priority:10
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
+look-prefix:some
+desc:A piece of land used for growing carrots.
+
+name:beet crops
+graphics:%:g
+mimic:crops
+priority:10
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
+look-prefix:some
+desc:A piece of land used for growing beets.
+
+name:squash crops
+graphics:%:g
+mimic:crops
+priority:10
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
+look-prefix:some
+desc:A piece of land used for growing squashes.
+
+name:corn crops
+graphics:%:g
+mimic:crops
+priority:10
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
+look-prefix:some
+desc:A piece of land used for growing corn.
+
+name:pile of hard rubble
+graphics:::W
+mimic:pile of rubble
+priority:18
+flags:ROCK | NO_SCENT | NO_FLOW | INTERESTING | TORCH
+info:0:5
+confused-msg:bumps into some rocks
+look-in-preposition:in
+desc:Ends LOS, stops missiles, bolts, and beams. May dissolve or be tunnelled
+desc: to normal floor.
+
+name:pile of hard passable rubble
+graphics:::u
+mimic:pile of passable rubble
+priority:18
+flags:ROCK | PASSABLE | INTERESTING | TORCH
+info:0:5
+desc:Ends LOS, stops missiles, bolts, and beams, and reduces the radius of ball
+desc: spells. May dissolve or be tunnelled to normal floor, and can be walked
+desc: through by the player and monsters.

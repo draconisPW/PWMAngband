@@ -29,3 +29,4 @@ SQUARE(STAIRS, "square can contain stairs")             /* global */
 SQUARE(NOTRASH, "square cannot contain trash")          /* global */
 SQUARE(FAKE, "is a fake permawall")                     /* global */
 SQUARE(CUSTOM_WALL, "is a custom wall")                 /* global */
+SQUARE(LIMITED_TELE, "allows limited teleportation")    /* global */

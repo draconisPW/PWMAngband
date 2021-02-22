@@ -3,7 +3,7 @@
  * Purpose: Various game initialisation routines
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -441,7 +441,7 @@ static void cleanup_player(void)
     mem_free(player->trn_info);
     for (i = 0; i < N_HISTORY_FLAGS; i++)
         mem_free(player->hist_flags[i]);
-    mem_free(player->obj_aware);
+    mem_free(player->kind_aware);
     mem_free(player->kind_ignore);
     mem_free(player->kind_everseen);
     for (i = 0; player->ego_ignore_types && (i < z_info->e_max); i++)

@@ -2,7 +2,7 @@
  * File: netserver.c
  * Purpose: The server side of the network stuff
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -2835,10 +2835,10 @@ int Send_aware(struct player *p, u16b num)
     if (num == z_info->k_max)
     {
         for (i = 0; i < z_info->k_max; i++)
-            Packet_printf(&connp->c, "%b", (unsigned)p->obj_aware[i]);
+            Packet_printf(&connp->c, "%b", (unsigned)p->kind_aware[i]);
     }
     else
-        Packet_printf(&connp->c, "%b", (unsigned)p->obj_aware[num]);
+        Packet_printf(&connp->c, "%b", (unsigned)p->kind_aware[num]);
 
     return 1;
 }
@@ -4169,9 +4169,10 @@ static int Receive_read(int ind)
     struct player *p;
     byte ch;
     s16b item;
+    char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_read read error");
         return n;
@@ -4186,11 +4187,11 @@ static int Receive_read(int ind)
 
         if (has_energy(p, true))
         {
-            do_cmd_read_scroll(p, item);
+            do_cmd_read_scroll(p, item, dir);
             return 2;
         }
 
-        Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
+        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
         return 0;
     }
 
@@ -4239,9 +4240,10 @@ static int Receive_use(int ind)
     struct player *p;
     byte ch;
     s16b item;
+    char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_use read error");
         return n;
@@ -4256,11 +4258,11 @@ static int Receive_use(int ind)
 
         if (has_energy(p, true))
         {
-            do_cmd_use_staff(p, item);
+            do_cmd_use_staff(p, item, dir);
             return 2;
         }
 
-        Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
+        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
         return 0;
     }
 
@@ -6110,7 +6112,7 @@ static int Enter_player(int ind)
     p->upkeep->redraw |= (PR_STATE);
 
     /* PWMAngband: give a warning when entering a gauntlet level */
-    if (square_isno_teleport(chunk_get(&p->wpos), &p->grid))
+    if (square_limited_teleport(chunk_get(&p->wpos), &p->grid))
         msgt(p, MSG_ENTER_PIT, "The air feels very still!");
 
     /*

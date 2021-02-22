@@ -5396,7 +5396,7 @@ type:ring
 level:0
 weight:2
 cost:0
-flags:AGGRAVATE
+flags:AGGRAVATE | DRAIN_EXP
 flags:INSTA_ART
 desc:"Nine rings for mortal men doomed to die."
 

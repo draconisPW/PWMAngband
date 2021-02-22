@@ -42,6 +42,7 @@ typedef struct _hash_entry
 /* Lookup functions */
 extern hash_entry *lookup_player(int id);
 extern hash_entry *lookup_player_by_name(const char *name);
+extern char *lookup_player_name(int id);
 
 /* Information about a "party" */
 typedef struct

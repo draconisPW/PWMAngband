@@ -3,7 +3,7 @@
  * Purpose: Player utility functions
  *
  * Copyright (c) 2011 The Angband Developers. See COPYING.
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -279,7 +279,7 @@ int energy_per_move(struct player *p)
     int num = p->state.num_moves;
     int energy = move_energy(p->wpos.depth);
 
-    return (energy * (2 + ABS(num) - num)) / (2 + ABS(num));
+    return ((energy * 1000) / frame_energy(num + 110));
 }
 
 

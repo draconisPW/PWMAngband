@@ -3,7 +3,7 @@
  * Purpose: Deal with piles of objects
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -487,6 +487,9 @@ bool object_similar(struct player *p, const struct object *obj1, const struct ob
 void object_origin_combine(struct object *obj1, struct object *obj2)
 {
     int act = 2;
+
+    /* Forget original owner */
+    if (obj1->origin_player != obj2->origin_player) obj1->origin_player = 0;
 
     if ((obj1->origin == obj2->origin) && (obj1->origin_depth == obj2->origin_depth) &&
         (obj1->origin_race == obj2->origin_race)) return;

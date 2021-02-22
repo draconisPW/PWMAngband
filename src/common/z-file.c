@@ -3,7 +3,7 @@
  * Purpose: Low-level file (and directory) handling
  *
  * Copyright (c) 1997-2007 Ben Harrison, pelpel, Andi Sidwell, Matthew Jones
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -243,7 +243,7 @@ size_t path_build(char *buf, size_t len, const char *base, const char *leaf)
 #ifndef WINDOWS
 size_t path_filename_index(const char *path)
 {
-	int i;
+	size_t i;
 
 	if (strlen(path) == 0)
 		return 0;
@@ -625,7 +625,7 @@ bool file_writec(ang_file *f, byte b)
 /*
  * Read 'n' bytes from file 'f' into array 'buf'
  */
-int file_read(ang_file *f, char *buf, size_t n)
+size_t file_read(ang_file *f, char *buf, size_t n)
 {
     size_t read = fread(buf, 1, n, f->fh);
 

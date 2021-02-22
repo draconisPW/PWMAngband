@@ -3,7 +3,7 @@
  * Purpose: Various game initialisation routines
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -53,6 +53,7 @@ bool cfg_artifact_drop_shallow = true;
 bool cfg_limit_player_connections = true;
 s32b cfg_tcp_port = 18346;
 s16b cfg_quit_timeout = 5;
+u32b cfg_disconnect_fainting = 180;
 bool cfg_chardump_color = false;
 s16b cfg_pvp_hostility = PVP_SAFE;
 bool cfg_base_monsters = true;
@@ -4424,6 +4425,8 @@ static void set_server_option(const char *option, char *value)
         if (cfg_quit_timeout < 0) cfg_quit_timeout = 0;
         if (cfg_quit_timeout > 60) cfg_quit_timeout = 60;
     }
+    else if (!strcmp(option, "DISCONNECT_FAINTING"))
+        cfg_disconnect_fainting = atoi(value);
     else if (!strcmp(option, "CHARACTER_DUMP_COLOR"))
         cfg_chardump_color = str_to_boolean(value);
     else if (!strcmp(option, "PVP_HOSTILITY"))

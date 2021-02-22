@@ -3,7 +3,7 @@
  * Purpose: Game core management of the game world
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -450,23 +450,6 @@ static void process_world(struct player *p, struct chunk *c)
         bool dawn = (!(turn.turn % (10L * z_info->day_length)));
 
         dusk_or_dawn(p, c, dawn);
-
-        loc_init(&begin, 0, 0);
-        loc_init(&end, c->width, c->height);
-        loc_iterator_first(&iter, &begin, &end);
-
-        /* Hack -- regenerate crops */
-        do
-        {
-            /* Regenerate crops */
-            if (square_iscrop(c, &iter.cur) && !square_object(c, &iter.cur) &&
-                !square(c, &iter.cur)->mon && dawn && one_in_(16))
-            {
-                /* Add crop to that location */
-                wild_add_crop(c, &iter.cur, randint0(7));
-            }
-        }
-        while (loc_iterator_next_strict(&iter));
     }
 
     /* Hack -- DM redesigning the level */
@@ -813,6 +796,13 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Faint or starving */
     if (player_timed_grade_eq(p, TMD_FOOD, "Faint"))
     {
+        /* If the player is idle and fainting, destroy his connection */
+        if (cfg_disconnect_fainting && !ht_zero(&p->idle_turn) &&
+            (ht_diff(&turn, &p->idle_turn) > (u32b)(cfg_disconnect_fainting * cfg_fps)))
+        {
+            p->fainting = true;
+        }
+
         /* Faint occasionally */
         if (!p->timed[TMD_PARALYZED] && magik(10))
         {
@@ -875,7 +865,7 @@ static void process_player_world(struct player *p, struct chunk *c)
     /*** Process Inventory ***/
 
     /* Handle experience draining */
-    if (player_of_has(p, OF_DRAIN_EXP) && !p->is_idle)
+    if (player_of_has(p, OF_DRAIN_EXP) && ht_zero(&p->idle_turn))
     {
         if (magik(10) && (p->exp > 0))
         {
@@ -1278,6 +1268,31 @@ static void process_various(void)
                             chunk_set_player_count(&wpos, 0);
                     }
                 }
+            }
+        }
+    }
+
+    /* Grow crops very occasionally */
+    if (!(turn.turn % (10L * GROW_CROPS)))
+    {
+        struct loc grid;
+
+        /* For each wilderness level */
+        for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+        {
+            for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+            {
+                struct wild_type *w_ptr = get_wt_info_at(&grid);
+                struct chunk *c = w_ptr->chunk_list[0];
+                struct loc begin, end;
+
+                /* Must exist */
+                if (!c) continue;
+
+                loc_init(&begin, 0, 0);
+                loc_init(&end, c->width, c->height);
+
+                wild_grow_crops(c, &begin, &end, true);
             }
         }
     }
@@ -1700,7 +1715,7 @@ static void generate_new_level(struct player *p)
     place_player(p, c, &grid);
 
     /* PWMAngband: give a warning when entering a gauntlet level */
-    if (square_isno_teleport(c, &p->grid))
+    if (square_limited_teleport(c, &p->grid))
         msgt(p, MSG_ENTER_PIT, "The air feels very still!");
 
     /* Add the player */
@@ -1754,7 +1769,14 @@ static void energize_player(struct player *p)
     bool allow_running = (in_town(&c->wpos) || !monsters_in_los(p, c));
 
     /* Player is idle */
-    p->is_idle = has_energy(p, false);
+    bool is_idle = has_energy(p, false);
+
+    if (p->timed[TMD_PARALYZED] || player_timed_grade_eq(p, TMD_STUN, "Knocked Out"))
+        is_idle = true;
+
+    /* Update idle turn */
+    if (is_idle && ht_zero(&p->idle_turn)) ht_copy(&p->idle_turn, &turn);
+    else if (!is_idle && !ht_zero(&p->idle_turn)) ht_reset(&p->idle_turn);
 
     /* How much energy should we get? */
     energy = frame_energy(p->state.speed);
@@ -2004,7 +2026,7 @@ static void post_turn_game_loop(void)
         }
 
         /* Increment the active player turn counter */
-        if (p->has_energy && !p->is_idle) ht_add(&p->active_turn, 1);
+        if (p->has_energy && ht_zero(&p->idle_turn)) ht_add(&p->active_turn, 1);
 
         /* Player has energy */
         p->has_energy = has_energy(p, false);
@@ -2066,15 +2088,15 @@ static void post_turn_game_loop(void)
         Conn_set_state(connp, CONN_QUIT, 1);
     }
 
-    /* Kick out starving players */
+    /* Kick out fainting players */
     for (i = NumPlayers; i > 0; i--)
     {
         struct player *p = player_get(i);
 
-        if (!p->starving) continue;
+        if (!p->fainting) continue;
 
         /* Kick him */
-        Destroy_connection(p->conn, "Starving to death!");
+        Destroy_connection(p->conn, "Fainting!");
     }
 
     on_leave_level();
@@ -2183,7 +2205,7 @@ void run_game_loop(void)
         struct player *p = player_get(1);
 
         /* Execute pre-turn processing if the player is not idle */
-        if (!p->is_idle) pre_turn_game_loop();
+        if (ht_zero(&p->idle_turn)) pre_turn_game_loop();
 
         /* Process the player */
         if (!p->upkeep->new_level_method && !p->upkeep->funeral)
@@ -2195,7 +2217,7 @@ void run_game_loop(void)
         /* Player is idle: refresh and send info to client (for commands that don't use energy) */
         else
         {
-            p->is_idle = true;
+            if (ht_zero(&p->idle_turn)) ht_copy(&p->idle_turn, &turn);
 
             /* Full refresh (includes monster/object lists) */
             p->full_refresh = true;

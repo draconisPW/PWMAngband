@@ -3,7 +3,7 @@
  * Purpose: Functions for dealing with individual squares
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -198,7 +198,7 @@ bool feat_isterrain(int feat)
 int feat_order_special(int feat)
 {
     if ((feat == FEAT_WATER) || (feat == FEAT_MUD) || (feat == FEAT_DRAWBRIDGE) ||
-        (feat == FEAT_LOOSE_DIRT) || (feat == FEAT_CROP) || (feat == FEAT_MOUNTAIN))
+        (feat == FEAT_LOOSE_DIRT) || tf_has(f_info[feat].flags, TF_CROP) || (feat == FEAT_MOUNTAIN))
     {
         return 0;
     }
@@ -451,6 +451,16 @@ bool square_isrubble(struct chunk *c, struct loc *grid)
 
 
 /*
+ * True if the square is hard rubble.
+ */
+bool square_ishardrubble(struct chunk *c, struct loc *grid)
+{
+    return ((square(c, grid)->feat == FEAT_HARD_RUBBLE) ||
+        (square(c, grid)->feat == FEAT_HARD_PASS_RUBBLE));
+}
+
+
+/*
  * True if the square is a hidden secret door.
  *
  * These squares appear as if they were granite -- when detected a secret door
@@ -663,6 +673,12 @@ bool square_isdirt(struct chunk *c, struct loc *grid)
 bool square_isgrass(struct chunk *c, struct loc *grid)
 {
     return tf_has(f_info[square(c, grid)->feat].flags, TF_GRASS);
+}
+
+
+bool square_iscropbase(struct chunk *c, struct loc *grid)
+{
+    return tf_has(f_info[square(c, grid)->feat].flags, TF_CROP_BASE);
 }
 
 
@@ -899,6 +915,17 @@ bool square_isno_teleport(struct chunk *c, struct loc *grid)
     my_assert(square_in_bounds(c, grid));
 
     return sqinfo_has(square(c, grid)->info, SQUARE_NO_TELEPORT);
+}
+
+
+/*
+ * True if the square is no-teleport.
+ */
+bool square_limited_teleport(struct chunk *c, struct loc *grid)
+{
+    my_assert(square_in_bounds(c, grid));
+
+    return sqinfo_has(square(c, grid)->info, SQUARE_LIMITED_TELE);
 }
 
 
@@ -2116,7 +2143,7 @@ void square_destroy_wall(struct chunk *c, struct loc *grid)
 }
 
 
-void square_smash_wall(struct chunk *c, struct loc *grid)
+void square_smash_wall(struct player *p, struct chunk *c, struct loc *grid)
 {
     int i;
 
@@ -2135,8 +2162,12 @@ void square_smash_wall(struct chunk *c, struct loc *grid)
         /* Ignore permanent grids */
         if (square_isunpassable(c, &adj_grid)) continue;
 
-        /* Ignore floors */
-        if (square_isanyfloor(c, &adj_grid)) continue;
+        /* Ignore floors, but destroy decoys */
+        if (square_isanyfloor(c, &adj_grid))
+        {
+            if (square_isdecoyed(c, &adj_grid)) square_destroy_decoy(p, c, &adj_grid);
+            continue;
+        }
 
         /* Give this grid a chance to survive */
         if ((square_isrock(c, &adj_grid) && one_in_(4)) ||
