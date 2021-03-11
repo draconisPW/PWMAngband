@@ -475,7 +475,7 @@ void wiz_light(struct player *p, struct chunk *c, int mode)
     struct loc_iterator iter;
 
     /* Hack -- DM has full detection */
-    if (p->dm_flags & DM_SEE_LEVEL) mode = 2;
+    if (p->dm_flags & DM_SEE_LEVEL) mode = 1;
 
     loc_init(&begin, 1, 1);
     loc_init(&end, c->width - 1, c->height - 1);
