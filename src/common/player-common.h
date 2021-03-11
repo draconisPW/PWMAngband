@@ -183,13 +183,15 @@ struct player_body
 struct brand_info
 {
     bool brand;
-    byte lvl;
+    byte minlvl;
+    byte maxlvl;
 };
 
 struct slay_info
 {
     bool slay;
-    byte lvl;
+    byte minlvl;
+    byte maxlvl;
 };
 
 struct modifier

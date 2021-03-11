@@ -21,7 +21,7 @@ extern bool inven_drop_okay(struct player *p, struct object *obj);
 extern bool inven_carry_okay(struct player *p, struct object *obj);
 extern void inven_item_charges(struct player *p, struct object *obj);
 extern void inven_carry(struct player *p, struct object *obj, bool absorb, bool message);
-extern void inven_wield(struct player *p, struct object *obj, int slot);
+extern void inven_wield(struct player *p, struct object *obj, int slot, char *message, int len);
 extern void inven_takeoff(struct player *p, struct object *obj);
 extern bool inven_drop(struct player *p, struct object *obj, int amt, bool bypass_inscr);
 extern void combine_pack(struct player *p);

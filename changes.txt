@@ -56,6 +56,9 @@ PWMAngband:
 - Remove redundant "Attempting to uncurse it may destroy it." message when
   inspecting a "fragile" object
 - Remove disturb_faint option
+- Allow more smileys in chat messages
+- Reverse order of "you are wielding" and "you were wielding" messages when
+  swapping items
 
 Gameplay changes
 ----------------
@@ -84,6 +87,7 @@ MAngband 1.5.x:
 - Refactor crop growth functions to allow spontaneous growth on allocated
   wilderness levels
 - Fix starvation auto-kick
+- Apply "worthless" to enchanted items with store (or mixed) origins only
 
 PWMAngband:
 
@@ -108,6 +112,11 @@ PWMAngband:
 - Increase +mana modifier on mage staves, cap mana bonus at +10
 - Move Plasma Blast to book 4 and Disruption Shield to book 5
 - New dungeon: Fallen Gondolin (boss: Maeglin, the Traitor of Gondolin)
+- Add max level on race/class brands and slays
+- Allow any other value than 0 and 1 for the LIGHT_LEVEL effect to just
+  lighten up and magic map the level without revealing objects
+- Add LIMITED_TELE object flag
+- Give mage staves regeneration and elven staves see invisible
 
 Bugs fixed
 ----------
@@ -144,6 +153,7 @@ PWMAngband:
 - Add descriptions for (almost) all summons in summon.txt
 - Fix and simplify summon description (remove hardcoded reference to 1d3)
 - Fix enchant scrolls description
+- Fix crash in process_monsters when mon->closest_player is dead
 
 Coding changes
 --------------
@@ -167,6 +177,8 @@ MAngband 1.5.x:
   party ids
 - Write artifact ownership to server savefile
 - Rename "obj_aware" into "kind_aware" and "obj_tried" into "kind_tried"
+- Add 'conf_done' destructor
+- Add more hacks to vstrnfmt
 
 PWMAngband:
 
@@ -179,6 +191,8 @@ PWMAngband:
 - Added simplified and alternate versions of "monster" directive in font-xxx.prf
   files to specify default attribute (monster-char) or attribute by symbol
   (monster-attr)
+- Add constants for depth where labyrinths start to be generated
+  unlit/unknown/with hard walls
 
 Compilation
 -----------
@@ -186,3 +200,4 @@ Compilation
 - USE_NCURSES define
 - Compiling with Embarcadero C++ 7.20
 - Update docs for option customization
+- Remove Necklace of the Eye support

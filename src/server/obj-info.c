@@ -843,15 +843,21 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     for (i = 0; i < z_info->brand_max; i++)
     {
         /* Handle class brands */
-        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
+        if (p->clazz->brands && p->clazz->brands[i].brand &&
+            (p->lev >= p->clazz->brands[i].minlvl) && (p->lev <= p->clazz->brands[i].maxlvl))
+        {
             append_brand(&total_brands, i);
+        }
 
         /* Only for melee attacks */
         if (!weapon) continue;
 
         /* Handle racial brands */
-        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
+        if (p->race->brands && p->race->brands[i].brand &&
+            (p->lev >= p->race->brands[i].minlvl) && (p->lev <= p->race->brands[i].maxlvl))
+        {
             append_brand(&total_brands, i);
+        }
 
         /* Temporary brands */
         if (player_has_temporary_brand(p, i))
@@ -882,10 +888,16 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
         if (!weapon) continue;
 
         /* Handle racial/class slays */
-        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
+        if (p->race->slays && p->race->slays[i].slay &&
+            (p->lev >= p->race->slays[i].minlvl) && (p->lev <= p->race->slays[i].maxlvl))
+        {
             append_slay(&total_slays, i);
-        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
+        }
+        if (p->clazz->slays && p->clazz->slays[i].slay &&
+            (p->lev >= p->clazz->slays[i].minlvl) && (p->lev <= p->clazz->slays[i].maxlvl))
+        {
             append_slay(&total_slays, i);
+        }
 
         /* Temporary slays */
         if (player_has_temporary_slay(p, i))

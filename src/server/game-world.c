@@ -2169,7 +2169,8 @@ static void process_player_turn_based(struct player *p)
     if (process_pending_commands(p->conn)) return;
 
     /* Shimmer multi-hued things if idle */
-    if (monster_allow_shimmer(p) && has_energy(p, false)) process_player_shimmer(p);
+    if (!p->upkeep->new_level_method && monster_allow_shimmer(p) && has_energy(p, false))
+        process_player_shimmer(p);
 
     /* Process the player until they use some energy */
     if (has_energy(p, false)) return;

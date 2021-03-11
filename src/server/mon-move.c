@@ -2746,9 +2746,14 @@ void process_monsters(struct chunk *c, bool more_energy)
         /* Skip "unconscious" monsters */
         if (mon->hp == 0) continue;
 
+        /* Get closest player */
+        get_closest_player(c, mon);
+
+        /* Paranoia -- make sure we have a closest player */
+        if (!mon->closest_player) continue;
+
         /* Not enough energy to move yet */
-        if (more_energy && mon->closest_player && (mon->energy <= mon->closest_player->energy))
-            continue;
+        if (more_energy && (mon->energy <= mon->closest_player->energy)) continue;
 
         /* Prevent reprocessing */
         mflag_on(mon->mflag, MFLAG_HANDLED);
@@ -2810,12 +2815,6 @@ void process_monsters(struct chunk *c, bool more_energy)
                 }
             }
         }
-
-        /* Get closest player */
-        get_closest_player(c, mon);
-
-        /* Paranoia -- make sure we have a closest player */
-        if (!mon->closest_player) continue;
 
         /* Mimics lie in wait */
         if (monster_is_camouflaged(mon)) continue;

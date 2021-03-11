@@ -1282,7 +1282,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
 
     /* Allocate new known level, light it if requested */
     chunk_list_add(chunk);
-    if (p && chunk->light_level) wiz_light(p, chunk, false);
+    if (p && chunk->light_level) wiz_light(p, chunk, 0);
 
     /* Mark artifacts as "generated" */
     if (p) set_artifacts_generated(p, chunk);

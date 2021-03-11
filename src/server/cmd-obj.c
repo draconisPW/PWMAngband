@@ -350,6 +350,7 @@ void do_cmd_wield(struct player *p, int item, int slot)
     char o_name[NORMAL_WID];
     const char *act;
     struct object *obj = object_from_index(p, item, true, true);
+    char message[NORMAL_WID];
 
     /* Paranoia: requires an item */
     if (!obj) return;
@@ -426,7 +427,7 @@ void do_cmd_wield(struct player *p, int item, int slot)
     /* If the slot is open, wield and be done */
     if (!equip_obj)
     {
-        inven_wield(p, obj, slot);
+        inven_wield(p, obj, slot, NULL, 0);
         return;
     }
 
@@ -494,10 +495,13 @@ void do_cmd_wield(struct player *p, int item, int slot)
     else
         act = "You were wearing";
 
-    inven_wield(p, obj, slot);
+    inven_wield(p, obj, slot, message, sizeof(message));
 
     /* Message */
     msgt(p, MSG_WIELD, "%s %s (%c).", act, o_name, gear_to_label(p, equip_obj));
+
+    /* Message */
+    msg_print(p, message, MSG_WIELD);
 }
 
 

@@ -66,6 +66,11 @@ void conf_init(void* param)
 }
 
 
+void conf_done(void)
+{
+}
+
+
 void conf_save(void)
 {
 }
@@ -169,20 +174,25 @@ bool conf_exists(void)
 
 #else
 typedef struct value_conf_type value_conf_type;
+
 typedef struct section_conf_type section_conf_type;
+
 struct value_conf_type
 {
 	char name[100];
 	char value[100];
 	value_conf_type *next;	/* Next value in list */
 };
+
 struct section_conf_type
 {
 	char name[100];
 	value_conf_type *first;	/* First value in list */
 	section_conf_type *next;	/* Next section in list */
 };
+
 static section_conf_type *root_node = NULL;
+
 static bool conf_need_save = false;	/* Scheduled save */
 
 /* Find a section by name */
@@ -198,6 +208,7 @@ section_conf_type* conf_get_section(const char* section)
 	}
 	return NULL;
 }
+
 bool conf_section_exists(const char* section)
 {
 	if (conf_get_section(section) == NULL)
@@ -205,6 +216,7 @@ bool conf_section_exists(const char* section)
 
 	return true;
 }
+
 /* Add new section if it doesn't exist allready */
 section_conf_type* conf_add_section_aux(const char* section)
 {
@@ -239,10 +251,12 @@ section_conf_type* conf_add_section_aux(const char* section)
 
 	return s_ptr;
 }
+
 void conf_add_section(const char* section)
 {
 	conf_add_section_aux(section);
 }
+
 /* Change a "string" prefrence and schedule save */
 void conf_set_string(const char* section, const char* name, const char* value)
 {
@@ -292,6 +306,7 @@ void conf_set_string(const char* section, const char* name, const char* value)
 
 	if (done) conf_need_save = true;
 }
+
 /* Change an "integer" value. All values are stored as strings. */
 void conf_set_int(const char* section, const char* name, s32b value)
 {
@@ -299,6 +314,7 @@ void conf_set_int(const char* section, const char* name, s32b value)
 	sprintf(s_value, "%" PRId32, value);
 	conf_set_string(section, name, s_value);
 }
+
 /*
  * Return value from section "section" , with name "name"
  * For string values, a "const char*" is returned, for integers "int".
@@ -330,16 +346,19 @@ long conf_get_value(const char* section, const char* name, const char* default_v
 		return atoi(default_value);
 	return (long)default_value;
 }
+
 s32b conf_get_int(const char* section, const char* name, s32b default_value)
 {
 	static char v_value[100];
 	sprintf(v_value, "%" PRId32, default_value);
 	return (u32b)conf_get_value(section, name, v_value, true);
 }
+
 const char* conf_get_string(const char* section, const char* name, const char* default_value)
 {
 	return (const char*)conf_get_value(section, name, default_value, false);
 }
+
 void conf_read_file(ang_file* config, section_conf_type *s_ptr, value_conf_type *v_ptr)
 {
 	section_conf_type	*s_forge = NULL;
@@ -427,6 +446,7 @@ void conf_read_file(ang_file* config, section_conf_type *s_ptr, value_conf_type 
 		}
 	}
 } 
+
 /* Initialize global config tree */
 void conf_init(void* param)
 {
@@ -545,8 +565,9 @@ void conf_init(void* param)
 	}
 #endif
 }
+
 /* Destroy */
-void conf_done()
+void conf_done(void)
 {
 	section_conf_type	*s_ptr = NULL;
 	value_conf_type 	*v_ptr = NULL;
@@ -567,6 +588,7 @@ void conf_done()
 		free(s_ptr);
 	}
 }
+
 /* Save config file if it is scheduled */
 void conf_save(void)
 {
@@ -595,8 +617,9 @@ void conf_save(void)
 		conf_need_save = false;
 	}
 }
+
 /* Save default config file if it is scheduled */
-void conf_default_save()
+void conf_default_save(void)
 {
 	ang_file* config;
 
@@ -618,6 +641,7 @@ void conf_default_save()
 	/* Save config */
 	conf_save();
 }
+
 /* Scheduler */
 void conf_timer(int ticks)
 {
@@ -628,6 +652,7 @@ void conf_timer(int ticks)
 		last_update = ticks;
 	}
 }
+
 /* HACK: Append section from other file */
 void conf_append_section(const char* sectionFrom, const char *sectionTo, const char* filename)
 {

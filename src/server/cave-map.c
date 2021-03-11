@@ -468,14 +468,14 @@ void light_room(struct player *p, struct chunk *c, struct loc *grid, bool light)
  * This function "illuminates" every grid in the dungeon, memorizes all
  * "objects", and memorizes all grids as with magic mapping.
  */
-void wiz_light(struct player *p, struct chunk *c, bool full)
+void wiz_light(struct player *p, struct chunk *c, int mode)
 {
     int i;
     struct loc begin, end;
     struct loc_iterator iter;
 
     /* Hack -- DM has full detection */
-    if (p->dm_flags & DM_SEE_LEVEL) full = true;
+    if (p->dm_flags & DM_SEE_LEVEL) mode = 2;
 
     loc_init(&begin, 1, 1);
     loc_init(&end, c->width - 1, c->height - 1);
@@ -514,8 +514,12 @@ void wiz_light(struct player *p, struct chunk *c, bool full)
         }
 
         /* Memorize objects */
-        if (full) square_know_pile(p, c, &iter.cur);
-        else square_sense_pile(p, c, &iter.cur);
+        switch (mode)
+        {
+            case 0: square_sense_pile(p, c, &iter.cur); break;
+            case 1: square_know_pile(p, c, &iter.cur); break;
+            default: break;
+        }
 
         /* Forget unprocessed, unknown grids in the mapping area */
         if (!square_ismark(p, &iter.cur) && square_isnotknown(p, c, &iter.cur))

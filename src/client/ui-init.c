@@ -847,6 +847,9 @@ void cleanup_angband(void)
     /* Free the format() buffer */
     vformat_kill();
 
+    /* Release config */
+    conf_done();
+
     /* Free the directories */
     free_file_paths();
 }

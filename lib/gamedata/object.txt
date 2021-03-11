@@ -5510,7 +5510,7 @@ cost:10
 alloc:10:5 to 100
 attack:1d1:0:0
 armor:0:0
-flags:TWO_HANDED
+flags:REGEN | TWO_HANDED
 desc:It looks like a simple walking stick, plain and nondescript.
 desc: In the hands of a spellcaster, it can be a deadly weapon.
 
@@ -5523,7 +5523,7 @@ cost:2500
 alloc:10:20 to 100
 attack:1d1:0:0
 armor:0:0
-flags:REGEN | TWO_HANDED
+flags:REGEN | SEE_INVIS | TWO_HANDED
 desc:It looks like a simple walking stick, plain and nondescript.
 desc: In the hands of a spellcaster, it can be a deadly weapon.
 

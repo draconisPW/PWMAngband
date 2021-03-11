@@ -15,7 +15,6 @@ copy ..\lib\tiles\*.* ..\setup\lib\tiles
 copy ..\lib\tiles\gervais\*.* ..\setup\lib\tiles\gervais
 copy ..\lib\tiles\shockbolt\*.* ..\setup\lib\tiles\shockbolt
 copy ..\lib\user\save\*.* ..\setup\lib\user\save
-copy ..\noteye\*.* ..\setup\noteye
 copy *.* ..\setup\src
 copy client\*.* ..\setup\src\client
 copy common\*.* ..\setup\src\common
@@ -28,7 +27,6 @@ pause
 call server.bat
 call client.bat
 copy ..\changes.txt ..\setup
-copy ..\noteye.bat ..\setup
 copy ..\*.dll ..\setup
 copy ..\*.exe ..\setup
 copy ..\Manual.html ..\setup

@@ -475,6 +475,22 @@ static struct ego_item *ego_elemental(void)
 }
 
 
+/*
+ * Make enchanted/branded objects, that were bought from a store, worthless.
+ * This is used to prevent the "branding exploit", which allowed players to buy stuff
+ * from the store, brand it, and re-sell at higher price, which is cheezy!
+ */
+static void apply_discount_hack(struct player *p, struct object *obj)
+{
+    if ((obj->origin == ORIGIN_STORE) || (obj->origin == ORIGIN_MIXED))
+    {
+        set_origin(obj, ORIGIN_WORTHLESS, p->wpos.depth, NULL);
+        if (object_was_sensed(obj) || object_is_known(p, obj))
+            p->upkeep->notice |= PN_IGNORE;
+    }
+}
+
+
 /*  
  * Brand weapons (or ammo)
  *
@@ -533,9 +549,7 @@ static void brand_object(struct player *p, struct object *obj, const char *brand
         enchant(p, obj, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
 
         /* Endless source of cash? No way... make them worthless */
-        set_origin(obj, ORIGIN_WORTHLESS, p->wpos.depth, NULL);
-        if (object_was_sensed(obj) || object_is_known(p, obj))
-            p->upkeep->notice |= PN_IGNORE;
+        apply_discount_hack(p, obj);
     }
     else
         msg(p, "The branding failed.");
@@ -4528,9 +4542,7 @@ static bool effect_handler_ELEM_BRAND(effect_handler_context_t *context)
         enchant(context->origin->player, obj, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
 
         /* Endless source of cash? No way... make them worthless */
-        set_origin(obj, ORIGIN_WORTHLESS, context->origin->player->wpos.depth, NULL);
-        if (object_was_sensed(obj) || object_is_known(context->origin->player, obj))
-            context->origin->player->upkeep->notice |= PN_IGNORE;
+        apply_discount_hack(context->origin->player, obj);
     }
     else
         msg(context->origin->player, "The branding failed.");
@@ -4610,11 +4622,7 @@ static bool effect_handler_ENCHANT(effect_handler_context_t *context)
 
     /* Endless source of cash? No way... make them worthless */
     else if (!context->radius)
-    {
-        set_origin(obj, ORIGIN_WORTHLESS, context->origin->player->wpos.depth, NULL);
-        if (object_was_sensed(obj) || object_is_known(context->origin->player, obj))
-            context->origin->player->upkeep->notice |= PN_IGNORE;
-    }
+        apply_discount_hack(context->origin->player, obj);
 
     /* Redraw */
     if (!object_is_carried(context->origin->player, obj))
@@ -4920,11 +4928,9 @@ static bool effect_handler_LIGHT_AREA(effect_handler_context_t *context)
 
 static bool effect_handler_LIGHT_LEVEL(effect_handler_context_t *context)
 {
-    bool full = (context->radius? true: false);
-
-    if (full)
+    if (context->radius)
         msg(context->origin->player, "An image of your surroundings forms in your mind...");
-    wiz_light(context->origin->player, context->cave, full);
+    wiz_light(context->origin->player, context->cave, context->radius);
     context->ident = true;
     return true;
 }
@@ -6962,6 +6968,14 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
         return !used;
     }
 
+    /* Check for a limited teleport curse */
+    if (is_player && player_of_has(context->origin->player, OF_LIMITED_TELE) && (dis > 10))
+    {
+        equip_learn_flag(context->origin->player, OF_LIMITED_TELE);
+        msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
     /* Don't teleport NO_DEATH monsters */
     if (!is_player && rf_has(context->origin->monster->race->flags, RF_NO_DEATH))
     {
@@ -7216,6 +7230,14 @@ static bool effect_handler_TELEPORT_LEVEL(effect_handler_context_t *context)
         return !used;
     }
 
+    /* Check for a limited teleport curse */
+    if (player_of_has(context->origin->player, OF_LIMITED_TELE))
+    {
+        equip_learn_flag(context->origin->player, OF_LIMITED_TELE);
+        msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
     /* Arena fighters don't teleport level */
     if (context->origin->player->arena_num != -1)
     {
@@ -7459,6 +7481,14 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     if (is_player && player_of_has(context->origin->player, OF_NO_TELEPORT))
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
+        msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
+    /* Check for a limited teleport curse */
+    if (is_player && player_of_has(context->origin->player, OF_LIMITED_TELE))
+    {
+        equip_learn_flag(context->origin->player, OF_LIMITED_TELE);
         msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
     }

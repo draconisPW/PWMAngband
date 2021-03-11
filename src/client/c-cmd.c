@@ -648,6 +648,18 @@ void send_msg_chunks(char *pmsgbuf, int msglen)
     char *startmsg;
     int CUTOFF = 0;
 
+    /* Hack -- pre-process message to look for "/" commands */
+    if (pmsgbuf[0] == '/')
+    {
+        /* Purchase a house */
+        if (strstr(pmsgbuf, "house")) do_cmd_purchase_house();
+
+        /* Display current time */
+        else if (strstr(pmsgbuf, "time")) do_cmd_time();
+
+        return;
+    }
+
     /*
      * Max message length depends on our nick (known)
      * and recepient nick (unknown, assume max length)
@@ -931,20 +943,7 @@ void do_cmd_message(void)
 
     buf[0] = '\0';
     ok = get_string_msg("Message: ", buf, sizeof(buf) - 1);
-    if (ok && buf[0])
-    {
-        /* Hack -- pre-process message to look for "/" commands */
-        if (buf[0] == '/')
-        {
-            /* Purchase a house */
-            if (strstr(buf, "house")) do_cmd_purchase_house();
-
-            /* Display current time */
-            else if (strstr(buf, "time")) do_cmd_time();
-        }
-        else
-            send_msg_chunks(buf, strlen(buf));
-    }
+    if (ok && buf[0]) send_msg_chunks(buf, strlen(buf));
 }
 
 

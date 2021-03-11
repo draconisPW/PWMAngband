@@ -380,7 +380,7 @@ static int quiver_absorb_num(struct player *p, const struct object *obj)
 
             if (quiver_obj)
             {
-                int mult = (ammo? 1: 5);
+                int mult = (tval_is_ammo(quiver_obj)? 1: 5);
 
                 quiver_count += quiver_obj->number * mult;
                 if (object_stackable(p, quiver_obj, obj, OSTACK_PACK))
@@ -637,7 +637,7 @@ static void know_everything(struct player *p, struct chunk *c)
 /*
  * Wield or wear a single item from the pack or floor
  */
-void inven_wield(struct player *p, struct object *obj, int slot)
+void inven_wield(struct player *p, struct object *obj, int slot, char *message, int len)
 {
     struct object *wielded, *old = p->body.slots[slot].obj;
     const char *fmt;
@@ -711,7 +711,8 @@ void inven_wield(struct player *p, struct object *obj, int slot)
     object_desc(p, o_name, sizeof(o_name), wielded, ODESC_PREFIX | ODESC_FULL);
 
     /* Message */
-    msgt(p, MSG_WIELD, fmt, o_name, I2A(slot));
+    if (message) strnfmt(message, len, fmt, o_name, I2A(slot));
+    else msgt(p, MSG_WIELD, fmt, o_name, I2A(slot));
 
     /* Sticky flag gets a special mention */
     if (of_has(wielded->flags, OF_STICKY))

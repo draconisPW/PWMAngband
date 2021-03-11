@@ -93,8 +93,10 @@ dun-gen:amt-gold:3
 # Maximum number of pits or nests allowed per level
 dun-gen:pit-max:2
 
-# Depth where labyrinths start to be generated unlit/unknown
-dun-gen:lab-depth:25
+# Depth where labyrinths start to be generated unlit/unknown/with hard walls
+dun-gen:lab-depth-lit:25
+dun-gen:lab-depth-known:25
+dun-gen:lab-depth-soft:35
 
 
 #---------------------------------------------------------------------

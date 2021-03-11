@@ -3148,6 +3148,10 @@ void do_cmd_store(struct player *p, int pstore)
 
             if (player == p) continue;
 
+            /* Paranoia */
+            if (player->is_dead) continue;
+            if (!cave) continue;
+
             /* Verify a store */
             if (!square_isshop(cave, &player->grid)) continue;
 
@@ -3194,9 +3198,14 @@ void do_cmd_store(struct player *p, int pstore)
         /* Store is closed if someone is restocking (anti-exploit) */
         for (i = 1; i <= NumPlayers; i++)
         {
-            struct player *q = player_get(i);
+            struct player *player = player_get(i);
 
-            if ((p != q) && house_inside(q, pstore))
+            if (player == p) continue;
+
+            /* Paranoia */
+            if (player->is_dead) continue;
+
+            if (house_inside(player, pstore))
             {
                 msg(p, "The doors are locked.");
                 return;

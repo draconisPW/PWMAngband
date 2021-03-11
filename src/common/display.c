@@ -233,7 +233,7 @@ static const char *player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
     "-Exp:", /* OF_DRAIN_EXP */
     "Stck:", /* OF_STICKY */
     "Frag:", /* OF_FRAGILE */
-    "",
+    "LTel:", /* OF_LIMITED_TELE */
     "",
     "Time:", /* ELEM_TIME */
     "Mana:", /* ELEM_MANA */

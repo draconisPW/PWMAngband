@@ -537,8 +537,12 @@ static enum parser_error parse_constants_dun_gen(struct parser *p)
         z->both_gold_av = value;
     else if (streq(label, "pit-max"))
         z->level_pit_max = value;
-    else if (streq(label, "lab-depth"))
-        z->lab_depth = value;
+    else if (streq(label, "lab-depth-lit"))
+        z->lab_depth_lit = value;
+    else if (streq(label, "lab-depth-known"))
+        z->lab_depth_known = value;
+    else if (streq(label, "lab-depth-soft"))
+        z->lab_depth_soft = value;
     else
         return PARSE_ERROR_UNDEFINED_DIRECTIVE;
 
@@ -2195,13 +2199,15 @@ static enum parser_error parse_p_race_obj_flag(struct parser *p)
 static enum parser_error parse_p_race_obj_brand(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
-    byte level;
+    byte minlvl;
+    byte maxlvl;
     const char *s;
     int i;
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
-    level = (byte)parser_getuint(p, "level");
+    minlvl = (byte)parser_getuint(p, "minlvl");
+    maxlvl = (byte)parser_getuint(p, "maxlvl");
     s = parser_getstr(p, "code");
     for (i = 0; i < z_info->brand_max; i++)
     {
@@ -2214,7 +2220,8 @@ static enum parser_error parse_p_race_obj_brand(struct parser *p)
         r->brands = mem_zalloc(z_info->brand_max * sizeof(struct brand_info));
 
     r->brands[i].brand = true;
-    r->brands[i].lvl = level;
+    r->brands[i].minlvl = minlvl;
+    r->brands[i].maxlvl = maxlvl;
 
     return PARSE_ERROR_NONE;
 }
@@ -2223,13 +2230,15 @@ static enum parser_error parse_p_race_obj_brand(struct parser *p)
 static enum parser_error parse_p_race_obj_slay(struct parser *p)
 {
     struct player_race *r = parser_priv(p);
-    byte level;
+    byte minlvl;
+    byte maxlvl;
     const char *s;
     int i;
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
-    level = (byte)parser_getuint(p, "level");
+    minlvl = (byte)parser_getuint(p, "minlvl");
+    maxlvl = (byte)parser_getuint(p, "maxlvl");
     s = parser_getstr(p, "code");
     for (i = 0; i < z_info->slay_max; i++)
     {
@@ -2242,7 +2251,8 @@ static enum parser_error parse_p_race_obj_slay(struct parser *p)
         r->slays = mem_zalloc(z_info->slay_max * sizeof(struct slay_info));
 
     r->slays[i].slay = true;
-    r->slays[i].lvl = level;
+    r->slays[i].minlvl = minlvl;
+    r->slays[i].maxlvl = maxlvl;
 
     return PARSE_ERROR_NONE;
 }
@@ -2365,8 +2375,8 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "height int base_hgt int mod_hgt", parse_p_race_height);
     parser_reg(p, "weight int base_wgt int mod_wgt", parse_p_race_weight);
     parser_reg(p, "obj-flag uint level str flag", parse_p_race_obj_flag);
-    parser_reg(p, "brand uint level str code", parse_p_race_obj_brand);
-    parser_reg(p, "slay uint level str code", parse_p_race_obj_slay);
+    parser_reg(p, "brand uint minlvl uint maxlvl str code", parse_p_race_obj_brand);
+    parser_reg(p, "slay uint minlvl uint maxlvl str code", parse_p_race_obj_slay);
     parser_reg(p, "player-flags ?str flags", parse_p_race_play_flags);
     parser_reg(p, "value uint level str value", parse_p_race_value);
     parser_reg(p, "shape uint level str name", parse_p_race_shape);
@@ -2873,13 +2883,14 @@ static enum parser_error parse_class_obj_flag(struct parser *p)
 static enum parser_error parse_class_obj_brand(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
-    byte level;
+    byte minlvl, maxlvl;
     const char *s;
     int i;
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
-    level = (byte)parser_getuint(p, "level");
+    minlvl = (byte)parser_getuint(p, "minlvl");
+    maxlvl = (byte)parser_getuint(p, "maxlvl");
     s = parser_getstr(p, "code");
     for (i = 0; i < z_info->brand_max; i++)
     {
@@ -2892,7 +2903,8 @@ static enum parser_error parse_class_obj_brand(struct parser *p)
         c->brands = mem_zalloc(z_info->brand_max * sizeof(struct brand_info));
 
     c->brands[i].brand = true;
-    c->brands[i].lvl = level;
+    c->brands[i].minlvl = minlvl;
+    c->brands[i].maxlvl = maxlvl;
 
     return PARSE_ERROR_NONE;
 }
@@ -2901,13 +2913,15 @@ static enum parser_error parse_class_obj_brand(struct parser *p)
 static enum parser_error parse_class_obj_slay(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
-    byte level;
+    byte minlvl;
+    byte maxlvl;
     const char *s;
     int i;
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
-    level = (byte)parser_getuint(p, "level");
+    minlvl = (byte)parser_getuint(p, "minlvl");
+    maxlvl = (byte)parser_getuint(p, "maxlvl");
     s = parser_getstr(p, "code");
     for (i = 0; i < z_info->slay_max; i++)
     {
@@ -2920,7 +2934,8 @@ static enum parser_error parse_class_obj_slay(struct parser *p)
         c->slays = mem_zalloc(z_info->slay_max * sizeof(struct slay_info));
 
     c->slays[i].slay = true;
-    c->slays[i].lvl = level;
+    c->slays[i].minlvl = minlvl;
+    c->slays[i].maxlvl = maxlvl;
 
     return PARSE_ERROR_NONE;
 }
@@ -3390,8 +3405,8 @@ static struct parser *init_parse_class(void)
     parser_reg(p, "strength-multiplier int att-multiply", parse_class_str_mult);
     parser_reg(p, "equip sym tval sym sval uint min uint max uint flag", parse_class_equip);
     parser_reg(p, "obj-flag uint level str flag", parse_class_obj_flag);
-    parser_reg(p, "brand uint level str code", parse_class_obj_brand);
-    parser_reg(p, "slay uint level str code", parse_class_obj_slay);
+    parser_reg(p, "brand uint minlvl uint maxlvl str code", parse_class_obj_brand);
+    parser_reg(p, "slay uint minlvl uint maxlvl str code", parse_class_obj_slay);
     parser_reg(p, "player-flags ?str flags", parse_class_play_flags);
     parser_reg(p, "value uint level str value", parse_p_class_value);
     parser_reg(p, "shape uint level str name", parse_p_class_shape);
