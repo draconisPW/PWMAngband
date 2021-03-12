@@ -659,6 +659,9 @@ void inven_wield(struct player *p, struct object *obj, int slot, char *message, 
         {
             wielded = gear_object_for_use(p, obj, 1, false, &dummy);
 
+            /* Change the weight */
+            p->upkeep->total_weight += (wielded->number * wielded->weight);
+
             /* The new item needs new gear and known gear entries */
             wielded->next = obj->next;
             obj->next = wielded;

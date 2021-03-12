@@ -154,6 +154,7 @@ PWMAngband:
 - Fix and simplify summon description (remove hardcoded reference to 1d3)
 - Fix enchant scrolls description
 - Fix crash in process_monsters when mon->closest_player is dead
+- Fix weight decrease when wielding from a stack of inventory items
 
 Coding changes
 --------------
