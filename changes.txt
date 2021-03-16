@@ -59,6 +59,8 @@ PWMAngband:
 - Allow more smileys in chat messages
 - Reverse order of "you are wielding" and "you were wielding" messages when
   swapping items
+- Split MAngband options submenu into MAngband options and Advanced options
+- Add option to confirm recall when recalling out of non-reentrable dungeon
 
 Gameplay changes
 ----------------
@@ -117,6 +119,9 @@ PWMAngband:
   lighten up and magic map the level without revealing objects
 - Add LIMITED_TELE object flag
 - Give mage staves regeneration and elven staves see invisible
+- Remove NO_STORES server option
+- Rename NO_SELLING server option to LIMITED_STORES, use an integer value
+  to handle disabling selling completely and restricting the use of stores/home
 
 Bugs fixed
 ----------
@@ -202,3 +207,4 @@ Compilation
 - Compiling with Embarcadero C++ 7.20
 - Update docs for option customization
 - Remove Necklace of the Eye support
+- Add SETGID support

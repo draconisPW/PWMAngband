@@ -138,9 +138,10 @@
 #define N_HOOKS         11
 
 /* Special hooks */
+#define HOOK_CONFIRM    252
 #define HOOK_RECALL     253
 #define HOOK_DOWN       254
-#define HOOK_CONFIRM    255
+#define HOOK_CANCEL     255
 
 /*
  * Modes for item lists in "show_inven()", "show_equip()" and "show_floor()"

@@ -1724,13 +1724,16 @@ static int Receive_item_request(void)
         switch (tester_hook)
         {
             /* Special hooks */
+            case HOOK_CONFIRM:
+                result = get_check("You will not be able to re-enter this dungeon. Confirm recall? ");
+                break;
             case HOOK_RECALL:
                 result = get_string("Recall depth: ", inscription, sizeof(inscription));
                 break;
             case HOOK_DOWN:
                 result = get_check("Are you sure you want to descend? ");
                 break;
-            case HOOK_CONFIRM:
+            case HOOK_CANCEL:
                 result = get_check("Word of Recall is already active. Do you want to cancel it? ");
                 break;
 

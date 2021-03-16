@@ -535,6 +535,9 @@ bool save_player(struct player *p)
     count = 0;
 
     /* Open the savefile */
+#ifndef WINDOWS
+    safe_setuid_grab();
+#endif
     strnfmt(new_savefile, sizeof(new_savefile), "%s%u.new", p->savefile, Rand_simple(1000000));
     while (file_exists(new_savefile) && (count++ < 100))
     {
@@ -542,6 +545,9 @@ bool save_player(struct player *p)
             Rand_simple(1000000), count);
     }
     file = file_open(new_savefile, MODE_WRITE, FTYPE_SAVE);
+#ifndef WINDOWS
+    safe_setuid_drop();
+#endif
 
     if (file)
     {
@@ -558,6 +564,10 @@ bool save_player(struct player *p)
     {
         bool err = false;
 
+#ifndef WINDOWS
+        safe_setuid_grab();
+#endif
+
         if (file_exists(p->savefile) && !file_move(p->savefile, old_savefile))
             err = true;
 
@@ -569,11 +579,24 @@ bool save_player(struct player *p)
             else file_delete(old_savefile);
         }
 
+#ifndef WINDOWS
+        safe_setuid_drop();
+#endif
+
         return !err;
     }
 
     /* Delete temp file if the save failed */
-    if (file) file_delete(new_savefile);
+    if (file)
+    {
+#ifndef WINDOWS
+        safe_setuid_grab();
+#endif
+        file_delete(new_savefile);
+#ifndef WINDOWS
+        safe_setuid_drop();
+#endif
+    }
 
     return false;
 }

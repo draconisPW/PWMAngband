@@ -2504,7 +2504,7 @@ void do_cmd_purchase_house(struct player *p, int dir)
     }
 
     /* Restricted by choice */
-    if (cfg_no_stores || OPT(p, birth_no_stores))
+    if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
     {
         /* Message */
         msg(p, "You cannot buy a house.");
@@ -3007,7 +3007,7 @@ bool create_house(struct player *p)
     }
 
     /* Restricted by choice */
-    if (cfg_no_stores || OPT(p, birth_no_stores))
+    if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
     {
         msg(p, "You cannot create or extend houses.");
         return false;
@@ -3350,7 +3350,7 @@ bool build_house(struct player *p)
     }
 
     /* Restricted by choice */
-    if (cfg_no_stores || OPT(p, birth_no_stores))
+    if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
     {
         msg(p, "You cannot create or extend houses.");
         return false;

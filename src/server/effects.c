@@ -5783,6 +5783,15 @@ static bool effect_handler_RECALL(effect_handler_context_t *context)
     /* Activate recall */
     if (!context->origin->player->word_recall)
     {
+        /* Ask for confirmation if we try to recall from non-reentrable dungeon */
+        if ((context->origin->player->current_value == ITEM_REQUEST) &&
+            OPT(context->origin->player, confirm_recall) &&
+            forbid_reentrance(context->origin->player))
+        {
+            get_item(context->origin->player, HOOK_CONFIRM, "");
+            return false;
+        }
+
         /* Select the recall depth */
         if (!set_recall_depth(context->origin->player, context->note,
             context->origin->player->current_value, context->beam.inscription))
@@ -5815,7 +5824,7 @@ static bool effect_handler_RECALL(effect_handler_context_t *context)
         /* Ask for confirmation */
         if (context->origin->player->current_value == ITEM_REQUEST)
         {
-            get_item(context->origin->player, HOOK_CONFIRM, "");
+            get_item(context->origin->player, HOOK_CANCEL, "");
             return false;
         }
 
@@ -6821,7 +6830,7 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     }
 
     /* Restricted by choice */
-    if (cfg_no_stores || OPT(q, birth_no_stores))
+    if ((cfg_limited_stores == 3) || OPT(q, birth_no_stores))
     {
         msg(context->origin->player, "%s cannot be reached.", q->name);
         return false;

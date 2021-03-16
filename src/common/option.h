@@ -14,6 +14,7 @@ enum
     OP_INTERFACE = 0,
     OP_MANGBAND,
     OP_BIRTH,
+    OP_ADVANCED,
 
     OP_MAX
 };

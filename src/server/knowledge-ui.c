@@ -1850,7 +1850,7 @@ void do_cmd_steal(struct player *p, int dir)
     }
 
     /* Restricted by choice */
-    if (cfg_no_stores || OPT(p, birth_no_stores))
+    if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
     {
         msg(p, "You cannot steal.");
         return;

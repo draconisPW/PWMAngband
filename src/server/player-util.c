@@ -1965,6 +1965,21 @@ bool forbid_entrance_strong(struct player *p)
 }
 
 
+bool forbid_reentrance(struct player *p)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    if (p->wpos.depth == 0) return false;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &p->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+
+    return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
+}
+
+
 /*
  * Player is in the player's field of view
  */

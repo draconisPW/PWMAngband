@@ -1944,7 +1944,7 @@ struct object *make_gold(struct player *p, struct chunk *c, int lev, char *coin_
     object_prep(p, c, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
-    if (p && (cfg_no_selling || OPT(p, birth_no_selling)))
+    if (p && (cfg_limited_stores || OPT(p, birth_no_selling)))
     {
         /* Classic method: multiply by 5 in the dungeon */
         if (cfg_gold_drop_vanilla && (p->wpos.depth > 0)) value *= 5;

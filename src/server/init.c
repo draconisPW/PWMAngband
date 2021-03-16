@@ -77,9 +77,8 @@ s16b cfg_limit_stairs = 0;
 s16b cfg_diving_mode = 0;
 bool cfg_no_artifacts = false;
 s16b cfg_level_feelings = 3;
-bool cfg_no_selling = true;
+s16b cfg_limited_stores = 1;
 bool cfg_gold_drop_vanilla = true;
-bool cfg_no_stores = false;
 bool cfg_no_ghost = false;
 bool cfg_ai_learn = true;
 bool cfg_challenging_levels = false;
@@ -4535,12 +4534,16 @@ static void set_server_option(const char *option, char *value)
         if (cfg_level_feelings < 0) cfg_level_feelings = 0;
         if (cfg_level_feelings > 3) cfg_level_feelings = 3;
     }
-    else if (!strcmp(option, "NO_SELLING"))
-        cfg_no_selling = str_to_boolean(value);
+    else if (!strcmp(option, "LIMITED_STORES"))
+    {
+        cfg_limited_stores = atoi(value);
+
+        /* Sanity checks */
+        if (cfg_limited_stores < 0) cfg_limited_stores = 0;
+        if (cfg_limited_stores > 3) cfg_limited_stores = 3;
+    }
     else if (!strcmp(option, "GOLD_DROP_VANILLA"))
         cfg_gold_drop_vanilla = str_to_boolean(value);
-    else if (!strcmp(option, "NO_STORES"))
-        cfg_no_stores = str_to_boolean(value);
     else if (!strcmp(option, "NO_GHOST"))
         cfg_no_ghost = str_to_boolean(value);
     else if (!strcmp(option, "AI_LEARN"))

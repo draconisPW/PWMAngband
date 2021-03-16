@@ -154,75 +154,10 @@ Always say Yes to Yes/No prompts ``auto_accept``
 
 ..
 
-Get out of icky screens when disturbed ``disturb_icky``
-  This causes the game to leave "icky" screens when the character is disturbed,
-  as if the ESC key was pressed. Very helpful to avoid being killed while
-  consulting knowledge screens, setting options or creating keymaps.
-
-..
-
-Active auto-retaliator ``active_auto_retaliator``
-  If this option is on, a player is able to auto-attack any monster when there
-  is only one monster around the player. If this option is off, or when there
-  are more than one monster around the player, a player need to target
-  a monster first in order to attack it repeatedly (by moving into that monster
-  or using the target command).
-
-..
-
 Freeze screen after detecting monsters ``pause_after_detect``
   This option causes detected monsters to stay displayed on the screen until
   the player presses a command. If the option is off, the screen will be
   automatically refreshed after one turn has passed.
-
-..
-
-Disturb whenever monsters bash down doors ``disturb_bash``
-  Disturb the player when any monster bashes a door on the level.
-
-..
-
-Activate fire-till-kill mode ``fire_till_kill``
-  This option enables repeat casting and shooting until there are no more
-  enemies on the screen (or the player is disturbed).
-
-..
-
-Risky casting ``risky_casting``
-  Allow the player to cast spells while not having the required amount of mana
-  at the risk of damaging constitution and getting paralyzed.
-
-..
-
-Use single items from floor instantly ``quick_floor``
-  This option enables instant using of single items on the floor instead of
-  displaying a menu with one item.
-
-..
-
-Hide terrain description on status line ``hide_terrain``
-  This option hides terrain description on status line.
-
-..
-
-Disable Enter menu ``disable_enter``
-  This option disables the Enter menu.
-
-..
-
-Sort monsters by experience in the monster list ``sort_exp``
-  This option sorts monsters by experience instead of depth in the monster list.
-
-..
-
-Display monsters in ASCII ``ascii_mon``
-  This option displays monsters using ASCII symbols instead of tiles when using
-  a tileset.
-
-..
-
-Nonmoving monsters disturb running ``disturb_nomove``
-  Disturb the player when trying to run in line of sight of a nonmoving monster.
 
 ..
 
@@ -235,11 +170,6 @@ Wrap long messages in sub-windows ``wrap_messages``
 Compare equipment when examining items ``expand_inspect``
   This option displays extra information about the currently equipped item
   in the slot corresponding to the item that is examined.
-
-..
-
-Disturb when effects end ``disturb_effect_end``
-  Disturb the player when any effect ends.
 
 Birth options
 -------------
@@ -320,6 +250,85 @@ Play as a fruit bat ``birth_fruit_bat``
   Turns you into a fruit bat at birth, giving you +10 speed at the cost of 40%
   of your maximum HPs. This makes the early game a lot easier and the end game
   a lot harder. Not available if you play a Dragon.
+
+Advanced options
+----------------
+
+..
+
+Get out of icky screens when disturbed ``disturb_icky``
+  This causes the game to leave "icky" screens when the character is disturbed,
+  as if the ESC key was pressed. Very helpful to avoid being killed while
+  consulting knowledge screens, setting options or creating keymaps.
+
+..
+
+Active auto-retaliator ``active_auto_retaliator``
+  If this option is on, a player is able to auto-attack any monster when there
+  is only one monster around the player. If this option is off, or when there
+  are more than one monster around the player, a player need to target
+  a monster first in order to attack it repeatedly (by moving into that monster
+  or using the target command).
+
+..
+
+Disturb whenever monsters bash down doors ``disturb_bash``
+  Disturb the player when any monster bashes a door on the level.
+
+..
+
+Activate fire-till-kill mode ``fire_till_kill``
+  This option enables repeat casting and shooting until there are no more
+  enemies on the screen (or the player is disturbed).
+
+..
+
+Risky casting ``risky_casting``
+  Allow the player to cast spells while not having the required amount of mana
+  at the risk of damaging constitution and getting paralyzed.
+
+..
+
+Use single items from floor instantly ``quick_floor``
+  This option enables instant using of single items on the floor instead of
+  displaying a menu with one item.
+
+..
+
+Hide terrain description on status line ``hide_terrain``
+  This option hides terrain description on status line.
+
+..
+
+Disable Enter menu ``disable_enter``
+  This option disables the Enter menu.
+
+..
+
+Sort monsters by experience in the monster list ``sort_exp``
+  This option sorts monsters by experience instead of depth in the monster list.
+
+..
+
+Display monsters in ASCII ``ascii_mon``
+  This option displays monsters using ASCII symbols instead of tiles when using
+  a tileset.
+
+..
+
+Nonmoving monsters disturb running ``disturb_nomove``
+  Disturb the player when trying to run in line of sight of a nonmoving monster.
+
+..
+
+Disturb when effects end ``disturb_effect_end``
+  Disturb the player when any effect ends.
+
+..
+
+Confirm recall out of non-reentrable dungeons ``confirm_recall``
+  This option triggers a confirmation message when recalling from a dungeon
+  with an entrance level lower than the current character level.
 
 Window flags
 ------------

@@ -190,6 +190,15 @@ int main(int argc, char *argv[])
     /* Save the "program name" */
     argv0 = argv[0];
 
+#ifndef WINDOWS
+#ifdef SETGID
+    /* Save the effective GID for later recall */
+    player_egid = getegid();
+#endif
+    /* Drop permissions */
+    safe_setuid_drop();
+#endif
+
 #ifdef WINDOWS
     /* Load our debugging library on Windows, to give us nice stack dumps */
     /* We use exchndl.dll from the mingw-utils package */

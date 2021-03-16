@@ -5770,8 +5770,8 @@ static void update_birth_options(struct player *p, struct birth_options *options
     if (cfg_limit_stairs == 3) OPT(p, birth_force_descend) = true;
     if (cfg_diving_mode == 3) OPT(p, birth_no_recall) = true;
     if (cfg_no_artifacts) OPT(p, birth_no_artifacts) = true;
-    if (cfg_no_selling) OPT(p, birth_no_selling) = true;
-    if (cfg_no_stores) OPT(p, birth_no_stores) = true;
+    if (cfg_limited_stores) OPT(p, birth_no_selling) = true;
+    if (cfg_limited_stores == 3) OPT(p, birth_no_stores) = true;
     if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
 
     /* Fruit bat mode: not when a Dragon or Hydra */
@@ -6081,9 +6081,11 @@ static int Enter_player(int ind)
         msg(p, "Server has no level feelings.");
     if ((cfg_level_feelings == 1) || (cfg_level_feelings == 2))
         msg(p, "Server has limited level feelings.");
-    if (cfg_no_selling)
+    if (cfg_limited_stores == 1)
+        msg(p, "Server has limited selling.");
+    if (cfg_limited_stores == 2)
         msg(p, "Server is no-selling.");
-    if (cfg_no_stores)
+    if (cfg_limited_stores == 3)
         msg(p, "Server has no stores.");
     if (cfg_no_ghost)
         msg(p, "Server is no-ghost.");

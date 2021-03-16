@@ -46,6 +46,11 @@
 # endif
 #endif
 
+/**
+ * Define SETGID if we are running as a central install on a multiuser
+ * system that has setgid support.
+ */
+/* #define SETGID */
 
 
 /*
