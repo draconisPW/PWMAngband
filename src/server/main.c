@@ -242,6 +242,9 @@ int main(int argc, char *argv[])
 #ifdef WINDOWS
     /* Catch nasty "signals" on Windows */
     setup_exit_handler();
+#else
+    /* Catch nasty signals */
+    signals_init();
 #endif
 
     /* Verify the "news" file */

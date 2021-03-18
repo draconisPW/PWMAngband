@@ -2288,6 +2288,12 @@ bool level_keep_allocated(struct chunk *c)
 }
 
 
+#ifndef WINDOWS
+static void signals_ignore_tstp(void);
+static void signals_handle_tstp(void);
+#endif
+
+
 /*
  * Save the game
  *
@@ -2311,6 +2317,11 @@ static void save_game(struct player *p)
     /* The player is not dead */
     my_strcpy(p->died_from, "(saved)", sizeof(p->died_from));
 
+#ifndef WINDOWS
+    /* Forbid suspend */
+    signals_ignore_tstp();
+#endif
+
     /* Save the player */
     if (save_player(p))
         msg(p, "Saving game... done.");
@@ -2318,6 +2329,11 @@ static void save_game(struct player *p)
     /* Save failed (oops) */
     else
         msg(p, "Saving game... failed!");
+
+#ifndef WINDOWS
+    /* Allow suspend again */
+    signals_handle_tstp();
+#endif
 
     /* Note that the player is not dead */
     my_strcpy(p->died_from, "(alive and well)", sizeof(p->died_from));
@@ -2387,6 +2403,11 @@ static void close_game(void)
 {
     int i;
 
+#ifndef WINDOWS
+    /* No suspending now */
+    signals_ignore_tstp();
+#endif
+
     for (i = 1; i <= NumPlayers; i++)
     {
         struct player *p = player_get(i);
@@ -2424,6 +2445,11 @@ static void close_game(void)
     /* Try to save the server information + player names */
     save_server_info();
     save_account_info();
+
+#ifndef WINDOWS
+    /* Allow suspending now */
+    signals_handle_tstp();
+#endif
 }
 
 
@@ -2576,6 +2602,11 @@ void exit_game_panic(void)
         /* Hack -- delay death */
         if (p->chp < 0) p->is_dead = false;
 
+#ifndef WINDOWS
+        /* Forbid suspend */
+        signals_ignore_tstp();
+#endif
+
         /* Indicate panic save */
         my_strcpy(p->died_from, "(panic save)", sizeof(p->died_from));
 
@@ -2673,5 +2704,201 @@ void setup_exit_handler(void)
     /* Trap unhandled exceptions, i.e. server crashes */
     old_handler = SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
 }
+#else
+#include <signal.h>
+static volatile sig_atomic_t signalbusy = 0;
 
+static s16b signal_count = 0;   /* Hack -- count interrupts */
+
+/*
+ * Handle signals -- suspend
+ *
+ * Actually suspend the game, and then resume cleanly
+ *
+ * This will probably inflict much anger upon the suspender, but it is still
+ * allowed (for now)
+ */
+static void handle_signal_suspend(int sig)
+{
+    /* Disable handler */
+    signal(sig, SIG_IGN);
+
+#ifdef SIGSTOP
+    /* Suspend ourself */
+    kill(0, SIGSTOP);
+#endif
+    /* Restore handler */
+    signal(sig, handle_signal_suspend);
+}
+
+/*
+ * Handle signals -- simple (interrupt and quit)
+ *
+ * This function was causing a *huge* number of problems, so it has
+ * been simplified greatly. We keep a global variable which counts
+ * the number of times the user attempts to kill the process, and
+ * we commit suicide if the user does this a certain number of times.
+ *
+ * We attempt to give "feedback" to the user as he approaches the
+ * suicide thresh-hold, but without penalizing accidental keypresses.
+ *
+ * To prevent messy accidents, we should reset this global variable
+ * whenever the user enters a keypress, or something like that.
+ *
+ * This simply calls "exit_game_panic()", which should try to save
+ * everyone's character and the server info, which is probably nicer
+ * than killing everybody.
+ */
+static void handle_signal_simple(int sig)
+{
+    /* Disable handler */
+    signal(sig, SIG_IGN);
+
+    /* Nothing to save, just quit */
+    if (!server_generated) quit(NULL);
+
+    /* Hack -- on SIGTERM, quit right away */
+    if (sig == SIGTERM) signal_count = 5;
+
+    /* Count the signals */
+    signal_count++;
+
+    /* Allow suicide (after 5) */
+    if (signal_count >= 5)
+    {
+        /* Perform a "clean" shutdown */
+        shutdown_server();
+    }
+
+    /* Give warning (after 4) */
+    else if (signal_count >= 4)
+        plog("Warning: Next signal kills server!");
+
+    /* Restore handler */
+    signal(sig, handle_signal_simple);
+}
+
+/*
+ * Handle signal -- abort, kill, etc
+ *
+ * This one also calls exit_game_panic()
+ */
+static void handle_signal_abort(int sig)
+{
+    /* We are *not* reentrant */
+    if (signalbusy) raise(sig);
+    signalbusy = 1;
+
+    plog("Unexpected signal, panic saving.");
+
+    /* Nothing to save, just quit */
+    if (!server_generated) quit(NULL);
+
+    /* Save everybody */
+    exit_game_panic();
+
+    /* Enable default handler */
+    signal(sig, SIG_DFL);
+
+    /* Reraise */
+    raise(sig);
+}
+
+/*
+ * Ignore SIGTSTP signals (keyboard suspend)
+ */
+static void signals_ignore_tstp(void)
+{
+#ifdef SIGTSTP
+    signal(SIGTSTP, SIG_IGN);
+#endif
+}
+
+/*
+ * Handle SIGTSTP signals (keyboard suspend)
+ */
+static void signals_handle_tstp(void)
+{
+#ifdef SIGTSTP
+    signal(SIGTSTP, handle_signal_suspend);
+#endif
+}
+
+/*
+ * Prepare to handle the relevant signals
+ */
+void signals_init(void)
+{
+#ifdef SIGHUP
+    signal(SIGHUP, SIG_IGN);
+#endif
+
+#ifdef SIGTSTP
+    signal(SIGTSTP, handle_signal_suspend);
+#endif
+
+#ifdef SIGINT
+    signal(SIGINT, handle_signal_simple);
+#endif
+
+#ifdef SIGQUIT
+    signal(SIGQUIT, handle_signal_simple);
+#endif
+
+#ifdef SIGFPE
+    signal(SIGFPE, handle_signal_abort);
+#endif
+
+#ifdef SIGILL
+    signal(SIGILL, handle_signal_abort);
+#endif
+
+#ifdef SIGTRAP
+    signal(SIGTRAP, handle_signal_abort);
+#endif
+
+#ifdef SIGIOT
+    signal(SIGIOT, handle_signal_abort);
+#endif
+
+#ifdef SIGKILL
+    signal(SIGKILL, handle_signal_abort);
+#endif
+
+#ifdef SIGBUS
+    signal(SIGBUS, handle_signal_abort);
+#endif
+
+#ifdef SIGSEGV
+    signal(SIGSEGV, handle_signal_abort);
+#endif
+
+#ifdef SIGTERM
+    signal(SIGTERM, handle_signal_simple);
+#endif
+
+#ifdef SIGPIPE
+    signal(SIGPIPE, SIG_IGN);
+#endif
+
+#ifdef SIGEMT
+    signal(SIGEMT, handle_signal_abort);
+#endif
+
+#ifdef SIGDANGER
+    signal(SIGDANGER, handle_signal_abort);
+#endif
+
+#ifdef SIGSYS
+    signal(SIGSYS, handle_signal_abort);
+#endif
+
+#ifdef SIGXCPU
+    signal(SIGXCPU, handle_signal_abort);
+#endif
+
+#ifdef SIGPWR
+    signal(SIGPWR, handle_signal_abort);
+#endif
+}
 #endif
