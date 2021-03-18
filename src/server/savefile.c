@@ -535,9 +535,6 @@ bool save_player(struct player *p)
     count = 0;
 
     /* Open the savefile */
-#ifndef WINDOWS
-    safe_setuid_grab();
-#endif
     strnfmt(new_savefile, sizeof(new_savefile), "%s%u.new", p->savefile, Rand_simple(1000000));
     while (file_exists(new_savefile) && (count++ < 100))
     {
@@ -545,9 +542,6 @@ bool save_player(struct player *p)
             Rand_simple(1000000), count);
     }
     file = file_open(new_savefile, MODE_WRITE, FTYPE_SAVE);
-#ifndef WINDOWS
-    safe_setuid_drop();
-#endif
 
     if (file)
     {
@@ -558,15 +552,13 @@ bool save_player(struct player *p)
             N_ELEMENTS(player_savers));
         file_close(file);
     }
+    else
+        plog_fmt("Opening %s failed: %s", new_savefile, strerror(errno));
 
     /* Attempt to save the player */
     if (character_saved)
     {
         bool err = false;
-
-#ifndef WINDOWS
-        safe_setuid_grab();
-#endif
 
         if (file_exists(p->savefile) && !file_move(p->savefile, old_savefile))
             err = true;
@@ -579,24 +571,11 @@ bool save_player(struct player *p)
             else file_delete(old_savefile);
         }
 
-#ifndef WINDOWS
-        safe_setuid_drop();
-#endif
-
         return !err;
     }
 
     /* Delete temp file if the save failed */
-    if (file)
-    {
-#ifndef WINDOWS
-        safe_setuid_grab();
-#endif
-        file_delete(new_savefile);
-#ifndef WINDOWS
-        safe_setuid_drop();
-#endif
-    }
+    if (file) file_delete(new_savefile);
 
     return false;
 }
@@ -633,6 +612,8 @@ void save_dungeon_special(struct worldpos *wpos, bool town)
         try_save((void *)wpos, file, (savefile_saver *)special_savers, N_ELEMENTS(special_savers));
         file_close(file);
     }
+    else
+        plog_fmt("Opening %s failed: %s", filename, strerror(errno));
 }
 
 
@@ -676,6 +657,8 @@ bool save_server_info(void)
             N_ELEMENTS(server_savers));
         file_close(file);
     }
+    else
+        plog_fmt("Opening %s failed: %s", new_savefile, strerror(errno));
 
     /* Attempt to save the server state */
     if (server_saved)
@@ -746,6 +729,8 @@ bool save_account_info(void)
             N_ELEMENTS(account_savers));
         file_close(file);
     }
+    else
+        plog_fmt("Opening %s failed: %s", new_savefile, strerror(errno));
 
     /* Attempt to save the player names */
     if (account_saved)

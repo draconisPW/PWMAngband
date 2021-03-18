@@ -33,8 +33,8 @@ extern int player_egid;
  * opened, to prevent security risks, and restores the game's rights so that it
  * cannot write to the system-wide files.
  */
-void safe_setuid_drop(void);
-void safe_setuid_grab(void);
+extern void safe_setuid_drop(void);
+extern void safe_setuid_grab(void);
 #endif
 
 /*

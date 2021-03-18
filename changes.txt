@@ -207,4 +207,3 @@ Compilation
 - Compiling with Embarcadero C++ 7.20
 - Update docs for option customization
 - Remove Necklace of the Eye support
-- Add SETGID support

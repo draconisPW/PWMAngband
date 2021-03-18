@@ -190,13 +190,12 @@ int main(int argc, char *argv[])
     /* Save the "program name" */
     argv0 = argv[0];
 
-#ifndef WINDOWS
-#ifdef SETGID
-    /* Save the effective GID for later recall */
-    player_egid = getegid();
-#endif
-    /* Drop permissions */
-    safe_setuid_drop();
+#ifdef UNIX
+    /* Default permissions on files */
+    umask(022);
+
+    /* Get the user id */
+    player_uid = getuid();
 #endif
 
 #ifdef WINDOWS
