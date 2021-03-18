@@ -160,6 +160,7 @@ PWMAngband:
 - Fix enchant scrolls description
 - Fix crash in process_monsters when mon->closest_player is dead
 - Fix weight decrease when wielding from a stack of inventory items
+- Fix Linux code not saving savefiles
 
 Coding changes
 --------------

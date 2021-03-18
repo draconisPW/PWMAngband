@@ -2664,7 +2664,6 @@ static LONG WINAPI MyUnhandledExceptionFilter(struct _EXCEPTION_POINTERS* Except
 
 void setup_exit_handler(void)
 {
-#ifdef WINDOWS
     /* Trap CTRL+C, Logoff, Shutdown, etc */
     if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)ctrl_handler, true))
         plog("Initialised exit save handler.");
@@ -2673,9 +2672,6 @@ void setup_exit_handler(void)
 
     /* Trap unhandled exceptions, i.e. server crashes */
     old_handler = SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
-#else
-//...
-#endif
 }
 
 #endif

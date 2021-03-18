@@ -40,16 +40,6 @@
 #define S_IFDIR 0
 #endif
 
-#ifndef O_CREAT
-#define O_CREAT 0
-#endif
-#ifndef O_EXCL
-#define O_EXCL 0
-#endif
-#ifndef O_WRONLY
-#define O_WRONLY 0
-#endif
-
 #ifdef WINDOWS
 # include <windows.h>
 # include <io.h>

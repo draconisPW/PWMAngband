@@ -552,8 +552,6 @@ bool save_player(struct player *p)
             N_ELEMENTS(player_savers));
         file_close(file);
     }
-    else
-        plog_fmt("Opening %s failed: %s", new_savefile, strerror(errno));
 
     /* Attempt to save the player */
     if (character_saved)
@@ -612,8 +610,6 @@ void save_dungeon_special(struct worldpos *wpos, bool town)
         try_save((void *)wpos, file, (savefile_saver *)special_savers, N_ELEMENTS(special_savers));
         file_close(file);
     }
-    else
-        plog_fmt("Opening %s failed: %s", filename, strerror(errno));
 }
 
 
@@ -657,8 +653,6 @@ bool save_server_info(void)
             N_ELEMENTS(server_savers));
         file_close(file);
     }
-    else
-        plog_fmt("Opening %s failed: %s", new_savefile, strerror(errno));
 
     /* Attempt to save the server state */
     if (server_saved)
@@ -729,8 +723,6 @@ bool save_account_info(void)
             N_ELEMENTS(account_savers));
         file_close(file);
     }
-    else
-        plog_fmt("Opening %s failed: %s", new_savefile, strerror(errno));
 
     /* Attempt to save the player names */
     if (account_saved)
