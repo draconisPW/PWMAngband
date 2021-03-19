@@ -201,6 +201,7 @@ PWMAngband:
 - Add constants for depth where labyrinths start to be generated
   unlit/unknown/with hard walls
 - Re-enable signal handling on Linux
+- Add dungeon profile to struct chunk
 
 Compilation
 -----------
