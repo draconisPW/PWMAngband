@@ -60,6 +60,10 @@ extern int dis_to_mdam;
 extern int dis_to_shit;
 extern int dis_to_sdam;
 
+extern bool prompt_quote_hack;
+extern bool spellcasting;
+extern int spellcasting_spell;
+
 extern void flush(game_event_type type, game_event_data *data, void *user);
 extern ui_event inkey_ex(void);
 extern struct keypress inkey(void);

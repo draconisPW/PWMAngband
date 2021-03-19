@@ -3,7 +3,7 @@
  * Purpose: Projection effects on players
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1534,6 +1534,9 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
 
     struct player *p = player_get(0 - square(c, grid)->mon);
 
+    /* The effects were positive, do not disturb */
+    bool positive_effect = false;
+
     *did_hit = false;
     *was_obvious = false;
     loc_copy(newgrid, grid);
@@ -1613,6 +1616,8 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
             if (!pvp_check(origin->player, p, mode, true, square(c, grid)->feat))
                 return;
         }
+        else
+            positive_effect = true;
     }
 
     /* Let player know what is going on */
@@ -1711,7 +1716,7 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     obvious = context.obvious;
 
     /* Disturb */
-    disturb(p, 0);
+    if (!positive_effect) disturb(p, 0);
 
     /* Track this player */
     *did_hit = true;

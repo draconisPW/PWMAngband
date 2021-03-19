@@ -15,7 +15,6 @@ del /Q ..\setup\lib\tiles\*.*
 del /Q ..\setup\lib\tiles\gervais\*.*
 del /Q ..\setup\lib\tiles\shockbolt\*.*
 del /Q ..\setup\lib\user\save\*.*
-del /Q ..\setup\noteye\*.*
 del /Q ..\setup\src\*.*
 del /Q ..\setup\src\client\*.*
 del /Q ..\setup\src\common\*.*

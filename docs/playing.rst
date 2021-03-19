@@ -89,7 +89,7 @@ Original Keyset Command Summary
 ``e``  Equipment list                ``E``  Eat some food
 ``f``  Fire an item                  ``F``  Fuel your lantern/torch
 ``g``  Get objects on floor          ``G``  Gain new spells/prayers
-``h``  Fire default ammo at target   ``H``  (unused)
+``h``  Fire default ammo at target   ``H``  Buy a house
 ``i``  Inventory list                ``I``  Observe an item
 ``j``  (unused)                      ``J``  (unused)
 ``k``  Ignore an item                ``K``  Toggle ignore
@@ -112,7 +112,7 @@ Original Keyset Command Summary
 ``@``  Display connected players     ``^B`` (unused)
 ``#``  See abilities                 ``^C`` End character & quit
 ``$``  Drop gold                     ``^D`` Describe object
-``%``  Display current time          ``^E`` Buy a house
+``%``  Interact with keymaps         ``^E`` Toggle inven/equip window
 ``^``  (special - control key)       ``^F`` Repeat level feeling
 ``&``  Enter Dungeon Master menu     ``^G`` (special - bell)
 ``*``  Target monster or location    ``^H`` (unused)
@@ -173,7 +173,7 @@ Roguelike Keyset Command Summary
   @    Center map                      ^B   (alter - south west)
   #    See abilities                   ^C   End character & quit
   $    Drop gold                       ^D   Ignore an item
-  %    Display current time            ^E   Buy a house
+  %    Interact with keymaps           ^E   Toggle inven/equip window
   ^    (special - control key)         ^F   Repeat level feeling
   &    Enter Dungeon Master menu       ^G   (special - bell)
  '*'   Target monster or location      ^H   (alter - west)
@@ -198,6 +198,7 @@ Roguelike Keyset Command Summary
   \    (special - bypass keymap)        ~   Check knowledge
  '`'   (special - escape)               ?   Help
   /    Identify monster                '|'  Quiver list
+  £    Buy a house
  TAB   Fire default ammo at target     BKS  Describe object
 ====== ============================= ====== ============================
 

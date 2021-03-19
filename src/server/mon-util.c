@@ -3,7 +3,7 @@
  * Purpose: Monster manipulation utilities.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1915,7 +1915,7 @@ bool monster_change_shape(struct player *p, struct monster *mon)
     /* Set the race */
     if (race)
     {
-        mon->original_race = mon->race;
+        if (!mon->original_race) mon->original_race = mon->race;
         mon->race = race;
         mon->mspeed += mon->race->speed - mon->original_race->speed;
     }

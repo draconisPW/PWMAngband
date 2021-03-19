@@ -5064,9 +5064,10 @@ flags:QUEST_ART
 name:& House Foundation Stone~
 graphics:~:v
 type:stone
-level:0
+level:70
 weight:200
 cost:1000
+alloc:20:70 to 127
 desc:A rectangular stone. It can be used to build houses.
 
 name:& Pint~ of Fine Ale
@@ -5247,11 +5248,15 @@ effect:RESURRECT
 name:House Creation
 graphics:?:w
 type:scroll
-level:0
+level:99
 weight:5
 cost:10000
+alloc:40:99 to 127
 flags:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 effect:CREATE_HOUSE
+desc:It creates a new house, starting at the House Foundation Stone
+desc: you are standing at, and expanding in all directions, until
+desc: no more House Foundation Stones are found.
 
 name:Water
 graphics:!:d
@@ -5391,7 +5396,7 @@ type:ring
 level:0
 weight:2
 cost:0
-flags:AGGRAVATE
+flags:AGGRAVATE | DRAIN_EXP
 flags:INSTA_ART
 desc:"Nine rings for mortal men doomed to die."
 
@@ -5505,7 +5510,7 @@ cost:10
 alloc:10:5 to 100
 attack:1d1:0:0
 armor:0:0
-flags:TWO_HANDED
+flags:REGEN | TWO_HANDED
 desc:It looks like a simple walking stick, plain and nondescript.
 desc: In the hands of a spellcaster, it can be a deadly weapon.
 
@@ -5518,7 +5523,7 @@ cost:2500
 alloc:10:20 to 100
 attack:1d1:0:0
 armor:0:0
-flags:REGEN | TWO_HANDED
+flags:REGEN | SEE_INVIS | TWO_HANDED
 desc:It looks like a simple walking stick, plain and nondescript.
 desc: In the hands of a spellcaster, it can be a deadly weapon.
 

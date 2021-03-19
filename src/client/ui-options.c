@@ -5,7 +5,7 @@
  * Copyright (c) 1997-2000 Robert A. Koeneke, James E. Wilson, Ben Harrison
  * Copyright (c) 2007 Pete Mack
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -132,6 +132,50 @@ static bool option_toggle_handle(struct menu *m, const ui_event *event, int oid)
             if (!(m->flags == MN_NO_TAGS))
                 option_set(player->opts.opt, option_name(oid), !player->opts.opt[oid]);
         }
+        else if (event->key.code == 's' || event->key.code == 'S')
+        {
+            /* Hack -- birth options can not be saved after birth */
+            if (!(m->flags == MN_NO_TAGS))
+            {
+                struct keypress dummy;
+
+                screen_save();
+                if (options_save_custom_birth(player->opts.opt))
+                    get_com("Successfully saved. Press any key to continue.", &dummy);
+                else
+                    get_com("Save failed. Press any key to continue.", &dummy);
+                screen_load(false);
+            }
+        }
+        else if (event->key.code == 'r' || event->key.code == 'R')
+        {
+            /* Hack -- birth options can not be restored after birth */
+            if (!(m->flags == MN_NO_TAGS))
+            {
+                screen_save();
+                if (options_restore_custom_birth(player->opts.opt))
+                {
+                    screen_load(false);
+                    menu_refresh(m, false);
+                }
+                else
+                {
+                    struct keypress dummy;
+
+                    get_com("Save failed. Press any key to continue.", &dummy);
+                    screen_load(false);
+                }
+            }
+        }
+        else if (event->key.code == 'm' || event->key.code == 'M')
+        {
+            /* Hack -- birth options can not be reset after birth */
+            if (!(m->flags == MN_NO_TAGS))
+            {
+                options_reset_birth(player->opts.opt);
+                menu_refresh(m, false);
+            }
+        }
         else if (event->key.code == '?')
         {
             /*
@@ -194,7 +238,11 @@ static void option_toggle_menu(const char *name, int page)
         m->flags = MN_NO_TAGS;
     }
     else if (page == OP_BIRTH + 10)
+    {
+        m->prompt = "Set option (y/n/t), 's' to save, 'r' to restore, 'm' to reset, '?' for help";
+        m->cmd_keys = "?YyNnTtSsRrMm";
         page -= 10;
+    }
 
     /* For this particular menu */
     m->title = name;
@@ -472,7 +520,22 @@ static void ui_keymap_query(const char *title, int row)
 }
 
 
-static void ui_keymap_create(const char *title, int row)
+#define KEYMAP_CREATE_MANUAL    1
+#define KEYMAP_CREATE_ACTION    2
+#define KEYMAP_CREATE_ITEM      3
+#define KEYMAP_CREATE_SPELL     4
+
+
+static bool obj_is_macroable(struct player *p, const struct object *obj)
+{
+    /* Hack -- must be identified to avoid leaking flavors! */
+    if (!obj->info_xtra.identified) return false;
+
+    return (obj_is_useable(p, obj) || tval_is_ammo(obj) || obj_can_wear(p, obj));
+}
+
+
+static void keymap_create(const char *title, int kmode)
 {
     bool done = false;
     size_t n = 0;
@@ -511,6 +574,136 @@ static void ui_keymap_create(const char *title, int row)
     esc.code = ESCAPE;
     esc.mods = 0;
     keymap_buffer[n++] = esc;
+
+    if (kmode == KEYMAP_CREATE_ACTION)
+    {
+        struct cmd_info *cmd;
+
+        screen_save();
+        clear_from(0);
+        cmd = textui_action_menu_choose();
+
+        if (!cmd)
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        command_as_keystroke(cmd->key[mode], keymap_buffer, &n);
+        screen_load(false);
+    }
+
+    if (kmode == KEYMAP_CREATE_ITEM)
+    {
+        struct object *obj;
+        unsigned char cmd;
+
+        screen_save();
+        clear_from(0);
+        if (!get_item(&obj, "Select Item: ", NULL, CMD_NULL, obj_is_macroable,
+            (USE_EQUIP | USE_INVEN | USE_QUIVER | USE_FLOOR)))
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        cmd = command_by_item(obj, mode);
+        if (!cmd)
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        item_as_keystroke(obj, cmd, keymap_buffer, &n);
+        screen_load(false);
+    }
+
+    if (kmode == KEYMAP_CREATE_SPELL)
+    {
+        int spell, book;
+        unsigned char cmd;
+        spell_flags flag;
+        bool project = false;
+
+        screen_save();
+        clear_from(0);
+
+        /* Use a ghost ability */
+        if (player->ghost && !player_can_undead(player))
+            book = 0;
+
+        /* Cast a monster spell */
+        else if (player_has(player, PF_MONSTER_SPELLS))
+        {
+            int chosen_page;
+            char tmp[NORMAL_WID];
+
+            /* Number of pages */
+            int page = spell_count_pages();
+
+            /* Forms with no spells */
+            if (!page)
+            {
+                Term_event_push(&ea);
+                screen_load(false);
+                return;
+            }
+
+            /* Pick a page */
+            strnfmt(tmp, sizeof(tmp), "Select Page (1-%d): ", page);
+            chosen_page = get_quantity(tmp, page);
+            if (!chosen_page)
+            {
+                Term_event_push(&ea);
+                screen_load(false);
+                return;
+            }
+
+            book = chosen_page - 1;
+        }
+
+        /* Cast a spell from a book */
+        else
+        {
+            struct object *book_obj;
+
+            if (!get_item(&book_obj, "Select Book: ", NULL, CMD_NULL, obj_can_cast_from,
+                (USE_INVEN | USE_FLOOR | BOOK_TAGS)))
+            {
+                Term_event_push(&ea);
+                screen_load(false);
+                return;
+            }
+
+            book = book_obj->info_xtra.bidx;
+        }
+
+        spell = get_spell(book, book_info[book].realm->verb, spell_okay_to_cast);
+
+        /* No spell selected */
+        if (spell == -1)
+        {
+            Term_event_push(&ea);
+            screen_load(false);
+            return;
+        }
+
+        /* Can this spell be projected? */
+        flag = book_info[book].spell_info[spell].flag;
+        if (flag.proj_attr && get_check("Project spell? "))
+        {
+            cmd = cmd_lookup_key(CMD_PROJECT, mode);
+            project = true;
+        }
+        else
+            cmd = cmd_lookup_key(CMD_CAST, mode);
+
+        spell_as_keystroke(book, spell, project, cmd, keymap_buffer, &n);
+        screen_load(false);
+    }
 
     /* Get an encoded action, with a default response */
     while (!done)
@@ -588,6 +781,12 @@ static void ui_keymap_create(const char *title, int row)
         ke = inkey_ex();
         if (is_abort(ke)) Term_event_push(&ea);
     }
+}
+
+
+static void ui_keymap_create(const char *title, int row)
+{
+    keymap_create(title, KEYMAP_CREATE_MANUAL);
 }
 
 
@@ -737,6 +936,27 @@ static void keymap_browse_hook(int oid, void *db, const region *loc)
 }
 
 
+static void ui_keymap_command(const char *title, int row)
+{
+    /* Enter a new action (via menu) */
+    keymap_create(title, KEYMAP_CREATE_ACTION);
+}
+
+
+static void ui_keymap_item(const char *title, int row)
+{
+    /* Enter a new action (via items) */
+    keymap_create(title, KEYMAP_CREATE_ITEM);
+}
+
+
+static void ui_keymap_spell(const char *title, int row)
+{
+    /* Enter a new action (spell) */
+    keymap_create(title, KEYMAP_CREATE_SPELL);
+}
+
+
 static struct menu *keymap_menu;
 static menu_action keymap_actions[] =
 {
@@ -745,7 +965,10 @@ static menu_action keymap_actions[] =
     {0, 0, "Query a keymap", ui_keymap_query},
     {0, 0, "Create a keymap", ui_keymap_create},
     {0, 0, "Remove a keymap", ui_keymap_remove},
-    {0, 0, "Browse keymaps", ui_keymap_browse}
+    {0, 0, "Browse keymaps", ui_keymap_browse},
+    {0, 0, "Keymap by command", ui_keymap_command},
+    {0, 0, "Keymap by item", ui_keymap_item},
+    {0, 0, "Keymap by spell", ui_keymap_spell}
 };
 
 
@@ -1018,27 +1241,44 @@ static void do_cmd_delay(const char *name, int row)
  */
 static void do_cmd_hp_warn(const char *name, int row)
 {
-    int res;
-    char tmp[2] = "";
     ui_event ea = EVENT_ABORT;
-
-    strnfmt(tmp, sizeof(tmp), "%i", player->opts.hitpoint_warn);
+    bool done = false;
 
     screen_save();
 
     /* Prompt */
     prt("Command: Hitpoint Warning", 20, 0);
 
-    prt(format("Current hitpoint warning: %d (%d%%)",
-        player->opts.hitpoint_warn, player->opts.hitpoint_warn * 10), 22, 0);
-    prt("New hitpoint warning (0-9): ", 21, 0);
+    /* Get a new value */
+    while (!done)
+    {
+        struct keypress cx;
 
-    /* Ask the user for a string */
-    res = askfor_ex(tmp, sizeof(tmp), askfor_aux_numbers, false);
+        prt(format("Current hitpoint warning: %d (%d%%)",
+            player->opts.hitpoint_warn, player->opts.hitpoint_warn * 10), 22, 0);
+        prt("New hitpoint warning (0-9): ", 21, 0);
 
-    /* Process input */
-    if (!res) player->opts.hitpoint_warn = (byte)strtoul(tmp, NULL, 0);
-    else if (res == 1) Term_event_push(&ea);
+        cx = inkey();
+        done = true;
+        if (cx.code == '0') player->opts.hitpoint_warn_toggle = 0;
+        if (isdigit((unsigned char)cx.code)) player->opts.hitpoint_warn = D2I(cx.code);
+        else if (cx.code == '=') player->opts.hitpoint_warn = 10; /* 100% */
+        else if (cx.code == '-')
+        {
+            /* Toggle between last value and 0% */
+            bool on = ((player->opts.hitpoint_warn > 0)? true: false);
+
+            player->opts.hitpoint_warn_toggle = (on? player->opts.hitpoint_warn:
+                player->opts.hitpoint_warn_toggle);
+            player->opts.hitpoint_warn = (on? 0: player->opts.hitpoint_warn_toggle);
+        }
+        else if (cx.code == ESCAPE) Term_event_push(&ea);
+        else
+        {
+            bell("Illegal hitpoint warning!");
+            done = false;
+        }
+    }
 
     screen_load(false);
 }
@@ -1726,7 +1966,7 @@ static int ignore_collect_kind(int tval, ignore_choice **ch)
 
         /* Do not display the artifact base kinds in this list */
         artifact = (kf_has(kind->kind_flags, KF_INSTA_ART) || kf_has(kind->kind_flags, KF_QUEST_ART));
-        if (player->obj_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
+        if (player->kind_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
         {
             choice[num].kind = kind;
             choice[num++].aware = true;
@@ -1849,7 +2089,7 @@ static int ignore_collect_kind_extra(ignore_choice **ch)
 
         /* Do not display the artifact base kinds in this list */
         artifact = (kf_has(kind->kind_flags, KF_INSTA_ART) || kf_has(kind->kind_flags, KF_QUEST_ART));
-        if (player->obj_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
+        if (player->kind_aware[kind->kidx] && player->kind_everseen[kind->kidx] && !artifact)
         {
             choice[num].kind = kind;
             choice[num++].aware = true;
@@ -2052,6 +2292,7 @@ static menu_action option_actions[] =
     {0, 'a', "User interface options", option_toggle_menu},
     {0, 'b', "MAngband options", option_toggle_menu},
     {0, 'c', "Birth (difficulty) options", option_toggle_menu},
+    {0, 'e', "Advanced options", option_toggle_menu},
     {0, 'w', "Subwindow setup", do_cmd_options_win},
     {0, 'i', "Item ignoring setup", do_cmd_options_item},
     {0, 0, NULL, NULL},
@@ -2136,4 +2377,10 @@ const char *ignore_name_for_type(ignore_type_t type)
 const char *quality_name_for_value(byte value)
 {
     return quality_values[value].name;
+}
+
+
+void do_cmd_keymaps_shortcut(void)
+{
+    do_cmd_keymaps("", 0);
 }

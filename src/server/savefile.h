@@ -27,6 +27,7 @@ extern void wr_s32b(s32b v);
 extern void wr_hturn(hturn* pv);
 extern void wr_loc(struct loc *l);
 extern void wr_string(const char *str);
+extern void wr_quark(quark_t v);
 
 /* Reading bits */
 extern void rd_byte(byte *ip);
@@ -38,6 +39,7 @@ extern void rd_s32b(s32b *ip);
 extern void rd_hturn(hturn *ip);
 extern void rd_loc(struct loc *l);
 extern void rd_string(char *str, int max);
+extern void rd_quark(quark_t *ip);
 extern void strip_bytes(int n);
 extern void strip_string(int max);
 

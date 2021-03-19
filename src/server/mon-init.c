@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison
  * Copyright (c) 2011 noz
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -935,6 +935,19 @@ static enum parser_error parse_mon_spell_save_message(struct parser *p)
 }
 
 
+static enum parser_error parse_mon_spell_near_message(struct parser *p)
+{
+    struct monster_spell *s = parser_priv(p);
+    struct monster_spell_level *l;
+
+    my_assert(s);
+    l = s->level;
+    while (l->next) l = l->next;
+    l->near_message = string_append(l->near_message, parser_getstr(p, "text"));
+    return PARSE_ERROR_NONE;
+}
+
+
 static struct parser *init_parse_mon_spell(void)
 {
     struct parser *p = parser_new();
@@ -956,6 +969,7 @@ static struct parser *init_parse_mon_spell(void)
     parser_reg(p, "message-invis str text", parse_mon_spell_blind_message);
     parser_reg(p, "message-miss str text", parse_mon_spell_miss_message);
     parser_reg(p, "message-save str text", parse_mon_spell_save_message);
+    parser_reg(p, "message-near str text", parse_mon_spell_near_message);
     return p;
 }
 
@@ -994,6 +1008,7 @@ static void cleanup_mon_spell(void)
             string_free(level->blind_message);
             string_free(level->miss_message);
             string_free(level->save_message);
+            string_free(level->near_message);
             mem_free(level);
             level = next_level;
         }

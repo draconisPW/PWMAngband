@@ -3,7 +3,7 @@
  * Purpose: Monster creation / placement code.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1174,7 +1174,7 @@ static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *m
     for (j = 0; j < number; j++)
     {
         if (gold_ok && (!item_ok || magik(50)))
-            obj = make_gold(p, level, "any");
+            obj = make_gold(p, c, level, "any");
         else
         {
             obj = make_object(p, c, level, good, great, extra_roll, NULL, 0);
@@ -1267,7 +1267,7 @@ void mon_create_mimicked_object(struct player *p, struct chunk *c, struct monste
         level = MAX((mon->level + object_level(&c->wpos)) / 2, mon->level);
         level = MIN(level, 100);
 
-        obj = make_gold(p, level, kind->name);
+        obj = make_gold(p, c, level, kind->name);
     }
     else
     {
@@ -1646,6 +1646,10 @@ static bool place_new_monster_one(struct player *p, struct chunk *c, struct loc 
 
     /* Update the monster */
     update_mon(square_monster(c, grid), c, true);
+
+#ifdef DEBUG_MODE
+    cheat(format("+m %s", mon->race->name));
+#endif
 
     /* Success */
     return true;

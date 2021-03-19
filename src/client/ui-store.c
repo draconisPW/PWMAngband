@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Robert A. Koeneke, James E. Wilson, Ben Harrison
  * Copyright (c) 1998-2014 Angband developers
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -564,17 +564,9 @@ static bool store_process_command_key(struct keypress kp)
             break;
         }
 
-        case 'i':
-        {
-            do_cmd_inven();
-            break;
-        }
-
-        case '|':
-        {
-            do_cmd_quiver();
-            break;
-        }
+        case 'i': do_cmd_inven(); break;
+        case '|': do_cmd_quiver(); break;
+        case KTRL('E'): toggle_inven_equip(); break;
 
         default:
         {

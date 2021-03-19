@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, Skirmantas Kligys, Robert Ruehlmann,
  * and others
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1189,10 +1189,10 @@ static void term_change_font(term_data *td)
     char tmp[MSG_LEN] = "";
 
     /* Extract a default if possible */
-    if (td->font_file) my_strcpy(tmp, td->font_file, sizeof(tmp));
+    if (td->font_file) strnfmt(tmp, MSG_LEN, "%s\\%s", ANGBAND_DIR_FONTS, td->font_file);
 
     /* No default? Let's build it */
-    if (STRZERO(tmp)) strnfmt(tmp, MSG_LEN, "%s%s", ANGBAND_DIR_FONTS, "\\*.fon");
+    if (STRZERO(tmp)) strnfmt(tmp, MSG_LEN, "%s\\*.fon", ANGBAND_DIR_FONTS);
 
     /* Resolve absolute path */
     if (_fullpath(fullFileName, tmp, 2048) == NULL)
@@ -4234,10 +4234,27 @@ static LRESULT APIENTRY SubClassFunc(HWND hWnd, UINT Message, WPARAM wParam, LPA
     char pmsgbuf[1000]; /* overkill */
 
     /* Allow ESCAPE to return focus to main window. */
-    if ((Message == WM_KEYDOWN) && (wParam == VK_ESCAPE))
+    if (Message == WM_KEYDOWN)
     {
-        unset_chat_focus();
-        return 0;
+        if (wParam == VK_ESCAPE)
+        {
+            unset_chat_focus();
+            return 0;
+        }
+
+        /* PGUP */
+        if (wParam == 33)
+        {
+            cmd_chat_cycle(-1);
+            return 0;
+        }
+
+        /* PGDN */
+        if (wParam == 34)
+        {
+            cmd_chat_cycle(+1);
+            return 0;
+        }
     }
 
     if (Message == WM_CHAR)

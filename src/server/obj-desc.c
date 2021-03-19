@@ -3,7 +3,7 @@
  * Purpose: Create object name descriptions
  *
  * Copyright (c) 1997 - 2007 Angband contributors
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -539,7 +539,7 @@ static size_t obj_desc_inscrip(struct player *p, const struct object *obj, char 
 static size_t obj_desc_aware(struct player *p, const struct object *obj, char *buf, size_t max,
     size_t end)
 {
-    if (p && !p->obj_aware[obj->kind->kidx]) strnfcat(buf, max, &end, " {unseen}");
+    if (p && !p->kind_aware[obj->kind->kidx]) strnfcat(buf, max, &end, " {unseen}");
     else if (obj->curses) strnfcat(buf, max, &end, " {cursed}");
 
     return end;

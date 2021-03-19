@@ -3,7 +3,7 @@
  * Purpose: Attacks (both throwing and melee) by the player
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -145,12 +145,13 @@ static bool is_debuffed(struct source *target)
     if (target->monster)
     {
         return (target->monster->m_timed[MON_TMD_CONF] || target->monster->m_timed[MON_TMD_HOLD] ||
+            target->monster->m_timed[MON_TMD_FEAR] ||
             target->monster->m_timed[MON_TMD_STUN] || target->monster->m_timed[MON_TMD_BLIND]);
     }
     if (target->player)
     {
         return (target->player->timed[TMD_CONFUSED] || target->player->timed[TMD_PARALYZED] ||
-            target->player->timed[TMD_BLIND]);
+            player_of_has(target->player, OF_AFRAID) || target->player->timed[TMD_BLIND]);
     }
     return false;
 }

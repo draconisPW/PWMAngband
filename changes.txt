@@ -16,12 +16,21 @@ User interface
 
 Angband 4.2.x:
 
--
+- Added commands to birth option screen to save and restore custom birth options
 
 MAngband 1.5.x:
 
-- Add possibility to macro by item names
+- Add possibility to macro by (identified) item names
 - Add version number to "incompatible client version" error message
+- Enter and leave query-item-by-name mode via quote symbol
+- Add possibility to macro by spell names
+- Macro Action Generator (3 new options to keymap screen)
+- Change the way topline message is displayed
+- Add "wrap_messages" option to word-wrap long messages in sub-windows
+- New option: Compare equipment when examining items
+- Add Ctrl+E toggle_inven_equip command from V
+- Add some shared monster messages
+- Hitpoint warning toggle hotkey
 
 PWMAngband:
 
@@ -33,6 +42,25 @@ PWMAngband:
   server option
 - Sort killed list (for polymorphing) from highest to lowest level
 - Display forms that are 50%/75% learnt in orange/yellow on the killed list
+- Buying house command moved to 'H' (original keyset) and '£' (roguelike keyset)
+- Implement the '/house' chat command to purchase a house
+- Allow '~xxx' inscription along 'for sale xxx' to price items in player shops
+- Bring back '%' command as "Interact with keymaps" and implement the '/time'
+  chat command to display current time
+- SDL client: allow fonts to be loaded from "xxx.FON" files and raise the
+  maximum number of fonts to 60
+- Simplify food description
+- Simplify Dragon's Breath description
+- SDL client: implement support for OGG files
+- Add dungeon max level info to the visited dungeon list
+- Remove redundant "Attempting to uncurse it may destroy it." message when
+  inspecting a "fragile" object
+- Remove disturb_faint option
+- Allow more smileys in chat messages
+- Reverse order of "you are wielding" and "you were wielding" messages when
+  swapping items
+- Split MAngband options submenu into MAngband options and Advanced options
+- Add option to confirm recall when recalling out of non-reentrable dungeon
 
 Gameplay changes
 ----------------
@@ -40,6 +68,8 @@ Gameplay changes
 Angband 4.2.x:
 
 - Allow inscribed throwing weapons to be quivered
+- Blackguard tweaks
+- Nerf to all powerful modifiers
 
 MAngband 1.5.x:
 
@@ -48,6 +78,18 @@ MAngband 1.5.x:
 - Fix DM_NEVER_DISTURB
 - Allow filling empty bottles from water tiles
 - Make hostile visible players prevent running
+- Disable banishment in dwarven halls
+- Add Acenoid's vaults
+- Change House Foundation allocation/rarity
+- Do not disturb after being hit by a non-threatening projected spell
+- Allow players to drop vegetables on FEAT_CROP terrain to restrict it to that
+  vegetable only
+- Allow players to burn crops to turn them back to random FEAT_CROP terrain
+  again
+- Refactor crop growth functions to allow spontaneous growth on allocated
+  wilderness levels
+- Fix starvation auto-kick
+- Apply "worthless" to enchanted items with store (or mixed) origins only
 
 PWMAngband:
 
@@ -60,6 +102,26 @@ PWMAngband:
 - Give +1 moves every 10 speed instead of +5 speed to shapechangers under
   level 20
 - Halve the energy gained from extra moves
+- Add option to avoid getting disturbed when effects end
+- Add possible direction choice for scrolls and staves
+- Allow all alter/teleport effects to be used on items
+- Reduce chance of getting ESP_XXX when adding SLAY_XXX on a randart
+- Nerf Black Rings of Power
+- Rename "moves" to "movement speed" and make the modifier act like speed for
+  movement
+- Change no teleportation on gauntlet levels to limited teleportation
+  (10 squares)
+- Increase +mana modifier on mage staves, cap mana bonus at +10
+- Move Plasma Blast to book 4 and Disruption Shield to book 5
+- New dungeon: Fallen Gondolin (boss: Maeglin, the Traitor of Gondolin)
+- Add max level on race/class brands and slays
+- Allow any other value than 0 and 1 for the LIGHT_LEVEL effect to just
+  lighten up and magic map the level without revealing objects
+- Add LIMITED_TELE object flag
+- Give mage staves regeneration and elven staves see invisible
+- Remove NO_STORES server option
+- Rename NO_SELLING server option to LIMITED_STORES, use an integer value
+  to handle disabling selling completely and restricting the use of stores/home
 
 Bugs fixed
 ----------
@@ -68,6 +130,9 @@ Angband 4.2.x:
 
 - Adjust size of gauntlet levels
 - Stop SMASH_WALL removing floor features
+- Stop quest artifacts being stealable
+- Ensure grids on the target path are hit by projections in project()
+- Make SMASH_WALL destroy decoys
 
 MAngband 1.5.x:
 
@@ -75,18 +140,38 @@ MAngband 1.5.x:
 - Open correct directory when selecting fonts
 - Stop allocating too much font resources
 - Make sure player-player visibility is refreshed when changing level
+- Fix message truncation in windows client
+- Pluralize message when trying to aim an empty stack of wands/use an empty
+  stack of staves
 
 PWMAngband:
 
 - Fix crash when quitting GCU client in debug mode
 - Fix lag bar under Linux
+- Fix crash when calling make_gold() with NULL player parameter
+- Forget memory of the old level when a player that saved during day connects
+  back during night (or vice versa)
+- Respawn NO_DEATH monsters every dawn if they somehow disappeared
+- Fix crash in floor_carry() when player pointer is not defined
+- Fix description of potions of surprise and mushrooms of shadows
+- Fix description of scraps of flesh
+- Add descriptions for (almost) all summons in summon.txt
+- Fix and simplify summon description (remove hardcoded reference to 1d3)
+- Fix enchant scrolls description
+- Fix crash in process_monsters when mon->closest_player is dead
+- Fix weight decrease when wielding from a stack of inventory items
+- Fix Linux code not saving savefiles
 
 Coding changes
 --------------
 
 Angband 4.2.x:
 
--
+- Make dungeon profile selection less error-prone
+- Added a debugging command to dump the current level as an HTML file
+- Slightly tightened shape change logic
+- Account for throwing weapons in the quiver within pack_slots_used() and
+  quiver_absorb_num()
 
 MAngband 1.5.x:
 
@@ -94,14 +179,33 @@ MAngband 1.5.x:
 - Collapse "mangclient_xxx.ini" into "mangclient.ini" (sdl + gcu)
 - Add "instance_closed" option
 - Fix some really obvious warnings
+- Dump each item/monster/vault allocation to #cheat channel in debug mode
+- Ensure old players are not placed into newly created parties with colliding
+  party ids
+- Write artifact ownership to server savefile
+- Rename "obj_aware" into "kind_aware" and "obj_tried" into "kind_tried"
+- Add 'conf_done' destructor
+- Add more hacks to vstrnfmt
 
 PWMAngband:
 
 - Change default FPS from 1 to 50
+- KEYMAP_ACTION_MAX increased from 20 to 30
+- Move message truncation from server to client
+- Add paranoia check to avoid walking out of bounds
+- Add pre-processing to chat messages to look for '/' commands
+- Ensure that Dragon and Hydra characters have the proper race when logging
+- Added simplified and alternate versions of "monster" directive in font-xxx.prf
+  files to specify default attribute (monster-char) or attribute by symbol
+  (monster-attr)
+- Add constants for depth where labyrinths start to be generated
+  unlit/unknown/with hard walls
+- Re-enable signal handling on Linux
 
 Compilation
 -----------
 
-- Update help
 - USE_NCURSES define
 - Compiling with Embarcadero C++ 7.20
+- Update docs for option customization
+- Remove Necklace of the Eye support

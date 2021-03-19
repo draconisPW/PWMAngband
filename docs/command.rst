@@ -683,7 +683,7 @@ Player House Commands
 
 ..
 
-Buy a house ('^E')
+Buy a house ('H') or Buy a house ('£')
   Allows you to purchase a house to store extra objects once your inventory is
   full. You must stand in front of the house door, outside of the house to do
   so. Use the same command to sell a house once you don't have any use for it
@@ -732,9 +732,9 @@ Display connected players (``@``) or Display connected players ('^V')
 
 ..
 
-Display current time (``%``)
-  This command allows you to see what time it is on server. Useful to keep track
-  of sunrise/sunset.
+Interact with keymaps (``%``)
+  This command allows you to interact with kemaps. Same as pressing '='
+  then 'k'.
 
 ..
 
@@ -821,6 +821,12 @@ Identify monster (``/``)
 
 Extra Commands
 --------------
+
+..
+
+Toggle Choice Window ('^E')
+  Toggles the display in any sub-windows (if available) which are
+  displaying your inventory or equipment.
 
 ..
 

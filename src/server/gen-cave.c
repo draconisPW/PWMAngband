@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1656,13 +1656,13 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     int w = 51 + randint0(wpos->depth / 10) * 2;
 
     /* Most labyrinths are lit */
-    bool lit = ((randint0(wpos->depth) < z_info->lab_depth) || (randint0(2) < 1));
+    bool lit = ((randint0(wpos->depth) < z_info->lab_depth_lit) || (randint0(2) < 1));
 
     /* Many labyrinths are known */
-    bool known = (lit && (randint0(wpos->depth) < z_info->lab_depth));
+    bool known = (lit && (randint0(wpos->depth) < z_info->lab_depth_known));
 
     /* Most labyrinths have soft (diggable) walls */
-    bool soft = ((randint0(wpos->depth) < 35) || (randint0(3) < 2));
+    bool soft = ((randint0(wpos->depth) < z_info->lab_depth_soft) || (randint0(3) < 2));
 
     /* Enforce minimum dimensions */
     h = MAX(h, min_height);
@@ -4224,9 +4224,9 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     line2 = line1 + gauntlet->width;
 
     /* Set the movement and mapping restrictions */
-    generate_mark(left, 0, 0, left->height - 1, left->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(left, 0, 0, left->height - 1, left->width - 1, SQUARE_LIMITED_TELE);
     generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_MAP);
-    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_LIMITED_TELE);
 
     /* Open the ends of the gauntlet */
     loc_init(&grid, 0, randint1(gauntlet->height - 2));

@@ -7,7 +7,9 @@
 #define INCLUDED_CONF_H
 
 extern void conf_init(void* param);
+extern void conf_done(void);
 extern void conf_save(void);
+extern void conf_default_save(void);
 extern bool conf_section_exists(const char *section);
 extern const char *conf_get_string(const char *section, const char *name, const char *default_value);
 extern s32b conf_get_int(const char *section, const char *name, s32b default_value);

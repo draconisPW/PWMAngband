@@ -3,7 +3,7 @@
  * Purpose: Character screens and dumps
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -294,6 +294,7 @@ static void write_character_dump(ang_file *fff, void *data)
             case OP_INTERFACE: title = "User interface"; break;
             case OP_MANGBAND: title = "MAngband"; break;
             case OP_BIRTH: title = "Birth"; break;
+            case OP_ADVANCED: title = "Advanced"; break;
         }
 
         file_putf(fff, "  [%s]\n\n", title);

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -236,12 +236,12 @@ static enum parser_error parse_profile_min_level(struct parser *p)
 }
 
 
-static enum parser_error parse_profile_cutoff(struct parser *p)
+static enum parser_error parse_profile_alloc(struct parser *p)
 {
     struct cave_profile *c = parser_priv(p);
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
-    c->cutoff = parser_getint(p, "cutoff");
+    c->alloc = parser_getint(p, "alloc");
 
     return PARSE_ERROR_NONE;
 }
@@ -261,7 +261,7 @@ static struct parser *init_parse_profile(void)
     parser_reg(p,
         "room sym name int rating int height int width int level int pit int rarity int cutoff",
         parse_profile_room);
-    parser_reg(p, "cutoff int cutoff", parse_profile_cutoff);
+    parser_reg(p, "alloc int alloc", parse_profile_alloc);
     parser_reg(p, "min-level int min", parse_profile_min_level);
 
     return p;
@@ -941,8 +941,8 @@ static bool arena_check(struct worldpos *wpos)
 static const struct cave_profile *choose_profile(struct worldpos *wpos)
 {
     const struct cave_profile *profile = NULL;
-    int moria_cutoff = find_cave_profile("moria")->cutoff;
-    int labyrinth_cutoff = find_cave_profile("labyrinth")->cutoff;
+    int moria_alloc = find_cave_profile("moria")->alloc;
+    int labyrinth_alloc = find_cave_profile("labyrinth")->alloc;
 
     /* Make the profile choice */
     if (wpos->depth > 0)
@@ -955,31 +955,28 @@ static const struct cave_profile *choose_profile(struct worldpos *wpos)
             profile = find_cave_profile("arena");
         else if (cavern_check(wpos))
             profile = find_cave_profile("cavern");
-        else if (labyrinth_check(wpos) && (labyrinth_cutoff >= -1))
+        else if (labyrinth_check(wpos) && (labyrinth_alloc > 0 || labyrinth_alloc == -1))
             profile = find_cave_profile("labyrinth");
-        else if ((wpos->depth >= 10) && (wpos->depth < 40) && one_in_(40) && (moria_cutoff >= -1))
+        else if ((wpos->depth >= 10) && (wpos->depth < 40) && one_in_(40) &&
+            (moria_alloc > 0 || moria_alloc == -1))
+        {
             profile = find_cave_profile("moria");
+        }
         else
         {
-            int tries = 100;
+            int total_alloc = 0;
+            int i;
 
-            while (tries)
+            for (i = 0; i < z_info->profile_max; i++)
             {
-                int pick = randint0(200);
-                int i;
+                struct cave_profile *test_profile = &cave_profiles[i];
 
-                for (i = 0; i < z_info->profile_max; i++)
-                {
-                    profile = &cave_profiles[i];
-                    if (wpos->depth < profile->min_level) continue;
-                    if (profile->cutoff > pick) break;
-                }
-
-                if (profile && (i < z_info->profile_max)) break;
-                tries--;
+                if (test_profile->alloc <= 0 || wpos->depth < test_profile->min_level) continue;
+                total_alloc += test_profile->alloc;
+                if (randint0(total_alloc) < test_profile->alloc) profile = test_profile;
             }
 
-            if (!profile || !tries) profile = find_cave_profile("classic");
+            if (!profile) profile = find_cave_profile("classic");
         }
     }
     else if (in_base_town(wpos))
@@ -1285,7 +1282,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
 
     /* Allocate new known level, light it if requested */
     chunk_list_add(chunk);
-    if (p && chunk->light_level) wiz_light(p, chunk, false);
+    if (p && chunk->light_level) wiz_light(p, chunk, 0);
 
     /* Mark artifacts as "generated" */
     if (p) set_artifacts_generated(p, chunk);

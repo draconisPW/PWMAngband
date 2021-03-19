@@ -3,7 +3,7 @@
  * Purpose: Helper classes for the display of typed data
  *
  * Copyright (c) 2007 Angband Developers
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -25,7 +25,7 @@
  * Hack -- the special Angband "System Suffix"
  * This variable is used to choose an appropriate "pref-xxx" file
  */
-const char *ANGBAND_SYS;
+const char *ANGBAND_SYS = "xxx";
 
 
 /*

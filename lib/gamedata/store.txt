@@ -82,6 +82,10 @@ buy:flask
 buy:digger
 buy:crop
 buy:horn
+buy:cloak
+buy:shot
+buy:bolt
+buy:arrow
 
 # Armoury
 store:Armoury
@@ -259,8 +263,6 @@ buy:ring
 buy:staff
 buy:wand
 buy:rod
-buy:scroll
-buy:potion
 
 # Bookseller
 store:Bookseller

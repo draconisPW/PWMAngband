@@ -341,11 +341,11 @@ struct artifact
     int alloc_min;                  /* Minimum depth (can appear earlier) */
     int alloc_max;                  /* Maximum depth (will NEVER appear deeper) */
     byte created;                   /* Artifact is created */
-    byte owned;                     /* Artifact is owned */
+    s32b owner;                     /* Artifact owner (if any) */
     struct activation *activation;  /* Artifact activation */
     char *alt_msg;
     random_value time;              /* Recharge time (if appropriate) */
-    int base_power;                 /* Artifact power (for randarts) */
+    bool negative_power;            /* Negative power (for randarts) */
 };
 
 /*
@@ -427,6 +427,7 @@ struct object_xtra
     byte stuck;             /* Stuck flag */
     byte known;             /* Known flag */
     byte known_effect;      /* Known effect flag */
+    byte identified;        /* Identified flag */
     byte sellable;          /* Sellable flag */
     byte carry;             /* Carry flag */
     byte quality_ignore;    /* Quality ignoring */
@@ -555,6 +556,7 @@ struct object
     byte attr;                          /* "attr" last used for drawing object */
     s16b decay;                         /* Decay timeout for corpses */
     byte bypass_aware;                  /* Bypasses the "aware" flag */
+    quark_t origin_player;              /* Original owner */
 };
 
 typedef bool (*item_tester)(struct player *, const struct object *);

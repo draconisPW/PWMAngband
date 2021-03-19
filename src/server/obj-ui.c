@@ -3,7 +3,7 @@
  * Purpose: Lists of objects and object pictures
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -28,7 +28,7 @@
  */
 byte object_kind_attr(struct player *p, const struct object_kind *kind)
 {
-    return (p->obj_aware[kind->kidx]? p->k_attr[kind->kidx]: p->d_attr[kind->kidx]);
+    return (p->kind_aware[kind->kidx]? p->k_attr[kind->kidx]: p->d_attr[kind->kidx]);
 }
 
 
@@ -39,7 +39,7 @@ byte object_kind_attr(struct player *p, const struct object_kind *kind)
  */
 char object_kind_char(struct player *p, const struct object_kind *kind)
 {
-    return (p->obj_aware[kind->kidx]? p->k_char[kind->kidx]: p->d_char[kind->kidx]);
+    return (p->kind_aware[kind->kidx]? p->k_char[kind->kidx]: p->d_char[kind->kidx]);
 }
 
 
@@ -281,6 +281,38 @@ bool get_item(struct player *p, byte tester_hook, char *dice_string)
 
 
 /*
+ * Dump yet another object, currently wielded and matching
+ * the wield_slot of reference object.
+ */
+static void compare_object_info(struct player *p, const struct object *obj)
+{
+    struct object *current;
+
+    /* Check for a usable slot */
+    int slot = wield_slot(p, obj);
+
+    if ((slot < 0) || (slot >= p->body.count)) return;
+
+    /* Find object currently equipped in that slot */
+    current = slot_object(p, slot);
+    if ((current != obj) && (obj->tval != TV_RING))
+    {
+        char o_name[NORMAL_WID];
+
+        text_out(p, "\n\n\n");
+        text_out(p, "Currently equipped: ");
+        object_desc(p, o_name, sizeof(o_name), current, ODESC_PREFIX | ODESC_FULL);
+        text_out(p, o_name);
+        if (current)
+        {
+            text_out(p, "\n\n");
+            object_info(p, current, OINFO_NONE);
+        }
+    }
+}
+
+
+/*
  * Display object recall modally and wait for a keypress.
  */
 void display_object_recall_interactive(struct player *p, const struct object *obj, char *header)
@@ -293,6 +325,9 @@ void display_object_recall_interactive(struct player *p, const struct object *ob
 
     /* Dump info into player */
     object_info(p, obj, OINFO_NONE);
+
+    /* Hack -- dump similar wielded object */
+    if (OPT(p, expand_inspect)) compare_object_info(p, obj);
 
     /* Restore height and width of current dungeon level */
     text_out_done(p);

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -669,7 +669,7 @@ void place_gold(struct player *p, struct chunk *c, struct loc *grid, int level, 
     if (!square_canputitem(c, grid)) return;
 
     /* Make some gold */
-    money = make_gold(p, level, "any");
+    money = make_gold(p, c, level, "any");
     set_origin(money, origin, c->wpos.depth, NULL);
 
     /* Give it to the floor */

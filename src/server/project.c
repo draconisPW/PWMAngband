@@ -3,7 +3,7 @@
  * Purpose: The project() function and helpers
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -872,6 +872,8 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
         /* Scan every grid that might possibly be in the blast radius. */
         do
         {
+            bool on_path = false;
+
             /* PWMAngband: BREATH attacks should also be applied to wraithed players */
             bool proj_wall = (origin->target && loc_eq(&origin->target->grid, &iter.cur));
 
@@ -922,6 +924,12 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
             dist_from_centre = distance(&centre, &iter.cur);
             if (dist_from_centre > rad) continue;
 
+            /* Mark grids which are on the projection path */
+            for (i = 0; i < num_path_grids; i++)
+            {
+                if (loc_eq(&iter.cur, &path_grid[i])) on_path = true;
+            }
+
             /* Do we need to consider a restricted angle? */
             if (flg & PROJECT_ARC)
             {
@@ -940,20 +948,15 @@ bool project(struct source *origin, int rad, struct chunk *cv, struct loc *finis
                 tmp = ABS(get_angle_to_grid[n2y][n2x] + rotate) % 180;
                 diff = ABS(90 - tmp);
 
-                /* If difference is greater then that allowed, skip it */
-                if (diff >= (degrees_of_arc + 6) / 4)
-                {
-                    /* ...unless it's on the target path */
-                    for (i = 0; i < num_path_grids; i++)
-                    {
-                        if (loc_eq(&iter.cur, &path_grid[i])) break;
-                    }
-                    if (i == num_path_grids) continue;
-                }
+                /*
+                 * If difference is greater then that allowed, skip it,
+                 * unless it's on the target path
+                 */
+                if ((diff >= (degrees_of_arc + 6) / 4) && !on_path) continue;
             }
 
-            /* Accept all grids in LOS */
-            if (los(cv, &centre, &iter.cur))
+            /* Accept remaining grids if in LOS or on the projection path */
+            if (los(cv, &centre, &iter.cur) || on_path)
             {
                 loc_copy(&blast_grid[num_grids], &iter.cur);
                 distance_to_grid[num_grids] = dist_from_centre;

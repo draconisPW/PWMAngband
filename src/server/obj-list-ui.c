@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Ben Semmler
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -125,7 +125,7 @@ static void object_list_format_section(struct player *p, const object_list_t *li
                     c = list->entries[index].object->kind->d_char;
 
                     if (list->entries[index].object->kind->flavor &&
-                        !(p->obj_aware[list->entries[index].object->kind->kidx] && a && c))
+                        !(p->kind_aware[list->entries[index].object->kind->kidx] && a && c))
                     {
                         a = list->entries[index].object->kind->flavor->d_attr;
                         c = list->entries[index].object->kind->flavor->d_char;

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison
  * Copyright (c) 2007 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1116,10 +1116,6 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
         msg_misc(p, effect->near_begin);
         print_custom_message(p, weapon, new_grade->down_msg, effect->msgt);
         notify = true;
-
-        /* If the player is at full hit points and starving, destroy his connection */
-        if ((idx == TMD_FOOD) && (v < PY_FOOD_FAINT) && (p->chp == p->mhp) && OPT(p, disturb_faint))
-            p->starving = true;
     }
     else if (notify)
     {
@@ -1128,6 +1124,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
         {
             msg_misc(p, effect->near_end);
             print_custom_message(p, weapon, effect->on_end, MSG_RECOVER);
+            if (!OPT(p, disturb_effect_end)) no_disturb = true;
         }
 
         /* Decrementing */

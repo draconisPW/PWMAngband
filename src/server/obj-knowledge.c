@@ -5,7 +5,7 @@
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2009 Brian Bull
  * Copyright (c) 2016 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1240,19 +1240,31 @@ void player_learn_innate(struct player *p)
     /* Brands */
     for (i = 0; i < z_info->brand_max; i++)
     {
-        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
+        if (p->race->brands && p->race->brands[i].brand &&
+            (p->lev >= p->race->brands[i].minlvl) && (p->lev <= p->race->brands[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
-        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
+        }
+        if (p->clazz->brands && p->clazz->brands[i].brand &&
+            (p->lev >= p->clazz->brands[i].minlvl) && (p->lev <= p->clazz->brands[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
+        }
     }
 
     /* Slays */
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
+        if (p->race->slays && p->race->slays[i].slay &&
+            (p->lev >= p->race->slays[i].minlvl) && (p->lev <= p->race->slays[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
-        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
+        }
+        if (p->clazz->slays && p->clazz->slays[i].slay &&
+            (p->lev >= p->clazz->slays[i].minlvl) && (p->lev <= p->clazz->slays[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
+        }
     }
 
     /* Modifiers (other than stats) */
@@ -1873,7 +1885,7 @@ bool object_flavor_is_aware(struct player *p, const struct object *obj)
     /* Pretend aware */
     if (!p) return true;
 
-    return (p->obj_aware[obj->kind->kidx] || obj->bypass_aware);
+    return (p->kind_aware[obj->kind->kidx] || obj->bypass_aware);
 }
 
 
@@ -1887,7 +1899,7 @@ bool object_flavor_was_tried(struct player *p, const struct object *obj)
     /* Pretend tried */
     if (!p) return true;
 
-    return p->obj_tried[obj->kind->kidx];
+    return p->kind_tried[obj->kind->kidx];
 }
 
 
@@ -1904,10 +1916,10 @@ static void object_flavor_aware_aux(struct player *p, struct object *obj, bool s
 
     /* Pretend aware */
     if (!p) return;
-    if (p->obj_aware[obj->kind->kidx]) return;
+    if (p->kind_aware[obj->kind->kidx]) return;
 
     /* Fully aware of the effects */
-    p->obj_aware[obj->kind->kidx] = true;
+    p->kind_aware[obj->kind->kidx] = true;
     if (send) Send_aware(p, obj->kind->kidx);
     apply_autoinscription(p, obj);
 
@@ -1964,7 +1976,7 @@ void object_flavor_tried(struct player *p, struct object *obj)
 {
     my_assert(obj);
 
-    p->obj_tried[obj->kind->kidx] = true;
+    p->kind_tried[obj->kind->kidx] = true;
 }
 
 

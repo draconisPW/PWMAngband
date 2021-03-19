@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2014 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -108,13 +108,13 @@ static int pack_slots_used(struct player *p)
         if (!object_is_equipped(p->body, obj))
         {
             /* Check if it is in the quiver */
-            if (tval_is_ammo(obj))
+            if (tval_is_ammo(obj) || of_has(obj->flags, OF_THROWING))
             {
                 for (i = 0; i < z_info->quiver_size; i++)
                 {
                     if (p->upkeep->quiver[i] == obj)
                     {
-                        quiver_ammo += obj->number;
+                        quiver_ammo += obj->number * (tval_is_ammo(obj)? 1: 5);
                         found = true;
                         break;
                     }
@@ -365,8 +365,11 @@ struct object *gear_object_for_use(struct player *p, struct object *obj, int num
  */
 static int quiver_absorb_num(struct player *p, const struct object *obj)
 {
-    /* Must be ammo */
-    if (tval_is_ammo(obj))
+    bool ammo = tval_is_ammo(obj);
+    bool throwing = of_has(obj->flags, OF_THROWING);
+
+    /* Must be ammo or good for throwing */
+    if (ammo || throwing)
     {
         int i, quiver_count = 0, space_free = 0;
 
@@ -377,12 +380,26 @@ static int quiver_absorb_num(struct player *p, const struct object *obj)
 
             if (quiver_obj)
             {
-                quiver_count += quiver_obj->number;
+                int mult = (tval_is_ammo(quiver_obj)? 1: 5);
+
+                quiver_count += quiver_obj->number * mult;
                 if (object_stackable(p, quiver_obj, obj, OSTACK_PACK))
-                    space_free += z_info->quiver_slot_size - quiver_obj->number;
+                    space_free += z_info->quiver_slot_size - quiver_obj->number * mult;
             }
-            else
+            else if (ammo)
                 space_free += z_info->quiver_slot_size;
+            else if (obj->note)
+            {
+                /*
+                 * Per calc_inventory(), throwing weapons which aren't also ammo will be added to
+                 * the quiver if inscribed to go into an unoccupied slot.
+                 * The inscription test should match what calc_inventory() uses.
+                 */
+                const char *s = strchr(quark_str(obj->note), '@');
+
+                if (s && (s[1] == 'f' || s[1] == 'v') && ((int)(s[2] - '0') == i))
+                    space_free += z_info->quiver_slot_size;
+            }
         }
 
         if (space_free)
@@ -394,7 +411,7 @@ static int quiver_absorb_num(struct player *p, const struct object *obj)
 
             /* Return the number, or the number that will fit */
             space_free = MIN(space_free, z_info->quiver_slot_size - quiver_count);
-            return MIN(obj->number, space_free);
+            return MIN(obj->number, space_free / (tval_is_ammo(obj)? 1: 5));
         }
     }
 
@@ -587,7 +604,7 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
 
     if (message)
     {
-        char o_name[NORMAL_WID];
+        char o_name[120];
 
         object_desc(p, o_name, sizeof(o_name), local_obj, ODESC_PREFIX | ODESC_FULL);
         msg(p, "You have %s (%c).", o_name, gear_to_label(p, local_obj));
@@ -620,7 +637,7 @@ static void know_everything(struct player *p, struct chunk *c)
 /*
  * Wield or wear a single item from the pack or floor
  */
-void inven_wield(struct player *p, struct object *obj, int slot)
+void inven_wield(struct player *p, struct object *obj, int slot, char *message, int len)
 {
     struct object *wielded, *old = p->body.slots[slot].obj;
     const char *fmt;
@@ -641,6 +658,9 @@ void inven_wield(struct player *p, struct object *obj, int slot)
         if (obj->number > 1)
         {
             wielded = gear_object_for_use(p, obj, 1, false, &dummy);
+
+            /* Change the weight */
+            p->upkeep->total_weight += (wielded->number * wielded->weight);
 
             /* The new item needs new gear and known gear entries */
             wielded->next = obj->next;
@@ -694,7 +714,8 @@ void inven_wield(struct player *p, struct object *obj, int slot)
     object_desc(p, o_name, sizeof(o_name), wielded, ODESC_PREFIX | ODESC_FULL);
 
     /* Message */
-    msgt(p, MSG_WIELD, fmt, o_name, I2A(slot));
+    if (message) strnfmt(message, len, fmt, o_name, I2A(slot));
+    else msgt(p, MSG_WIELD, fmt, o_name, I2A(slot));
 
     /* Sticky flag gets a special mention */
     if (of_has(wielded->flags, OF_STICKY))

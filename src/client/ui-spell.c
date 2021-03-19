@@ -3,7 +3,7 @@
  * Purpose: Spell UI handing
  *
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -347,6 +347,27 @@ static int textui_get_spell_from_book(int book, const char *verb, bool (*spell_f
 }
 
 
+static int get_ghost_spell_by_name(void)
+{
+    char buf[NORMAL_WID];
+    int i = 0;
+
+    buf[0] = '\0';
+    prompt_quote_hack = true;
+
+    if (!get_string("Spell name: ", buf, NORMAL_WID) || STRZERO(buf)) return -1;
+
+    /* Check for end of the book */
+    while (book_info[0].spell_info[i].info[0] != '\0')
+    {
+        if (my_stristr(book_info[0].spell_info[i].info, buf)) return i;
+        i++;
+    }
+
+    return -1;
+}
+
+
 /*
  * Interactively select a spell.
  *
@@ -381,6 +402,10 @@ int textui_get_spell(int book, const char *verb, bool (*spell_filter)(int, int))
                 spell = A2I(which.code);
                 if (spell >= num) spell = -1;
             }
+
+            /* Select spell by name */
+            else if (which.code == '"')
+                spell = get_ghost_spell_by_name();
 
             /* Macros are supposed to be accurate */
             if (spell == -1) bell("Illegal spell choice!");
@@ -552,4 +577,83 @@ int textui_obj_cast(int book, int *dir)
 int textui_obj_project(int book, int *dir)
 {
     return textui_obj_cast_aux(book, true, dir);
+}
+
+
+/*
+ * Get spell by name
+ */
+bool get_spell_by_name(int *book, int *spell)
+{
+    char buf[256];
+    char *tok;
+    int i, sn;
+    size_t len;
+    char *prompt = "Spell name: ";
+
+    /* Hack -- show opening quote symbol */
+    if (prompt_quote_hack) prompt = "Spell name: \"";
+
+    buf[0] = '\0';
+    if (!get_string(prompt, buf, NORMAL_WID)) return false;
+
+    /* Hack -- remove final quote */
+    len = strlen(buf);
+    if (len == 0) return false;
+    if (buf[len - 1] == '"') buf[len - 1] = '\0';
+
+    /* Split entry */
+    tok = strtok(buf, "|");
+    while (tok)
+    {
+        if (STRZERO(tok)) continue;
+
+        /* Match against valid items */
+        for (i = 0; i < player->clazz->magic.num_books; i++)
+        {
+            sn = 0;
+
+            while (book_info[i].spell_info[sn].info[0] != '\0')
+            {
+                if (my_stristr(book_info[i].spell_info[sn].info, tok))
+                {
+                    (*book) = i;
+                    (*spell) = sn;
+                    return true;
+                }
+
+                sn++;
+            }
+        }
+        tok = strtok(NULL, "|");
+    }
+
+    return false;
+}
+
+
+int spell_count_pages(void)
+{
+    int page = 0;
+    int i, num;
+
+    /* Number of pages */
+    do
+    {
+        i = 0;
+        num = 0;
+
+        /* Check for end of the book */
+        while (book_info[page].spell_info[i].info[0] != '\0')
+        {
+            /* Spell is available */
+            num++;
+
+            i++;
+        }
+        if (num > 0) page++;
+    }
+    while ((num > 0) && (page < MAX_PAGES));
+
+    return page;
 }

@@ -2,7 +2,7 @@
  * File: netserver.c
  * Purpose: The server side of the network stuff
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1817,7 +1817,8 @@ int Send_rinfo_struct_info(int ind)
 
     for (i = 0; i < (u32b)z_info->r_max; i++)
     {
-        if (Packet_printf(&connp->c, "%s", (r_info[i].name? r_info[i].name: "")) <= 0)
+        if (Packet_printf(&connp->c, "%b%s", r_info[i].d_attr,
+            (r_info[i].name? r_info[i].name: "")) <= 0)
         {
             Destroy_connection(ind, "Send_rinfo_struct_info write error");
             return -1;
@@ -2671,11 +2672,12 @@ int Send_floor(struct player *p, byte num, const struct object *obj, struct obje
     Packet_printf(&connp->c, "%b%b%b", (unsigned)PKT_FLOOR, (unsigned)num, (unsigned)force);
     Packet_printf(&connp->c, "%hu%hu%hd%lu%ld%b%hd", (unsigned)obj->tval, (unsigned)obj->sval,
         obj->number, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->known,
-        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->carry,
-        (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
+        (unsigned)info_xtra->known_effect, (unsigned)info_xtra->identified,
+        (unsigned)info_xtra->carry, (unsigned)info_xtra->quality_ignore,
+        (unsigned)info_xtra->ignored, info_xtra->eidx,
         (unsigned)info_xtra->magic, info_xtra->bidx, (unsigned)info_xtra->throwable);
     Packet_printf(&connp->c, "%s%s%s%s%s", info_xtra->name, info_xtra->name_terse,
         info_xtra->name_base, info_xtra->name_curse, info_xtra->name_power);
@@ -2833,10 +2835,10 @@ int Send_aware(struct player *p, u16b num)
     if (num == z_info->k_max)
     {
         for (i = 0; i < z_info->k_max; i++)
-            Packet_printf(&connp->c, "%b", (unsigned)p->obj_aware[i]);
+            Packet_printf(&connp->c, "%b", (unsigned)p->kind_aware[i]);
     }
     else
-        Packet_printf(&connp->c, "%b", (unsigned)p->obj_aware[num]);
+        Packet_printf(&connp->c, "%b", (unsigned)p->kind_aware[num]);
 
     return 1;
 }
@@ -3119,8 +3121,7 @@ int Send_message(struct player *p, const char *msg, u16b typ)
     if (connp == NULL) return 0;
 
     /* Flush messages */
-    if (msg == NULL)
-        return Packet_printf(&connp->c, "%b", (unsigned)PKT_MESSAGE_FLUSH);
+    if (msg == NULL) return Packet_printf(&connp->c, "%b", (unsigned)PKT_MESSAGE_FLUSH);
 
     /* Clip end of msg if too long */
     my_strcpy(buf, msg, sizeof(buf));
@@ -3145,10 +3146,11 @@ int Send_item(struct player *p, const struct object *obj, int wgt, s32b price,
         price, obj->note, obj->pval, (unsigned)ignore, obj->oidx);
 
     /* Extra info */
-    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
+    Packet_printf(&connp->c, "%b%b%b%b%b%hd%b%b%b%b%b%b%b%hd%b%hd%b", (unsigned)info_xtra->attr,
         (unsigned)info_xtra->act, (unsigned)info_xtra->aim, (unsigned)info_xtra->fuel,
         (unsigned)info_xtra->fail, info_xtra->slot, (unsigned)info_xtra->stuck,
-        (unsigned)info_xtra->known, (unsigned)info_xtra->known_effect, (unsigned)info_xtra->sellable,
+        (unsigned)info_xtra->known, (unsigned)info_xtra->known_effect,
+        (unsigned)info_xtra->identified, (unsigned)info_xtra->sellable,
         (unsigned)info_xtra->quality_ignore, (unsigned)info_xtra->ignored, info_xtra->eidx,
         (unsigned)info_xtra->magic, info_xtra->bidx, (unsigned)info_xtra->throwable);
 
@@ -4167,9 +4169,10 @@ static int Receive_read(int ind)
     struct player *p;
     byte ch;
     s16b item;
+    char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_read read error");
         return n;
@@ -4184,11 +4187,11 @@ static int Receive_read(int ind)
 
         if (has_energy(p, true))
         {
-            do_cmd_read_scroll(p, item);
+            do_cmd_read_scroll(p, item, dir);
             return 2;
         }
 
-        Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
+        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
         return 0;
     }
 
@@ -4237,9 +4240,10 @@ static int Receive_use(int ind)
     struct player *p;
     byte ch;
     s16b item;
+    char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_use read error");
         return n;
@@ -4254,11 +4258,11 @@ static int Receive_use(int ind)
 
         if (has_energy(p, true))
         {
-            do_cmd_use_staff(p, item);
+            do_cmd_use_staff(p, item, dir);
             return 2;
         }
 
-        Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
+        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
         return 0;
     }
 
@@ -5766,8 +5770,8 @@ static void update_birth_options(struct player *p, struct birth_options *options
     if (cfg_limit_stairs == 3) OPT(p, birth_force_descend) = true;
     if (cfg_diving_mode == 3) OPT(p, birth_no_recall) = true;
     if (cfg_no_artifacts) OPT(p, birth_no_artifacts) = true;
-    if (cfg_no_selling) OPT(p, birth_no_selling) = true;
-    if (cfg_no_stores) OPT(p, birth_no_stores) = true;
+    if (cfg_limited_stores) OPT(p, birth_no_selling) = true;
+    if (cfg_limited_stores == 3) OPT(p, birth_no_stores) = true;
     if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
 
     /* Fruit bat mode: not when a Dragon or Hydra */
@@ -6077,9 +6081,11 @@ static int Enter_player(int ind)
         msg(p, "Server has no level feelings.");
     if ((cfg_level_feelings == 1) || (cfg_level_feelings == 2))
         msg(p, "Server has limited level feelings.");
-    if (cfg_no_selling)
+    if (cfg_limited_stores == 1)
+        msg(p, "Server has limited selling.");
+    if (cfg_limited_stores == 2)
         msg(p, "Server is no-selling.");
-    if (cfg_no_stores)
+    if (cfg_limited_stores == 3)
         msg(p, "Server has no stores.");
     if (cfg_no_ghost)
         msg(p, "Server is no-ghost.");
@@ -6108,7 +6114,7 @@ static int Enter_player(int ind)
     p->upkeep->redraw |= (PR_STATE);
 
     /* PWMAngband: give a warning when entering a gauntlet level */
-    if (square_isno_teleport(chunk_get(&p->wpos), &p->grid))
+    if (square_limited_teleport(chunk_get(&p->wpos), &p->grid))
         msgt(p, MSG_ENTER_PIT, "The air feels very still!");
 
     /*

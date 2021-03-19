@@ -5,7 +5,7 @@
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007-9 Andi Sidwell, Chris Carr, Ed Graham, Erik Osheim
  * Copyright (c) 2015 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -701,9 +701,32 @@ static bool get_item_by_name(int *k)
     char buf[256];
     char *tok;
     int i;
+    size_t len;
+    char *prompt = "Item name: ";
+
+    /* Hack -- spellcasting mode (select book by spell) */
+    if (spellcasting)
+    {
+        int sn = -1;
+        bool ok = get_spell_by_name(k, &sn);
+
+        /* Remember spell index */
+        spellcasting_spell = sn;
+
+        /* Don't do any other tests */
+        return ok;
+    }
+
+    /* Hack -- show opening quote symbol */
+    if (prompt_quote_hack) prompt = "Item name: \"";
 
     buf[0] = '\0';
-    if (!get_string("Item name: ", buf, NORMAL_WID)) return false;
+    if (!get_string(prompt, buf, NORMAL_WID)) return false;
+
+    /* Hack -- remove final quote */
+    len = strlen(buf);
+    if (len == 0) return false;
+    if (buf[len - 1] == '"') buf[len - 1] = '\0';
 
     /* Split entry */
     tok = strtok(buf, "|");
@@ -939,80 +962,99 @@ static bool get_item_action(struct menu *menu, const ui_event *event, int oid)
 
     if (event->type == EVT_KBRD)
     {
-        if (key == '/')
+        switch (key)
         {
-            /* Toggle if allowed */
-            if ((i1 <= i2) && (command_wrk != USE_INVEN))
+            case '/':
             {
-                command_wrk = USE_INVEN;
-                newmenu = true;
-            }
-            else if ((e1 <= e2) && (command_wrk != USE_EQUIP))
-            {
-                command_wrk = USE_EQUIP;
-                newmenu = true;
-            }
-            else
-            {
-                bell("Cannot switch item selector!");
+                /* Toggle if allowed */
+                if ((i1 <= i2) && (command_wrk != USE_INVEN))
+                {
+                    command_wrk = USE_INVEN;
+                    newmenu = true;
+                }
+                else if ((e1 <= e2) && (command_wrk != USE_EQUIP))
+                {
+                    command_wrk = USE_EQUIP;
+                    newmenu = true;
+                }
+                else
+                {
+                    bell("Cannot switch item selector!");
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+
+                break;
             }
-        }
 
-        else if (key == '|')
-        {
-            /* No toggle allowed */
-            if (q1 > q2)
+            case '|':
             {
-                bell("Cannot select quiver!");
+                /* No toggle allowed */
+                if (q1 > q2)
+                {
+                    bell("Cannot select quiver!");
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+                else
+                {
+                    /* Toggle to quiver */
+                    command_wrk = USE_QUIVER;
+                    newmenu = true;
+                }
+
+                break;
             }
-            else
+
+            case '-':
             {
-                /* Toggle to quiver */
-                command_wrk = USE_QUIVER;
-                newmenu = true;
+                /* No toggle allowed */
+                if (f1 > f2)
+                {
+                    bell("Cannot select floor!");
+
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+                else
+                {
+                    /* Toggle to floor */
+                    command_wrk = USE_FLOOR;
+                    newmenu = true;
+                }
+
+                break;
             }
-        }
 
-        else if (key == '-')
-        {
-            /* No toggle allowed */
-            if (f1 > f2)
+            case '"':
             {
-                bell("Cannot select floor!");
+                /* Allow '"' to be used as terminator */
+                prompt_quote_hack = true;
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                /* fallthrough */
             }
-            else
-            {
-                /* Toggle to floor */
-                command_wrk = USE_FLOOR;
-                newmenu = true;
-            }
-        }
 
-        else if (key == '@')
-        {
-            int k;
-
-            /* Lookup item by name */
-            if (get_item_by_name(&k))
+            case '@':
             {
-                selection = choice[k].object;
-                return true;
-            }
-            else
-            {
-                bell("Cannot select item!");
+                int k;
 
-                /* Macros are supposed to be accurate */
-                if (hidden) return true;
+                /* Lookup item by name */
+                if (get_item_by_name(&k))
+                {
+                    selection = choice[k].object;
+                    return true;
+                }
+                else
+                {
+                    bell("Cannot select item!");
+
+                    /* Macros are supposed to be accurate */
+                    if (hidden) return true;
+                }
+
+                break;
             }
         }
     }
@@ -1112,7 +1154,7 @@ static struct object *item_menu(cmd_code cmd, int prompt_size, int mode)
         m->selections = "01234567";
     else
         m->selections = lower_case;
-    m->switch_keys = "/|-@";
+    m->switch_keys = "/|-@\"";
     m->flags = (MN_PVT_TAGS | MN_INSCRIP_TAGS);
     m->browse_hook = item_menu_browser;
 
@@ -1360,6 +1402,7 @@ static int scan_throwable(struct object **item_list, size_t item_max)
 bool textui_get_item(struct object **choice, const char *pmt, const char *str, cmd_code cmd,
     item_tester tester, int mode)
 {
+    bool toggle = false;
     int floor_max = z_info->floor_size;
     int floor_nb = -1;
     int throwing_max = z_info->pack_size + z_info->quiver_size + z_info->floor_size;
@@ -1470,7 +1513,60 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
 
         while (true)
         {
+            int j;
+            int ni = 0;
+            int ne = 0;
             bool hack_no_wield;
+
+            /*
+             * If inven or equip is on the main screen, and only one of them
+             * is slated for a subwindow, we should show the opposite there
+             */
+            for (j = 0; j < ANGBAND_TERM_MAX; j++)
+            {
+                /* Unused */
+                if (!angband_term[j]) continue;
+
+                /* Count windows displaying inven */
+                if (window_flag[j] & PW_INVEN) ni++;
+
+                /* Count windows displaying equip */
+                if (window_flag[j] & PW_EQUIP) ne++;
+            }
+
+            /* Are we in the situation where toggling makes sense? */
+            if ((ni && !ne) || (!ni && ne))
+            {
+                /* Main screen is equipment, so is subwindow */
+                if (command_wrk == USE_EQUIP)
+                {
+                    if ((ne && !toggle) || (ni && toggle))
+                    {
+                        toggle_inven_equip();
+                        toggle = !toggle;
+                    }
+                }
+
+                /* Main screen is inventory, so is subwindow */
+                else if (command_wrk == USE_INVEN)
+                {
+                    if ((ni && !toggle) || (ne && toggle))
+                    {
+                        toggle_inven_equip();
+                        toggle = !toggle;
+                    }
+                }
+
+                /* Quiver or floor, go back to the original */
+                else
+                {
+                    if (toggle)
+                    {
+                        toggle_inven_equip();
+                        toggle = !toggle;
+                    }
+                }
+            }
 
             /* Redraw */
             if (inven_up) event_signal(EVENT_INVENTORY);
@@ -1491,6 +1587,10 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
                 build_obj_list(f2, floor_list, tester, olist_mode);
             else if (command_wrk == SHOW_THROWING)
                 build_obj_list(throwing_num, throwing_list, tester, olist_mode);
+
+            /* Always add floor items for macros */
+            if (hidden && (mode & USE_FLOOR) && !(command_wrk == USE_FLOOR))
+                build_obj_list(f2, floor_list, tester, olist_mode);
 
             /* Show the prompt */
             menu_header();
@@ -1561,7 +1661,11 @@ bool textui_get_item(struct object **choice, const char *pmt, const char *str, c
             prt("", 0, 0);
 
             /* We have a selection, or are backing out */
-            if (*choice || !newmenu) break;
+            if (*choice || !newmenu)
+            {
+                if (toggle) toggle_inven_equip();
+                break;
+            }
         }
     }
     else
@@ -1666,7 +1770,7 @@ void textui_cmd_ignore_menu(struct object *obj)
     /* Flavour-aware ignoring */
     artifact = (kf_has(obj->kind->kind_flags, KF_INSTA_ART) ||
         kf_has(obj->kind->kind_flags, KF_QUEST_ART));
-    if (ignore_tval(obj->tval) && player->obj_aware[obj->kind->kidx] &&
+    if (ignore_tval(obj->tval) && player->kind_aware[obj->kind->kidx] &&
         !artifact)
     {
         if (!player->kind_ignore[obj->kind->kidx])

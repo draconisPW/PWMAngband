@@ -594,6 +594,9 @@ message:PY_PRAYER:w
 # MSG_PY_MISC
 message:PY_MISC:w
 
+# MSG_MON_OTHER
+message:MON_OTHER:w
+
 # Client-side and system messages
 
 # MSG_LOCAL

@@ -8,6 +8,7 @@
 
 #define SERVER_SAVE     10      /* Minutes between server saves */
 #define SERVER_PURGE    24      /* Hours between server purges */
+#define GROW_CROPS      5000    /* How often to grow a bunch of new vegetables in wilderness */
 
 /*
  * Time bubble scale factors in percentage terms
@@ -26,6 +27,7 @@ extern bool server_state_loaded;
 extern u32b seed_flavor;
 extern hturn turn;
 
+extern bool is_daytime_turn(hturn *ht_ptr);
 extern bool is_daytime(void);
 extern void dusk_or_dawn(struct player *p, struct chunk *c, bool dawn);
 extern int turn_energy(int speed);
@@ -36,6 +38,10 @@ extern bool level_keep_allocated(struct chunk *c);
 extern void play_game(void);
 extern void shutdown_server(void);
 extern void exit_game_panic(void);
+#ifdef WINDOWS
 extern void setup_exit_handler(void);
+#else
+extern void signals_init(void);
+#endif
 
 #endif /* GAME_WORLD_H */

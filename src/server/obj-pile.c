@@ -3,7 +3,7 @@
  * Purpose: Deal with piles of objects
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -488,6 +488,9 @@ void object_origin_combine(struct object *obj1, struct object *obj2)
 {
     int act = 2;
 
+    /* Forget original owner */
+    if (obj1->origin_player != obj2->origin_player) obj1->origin_player = 0;
+
     if ((obj1->origin == obj2->origin) && (obj1->origin_depth == obj2->origin_depth) &&
         (obj1->origin_race == obj2->origin_race)) return;
 
@@ -767,7 +770,7 @@ struct object *floor_object_for_use(struct player *p, struct chunk *c, struct ob
     int num, bool message, bool *none_left)
 {
     struct object *usable;
-    char name[NORMAL_WID];
+    char name[120];
     struct loc grid;
 
     /* Save object info (if we use the entire stack) */
@@ -813,8 +816,7 @@ struct object *floor_object_for_use(struct player *p, struct chunk *c, struct ob
     redraw_floor(&p->wpos, &grid, NULL);
 
     /* Print a message if desired */
-    if (message)
-        msg(p, "You see %s.", name);
+    if (message) msg(p, "You see %s.", name);
 
     return usable;
 }
@@ -939,7 +941,7 @@ bool floor_carry(struct player *p, struct chunk *c, struct loc *grid, struct obj
             object_absorb(obj, drop);
 
             /* Note the pile */
-            if (square_isview(p, grid)) square_note_spot(c, grid);
+            if (p && square_isview(p, grid)) square_note_spot(c, grid);
 
             /* Don't mention if ignored */
             if (p && ignore_item_ok(p, obj)) *note = false;

@@ -3,7 +3,7 @@
  * Purpose: Individual saving functions
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -200,10 +200,7 @@ static void wr_item(struct object *obj)
     wr_s16b(obj->time.sides);
 
     /* Save the inscription (if any) */
-    if (obj->note)
-        wr_string(quark_str(obj->note));
-    else
-        wr_string("");
+    wr_quark(obj->note);
 
     /* PWMAngband */
     wr_s32b(obj->creator);
@@ -213,6 +210,8 @@ static void wr_item(struct object *obj)
     wr_byte(obj->ordered);
     wr_s16b(obj->decay);
     wr_byte(obj->bypass_aware);
+
+    wr_quark(obj->origin_player);
 }
 
 
@@ -281,8 +280,8 @@ void wr_object_memory(void *data)
         byte flags = 0;
 
         /* Figure out and write the flags */
-        if (p->obj_aware[i]) flags |= 0x01;
-        if (p->obj_tried[i]) flags |= 0x02;
+        if (p->kind_aware[i]) flags |= 0x01;
+        if (p->kind_tried[i]) flags |= 0x02;
         if (p->kind_everseen[i]) flags |= 0x04;
         if (p->kind_ignore[i]) flags |= 0x08;
         wr_byte(flags);
@@ -340,7 +339,7 @@ void wr_artifacts(void *unused)
         struct artifact *art = &a_info[i];
 
         wr_byte(art->created);
-        wr_byte(art->owned);
+        wr_s32b(art->owner);
     }
 }
 

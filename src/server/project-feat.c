@@ -3,7 +3,7 @@
  * Purpose: Projection effects on terrain
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -105,6 +105,13 @@ static void project_feature_handler_FIRE(project_feature_handler_context_t *cont
     {
         /* Destroy the grass */
         square_burn_grass(context->cave, &context->grid);
+    }
+
+    /* "Reset" fields */
+    if (square_iscrop(context->cave, &context->grid))
+    {
+        /* Reset to generic field */
+        square_set_feat(context->cave, &context->grid, FEAT_CROP);
     }
 
     /* Removes webs */

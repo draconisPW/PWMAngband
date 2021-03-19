@@ -3,7 +3,7 @@
  * Purpose: Object generation functions
  *
  * Copyright (c) 1987-2007 Angband contributors
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1716,8 +1716,8 @@ static struct object *make_fake_object(const struct object *obj)
  *
  * Returns a pointer to the newly allocated object, or NULL on failure.
  */
-struct object *make_object(struct player *p, struct chunk *c, int lev, bool good, bool great,
-    bool extra_roll, s32b *value, int tval)
+static struct object *make_object_aux(struct player *p, struct chunk *c, int lev, bool good,
+    bool great, bool extra_roll, s32b *value, int tval)
 {
     int base;
     struct object_kind *kind = NULL;
@@ -1833,6 +1833,38 @@ struct object *make_object(struct player *p, struct chunk *c, int lev, bool good
 
 
 /*
+ * Attempt to make an object
+ *
+ * c is the current dungeon level
+ * lev is the creation level of the object (not necessarily == depth)
+ * good is whether the object is to be good
+ * great is whether the object is to be great
+ * extra_roll is whether we get an extra roll in apply_magic()
+ * value is the value to be returned to the calling function
+ * tval is the desired tval, or 0 if we allow any tval
+ *
+ * Returns a pointer to the newly allocated object, or NULL on failure.
+ */
+struct object *make_object(struct player *p, struct chunk *c, int lev, bool good, bool great,
+    bool extra_roll, s32b *value, int tval)
+{
+    struct object *new_obj = make_object_aux(p, c, lev, good, great, extra_roll, value, tval);
+
+#ifdef DEBUG_MODE
+    if (new_obj)
+    {
+        char o_name[NORMAL_WID];
+
+        object_desc(p, o_name, sizeof(o_name), new_obj, ODESC_PREFIX | ODESC_FULL);
+        cheat(format("%s %s", (new_obj->artifact? "+a":"+o"), o_name));
+    }
+#endif
+
+    return new_obj;
+}
+
+
+/*
  * Scatter some "great" objects near the player
  */
 void acquirement(struct player *p, struct chunk *c, int num, quark_t quark)
@@ -1897,7 +1929,7 @@ struct object_kind *money_kind(const char *name, int value)
  *
  * Returns a pointer to the newly minted cash (cannot fail)
  */
-struct object *make_gold(struct player *p, int lev, char *coin_type)
+struct object *make_gold(struct player *p, struct chunk *c, int lev, char *coin_type)
 {
     /* This average is 16 at dlev0, 80 at dlev40, 176 at dlev100. */
     int avg = (16 * lev) / 10 + 16;
@@ -1909,10 +1941,10 @@ struct object *make_gold(struct player *p, int lev, char *coin_type)
     while (one_in_(100) && (value * 10 <= SHRT_MAX)) value *= 10;
 
     /* Prepare a gold object */
-    object_prep(p, chunk_get(&p->wpos), new_gold, money_kind(coin_type, value), lev, RANDOMISE);
+    object_prep(p, c, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
-    if (p && (cfg_no_selling || OPT(p, birth_no_selling)))
+    if (p && (cfg_limited_stores || OPT(p, birth_no_selling)))
     {
         /* Classic method: multiply by 5 in the dungeon */
         if (cfg_gold_drop_vanilla && (p->wpos.depth > 0)) value *= 5;

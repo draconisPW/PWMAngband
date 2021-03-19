@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Antony Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -576,6 +576,13 @@ void display_player_screen(byte mode)
 /*** Subwindow display functions ***/
 
 
+/*
+ * true when we're supposed to display the equipment in the inventory
+ * window, or vice-versa.
+ */
+static bool flip_inven;
+
+
 static void update_inven_subwindow(game_event_type type, game_event_data *data, void *user)
 {
     term *old = Term;
@@ -584,7 +591,8 @@ static void update_inven_subwindow(game_event_type type, game_event_data *data, 
     /* Activate */
     Term_activate(inv_term);
 
-    show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+    if (!flip_inven) show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+    else show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_FLOOR, NULL);
 
     Term_fresh();
 
@@ -601,11 +609,48 @@ static void update_equip_subwindow(game_event_type type, game_event_data *data, 
     /* Activate */
     Term_activate(inv_term);
 
-    show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_FLOOR, NULL);
+    if (!flip_inven) show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_FLOOR, NULL);
+    else show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
 
     Term_fresh();
     
     /* Restore */
+    Term_activate(old);
+}
+
+
+/*
+ * Flip "inven" and "equip" in any sub-windows
+ */
+void toggle_inven_equip(void)
+{
+    term *old = Term;
+    int i;
+
+    /* Change the actual setting */
+    flip_inven = !flip_inven;
+
+    /* Redraw any subwindows showing the inventory/equipment lists */
+    for (i = 0; i < ANGBAND_TERM_MAX; i++)
+    {
+        if (!angband_term[i]) continue;
+
+        Term_activate(angband_term[i]);
+
+        if (window_flag[i] & PW_INVEN)
+        {
+            if (!flip_inven) show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+            else show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_FLOOR, NULL);
+            Term_fresh();
+        }
+        else if (window_flag[i] & PW_EQUIP)
+        {
+            if (!flip_inven) show_equip(OLIST_WINDOW | OLIST_WEIGHT | OLIST_FLOOR, NULL);
+            else show_inven(OLIST_WINDOW | OLIST_WEIGHT | OLIST_QUIVER, NULL);
+            Term_fresh();
+        }
+    }
+
     Term_activate(old);
 }
 
@@ -757,140 +802,30 @@ static void update_messages_subwindow(game_event_type type, game_event_data *dat
         if (term_chat->user && ((type >= MSG_WHISPER) || TYPE_BROADCAST(type))) continue;
 #endif
 
-        /* Dump the message on the appropriate line */
-        Term_putstr(0, (h - 1) - line, -1, color, msg);
+        /* No wrapping, do it the old way */
+        if (!OPT(player, wrap_messages))
+        {
+            /* Dump the message on the appropriate line */
+            Term_putstr(0, (h - 1) - line, -1, color, msg);
 
-        /* Cursor */
-        Term_locate(&x, &y);
+            /* Cursor */
+            Term_locate(&x, &y);
 
-        /* Clear to end of line */
-        Term_erase(x, y, 255);
+            /* Clear to end of line */
+            Term_erase(x, y, 255);
 
-        line++;
+            line++;
+        }
+
+        /* Dump the message on the appropriate line(s) */
+        else
+            line += prt_multi(0, (h - 1) - line, -1, -(h - line), color, msg);
     }
 
     Term_fresh();
 
     /* Restore */
     Term_activate(old);
-}
-
-
-static void display_chat_message_aux(const char *msg, byte color, int h, int *l, int *line)
-{
-    int x, y;
-
-    (*l)++;
-
-    /* Dump the message on the appropriate line */
-    Term_putstr(0, (h - 1) - (*line), -1, color, msg);
-
-    /* Cursor */
-    Term_locate(&x, &y);
-
-    /* Clear to end of line */
-    Term_erase(x, y, 255);
-
-    (*line)++;
-}
-
-
-static void display_chat_messages_aux(char **msgs, size_t n, byte color, int yoff, int h,
-    int *l, int *line)
-{
-    int i;
-
-    for (i = n - 1; (i >= 0) && ((*l) < h - (yoff + 1)); i--)
-        display_chat_message_aux(msgs[i], color, h, l, line);
-}
-
-
-static void add_chat_message(char **msgs, const char *str, size_t *n, size_t *sz)
-{
-    if ((*n) == (*sz))
-    {
-        (*sz) *= 2;
-        msgs = mem_realloc(msgs, (*sz) * sizeof(char *));
-    }
-
-    msgs[(*n)++] = string_make(str);
-}
-
-
-/*
- * Display a chat message.
- *
- * Note that chat messages may be longer than NORMAL_WID characters. To ensure that
- * a message is not truncated, it is split in multiple messages of length smaller than
- * NORMAL_WID - 5.
- */
-static void display_chat_message(const char *msg, byte color, int h, int yoff, int *l, int *line)
-{
-    char words[MSG_LEN], *p;
-    char buf[NORMAL_WID];
-    char **msgs;
-    size_t n = 0, sz = 10;
-
-    /* Short messages: displayed directly */
-    if (strlen(msg) < NORMAL_WID)
-    {
-        display_chat_message_aux(msg, color, h, l, line);
-        return;
-    }
-
-    msgs = mem_zalloc(sz * sizeof(char*));
-
-    /* Long messages: split in words, displayed as multiple messages */
-    my_strcpy(words, msg, sizeof(words));
-    buf[0] = '\0';
-    p = strtok(words, " ");
-    while (p)
-    {
-        size_t maxlen = NORMAL_WID - 5 - (buf[0]? strlen(buf) + 1: 0);
-
-        /* Message is too long */
-        if (strlen(p) > maxlen)
-        {
-            /* Word is too long: truncate, append "-" and add message */
-            if (strlen(p) > NORMAL_WID - 5)
-            {
-                if (buf[0]) my_strcat(buf, " ", sizeof(buf));
-                strncat(buf, p, maxlen);
-                my_strcat(buf, "-", sizeof(buf));
-                add_chat_message(msgs, buf, &n, &sz);
-                buf[0] = '\0';
-                p += maxlen;
-                continue;
-            }
-
-            /* Add message */
-            add_chat_message(msgs, buf, &n, &sz);
-            buf[0] = '\0';
-        }
-
-        /* Add word */
-        if (buf[0]) my_strcat(buf, " ", sizeof(buf));
-        my_strcat(buf, p, sizeof(buf));
-
-        /* Reached maxlen: add message */
-        if (strlen(buf) >= NORMAL_WID - 6)
-        {
-            add_chat_message(msgs, buf, &n, &sz);
-            buf[0] = '\0';
-        }
-
-        /* Advance */
-        p = strtok(NULL, " ");
-    }
-
-    /* Add message */
-    if (buf[0]) add_chat_message(msgs, buf, &n, &sz);
-
-    /* Display */
-    display_chat_messages_aux(msgs, n, color, yoff, h, l, line);
-
-    for (sz = 0; sz < n; sz++) string_free(msgs[sz]);
-    mem_free(msgs);
 }
 
 
@@ -905,7 +840,7 @@ static void update_message_chat_subwindow(game_event_type type, game_event_data 
     int line = 0, l = 0;
     int xoff = 0, yoff = 0; /* Hor. & Vert. Offsets */
     int tab;
-    char text[NORMAL_WID];
+    char text[MSG_LEN];
     message_iter iter;
 
     /* Activate */
@@ -998,8 +933,10 @@ static void update_message_chat_subwindow(game_event_type type, game_event_data 
         else if (!TYPE_BROADCAST(type))
             continue;
 
-        /* Dump the message */
-        display_chat_message(msg, color, h, yoff, &l, &line);
+        l++;
+
+        /* Dump the message on the appropriate line(s) */
+        line += prt_multi(0, (h - 1) - line, -1, -(h - 1 - (yoff + 1) - line), color, msg);
     }
 
     /* Erase rest */

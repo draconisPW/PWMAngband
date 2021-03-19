@@ -19341,34 +19341,6 @@ desc: wiped out his family, and he never recovered.
 
 ### Dungeon level 81 ###
 
-name:Maeglin, the Traitor of Gondolin
-base:humanoid
-color:p
-speed:130
-hit-points:6000
-hearing:70
-armor-class:144
-sleepiness:20
-depth:81
-rarity:2
-weight:0
-experience:35000
-blow:HIT:HURT:8d8
-blow:HIT:HURT:8d8
-blow:HIT:HURT:8d8
-blow:HIT:HURT:8d8
-flags:UNIQUE | MALE | EVIL
-flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
-flags:KILL_WALL | MOVE_BODY
-flags:IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
-flags:FORCE_SLEEP
-spell-freq:6
-spells:S_ANIMAL | S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_MONSTERS | S_UNIQUE
-desc:The son of Eöl the Dark Elf, Maeglin is every bit as evil as his father and
-desc: more. His greed for gold led him to betray the Hidden Kingdom of Gondolin
-desc: to Morgoth's forces. He is a mighty warrior himself, and some of Morgoth's
-desc: greatest servants answer to his call.
-
 name:Ji Indur Dawndeath
 base:wraith
 color:p
@@ -19914,6 +19886,36 @@ desc:Sister of Makar the Warrior, she would shout encouragement to the
 desc: warriors of their hall and heal their wounds so they could battle on,
 desc: until her arms were reddened to the elbow. Meássë is delighted by
 desc: all violence, and recruits any beings of like abilities to her service.
+
+name:Maeglin, the Traitor of Gondolin
+base:humanoid
+color:p
+speed:130
+hit-points:7000
+hearing:70
+armor-class:165
+sleepiness:20
+depth:87
+rarity:2
+weight:0
+experience:40000
+blow:HIT:HURT:9d9
+blow:HIT:HURT:9d9
+blow:HIT:HURT:9d9
+blow:HIT:HURT:9d9
+flags:UNIQUE | MALE | EVIL
+flags:DROP_4 | DROP_GOOD | DROP_GREAT | ONLY_ITEM
+flags:KILL_WALL | MOVE_BODY
+flags:IM_COLD | IM_FIRE | IM_POIS | NO_CONF | NO_SLEEP | NO_HOLD
+flags:FORCE_SLEEP
+flags:FORCE_DEPTH | PWMANG_FIXED
+spell-freq:6
+spells:S_ANIMAL | S_HI_DEMON | S_HI_DRAGON | S_HI_UNDEAD | S_MONSTERS | S_UNIQUE
+desc:The son of Eöl the Dark Elf, Maeglin is every bit as evil as his father and
+desc: more. His greed for gold led him to betray the Hidden Kingdom of Gondolin
+desc: to Morgoth's forces. He is a mighty warrior himself, and some of Morgoth's
+desc: greatest servants answer to his call.
+locations:Fallen Gondolin
 
 ### Dungeon level 88 ###
 

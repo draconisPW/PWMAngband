@@ -47,7 +47,6 @@
 #endif
 
 
-
 /*
  * Using C99, assume we have stdint and stdbool
  *

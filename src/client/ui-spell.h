@@ -32,5 +32,7 @@ extern bool spell_okay_to_study(int book, int spell_index);
 extern bool spell_okay_to_cast(int book, int spell);
 extern int textui_obj_cast(int book, int *dir);
 extern int textui_obj_project(int book, int *dir);
+extern bool get_spell_by_name(int *book, int *spell);
+extern int spell_count_pages(void);
 
 #endif

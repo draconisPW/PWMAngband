@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2004 Robert Ruehlmann
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -118,9 +118,6 @@ static bool describe_curses(struct player *p, const struct object *obj)
         if (c[i].power == 100) text_out(p, "; this curse cannot be removed");
         text_out(p, ".\n");
     }
-
-    /* Say if curse removal has been tried */
-    if (of_has(obj->flags, OF_FRAGILE)) text_out(p, "Attempting to uncurse it may destroy it.\n");
 
     return true;
 }
@@ -846,15 +843,21 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
     for (i = 0; i < z_info->brand_max; i++)
     {
         /* Handle class brands */
-        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
+        if (p->clazz->brands && p->clazz->brands[i].brand &&
+            (p->lev >= p->clazz->brands[i].minlvl) && (p->lev <= p->clazz->brands[i].maxlvl))
+        {
             append_brand(&total_brands, i);
+        }
 
         /* Only for melee attacks */
         if (!weapon) continue;
 
         /* Handle racial brands */
-        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
+        if (p->race->brands && p->race->brands[i].brand &&
+            (p->lev >= p->race->brands[i].minlvl) && (p->lev <= p->race->brands[i].maxlvl))
+        {
             append_brand(&total_brands, i);
+        }
 
         /* Temporary brands */
         if (player_has_temporary_brand(p, i))
@@ -885,10 +888,16 @@ static bool obj_known_damage(struct player *p, const struct object *obj, int *no
         if (!weapon) continue;
 
         /* Handle racial/class slays */
-        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
+        if (p->race->slays && p->race->slays[i].slay &&
+            (p->lev >= p->race->slays[i].minlvl) && (p->lev <= p->race->slays[i].maxlvl))
+        {
             append_slay(&total_slays, i);
-        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
+        }
+        if (p->clazz->slays && p->clazz->slays[i].slay &&
+            (p->lev >= p->clazz->slays[i].minlvl) && (p->lev <= p->clazz->slays[i].maxlvl))
+        {
             append_slay(&total_slays, i);
+        }
 
         /* Temporary slays */
         if (player_has_temporary_slay(p, i))
@@ -1672,6 +1681,9 @@ static bool describe_origin(struct player *p, const struct object *obj, bool ter
     const char *dropper = NULL;
     const char *article;
     bool unique = false;
+    char *original_owner = NULL;
+    bool changed_hands = false;
+    char desc[NORMAL_WID];
 
     /* Only give this info in chardumps if wieldable */
     if (terse && !obj_can_wear(p, obj)) return false;
@@ -1682,6 +1694,8 @@ static bool describe_origin(struct player *p, const struct object *obj, bool ter
     else
         origin = obj->origin;
 
+    if (origins[origin].args == -1) return false;
+
     /* Name the place of origin */
     if (obj->origin_depth)
     {
@@ -1690,6 +1704,30 @@ static bool describe_origin(struct player *p, const struct object *obj, bool ter
     }
     else
         my_strcpy(loot_spot, "on the surface", sizeof(loot_spot));
+
+    if (p && obj->origin_player)
+    {
+        original_owner = (char *)quark_str(obj->origin_player);
+        if (streq(original_owner, p->name)) original_owner = NULL;
+        else if (strcmp(lookup_player_name(obj->owner), original_owner)) changed_hands = true;
+    }
+
+    my_strcpy(desc, origins[origin].desc, sizeof(desc));
+
+    /* MAngband-specific: different player origin */
+    if ((obj->origin != ORIGIN_BIRTH) && changed_hands)
+    {
+        text_out(p, "Obtained from %s. Rumoured to be ", original_owner);
+        if (desc && desc[0]) desc[0] = tolower((unsigned char)desc[0]);
+    }
+
+    if (obj->origin == ORIGIN_BIRTH)
+    {
+        if (original_owner)
+            strnfmt(loot_spot, sizeof(loot_spot), "%s's", original_owner);
+        else
+            my_strcpy(loot_spot, "your", sizeof(loot_spot));
+    }
 
     /* Name the monster of origin */
     if (obj->origin_race)
@@ -1711,10 +1749,10 @@ static bool describe_origin(struct player *p, const struct object *obj, bool ter
     /* Print an appropriate description */
     switch (origins[origin].args)
     {
-        case -1: return false;
-        case 0: text_out(p, origins[origin].desc); break;
-        case 1: text_out(p, origins[origin].desc, loot_spot); break;
-        case 2: text_out(p, origins[origin].desc, name, loot_spot); break;
+        case 0: text_out(p, desc); break;
+        case 1: text_out(p, desc, loot_spot); break;
+        case 2: text_out(p, desc, name, loot_spot); break;
+        default: return false;
     }
 
     text_out(p, "\n\n");
@@ -1870,13 +1908,7 @@ static void object_info_out(struct player *p, const struct object *obj, int mode
     if (obj->level_req && !terse)
     {
         text_out(p, "\n");
-        if (obj->owner > 0)
-        {
-            hash_entry *ptr = lookup_player(obj->owner);
-            const char *owner_name = ((ptr && ht_zero(&ptr->death_turn))? ptr->name: "(deceased)");
-
-            text_out(p, "Owner: %s\n", owner_name);
-        }
+        if (obj->owner > 0) text_out(p, "Owner: %s\n", lookup_player_name(obj->owner));
         text_out_c(p, COLOUR_L_RED, "Level requirement: %d", obj->level_req);
     }
 

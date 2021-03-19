@@ -2,7 +2,7 @@
  * File: netclient.c
  * Purpose: The client side of the networking stuff
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -387,7 +387,7 @@ static int Receive_struct_info(void)
             Client_setup.note_aware = mem_zalloc(z_info->k_max * sizeof(char_note));
 
             /* Alloc */
-            player->obj_aware = mem_zalloc(z_info->k_max * sizeof(bool));
+            player->kind_aware = mem_zalloc(z_info->k_max * sizeof(bool));
             player->kind_ignore = mem_zalloc(z_info->k_max * sizeof(byte));
             player->kind_everseen = mem_zalloc(z_info->k_max * sizeof(byte));
             player->ego_ignore_types = mem_zalloc(z_info->e_max * sizeof(byte*));
@@ -992,6 +992,8 @@ static int Receive_struct_info(void)
         /* Monster races */
         case STRUCT_INFO_RINFO:
         {
+            byte attr;
+
             /* Alloc */
             r_info = mem_zalloc(max * sizeof(struct monster_race));
 
@@ -1000,7 +1002,7 @@ static int Receive_struct_info(void)
             {
                 struct monster_race *race = &r_info[i];
 
-                if ((n = Packet_scanf(&rbuf, "%s", name)) <= 0)
+                if ((n = Packet_scanf(&rbuf, "%b%s", &attr, name)) <= 0)
                 {
                     /* Rollback the socket buffer */
                     Sockbuf_rollback(&rbuf, bytes_read);
@@ -1008,8 +1010,9 @@ static int Receive_struct_info(void)
                     /* Packet isn't complete, graceful failure */
                     return n;
                 }
-                bytes_read += string_bytes(name);
+                bytes_read += string_bytes(name) + 1;
 
+                race->d_attr = attr;
                 if (strlen(name)) race->name = string_make(name);
                 race->ridx = i;
             }
@@ -1721,13 +1724,16 @@ static int Receive_item_request(void)
         switch (tester_hook)
         {
             /* Special hooks */
+            case HOOK_CONFIRM:
+                result = get_check("You will not be able to re-enter this dungeon. Confirm recall? ");
+                break;
             case HOOK_RECALL:
                 result = get_string("Recall depth: ", inscription, sizeof(inscription));
                 break;
             case HOOK_DOWN:
                 result = get_check("Are you sure you want to descend? ");
                 break;
-            case HOOK_CONFIRM:
+            case HOOK_CANCEL:
                 result = get_check("Word of Recall is already active. Do you want to cancel it? ");
                 break;
 
@@ -2426,8 +2432,8 @@ static int Receive_book_info(void)
 static int Receive_floor(void)
 {
     int n, bytes_read;
-    byte ch, num, notice, attr, act, aim, fuel, fail, known, known_effect, carry, quality_ignore,
-        ignored, magic, throwable, force;
+    byte ch, num, notice, attr, act, aim, fuel, fail, known, known_effect, identified, carry,
+        quality_ignore, ignored, magic, throwable, force;
     u16b tval, sval;
     s16b amt, slot, oidx, eidx, bidx;
     s32b pval;
@@ -2454,9 +2460,9 @@ static int Receive_floor(void)
     }
     bytes_read += 17;
 
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
-        &fail, &slot, &known, &known_effect, &carry, &quality_ignore, &ignored, &eidx, &magic,
-        &bidx, &throwable)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
+        &fail, &slot, &known, &known_effect, &identified, &carry, &quality_ignore, &ignored, &eidx,
+        &magic, &bidx, &throwable)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -2521,6 +2527,7 @@ static int Receive_floor(void)
         obj->info_xtra.slot = slot;
         obj->info_xtra.known = known;
         obj->info_xtra.known_effect = known_effect;
+        obj->info_xtra.identified = identified;
         obj->info_xtra.carry = carry;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;
@@ -2818,7 +2825,7 @@ static int Receive_aware(void)
             }
             bytes_read++;
 
-            player->obj_aware[i] = (setting? true: false);
+            player->kind_aware[i] = (setting? true: false);
         }
     }
     else
@@ -2833,7 +2840,7 @@ static int Receive_aware(void)
         }
         bytes_read++;
 
-        player->obj_aware[num] = (setting? true: false);
+        player->kind_aware[num] = (setting? true: false);
     }
 
     return 1;
@@ -3548,7 +3555,7 @@ static int Receive_message(void)
     }
 
     if (!topline_icky && (party_mode || store_ctx || !player->screen_save_depth))
-        c_msg_print_aux(buf, type);
+        c_msg_print_aux(buf, type, true);
     else
         message_add(buf, type);
 
@@ -3579,8 +3586,8 @@ static int Receive_message(void)
 static int Receive_item(void)
 {
     int n, bytes_read;
-    byte ch, equipped, notice, attr, act, aim, fuel, fail, stuck, known, known_effect, sellable,
-        quality_ignore, ignored, magic, throwable;
+    byte ch, equipped, notice, attr, act, aim, fuel, fail, stuck, known, known_effect, identified,
+        sellable, quality_ignore, ignored, magic, throwable;
     u16b tval, sval;
     s16b wgt, amt, oidx, slot, eidx, bidx;
     s32b price, pval;
@@ -3609,9 +3616,9 @@ static int Receive_item(void)
     bytes_read += 21;
 
     /* Extra info */
-    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
-        &fail, &slot, &stuck, &known, &known_effect, &sellable, &quality_ignore, &ignored, &eidx,
-        &magic, &bidx, &throwable)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%b%b%b%b%hd%b%b%b%b%b%b%b%hd%b%hd%b", &attr, &act, &aim, &fuel,
+        &fail, &slot, &stuck, &known, &known_effect, &identified, &sellable, &quality_ignore,
+        &ignored, &eidx, &magic, &bidx, &throwable)) <= 0)
     {
         /* Rollback the socket buffer */
         Sockbuf_rollback(&rbuf, bytes_read);
@@ -3676,6 +3683,7 @@ static int Receive_item(void)
         obj->info_xtra.stuck = stuck;
         obj->info_xtra.known = known;
         obj->info_xtra.known_effect = known_effect;
+        obj->info_xtra.identified = identified;
         obj->info_xtra.sellable = sellable;
         obj->info_xtra.quality_ignore = quality_ignore;
         obj->info_xtra.ignored = ignored;
@@ -4600,7 +4608,7 @@ int Send_quaff(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    /* Hack -- potions of Dragon Breath can be aimed when aware */
+    /* Hack -- in case we add an aimed effect to potions */
     dir = need_dir(obj);
 
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
@@ -4616,6 +4624,7 @@ int Send_quaff(struct command *cmd)
 int Send_read(struct command *cmd)
 {
     int n;
+    int dir;
     struct object *obj;
 
     /* Hack -- don't get out of icky screen if disturbed */
@@ -4631,7 +4640,13 @@ int Send_read(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_READ, obj->oidx)) <= 0)
+    /* Hack -- in case we add an aimed effect to scrolls */
+    dir = need_dir(obj);
+
+    if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
+        return 0;
+
+    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_READ, obj->oidx, dir)) <= 0)
         return n;
 
     return 1;
@@ -4663,6 +4678,7 @@ int Send_take_off(struct command *cmd)
 int Send_use(struct command *cmd)
 {
     int n;
+    int dir;
     struct object *obj;
 
     /* Hack -- don't get out of icky screen if disturbed */
@@ -4678,7 +4694,13 @@ int Send_use(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_USE, obj->oidx)) <= 0)
+    /* Hack -- in case we add an aimed effect to staves */
+    dir = need_dir(obj);
+
+    if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
+        return 0;
+
+    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_USE, obj->oidx, dir)) <= 0)
         return n;
 
     return 1;
@@ -5867,6 +5889,7 @@ int cmd_cast(struct command *cmd)
     allow_disturb_icky = false;
 
     /* Get arguments */
+    spellcasting = true;
     n = cmd_get_item(cmd, "item", &book,
         /* Prompt */ "Use which book? ",
         /* Error */ "You have no books you can use.",
@@ -5874,12 +5897,40 @@ int cmd_cast(struct command *cmd)
         /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS);
 
     allow_disturb_icky = true;
-    if (n != CMD_OK) return 0;
+    if (n != CMD_OK)
+    {
+        spellcasting = false;
+        spellcasting_spell = -1;
+        return 0;
+    }
 
     /* Track the object kind */
     Send_track_object(book->oidx);
 
-    spell = textui_obj_cast(book->info_xtra.bidx, &dir);
+    /* Hack -- spellcasting mode (spell already selected) */
+    if (spellcasting_spell > -1)
+    {
+        spell_flags flag = book_info[book->info_xtra.bidx].spell_info[spellcasting_spell].flag;
+
+        spell = spellcasting_spell;
+
+        /* Needs a direction */
+        if (flag.dir_attr)
+        {
+            if (!get_aim_dir(&dir))
+            {
+                spellcasting = false;
+                spellcasting_spell = -1;
+                return 0;
+            }
+        }
+    }
+    else
+        spell = textui_obj_cast(book->info_xtra.bidx, &dir);
+
+    spellcasting = false;
+    spellcasting_spell = -1;
+
     if (spell != -1) Send_cast(book->oidx, spell, dir);
     return 1;
 }
@@ -5892,19 +5943,49 @@ int cmd_project(struct command *cmd)
     int spell;
 
     /* Get arguments */
+    spellcasting = true;
     if (cmd_get_item(cmd, "item", &book,
         /* Prompt */ "Use which book? ",
         /* Error */ "You have no books you can use.",
         /* Filter */ obj_can_cast_from,
         /* Choice */ USE_INVEN | USE_FLOOR | BOOK_TAGS) != CMD_OK)
     {
+        spellcasting = false;
+        spellcasting_spell = -1;
         return 0;
     }
 
     /* Track the object kind */
     Send_track_object(book->oidx);
 
-    spell = textui_obj_project(book->info_xtra.bidx, &dir);
+    /* Hack -- spellcasting mode (spell already selected) */
+    if (spellcasting_spell > -1)
+    {
+        spell_flags flag = book_info[book->info_xtra.bidx].spell_info[spellcasting_spell].flag;
+        const struct player_class *c = player->clazz;
+
+        spell = spellcasting_spell;
+
+        /* Projectable */
+        if (flag.proj_attr) spell += c->magic.total_spells;
+
+        /* Needs a direction */
+        if (flag.dir_attr || flag.proj_attr)
+        {
+            if (!get_aim_dir(&dir))
+            {
+                spellcasting = false;
+                spellcasting_spell = -1;
+                return 0;
+            }
+        }
+    }
+    else
+        spell = textui_obj_project(book->info_xtra.bidx, &dir);
+
+    spellcasting = false;
+    spellcasting_spell = -1;
+
     if (spell != -1) Send_cast(book->oidx, spell, dir);
     return 1;
 }

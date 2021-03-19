@@ -26,8 +26,8 @@
 # equip:tval:sval:min:max:no_recall
 # obj-flag:level of application:object flag
 # value:level of application:object modifier
-# brand:level of application:brand code
-# slay:level of application:slay code
+# brand:min level:max level:brand code
+# slay:min level:max level:slay code
 # player-flags:class flags
 # shape:level of application:monster race
 # title:title
@@ -2062,10 +2062,9 @@ effect:CURE:AFRAID
 desc:Removes fear and grants you berserk strength (resistance to fear,
 desc: a bonus of +24 to-hit and a penalty of -10 to AC) for 25+1d25 turns.
 
-spell:Leap into Battle:5:4:25:6:0
-effect:TELEPORT_TO
-dice:4
-desc:Teleports you next to a chosen target up to 4 squares away.
+spell:Whirlwind Attack:5:4:25:6:0
+effect:SWEEP
+desc:Deals a melee attack to each adjacent enemy.
 
 spell:Shatter Stone:7:3:20:8:0
 effect:BOLT_MELEE:KILL_WALL
@@ -2073,9 +2072,10 @@ dice:20+1d30
 desc:Destroys an adjacent section of wall or rubble, unless it is a permanent
 desc: wall. Deals 20+1d30 damage to monsters vulnerable to rock remover.
 
-spell:Whirlwind Attack:10:5:30:10:0
-effect:SWEEP
-desc:Deals a melee attack to each adjacent enemy.
+spell:Leap into Battle:10:5:30:10:0
+effect:TELEPORT_TO
+dice:4
+desc:Teleports you next to a chosen target up to 4 squares away.
 
 book:shadow book:town:[Dark Conjurings]:5:shadow
 
@@ -2094,9 +2094,9 @@ desc: for 12+1d12 turns.
 
 spell:Maim Foe:15:6:35:14:0
 effect:MELEE_BLOWS:MON_STUN
-dice:5+1d5
+dice:6
 desc:Attempts a melee attack against the targeted monster. Stuns the enemy
-desc: for 5+1d5 turns if hit.
+desc: for 6 turns if hit.
 
 spell:Unholy Pact:16:8:32:16:0
 effect:TIMED_INC:REGEN
@@ -2506,18 +2506,18 @@ dice:$B+1d10
 expr:B:PLAYER_LEVEL:+ 0
 desc:Grants you the power of telepathy for a level-dependent duration.
 
-spell:Disruption Shield:35:70:95:100:0
-effect:TIMED_INC:MANASHIELD
-dice:8+1d10
-desc:Creates a shield of mana around you that absorbs all damage
-desc: inflicted to your character... as long as you have mana
-desc: to fuel it.
-
 spell:Mass Banishment:35:75:90:100:0
 effect:MASS_BANISH
 desc:Removes all monsters within 20 squares of you.
 desc: Uniques are not affected.
 desc: You take 1d3 points of damage for every monster removed.
+
+spell:Plasma Blast:36:21:45:120:0
+effect:BLAST:PLASMA:3
+dice:$B
+expr:B:PLAYER_LEVEL:* 2 + 250
+msg_other: emits a plasma blast.
+desc:Creates a radius-3 plasma ball around you.
 
 book:magic book:dungeon:[Wizard's Tome of Power]:7:arcane
 
@@ -2531,12 +2531,12 @@ desc: Higher level monsters are more likely to break the glyphs.
 desc: The glyphs will remain where they are, until a monster succeeds in
 desc: breaking them or until you leave the level.
 
-spell:Plasma Blast:36:21:45:120:0
-effect:BLAST:PLASMA:3
-dice:$B
-expr:B:PLAYER_LEVEL:* 2 + 250
-msg_other: emits a plasma blast.
-desc:Creates a radius-3 plasma ball around you.
+spell:Disruption Shield:38:70:95:100:0
+effect:TIMED_INC:MANASHIELD
+dice:8+1d10
+desc:Creates a shield of mana around you that absorbs all damage
+desc: inflicted to your character... as long as you have mana
+desc: to fuel it.
 
 spell:Annihilation Bolt:39:20:45:180:0
 effect:BOLT:MISSILE

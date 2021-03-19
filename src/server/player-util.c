@@ -3,7 +3,7 @@
  * Purpose: Player utility functions
  *
  * Copyright (c) 2011 The Angband Developers. See COPYING.
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -279,7 +279,7 @@ int energy_per_move(struct player *p)
     int num = p->state.num_moves;
     int energy = move_energy(p->wpos.depth);
 
-    return (energy * (2 + ABS(num) - num)) / (2 + ABS(num));
+    return ((energy * 1000) / frame_energy(num + 110));
 }
 
 
@@ -1960,6 +1960,21 @@ bool forbid_entrance_weak(struct player *p)
 bool forbid_entrance_strong(struct player *p)
 {
     struct location *dungeon = get_dungeon(&p->wpos);
+
+    return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
+}
+
+
+bool forbid_reentrance(struct player *p)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    if (p->wpos.depth == 0) return false;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &p->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
 
     return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
 }

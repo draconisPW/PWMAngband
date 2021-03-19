@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2014 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1211,6 +1211,9 @@ static void calc_mana(struct player *p, struct player_state *state, bool update)
     /* Extra mana capacity from race/class bonuses */
     exmsp += adj;
 
+    /* Cap at +10 */
+    if (exmsp > 10) exmsp = 10;
+
     /* 1 point = 10% more mana */
     msp = ((10 + exmsp) * msp) / 10;
 
@@ -1967,7 +1970,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         if (OPT(p, birth_fruit_bat)) state->speed += (p->poly_race->speed - 110);
 
         /* At low level, we get MOVES instead */
-        else if (p->lev < 20) extra_moves = (p->poly_race->speed - 110) / 10;
+        else if (p->lev < 20) extra_moves = (p->poly_race->speed - 110) / 2;
 
         /* At higher level, we get 50% of speed bonus */
         else state->speed += (p->poly_race->speed - 110) / 2;

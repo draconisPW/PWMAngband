@@ -3,7 +3,7 @@
  * Purpose: Deal with command processing
  *
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -584,15 +584,91 @@ void do_cmd_help(void)
 }
 
 
+static char* has_addr_aux(char *pmsgbuf, int mode, char* addrbuf, int addrmax, int* addrlen)
+{
+    int nicklen;
+    char *startmsg;
+    char search_for = ':';
+
+    if (mode == 1)
+    {
+        search_for = ' ';
+        if (pmsgbuf[0] != '#')
+        {
+            *addrlen = 0;
+            return pmsgbuf;
+        }
+    }
+
+    for (startmsg = pmsgbuf; *startmsg; startmsg++)
+    {
+        if (*startmsg == search_for) break;
+    }
+    if (*startmsg && (startmsg - pmsgbuf < addrmax))
+    {
+        my_strcpy(addrbuf, pmsgbuf, (startmsg - pmsgbuf) + 2);
+        nicklen = strlen(addrbuf);
+        startmsg += 1;
+        while (*startmsg == ' ') startmsg += 1;
+    }
+    else
+    {
+        startmsg = pmsgbuf;
+        nicklen = 0;
+    }
+
+    *addrlen = nicklen;
+    return startmsg;
+}
+
+
+static char* has_addr(char *pmsgbuf, char* addrbuf, int addrmax, int* addrlen)
+{
+    char *r;
+
+    /* Check channel */
+    r = has_addr_aux(pmsgbuf, 1, addrbuf, addrmax, addrlen);
+    if (*addrlen > 0) return r;
+
+    /* Check privmsg */
+    r = has_addr_aux(pmsgbuf, 0, addrbuf, addrmax, addrlen);
+    if (*addrlen > 0) return r;
+
+    /* OK, got nothing */
+    *addrlen = 0;
+    return pmsgbuf;
+}
+
+
 void send_msg_chunks(char *pmsgbuf, int msglen)
 {
-    char pmsg[60];
+    char pmsg[MSG_LEN + 2];
     char nickbuf[30];
     int offset = 0, breakpoint, nicklen;
     char *startmsg;
+    int CUTOFF = 0;
 
-    /* Send the text in chunks of 58 characters, or nearest break before 58 chars */
-    if (msglen < 58)
+    /* Hack -- pre-process message to look for "/" commands */
+    if (pmsgbuf[0] == '/')
+    {
+        /* Purchase a house */
+        if (strstr(pmsgbuf, "house")) do_cmd_purchase_house();
+
+        /* Display current time */
+        else if (strstr(pmsgbuf, "time")) do_cmd_time();
+
+        return;
+    }
+
+    /*
+     * Max message length depends on our nick (known)
+     * and recepient nick (unknown, assume max length)
+     */
+    CUTOFF = MSG_LEN - strlen(nick) - 3;
+    CUTOFF -= (MAX_NAME_LEN + 1);
+
+    /* Send the text in chunks of CUTOFF characters, or nearest break before CUTOFF chars */
+    if (msglen < CUTOFF)
     {
         Send_msg(pmsgbuf);
         return;
@@ -601,40 +677,26 @@ void send_msg_chunks(char *pmsgbuf, int msglen)
     memset(nickbuf, 0, sizeof(nickbuf));
 
     /* See if this was a privmsg, if so, pull off the nick */
-    for (startmsg = pmsgbuf; *startmsg; startmsg++)
-    {
-        if (*startmsg == ':') break;
-    }
-    if (*startmsg && (startmsg - pmsgbuf < 29))
-    {
-        my_strcpy(nickbuf, pmsgbuf, (startmsg - pmsgbuf) + 2);
-        nicklen = strlen(nickbuf);
-        startmsg += 2;
-    }
-    else
-    {
-        startmsg = pmsgbuf;
-        nicklen = 0;
-    }
+    startmsg = has_addr(pmsgbuf, nickbuf, 29, &nicklen);
 
     /* Now deal with what's left */
     while (msglen > 0)
     {
         memset(pmsg, 0, sizeof(pmsg));
 
-        if (msglen < (58 - nicklen))
+        if (msglen < CUTOFF)
             breakpoint = msglen;
         else
         {
             /* Try to find a breaking char */
-            for (breakpoint = 58 - nicklen; breakpoint > 0; breakpoint--)
+            for (breakpoint = CUTOFF; breakpoint > 0; breakpoint--)
             {
                 if (startmsg[offset + breakpoint] == ' ') break;
                 if (startmsg[offset + breakpoint] == ',') break;
                 if (startmsg[offset + breakpoint] == '.') break;
                 if (startmsg[offset + breakpoint] == ';') break;
             }
-            if (!breakpoint) breakpoint = 58 - nicklen; /* nope */
+            if (!breakpoint) breakpoint = CUTOFF; /* nope */
         }
 
         /* If we pulled off a nick above, prepend it. */
@@ -2019,9 +2081,10 @@ static int cmd_master_aux_debug(void)
         Term_putstr(5, 4, -1, COLOUR_WHITE, "(1) Perform an effect (EFFECT_XXX)");
         Term_putstr(5, 5, -1, COLOUR_WHITE, "(2) Create a trap");
         Term_putstr(5, 6, -1, COLOUR_WHITE, "(3) Advance time");
+        Term_putstr(5, 7, -1, COLOUR_WHITE, "(4) Write a map of the current level");
 
         /* Prompt */
-        Term_putstr(0, 8, -1, COLOUR_WHITE, "Command: ");
+        Term_putstr(0, 9, -1, COLOUR_WHITE, "Command: ");
 
         /* Get a key */
         ke = inkey_ex();
@@ -2124,6 +2187,16 @@ static int cmd_master_aux_debug(void)
                 if (res == 1) return 1;
                 if ((res == 2) || !tmp[0]) continue;
                 my_strcat(buf, tmp, sizeof(buf));
+
+                Send_master(MASTER_DEBUG, buf);
+                return 1;
+            }
+
+            /* Write a map of the current level */
+            if (ke.key.code == '4')
+            {
+                buf[0] = 'M';
+                buf[1] = '\0';
 
                 Send_master(MASTER_DEBUG, buf);
                 return 1;

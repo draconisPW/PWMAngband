@@ -3,7 +3,7 @@
  * Purpose: All quest-related code
  *
  * Copyright (c) 2013 Angband developers
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -200,6 +200,7 @@ static void crumble_angband(struct player *p, struct chunk *c, struct loc *grid)
         sqinfo_off(square(c, &iter.cur)->info, SQUARE_ROOM);
         sqinfo_off(square(c, &iter.cur)->info, SQUARE_VAULT);
         sqinfo_off(square(c, &iter.cur)->info, SQUARE_NO_TELEPORT);
+        sqinfo_off(square(c, &iter.cur)->info, SQUARE_LIMITED_TELE);
         if (square_ispitfloor(c, &iter.cur)) square_clear_feat(c, &iter.cur);
 
         /* Lose light */

@@ -3,7 +3,7 @@
  * Purpose: Implement interfaces for displaying information about effects
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -40,14 +40,27 @@ static struct
 /*
  * Get the possible dice strings.
  */
-static void format_dice_string(const random_value *v, size_t len, char* dice_string)
+static void format_dice_string(const random_value *v, int multiplier, size_t len, char* dice_string)
 {
     if (v->dice && v->base)
-        strnfmt(dice_string, len, "{%d+%dd%d}", v->base, v->dice, v->sides);
+    {
+        if (multiplier == 1)
+            strnfmt(dice_string, len, "{%d+%dd%d}", v->base, v->dice, v->sides);
+        else
+        {
+            strnfmt(dice_string, len, "{%d+%d*(%dd%d)}", multiplier * v->base, multiplier, v->dice,
+                v->sides);
+        }
+    }
     else if (v->dice)
-        strnfmt(dice_string, len, "{%dd%d}", v->dice, v->sides);
+    {
+        if (multiplier == 1)
+            strnfmt(dice_string, len, "{%dd%d}", v->dice, v->sides);
+        else
+            strnfmt(dice_string, len, "{%d*(%dd%d)}", multiplier, v->dice, v->sides);
+    }
     else
-        strnfmt(dice_string, len, "{%d}", v->base);
+        strnfmt(dice_string, len, "{%d}", multiplier * v->base);
 }
 
 
@@ -76,6 +89,7 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
     int random_choices = 0;
     struct source actor_body;
     struct source *data = &actor_body;
+    bool same_effect = false, same_value = false;
 
     source_player(data, 0, p);
 
@@ -104,7 +118,7 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
         if (e->index == EF_RANDOM) random_choices = roll + 1;
 
         /* Get the possible dice strings */
-        format_dice_string(&value, sizeof(dice_string), dice_string);
+        format_dice_string(&value, 1, sizeof(dice_string), dice_string);
 
         /* Check all the possible types of description format */
         switch (base_descs[e->index].efinfo_flag)
@@ -155,6 +169,7 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
                 int multiplier = turn_energy(p->state.speed);
 
                 char *fed = "feeds you";
+                char turn_dice_string[20];
 
                 if (e->subtype)
                 {
@@ -162,9 +177,48 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
                     else fed = "uses enough food value";
                 }
 
-                strnfmt(dice_string, sizeof(dice_string), "{%d}",
-                    value.base * z_info->food_value * multiplier / rate);
-                strnfmt(desc, sizeof(desc), effect_desc(e), fed, dice_string, value.base);
+                format_dice_string(&value, z_info->food_value * multiplier / rate,
+                    sizeof(turn_dice_string), turn_dice_string);
+
+                /* Hack -- check previous effect */
+                if (same_effect)
+                {
+                    same_effect = false;
+
+                    /* Identical: skip */
+                    if (same_value)
+                    {
+                        same_value = false;
+                        desc[0] = '\0';
+                    }
+
+                    /* Different values: display the value */
+                    else
+                    {
+                        strnfmt(desc, sizeof(desc), "for %s turns (%s percent)", turn_dice_string,
+                            dice_string);
+                    }
+                }
+                else
+                    strnfmt(desc, sizeof(desc), effect_desc(e), fed, turn_dice_string, dice_string);
+
+                /* Hack -- check next effect */
+                if (e->next && (e->next->index == e->index) && (e->next->subtype == e->subtype))
+                {
+                    random_value nextvalue;
+
+                    memset(&nextvalue, 0, sizeof(nextvalue));
+                    if (e->next->dice != NULL)
+                        dice_roll(e->next->dice, (void *)data, &nextvalue);
+
+                    same_effect = true;
+                    if ((nextvalue.base == value.base) && (nextvalue.dice == value.dice) &&
+                        (nextvalue.sides == value.sides))
+                    {
+                        same_value = true;
+                    }
+                }
+
                 break;
             }
 
@@ -212,7 +266,37 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
             /* Summon effect description */
             case EFINFO_SUMM:
             {
-                strnfmt(desc, sizeof(desc), effect_desc(e), summon_desc(e->subtype));
+                /* Hack -- check previous effect */
+                if (same_effect)
+                {
+                    same_effect = false;
+
+                    /* Identical: skip */
+                    desc[0] = '\0';
+                }
+                else
+                    strnfmt(desc, sizeof(desc), effect_desc(e), dice_string, summon_desc(e->subtype));
+
+                /* Hack -- check next effect */
+                if (e->next && (e->next->index == e->index) && (e->next->subtype == e->subtype))
+                {
+                    random_value nextvalue;
+
+                    memset(&nextvalue, 0, sizeof(nextvalue));
+                    if (e->next->dice != NULL)
+                        dice_roll(e->next->dice, (void *)data, &nextvalue);
+
+                    if ((nextvalue.base == value.base) && (nextvalue.dice == value.dice) &&
+                        (nextvalue.sides == value.sides))
+                    {
+                        same_effect = true;
+                    }
+                }
+
+                /* Hack -- only display suffix if last */
+                if (!e->next)
+                    my_strcat(desc, " generated at the current dungeon level", sizeof(desc));
+
                 break;
             }
 
@@ -251,14 +335,62 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
             /* PWMAngband: restore original description (effect + damage) */
             case EFINFO_BREATH:
             {
-                strnfmt(desc, sizeof(desc), effect_desc(e),
-                    projections[e->subtype].desc, dice_string);
-                if (boost && (e->index != EF_BREATH))
+                /* Hack -- check next effect */
+                if (e->next && (e->next->index == e->index) && (e->index != EF_BREATH))
+                {
+                    random_value nextvalue;
+
+                    memset(&nextvalue, 0, sizeof(nextvalue));
+                    if (e->next->dice != NULL)
+                        dice_roll(e->next->dice, (void *)data, &nextvalue);
+                    if ((nextvalue.base == value.base) && (nextvalue.dice == value.dice) &&
+                        (nextvalue.sides == value.sides))
+                    {
+                        same_effect = true;
+                    }
+                }
+
+                /* Hack -- check previous effect */
+                if (same_value)
+                {
+                    if (same_effect) same_effect = false;
+                    else same_value = false;
+
+                    /* Same values: display the effect, only display damage if last */
+                    if (!e->next)
+                    {
+                        strnfmt(desc, sizeof(desc), "%s for %s points of damage",
+                            projections[e->subtype].desc, dice_string);
+                    }
+                    else
+                        my_strcpy(desc, projections[e->subtype].desc, sizeof(desc));
+                }
+
+                /* Hack -- check next effect */
+                else if (same_effect)
+                {
+                    same_effect = false;
+                    same_value = true;
+
+                    strnfmt(desc, sizeof(desc), "produces a cone of %s",
+                            projections[e->subtype].desc);
+                }
+
+                /* Normal case */
+                else
+                {
+                    strnfmt(desc, sizeof(desc), effect_desc(e), projections[e->subtype].desc,
+                        dice_string);
+                }
+
+                /* Hack -- only display boost if last */
+                if (!e->next && boost && (e->index != EF_BREATH))
                 {
                     my_strcat(desc,
                         format(", which your device skill increases by {%d} percent", boost),
                         sizeof(desc));
                 }
+
                 break;
             }
 
@@ -339,10 +471,11 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
             {
                 const char *what;
 
-                switch (e->radius)
+                switch (e->subtype)
                 {
                     case 1: what = "a weapon's to-hit bonus"; break;
                     case 2: what = "a weapon's to-dam bonus"; break;
+                    case 3: what = "a weapon's to-hit and to-dam bonuses"; break;
                     case 4: what = "a piece of armor"; break;
                     default: what = "something"; /* XXX */
                 }
@@ -356,7 +489,15 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
                 return false;
             }
         }
-        print_effect(p, desc);
+
+        if (STRZERO(desc))
+        {
+            if (random_choices >= 1) random_choices--;
+            e = e->next;
+            continue;
+        }
+        else
+            print_effect(p, desc);
 
         /*
          * Random choices need special treatment - note that this code

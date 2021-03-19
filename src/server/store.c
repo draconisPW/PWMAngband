@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Robert A. Koeneke, James E. Wilson, Ben Harrison
  * Copyright (c) 2007 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -615,8 +615,12 @@ static bool store_will_buy(struct player *p, int sidx, const struct object *obj)
     /* PWMAngband: don't accept objects that are not fully known in the General Store */
     if ((store->type == STORE_GENERAL) && !object_fully_known(p, obj)) return false;
 
+    /* PWMAngband: store doesn't buy anything */
+    if (cfg_limited_stores == 2) return false;
+
     /* Ignore "worthless" items */
-    unknown = (OPT(p, birth_no_selling) && tval_has_variable_power(obj) && !object_runes_known(obj));
+    unknown = ((cfg_limited_stores || OPT(p, birth_no_selling)) && tval_has_variable_power(obj) &&
+        !object_runes_known(obj));
     if (!object_value(p, obj, 1) && !unknown) return false;
 
     /* No buy list means we buy anything */
@@ -720,7 +724,7 @@ s32b price_item(struct player *p, struct object *obj, bool store_buying, int qty
         if (s->type == STORE_XBM) price = floor(price / factor);
 
         /* Check for no_selling option */
-        if (cfg_no_selling || OPT(p, birth_no_selling)) return (0L);
+        if (cfg_limited_stores || OPT(p, birth_no_selling)) return (0L);
     }
 
     /* Shop is selling */
@@ -1932,17 +1936,12 @@ static void display_entry(struct player *p, struct object *obj, bool home)
 
 static bool set_askprice(struct object *obj)
 {
-    const char *c = my_stristr(quark_str(obj->note), "for sale");
+    s32b price = get_askprice(quark_str(obj->note));
 
-    if (c)
+    if (price >= 0)
     {
-        /* Get ask price, skip "for sale" */
-        c += 8;
-        if (*c == ' ')
-        {
-            obj->askprice = atoi(c);
-            return true;
-        }
+        obj->askprice = price;
+        return true;
     }
 
     return false;
@@ -2903,7 +2902,7 @@ void store_confirm(struct player *p)
     object_desc(p, o_name, sizeof(o_name), sold_item, ODESC_PREFIX | ODESC_FULL);
 
     /* Describe the result (in message buffer) */
-    if (cfg_no_selling || OPT(p, birth_no_selling))
+    if (cfg_limited_stores || OPT(p, birth_no_selling))
         msg(p, "You had %s (%c).", o_name, label);
     else
     {
@@ -3136,7 +3135,7 @@ void do_cmd_store(struct player *p, int pstore)
         if (store->type == STORE_TAVERN) return;
 
         /* Check if we can enter the store */
-        if (cfg_no_stores || OPT(p, birth_no_stores))
+        if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
         {
             msg(p, "The doors are locked.");
             return;
@@ -3152,6 +3151,10 @@ void do_cmd_store(struct player *p, int pstore)
             struct chunk *cave = chunk_get(&player->wpos);
 
             if (player == p) continue;
+
+            /* Paranoia */
+            if (player->is_dead) continue;
+            if (!cave) continue;
 
             /* Verify a store */
             if (!square_isshop(cave, &player->grid)) continue;
@@ -3190,7 +3193,7 @@ void do_cmd_store(struct player *p, int pstore)
     else
     {
         /* Check if we can enter the store */
-        if (cfg_no_stores || OPT(p, birth_no_stores))
+        if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
         {
             msg(p, "The doors are locked.");
             return;
@@ -3199,9 +3202,14 @@ void do_cmd_store(struct player *p, int pstore)
         /* Store is closed if someone is restocking (anti-exploit) */
         for (i = 1; i <= NumPlayers; i++)
         {
-            struct player *q = player_get(i);
+            struct player *player = player_get(i);
 
-            if ((p != q) && house_inside(q, pstore))
+            if (player == p) continue;
+
+            /* Paranoia */
+            if (player->is_dead) continue;
+
+            if (house_inside(player, pstore))
             {
                 msg(p, "The doors are locked.");
                 return;

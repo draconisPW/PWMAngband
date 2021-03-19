@@ -3,7 +3,7 @@
  * Purpose: Character creation
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -898,6 +898,8 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     else
     {
         bool done = false;
+        bool quit_daytime = is_daytime_turn(&p->quit_turn);
+        bool join_daytime = is_daytime();
 
         /* If we need to reposition the player, do it */
         if (reposition)
@@ -925,7 +927,14 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         }
 
         /* Hack -- night time in wilderness */
-        if (in_wild(&p->wpos) && !is_daytime())
+        if (in_wild(&p->wpos) && !join_daytime)
+        {
+            player_cave_clear(p, false);
+            done = true;
+        }
+
+        /* Hack -- player that saved during day and comes back at night (or vice versa) */
+        if ((quit_daytime && !join_daytime) || (!quit_daytime && join_daytime))
         {
             player_cave_clear(p, false);
             done = true;
@@ -935,7 +944,7 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
         if (!done) memorize_houses(p);
 
         /* Illuminate */
-        cave_illuminate(p, c, is_daytime());
+        cave_illuminate(p, c, join_daytime);
     }
 
     /* Player gets to go first */
@@ -1016,7 +1025,8 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     loc_init(&p->old_offset_grid, -1, -1);
 
     /* Make sure his party still exists */
-    if (p->party && parties[p->party].num == 0)
+    if (p->party &&
+        ((parties[p->party].num == 0) || (ht_cmp(&parties[p->party].created, &p->quit_turn) > 0)))
     {
         /* Reset to neutral */
         p->party = 0;
@@ -1367,6 +1377,14 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
 
         /* Success */
         return p;
+    }
+
+    /* Paranoia: ensure that Dragon and Hydra characters have the proper race when logging */
+    if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA))
+    {
+        if (player_has(p, PF_DRAGON)) poly_dragon(p, false);
+        else poly_hydra(p, false);
+        get_bonuses(p);
     }
 
     /* Loading succeeded */

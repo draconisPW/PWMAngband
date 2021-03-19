@@ -3,7 +3,7 @@
  * Purpose: Player implementation
  *
  * Copyright (c) 2011 elly+angband@leptoquark.net. See COPYING.
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -546,9 +546,9 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
     p->randart_created = mem_zalloc((z_info->a_max + 9) * sizeof(byte));
 
     /* Allocate memory for dungeon flags array */
-    p->obj_aware = mem_zalloc(z_info->k_max * sizeof(bool));
+    p->kind_aware = mem_zalloc(z_info->k_max * sizeof(bool));
     p->note_aware = mem_zalloc(z_info->k_max * sizeof(quark_t));
-    p->obj_tried = mem_zalloc(z_info->k_max * sizeof(bool));
+    p->kind_tried = mem_zalloc(z_info->k_max * sizeof(bool));
     p->kind_ignore = mem_zalloc(z_info->k_max * sizeof(byte));
     p->kind_everseen = mem_zalloc(z_info->k_max * sizeof(byte));
     p->ego_ignore_types = mem_zalloc(z_info->e_max * sizeof(byte*));
@@ -594,7 +594,7 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
         if (!kind->name) continue;
 
         /* No flavor yields aware */
-        if (!kind->flavor) p->obj_aware[i] = true;
+        if (!kind->flavor) p->kind_aware[i] = true;
     }
 
     /* Always start with a well fed player */
@@ -694,9 +694,9 @@ void cleanup_player(struct player *p)
     mem_free(p->art_info);
     mem_free(p->randart_info);
     mem_free(p->randart_created);
-    mem_free(p->obj_aware);
+    mem_free(p->kind_aware);
     mem_free(p->note_aware);
-    mem_free(p->obj_tried);
+    mem_free(p->kind_tried);
     mem_free(p->kind_ignore);
     mem_free(p->kind_everseen);
     for (i = 0; p->ego_ignore_types && (i < z_info->e_max); i++)

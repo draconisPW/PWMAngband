@@ -45,9 +45,9 @@ OTHERFILES =
 # ---------------------------------------------------------------------------
 DEBUGLIBPATH = $(BCB)\lib\debug
 RELEASELIBPATH = $(BCB)\lib\release
-USERDEFINES = WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;WAV_MUSIC;MP3_MAD_MUSIC;BUILD_SDL;FPM_DEFAULT
+USERDEFINES = WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;WAV_MUSIC;MP3_MAD_MUSIC;BUILD_SDL;FPM_DEFAULT;OGG_MUSIC;OGG_DYNAMIC=\"libvorbisfile-3.dll\";BCC
 SYSDEFINES = NO_STRICT;_NO_VCL
-INCLUDEPATH = $(BCB)\include;_SDL;..\..\SDL\libmad-0.15.1b
+INCLUDEPATH = $(BCB)\include;_SDL;..\..\SDL\libmad-0.15.1b;..\..\SDL\SDL_mixer-1.2.12\VisualC\external\include
 LIBPATH = $(BCB)\lib\obj;$(BCB)\lib;_SDL
 WARNINGS= -w-par
 PATHCPP= .;..\..\SDL\SDL_mixer-1.2.12;..\..\SDL\libmad-0.15.1b
@@ -61,7 +61,9 @@ CFLAG1 = -WD -O2 -Hc -w- -Vx -Ve -X- \
 IDLCFLAGS = -I$(BCB)\include -I_SDL \
     -I..\..\SDL\libmad-0.15.1b \
     -src_suffix cpp -DWIN32 -D_WINDOWS -D_CRT_SECURE_NO_WARNINGS -DWAV_MUSIC \
-    -DMP3_MAD_MUSIC -DBUILD_SDL -DFPM_DEFAULT -DNO_STRICT -D_NO_VCL -boa
+    -DMP3_MAD_MUSIC -DBUILD_SDL -DFPM_DEFAULT \
+    -DOGG_MUSIC -DOGG_DYNAMIC=\"libvorbisfile-3.dll\" -DBCC \
+    -DNO_STRICT -D_NO_VCL -boa
 PFLAGS = -$Y- -$L- -$D- -$A8 -v -JPHNE -M
 RFLAGS = 
 AFLAGS = /mx /w2 /zn

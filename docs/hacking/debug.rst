@@ -182,3 +182,8 @@ Create a trap
 
 Advance time
   Advances time by 1 to 12 hours.
+
+..
+
+Write a map of the current level
+  Writes out a map of the current level as an HTML file.

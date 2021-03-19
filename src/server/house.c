@@ -2,7 +2,7 @@
  * File: house.c
  * Purpose: House code.
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -379,6 +379,9 @@ void house_dump(struct player *p, ang_file *fp)
     {
         struct chunk *c = chunk_get(&houses[i].wpos);
         struct loc_iterator iter;
+
+        /* Paranoia */
+        if (!c) continue;
 
         if (!house_owned_by(p, i)) continue;
 

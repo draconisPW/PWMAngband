@@ -3,7 +3,7 @@
  * Purpose: Game core management of the game world
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -71,11 +71,20 @@ static const byte extract_energy[200] =
 
 
 /*
+ * Say whether a turn is during day or not
+ */
+bool is_daytime_turn(hturn *ht_ptr)
+{
+    return ((ht_ptr->turn % (10L * z_info->day_length)) < (u32b)((10L * z_info->day_length) / 2));
+}
+
+
+/*
  * Say whether it's daytime or not
  */
 bool is_daytime(void)
 {
-    return ((turn.turn % (10L * z_info->day_length)) < (u32b)((10L * z_info->day_length) / 2));
+    return is_daytime_turn(&turn);
 }
 
 
@@ -441,23 +450,6 @@ static void process_world(struct player *p, struct chunk *c)
         bool dawn = (!(turn.turn % (10L * z_info->day_length)));
 
         dusk_or_dawn(p, c, dawn);
-
-        loc_init(&begin, 0, 0);
-        loc_init(&end, c->width, c->height);
-        loc_iterator_first(&iter, &begin, &end);
-
-        /* Hack -- regenerate crops */
-        do
-        {
-            /* Regenerate crops */
-            if (square_iscrop(c, &iter.cur) && !square_object(c, &iter.cur) &&
-                !square(c, &iter.cur)->mon && dawn && one_in_(16))
-            {
-                /* Add crop to that location */
-                wild_add_crop(c, &iter.cur, randint0(7));
-            }
-        }
-        while (loc_iterator_next_strict(&iter));
     }
 
     /* Hack -- DM redesigning the level */
@@ -804,6 +796,13 @@ static void process_player_world(struct player *p, struct chunk *c)
     /* Faint or starving */
     if (player_timed_grade_eq(p, TMD_FOOD, "Faint"))
     {
+        /* If the player is idle and fainting, destroy his connection */
+        if (cfg_disconnect_fainting && !ht_zero(&p->idle_turn) &&
+            (ht_diff(&turn, &p->idle_turn) > (u32b)(cfg_disconnect_fainting * cfg_fps)))
+        {
+            p->fainting = true;
+        }
+
         /* Faint occasionally */
         if (!p->timed[TMD_PARALYZED] && magik(10))
         {
@@ -866,7 +865,7 @@ static void process_player_world(struct player *p, struct chunk *c)
     /*** Process Inventory ***/
 
     /* Handle experience draining */
-    if (player_of_has(p, OF_DRAIN_EXP) && !p->is_idle)
+    if (player_of_has(p, OF_DRAIN_EXP) && ht_zero(&p->idle_turn))
     {
         if (magik(10) && (p->exp > 0))
         {
@@ -1156,6 +1155,26 @@ static void on_leave_level(void)
 }
 
 
+static struct chunk *get_location(struct monster_race *race)
+{
+    struct loc grid;
+
+    /* Get location */
+    for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+    {
+        for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+        {
+            struct wild_type *w_ptr = get_wt_info_at(&grid);
+            struct chunk *c = w_ptr->chunk_list[0];
+
+            if (c && allow_location(race, &c->wpos)) return c;
+        }
+    }
+
+    return NULL;
+}
+
+
 /*
  * Handles "global" things on the server
  */
@@ -1249,6 +1268,31 @@ static void process_various(void)
                             chunk_set_player_count(&wpos, 0);
                     }
                 }
+            }
+        }
+    }
+
+    /* Grow crops very occasionally */
+    if (!(turn.turn % (10L * GROW_CROPS)))
+    {
+        struct loc grid;
+
+        /* For each wilderness level */
+        for (grid.y = radius_wild; grid.y >= 0 - radius_wild; grid.y--)
+        {
+            for (grid.x = 0 - radius_wild; grid.x <= radius_wild; grid.x++)
+            {
+                struct wild_type *w_ptr = get_wt_info_at(&grid);
+                struct chunk *c = w_ptr->chunk_list[0];
+                struct loc begin, end;
+
+                /* Must exist */
+                if (!c) continue;
+
+                loc_init(&begin, 0, 0);
+                loc_init(&end, c->width, c->height);
+
+                wild_grow_crops(c, &begin, &end, true);
             }
         }
     }
@@ -1377,6 +1421,34 @@ static void process_various(void)
                 }
                 while (loc_iterator_next_strict(&iter));
             }
+        }
+    }
+
+    /* Paranoia -- respawn NO_DEATH monsters */
+    if (!(turn.turn % (10L * z_info->day_length)))
+    {
+        int i;
+
+        for (i = 1; i < z_info->r_max; i++)
+        {
+            struct monster_race *race = &r_info[i];
+            struct chunk *c;
+            struct loc grid;
+            bool found = false;
+            int tries = 50;
+            struct monster_group_info info = {0, 0};
+
+            if (!rf_has(race->flags, RF_NO_DEATH)) continue;
+            if (race->lore.spawned) continue;
+
+            /* Get location */
+            c = get_location(race);
+            if (!c) continue;
+
+            /* Pick a location and place the monster */
+            while (tries-- && !found) found = find_training(c, &grid);
+            if (found)
+                place_new_monster(NULL, c, &grid, race, MON_ASLEEP | MON_GROUP, &info, ORIGIN_DROP);
         }
     }
 }
@@ -1643,7 +1715,7 @@ static void generate_new_level(struct player *p)
     place_player(p, c, &grid);
 
     /* PWMAngband: give a warning when entering a gauntlet level */
-    if (square_isno_teleport(c, &p->grid))
+    if (square_limited_teleport(c, &p->grid))
         msgt(p, MSG_ENTER_PIT, "The air feels very still!");
 
     /* Add the player */
@@ -1697,7 +1769,14 @@ static void energize_player(struct player *p)
     bool allow_running = (in_town(&c->wpos) || !monsters_in_los(p, c));
 
     /* Player is idle */
-    p->is_idle = has_energy(p, false);
+    bool is_idle = has_energy(p, false);
+
+    if (p->timed[TMD_PARALYZED] || player_timed_grade_eq(p, TMD_STUN, "Knocked Out"))
+        is_idle = true;
+
+    /* Update idle turn */
+    if (is_idle && ht_zero(&p->idle_turn)) ht_copy(&p->idle_turn, &turn);
+    else if (!is_idle && !ht_zero(&p->idle_turn)) ht_reset(&p->idle_turn);
 
     /* How much energy should we get? */
     energy = frame_energy(p->state.speed);
@@ -1947,7 +2026,7 @@ static void post_turn_game_loop(void)
         }
 
         /* Increment the active player turn counter */
-        if (p->has_energy && !p->is_idle) ht_add(&p->active_turn, 1);
+        if (p->has_energy && ht_zero(&p->idle_turn)) ht_add(&p->active_turn, 1);
 
         /* Player has energy */
         p->has_energy = has_energy(p, false);
@@ -2009,15 +2088,15 @@ static void post_turn_game_loop(void)
         Conn_set_state(connp, CONN_QUIT, 1);
     }
 
-    /* Kick out starving players */
+    /* Kick out fainting players */
     for (i = NumPlayers; i > 0; i--)
     {
         struct player *p = player_get(i);
 
-        if (!p->starving) continue;
+        if (!p->fainting) continue;
 
         /* Kick him */
-        Destroy_connection(p->conn, "Starving to death!");
+        Destroy_connection(p->conn, "Fainting!");
     }
 
     on_leave_level();
@@ -2090,7 +2169,8 @@ static void process_player_turn_based(struct player *p)
     if (process_pending_commands(p->conn)) return;
 
     /* Shimmer multi-hued things if idle */
-    if (monster_allow_shimmer(p) && has_energy(p, false)) process_player_shimmer(p);
+    if (!p->upkeep->new_level_method && monster_allow_shimmer(p) && has_energy(p, false))
+        process_player_shimmer(p);
 
     /* Process the player until they use some energy */
     if (has_energy(p, false)) return;
@@ -2126,7 +2206,7 @@ void run_game_loop(void)
         struct player *p = player_get(1);
 
         /* Execute pre-turn processing if the player is not idle */
-        if (!p->is_idle) pre_turn_game_loop();
+        if (ht_zero(&p->idle_turn)) pre_turn_game_loop();
 
         /* Process the player */
         if (!p->upkeep->new_level_method && !p->upkeep->funeral)
@@ -2138,7 +2218,7 @@ void run_game_loop(void)
         /* Player is idle: refresh and send info to client (for commands that don't use energy) */
         else
         {
-            p->is_idle = true;
+            if (ht_zero(&p->idle_turn)) ht_copy(&p->idle_turn, &turn);
 
             /* Full refresh (includes monster/object lists) */
             p->full_refresh = true;
@@ -2208,6 +2288,12 @@ bool level_keep_allocated(struct chunk *c)
 }
 
 
+#ifndef WINDOWS
+static void signals_ignore_tstp(void);
+static void signals_handle_tstp(void);
+#endif
+
+
 /*
  * Save the game
  *
@@ -2231,6 +2317,11 @@ static void save_game(struct player *p)
     /* The player is not dead */
     my_strcpy(p->died_from, "(saved)", sizeof(p->died_from));
 
+#ifndef WINDOWS
+    /* Forbid suspend */
+    signals_ignore_tstp();
+#endif
+
     /* Save the player */
     if (save_player(p))
         msg(p, "Saving game... done.");
@@ -2238,6 +2329,11 @@ static void save_game(struct player *p)
     /* Save failed (oops) */
     else
         msg(p, "Saving game... failed!");
+
+#ifndef WINDOWS
+    /* Allow suspend again */
+    signals_handle_tstp();
+#endif
 
     /* Note that the player is not dead */
     my_strcpy(p->died_from, "(alive and well)", sizeof(p->died_from));
@@ -2307,6 +2403,11 @@ static void close_game(void)
 {
     int i;
 
+#ifndef WINDOWS
+    /* No suspending now */
+    signals_ignore_tstp();
+#endif
+
     for (i = 1; i <= NumPlayers; i++)
     {
         struct player *p = player_get(i);
@@ -2344,6 +2445,11 @@ static void close_game(void)
     /* Try to save the server information + player names */
     save_server_info();
     save_account_info();
+
+#ifndef WINDOWS
+    /* Allow suspending now */
+    signals_handle_tstp();
+#endif
 }
 
 
@@ -2496,6 +2602,11 @@ void exit_game_panic(void)
         /* Hack -- delay death */
         if (p->chp < 0) p->is_dead = false;
 
+#ifndef WINDOWS
+        /* Forbid suspend */
+        signals_ignore_tstp();
+#endif
+
         /* Indicate panic save */
         my_strcpy(p->died_from, "(panic save)", sizeof(p->died_from));
 
@@ -2584,7 +2695,6 @@ static LONG WINAPI MyUnhandledExceptionFilter(struct _EXCEPTION_POINTERS* Except
 
 void setup_exit_handler(void)
 {
-#ifdef WINDOWS
     /* Trap CTRL+C, Logoff, Shutdown, etc */
     if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)ctrl_handler, true))
         plog("Initialised exit save handler.");
@@ -2593,9 +2703,202 @@ void setup_exit_handler(void)
 
     /* Trap unhandled exceptions, i.e. server crashes */
     old_handler = SetUnhandledExceptionFilter(MyUnhandledExceptionFilter);
+}
 #else
-//...
+#include <signal.h>
+static volatile sig_atomic_t signalbusy = 0;
+
+static s16b signal_count = 0;   /* Hack -- count interrupts */
+
+/*
+ * Handle signals -- suspend
+ *
+ * Actually suspend the game, and then resume cleanly
+ *
+ * This will probably inflict much anger upon the suspender, but it is still
+ * allowed (for now)
+ */
+static void handle_signal_suspend(int sig)
+{
+    /* Disable handler */
+    signal(sig, SIG_IGN);
+
+#ifdef SIGSTOP
+    /* Suspend ourself */
+    kill(0, SIGSTOP);
+#endif
+    /* Restore handler */
+    signal(sig, handle_signal_suspend);
+}
+
+/*
+ * Handle signals -- simple (interrupt and quit)
+ *
+ * This function was causing a *huge* number of problems, so it has
+ * been simplified greatly. We keep a global variable which counts
+ * the number of times the user attempts to kill the process, and
+ * we commit suicide if the user does this a certain number of times.
+ *
+ * We attempt to give "feedback" to the user as he approaches the
+ * suicide thresh-hold, but without penalizing accidental keypresses.
+ *
+ * To prevent messy accidents, we should reset this global variable
+ * whenever the user enters a keypress, or something like that.
+ *
+ * This simply calls "exit_game_panic()", which should try to save
+ * everyone's character and the server info, which is probably nicer
+ * than killing everybody.
+ */
+static void handle_signal_simple(int sig)
+{
+    /* Disable handler */
+    signal(sig, SIG_IGN);
+
+    /* Nothing to save, just quit */
+    if (!server_generated) quit(NULL);
+
+    /* Hack -- on SIGTERM, quit right away */
+    if (sig == SIGTERM) signal_count = 5;
+
+    /* Count the signals */
+    signal_count++;
+
+    /* Allow suicide (after 5) */
+    if (signal_count >= 5)
+    {
+        /* Perform a "clean" shutdown */
+        shutdown_server();
+    }
+
+    /* Give warning (after 4) */
+    else if (signal_count >= 4)
+        plog("Warning: Next signal kills server!");
+
+    /* Restore handler */
+    signal(sig, handle_signal_simple);
+}
+
+/*
+ * Handle signal -- abort, kill, etc
+ *
+ * This one also calls exit_game_panic()
+ */
+static void handle_signal_abort(int sig)
+{
+    /* We are *not* reentrant */
+    if (signalbusy) raise(sig);
+    signalbusy = 1;
+
+    plog("Unexpected signal, panic saving.");
+
+    /* Nothing to save, just quit */
+    if (!server_generated) quit(NULL);
+
+    /* Save everybody */
+    exit_game_panic();
+
+    /* Enable default handler */
+    signal(sig, SIG_DFL);
+
+    /* Reraise */
+    raise(sig);
+}
+
+/*
+ * Ignore SIGTSTP signals (keyboard suspend)
+ */
+static void signals_ignore_tstp(void)
+{
+#ifdef SIGTSTP
+    signal(SIGTSTP, SIG_IGN);
 #endif
 }
 
+/*
+ * Handle SIGTSTP signals (keyboard suspend)
+ */
+static void signals_handle_tstp(void)
+{
+#ifdef SIGTSTP
+    signal(SIGTSTP, handle_signal_suspend);
+#endif
+}
+
+/*
+ * Prepare to handle the relevant signals
+ */
+void signals_init(void)
+{
+#ifdef SIGHUP
+    signal(SIGHUP, SIG_IGN);
+#endif
+
+#ifdef SIGTSTP
+    signal(SIGTSTP, handle_signal_suspend);
+#endif
+
+#ifdef SIGINT
+    signal(SIGINT, handle_signal_simple);
+#endif
+
+#ifdef SIGQUIT
+    signal(SIGQUIT, handle_signal_simple);
+#endif
+
+#ifdef SIGFPE
+    signal(SIGFPE, handle_signal_abort);
+#endif
+
+#ifdef SIGILL
+    signal(SIGILL, handle_signal_abort);
+#endif
+
+#ifdef SIGTRAP
+    signal(SIGTRAP, handle_signal_abort);
+#endif
+
+#ifdef SIGIOT
+    signal(SIGIOT, handle_signal_abort);
+#endif
+
+#ifdef SIGKILL
+    signal(SIGKILL, handle_signal_abort);
+#endif
+
+#ifdef SIGBUS
+    signal(SIGBUS, handle_signal_abort);
+#endif
+
+#ifdef SIGSEGV
+    signal(SIGSEGV, handle_signal_abort);
+#endif
+
+#ifdef SIGTERM
+    signal(SIGTERM, handle_signal_simple);
+#endif
+
+#ifdef SIGPIPE
+    signal(SIGPIPE, SIG_IGN);
+#endif
+
+#ifdef SIGEMT
+    signal(SIGEMT, handle_signal_abort);
+#endif
+
+#ifdef SIGDANGER
+    signal(SIGDANGER, handle_signal_abort);
+#endif
+
+#ifdef SIGSYS
+    signal(SIGSYS, handle_signal_abort);
+#endif
+
+#ifdef SIGXCPU
+    signal(SIGXCPU, handle_signal_abort);
+#endif
+
+#ifdef SIGPWR
+    signal(SIGPWR, handle_signal_abort);
+#endif
+}
 #endif

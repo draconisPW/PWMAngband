@@ -3,7 +3,7 @@
  * Purpose: Some high-level UI functions, inkey()
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -52,6 +52,18 @@ int dis_to_mdam;
 /* Missile to-hit/to-dam */
 int dis_to_shit;
 int dis_to_sdam;
+
+
+/* Allow '"' to be used in place of '\r' */
+bool prompt_quote_hack = false;
+
+
+/* Selecting a magic book */
+bool spellcasting = false;
+
+
+/* Select-by-name spell */
+int spellcasting_spell = -1;
 
 
 /*
@@ -461,6 +473,9 @@ bool askfor_aux(char *buf, int len, keypress_handler keypress_h)
         /* Get a key */
         ch = inkey();
 
+        /* Evil hack -- pretend quote is Return */
+        if (prompt_quote_hack && (ch.code == '"')) ch.code = KC_ENTER;
+
         /* Let the keypress handler deal with the keypress */
         done = keypress_h(buf, len, &k, &nul, ch, firsttime);
 
@@ -475,6 +490,9 @@ bool askfor_aux(char *buf, int len, keypress_handler keypress_h)
     /* The top line is OK now */
     topline_icky = false;
     Flush_queue();
+
+    /* Reset global flags */
+    prompt_quote_hack = false;
 
     /* Done */
     return (ch.code != ESCAPE);
@@ -1545,6 +1563,8 @@ ui_event textui_get_command(void)
 bool textui_process_key(struct keypress kp, unsigned char *c)
 {
     keycode_t key = kp.code;
+
+    if (key == ' ') msg_flush();
 
     /* Null command */
     if ((key == '\0') || (key == ESCAPE) || (key == ' ') || (key == '\a'))

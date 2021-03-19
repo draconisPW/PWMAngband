@@ -211,7 +211,7 @@ u16b message_count(u16b age)
 
 
 /*
- * Returns the type of the message of age `age`.  The age of the most recently
+ * Returns the type of the message of age `age`. The age of the most recently
  * saved message is 0, the one before that is of age 1, etc.
  *
  * The type is one of the MSG_ constants, defined above.
@@ -454,12 +454,34 @@ void bell(const char *reason)
 }
 
 
+static char last_msg[MSG_LEN];
+static int  last_msg_more = false;
+static int  last_msg_type = MSG_LOCAL;
+
+
+void msg_flush(void)
+{
+    if (last_msg_more == false) return;
+    c_msg_print_aux(last_msg, last_msg_type, false);
+}
+
+
+#define MORE_PROMPT "-"
+#define MORE_PROMPT_LEN 1
+
+
 /*
  * Output a message to the top line of the screen.
  *
- * Long messages are truncated.
+ * Break long messages into multiple pieces.
+ *
+ * Allow multiple short messages to "share" the top line.
+ *
+ * Prompt the user to make sure he has a chance to read them.
  *
  * These messages are memorized for later reference (see above).
+ *
+ * We could do a "Term_fresh()" to provide "flicker" if needed.
  *
  * We must be very careful about using the "msg()" functions without
  * explicitly calling the special "msg(NULL)" function, since this may
@@ -469,9 +491,9 @@ void bell(const char *reason)
  * Hack -- note that "msg(NULL)" will clear the top line even if no
  * messages are pending.
  */
-void c_msg_print_aux(const char *msg, u16b type)
+void c_msg_print_aux(const char *msg, u16b type, bool memorize)
 {
-    char buf[MSG_LEN];
+    int n, maxcol;
 
     /* Hack -- reset */
     prt("", 0, 0);
@@ -483,13 +505,39 @@ void c_msg_print_aux(const char *msg, u16b type)
     if (!msg) return;
 
     /* Memorize the message */
-    message_add(msg, type);
+    if (memorize) message_add(msg, type);
 
-    /* Copy it */
-    my_strcpy(buf, msg, sizeof(buf));
+    /* Message length */
+    n = strlen(msg);
 
-    /* Display the message */
-    Term_putstr(0, 0, strlen(buf), COLOUR_WHITE, buf);
+    /* Display it */
+    Term_putstr(0, 0, Term->wid, COLOUR_WHITE, msg);
+
+    /* Display "-more-" prompt */
+    maxcol = (Term->wid - MORE_PROMPT_LEN);
+    if (n > maxcol) Term_putstr(maxcol, 0, MORE_PROMPT_LEN, COLOUR_YELLOW, MORE_PROMPT);
+    last_msg_more = false;
+
+    /* Split message */
+    if (n > maxcol)
+    {
+        int check, split;
+
+        /* Default split */
+        split = maxcol;
+
+        /* Find the "best" split point */
+        for (check = 40; check < maxcol; check++)
+        {
+            /* Found a valid split point */
+            if (msg[check] == ' ') split = check;
+        }
+
+        /* Save part of the message */
+        my_strcpy(last_msg, &msg[split], sizeof(last_msg));
+        last_msg_type = type;
+        last_msg_more = true;
+    }
 }
 
 
@@ -498,5 +546,5 @@ void c_msg_print_aux(const char *msg, u16b type)
  */
 void c_msg_print(const char *msg)
 {
-    c_msg_print_aux(msg, MSG_LOCAL);
+    c_msg_print_aux(msg, MSG_LOCAL, true);
 }

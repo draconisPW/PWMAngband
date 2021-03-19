@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke (attacking code)
  * Copyright (c) 1997 Ben Harrison, David Reeve Sward, Keldon Jones (AI routines).
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -118,7 +118,8 @@ static bool monster_can_kill(struct chunk *c, struct monster *mon, struct loc *g
     if (!mon1) return true;
 
     /* No trampling uniques */
-    if (rf_has(mon1->race->flags, RF_UNIQUE)) return false;
+    if (rf_has(mon1->race->flags, RF_UNIQUE) ||
+        (mon1->original_race && rf_has(mon1->original_race->flags, RF_UNIQUE))) return false;
 
     if (rf_has(mon->race->flags, RF_KILL_BODY) && (compare_monsters(mon, mon1) > 0)) return true;
 
@@ -1533,7 +1534,7 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     if (rf_has(mon->race->flags, RF_SMASH_WALL))
     {
         /* Remove the wall and much of what's nearby */
-        square_smash_wall(c, grid);
+        square_smash_wall(who->player, c, grid);
 
         /* Note changes to viewable region */
         note_viewable_changes(&c->wpos, grid);
@@ -1637,9 +1638,21 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
             /* Closed or secret door -- always open or bash */
             if (will_bash)
             {
+                int i;
+
                 square_smash_door(c, grid);
 
-                msg(who->player, "You hear a door burst open!");
+                /* Hack -- print message to nearby players */
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    /* Check this player */
+                    struct player *player = player_get(i);
+
+                    /* Make sure this player is on this level */
+                    if (!wpos_eq(&player->wpos, &who->player->wpos)) continue;
+
+                    msg(player, "You hear a door burst open!");
+                }
 
                 /* Disturb if necessary */
                 if (!who->monster && OPT(who->player, disturb_bash)) disturb(who->player, 0);
@@ -1895,21 +1908,34 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
             continue;
         }
 
-        /* Get the object name */
-        object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
-
         /* React to objects that hurt the monster */
         if (react_to_slay(obj, mon)) safe = true;
 
         /* Try to pick up, or crush */
         if (safe)
         {
-            /* Only give a message for "take_item" */
-            if (rf_has(mon->race->flags, RF_TAKE_ITEM) && visible && square_isview(p, grid) &&
-                !ignore_item_ok(p, obj))
+            int i;
+
+            /* Hack -- print message to nearby players */
+            for (i = 1; i <= NumPlayers; i++)
             {
-                /* Dump a message */
-                msg(p, "%s tries to pick up %s, but fails.", m_name, o_name);
+                /* Check this player */
+                struct player *player = player_get(i);
+
+                /* Make sure this player is on this level */
+                if (!wpos_eq(&player->wpos, &p->wpos)) continue;
+
+                /* Only give a message for "take_item" */
+                if (rf_has(mon->race->flags, RF_TAKE_ITEM) &&
+                    monster_is_visible(player, mon->midx) && square_isview(player, grid) &&
+                    !ignore_item_ok(player, obj))
+                {
+                    /* Get the object name */
+                    object_desc(player, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
+
+                    /* Dump a message */
+                    msg(player, "%s tries to pick up %s, but fails.", m_name, o_name);
+                }
             }
         }
         else if (rf_has(mon->race->flags, RF_TAKE_ITEM))
@@ -1917,9 +1943,27 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
             /* Controlled monsters don't take objects */
             if (!mon->master)
             {
-                /* Describe observable situations */
-                if (square_isseen(p, grid) && !ignore_item_ok(p, obj))
-                    msg(p, "%s picks up %s.", m_name, o_name);
+                int i;
+
+                /* Hack -- print message to nearby players */
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    /* Check this player */
+                    struct player *player = player_get(i);
+
+                    /* Make sure this player is on this level */
+                    if (!wpos_eq(&player->wpos, &p->wpos)) continue;
+
+                    /* Describe observable situations */
+                    if (square_isseen(player, grid) && !ignore_item_ok(player, obj))
+                    {
+                        /* Get the object name */
+                        object_desc(player, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
+
+                        /* Dump a message */
+                        msg(player, "%s picks up %s.", m_name, o_name);
+                    }
+                }
 
                 /* Carry the object */
                 square_excise_object(c, grid, obj);
@@ -1932,9 +1976,27 @@ static void monster_turn_grab_objects(struct player *p, struct chunk *c, struct 
         }
         else
         {
-            /* Describe observable situations */
-            if (square_isseen(p, grid) && !ignore_item_ok(p, obj))
-                msgt(p, MSG_DESTROY, "%s crushes %s.", m_name, o_name);
+            int i;
+
+            /* Hack -- print message to nearby players */
+            for (i = 1; i <= NumPlayers; i++)
+            {
+                /* Check this player */
+                struct player *player = player_get(i);
+
+                /* Make sure this player is on this level */
+                if (!wpos_eq(&player->wpos, &p->wpos)) continue;
+
+                /* Describe observable situations */
+                if (square_isseen(player, grid) && !ignore_item_ok(player, obj))
+                {
+                    /* Get the object name */
+                    object_desc(player, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);
+
+                    /* Dump a message */
+                    msgt(player, MSG_DESTROY, "%s crushes %s.", m_name, o_name);
+                }
+            }
 
             /* Delete the object */
             square_delete_object(c, grid, obj, true, true);
@@ -2684,9 +2746,14 @@ void process_monsters(struct chunk *c, bool more_energy)
         /* Skip "unconscious" monsters */
         if (mon->hp == 0) continue;
 
+        /* Get closest player */
+        get_closest_player(c, mon);
+
+        /* Paranoia -- make sure we have a closest player */
+        if (!mon->closest_player) continue;
+
         /* Not enough energy to move yet */
-        if (more_energy && mon->closest_player && (mon->energy <= mon->closest_player->energy))
-            continue;
+        if (more_energy && (mon->energy <= mon->closest_player->energy)) continue;
 
         /* Prevent reprocessing */
         mflag_on(mon->mflag, MFLAG_HANDLED);
@@ -2748,12 +2815,6 @@ void process_monsters(struct chunk *c, bool more_energy)
                 }
             }
         }
-
-        /* Get closest player */
-        get_closest_player(c, mon);
-
-        /* Paranoia -- make sure we have a closest player */
-        if (!mon->closest_player) continue;
 
         /* Mimics lie in wait */
         if (monster_is_camouflaged(mon)) continue;

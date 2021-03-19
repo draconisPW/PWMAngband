@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007 Antony Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -100,7 +100,7 @@ static void prt_equippy(struct player *p)
                 a = obj->kind->d_attr;
                 c = obj->kind->d_char;
 
-                if (obj->kind->flavor && !(p->obj_aware[obj->kind->kidx] && a && c))
+                if (obj->kind->flavor && !(p->kind_aware[obj->kind->kidx] && a && c))
                 {
                     a = obj->kind->flavor->d_attr;
                     c = obj->kind->flavor->d_char;
@@ -1182,7 +1182,7 @@ static const struct player_flag_record player_flag_table[(RES_PANELS + 1) * RES_
     {-1, OF_DRAIN_EXP, -1, -1},
     {-1, OF_STICKY, -1, -1},
     {-1, OF_FRAGILE, -1, -1},
-    {-1, -1, -1, -1},
+    {-1, OF_LIMITED_TELE, -1, -1},
     {-1, -1, -1, -1},
     {-1, -1, ELEM_TIME, -1},
     {-1, -1, ELEM_MANA, -1},
@@ -2246,6 +2246,9 @@ bool monsters_in_los(struct player *p, struct chunk *c)
     {
         struct player *q = player_get(i);
 
+        /* Only count connected players XXX */
+        if (q->conn == -1) continue;
+
         /* Don't count non hostile players */
         if (!pvp_check(p, q, PVP_CHECK_BOTH, true, 0x00)) continue;
 
@@ -2307,6 +2310,9 @@ static int base_time_factor(struct player *p, struct chunk *c, int slowest)
 
     /* If nothing in LoS */
     los = monsters_in_los(p, c);
+
+    /* Hack -- prevent too much manual slowdown */
+    if ((p->opts.hitpoint_warn > 9) && !los) timefactor = NORMAL_TIME;
 
     /* Resting speeds up time disregarding health time scaling */
     if (player_is_resting(p) && !los) timefactor = MAX_TIME_SCALE;
@@ -4454,6 +4460,26 @@ static void master_debug(struct player *p, char *parms)
 
             break;
         }
+
+        /* Write a map of the current level */
+        case 'M':
+        {
+            char path[MSG_LEN];
+            char title[NORMAL_WID];
+            ang_file *fo;
+
+            path_build(path, sizeof(path), ANGBAND_DIR_USER, "level.html");
+            strnfmt(title, sizeof(title), "Map of level %s", p->depths);
+
+            fo = file_open(path, MODE_WRITE, FTYPE_TEXT);
+            if (fo)
+            {
+                dump_level(fo, title, chunk_get(&p->wpos), NULL);
+                if (file_close(fo)) msg(p, "Level dumped to %s.", path);
+            }
+
+            break;
+        }
     }
 }
 
@@ -5320,92 +5346,9 @@ static void display_message_aux(struct player *p, int type, const char *msg)
 
 /*
  * Output a message to the top line of the screen.
- *
- * Break long messages into multiple pieces (40-72 chars).
- *
- * Allow multiple short messages to "share" the top line.
- *
- * Prompt the user to make sure he has a chance to read them.
- *
- * These messages are memorized for later reference (see above).
- *
- * We could do a "Term_fresh()" to provide "flicker" if needed.
- *
- * We must be very careful about using the "msg()" functions without
- * explicitly calling the special "msg(NULL)" function, since this may
- * result in the loss of information if the screen is cleared, or if anything
- * is displayed on the top line.
- *
- * Hack -- note that "msg(NULL)" will clear the top line even if no
- * messages are pending.
  */
 void display_message(struct player *p, struct message *data)
 {
-    int n;
-    char *t;
-    char buf[MSG_LEN];
-    int w;
-    int type;
-    const char *msg;
-
     if (!data) return;
-
-    type = data->type;
-    msg = data->msg;
-
-    /* No message */
-    if (!msg)
-    {
-        display_message_aux(p, type, msg);
-        return;
-    }
-
-    /* Obtain the size */
-    w = NORMAL_WID;
-
-    /* Message Length */
-    n = (msg? strlen(msg): 0);
-
-    /* Copy it */
-    my_strcpy(buf, msg, sizeof(buf));
-
-    /* Analyze the buffer */
-    t = buf;
-
-    /* Split message */
-    while (n > w - 1)
-    {
-        char oops;
-        int check, split;
-
-        /* Default split */
-        split = w - 8;
-
-        /* Find the rightmost split point */
-        for (check = (w / 2); check < w - 8; check++)
-        {
-            if (t[check] == ' ') split = check;
-        }
-
-        /* Save the split character */
-        oops = t[split];
-
-        /* Split the message */
-        t[split] = '\0';
-
-        /* Display part of the message */
-        display_message_aux(p, type, t);
-
-        /* Restore the split character */
-        t[split] = oops;
-
-        /* Insert a space */
-        t[--split] = ' ';
-
-        /* Prepare to recurse on the rest of "buf" */
-        t += split; n -= split;
-    }
-
-    /* Display the tail of the message */
-    display_message_aux(p, type, t);
+    display_message_aux(p, data->type, data->msg);
 }
