@@ -23,7 +23,7 @@ CFLAGS += -I. -std=c99 -O0
 GCOBJS = $(OBJECTS:.o=.gcno) $(OBJECTS:.o=.gcda)
 GCOVS = $(OBJECTS:.o=.c.gcov)
 
-CLEAN = angband.o $(CLIENT_OBJECTS) $(SERVER_OBJECTS) win/angband.res
+CLEAN = pwmangband.o pwmangclient.o $(CLIENT_OBJECTS) $(SERVER_OBJECTS) win/angband.res
 DISTCLEAN = autoconf.h
 
 export CFLAGS LDFLAGS LIBS
