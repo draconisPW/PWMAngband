@@ -24,6 +24,18 @@
 
 
 /*
+ * Profile indexes
+ */
+enum
+{
+    #define DUN(a, b) dun_##b,
+    #include "list-dun-profiles.h"
+    #undef DUN
+    dun_max
+};
+
+
+/*
  * In this file, we use the SQUARE_WALL flags to the info field in
  * cave->squares, which should only be applied to granite. SQUARE_WALL_SOLID
  * indicates the wall should not be tunnelled; SQUARE_WALL_INNER is the
@@ -1294,6 +1306,9 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
 
+    /* Hack -- set profile */
+    c->profile = dun_classic;
+
     return c;
 }
 
@@ -1725,6 +1740,9 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     /* Notify if we want the player to see the maze layout */
     player_cave_clear(p, true);
     if (known) c->light_level = true;
+
+    /* Hack -- set profile */
+    c->profile = dun_labyrinth;
 
     return c;
 }
@@ -2324,6 +2342,9 @@ struct chunk *cavern_gen(struct player *p, struct worldpos *wpos, int min_height
 
     /* Clear the flags for each cave grid */
     player_cave_clear(p, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_cavern;
 
     return c;
 }
@@ -3170,6 +3191,9 @@ struct chunk *town_gen(struct player *p, struct worldpos *wpos, int min_height, 
     for (i = 0; i < residents; i++)
         pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
 
+    /* Hack -- set profile */
+    c->profile = dun_town;
+
     return c;
 }
 
@@ -3432,6 +3456,9 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
 
+    /* Hack -- set profile */
+    c->profile = dun_modified;
+
     return c;
 }
 
@@ -3692,6 +3719,9 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     /* Apply illumination */
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_moria;
 
     return c;
 }
@@ -3996,6 +4026,9 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
     /* Clear the flags for each cave grid */
     player_cave_clear(p, true);
 
+    /* Hack -- set profile */
+    c->profile = dun_hard_centre;
+
     return c;
 }
 
@@ -4170,6 +4203,9 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     /* Apply illumination */
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_lair;
 
     return c;
 }
@@ -4362,6 +4398,9 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
 
     /* Clear the flags for each cave grid */
     player_cave_clear(p, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_gauntlet;
 
     return c;
 }
@@ -4830,6 +4869,9 @@ struct chunk *mang_town_gen(struct player *p, struct worldpos *wpos, int min_hei
     for (i = 0; i < residents; i++)
         pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
 
+    /* Hack -- set profile */
+    c->profile = dun_mang_town;
+
     return c;
 }
 
@@ -5057,6 +5099,9 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     /* Apply illumination */
     player_cave_clear(p, true);
     if (lit) c->light_level = true;
+
+    /* Hack -- set profile */
+    c->profile = dun_arena;
 
     return c;
 }

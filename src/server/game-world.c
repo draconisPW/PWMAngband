@@ -1714,6 +1714,14 @@ static void generate_new_level(struct player *p)
     /* Place the player */
     place_player(p, c, &grid);
 
+    /* Hack -- final check to ensure player is in bounds */
+    if (!square_in_bounds_fully(c, &p->grid))
+    {
+        plog_fmt("Unable to place player %s at position (%d,%d)", p->name, p->grid.x, p->grid.y);
+        plog_fmt("Cave type %d (w=%d,h=%d)", c->profile, c->width, c->height);
+        my_assert(0);
+    }
+
     /* PWMAngband: give a warning when entering a gauntlet level */
     if (square_limited_teleport(c, &p->grid))
         msgt(p, MSG_ENTER_PIT, "The air feels very still!");

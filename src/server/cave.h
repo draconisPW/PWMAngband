@@ -128,6 +128,8 @@ struct chunk
 
     bool light_level;
     bool gen_hack;
+
+    int profile;
 };
 
 /*
