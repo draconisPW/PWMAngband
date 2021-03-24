@@ -407,8 +407,8 @@ static bool run_test(struct player *p, struct chunk *c)
             if (!ignore_item_ok(p, obj)) return true;
         }
 
-        /* Hack -- always stop in damaging terrain */
-        if (square_isdamaging(c, &grid)) return true;
+        /* Hack -- handle damaging terrain */
+        if (square_isdamaging(c, &grid) && player_check_terrain_damage(p, c)) return true;
 
         /* Assume unknown */
         inv = true;

@@ -161,6 +161,12 @@ PWMAngband:
 - Fix crash in process_monsters when mon->closest_player is dead
 - Fix weight decrease when wielding from a stack of inventory items
 - Fix Linux code not saving savefiles
+- Fix damaging terrain aborting running for players immune to damage
+- Fix aquatic forms able to run outside of water
+- Fix aquatic forms not suffocating outside of water
+- Fix aquatic forms drowning in water
+- Fix LEVITATE form not giving FEATHER flag
+- Fix FRIGHTENED form not giving AFRAID flag
 
 Coding changes
 --------------
