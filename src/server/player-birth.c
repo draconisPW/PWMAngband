@@ -1054,6 +1054,9 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
 
     /* This guy is alive now */
     p->alive = true;
+
+    /* Hack -- player position is valid now */
+    p->placed = true;
 }
 
 

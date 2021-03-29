@@ -118,6 +118,9 @@ void dungeon_change_level(struct player *p, struct chunk *c, struct worldpos *ne
         msg_misc(p, "'s charged aura disappears...");
         p->upkeep->redraw |= (PR_STATE);
     }
+
+    /* Hack -- player position is invalid */
+    p->placed = false;
 }
 
 

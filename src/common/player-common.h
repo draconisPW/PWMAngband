@@ -849,7 +849,6 @@ struct player
     char tempbuf[NORMAL_WID];
     s16b obj_feeling;               /* Object/monster feeling (for display) */
     s16b mon_feeling;
-    bool ladder;                    /* Hack -- add online ladder info to dump character */
     char depths[13];                /* Displayed coordinates */
     int frac_blow;                  /* Blow frac (%) */
     int frac_shot;                  /* Shot frac (%) */
@@ -857,6 +856,7 @@ struct player
     char terrain[40];               /* Displayed terrain */
     byte flicker;                   /* A counter to select the step color from the flicker table */
     bool no_disturb_icky;
+    bool placed;                    /* Player is properly placed on the level */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

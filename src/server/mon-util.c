@@ -500,6 +500,9 @@ void update_mon(struct monster *mon, struct chunk *c, bool full)
         /* Make sure he's on the same dungeon level */
         if (!wpos_eq(&p->wpos, &mon->wpos)) continue;
 
+        /* Hack -- make sure he's properly placed */
+        if (!p->placed) continue;
+
         update_mon_aux(p, mon, c, full, &blos, &dis_to_closest, &closest, &lowhp);
     }
 

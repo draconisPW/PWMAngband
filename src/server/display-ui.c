@@ -1778,12 +1778,11 @@ void player_dump(struct player *p, bool server)
     /* Only record the original death */
     if (p->ghost == 1) return;
 
-    /* Save the server-side character dump (used by the online ladder) */
+    /* Save the server-side character dump */
     if (server)
     {
         strnfmt(dumpname, sizeof(dumpname), "%s-%s.txt", p->name, ht_show(&turn));
-        p->ladder = true;
-        if (dump_save(p, dumpname))
+        if (dump_save(p, dumpname, true))
             plog("Character dump successful.");
         else
             plog("Character dump failed!");
@@ -1791,8 +1790,7 @@ void player_dump(struct player *p, bool server)
 
     /* Save a client-side character dump */
     strnfmt(dumpname, sizeof(dumpname), "%s.txt", p->name);
-    p->ladder = false;
-    if (dump_save(p, dumpname))
+    if (dump_save(p, dumpname, false))
         plog("Character dump successful.");
     else
         plog("Character dump failed!");

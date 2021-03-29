@@ -1722,6 +1722,9 @@ static void generate_new_level(struct player *p)
         my_assert(0);
     }
 
+    /* Hack -- player position is valid now */
+    p->placed = true;
+
     /* PWMAngband: give a warning when entering a gauntlet level */
     if (square_limited_teleport(c, &p->grid))
         msgt(p, MSG_ENTER_PIT, "The air feels very still!");
