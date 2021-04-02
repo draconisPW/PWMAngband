@@ -536,7 +536,7 @@ void player_update_light(struct player *p)
             if ((obj->timeout < 100) || (!(obj->timeout % 100)))
             {
                 /* Redraw */
-                p->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(p, obj);
             }
 
             /* Hack -- special treatment when blind */

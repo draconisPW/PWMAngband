@@ -1394,9 +1394,18 @@ static void prt_minimap(struct player *p)
 
 static void prt_equip(struct player *p)
 {
-    display_equip(p);
-    prt_flags(p);
+    /* Single equipment object to redraw */
+    if (p->upkeep->redraw_equip != NULL)
+        display_item(p, p->upkeep->redraw_equip, 1);
+    else
+    {
+        display_equip(p);
+        prt_flags(p);
+    }
     update_prevent_inscriptions(p);
+
+    p->upkeep->redraw_equip = NULL;
+    p->upkeep->skip_redraw_equip = false;
 }
 
 
@@ -1969,6 +1978,7 @@ void player_death(struct player *p)
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_INVEN | PR_SPELL);
+    set_redraw_equip(p, NULL);
 }
 
 /*
@@ -2023,6 +2033,7 @@ void resurrect_player(struct player *p, struct chunk *c)
 
     /* Redraw */
     p->upkeep->redraw |= (PR_BASIC | PR_SPELL);
+    set_redraw_equip(p, NULL);
     square_light_spot(c, &p->grid);
 
     /* Update */
@@ -4187,6 +4198,7 @@ static void master_player(struct player *p, char *parms)
             if (dm_ptr->poly_race && !dm_ptr->ghost) do_cmd_poly(dm_ptr, NULL, false, true);
             set_ghost_flag(dm_ptr, (dm_ptr->ghost? 0: 1), true);
             dm_ptr->upkeep->redraw |= (PR_BASIC | PR_SPELL);
+            set_redraw_equip(dm_ptr, NULL);
             dm_ptr->upkeep->update |= (PU_BONUS);
             return;
         }
@@ -4216,6 +4228,7 @@ static void master_player(struct player *p, char *parms)
             " Error: can't toggle ghost for no-ghost players");
         set_ghost_flag(dm_ptr, 0, true);
         dm_ptr->upkeep->redraw |= (PR_BASIC | PR_SPELL);
+        set_redraw_equip(dm_ptr, NULL);
         dm_ptr->upkeep->update |= (PU_BONUS);
         dm_ptr = NULL;
         return;

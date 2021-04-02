@@ -10,7 +10,9 @@ extern byte object_kind_attr(struct player *p, const struct object_kind *kind);
 extern char object_kind_char(struct player *p, const struct object_kind *kind);
 extern byte object_attr(struct player *p, const struct object *obj);
 extern char object_char(struct player *p, const struct object *obj);
+extern void display_item(struct player *p, struct object *obj, byte equipped);
 extern void display_inven(struct player *p);
+extern void set_redraw_equip(struct player *p, struct object *obj);
 extern void display_equip(struct player *p);
 extern void display_floor(struct player *p, struct chunk *c, struct object **floor_list,
     int floor_num, bool force);

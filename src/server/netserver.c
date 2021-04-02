@@ -6121,7 +6121,7 @@ static int Enter_player(int ind)
      * Hack -- when processing a quickstart character, body has changed so we need to
      * resend the equipment indices
      */
-    if (roller < 0) p->upkeep->redraw |= (PR_EQUIP);
+    if (roller < 0) set_redraw_equip(p, NULL);
     redraw_stuff(p);
 
     /* Handle the cfg_secret_dungeon_master option */
@@ -7078,6 +7078,7 @@ static int Receive_store_leave(int ind)
 
         /* Redraw */
         p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_SPELL);
+        set_redraw_equip(p, NULL);
 
         sound(p, MSG_STORE_LEAVE);
 
@@ -7127,7 +7128,8 @@ static int Receive_store_leave(int ind)
         }
 
         /* Redraw (remove selling prices) */
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+        p->upkeep->redraw |= (PR_INVEN);
+        set_redraw_equip(p, NULL);
     }
 
     return 1;

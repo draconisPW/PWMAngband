@@ -229,7 +229,8 @@ static void adjust_level(struct player *p)
         p->upkeep->update |= (PU_BONUS | PU_SPELLS | PU_MONSTERS);
 
         /* Redraw some stuff */
-        p->upkeep->redraw |= (PR_LEV | PR_TITLE | PR_EXP | PR_STATS | PR_EQUIP | PR_SPELL | PR_PLUSSES);
+        p->upkeep->redraw |= (PR_LEV | PR_TITLE | PR_EXP | PR_STATS | PR_SPELL | PR_PLUSSES);
+        set_redraw_equip(p, NULL);
     }
 
     /* Handle stuff */

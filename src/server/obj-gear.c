@@ -240,7 +240,7 @@ bool minus_ac(struct player *p)
             obj->to_a--;
 
             p->upkeep->update |= (PU_BONUS);
-            p->upkeep->redraw |= (PR_EQUIP);
+            set_redraw_equip(p, obj);
         }
 
         /* There was an effect */
@@ -283,7 +283,8 @@ void gear_excise_object(struct player *p, struct object *obj)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, NULL);
 }
 
 
@@ -347,7 +348,8 @@ struct object *gear_object_for_use(struct player *p, struct object *obj, int num
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, NULL);
 
     /* Print a message if desired */
     if (message)
@@ -599,7 +601,8 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
     }
 
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_SPELL | PR_STUDY);
+    p->upkeep->redraw |= (PR_INVEN | PR_SPELL | PR_STUDY);
+    set_redraw_equip(p, NULL);
     update_stuff(p, chunk_get(&p->wpos));
 
     if (message)
@@ -731,7 +734,8 @@ void inven_wield(struct player *p, struct object *obj, int slot, char *message, 
     /* Recalculate bonuses, torch, mana, gear */
     p->upkeep->notice |= (PN_IGNORE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
-    p->upkeep->redraw |= (PR_PLUSSES | PR_INVEN | PR_EQUIP | PR_BASIC);
+    p->upkeep->redraw |= (PR_PLUSSES | PR_INVEN | PR_BASIC);
+    set_redraw_equip(p, NULL);
     update_stuff(p, c);
 }
 
@@ -779,7 +783,8 @@ void inven_takeoff(struct player *p, struct object *obj)
     p->upkeep->equip_cnt--;
 
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_INVEN | PR_PLUSSES);
+    set_redraw_equip(p, NULL);
     p->upkeep->notice |= (PN_IGNORE);
     update_stuff(p, chunk_get(&p->wpos));
 
@@ -951,7 +956,10 @@ void combine_pack(struct player *p)
 
     /* Redraw */
     if (redraw)
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_SPELL | PR_STUDY);
+    {
+        p->upkeep->redraw |= (PR_INVEN | PR_SPELL | PR_STUDY);
+        set_redraw_equip(p, NULL);
+    }
 
     /* Message */
     if (display_message) msg(p, "You combine some items in your pack.");

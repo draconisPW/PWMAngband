@@ -2880,7 +2880,8 @@ void store_confirm(struct player *p)
     p->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, NULL);
 
     /* Get the "apparent" value */
     dummy = object_value(p, dummy_item, amt);
@@ -3185,7 +3186,8 @@ void do_cmd_store(struct player *p, int pstore)
         store->max_depth = p->max_depth;
 
         /* Redraw (add selling prices) */
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+        p->upkeep->redraw |= (PR_INVEN);
+        set_redraw_equip(p, NULL);
         handle_stuff(p);
     }
 

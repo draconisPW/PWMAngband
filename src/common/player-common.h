@@ -476,6 +476,8 @@ struct player_upkeep
     s16b quiver_cnt;                /* Number of items in the quiver */
     s16b recharge_pow;              /* Power of recharge effect */
     bool running_update;            /* True if updating monster/object lists while running */
+    struct object *redraw_equip;    /* Single equipment object to redraw */
+    bool skip_redraw_equip;         /* Skip redraw_equip object */
 };
 
 /*

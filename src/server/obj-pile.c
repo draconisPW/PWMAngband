@@ -812,7 +812,8 @@ struct object *floor_object_for_use(struct player *p, struct chunk *c, struct ob
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, NULL);
     redraw_floor(&p->wpos, &grid, NULL);
 
     /* Print a message if desired */

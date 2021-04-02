@@ -181,7 +181,7 @@ static void recharge_objects(struct player *p)
                 recharged_notice(p, obj, true);
 
                 /* Redraw */
-                p->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(p, obj);
             }
         }
 

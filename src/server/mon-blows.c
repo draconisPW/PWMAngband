@@ -1523,7 +1523,8 @@ static void undress(struct player *p)
     p->upkeep->equip_cnt--;
 
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_INVEN | PR_PLUSSES);
+    set_redraw_equip(p, NULL);
     p->upkeep->notice |= (PN_IGNORE);
     update_stuff(p, chunk_get(&p->wpos));
 

@@ -229,6 +229,7 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
     struct curse_data *curse;
     bool carried;
     struct loc grid;
+    bool none_left = false;
 
     /* Paranoia */
     if ((index < 0) || (index >= z_info->curse_max)) return false;
@@ -272,7 +273,7 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
         preserve_artifact_aux(obj);
         if (obj->artifact) history_lose_artifact(p, obj);
 
-        use_object(p, obj, 1, false);
+        none_left = use_object(p, obj, 1, false);
     }
 
     /* Non-destructive failure */
@@ -282,7 +283,8 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_EQUIP | PR_INVEN);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, none_left? NULL: obj);
     if (!carried) redraw_floor(&p->wpos, &grid, NULL);
 
     return true;
@@ -429,7 +431,8 @@ static bool enchant(struct player *p, struct object *obj, int n, int eflag)
     p->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_INVEN | PR_PLUSSES);
+    set_redraw_equip(p, obj);
 
     /* Success */
     return true;
@@ -543,7 +546,8 @@ static void brand_object(struct player *p, struct object *obj, const char *brand
         p->upkeep->notice |= (PN_COMBINE);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+        p->upkeep->redraw |= (PR_INVEN);
+        set_redraw_equip(p, obj);
 
         /* Enchant */
         enchant(p, obj, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
@@ -975,6 +979,7 @@ static void player_turn_undead(struct player *p)
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_INVEN | PR_SPELL);
+    set_redraw_equip(p, NULL);
 }
 
 
@@ -2567,7 +2572,7 @@ static bool effect_handler_CURSE_ARMOR(effect_handler_context_t *context)
         context->origin->player->upkeep->update |= (PU_BONUS);
 
         /* Redraw */
-        context->origin->player->upkeep->redraw |= (PR_EQUIP);
+        set_redraw_equip(context->origin->player, obj);
     }
 
     return true;
@@ -2622,7 +2627,7 @@ static bool effect_handler_CURSE_WEAPON(effect_handler_context_t *context)
         context->origin->player->upkeep->update |= (PU_BONUS);
 
         /* Redraw */
-        context->origin->player->upkeep->redraw |= (PR_EQUIP);
+        set_redraw_equip(context->origin->player, obj);
     }
 
     return true;
@@ -2847,7 +2852,7 @@ static bool effect_handler_DARKEN_LEVEL(effect_handler_context_t *context)
                 obj->timeout = 0;
 
                 /* Redraw */
-                player->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(player, obj);
             }
         }
     }
@@ -3948,7 +3953,7 @@ static bool effect_handler_DISENCHANT(effect_handler_context_t *context)
     context->origin->player->upkeep->update |= (PU_BONUS);
 
     /* Redraw */
-    context->origin->player->upkeep->redraw |= (PR_EQUIP);
+    set_redraw_equip(context->origin->player, obj);
 
     return true;
 }
@@ -3977,7 +3982,7 @@ static bool effect_handler_DRAIN_LIGHT(effect_handler_context_t *context)
         }
 
         /* Redraw */
-        context->origin->player->upkeep->redraw |= (PR_EQUIP);
+        set_redraw_equip(context->origin->player, obj);
     }
 
     return true;
@@ -6846,7 +6851,8 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     q->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    q->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    q->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(q, NULL);
 
     /* Wipe it */
     use_object(context->origin->player, obj, obj->number, false);
@@ -6855,7 +6861,8 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     context->origin->player->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    context->origin->player->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    context->origin->player->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(context->origin->player, NULL);
 
     msg(q, "You are hit by a powerful magic wave from %s.", context->origin->player->name);
     return true;

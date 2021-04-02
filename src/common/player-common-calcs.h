@@ -48,7 +48,7 @@
  */
 #define PR_BASIC \
     (PR_MISC | PR_TITLE | PR_LEV | PR_EXP | PR_STATS | PR_ARMOR | PR_HP | \
-     PR_MANA | PR_GOLD | PR_DEPTH | PR_EQUIP | PR_HEALTH | PR_SPEED)
+     PR_MANA | PR_GOLD | PR_DEPTH | PR_HEALTH | PR_SPEED)
 
 /*
  * Display Extra Info

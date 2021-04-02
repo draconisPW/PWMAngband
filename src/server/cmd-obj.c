@@ -150,7 +150,8 @@ void do_cmd_uninscribe(struct player *p, int item)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE | PN_IGNORE);
     p->upkeep->update |= (PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, obj);
     if (!object_is_carried(p, obj))
         redraw_floor(&p->wpos, &obj->grid, NULL);
 }
@@ -247,7 +248,8 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE | PN_IGNORE);
     p->upkeep->update |= (PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, obj);
     if (!object_is_carried(p, obj))
         redraw_floor(&p->wpos, &obj->grid, NULL);
 }
@@ -650,7 +652,7 @@ void do_cmd_destroy(struct player *p, int item, bool des)
     }
 
     /* Destroying or ignoring from equipment? Update object flags! */
-    if (object_is_equipped(p->body, obj)) p->upkeep->redraw |= (PR_EQUIP);
+    if (object_is_equipped(p->body, obj)) set_redraw_equip(p, NULL);
 
     /* Destroy */
     if (des)
@@ -1450,7 +1452,8 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
     /* Mark as tried and redisplay */
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, obj);
 
     /* Hack -- delay pack updates when an item request is pending */
     if (p->current_value == ITEM_PENDING) p->upkeep->notice |= PN_WAIT;
@@ -1932,7 +1935,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
     p->upkeep->update |= (PU_BONUS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_EQUIP);
+    set_redraw_equip(p, lamp);
 }
 
 

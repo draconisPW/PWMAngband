@@ -115,7 +115,7 @@ int inven_damage(struct player *p, int type, int cperc)
             if (damage)
             {
                 p->upkeep->update |= (PU_BONUS);
-                p->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(p, obj);
 
                 /* Casualty count */
                 amt = obj->number;

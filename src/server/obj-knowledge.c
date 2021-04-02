@@ -1042,7 +1042,8 @@ void update_player_object_knowledge(struct player *p)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    p->upkeep->redraw |= (PR_INVEN);
+    set_redraw_equip(p, NULL);
     if (c) redraw_floor(&p->wpos, &p->grid, NULL);
 }
 
@@ -1707,7 +1708,8 @@ void equip_learn_on_ranged_attack(struct player *p)
             }
 
             p->upkeep->update |= (PU_BONUS);
-            p->upkeep->redraw |= (PR_EQUIP | PR_PLUSSES);
+            p->upkeep->redraw |= (PR_PLUSSES);
+            set_redraw_equip(p, obj);
         }
     }
 }
@@ -1854,7 +1856,7 @@ void equip_learn_after_time(struct player *p)
     }
 
     /* Notice new info */
-    if (redraw) p->upkeep->redraw |= (PR_EQUIP);
+    if (redraw) set_redraw_equip(p, NULL);
 }
 
 
@@ -1930,7 +1932,7 @@ static void object_flavor_aware_aux(struct player *p, struct object *obj, bool s
     object_id_set_aware(obj);
 
     /* Update flags */
-    p->upkeep->redraw |= PR_EQUIP;
+    set_redraw_equip(p, obj);
     p->upkeep->notice |= PN_IGNORE;
 
     /* Quit if no dungeon yet */
@@ -2490,7 +2492,8 @@ void object_notice_defence_plusses(struct player *p, struct object *obj)
     }
 
     p->upkeep->update |= (PU_BONUS);
-    p->upkeep->redraw |= (PR_EQUIP | PR_ARMOR);
+    p->upkeep->redraw |= (PR_ARMOR);
+    set_redraw_equip(p, obj);
 }
 
 
@@ -2539,7 +2542,8 @@ void object_notice_attack_plusses(struct player *p, struct object *obj)
     if (object_all_but_flavor_is_known(obj, aware)) object_flavor_aware(p, obj);
 
     p->upkeep->update |= (PU_BONUS);
-    p->upkeep->redraw |= (PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
+    set_redraw_equip(p, obj);
 }
 
 
@@ -2618,7 +2622,8 @@ void object_know_everything(struct player *p, struct object *obj)
     p->upkeep->update |= (PU_BONUS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_INVEN | PR_PLUSSES);
+    set_redraw_equip(p, NULL);
 
     /* Description */
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);

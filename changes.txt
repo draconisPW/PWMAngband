@@ -193,6 +193,7 @@ MAngband 1.5.x:
 - Rename "obj_aware" into "kind_aware" and "obj_tried" into "kind_tried"
 - Add 'conf_done' destructor
 - Add more hacks to vstrnfmt
+- Stop resending whole equipment when a single item is affected
 
 PWMAngband:
 
