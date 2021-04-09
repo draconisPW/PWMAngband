@@ -150,8 +150,8 @@ void do_cmd_uninscribe(struct player *p, int item)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE | PN_IGNORE);
     p->upkeep->update |= (PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
     if (!object_is_carried(p, obj))
         redraw_floor(&p->wpos, &obj->grid, NULL);
 }
@@ -248,8 +248,8 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE | PN_IGNORE);
     p->upkeep->update |= (PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
     if (!object_is_carried(p, obj))
         redraw_floor(&p->wpos, &obj->grid, NULL);
 }
@@ -1452,8 +1452,8 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
     /* Mark as tried and redisplay */
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
 
     /* Hack -- delay pack updates when an item request is pending */
     if (p->current_value == ITEM_PENDING) p->upkeep->notice |= PN_WAIT;
@@ -1487,7 +1487,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
         object_flavor_aware(p, *obj_address);
 
         /* PWMAngband: mark "aware" and redisplay */
-        p->upkeep->redraw |= PR_INVEN;
+        set_redraw_inven(p, *obj_address);
         redraw_stuff(p);
     }
 
@@ -1896,6 +1896,8 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
     /* Refilled from a lamp */
     if (of_has(obj->flags, OF_TAKES_FUEL))
     {
+        bool unstack = false;
+
         /* Unstack if necessary */
         if (obj->number > 1)
         {
@@ -1911,6 +1913,8 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
                 inven_carry(p, used, true, true);
             else
                 drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE, true);
+
+            unstack = true;
         }
 
         /* Empty a single lamp */
@@ -1921,7 +1925,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
         p->upkeep->notice |= (PN_COMBINE);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_INVEN);
+        set_redraw_inven(p, unstack? NULL: obj);
     }
 
     /* Refilled from a flask */

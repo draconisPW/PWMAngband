@@ -114,6 +114,42 @@ void display_item(struct player *p, struct object *obj, byte equipped)
 }
 
 
+void set_redraw_inven(struct player *p, struct object *obj)
+{
+    /* Full redraw */
+    if (obj == NULL)
+    {
+        p->upkeep->redraw_inven = NULL;
+        p->upkeep->skip_redraw_inven = true;
+        p->upkeep->redraw |= (PR_INVEN);
+        return;
+    }
+
+    /* Nothing to do */
+    if (object_is_equipped(p->body, obj) || !object_is_carried(p, obj)) return;
+
+    /* Same object to redraw */
+    if (p->upkeep->redraw_inven == obj)
+    {
+        p->upkeep->redraw |= (PR_INVEN);
+        return;
+    }
+
+    /* Single inventory object to redraw */
+    if ((p->upkeep->redraw_inven == NULL) && !p->upkeep->skip_redraw_inven)
+        p->upkeep->redraw_inven = obj;
+
+    /* Skip redraw_inven object */
+    else
+    {
+        p->upkeep->redraw_inven = NULL;
+        p->upkeep->skip_redraw_inven = true;
+    }
+
+    p->upkeep->redraw |= (PR_INVEN);
+}
+
+
 /*
  * Choice window "shadow" of the "show_inven()" function
  */

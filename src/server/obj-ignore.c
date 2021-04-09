@@ -180,8 +180,8 @@ static void sense_object(struct player *p, struct object *obj, bool tocarry)
     p->upkeep->update |= (PU_INVEN);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
 }
 
 

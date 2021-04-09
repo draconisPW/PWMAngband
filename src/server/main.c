@@ -18,7 +18,12 @@
  */
 
 
-#include "s-angband.h"
+#include "s-angband.h" 
+
+
+/* Daily log file */
+static int tm_mday = 0;
+static ang_file *fp = NULL;
 
 
 /*
@@ -33,6 +38,9 @@ static void quit_hook(const char *s)
 
     /* Free resources */
     else cleanup_angband();
+
+    /* Close the daily log file */
+    if (fp) file_close(fp);
 }
 
 
@@ -70,11 +78,6 @@ static void init_stuff(void)
     /* Create any missing directories */
     create_needed_dirs();
 }
-
-
-/* Daily log file */
-static int tm_mday = 0;
-static ang_file *fp = NULL;
 
 
 /*

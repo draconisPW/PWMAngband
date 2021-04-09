@@ -1042,8 +1042,8 @@ void update_player_object_knowledge(struct player *p)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
     if (c) redraw_floor(&p->wpos, &p->grid, NULL);
 }
 
@@ -1390,25 +1390,19 @@ void object_learn_unknown_rune(struct player *p, struct object *obj)
 
 
 /*
- * Learn object properties that become obvious on wielding or wearing.
+ * Learn obvious object properties.
  *
  * p is the player
  * obj is the wielded object
+ * message if true displays a message for each property learned
  */
-void object_learn_on_wield(struct player *p, struct object *obj)
+void object_learn_obvious(struct player *p, struct object *obj, bool message)
 {
     bitflag f[OF_SIZE], obvious_mask[OF_SIZE], esp_flags[OF_SIZE];
     int i, flag;
     char o_name[NORMAL_WID];
     bool obvious = false;
     s32b modifiers[OBJ_MOD_MAX];
-
-    /* Only deal with un-ID'd items */
-    if (object_is_known(p, obj)) return;
-
-    /* Check the worn flag */
-    if (obj->known->notice & OBJ_NOTICE_WORN) return;
-    obj->known->notice |= OBJ_NOTICE_WORN;
 
     /* EASY_KNOW is now known */
     if (easy_know(obj, object_flavor_is_aware(p, obj)))
@@ -1465,12 +1459,15 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     if (!obvious) return;
 
     create_obj_flag_mask(esp_flags, 0, OFT_ESP, OFT_MAX);
-    if (of_is_inter(f, esp_flags))
-        msg(p, "Your mind feels strangely sharper!");
-    if (of_has(f, OF_FREE_ACT) && of_has(obvious_mask, OF_FREE_ACT))
-        msg(p, "You feel mobile!");
-    if (of_has(f, OF_KNOWLEDGE))
-        msg(p, "You feel more knowledgeable!");
+    if (msg)
+    {
+        if (of_is_inter(f, esp_flags))
+            msg(p, "Your mind feels strangely sharper!");
+        if (of_has(f, OF_FREE_ACT) && of_has(obvious_mask, OF_FREE_ACT))
+            msg(p, "You feel mobile!");
+        if (of_has(f, OF_KNOWLEDGE))
+            msg(p, "You feel more knowledgeable!");
+    }
 
     /* Learn about obvious, previously unknown flags */
     of_inter(f, obvious_mask);
@@ -1478,7 +1475,7 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     {
         /* Learn the flag */
         player_learn_flag(p, flag);
-        flag_message(p, flag, o_name);
+        if (msg) flag_message(p, flag, o_name);
     }
 
     /* Learn all modifiers */
@@ -1490,7 +1487,7 @@ void object_learn_on_wield(struct player *p, struct object *obj)
             bool positive = ((modifiers[i] > 0)? true: false);
 
             player_learn_rune(p, rune_index(RUNE_VAR_MOD, i), true);
-            mod_message(p, i, o_name, positive);
+            if (msg) mod_message(p, i, o_name, positive);
         }
     }
 
@@ -1503,6 +1500,25 @@ void object_learn_on_wield(struct player *p, struct object *obj)
         if (obj->curses[i].power == 0) continue;
         if (index >= 0) player_learn_rune(p, index, true);
     }
+}
+
+
+/*
+ * Learn object properties that become obvious on wielding or wearing.
+ *
+ * p is the player
+ * obj is the wielded object
+ */
+void object_learn_on_wield(struct player *p, struct object *obj)
+{
+    /* Only deal with un-ID'd items */
+    if (object_is_known(p, obj)) return;
+
+    /* Check the worn flag */
+    if (obj->known->notice & OBJ_NOTICE_WORN) return;
+    obj->known->notice |= OBJ_NOTICE_WORN;
+
+    object_learn_obvious(p, obj, true);
 
     /* Hack -- know activation on rings of polymorphing to bypass (unfair) learning by use */
     if (tval_is_poly(obj)) object_notice_effect(p, obj);
@@ -1518,10 +1534,6 @@ void object_learn_on_wield(struct player *p, struct object *obj)
  */
 void weapon_learn_on_carry(struct player *p, struct object *obj)
 {
-    bitflag obvious_mask[OF_SIZE];
-    s32b modifiers[OBJ_MOD_MAX];
-    int i;
-
     /* Only deal with un-ID'd items */
     if (object_is_known(p, obj)) return;
 
@@ -1532,28 +1544,7 @@ void weapon_learn_on_carry(struct player *p, struct object *obj)
     if (obj->known->notice & OBJ_NOTICE_WORN) return;
     obj->known->notice |= OBJ_NOTICE_WORN;
 
-    /* Get the obvious object flags */
-    create_obj_flag_mask(obvious_mask, 1, OFID_WIELD, OFT_MAX);
-
-    object_modifiers(obj, modifiers);
-
-    /* Make sustains obvious for items with that stat bonus */
-    for (i = 0; i < STAT_MAX; i++)
-    {
-        if (modifiers[i]) of_on(obvious_mask, sustain_flag(i));
-    }
-
-    /* Notice obvious flags */
-    of_union(obj->known->flags, obvious_mask);
-
-    /* Notice all modifiers */
-    for (i = 0; i < OBJ_MOD_MAX; i++)
-        obj->known->modifiers[i] = 1;
-
-    /* Notice curses */
-    object_know_curses(obj);
-
-    object_check_for_ident(p, obj);
+    object_learn_obvious(p, obj, false);
 }
 
 
@@ -2622,8 +2613,9 @@ void object_know_everything(struct player *p, struct object *obj)
     p->upkeep->update |= (PU_BONUS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
     set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 
     /* Description */
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);

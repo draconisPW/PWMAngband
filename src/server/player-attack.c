@@ -1277,7 +1277,7 @@ void un_power(struct player *p, struct source *who, bool* obvious)
             p->upkeep->notice |= (PN_COMBINE);
 
             /* Redraw stuff */
-            p->upkeep->redraw |= (PR_INVEN);
+            set_redraw_inven(p, obj);
 
             /* Affect only a single inventory slot */
             break;

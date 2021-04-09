@@ -11,6 +11,7 @@ extern char object_kind_char(struct player *p, const struct object_kind *kind);
 extern byte object_attr(struct player *p, const struct object *obj);
 extern char object_char(struct player *p, const struct object *obj);
 extern void display_item(struct player *p, struct object *obj, byte equipped);
+extern void set_redraw_inven(struct player *p, struct object *obj);
 extern void display_inven(struct player *p);
 extern void set_redraw_equip(struct player *p, struct object *obj);
 extern void display_equip(struct player *p);

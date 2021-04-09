@@ -478,6 +478,8 @@ struct player_upkeep
     bool running_update;            /* True if updating monster/object lists while running */
     struct object *redraw_equip;    /* Single equipment object to redraw */
     bool skip_redraw_equip;         /* Skip redraw_equip object */
+    struct object *redraw_inven;    /* Single inventory object to redraw */
+    bool skip_redraw_inven;         /* Skip redraw_inven object */
 };
 
 /*
@@ -859,6 +861,7 @@ struct player
     byte flicker;                   /* A counter to select the step color from the flicker table */
     bool no_disturb_icky;
     bool placed;                    /* Player is properly placed on the level */
+    int monwidth;                   /* Monster list subwindow width */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

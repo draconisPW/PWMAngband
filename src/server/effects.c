@@ -283,8 +283,8 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(p, none_left? NULL: obj);
+    set_redraw_inven(p, none_left? NULL: obj);
     if (!carried) redraw_floor(&p->wpos, &grid, NULL);
 
     return true;
@@ -431,8 +431,9 @@ static bool enchant(struct player *p, struct object *obj, int n, int eflag)
     p->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
     set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
 
     /* Success */
     return true;
@@ -546,8 +547,8 @@ static void brand_object(struct player *p, struct object *obj, const char *brand
         p->upkeep->notice |= (PN_COMBINE);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_INVEN);
         set_redraw_equip(p, obj);
+        set_redraw_inven(p, obj);
 
         /* Enchant */
         enchant(p, obj, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
@@ -978,8 +979,9 @@ static void player_turn_undead(struct player *p)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
-    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_INVEN | PR_SPELL);
+    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_SPELL);
     set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 
@@ -2565,8 +2567,7 @@ static bool effect_handler_CURSE_ARMOR(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
-        object_know_curses(obj);
-        object_check_for_ident(context->origin->player, obj);
+        object_learn_obvious(context->origin->player, obj, false);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
@@ -2620,8 +2621,7 @@ static bool effect_handler_CURSE_WEAPON(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
-        object_know_curses(obj);
-        object_check_for_ident(context->origin->player, obj);
+        object_learn_obvious(context->origin->player, obj, false);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
@@ -5860,6 +5860,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
     bool carried;
     struct loc grid;
     char dice_string[20];
+    bool none_left = false;
 
     /* Immediately obvious */
     context->ident = true;
@@ -5919,7 +5920,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
         else
         {
             /* Reduce and describe inventory */
-            use_object(context->origin->player, obj, 1, true);
+            none_left = use_object(context->origin->player, obj, 1, true);
         }
     }
 
@@ -5939,7 +5940,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
     context->origin->player->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    context->origin->player->upkeep->redraw |= (PR_INVEN);
+    set_redraw_inven(context->origin->player, none_left? NULL: obj);
     if (!carried) redraw_floor(&context->origin->player->wpos, &grid, NULL);
 
     /* Something was done */
@@ -6668,7 +6669,7 @@ static bool effect_handler_TAP_DEVICE(effect_handler_context_t *context)
             context->origin->player->upkeep->notice |= (PN_COMBINE);
 
             /* Redraw */
-            context->origin->player->upkeep->redraw |= (PR_INVEN);
+            set_redraw_inven(context->origin->player, obj);
             if (!object_is_carried(context->origin->player, obj))
                 redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
@@ -6851,8 +6852,8 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     q->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    q->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(q, NULL);
+    set_redraw_inven(q, NULL);
 
     /* Wipe it */
     use_object(context->origin->player, obj, obj->number, false);
@@ -6861,8 +6862,8 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     context->origin->player->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    context->origin->player->upkeep->redraw |= (PR_INVEN);
     set_redraw_equip(context->origin->player, NULL);
+    set_redraw_inven(context->origin->player, NULL);
 
     msg(q, "You are hit by a powerful magic wave from %s.", context->origin->player->name);
     return true;
@@ -8434,7 +8435,7 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
     if (origin->player) memcpy(&wpos, &origin->player->wpos, sizeof(wpos));
     else if (origin->monster) memcpy(&wpos, &origin->monster->wpos, sizeof(wpos));
     else if (target_mon) memcpy(&wpos, &target_mon->wpos, sizeof(wpos));
-    else quit_fmt("No valid source in effect_do(). Please report this bug.");
+    else quit("No valid source in effect_do(). Please report this bug.");
 
     do
     {
@@ -8442,7 +8443,7 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
         random_value value;
 
         if (!effect_valid(effect))
-            quit_fmt("Bad effect passed to effect_do(). Please report this bug.");
+            quit("Bad effect passed to effect_do(). Please report this bug.");
 
         memset(&value, 0, sizeof(value));
         if (effect->dice != NULL)
@@ -8509,7 +8510,7 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
             if (context.self_msg) msg(context.origin->player, context.self_msg);
         }
         else
-            quit_fmt("Effect not handled. Please report this bug.");
+            quit("Effect not handled. Please report this bug.");
 
         /* Get the next effect, if there is one */
         if (leftover)

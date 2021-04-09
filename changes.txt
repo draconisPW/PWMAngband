@@ -17,6 +17,7 @@ User interface
 Angband 4.2.x:
 
 - Added commands to birth option screen to save and restore custom birth options
+- Allow fuel to be drawn from the quiver
 
 MAngband 1.5.x:
 
@@ -61,6 +62,9 @@ PWMAngband:
   swapping items
 - Split MAngband options submenu into MAngband options and Advanced options
 - Add option to confirm recall when recalling out of non-reentrable dungeon
+- Add /know, /party, /who, /abi and /gold chat commands as shortcuts for
+  "Check knowledge", "Access party menu", "Display connected players",
+  "View abilities" and "Drop gold" commands
 
 Gameplay changes
 ----------------
@@ -133,6 +137,7 @@ Angband 4.2.x:
 - Stop quest artifacts being stealable
 - Ensure grids on the target path are hit by projections in project()
 - Make SMASH_WALL destroy decoys
+- Notice changes to the weight limit in update_bonuses()
 
 MAngband 1.5.x:
 
@@ -168,6 +173,12 @@ PWMAngband:
 - Fix LEVITATE form not giving FEATHER flag
 - Fix FRIGHTENED form not giving AFRAID flag
 - Prevent out of bounds asserts when players change level
+- Plug resource leaks of missing file_close() calls
+- Fix monster list subwindow not reacting to subwindow horizontal resizing
+- Learn curses properly when applied directly to worn items
+- Learn runes of carried weapons properly for races and classes that cannot use
+  weapons
+- Fix keymaps using '{' symbol
 
 Coding changes
 --------------
@@ -179,6 +190,8 @@ Angband 4.2.x:
 - Slightly tightened shape change logic
 - Account for throwing weapons in the quiver within pack_slots_used() and
   quiver_absorb_num()
+- Modify compare_items() so the result is zero when both items are unknown
+- Optimize obj_kind_can_browse()
 
 MAngband 1.5.x:
 
@@ -193,7 +206,7 @@ MAngband 1.5.x:
 - Rename "obj_aware" into "kind_aware" and "obj_tried" into "kind_tried"
 - Add 'conf_done' destructor
 - Add more hacks to vstrnfmt
-- Stop resending whole equipment when a single item is affected
+- Stop resending whole equipment/inventory when a single item is affected
 
 PWMAngband:
 
@@ -219,3 +232,4 @@ Compilation
 - Compiling with Embarcadero C++ 7.20
 - Update docs for option customization
 - Remove Necklace of the Eye support
+- Fix some typos in documentation

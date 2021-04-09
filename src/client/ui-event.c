@@ -171,6 +171,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
                 case '\\': STORE(buf, cur++, mods, '\\'); break;
                 case '^': STORE(buf, cur++, mods, '^'); break;
                 case '[': STORE(buf, cur++, mods, '['); break;
+                case '{': STORE(buf, cur++, mods, '{'); break;
                 default: STORE(buf, cur++, mods, *str); break;
             }
 
@@ -301,6 +302,7 @@ void keypress_to_text(char *buf, size_t len, const struct keypress *src, bool ex
                 }
                 case '^': strnfcat(buf, len, &end, "\\^"); break;
                 case '[': strnfcat(buf, len, &end, "\\["); break;
+                case '{': strnfcat(buf, len, &end, "\\{"); break;
                 default:
                 {
                     if (i < 127)

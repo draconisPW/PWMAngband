@@ -657,6 +657,21 @@ void send_msg_chunks(char *pmsgbuf, int msglen)
         /* Display current time */
         else if (strstr(pmsgbuf, "time")) do_cmd_time();
 
+        /* Check knowledge */
+        else if (strstr(pmsgbuf, "know")) textui_browse_knowledge();
+
+        /* Access party menu */
+        else if (strstr(pmsgbuf, "party")) do_cmd_party();
+
+        /* Display connected players */
+        else if (strstr(pmsgbuf, "who")) do_cmd_players();
+
+        /* View abilities */
+        else if (strstr(pmsgbuf, "abi")) do_cmd_abilities();
+
+        /* Drop gold */
+        else if (strstr(pmsgbuf, "gold")) textui_cmd_drop_gold();
+
         return;
     }
 

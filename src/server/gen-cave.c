@@ -1137,7 +1137,7 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
         /* If we've tried all blocks we're done. */
         if (j == 0) break;
 
-        if (blocks_tried[by][bx]) quit_fmt("generation: inconsistent blocks");
+        if (blocks_tried[by][bx]) quit("generation: inconsistent blocks");
 
         /* Mark that we are trying this block. */
         blocks_tried[by][bx] = true;
@@ -4956,7 +4956,7 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
         /* If we've tried all blocks we're done. */
         if (j == 0) break;
 
-        if (blocks_tried[by][bx]) quit_fmt("generation: inconsistent blocks");
+        if (blocks_tried[by][bx]) quit("generation: inconsistent blocks");
 
         /* Mark that we are trying this block. */
         blocks_tried[by][bx] = true;

@@ -647,7 +647,7 @@ static void fix_monster(struct player *p)
 static void fix_monlist(struct player *p)
 {
     /* Display visible monsters */
-    monster_list_show_subwindow(p, p->max_hgt - 2, NORMAL_WID - 5);
+    monster_list_show_subwindow(p, p->max_hgt - 2, p->monwidth);
 
     /* Notify player */
     notify_player_popup(p, "Monster List", NTERM_WIN_MONLIST, 0);
@@ -1409,6 +1409,19 @@ static void prt_equip(struct player *p)
 }
 
 
+static void prt_inven(struct player *p)
+{
+    /* Single inventory object to redraw */
+    if (p->upkeep->redraw_inven != NULL)
+        display_item(p, p->upkeep->redraw_inven, 0);
+    else
+        display_inven(p);
+
+    p->upkeep->redraw_inven = NULL;
+    p->upkeep->skip_redraw_inven = false;
+}
+
+
 static void prt_monster(struct player *p)
 {
     if (p->window_flag & PW_MONSTER) fix_monster(p);
@@ -1473,7 +1486,7 @@ static const flag_event_trigger redraw_events[] =
     {PR_DTRAP, prt_dtrap, true},
     {PR_STATE, prt_state, true},
     {PR_MAP, prt_minimap, true},
-    {PR_INVEN, display_inven, true},
+    {PR_INVEN, prt_inven, true},
     {PR_EQUIP, prt_equip, true},
     {PR_MONSTER, prt_monster, true},
     {PR_MONLIST, prt_monsterlist, false},
@@ -1977,8 +1990,9 @@ void player_death(struct player *p)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
-    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_INVEN | PR_SPELL);
+    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_SPELL);
     set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 /*

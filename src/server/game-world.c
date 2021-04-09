@@ -204,7 +204,7 @@ static void recharge_objects(struct player *p)
                 p->upkeep->notice |= (PN_COMBINE);
 
                 /* Redraw */
-                p->upkeep->redraw |= (PR_INVEN);
+                set_redraw_inven(p, obj);
             }
 
             /* Handle corpse decay */
@@ -229,7 +229,7 @@ static void recharge_objects(struct player *p)
                     p->upkeep->notice |= (PN_COMBINE);
 
                     /* Redraw */
-                    p->upkeep->redraw |= (PR_INVEN);
+                    set_redraw_inven(p, obj);
                 }
                 else if (!obj->decay)
                 {
@@ -245,7 +245,7 @@ static void recharge_objects(struct player *p)
                     p->upkeep->notice |= (PN_COMBINE);
 
                     /* Redraw */
-                    p->upkeep->redraw |= (PR_INVEN);
+                    set_redraw_inven(p, NULL);
                 }
             }
         }

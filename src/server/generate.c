@@ -1257,7 +1257,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
         mem_free(dun->tunn_flag);
     }
 
-    if (error) quit_fmt("cave_generate() failed 100 times!");
+    if (error) quit("cave_generate() failed 100 times!");
 
     if (random_level(&chunk->wpos))
     {

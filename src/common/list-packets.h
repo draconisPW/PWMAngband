@@ -135,6 +135,7 @@ PKT(USE_ANY, undefined, use_any, undefined, undefined)
 PKT(STORE_ORDER, undefined, store_order, undefined, undefined)
 PKT(TRACK_OBJECT, undefined, track_object, undefined, undefined)
 PKT(FLOOR_ACK, undefined, floor_ack, undefined, undefined)
+PKT(MONWIDTH, undefined, monwidth, undefined, undefined)
 /* Packets sent from either the client or server */
 PKT(PLAY, play, play, play, undefined)
 PKT(QUIT, quit, quit, quit, quit)

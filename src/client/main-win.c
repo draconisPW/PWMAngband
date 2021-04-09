@@ -3828,6 +3828,8 @@ static LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
             /* New size */
             if (((uint)(td->cols) != cols) || ((uint)(td->rows) != rows))
             {
+                int j;
+
                 /* Save old term */
                 term *old_term = Term;
 
@@ -3853,6 +3855,19 @@ static LRESULT FAR PASCAL AngbandListProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
                     window_size_wh(td, td->cols, td->rows, &wid, &hgt);
                     stretch_chat_ctrl_win(wid, hgt);
+                }
+
+                /* Find monster list subwindow */
+                for (j = 0; j < ANGBAND_TERM_MAX; j++)
+                {
+                    if (!angband_term[j]) continue;
+
+                    /* Send new width for dynamic resizing */
+                    if ((window_flag[j] & PW_MONLIST) && (td == &data[j]))
+                    {
+                        if (Setup.initialized) Send_monwidth(td->cols);
+                        break;
+                    }
                 }
 
                 /* Hack -- redraw all windows */

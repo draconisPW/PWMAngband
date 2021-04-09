@@ -1475,7 +1475,7 @@ bool obj_kind_can_browse(struct player *p, const struct object_kind *kind)
     {
         struct class_book *book = &p->clazz->magic.books[i];
 
-        if (kind == lookup_kind_silent(book->tval, book->sval))
+        if ((kind->tval == book->tval) && (kind->sval == book->sval))
             return true;
     }
 
@@ -1574,6 +1574,7 @@ void calc_inventory(struct player *p)
     int old_inven_cnt = p->upkeep->inven_cnt;
     struct object **old_quiver = mem_zalloc(z_info->quiver_size * sizeof(struct object *));
     struct object **old_pack = mem_zalloc(z_info->pack_size * sizeof(struct object *));
+    bool redraw = false;
 
     /* Prepare to fill the quiver */
     p->upkeep->quiver_cnt = 0;
@@ -1676,6 +1677,15 @@ void calc_inventory(struct player *p)
         }
     }
 
+    for (i = 0; i < z_info->quiver_size; i++)
+    {
+        if (p->upkeep->quiver[i] != old_quiver[i])
+        {
+            redraw = true;
+            break;
+        }
+    }
+
     /* Copy the current pack */
     memcpy(old_pack, p->upkeep->inven, z_info->pack_size * sizeof(struct object *));
 
@@ -1730,6 +1740,18 @@ void calc_inventory(struct player *p)
             }
         }
     }
+
+    for (i = 0; i < z_info->pack_size; i++)
+    {
+        if (p->upkeep->inven[i] != old_pack[i])
+        {
+            redraw = true;
+            break;
+        }
+    }
+
+    /* Redraw */
+    if (redraw) set_redraw_inven(p, NULL);
 
     mem_free(old_quiver);
     mem_free(old_pack);
@@ -2748,6 +2770,10 @@ static void update_bonuses(struct player *p)
         /* Update the visuals */
         p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
     }
+
+    /* Notice changes to the weight limit */
+    if (weight_limit(&p->state) != weight_limit(&state))
+        set_redraw_inven(p, NULL);
 
     /* Hack -- wait for creation */
     if (!p->alive)

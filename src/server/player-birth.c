@@ -1046,9 +1046,10 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
     /* Redraw dungeon */
     p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP);
     set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 
     /* Redraw "statusy" things */
-    p->upkeep->redraw |= (PR_INVEN | PR_MONSTER | PR_MONLIST | PR_ITEMLIST);
+    p->upkeep->redraw |= (PR_MONSTER | PR_MONLIST | PR_ITEMLIST);
 
     /* MAngband */
     p->upkeep->redraw |= (PR_SPELL | PR_PLUSSES);
@@ -1058,6 +1059,9 @@ static void player_setup(struct player *p, int id, u32b account, bool no_recall)
 
     /* Hack -- player position is valid now */
     p->placed = true;
+
+    /* Default width for monster list subwindow */
+    p->monwidth = NORMAL_WID - 5;
 }
 
 

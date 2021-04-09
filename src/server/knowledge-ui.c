@@ -1687,9 +1687,10 @@ void do_cmd_redraw(struct player *p)
     p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR | PR_INVEN |
-        PR_SPELL | PR_MONSTER | PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
+    p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR | PR_SPELL | PR_MONSTER |
+        PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
     set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 
