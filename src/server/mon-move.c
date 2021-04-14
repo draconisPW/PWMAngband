@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke (attacking code)
  * Copyright (c) 1997 Ben Harrison, David Reeve Sward, Keldon Jones (AI routines).
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1534,7 +1534,7 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     if (rf_has(mon->race->flags, RF_SMASH_WALL))
     {
         /* Remove the wall and much of what's nearby */
-        square_smash_wall(c, grid);
+        square_smash_wall(who->player, c, grid);
 
         /* Note changes to viewable region */
         note_viewable_changes(&c->wpos, grid);
@@ -2746,9 +2746,14 @@ void process_monsters(struct chunk *c, bool more_energy)
         /* Skip "unconscious" monsters */
         if (mon->hp == 0) continue;
 
+        /* Get closest player */
+        get_closest_player(c, mon);
+
+        /* Paranoia -- make sure we have a closest player */
+        if (!mon->closest_player) continue;
+
         /* Not enough energy to move yet */
-        if (more_energy && mon->closest_player && (mon->energy <= mon->closest_player->energy))
-            continue;
+        if (more_energy && (mon->energy <= mon->closest_player->energy)) continue;
 
         /* Prevent reprocessing */
         mflag_on(mon->mflag, MFLAG_HANDLED);
@@ -2810,12 +2815,6 @@ void process_monsters(struct chunk *c, bool more_energy)
                 }
             }
         }
-
-        /* Get closest player */
-        get_closest_player(c, mon);
-
-        /* Paranoia -- make sure we have a closest player */
-        if (!mon->closest_player) continue;
 
         /* Mimics lie in wait */
         if (monster_is_camouflaged(mon)) continue;

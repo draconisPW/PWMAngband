@@ -6,6 +6,6 @@
 #ifndef PLAYER_UI_H
 #define PLAYER_UI_H
 
-extern bool dump_save(struct player *p, const char *path);
+extern bool dump_save(struct player *p, const char *path, bool server);
 
 #endif /* PLAYER_UI_H */

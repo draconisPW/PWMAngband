@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2010 Chris Carr and Peter Denison
  * Copyright (c) 2014 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -585,10 +585,16 @@ void player_attack_modifier(struct player *p, struct source *who, int *best_mult
         if (range) continue;
 
         /* Handle racial/class slays */
-        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
+        if (p->race->slays && p->race->slays[i].slay &&
+            (p->lev >= p->race->slays[i].minlvl) && (p->lev <= p->race->slays[i].maxlvl))
+        {
             improve_attack_modifier_slay(p, NULL, who, i, best_mult, verb, len, range);
-        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
+        }
+        if (p->clazz->slays && p->clazz->slays[i].slay &&
+            (p->lev >= p->clazz->slays[i].minlvl) && (p->lev <= p->clazz->slays[i].maxlvl))
+        {
             improve_attack_modifier_slay(p, NULL, who, i, best_mult, verb, len, range);
+        }
 
         /* Temporary slays */
         if (player_has_temporary_slay(p, i))
@@ -599,7 +605,8 @@ void player_attack_modifier(struct player *p, struct source *who, int *best_mult
     for (i = 0; i < z_info->brand_max; i++)
     {
         /* Handle class brands */
-        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
+        if (p->clazz->brands && p->clazz->brands[i].brand &&
+            (p->lev >= p->clazz->brands[i].minlvl) && (p->lev <= p->clazz->brands[i].maxlvl))
         {
             /* Notice flags for players */
             if (who->player) equip_notice_flags(who->player, i);
@@ -611,7 +618,8 @@ void player_attack_modifier(struct player *p, struct source *who, int *best_mult
         if (range) continue;
 
         /* Handle racial brands */
-        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
+        if (p->race->brands && p->race->brands[i].brand &&
+            (p->lev >= p->race->brands[i].minlvl) && (p->lev <= p->race->brands[i].maxlvl))
         {
             /* Notice flags for players */
             if (who->player) equip_notice_flags(who->player, i);

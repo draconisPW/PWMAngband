@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2014 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1211,6 +1211,9 @@ static void calc_mana(struct player *p, struct player_state *state, bool update)
     /* Extra mana capacity from race/class bonuses */
     exmsp += adj;
 
+    /* Cap at +10 */
+    if (exmsp > 10) exmsp = 10;
+
     /* 1 point = 10% more mana */
     msp = ((10 + exmsp) * msp) / 10;
 
@@ -1472,7 +1475,7 @@ bool obj_kind_can_browse(struct player *p, const struct object_kind *kind)
     {
         struct class_book *book = &p->clazz->magic.books[i];
 
-        if (kind == lookup_kind_silent(book->tval, book->sval))
+        if ((kind->tval == book->tval) && (kind->sval == book->sval))
             return true;
     }
 
@@ -1571,6 +1574,7 @@ void calc_inventory(struct player *p)
     int old_inven_cnt = p->upkeep->inven_cnt;
     struct object **old_quiver = mem_zalloc(z_info->quiver_size * sizeof(struct object *));
     struct object **old_pack = mem_zalloc(z_info->pack_size * sizeof(struct object *));
+    bool redraw = false;
 
     /* Prepare to fill the quiver */
     p->upkeep->quiver_cnt = 0;
@@ -1673,6 +1677,15 @@ void calc_inventory(struct player *p)
         }
     }
 
+    for (i = 0; i < z_info->quiver_size; i++)
+    {
+        if (p->upkeep->quiver[i] != old_quiver[i])
+        {
+            redraw = true;
+            break;
+        }
+    }
+
     /* Copy the current pack */
     memcpy(old_pack, p->upkeep->inven, z_info->pack_size * sizeof(struct object *));
 
@@ -1727,6 +1740,18 @@ void calc_inventory(struct player *p)
             }
         }
     }
+
+    for (i = 0; i < z_info->pack_size; i++)
+    {
+        if (p->upkeep->inven[i] != old_pack[i])
+        {
+            redraw = true;
+            break;
+        }
+    }
+
+    /* Redraw */
+    if (redraw) set_redraw_inven(p, NULL);
 
     mem_free(old_quiver);
     mem_free(old_pack);
@@ -1967,7 +1992,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         if (OPT(p, birth_fruit_bat)) state->speed += (p->poly_race->speed - 110);
 
         /* At low level, we get MOVES instead */
-        else if (p->lev < 20) extra_moves = (p->poly_race->speed - 110) / 10;
+        else if (p->lev < 20) extra_moves = (p->poly_race->speed - 110) / 2;
 
         /* At higher level, we get 50% of speed bonus */
         else state->speed += (p->poly_race->speed - 110) / 2;
@@ -2745,6 +2770,10 @@ static void update_bonuses(struct player *p)
         /* Update the visuals */
         p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
     }
+
+    /* Notice changes to the weight limit */
+    if (weight_limit(&p->state) != weight_limit(&state))
+        set_redraw_inven(p, NULL);
 
     /* Hack -- wait for creation */
     if (!p->alive)

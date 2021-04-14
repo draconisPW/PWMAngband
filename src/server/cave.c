@@ -3,7 +3,7 @@
  * Purpose: Chunk allocation and utility functions
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -72,6 +72,14 @@ int FEAT_HOME_OPEN;
 int FEAT_HOME_CLOSED;
 int FEAT_WEB;
 int FEAT_TRAINING;
+int FEAT_CROP_POTATO;
+int FEAT_CROP_CABBAGE;
+int FEAT_CROP_CARROT;
+int FEAT_CROP_BEET;
+int FEAT_CROP_SQUASH;
+int FEAT_CROP_CORN;
+int FEAT_HARD_RUBBLE;
+int FEAT_HARD_PASS_RUBBLE;
 
 
 struct feature *f_info;
@@ -382,6 +390,14 @@ void set_terrain(void)
     FEAT_HOME_CLOSED = lookup_feat("closed house door");
     FEAT_WEB = lookup_feat("web");
     FEAT_TRAINING = lookup_feat("training grounds");
+    FEAT_CROP_POTATO = lookup_feat("potato crops");
+    FEAT_CROP_CABBAGE = lookup_feat("cabbage crops");
+    FEAT_CROP_CARROT = lookup_feat("carrot crops");
+    FEAT_CROP_BEET = lookup_feat("beet crops");
+    FEAT_CROP_SQUASH = lookup_feat("squash crops");
+    FEAT_CROP_CORN = lookup_feat("corn crops");
+    FEAT_HARD_RUBBLE = lookup_feat("pile of hard rubble");
+    FEAT_HARD_PASS_RUBBLE = lookup_feat("pile of hard passable rubble");
 }
 
 

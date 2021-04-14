@@ -2,7 +2,7 @@
  * File: wilderness.c
  * Purpose: Wilderness generation
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1468,12 +1468,10 @@ void dungeon_list(struct player *p, ang_file *fff)
     /* Browse the towns */
     for (i = 0; i < z_info->town_max; i++)
     {
-        if (wild_is_explored(p, &towns[i].wpos))
-        {
-            strnfmt(buf, sizeof(buf), "%s: (%d, %d)\n", towns[i].name, towns[i].wpos.grid.x,
-                towns[i].wpos.grid.y);
-            file_put(fff, buf);
-        }
+        if (!wild_is_explored(p, &towns[i].wpos)) continue;
+        strnfmt(buf, sizeof(buf), "%s: (%d, %d)\n", towns[i].name, towns[i].wpos.grid.x,
+            towns[i].wpos.grid.y);
+        file_put(fff, buf);
     }
 
     file_put(fff, "\n");
@@ -1481,12 +1479,18 @@ void dungeon_list(struct player *p, ang_file *fff)
     /* Browse the dungeons */
     for (i = 0; i < z_info->dungeon_max; i++)
     {
-        if (wild_is_explored(p, &dungeons[i].wpos))
+        if (!wild_is_explored(p, &dungeons[i].wpos)) continue;
+        if ((dungeons[i].max_level > 0) && (dungeons[i].max_level < 50))
+        {
+            strnfmt(buf, sizeof(buf), "%s: (%d, %d) [max level: %d]\n", dungeons[i].name,
+                dungeons[i].wpos.grid.x, dungeons[i].wpos.grid.y, dungeons[i].max_level);
+        }
+        else
         {
             strnfmt(buf, sizeof(buf), "%s: (%d, %d)\n", dungeons[i].name, dungeons[i].wpos.grid.x,
                 dungeons[i].wpos.grid.y);
-            file_put(fff, buf);
         }
+        file_put(fff, buf);
     }
 }
 
@@ -1848,9 +1852,27 @@ void wild_add_monster(struct player *p, struct chunk *c)
 /*
  * Adds crop to a given location.
  */
-void wild_add_crop(struct chunk *c, struct loc *grid, int type)
+static void wild_grow_crop(struct chunk *c, struct loc *grid)
 {
-    struct object *food = object_new();
+    int type, feat = square(c, grid)->feat;
+    struct object *food;
+
+    /* Random crop */
+    if (feat == FEAT_CROP)
+    {
+        /* Choose which type of garden it is */
+        type = randint0(7);
+    }
+
+    /* Specific crop type */
+    else if ((feat >= FEAT_CROP_POTATO) && (feat <= FEAT_CROP_CORN))
+        type = feat - FEAT_CROP_POTATO;
+
+    /* Paranoia */
+    else
+        return;
+
+    food = object_new();
 
     /* Food choice */
     switch (type)
@@ -1870,6 +1892,14 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
 
         case WILD_CROP_BEET:
             object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Beet"), 0, RANDOMISE);
+            break;
+
+        case WILD_CROP_SQUASH:
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Squash"), 0, RANDOMISE);
+            break;
+
+        case WILD_CROP_CORN:
+            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Ear of Corn"), 0, RANDOMISE);
             break;
 
         case WILD_CROP_MUSHROOM:
@@ -1904,19 +1934,73 @@ void wild_add_crop(struct chunk *c, struct loc *grid, int type)
                 lookup_kind_by_name(shroom_chance[i].tval, shroom_chance[i].name), 0, RANDOMISE);
             break;
         }
-
-        case WILD_CROP_SQUASH:
-            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Squash"), 0, RANDOMISE);
-            break;
-
-        case WILD_CROP_CORN:
-            object_prep(NULL, NULL, food, lookup_kind_by_name(TV_CROP, "Ear of Corn"), 0, RANDOMISE);
-            break;
     }
 
     /* Drop food */
     set_origin(food, ORIGIN_FLOOR, c->wpos.depth, NULL);
     drop_near(NULL, c, &food, 0, grid, false, DROP_FADE, false);
+}
+
+
+/*
+ * Grow all crops on specified wilderness level
+ */
+void wild_grow_crops(struct chunk *c, struct loc *grid1, struct loc *grid2, bool regen)
+{
+    struct loc begin, end;
+    struct loc_iterator iter;
+
+    loc_init(&begin, grid1->x + 1, grid1->y + 1);
+    loc_init(&end, grid2->x - 1, grid2->y - 1);
+    loc_iterator_first(&iter, &begin, &end);
+
+    do
+    {
+        if (!square_iscrop(c, &iter.cur)) continue;
+        if (square_object(c, &iter.cur)) continue;
+        if (square(c, &iter.cur)->mon) continue;
+        if (regen && randint0(16)) continue;
+
+        /* Random chance of food */
+        if (magik(60)) continue;
+
+        wild_grow_crop(c, &iter.cur);
+    }
+    while (loc_iterator_next(&iter));
+}
+
+
+/*
+ * Plant some seeds.
+ *
+ * Note that we only use one vegetable even if a larger quantity is chosen in do_cmd_drop().
+ */
+void do_cmd_plant_seed(struct player *p, struct object *obj)
+{
+    struct chunk *c = chunk_get(&p->wpos);
+    int crop = -1;
+    struct object *used;
+    bool none_left = false;
+
+    /* Do not grow anything if there's an object here. */
+    if (square_object(c, &p->grid)) return;
+
+    if (obj->sval == lookup_sval(obj->tval, "Potato")) crop = WILD_CROP_POTATO;
+    else if (obj->sval == lookup_sval(obj->tval, "Head of Cabbage")) crop = WILD_CROP_CABBAGE;
+    else if (obj->sval == lookup_sval(obj->tval, "Carrot")) crop = WILD_CROP_CARROT;
+    else if (obj->sval == lookup_sval(obj->tval, "Beet")) crop = WILD_CROP_BEET;
+    else if (obj->sval == lookup_sval(obj->tval, "Squash")) crop = WILD_CROP_SQUASH;
+    else if (obj->sval == lookup_sval(obj->tval, "Ear of Corn")) crop = WILD_CROP_CORN;
+    if (crop < 0) return;
+
+    /* Inform */
+    msg(p, "You have planted some seeds.");
+
+    /* Create new crop */
+    square_set_feat(c, &p->grid, FEAT_CROP_POTATO + crop);
+
+    used = gear_object_for_use(p, obj, 1, false, &none_left);
+    object_delete(&used);
 }
 
 
@@ -2490,7 +2574,7 @@ static void reserve_building_plot(struct chunk *c, bool **plot, struct loc *grid
  * Adds a garden at a reasonable distance from a building.
  */
 static void wild_add_garden(struct chunk *c, bool **plot, struct loc *gridmin, struct loc *gridmax,
-    struct loc *grid1, struct loc *grid2, int *type)
+    struct loc *grid1, struct loc *grid2)
 {
     struct loc gridlen, gridcen, crop1, crop2;
     int orientation;
@@ -2515,9 +2599,6 @@ static void wild_add_garden(struct chunk *c, bool **plot, struct loc *gridmin, s
 
     /* If we failed to obtain a valid plot */
     if (grid1->x < 0) return;
-
-    /* Choose which type of garden it is */
-    *type = randint0(7);
 
     /* Whether the crop rows are horizontal or vertical */
     orientation = randint0(2);
@@ -2558,33 +2639,6 @@ static bool wild_monst_aux_invaders(struct monster_race *race)
 
 
 /*
- * Adds crops to a given garden.
- */
-static void wild_add_crops(struct chunk *c, struct loc *grid1, struct loc *grid2, int type)
-{
-    struct loc begin, end;
-    struct loc_iterator iter;
-
-    loc_init(&begin, grid1->x + 1, grid1->y + 1);
-    loc_init(&end, grid2->x - 1, grid2->y - 1);
-    loc_iterator_first(&iter, &begin, &end);
-
-    /* Alternating rows of crops */
-    do
-    {
-        /* Different orientations */
-        if (!square_iscrop(c, &iter.cur)) continue;
-
-        /* Random chance of food */
-        if (magik(60)) continue;
-
-        wild_add_crop(c, &iter.cur, type);
-    }
-    while (loc_iterator_next(&iter));
-}
-
-
-/*
  * Make a dwelling 'interesting'
  */
 static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot, struct loc *grid1,
@@ -2595,7 +2649,6 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     int num_food = 0, cash = 0, num_objects = 0;
     int trys;
     int size = (grid2->x - grid1->x) * (grid2->y - grid1->y);
-    int type;
     struct loc gridmin, gridmax;
     u32b old_seed;
     struct object_kind *kind;
@@ -2606,7 +2659,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
     /* Possibly add a farm */
     gridmin.x = -1;
-    if (magik(50)) wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax, &type);
+    if (magik(50)) wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax);
 
     /* Hack -- if we have created this level before, do not add anything more to it. */
     if (w_ptr->generated != WILD_NONE) return;
@@ -2661,7 +2714,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
         if (square_canputitem(c, &grid))
         {
-            place_object(p, c, &grid, object_level(&p->wpos), false, false, ORIGIN_FLOOR, 0);
+            place_object(p, c, &grid, object_level(&p->wpos), false, false, ORIGIN_WILD_DWELLING, 0);
             num_objects--;
         }
         trys++;
@@ -2777,7 +2830,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     old_seed = Rand_value;
 
     /* Add crops to the farm */
-    wild_add_crops(c, &gridmin, &gridmax, type);
+    wild_grow_crops(c, &gridmin, &gridmax, false);
 
     /* Restore the RNG */
     Rand_value = old_seed;

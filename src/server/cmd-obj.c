@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2007-9 Andi Sidwell, Chris Carr, Ed Graham, Erik Osheim
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -138,7 +138,7 @@ void do_cmd_uninscribe(struct player *p, int item)
     msg(p, "Inscription removed.");
 
     /* PWMAngband: remove autoinscription if aware */
-    if (p->obj_aware[obj->kind->kidx])
+    if (p->kind_aware[obj->kind->kidx])
     {
         remove_autoinscription(p, obj->kind->kidx);
         Send_autoinscription(p, obj->kind);
@@ -150,7 +150,8 @@ void do_cmd_uninscribe(struct player *p, int item)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE | PN_IGNORE);
     p->upkeep->update |= (PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
     if (!object_is_carried(p, obj))
         redraw_floor(&p->wpos, &obj->grid, NULL);
 }
@@ -234,7 +235,7 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     obj->note = quark_add(inscription);
 
     /* PWMAngband: add autoinscription if aware and inscription has the right format (@xn) */
-    if (p->obj_aware[obj->kind->kidx] && (strlen(inscription) == 3) && (inscription[0] == '@') &&
+    if (p->kind_aware[obj->kind->kidx] && (strlen(inscription) == 3) && (inscription[0] == '@') &&
         isalpha(inscription[1]) && isdigit(inscription[2]))
     {
         add_autoinscription(p, obj->kind->kidx, inscription);
@@ -247,7 +248,8 @@ void do_cmd_inscribe(struct player *p, int item, const char *inscription)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE | PN_IGNORE);
     p->upkeep->update |= (PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
     if (!object_is_carried(p, obj))
         redraw_floor(&p->wpos, &obj->grid, NULL);
 }
@@ -350,6 +352,7 @@ void do_cmd_wield(struct player *p, int item, int slot)
     char o_name[NORMAL_WID];
     const char *act;
     struct object *obj = object_from_index(p, item, true, true);
+    char message[NORMAL_WID];
 
     /* Paranoia: requires an item */
     if (!obj) return;
@@ -426,7 +429,7 @@ void do_cmd_wield(struct player *p, int item, int slot)
     /* If the slot is open, wield and be done */
     if (!equip_obj)
     {
-        inven_wield(p, obj, slot);
+        inven_wield(p, obj, slot, NULL, 0);
         return;
     }
 
@@ -494,10 +497,13 @@ void do_cmd_wield(struct player *p, int item, int slot)
     else
         act = "You were wearing";
 
-    inven_wield(p, obj, slot);
+    inven_wield(p, obj, slot, message, sizeof(message));
 
     /* Message */
     msgt(p, MSG_WIELD, "%s %s (%c).", act, o_name, gear_to_label(p, equip_obj));
+
+    /* Message */
+    msg_print(p, message, MSG_WIELD);
 }
 
 
@@ -551,6 +557,13 @@ void do_cmd_drop(struct player *p, int item, int quantity)
 
     /* Take a turn */
     use_energy(p);
+
+    /* Hack -- farmers plant seeds */
+    if (tval_is_crop(obj) && square_iscropbase(chunk_get(&p->wpos), &p->grid))
+    {
+        do_cmd_plant_seed(p, obj);
+        return;
+    }
 
     /* Drop (some of) the item */
     inven_drop(p, obj, quantity, false);
@@ -639,7 +652,7 @@ void do_cmd_destroy(struct player *p, int item, bool des)
     }
 
     /* Destroying or ignoring from equipment? Update object flags! */
-    if (object_is_equipped(p->body, obj)) p->upkeep->redraw |= (PR_EQUIP);
+    if (object_is_equipped(p->body, obj)) set_redraw_equip(p, NULL);
 
     /* Destroy */
     if (des)
@@ -1234,7 +1247,8 @@ static bool item_tester_hook_use(struct player *p, struct object *obj)
     /* Notice empty staves */
     if (obj->pval <= 0)
     {
-        msg(p, "The staff has no charges left.");
+        if (obj->number == 1) msg(p, "The staff has no charges left.");
+        else msg(p, "The staves have no charges left.");
         return false;
     }
 
@@ -1251,7 +1265,8 @@ static bool item_tester_hook_aim(struct player *p, struct object *obj)
     /* Notice empty wands */
     if (obj->pval <= 0)
     {
-        msg(p, "The wand has no charges left.");
+        if (obj->number == 1) msg(p, "The wand has no charges left.");
+        else msg(p, "The wands have no charges left.");
         return false;
     }
 
@@ -1437,7 +1452,8 @@ static bool do_cmd_use_end(struct player *p, struct object *obj, bool ident, boo
 
     /* Mark as tried and redisplay */
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
 
     /* Hack -- delay pack updates when an item request is pending */
     if (p->current_value == ITEM_PENDING) p->upkeep->notice |= PN_WAIT;
@@ -1471,7 +1487,7 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
         object_flavor_aware(p, *obj_address);
 
         /* PWMAngband: mark "aware" and redisplay */
-        p->upkeep->redraw |= PR_INVEN;
+        set_redraw_inven(p, *obj_address);
         redraw_stuff(p);
     }
 
@@ -1485,23 +1501,24 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
     {
         switch (e->index)
         {
-            /* Teleport */
+            /* Altering and teleporting */
+            case EF_ALTER_REALITY:
+            case EF_BREATH:
+            case EF_GLYPH:
             case EF_TELEPORT:
+            case EF_TELEPORT_LEVEL:
+            case EF_TELEPORT_TO:
             {
-                /* Use up one charge before teleporting the player */
+                /* Use up the item first */
                 if (tval_is_staff(*obj_address))
                     do_cmd_use_staff_discharge(p, *obj_address, true, true);
-
-                /* Fall through */
-            }
-
-            /* Glyph + teleport level */
-            case EF_GLYPH:
-            case EF_TELEPORT_LEVEL:
-            {
-                /* Use up the scroll first */
-                if (tval_is_scroll(*obj_address) &&
+                else if (tval_is_scroll(*obj_address) &&
                     do_cmd_read_scroll_end(p, *obj_address, true, true))
+                {
+                    *obj_address = NULL;
+                }
+                else if (tval_is_potion(*obj_address) &&
+                    do_cmd_use_end(p, *obj_address, true, true, USE_SINGLE))
                 {
                     *obj_address = NULL;
                 }
@@ -1521,21 +1538,6 @@ bool execute_effect(struct player *p, struct object **obj_address, struct effect
                     e->subtype = 1;
                 }
 
-                break;
-            }
-
-            /* Dragon breath */
-            case EF_BREATH:
-            {
-                /* Use up the potion first, since breathing frost could destroy it */
-                if (tval_is_potion(*obj_address) &&
-                    do_cmd_use_end(p, *obj_address, true, true, USE_SINGLE))
-                {
-                    *obj_address = NULL;
-                }
-
-                /* Already used up, don't call do_cmd_use_end again */
-                no_ident = true;
                 break;
             }
 
@@ -1722,9 +1724,9 @@ static void use_aux(struct player *p, int item, int dir, cmd_param *p_cmd)
 
 
 /* Use a staff */
-void do_cmd_use_staff(struct player *p, int item)
+void do_cmd_use_staff(struct player *p, int item, int dir)
 {
-    use_aux(p, item, 0, &cmd_params[CMD_USE]);
+    use_aux(p, item, dir, &cmd_params[CMD_USE]);
 }
 
 
@@ -1800,13 +1802,13 @@ static bool can_read_scroll(struct player *p)
 
 
 /* Read a scroll (from the pack or floor) */
-void do_cmd_read_scroll(struct player *p, int item)
+void do_cmd_read_scroll(struct player *p, int item, int dir)
 {
     /* Check some conditions */
     if (!can_read_scroll(p)) return;
 
     /* Use the object */
-    use_aux(p, item, 0, &cmd_params[CMD_READ]);
+    use_aux(p, item, dir, &cmd_params[CMD_READ]);
 }
 
 
@@ -1828,10 +1830,10 @@ void do_cmd_use_any(struct player *p, int item, int dir)
     else if (item_tester_hook_quaff(p, obj)) do_cmd_quaff_potion(p, item, dir);
 
     /* Read a scroll */
-    else if (item_tester_hook_read(p, obj)) do_cmd_read_scroll(p, item);
+    else if (item_tester_hook_read(p, obj)) do_cmd_read_scroll(p, item, dir);
 
     /* Use a staff */
-    else if (item_tester_hook_use(p, obj)) do_cmd_use_staff(p, item);
+    else if (item_tester_hook_use(p, obj)) do_cmd_use_staff(p, item, dir);
 
     /* Aim a wand */
     else if (item_tester_hook_aim(p, obj)) do_cmd_aim_wand(p, item, dir);
@@ -1894,6 +1896,8 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
     /* Refilled from a lamp */
     if (of_has(obj->flags, OF_TAKES_FUEL))
     {
+        bool unstack = false;
+
         /* Unstack if necessary */
         if (obj->number > 1)
         {
@@ -1909,6 +1913,8 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
                 inven_carry(p, used, true, true);
             else
                 drop_near(p, c, &used, 0, &p->grid, false, DROP_FADE, true);
+
+            unstack = true;
         }
 
         /* Empty a single lamp */
@@ -1919,7 +1925,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
         p->upkeep->notice |= (PN_COMBINE);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_INVEN);
+        set_redraw_inven(p, unstack? NULL: obj);
     }
 
     /* Refilled from a flask */
@@ -1933,7 +1939,7 @@ static void refill_lamp(struct player *p, struct object *lamp, struct object *ob
     p->upkeep->update |= (PU_BONUS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_EQUIP);
+    set_redraw_equip(p, lamp);
 }
 
 

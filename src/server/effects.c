@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2007 Andi Sidwell
  * Copyright (c) 2016 Ben Semmler, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -229,6 +229,7 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
     struct curse_data *curse;
     bool carried;
     struct loc grid;
+    bool none_left = false;
 
     /* Paranoia */
     if ((index < 0) || (index >= z_info->curse_max)) return false;
@@ -272,7 +273,7 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
         preserve_artifact_aux(obj);
         if (obj->artifact) history_lose_artifact(p, obj);
 
-        use_object(p, obj, 1, false);
+        none_left = use_object(p, obj, 1, false);
     }
 
     /* Non-destructive failure */
@@ -282,7 +283,8 @@ static bool uncurse_object(struct player *p, struct object *obj, int strength)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_EQUIP | PR_INVEN);
+    set_redraw_equip(p, none_left? NULL: obj);
+    set_redraw_inven(p, none_left? NULL: obj);
     if (!carried) redraw_floor(&p->wpos, &grid, NULL);
 
     return true;
@@ -429,7 +431,9 @@ static bool enchant(struct player *p, struct object *obj, int n, int eflag)
     p->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
+    set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
 
     /* Success */
     return true;
@@ -472,6 +476,22 @@ static struct ego_item *ego_elemental(void)
     }
 
     return NULL;
+}
+
+
+/*
+ * Make enchanted/branded objects, that were bought from a store, worthless.
+ * This is used to prevent the "branding exploit", which allowed players to buy stuff
+ * from the store, brand it, and re-sell at higher price, which is cheezy!
+ */
+static void apply_discount_hack(struct player *p, struct object *obj)
+{
+    if ((obj->origin == ORIGIN_STORE) || (obj->origin == ORIGIN_MIXED))
+    {
+        set_origin(obj, ORIGIN_WORTHLESS, p->wpos.depth, NULL);
+        if (object_was_sensed(obj) || object_is_known(p, obj))
+            p->upkeep->notice |= PN_IGNORE;
+    }
 }
 
 
@@ -527,15 +547,14 @@ static void brand_object(struct player *p, struct object *obj, const char *brand
         p->upkeep->notice |= (PN_COMBINE);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+        set_redraw_equip(p, obj);
+        set_redraw_inven(p, obj);
 
         /* Enchant */
         enchant(p, obj, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
 
         /* Endless source of cash? No way... make them worthless */
-        set_origin(obj, ORIGIN_WORTHLESS, p->wpos.depth, NULL);
-        if (object_was_sensed(obj) || object_is_known(p, obj))
-            p->upkeep->notice |= PN_IGNORE;
+        apply_discount_hack(p, obj);
     }
     else
         msg(p, "The branding failed.");
@@ -960,7 +979,9 @@ static void player_turn_undead(struct player *p)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
-    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_INVEN | PR_SPELL);
+    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_SPELL);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 
@@ -1205,6 +1226,10 @@ static bool effect_handler_ALTER_REALITY(effect_handler_context_t *context)
 {
     int i;
 
+    /* Hack -- already used up */
+    bool used = (context->radius == 1);
+
+    /* Always notice */
     context->ident = true;
 
     /* Only on random levels */
@@ -1232,7 +1257,8 @@ static bool effect_handler_ALTER_REALITY(effect_handler_context_t *context)
     /* Deallocate the level */
     chunk_list_remove(context->cave);
     cave_wipe(context->cave);
-    return true;
+
+    return !used;
 }
 
 
@@ -2541,14 +2567,13 @@ static bool effect_handler_CURSE_ARMOR(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
-        object_know_curses(obj);
-        object_check_for_ident(context->origin->player, obj);
+        object_learn_obvious(context->origin->player, obj, false);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
 
         /* Redraw */
-        context->origin->player->upkeep->redraw |= (PR_EQUIP);
+        set_redraw_equip(context->origin->player, obj);
     }
 
     return true;
@@ -2596,14 +2621,13 @@ static bool effect_handler_CURSE_WEAPON(effect_handler_context_t *context)
 
         /* Curse it */
         append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
-        object_know_curses(obj);
-        object_check_for_ident(context->origin->player, obj);
+        object_learn_obvious(context->origin->player, obj, false);
 
         /* Recalculate bonuses */
         context->origin->player->upkeep->update |= (PU_BONUS);
 
         /* Redraw */
-        context->origin->player->upkeep->redraw |= (PR_EQUIP);
+        set_redraw_equip(context->origin->player, obj);
     }
 
     return true;
@@ -2828,7 +2852,7 @@ static bool effect_handler_DARKEN_LEVEL(effect_handler_context_t *context)
                 obj->timeout = 0;
 
                 /* Redraw */
-                player->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(player, obj);
             }
         }
     }
@@ -2969,6 +2993,7 @@ static bool effect_handler_DESTRUCTION(effect_handler_context_t *context)
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_ROOM);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_VAULT);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_NO_TELEPORT);
+        sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_LIMITED_TELE);
         if (square_ispitfloor(context->cave, &iter.cur))
             square_clear_feat(context->cave, &iter.cur);
 
@@ -3928,7 +3953,7 @@ static bool effect_handler_DISENCHANT(effect_handler_context_t *context)
     context->origin->player->upkeep->update |= (PU_BONUS);
 
     /* Redraw */
-    context->origin->player->upkeep->redraw |= (PR_EQUIP);
+    set_redraw_equip(context->origin->player, obj);
 
     return true;
 }
@@ -3957,7 +3982,7 @@ static bool effect_handler_DRAIN_LIGHT(effect_handler_context_t *context)
         }
 
         /* Redraw */
-        context->origin->player->upkeep->redraw |= (PR_EQUIP);
+        set_redraw_equip(context->origin->player, obj);
     }
 
     return true;
@@ -4176,6 +4201,7 @@ static bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
             sqinfo_off(square(context->cave, &grid)->info, SQUARE_ROOM);
             sqinfo_off(square(context->cave, &grid)->info, SQUARE_VAULT);
             sqinfo_off(square(context->cave, &grid)->info, SQUARE_NO_TELEPORT);
+            sqinfo_off(square(context->cave, &grid)->info, SQUARE_LIMITED_TELE);
             if (square_ispitfloor(context->cave, &grid)) square_clear_feat(context->cave, &grid);
 
             /* Forget completely */
@@ -4521,9 +4547,7 @@ static bool effect_handler_ELEM_BRAND(effect_handler_context_t *context)
         enchant(context->origin->player, obj, randint0(3) + 4, ENCH_TOHIT | ENCH_TODAM);
 
         /* Endless source of cash? No way... make them worthless */
-        set_origin(obj, ORIGIN_WORTHLESS, context->origin->player->wpos.depth, NULL);
-        if (object_was_sensed(obj) || object_is_known(context->origin->player, obj))
-            context->origin->player->upkeep->notice |= PN_IGNORE;
+        apply_discount_hack(context->origin->player, obj);
     }
     else
         msg(context->origin->player, "The branding failed.");
@@ -4603,11 +4627,7 @@ static bool effect_handler_ENCHANT(effect_handler_context_t *context)
 
     /* Endless source of cash? No way... make them worthless */
     else if (!context->radius)
-    {
-        set_origin(obj, ORIGIN_WORTHLESS, context->origin->player->wpos.depth, NULL);
-        if (object_was_sensed(obj) || object_is_known(context->origin->player, obj))
-            context->origin->player->upkeep->notice |= PN_IGNORE;
-    }
+        apply_discount_hack(context->origin->player, obj);
 
     /* Redraw */
     if (!object_is_carried(context->origin->player, obj))
@@ -4913,11 +4933,9 @@ static bool effect_handler_LIGHT_AREA(effect_handler_context_t *context)
 
 static bool effect_handler_LIGHT_LEVEL(effect_handler_context_t *context)
 {
-    bool full = (context->radius? true: false);
-
-    if (full)
+    if (context->radius)
         msg(context->origin->player, "An image of your surroundings forms in your mind...");
-    wiz_light(context->origin->player, context->cave, full);
+    wiz_light(context->origin->player, context->cave, context->radius);
     context->ident = true;
     return true;
 }
@@ -5770,6 +5788,15 @@ static bool effect_handler_RECALL(effect_handler_context_t *context)
     /* Activate recall */
     if (!context->origin->player->word_recall)
     {
+        /* Ask for confirmation if we try to recall from non-reentrable dungeon */
+        if ((context->origin->player->current_value == ITEM_REQUEST) &&
+            OPT(context->origin->player, confirm_recall) &&
+            forbid_reentrance(context->origin->player))
+        {
+            get_item(context->origin->player, HOOK_CONFIRM, "");
+            return false;
+        }
+
         /* Select the recall depth */
         if (!set_recall_depth(context->origin->player, context->note,
             context->origin->player->current_value, context->beam.inscription))
@@ -5802,7 +5829,7 @@ static bool effect_handler_RECALL(effect_handler_context_t *context)
         /* Ask for confirmation */
         if (context->origin->player->current_value == ITEM_REQUEST)
         {
-            get_item(context->origin->player, HOOK_CONFIRM, "");
+            get_item(context->origin->player, HOOK_CANCEL, "");
             return false;
         }
 
@@ -5833,6 +5860,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
     bool carried;
     struct loc grid;
     char dice_string[20];
+    bool none_left = false;
 
     /* Immediately obvious */
     context->ident = true;
@@ -5892,7 +5920,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
         else
         {
             /* Reduce and describe inventory */
-            use_object(context->origin->player, obj, 1, true);
+            none_left = use_object(context->origin->player, obj, 1, true);
         }
     }
 
@@ -5912,7 +5940,7 @@ static bool effect_handler_RECHARGE(effect_handler_context_t *context)
     context->origin->player->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    context->origin->player->upkeep->redraw |= (PR_INVEN);
+    set_redraw_inven(context->origin->player, none_left? NULL: obj);
     if (!carried) redraw_floor(&context->origin->player->wpos, &grid, NULL);
 
     /* Something was done */
@@ -6259,6 +6287,9 @@ static bool effect_handler_SAFE_GUARD(effect_handler_context_t *context)
     int rad = 2 + (context->origin->player->lev / 20);
     struct loc begin, end;
     struct loc_iterator iter;
+
+    /* Always notice */
+    context->ident = true;
 
     /* Only on random levels */
     if (!random_level(&context->origin->player->wpos))
@@ -6638,7 +6669,7 @@ static bool effect_handler_TAP_DEVICE(effect_handler_context_t *context)
             context->origin->player->upkeep->notice |= (PN_COMBINE);
 
             /* Redraw */
-            context->origin->player->upkeep->redraw |= (PR_INVEN);
+            set_redraw_inven(context->origin->player, obj);
             if (!object_is_carried(context->origin->player, obj))
                 redraw_floor(&context->origin->player->wpos, &obj->grid, NULL);
 
@@ -6805,7 +6836,7 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     }
 
     /* Restricted by choice */
-    if (cfg_no_stores || OPT(q, birth_no_stores))
+    if ((cfg_limited_stores == 3) || OPT(q, birth_no_stores))
     {
         msg(context->origin->player, "%s cannot be reached.", q->name);
         return false;
@@ -6821,7 +6852,8 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     q->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    q->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(q, NULL);
+    set_redraw_inven(q, NULL);
 
     /* Wipe it */
     use_object(context->origin->player, obj, obj->number, false);
@@ -6830,7 +6862,8 @@ static bool effect_handler_TELE_OBJECT(effect_handler_context_t *context)
     context->origin->player->upkeep->notice |= (PN_COMBINE);
 
     /* Redraw */
-    context->origin->player->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(context->origin->player, NULL);
+    set_redraw_inven(context->origin->player, NULL);
 
     msg(q, "You are hit by a powerful magic wave from %s.", context->origin->player->name);
     return true;
@@ -6937,10 +6970,25 @@ static bool effect_handler_TELEPORT(effect_handler_context_t *context)
         return !used;
     }
 
+    /* Check for a limited teleport grid */
+    if (square_limited_teleport(context->cave, &start) && !safe_ghost && (dis > 10))
+    {
+        if (context->origin->player) msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
     /* Check for a no teleport curse */
     if (is_player && player_of_has(context->origin->player, OF_NO_TELEPORT))
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
+        msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
+    /* Check for a limited teleport curse */
+    if (is_player && player_of_has(context->origin->player, OF_LIMITED_TELE) && (dis > 10))
+    {
+        equip_learn_flag(context->origin->player, OF_LIMITED_TELE);
         msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
     }
@@ -7184,7 +7232,8 @@ static bool effect_handler_TELEPORT_LEVEL(effect_handler_context_t *context)
     }
 
     /* Check for a no teleport grid */
-    if (square_isno_teleport(context->cave, &context->origin->player->grid))
+    if (square_isno_teleport(context->cave, &context->origin->player->grid) ||
+        square_limited_teleport(context->cave, &context->origin->player->grid))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
@@ -7194,6 +7243,14 @@ static bool effect_handler_TELEPORT_LEVEL(effect_handler_context_t *context)
     if (player_of_has(context->origin->player, OF_NO_TELEPORT))
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
+        msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
+    }
+
+    /* Check for a limited teleport curse */
+    if (player_of_has(context->origin->player, OF_LIMITED_TELE))
+    {
+        equip_learn_flag(context->origin->player, OF_LIMITED_TELE);
         msg(context->origin->player, "The teleporting attempt fails.");
         return !used;
     }
@@ -7344,6 +7401,9 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     int tries = 200;
     bool is_player;
 
+    /* Hack -- already used up */
+    bool used = (context->radius == 1);
+
     context->ident = true;
 
     /* Where are we coming from? */
@@ -7367,7 +7427,7 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
         if (!loc_is_zero(decoy) && context->origin->monster)
         {
             square_destroy_decoy(context->origin->player, context->cave, decoy);
-            return true;
+            return !used;
         }
 
         /* Player being teleported */
@@ -7410,13 +7470,13 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
             if (distance(&aim, &start) > rad)
             {
                 msg(context->origin->player, "You cannot blink that far.");
-                return true;
+                return !used;
             }
         }
         else
         {
             msg(context->origin->player, "You must have a target.");
-            return true;
+            return !used;
         }
     }
 
@@ -7424,14 +7484,14 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     if (check_st_anchor(&context->origin->player->wpos, &start))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
     }
 
     /* Check for a no teleport grid */
-    if (square_isno_teleport(context->cave, &start))
+    if (square_isno_teleport(context->cave, &start) || square_limited_teleport(context->cave, &start))
     {
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
     }
 
     /* Check for a no teleport curse */
@@ -7439,7 +7499,15 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     {
         equip_learn_flag(context->origin->player, OF_NO_TELEPORT);
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
+    }
+
+    /* Check for a limited teleport curse */
+    if (is_player && player_of_has(context->origin->player, OF_LIMITED_TELE))
+    {
+        equip_learn_flag(context->origin->player, OF_LIMITED_TELE);
+        msg(context->origin->player, "The teleporting attempt fails.");
+        return !used;
     }
 
     /* Find a usable location */
@@ -7479,7 +7547,7 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     if (!tries)
     {
         msg(context->origin->player, "The teleporting attempt fails.");
-        return true;
+        return !used;
     }
 
     /* Move player or monster */
@@ -7494,7 +7562,7 @@ static bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
     /* Hack -- fix store */
     if (is_player && in_store(context->origin->player)) Send_store_leave(context->origin->player);
 
-    return true;
+    return !used;
 }
 
 
@@ -7839,6 +7907,7 @@ static bool effect_handler_WIPE_AREA(effect_handler_context_t *context)
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_VAULT);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_ROOM);
         sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_NO_TELEPORT);
+        sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_LIMITED_TELE);
         if (square_ispitfloor(context->cave, &iter.cur))
             square_clear_feat(context->cave, &iter.cur);
 
@@ -8321,6 +8390,7 @@ int effect_subtype(int index, const char *type)
         case EF_TELEPORT_TO:
         {
             if (streq(type, "SELF")) val = 1;
+            else if (streq(type, "NONE")) val = 0;
             break;
         }
 
@@ -8365,7 +8435,7 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
     if (origin->player) memcpy(&wpos, &origin->player->wpos, sizeof(wpos));
     else if (origin->monster) memcpy(&wpos, &origin->monster->wpos, sizeof(wpos));
     else if (target_mon) memcpy(&wpos, &target_mon->wpos, sizeof(wpos));
-    else quit_fmt("No valid source in effect_do(). Please report this bug.");
+    else quit("No valid source in effect_do(). Please report this bug.");
 
     do
     {
@@ -8373,7 +8443,7 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
         random_value value;
 
         if (!effect_valid(effect))
-            quit_fmt("Bad effect passed to effect_do(). Please report this bug.");
+            quit("Bad effect passed to effect_do(). Please report this bug.");
 
         memset(&value, 0, sizeof(value));
         if (effect->dice != NULL)
@@ -8440,7 +8510,7 @@ bool effect_do(struct effect *effect, struct source *origin, bool *ident, bool a
             if (context.self_msg) msg(context.origin->player, context.self_msg);
         }
         else
-            quit_fmt("Effect not handled. Please report this bug.");
+            quit("Effect not handled. Please report this bug.");
 
         /* Get the next effect, if there is one */
         if (leftover)

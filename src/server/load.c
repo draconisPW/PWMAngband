@@ -3,7 +3,7 @@
  * Purpose: Savefile loading functions
  *
  * Copyright (c) 1997 Ben Harrison, and others
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -268,9 +268,8 @@ static struct object *rd_item(void)
     rd_s16b(&tmp16s);
     obj->time.sides = tmp16s;
 
-    /* Save the inscription */
-    rd_string(buf, sizeof(buf));
-    if (buf[0]) obj->note = quark_add(buf);
+    /* Read the inscription */
+    rd_quark(&obj->note);
 
     /* PWMAngband */
     rd_s32b(&obj->creator);
@@ -280,6 +279,8 @@ static struct object *rd_item(void)
     rd_byte(&obj->ordered);
     rd_s16b(&obj->decay);
     rd_byte(&obj->bypass_aware);
+
+    rd_quark(&obj->origin_player);
 
     /* Dummy item */
     if (!obj->tval && !obj->sval)
@@ -470,8 +471,8 @@ int rd_object_memory(struct player *p)
 
         /* Read and extract the flags */
         rd_byte(&flags);
-        p->obj_aware[i] = ((flags & 0x01)? true: false);
-        p->obj_tried[i] = ((flags & 0x02)? true: false);
+        p->kind_aware[i] = ((flags & 0x01)? true: false);
+        p->kind_tried[i] = ((flags & 0x02)? true: false);
         p->kind_everseen[i] = ((flags & 0x04)? 1: 0);
         p->kind_ignore[i] = ((flags & 0x08)? 1: 0);
     }
@@ -882,7 +883,7 @@ int rd_artifacts(struct player *unused)
         struct artifact *art = &a_info[i];
 
         rd_byte(&art->created);
-        rd_byte(&art->owned);
+        rd_s32b(&art->owner);
     }
 
     /* Success */
@@ -973,7 +974,7 @@ static int rd_gear_aux(struct player *p, rd_item_t rd_item_version)
             if (true_artifact_p(obj))
             {
                 if (!obj->artifact->created) obj->artifact->created = 1;
-                if (obj->owner) obj->artifact->owned = 1;
+                if (obj->owner) obj->artifact->owner = p->id;
             }
             else
             {

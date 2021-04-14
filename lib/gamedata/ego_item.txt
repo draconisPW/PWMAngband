@@ -1265,7 +1265,7 @@ name:of Mana
 info:10000:10
 alloc:20:1 to 127
 type:mage staff
-values:MANA[d2]
+values:MANA[d4]
 min-values:MANA[0]
 
 name:of Power
@@ -1273,8 +1273,8 @@ info:20000:20
 alloc:10:10 to 127
 type:mage staff
 flags:SUST_INT | RAND_HI_RES
-values:INT[d2]
-min-values:INT[0]
+values:INT[d2] | MANA[1]
+min-values:INT[0] | MANA[0]
 
 name:of Wizardry
 info:40000:30
@@ -1283,8 +1283,8 @@ combat:0:0:d10
 type:mage staff
 flags:FREE_ACT | SUST_INT | SUST_WIS | RAND_HI_RES | RAND_POWER |
 flags:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
-values:INT[d3] | WIS[d3]
-min-values:INT[0] | WIS[0]
+values:INT[d3] | WIS[d3] | MANA[d2]
+min-values:INT[0] | WIS[0] | MANA[0]
 
 
 ### Horns ###

@@ -2,7 +2,7 @@
  * File: account.c
  * Purpose: Account management
  *
- * Copyright (c) 2020 PWMAngband Developers
+ * Copyright (c) 2021 PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -61,6 +61,7 @@ u32b get_account(const char *name, const char *pass)
                     if (pass_ok) break;
 
                     /* Incorrect password */
+                    file_close(fh);
                     return 0L;
                 }
                 name_ok = false;

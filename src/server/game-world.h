@@ -8,6 +8,7 @@
 
 #define SERVER_SAVE     10      /* Minutes between server saves */
 #define SERVER_PURGE    24      /* Hours between server purges */
+#define GROW_CROPS      5000    /* How often to grow a bunch of new vegetables in wilderness */
 
 /*
  * Time bubble scale factors in percentage terms
@@ -37,6 +38,10 @@ extern bool level_keep_allocated(struct chunk *c);
 extern void play_game(void);
 extern void shutdown_server(void);
 extern void exit_game_panic(void);
+#ifdef WINDOWS
 extern void setup_exit_handler(void);
+#else
+extern void signals_init(void);
+#endif
 
 #endif /* GAME_WORLD_H */

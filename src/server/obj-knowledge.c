@@ -5,7 +5,7 @@
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2009 Brian Bull
  * Copyright (c) 2016 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1042,7 +1042,8 @@ void update_player_object_knowledge(struct player *p)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
     if (c) redraw_floor(&p->wpos, &p->grid, NULL);
 }
 
@@ -1240,19 +1241,31 @@ void player_learn_innate(struct player *p)
     /* Brands */
     for (i = 0; i < z_info->brand_max; i++)
     {
-        if (p->race->brands && p->race->brands[i].brand && (p->lev >= p->race->brands[i].lvl))
+        if (p->race->brands && p->race->brands[i].brand &&
+            (p->lev >= p->race->brands[i].minlvl) && (p->lev <= p->race->brands[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
-        if (p->clazz->brands && p->clazz->brands[i].brand && (p->lev >= p->clazz->brands[i].lvl))
+        }
+        if (p->clazz->brands && p->clazz->brands[i].brand &&
+            (p->lev >= p->clazz->brands[i].minlvl) && (p->lev <= p->clazz->brands[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_BRAND, i), false);
+        }
     }
 
     /* Slays */
     for (i = 0; i < z_info->slay_max; i++)
     {
-        if (p->race->slays && p->race->slays[i].slay && (p->lev >= p->race->slays[i].lvl))
+        if (p->race->slays && p->race->slays[i].slay &&
+            (p->lev >= p->race->slays[i].minlvl) && (p->lev <= p->race->slays[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
-        if (p->clazz->slays && p->clazz->slays[i].slay && (p->lev >= p->clazz->slays[i].lvl))
+        }
+        if (p->clazz->slays && p->clazz->slays[i].slay &&
+            (p->lev >= p->clazz->slays[i].minlvl) && (p->lev <= p->clazz->slays[i].maxlvl))
+        {
             player_learn_rune(p, rune_index(RUNE_VAR_SLAY, i), false);
+        }
     }
 
     /* Modifiers (other than stats) */
@@ -1377,25 +1390,19 @@ void object_learn_unknown_rune(struct player *p, struct object *obj)
 
 
 /*
- * Learn object properties that become obvious on wielding or wearing.
+ * Learn obvious object properties.
  *
  * p is the player
  * obj is the wielded object
+ * message if true displays a message for each property learned
  */
-void object_learn_on_wield(struct player *p, struct object *obj)
+void object_learn_obvious(struct player *p, struct object *obj, bool message)
 {
     bitflag f[OF_SIZE], obvious_mask[OF_SIZE], esp_flags[OF_SIZE];
     int i, flag;
     char o_name[NORMAL_WID];
     bool obvious = false;
     s32b modifiers[OBJ_MOD_MAX];
-
-    /* Only deal with un-ID'd items */
-    if (object_is_known(p, obj)) return;
-
-    /* Check the worn flag */
-    if (obj->known->notice & OBJ_NOTICE_WORN) return;
-    obj->known->notice |= OBJ_NOTICE_WORN;
 
     /* EASY_KNOW is now known */
     if (easy_know(obj, object_flavor_is_aware(p, obj)))
@@ -1452,12 +1459,15 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     if (!obvious) return;
 
     create_obj_flag_mask(esp_flags, 0, OFT_ESP, OFT_MAX);
-    if (of_is_inter(f, esp_flags))
-        msg(p, "Your mind feels strangely sharper!");
-    if (of_has(f, OF_FREE_ACT) && of_has(obvious_mask, OF_FREE_ACT))
-        msg(p, "You feel mobile!");
-    if (of_has(f, OF_KNOWLEDGE))
-        msg(p, "You feel more knowledgeable!");
+    if (msg)
+    {
+        if (of_is_inter(f, esp_flags))
+            msg(p, "Your mind feels strangely sharper!");
+        if (of_has(f, OF_FREE_ACT) && of_has(obvious_mask, OF_FREE_ACT))
+            msg(p, "You feel mobile!");
+        if (of_has(f, OF_KNOWLEDGE))
+            msg(p, "You feel more knowledgeable!");
+    }
 
     /* Learn about obvious, previously unknown flags */
     of_inter(f, obvious_mask);
@@ -1465,7 +1475,7 @@ void object_learn_on_wield(struct player *p, struct object *obj)
     {
         /* Learn the flag */
         player_learn_flag(p, flag);
-        flag_message(p, flag, o_name);
+        if (msg) flag_message(p, flag, o_name);
     }
 
     /* Learn all modifiers */
@@ -1477,7 +1487,7 @@ void object_learn_on_wield(struct player *p, struct object *obj)
             bool positive = ((modifiers[i] > 0)? true: false);
 
             player_learn_rune(p, rune_index(RUNE_VAR_MOD, i), true);
-            mod_message(p, i, o_name, positive);
+            if (msg) mod_message(p, i, o_name, positive);
         }
     }
 
@@ -1490,6 +1500,25 @@ void object_learn_on_wield(struct player *p, struct object *obj)
         if (obj->curses[i].power == 0) continue;
         if (index >= 0) player_learn_rune(p, index, true);
     }
+}
+
+
+/*
+ * Learn object properties that become obvious on wielding or wearing.
+ *
+ * p is the player
+ * obj is the wielded object
+ */
+void object_learn_on_wield(struct player *p, struct object *obj)
+{
+    /* Only deal with un-ID'd items */
+    if (object_is_known(p, obj)) return;
+
+    /* Check the worn flag */
+    if (obj->known->notice & OBJ_NOTICE_WORN) return;
+    obj->known->notice |= OBJ_NOTICE_WORN;
+
+    object_learn_obvious(p, obj, true);
 
     /* Hack -- know activation on rings of polymorphing to bypass (unfair) learning by use */
     if (tval_is_poly(obj)) object_notice_effect(p, obj);
@@ -1505,10 +1534,6 @@ void object_learn_on_wield(struct player *p, struct object *obj)
  */
 void weapon_learn_on_carry(struct player *p, struct object *obj)
 {
-    bitflag obvious_mask[OF_SIZE];
-    s32b modifiers[OBJ_MOD_MAX];
-    int i;
-
     /* Only deal with un-ID'd items */
     if (object_is_known(p, obj)) return;
 
@@ -1519,28 +1544,7 @@ void weapon_learn_on_carry(struct player *p, struct object *obj)
     if (obj->known->notice & OBJ_NOTICE_WORN) return;
     obj->known->notice |= OBJ_NOTICE_WORN;
 
-    /* Get the obvious object flags */
-    create_obj_flag_mask(obvious_mask, 1, OFID_WIELD, OFT_MAX);
-
-    object_modifiers(obj, modifiers);
-
-    /* Make sustains obvious for items with that stat bonus */
-    for (i = 0; i < STAT_MAX; i++)
-    {
-        if (modifiers[i]) of_on(obvious_mask, sustain_flag(i));
-    }
-
-    /* Notice obvious flags */
-    of_union(obj->known->flags, obvious_mask);
-
-    /* Notice all modifiers */
-    for (i = 0; i < OBJ_MOD_MAX; i++)
-        obj->known->modifiers[i] = 1;
-
-    /* Notice curses */
-    object_know_curses(obj);
-
-    object_check_for_ident(p, obj);
+    object_learn_obvious(p, obj, false);
 }
 
 
@@ -1695,7 +1699,8 @@ void equip_learn_on_ranged_attack(struct player *p)
             }
 
             p->upkeep->update |= (PU_BONUS);
-            p->upkeep->redraw |= (PR_EQUIP | PR_PLUSSES);
+            p->upkeep->redraw |= (PR_PLUSSES);
+            set_redraw_equip(p, obj);
         }
     }
 }
@@ -1842,7 +1847,7 @@ void equip_learn_after_time(struct player *p)
     }
 
     /* Notice new info */
-    if (redraw) p->upkeep->redraw |= (PR_EQUIP);
+    if (redraw) set_redraw_equip(p, NULL);
 }
 
 
@@ -1873,7 +1878,7 @@ bool object_flavor_is_aware(struct player *p, const struct object *obj)
     /* Pretend aware */
     if (!p) return true;
 
-    return (p->obj_aware[obj->kind->kidx] || obj->bypass_aware);
+    return (p->kind_aware[obj->kind->kidx] || obj->bypass_aware);
 }
 
 
@@ -1887,7 +1892,7 @@ bool object_flavor_was_tried(struct player *p, const struct object *obj)
     /* Pretend tried */
     if (!p) return true;
 
-    return p->obj_tried[obj->kind->kidx];
+    return p->kind_tried[obj->kind->kidx];
 }
 
 
@@ -1904,10 +1909,10 @@ static void object_flavor_aware_aux(struct player *p, struct object *obj, bool s
 
     /* Pretend aware */
     if (!p) return;
-    if (p->obj_aware[obj->kind->kidx]) return;
+    if (p->kind_aware[obj->kind->kidx]) return;
 
     /* Fully aware of the effects */
-    p->obj_aware[obj->kind->kidx] = true;
+    p->kind_aware[obj->kind->kidx] = true;
     if (send) Send_aware(p, obj->kind->kidx);
     apply_autoinscription(p, obj);
 
@@ -1918,7 +1923,7 @@ static void object_flavor_aware_aux(struct player *p, struct object *obj, bool s
     object_id_set_aware(obj);
 
     /* Update flags */
-    p->upkeep->redraw |= PR_EQUIP;
+    set_redraw_equip(p, obj);
     p->upkeep->notice |= PN_IGNORE;
 
     /* Quit if no dungeon yet */
@@ -1964,7 +1969,7 @@ void object_flavor_tried(struct player *p, struct object *obj)
 {
     my_assert(obj);
 
-    p->obj_tried[obj->kind->kidx] = true;
+    p->kind_tried[obj->kind->kidx] = true;
 }
 
 
@@ -2478,7 +2483,8 @@ void object_notice_defence_plusses(struct player *p, struct object *obj)
     }
 
     p->upkeep->update |= (PU_BONUS);
-    p->upkeep->redraw |= (PR_EQUIP | PR_ARMOR);
+    p->upkeep->redraw |= (PR_ARMOR);
+    set_redraw_equip(p, obj);
 }
 
 
@@ -2527,7 +2533,8 @@ void object_notice_attack_plusses(struct player *p, struct object *obj)
     if (object_all_but_flavor_is_known(obj, aware)) object_flavor_aware(p, obj);
 
     p->upkeep->update |= (PU_BONUS);
-    p->upkeep->redraw |= (PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
+    set_redraw_equip(p, obj);
 }
 
 
@@ -2606,7 +2613,9 @@ void object_know_everything(struct player *p, struct object *obj)
     p->upkeep->update |= (PU_BONUS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 
     /* Description */
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);

@@ -14,6 +14,7 @@ enum
     OP_INTERFACE = 0,
     OP_MANGBAND,
     OP_BIRTH,
+    OP_ADVANCED,
 
     OP_MAX
 };
@@ -62,6 +63,7 @@ struct player_options
 {
     bool opt[OPT_MAX];              /* Options */
     byte hitpoint_warn;             /* Hitpoint warning (0 to 9) */
+    byte hitpoint_warn_toggle;
     byte lazymove_delay;            /* Delay in cs before moving to allow another keypress */
     byte delay_factor;              /* Delay factor (0 to 255) */
     byte ignore_lvl[ITYPE_MAX];     /* Auto-ignore level (0 to 4) */

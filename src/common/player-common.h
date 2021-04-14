@@ -183,13 +183,15 @@ struct player_body
 struct brand_info
 {
     bool brand;
-    byte lvl;
+    byte minlvl;
+    byte maxlvl;
 };
 
 struct slay_info
 {
     bool slay;
-    byte lvl;
+    byte minlvl;
+    byte maxlvl;
 };
 
 struct modifier
@@ -474,6 +476,10 @@ struct player_upkeep
     s16b quiver_cnt;                /* Number of items in the quiver */
     s16b recharge_pow;              /* Power of recharge effect */
     bool running_update;            /* True if updating monster/object lists while running */
+    struct object *redraw_equip;    /* Single equipment object to redraw */
+    bool skip_redraw_equip;         /* Skip redraw_equip object */
+    struct object *redraw_inven;    /* Single inventory object to redraw */
+    bool skip_redraw_inven;         /* Skip redraw_inven object */
 };
 
 /*
@@ -690,8 +696,8 @@ struct player
     hturn game_turn;                        /* Number of game turns */
     hturn player_turn;                      /* Number of player turns (including resting) */
     hturn active_turn;                      /* Number of active player turns */
-    bool* obj_aware;                        /* Is the player aware of this obj type? */
-    bool* obj_tried;                        /* Has the player tried this obj type? */
+    bool* kind_aware;                       /* Is the player aware of this obj kind? */
+    bool* kind_tried;                       /* Has the player tried this obj kind? */
     char name[NORMAL_WID];                  /* Nickname */
     char pass[NORMAL_WID];                  /* Password */
     s32b id;                                /* Unique ID to each player */
@@ -819,7 +825,7 @@ struct player
     s16b spell_cost;                /* Total cost for spells */
     byte ignore;                    /* Player has auto-ignore activated */
     struct monster_lore current_lore;
-    bool starving;                  /* True if player is starving */
+    bool fainting;                  /* True if player is fainting */
     byte max_hgt;                   /* Max client screen height */
     cave_view_type **info_icky;     /* Info is icky */
     s16b last_info_line_icky;
@@ -829,7 +835,7 @@ struct player
     s16b current_sound;             /* Current sound */
     s32b charge;                    /* Charging energy */
     bool has_energy;                /* Player has energy */
-    bool is_idle;                   /* Player is idle */
+    hturn idle_turn;                /* Turn since last game command */
     bool full_refresh;              /* Full refresh (includes monster/object lists) */
     byte digging_request;
     byte digging_dir;
@@ -847,7 +853,6 @@ struct player
     char tempbuf[NORMAL_WID];
     s16b obj_feeling;               /* Object/monster feeling (for display) */
     s16b mon_feeling;
-    bool ladder;                    /* Hack -- add online ladder info to dump character */
     char depths[13];                /* Displayed coordinates */
     int frac_blow;                  /* Blow frac (%) */
     int frac_shot;                  /* Shot frac (%) */
@@ -855,6 +860,8 @@ struct player
     char terrain[40];               /* Displayed terrain */
     byte flicker;                   /* A counter to select the step color from the flicker table */
     bool no_disturb_icky;
+    bool placed;                    /* Player is properly placed on the level */
+    int monwidth;                   /* Monster list subwindow width */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

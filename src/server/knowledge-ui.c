@@ -5,7 +5,7 @@
  * Copyright (c) 1997-2007 Robert A. Koeneke, James E. Wilson, Ben Harrison,
  * Eytan Zweig, Andrew Doull, Pete Mack.
  * Copyright (c) 2004 DarkGod (HTML dump code)
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -537,7 +537,17 @@ static int collect_known_artifacts(struct player *p, struct cmp_art *artifacts)
         if (!h)
         {
             /* Artifact is owned */
-            if (art->owned) h = 'D';
+            if (art->owner)
+            {
+                h = 'D';
+
+                /* Dungeon Masters see extra info */
+                if (is_dm_p(p))
+                {
+                    strnfmt(&owners[i * NORMAL_WID], NORMAL_WID, " (%s)",
+                        lookup_player_name(art->owner));
+                }
+            }
 
             /* Artifact is unknown */
             else h = highlight_unknown(p, i);
@@ -817,7 +827,7 @@ static int o_cmp_tval(const void *a, const void *b)
     if (c) return c;
 
     /* Order by */
-    c = pa->player->obj_aware[k_a->kidx] - pb->player->obj_aware[k_b->kidx];
+    c = pa->player->kind_aware[k_a->kidx] - pb->player->kind_aware[k_b->kidx];
     if (c) return -c;
 
     switch (k_a->tval)
@@ -836,10 +846,10 @@ static int o_cmp_tval(const void *a, const void *b)
 
         default:
         {
-            if (pa->player->obj_aware[k_a->kidx]) return strcmp(k_a->name, k_b->name);
+            if (pa->player->kind_aware[k_a->kidx]) return strcmp(k_a->name, k_b->name);
 
             /* Then in tried order */
-            c = pa->player->obj_tried[k_a->kidx] - pb->player->obj_tried[k_b->kidx];
+            c = pa->player->kind_tried[k_a->kidx] - pb->player->kind_tried[k_b->kidx];
             if (c) return -c;
 
             return strcmp(k_a->flavor->text, k_b->flavor->text);
@@ -889,7 +899,7 @@ static void do_cmd_knowledge_objects(struct player *p, int line)
     for (i = 0; i < z_info->k_max; i++)
     {
         struct object_kind *kind = &k_info[i];
-        bool aware_art = (kf_has(kind->kind_flags, KF_INSTA_ART) && p->obj_aware[i]);
+        bool aware_art = (kf_has(kind->kind_flags, KF_INSTA_ART) && p->kind_aware[i]);
 
         /*
          * It's in the list if we've ever seen it, or it has a flavour,
@@ -920,7 +930,7 @@ static void do_cmd_knowledge_objects(struct player *p, int line)
         int gid = obj_group_order[kind->tval];
 
         /* Choose a color */
-        bool aware = p->obj_aware[kind->kidx];
+        bool aware = p->kind_aware[kind->kidx];
         byte attr = (aware? COLOUR_WHITE: COLOUR_SLATE);
 
         /* Find graphics bits -- versions of the object_char and object_attr defines */
@@ -940,7 +950,7 @@ static void do_cmd_knowledge_objects(struct player *p, int line)
         object_kind_name(o_name, sizeof(o_name), kind, aware);
 
         /* If the type is "tried", display that */
-        if (p->obj_tried[kind->kidx] && !aware) my_strcat(o_name, " {tried}", sizeof(o_name));
+        if (p->kind_tried[kind->kidx] && !aware) my_strcat(o_name, " {tried}", sizeof(o_name));
 
         /* Append flavour if desired */
         else if (OPT(p, show_flavors) && kind->flavor && aware)
@@ -1677,8 +1687,10 @@ void do_cmd_redraw(struct player *p)
     p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR | PR_INVEN |
-        PR_SPELL | PR_MONSTER | PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
+    p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR | PR_SPELL | PR_MONSTER |
+        PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 
@@ -1729,6 +1741,9 @@ void do_cmd_drop_gold(struct player *p, s32b amt)
 
     /* Setup the "worth" */
     obj->pval = amt;
+
+    /* Set original owner ONCE */
+    if (obj->origin_player == 0) obj->origin_player = quark_add(p->name);
 
     /* Pile of gold is now owned */
     obj->owner = p->id;
@@ -1837,7 +1852,7 @@ void do_cmd_steal(struct player *p, int dir)
     }
 
     /* Restricted by choice */
-    if (cfg_no_stores || OPT(p, birth_no_stores))
+    if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
     {
         msg(p, "You cannot steal.");
         return;
@@ -2812,7 +2827,8 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
         p->upkeep->update |= (PU_BONUS | PU_MONSTERS);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_MAP | PR_EQUIP | PR_SPELL);
+        p->upkeep->redraw |= (PR_MAP | PR_SPELL);
+        set_redraw_equip(p, NULL);
 
         return;
     }
@@ -2959,7 +2975,8 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
     p->upkeep->update |= (PU_BONUS | PU_MONSTERS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_MAP | PR_EQUIP | PR_SPELL);
+    p->upkeep->redraw |= (PR_MAP | PR_SPELL);
+    set_redraw_equip(p, NULL);
 }
 
 

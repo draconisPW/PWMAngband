@@ -3,7 +3,7 @@
  * Purpose: Object utilities
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -483,11 +483,8 @@ static int compare_types(const struct object *o1, const struct object *o2)
 int compare_items(struct player *p, const struct object *o1, const struct object *o2)
 {
     /* Unknown objects go at the end, order doesn't matter */
-    if (is_unknown(o1) || is_unknown(o2))
-    {
-        if (!is_unknown(o1)) return -1;
-        return 1;
-    }
+    if (is_unknown(o1)) return (is_unknown(o2)? 0: 1);
+    if (is_unknown(o2)) return -1;
 
     /* Known artifacts will sort first */
     if (object_is_known_artifact(o1) && object_is_known_artifact(o2))
@@ -972,7 +969,7 @@ bool is_owner(struct player *p, struct object *obj)
     if (!obj->owner) return true;
 
     /* No restriction */
-    if (!(cfg_no_stores || OPT(p, birth_no_stores))) return true;
+    if (!((cfg_limited_stores == 3) || OPT(p, birth_no_stores))) return true;
 
     /* Must be the owner */
     return (obj->owner == p->id);
@@ -1001,17 +998,11 @@ void object_audit(struct player *p, struct object *obj)
     {
         char o_name[NORMAL_WID];
         char buf[512];
-        const char *owner_name;
-        hash_entry *ptr;
         struct effect *effect = object_effect(obj);
 
-        /* Owner name */
-        ptr = lookup_player(obj->owner);
-        owner_name = ((ptr && ht_zero(&ptr->death_turn))? ptr->name: "(deceased)");
-
         /* Log transaction */
-        strnfmt(buf, sizeof(buf), "TR %s-%d | %s-%d $ %ld", owner_name, (int)obj->owner,
-            p->name, (int)p->id, (long)object_value(p, obj, 1));
+        strnfmt(buf, sizeof(buf), "TR %s-%d | %s-%d $ %ld", lookup_player_name(obj->owner),
+            (int)obj->owner, p->name, (int)p->id, (long)object_value(p, obj, 1));
         audit(buf);
 
         /* Object name */
@@ -1038,11 +1029,14 @@ void object_own(struct player *p, struct object *obj)
         obj->level_req = min(depth, p->lev);
     }
 
+    /* Set original owner ONCE */
+    if (obj->origin_player == 0) obj->origin_player = quark_add(p->name);
+
     /* Set ownership */
     obj->owner = p->id;
 
     /* Artifact is now owned */
-    if (true_artifact_p(obj)) obj->artifact->owned = 1;
+    if (true_artifact_p(obj)) obj->artifact->owner = p->id;
 }
 
 
@@ -1072,7 +1066,7 @@ void preserve_artifact_aux(const struct object *obj)
     if (true_artifact_p(obj))
     {
         if (obj->artifact->created) obj->artifact->created--;
-        obj->artifact->owned = 0;
+        obj->artifact->owner = 0;
     }
 
     /* Randarts */
@@ -1318,7 +1312,7 @@ static void object_kind_name_activation(struct player *p, char *buf, size_t max,
         object_desc(p, buf, max, obj, ODESC_BASE | ODESC_SINGULAR);
 
     /* If not aware, the plain flavour (e.g. Copper) will do. */
-    else if (!p->obj_aware[obj->kind->kidx] && obj->kind->flavor)
+    else if (!p->kind_aware[obj->kind->kidx] && obj->kind->flavor)
         my_strcpy(buf, obj->kind->flavor->text, max);
 
     /* Use proper name (Healing, or whatever) */

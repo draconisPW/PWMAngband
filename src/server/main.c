@@ -3,7 +3,7 @@
  * Purpose: Core game initialisation
  *
  * Copyright (c) 1997 Ben Harrison, and others
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -18,7 +18,12 @@
  */
 
 
-#include "s-angband.h"
+#include "s-angband.h" 
+
+
+/* Daily log file */
+static int tm_mday = 0;
+static ang_file *fp = NULL;
 
 
 /*
@@ -33,6 +38,9 @@ static void quit_hook(const char *s)
 
     /* Free resources */
     else cleanup_angband();
+
+    /* Close the daily log file */
+    if (fp) file_close(fp);
 }
 
 
@@ -70,11 +78,6 @@ static void init_stuff(void)
     /* Create any missing directories */
     create_needed_dirs();
 }
-
-
-/* Daily log file */
-static int tm_mday = 0;
-static ang_file *fp = NULL;
 
 
 /*
@@ -161,7 +164,7 @@ static void server_log(const char *str)
 static void show_version(void)
 {
     printf("PWMAngband Server %s\n", version_build(NULL, true));
-    puts("Copyright (c) 2007-2020 MAngband and PWMAngband Project Team");
+    puts("Copyright (c) 2007-2021 MAngband and PWMAngband Project Team");
 
     /* Actually abort the process */
     quit(NULL);
@@ -189,6 +192,14 @@ int main(int argc, char *argv[])
 
     /* Save the "program name" */
     argv0 = argv[0];
+
+#ifdef UNIX
+    /* Default permissions on files */
+    umask(022);
+
+    /* Get the user id */
+    player_uid = getuid();
+#endif
 
 #ifdef WINDOWS
     /* Load our debugging library on Windows, to give us nice stack dumps */
@@ -234,6 +245,9 @@ int main(int argc, char *argv[])
 #ifdef WINDOWS
     /* Catch nasty "signals" on Windows */
     setup_exit_handler();
+#else
+    /* Catch nasty signals */
+    signals_init();
 #endif
 
     /* Verify the "news" file */

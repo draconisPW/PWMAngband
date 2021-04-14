@@ -3,7 +3,7 @@
  * Purpose: Monster manipulation utilities.
  *
  * Copyright (c) 1997-2007 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -497,8 +497,10 @@ void update_mon(struct monster *mon, struct chunk *c, bool full)
     {
         struct player *p = player_get(i);
 
-        /* Make sure he's on the same dungeon level */
+        /* Skip irrelevant players */
         if (!wpos_eq(&p->wpos, &mon->wpos)) continue;
+        if (p->upkeep->new_level_method || p->upkeep->funeral) continue;
+        if (!p->placed) continue;
 
         update_mon_aux(p, mon, c, full, &blos, &dis_to_closest, &closest, &lowhp);
     }
@@ -1711,8 +1713,12 @@ void update_player(struct player *q)
     {
         struct player *p = player_get(i);
 
-        /* Skip players not on this level */
-        if (!wpos_eq(&p->wpos, &q->wpos))
+        /* Player can always see himself */
+        if (q == p) continue;
+
+        /* Skip irrelevant players */
+        if (!wpos_eq(&p->wpos, &q->wpos) || p->upkeep->new_level_method || p->upkeep->funeral ||
+            !p->placed)
         {
             mflag_wipe(p->pflag[id]);
             p->play_det[id] = 0;
@@ -1721,9 +1727,6 @@ void update_player(struct player *q)
             update_health(who);
             continue;
         }
-
-        /* Player can always see himself */
-        if (q == p) continue;
 
         update_player_aux(p, q, chunk_get(&p->wpos));
     }
@@ -1742,8 +1745,13 @@ void update_players(void)
     /* Update each player */
     for (i = 1; i <= NumPlayers; i++)
     {
+        struct player *p = player_get(i);
+
+        /* Hack -- make sure he's properly placed */
+        if (!p->placed) continue;
+
         /* Update the player */
-        update_player(player_get(i));
+        update_player(p);
     }
 }
 

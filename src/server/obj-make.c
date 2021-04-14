@@ -3,7 +3,7 @@
  * Purpose: Object generation functions
  *
  * Copyright (c) 1987-2007 Angband contributors
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1944,7 +1944,7 @@ struct object *make_gold(struct player *p, struct chunk *c, int lev, char *coin_
     object_prep(p, c, new_gold, money_kind(coin_type, value), lev, RANDOMISE);
 
     /* If we're playing with no_selling, increase the value */
-    if (p && (cfg_no_selling || OPT(p, birth_no_selling)))
+    if (p && (cfg_limited_stores || OPT(p, birth_no_selling)))
     {
         /* Classic method: multiply by 5 in the dungeon */
         if (cfg_gold_drop_vanilla && (p->wpos.depth > 0)) value *= 5;

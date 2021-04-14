@@ -2,7 +2,7 @@
  * File: party.c
  * Purpose: Support for the "party" system
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1002,6 +1002,18 @@ hash_entry *lookup_player_by_name(const char *name)
 
     /* Not found */
     return NULL;
+}
+
+
+/*
+ * Lookup a player name by ID. Will return "(deceased)" if the entry doesn't exist or doesn't match
+ * a live player.
+ */
+char *lookup_player_name(int id)
+{
+    hash_entry *ptr = lookup_player(id);
+
+    return ((ptr && ht_zero(&ptr->death_turn))? ptr->name: "(deceased)");
 }
 
 

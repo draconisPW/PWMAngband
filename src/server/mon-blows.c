@@ -5,7 +5,7 @@
  * Copyright (c) 1997 Ben Harrison, David Reeve Sward, Keldon Jones.
  * Copyright (c) 2013 Ben Semmler
  * Copyright (c) 2016 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1523,7 +1523,9 @@ static void undress(struct player *p)
     p->upkeep->equip_cnt--;
 
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
     p->upkeep->notice |= (PN_IGNORE);
     update_stuff(p, chunk_get(&p->wpos));
 

@@ -3,7 +3,7 @@
  * Purpose: Player utility functions
  *
  * Copyright (c) 2011 The Angband Developers. See COPYING.
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -118,6 +118,9 @@ void dungeon_change_level(struct player *p, struct chunk *c, struct worldpos *ne
         msg_misc(p, "'s charged aura disappears...");
         p->upkeep->redraw |= (PR_STATE);
     }
+
+    /* Hack -- player position is invalid */
+    p->placed = false;
 }
 
 
@@ -279,7 +282,7 @@ int energy_per_move(struct player *p)
     int num = p->state.num_moves;
     int energy = move_energy(p->wpos.depth);
 
-    return (energy * (2 + ABS(num) - num)) / (2 + ABS(num));
+    return ((energy * 1000) / frame_energy(num + 110));
 }
 
 
@@ -533,7 +536,7 @@ void player_update_light(struct player *p)
             if ((obj->timeout < 100) || (!(obj->timeout % 100)))
             {
                 /* Redraw */
-                p->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(p, obj);
             }
 
             /* Hack -- special treatment when blind */
@@ -712,6 +715,11 @@ int player_check_terrain_damage(struct player *p, struct chunk *c)
         /* Draining damage */
         dam_taken = p->mhp / 100 + randint1(3);
     }
+    else if (!square_iswater(c, &p->grid) && p->poly_race && rf_has(p->poly_race->flags, RF_AQUATIC))
+    {
+        /* Suffocating damage */
+        dam_taken = p->mhp / 100 + randint1(3);
+    }
 
     return dam_taken;
 }
@@ -727,10 +735,11 @@ void player_take_terrain_damage(struct player *p, struct chunk *c)
 
     if (!dam_taken) return;
 
-    msg(p, feat->hurt_msg);
+    msg(p, feat->hurt_msg? feat->hurt_msg: "You are suffocating!");
 
     /* Damage the player */
-    if (!take_hit(p, dam_taken, feat->die_msg, false, feat->died_flavor))
+    if (!take_hit(p, dam_taken, feat->die_msg? feat->die_msg: "suffocating", false,
+        feat->died_flavor? feat->died_flavor: "suffocated"))
     {
         /* Damage the inventory */
         if (square_isfiery(c, &p->grid)) inven_damage(p, PROJ_FIRE, dam_taken);
@@ -1217,7 +1226,8 @@ bool has_bowbrand(struct player *p, bitflag type, bool blast)
 
 bool can_swim(struct player *p)
 {
-    return (p->poly_race && rf_has(p->poly_race->flags, RF_IM_WATER));
+    return (p->poly_race &&
+        (rf_has(p->poly_race->flags, RF_IM_WATER) || rf_has(p->poly_race->flags, RF_AQUATIC)));
 }
 
 
@@ -1960,6 +1970,21 @@ bool forbid_entrance_weak(struct player *p)
 bool forbid_entrance_strong(struct player *p)
 {
     struct location *dungeon = get_dungeon(&p->wpos);
+
+    return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
+}
+
+
+bool forbid_reentrance(struct player *p)
+{
+    struct worldpos dpos;
+    struct location *dungeon;
+
+    if (p->wpos.depth == 0) return false;
+
+    /* Get the dungeon */
+    wpos_init(&dpos, &p->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
 
     return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
 }

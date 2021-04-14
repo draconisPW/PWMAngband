@@ -3,7 +3,7 @@
  * Purpose: Lists of objects and object pictures
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -28,7 +28,7 @@
  */
 byte object_kind_attr(struct player *p, const struct object_kind *kind)
 {
-    return (p->obj_aware[kind->kidx]? p->k_attr[kind->kidx]: p->d_attr[kind->kidx]);
+    return (p->kind_aware[kind->kidx]? p->k_attr[kind->kidx]: p->d_attr[kind->kidx]);
 }
 
 
@@ -39,7 +39,7 @@ byte object_kind_attr(struct player *p, const struct object_kind *kind)
  */
 char object_kind_char(struct player *p, const struct object_kind *kind)
 {
-    return (p->obj_aware[kind->kidx]? p->k_char[kind->kidx]: p->d_char[kind->kidx]);
+    return (p->kind_aware[kind->kidx]? p->k_char[kind->kidx]: p->d_char[kind->kidx]);
 }
 
 
@@ -65,7 +65,7 @@ char object_char(struct player *p, const struct object *obj)
 }
 
 
-static void display_item(struct player *p, struct object *obj, byte equipped)
+void display_item(struct player *p, struct object *obj, byte equipped)
 {
     struct object_xtra info_xtra;
     char o_name[NORMAL_WID];
@@ -114,6 +114,42 @@ static void display_item(struct player *p, struct object *obj, byte equipped)
 }
 
 
+void set_redraw_inven(struct player *p, struct object *obj)
+{
+    /* Full redraw */
+    if (obj == NULL)
+    {
+        p->upkeep->redraw_inven = NULL;
+        p->upkeep->skip_redraw_inven = true;
+        p->upkeep->redraw |= (PR_INVEN);
+        return;
+    }
+
+    /* Nothing to do */
+    if (object_is_equipped(p->body, obj) || !object_is_carried(p, obj)) return;
+
+    /* Same object to redraw */
+    if (p->upkeep->redraw_inven == obj)
+    {
+        p->upkeep->redraw |= (PR_INVEN);
+        return;
+    }
+
+    /* Single inventory object to redraw */
+    if ((p->upkeep->redraw_inven == NULL) && !p->upkeep->skip_redraw_inven)
+        p->upkeep->redraw_inven = obj;
+
+    /* Skip redraw_inven object */
+    else
+    {
+        p->upkeep->redraw_inven = NULL;
+        p->upkeep->skip_redraw_inven = true;
+    }
+
+    p->upkeep->redraw |= (PR_INVEN);
+}
+
+
 /*
  * Choice window "shadow" of the "show_inven()" function
  */
@@ -149,6 +185,42 @@ void display_inven(struct player *p)
     /* Send inventory indices to client */
     for (i = 0; i < z_info->pack_size; i++)
         Send_index(p, i, (p->upkeep->inven[i]? p->upkeep->inven[i]->oidx: -1), 1);
+}
+
+
+void set_redraw_equip(struct player *p, struct object *obj)
+{
+    /* Full redraw */
+    if (obj == NULL)
+    {
+        p->upkeep->redraw_equip = NULL;
+        p->upkeep->skip_redraw_equip = true;
+        p->upkeep->redraw |= (PR_EQUIP);
+        return;
+    }
+
+    /* Nothing to do */
+    if (!object_is_equipped(p->body, obj)) return;
+
+    /* Same object to redraw */
+    if (p->upkeep->redraw_equip == obj)
+    {
+        p->upkeep->redraw |= (PR_EQUIP);
+        return;
+    }
+
+    /* Single equipment object to redraw */
+    if ((p->upkeep->redraw_equip == NULL) && !p->upkeep->skip_redraw_equip)
+        p->upkeep->redraw_equip = obj;
+
+    /* Skip redraw_equip object */
+    else
+    {
+        p->upkeep->redraw_equip = NULL;
+        p->upkeep->skip_redraw_equip = true;
+    }
+
+    p->upkeep->redraw |= (PR_EQUIP);
 }
 
 

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1998 Greg Wooledge, Ben Harrison, Robert Ruhlmann
  * Copyright (c) 2001 Chris Carr, Chris Robertson
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -87,7 +87,8 @@ static s16b art_idx_boot[] =
     ART_IDX_BOOT_FEATHER,
     ART_IDX_BOOT_STEALTH,
     ART_IDX_BOOT_TRAP_IMM,
-    ART_IDX_BOOT_SPEED
+    ART_IDX_BOOT_SPEED,
+    ART_IDX_BOOT_MOVES
 };
 
 static s16b art_idx_glove[] =
@@ -146,7 +147,8 @@ static s16b art_idx_mstaff[] =
     ART_IDX_MSTAFF_ESP,
     ART_IDX_MSTAFF_FA,
     ART_IDX_MSTAFF_RBLIND,
-    ART_IDX_MSTAFF_RCONF
+    ART_IDX_MSTAFF_RCONF,
+    ART_IDX_MSTAFF_MANA
 };
 
 static s16b art_idx_missile[] =
@@ -386,9 +388,6 @@ static void store_base_power(struct artifact_set_data *data)
     {
         int base_power = artifact_power(&a_info[i]);
 
-        /* PWMAngband: store base power on the artifact to avoid keeping a pointless static array */
-        a_info[i].base_power = base_power;
-
         /* Capture power stats, ignoring cursed and uber arts */
         if ((base_power > data->max_power) && (base_power < INHIBIT_POWER))
             data->max_power = base_power;
@@ -405,7 +404,11 @@ static void store_base_power(struct artifact_set_data *data)
         }
         else num--;
 
-        if (base_power < 0) data->neg_power_total++;
+        if (base_power < 0)
+        {
+            data->neg_power_total++;
+            a_info[i].negative_power = true;
+        }
     }
 
     data->avg_power = mean(fake_total_power, num);
@@ -551,8 +554,8 @@ static void count_bow_abilities(const struct artifact *art, struct artifact_set_
     /* Aggravation */
     if (of_has(art->flags, OF_AGGRAVATE)) data->art_probs[ART_IDX_WEAPON_AGGR]++;
 
-    /* Do we have 3 or more extra shots? (Unlikely) */
-    if (art->modifiers[OBJ_MOD_SHOTS] > 2)
+    /* Do we have more than one extra shots? (Unlikely) */
+    if (art->modifiers[OBJ_MOD_SHOTS] > 10)
         data->art_probs[ART_IDX_BOW_SHOTS_SUPER]++;
     else if (art->modifiers[OBJ_MOD_SHOTS] > 0)
         data->art_probs[ART_IDX_BOW_SHOTS]++;
@@ -767,7 +770,12 @@ static void count_modifiers(const struct artifact *art, struct artifact_set_data
 
     /* Handle moves bonus - fully generic */
     if (art->modifiers[OBJ_MOD_MOVES] > 0)
-        data->art_probs[ART_IDX_GEN_MOVES]++;
+    {
+        if (art->tval == TV_BOOTS)
+            data->art_probs[ART_IDX_BOOT_MOVES]++;
+        else
+            data->art_probs[ART_IDX_GEN_MOVES]++;
+    }
 
     /*
      * Speed - boots handled separately.
@@ -799,9 +807,12 @@ static void count_modifiers(const struct artifact *art, struct artifact_set_data
     if (art->modifiers[OBJ_MOD_LIGHT] > 0)
         data->art_probs[ART_IDX_GEN_LIGHT]++;
 
-    /* Handle mana bonus on gloves */
-    if ((art->tval == TV_GLOVES) && (art->modifiers[OBJ_MOD_MANA] > 0))
-        data->art_probs[ART_IDX_GLOVE_MANA]++;
+    /* Handle mana bonus on gloves and mage staves */
+    if (art->modifiers[OBJ_MOD_MANA] > 0)
+    {
+        if (art->tval == TV_GLOVES) data->art_probs[ART_IDX_GLOVE_MANA]++;
+        else if (art_is_mstaff(art)) data->art_probs[ART_IDX_MSTAFF_MANA]++;
+    }
 }
 
 
@@ -1124,7 +1135,7 @@ static void collect_artifact_data(struct artifact_set_data *data)
         const struct artifact *art = &a_info[i];
 
         /* Don't parse cursed or null items */
-        if ((art->base_power < 0) || (art->tval == 0)) continue;
+        if (art->negative_power || (art->tval == 0)) continue;
 
         /* Get a pointer to the base item for this artifact */
         kind = lookup_kind(art->tval, art->sval);
@@ -1347,6 +1358,8 @@ static void adjust_freqs(struct artifact_set_data *data)
     data->art_probs[ART_IDX_MSTAFF_FA] = 10;
     data->art_probs[ART_IDX_MSTAFF_RBLIND] = 10;
     data->art_probs[ART_IDX_MSTAFF_RCONF] = 10;
+    if (data->art_probs[ART_IDX_MSTAFF_MANA] < 5)
+        data->art_probs[ART_IDX_MSTAFF_MANA] = 5;
     if (data->art_probs[ART_IDX_GLOVE_MANA] < 5)
         data->art_probs[ART_IDX_GLOVE_MANA] = 5;
     if (data->art_probs[ART_IDX_GLOVE_ID] < 5)
@@ -1792,9 +1805,10 @@ static void add_immunity(struct artifact *art)
  */
 static void add_mod(struct artifact *art, int mod)
 {
-    /* Blows, might, shots, moves need special treatment */
-    bool powerful = ((mod == OBJ_MOD_BLOWS) || (mod == OBJ_MOD_MIGHT) || (mod == OBJ_MOD_SHOTS) ||
-        (mod == OBJ_MOD_MOVES));
+    /* Blows, might, shots need special treatment */
+    bool powerful = ((mod == OBJ_MOD_BLOWS) || (mod == OBJ_MOD_MIGHT));
+
+    if ((art->tval != TV_BOW) && (mod == OBJ_MOD_SHOTS)) powerful = true;
 
     /* This code aims to favour a few larger bonuses over many small ones */
     if (art->modifiers[mod] < 0)
@@ -1807,7 +1821,7 @@ static void add_mod(struct artifact *art, int mod)
         /* Powerful mods need to be applied sparingly */
         if (art->modifiers[mod] == 0)
             art->modifiers[mod] = (INHIBIT_STRONG? 3: randint1(2));
-        else if (one_in_(2 * art->modifiers[mod]))
+        else if (one_in_(20 * art->modifiers[mod]))
             art->modifiers[mod]++;
     }
     else
@@ -1818,24 +1832,30 @@ static void add_mod(struct artifact *art, int mod)
             if (art->modifiers[mod] == 0) art->modifiers[mod] = randint1(randint1(4));
         }
 
+        /* PWMAngband: mana handled separately */
+        else if (mod == OBJ_MOD_MANA)
+        {
+            if (art_is_mstaff(art))
+            {
+                if (art->modifiers[mod] == 0) art->modifiers[mod] = randint1(2);
+            }
+            else if (art->modifiers[mod] == 0) art->modifiers[mod] = 5 + randint0(6);
+            else art->modifiers[mod] += randint1(2);
+        }
+
         /* New mods average 3, old ones are incremented by 1 or 2 */
         else if (art->modifiers[mod] == 0)
-        {
-            int value;
-
-            /* PWMAngband: mana handled separately */
-            if (mod == OBJ_MOD_MANA) value = 5 + randint0(6);
-            else value = randint0(3) + randint1(3);
-
-            art->modifiers[mod] = value;
-        }
+            art->modifiers[mod] = randint0(3) + randint1(3);
         else
             art->modifiers[mod] += randint1(2);
     }
 
     /* Hard cap of 6 on most mods */
-    if ((mod != OBJ_MOD_SPEED) && (mod != OBJ_MOD_MANA) && (art->modifiers[mod] >= 6))
+    if ((mod != OBJ_MOD_SPEED) && (mod != OBJ_MOD_MOVES) && (mod != OBJ_MOD_MANA) &&
+        (mod != OBJ_MOD_SHOTS) && (art->modifiers[mod] >= 6))
+    {
         art->modifiers[mod] = 6;
+    }
 }
 
 
@@ -2419,6 +2439,7 @@ static void add_ability_aux(struct artifact *art, int r, int target_power,
             break;
 
         case ART_IDX_GLOVE_MANA:
+        case ART_IDX_MSTAFF_MANA:
             add_mod(art, OBJ_MOD_MANA);
             break;
 
@@ -2573,6 +2594,7 @@ static void add_ability_aux(struct artifact *art, int r, int target_power,
             add_mod(art, OBJ_MOD_DAM_RED);
             break;
 
+        case ART_IDX_BOOT_MOVES:
         case ART_IDX_GEN_MOVES:
             add_mod(art, OBJ_MOD_MOVES);
             break;
@@ -2788,6 +2810,8 @@ static bool design_artifact(struct artifact *art, struct artifact_set_data *data
     int power = Rand_sample(data->avg_tv_power[art->tval], data->max_tv_power[art->tval],
         data->min_tv_power[art->tval], 20, 20);
 
+    if (art->aidx >= (u32b)z_info->a_max) power = AGGR_POWER * (70 + randint0(41)) / 100;
+
     /* Choose a name */
     /* PWMAngband: easier to regenerate the name from the randart seed when needed */
 
@@ -2945,7 +2969,6 @@ static struct artifact* create_artifact(struct artifact *a, struct artifact_set_
         art->alloc_min = 1;
         art->alloc_max = 127;
         art->weight = 2;
-        art->base_power = AGGR_POWER * (70 + randint0(41)) / 100;
     }
 
     /* Randomize the artifact */

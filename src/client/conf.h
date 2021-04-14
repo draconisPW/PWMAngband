@@ -7,6 +7,7 @@
 #define INCLUDED_CONF_H
 
 extern void conf_init(void* param);
+extern void conf_done(void);
 extern void conf_save(void);
 extern void conf_default_save(void);
 extern bool conf_section_exists(const char *section);

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2014 Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -240,7 +240,7 @@ bool minus_ac(struct player *p)
             obj->to_a--;
 
             p->upkeep->update |= (PU_BONUS);
-            p->upkeep->redraw |= (PR_EQUIP);
+            set_redraw_equip(p, obj);
         }
 
         /* There was an effect */
@@ -283,7 +283,8 @@ void gear_excise_object(struct player *p, struct object *obj)
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 
@@ -347,7 +348,8 @@ struct object *gear_object_for_use(struct player *p, struct object *obj, int num
     /* Housekeeping */
     p->upkeep->update |= (PU_BONUS);
     p->upkeep->notice |= (PN_COMBINE);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 
     /* Print a message if desired */
     if (message)
@@ -365,8 +367,11 @@ struct object *gear_object_for_use(struct player *p, struct object *obj, int num
  */
 static int quiver_absorb_num(struct player *p, const struct object *obj)
 {
+    bool ammo = tval_is_ammo(obj);
+    bool throwing = of_has(obj->flags, OF_THROWING);
+
     /* Must be ammo or good for throwing */
-    if (tval_is_ammo(obj) || of_has(obj->flags, OF_THROWING))
+    if (ammo || throwing)
     {
         int i, quiver_count = 0, space_free = 0;
 
@@ -383,8 +388,20 @@ static int quiver_absorb_num(struct player *p, const struct object *obj)
                 if (object_stackable(p, quiver_obj, obj, OSTACK_PACK))
                     space_free += z_info->quiver_slot_size - quiver_obj->number * mult;
             }
-            else
+            else if (ammo)
                 space_free += z_info->quiver_slot_size;
+            else if (obj->note)
+            {
+                /*
+                 * Per calc_inventory(), throwing weapons which aren't also ammo will be added to
+                 * the quiver if inscribed to go into an unoccupied slot.
+                 * The inscription test should match what calc_inventory() uses.
+                 */
+                const char *s = strchr(quark_str(obj->note), '@');
+
+                if (s && (s[1] == 'f' || s[1] == 'v') && ((int)(s[2] - '0') == i))
+                    space_free += z_info->quiver_slot_size;
+            }
         }
 
         if (space_free)
@@ -584,7 +601,9 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
     }
 
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_SPELL | PR_STUDY);
+    p->upkeep->redraw |= (PR_SPELL | PR_STUDY);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
     update_stuff(p, chunk_get(&p->wpos));
 
     if (message)
@@ -622,7 +641,7 @@ static void know_everything(struct player *p, struct chunk *c)
 /*
  * Wield or wear a single item from the pack or floor
  */
-void inven_wield(struct player *p, struct object *obj, int slot)
+void inven_wield(struct player *p, struct object *obj, int slot, char *message, int len)
 {
     struct object *wielded, *old = p->body.slots[slot].obj;
     const char *fmt;
@@ -643,6 +662,9 @@ void inven_wield(struct player *p, struct object *obj, int slot)
         if (obj->number > 1)
         {
             wielded = gear_object_for_use(p, obj, 1, false, &dummy);
+
+            /* Change the weight */
+            p->upkeep->total_weight += (wielded->number * wielded->weight);
 
             /* The new item needs new gear and known gear entries */
             wielded->next = obj->next;
@@ -696,7 +718,8 @@ void inven_wield(struct player *p, struct object *obj, int slot)
     object_desc(p, o_name, sizeof(o_name), wielded, ODESC_PREFIX | ODESC_FULL);
 
     /* Message */
-    msgt(p, MSG_WIELD, fmt, o_name, I2A(slot));
+    if (message) strnfmt(message, len, fmt, o_name, I2A(slot));
+    else msgt(p, MSG_WIELD, fmt, o_name, I2A(slot));
 
     /* Sticky flag gets a special mention */
     if (of_has(wielded->flags, OF_STICKY))
@@ -712,7 +735,9 @@ void inven_wield(struct player *p, struct object *obj, int slot)
     /* Recalculate bonuses, torch, mana, gear */
     p->upkeep->notice |= (PN_IGNORE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
-    p->upkeep->redraw |= (PR_PLUSSES | PR_INVEN | PR_EQUIP | PR_BASIC);
+    p->upkeep->redraw |= (PR_PLUSSES | PR_BASIC);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
     update_stuff(p, c);
 }
 
@@ -760,7 +785,9 @@ void inven_takeoff(struct player *p, struct object *obj)
     p->upkeep->equip_cnt--;
 
     p->upkeep->update |= (PU_BONUS | PU_INVEN | PU_UPDATE_VIEW);
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_PLUSSES);
+    p->upkeep->redraw |= (PR_PLUSSES);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
     p->upkeep->notice |= (PN_IGNORE);
     update_stuff(p, chunk_get(&p->wpos));
 
@@ -932,7 +959,11 @@ void combine_pack(struct player *p)
 
     /* Redraw */
     if (redraw)
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP | PR_SPELL | PR_STUDY);
+    {
+        p->upkeep->redraw |= (PR_SPELL | PR_STUDY);
+        set_redraw_equip(p, NULL);
+        set_redraw_inven(p, NULL);
+    }
 
     /* Message */
     if (display_message) msg(p, "You combine some items in your pack.");

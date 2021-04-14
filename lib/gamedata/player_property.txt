@@ -289,6 +289,11 @@ name:Teleport Ban
 desc:You cannot teleport.
 
 type:object
+code:LIMITED_TELE
+name:Limited teleportation
+desc:You cannot teleport far.
+
+type:object
 code:AGGRAVATE
 name:Aggravate
 desc:You aggravate creatures nearby.

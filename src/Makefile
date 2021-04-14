@@ -8,6 +8,7 @@ CLIENT_OBJECTS = $(CLIENT_ANGFILES) $(CLIENT_ZFILES)
 SERVER_OBJECTS = $(SERVER_ANGFILES) $(SERVER_ZFILES)
 CLIENT_SRCS    = ${CLIENT_OBJECTS:.o=.c} ${CLIENT_MAINFILES:.o=.c}
 SERVER_SRCS    = ${SERVER_OBJECTS:.o=.c} ${SERVER_MAINFILES:.o=.c}
+SRCS           = ${OBJECTS:.o=.c} ${MAINFILES:.o=.c}
 SERVER_PROGNAME = $(PROGNAME)
 CLIENT_PROG = $(CLIENT_PROGNAME)$(PROG_SUFFIX)
 SERVER_PROG = $(SERVER_PROGNAME)
@@ -18,12 +19,16 @@ ifneq (${VERSION},)
 endif
 
 CFLAGS += -I. -std=c99 -O0
+# Replace above line with the two below and then look at gmon.out
+# to do performance monitoring
+# CFLAGS += -g -pg -I. -std=c99 -O0
+# LDFLAGS += -g -pg
 
 # gcov intermediate data
 GCOBJS = $(OBJECTS:.o=.gcno) $(OBJECTS:.o=.gcda)
 GCOVS = $(OBJECTS:.o=.c.gcov)
 
-CLEAN = angband.o $(CLIENT_OBJECTS) $(SERVER_OBJECTS) win/angband.res
+CLEAN = pwmangband.o pwmangclient.o $(CLIENT_OBJECTS) $(SERVER_OBJECTS) $(OBJECTS) win/angband.res
 DISTCLEAN = autoconf.h
 
 export CFLAGS LDFLAGS LIBS

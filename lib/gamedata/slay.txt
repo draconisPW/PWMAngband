@@ -25,7 +25,7 @@ multiplier:2
 power:200
 melee-verb:smite
 range-verb:pierces
-esp-chance:3
+esp-chance:6
 esp-flag:ESP_EVIL
 
 code:ANIMAL_2
@@ -35,7 +35,7 @@ multiplier:2
 power:115
 melee-verb:smite
 range-verb:pierces
-esp-chance:2
+esp-chance:4
 esp-flag:ESP_ANIMAL
 
 code:ORC_3
@@ -45,7 +45,7 @@ multiplier:3
 power:101
 melee-verb:smite
 range-verb:pierces
-esp-chance:2
+esp-chance:4
 esp-flag:ESP_ORC
 
 code:TROLL_3
@@ -55,7 +55,7 @@ multiplier:3
 power:101
 melee-verb:smite
 range-verb:pierces
-esp-chance:2
+esp-chance:4
 esp-flag:ESP_TROLL
 
 code:GIANT_3
@@ -65,7 +65,7 @@ multiplier:3
 power:102
 melee-verb:smite
 range-verb:pierces
-esp-chance:2
+esp-chance:4
 esp-flag:ESP_GIANT
 
 code:DEMON_3
@@ -75,7 +75,7 @@ multiplier:3
 power:110
 melee-verb:smite
 range-verb:pierces
-esp-chance:2
+esp-chance:4
 esp-flag:ESP_DEMON
 
 code:DRAGON_3
@@ -85,7 +85,7 @@ multiplier:3
 power:105
 melee-verb:smite
 range-verb:pierces
-esp-chance:2
+esp-chance:4
 esp-flag:ESP_DRAGON
 
 code:UNDEAD_3
@@ -95,7 +95,7 @@ multiplier:3
 power:115
 melee-verb:smite
 range-verb:pierces
-esp-chance:2
+esp-chance:4
 esp-flag:ESP_UNDEAD
 
 code:DEMON_5
@@ -105,7 +105,7 @@ multiplier:5
 power:120
 melee-verb:fiercely smite
 range-verb:deeply pierces
-esp-chance:1
+esp-chance:2
 esp-flag:ESP_DEMON
 
 code:DRAGON_5
@@ -115,7 +115,7 @@ multiplier:5
 power:110
 melee-verb:fiercely smite
 range-verb:deeply pierces
-esp-chance:1
+esp-chance:2
 esp-flag:ESP_DRAGON
 
 code:UNDEAD_5
@@ -125,5 +125,5 @@ multiplier:5
 power:130
 melee-verb:fiercely smite
 range-verb:deeply pierces
-esp-chance:1
+esp-chance:2
 esp-flag:ESP_UNDEAD

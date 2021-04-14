@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2007 David T. Blackston, Iain McFall, DarkGod, Jeff Greene,
  * David Vestal, Pete Mack, Andi Sidwell.
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -180,7 +180,8 @@ static void sense_object(struct player *p, struct object *obj, bool tocarry)
     p->upkeep->update |= (PU_INVEN);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+    set_redraw_equip(p, obj);
+    set_redraw_inven(p, obj);
 }
 
 
@@ -401,7 +402,7 @@ int apply_autoinscription(struct player *p, struct object *obj)
     if (ignore_item_ok(p, obj)) return 0;
 
     /* PWMAngband: don't inscribe if not aware */
-    if (!p->obj_aware[obj->kind->kidx]) return 0;
+    if (!p->kind_aware[obj->kind->kidx]) return 0;
 
     /* Get an object description */
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL);

@@ -3,7 +3,7 @@
  * Purpose: Attacks (both throwing and melee) by the player
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1277,7 +1277,7 @@ void un_power(struct player *p, struct source *who, bool* obvious)
             p->upkeep->notice |= (PN_COMBINE);
 
             /* Redraw stuff */
-            p->upkeep->redraw |= (PR_INVEN);
+            set_redraw_inven(p, obj);
 
             /* Affect only a single inventory slot */
             break;

@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2007 Ben Harrison, Gregory Velichansky, Eric Stevens,
  * Leon Marrick, Iain McFall, and others
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1939,6 +1939,10 @@ static void ResizeWin(term_window *win, int w, int h)
     /* Dungeon size */
     if (win->Term_idx == 0)
         net_term_resize(win->cols, win->rows, win->max_rows);
+
+    /* Send new width for dynamic resizing */
+    if ((window_flag[win->Term_idx] & PW_MONLIST) && Setup.initialized)
+        Send_monwidth(win->cols);
 
     /* Hack -- redraw all windows */
     if (Setup.initialized) do_cmd_redraw();

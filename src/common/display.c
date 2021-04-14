@@ -2,7 +2,7 @@
  * File: display.c
  * Purpose: Display the character on the screen or in a file
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -233,7 +233,7 @@ static const char *player_flag_table[(RES_PANELS + 1) * RES_ROWS] =
     "-Exp:", /* OF_DRAIN_EXP */
     "Stck:", /* OF_STICKY */
     "Frag:", /* OF_FRAGILE */
-    "",
+    "LTel:", /* OF_LIMITED_TELE */
     "",
     "Time:", /* ELEM_TIME */
     "Mana:", /* ELEM_MANA */

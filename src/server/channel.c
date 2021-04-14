@@ -2,7 +2,7 @@
  * File: channel.c
  * Purpose: Chat channels
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -431,8 +431,15 @@ static void player_talk_aux(struct player *p, const char *message)
     /* Pretend colon wasn't there */
     if (colon)
     {
-        /* Messenger is undefined OR colon is last symbol OR colon is part of "smiley" */
-        if (!p || !*(colon + 1) || strchr(")(-|\\/", *(colon + 1))) colon = NULL;
+        /* Messenger is undefined OR colon is last symbol */
+        if (!p || !*(colon + 1)) colon = NULL;
+    }
+
+    /* Ignore "smileys" */
+    /* Colon must be either first in the line or standing after a SPACE */
+    if (colon && ((message == colon) || (*(colon - 1) == ' ')))
+    {
+        if (strchr("()[]{}\\|pPoOD3-", *(colon + 1))) colon = NULL;
     }
 
     /* Form a search string if we found a colon */

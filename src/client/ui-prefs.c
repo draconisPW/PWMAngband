@@ -5,7 +5,7 @@
  * Copyright (c) 2003 Takeshi Mogami, Robert Ruehlmann
  * Copyright (c) 2007 Pete Mack
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -191,7 +191,8 @@ void option_dump(ang_file *f)
         file_put(f, "\n");
     }
 
-    file_putf(f, "# Hitpoint warning (0-9)\nO:hp_warn_factor:%d\n\n", player->opts.hitpoint_warn);
+    file_putf(f, "# Hitpoint warning (0-9)\nO:hp_warn_factor:%d\n\n",
+        MAX(player->opts.hitpoint_warn, player->opts.hitpoint_warn_toggle));
     file_putf(f, "# Base delay factor (0-255)\nO:delay_factor:%d\n\n", player->opts.delay_factor);
     file_putf(f, "# Movement delay factor (0-9)\nO:lazymove_delay:%d\n\n",
         player->opts.lazymove_delay);

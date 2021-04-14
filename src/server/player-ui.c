@@ -3,7 +3,7 @@
  * Purpose: Character screens and dumps
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -113,40 +113,13 @@ static void write_character_dump(ang_file *fff, void *data)
     struct store *home = p->home;
     struct object **home_list = mem_zalloc(sizeof(struct object *) * z_info->store_inven_max);
     char o_name[NORMAL_WID];
-    time_t ct = time((time_t*)0);
-    char today[10];
     int x1, x2, y1, y2;
     char attr;
     struct grid_data g;
-    char sx;
     bool victory = streq(p->death_info.died_from, "winner");
     bool final = (p->is_dead || !p->alive || victory);
     struct chunk *cv = chunk_get(&p->wpos);
     struct loc grid;
-
-    switch (p->psex)
-    {
-        case SEX_FEMALE: sx = 'f'; break;
-        case SEX_MALE: sx = 'm'; break;
-        default: sx = 'n'; break;
-    }
-
-    /*
-     * Add ladder information, this line is used by the online ladder and
-     * not displayed when viewing a character dump online.
-     */
-    if (p->ladder)
-    {
-        strftime(today, 9, "%m/%d/%y", localtime(&ct));
-        file_putf(fff,
-            "# %u|%u|%-.8s|%-.25s|%c|%2d|%2d|%3d|%3d|%3d|%3d|%-.31s|%s\n",
-            total_points(p, p->max_exp, p->max_depth), p->au, today,
-            p->name, sx, p->race->ridx, p->clazz->cidx, p->lev, p->wpos.depth,
-            p->max_lev, p->max_depth, p->death_info.died_from, version_build(NULL, false));
-
-        /* Leave it at that for characters lower than level 20 */
-        if (p->lev < 20) return;
-    }
 
     /* Begin dump */
     file_putf(fff, "  [%s Character Dump]\n\n", version_build(cfg_chardump_label, false));
@@ -294,6 +267,7 @@ static void write_character_dump(ang_file *fff, void *data)
             case OP_INTERFACE: title = "User interface"; break;
             case OP_MANGBAND: title = "MAngband"; break;
             case OP_BIRTH: title = "Birth"; break;
+            case OP_ADVANCED: title = "Advanced"; break;
         }
 
         file_putf(fff, "  [%s]\n\n", title);
@@ -393,12 +367,12 @@ static void write_character_dump(ang_file *fff, void *data)
  * Write a character dump
  * This is for server-side character dumps
  */
-bool dump_save(struct player *p, const char *path)
+bool dump_save(struct player *p, const char *path, bool server)
 {
     char buf[MSG_LEN];
 
     /* Build the filename */
-    if (p->ladder)
+    if (server)
         path_build(buf, sizeof(buf), ANGBAND_DIR_USER, path);
     else
         path_build(buf, sizeof(buf), ANGBAND_DIR_SCORES, path);

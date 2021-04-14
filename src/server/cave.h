@@ -128,6 +128,8 @@ struct chunk
 
     bool light_level;
     bool gen_hack;
+
+    int profile;
 };
 
 /*
@@ -209,6 +211,16 @@ extern int FEAT_HOME_CLOSED;
 extern int FEAT_WEB;
 extern int FEAT_TRAINING;
 
+extern int FEAT_CROP_POTATO;
+extern int FEAT_CROP_CABBAGE;
+extern int FEAT_CROP_CARROT;
+extern int FEAT_CROP_BEET;
+extern int FEAT_CROP_SQUASH;
+extern int FEAT_CROP_CORN;
+
+extern int FEAT_HARD_RUBBLE;
+extern int FEAT_HARD_PASS_RUBBLE;
+
 extern s16b ddd[9];
 extern struct loc ddgrid[10];
 extern s16b ddx_ddd[9];
@@ -269,7 +281,7 @@ extern void square_note_spot(struct chunk *c, struct loc *grid);
 extern void square_light_spot_aux(struct player *p, struct chunk *cv, struct loc *grid);
 extern void square_light_spot(struct chunk *c, struct loc *grid);
 extern void light_room(struct player *p, struct chunk *c, struct loc *grid, bool light);
-extern void wiz_light(struct player *p, struct chunk *c, bool full);
+extern void wiz_light(struct player *p, struct chunk *c, int mode);
 extern void wiz_dark(struct player *p, struct chunk *c, bool full);
 extern void cave_illuminate(struct player *p, struct chunk *c, bool daytime);
 extern void square_forget_all(struct chunk *c, struct loc *grid);
@@ -323,6 +335,7 @@ extern bool square_ismineral(struct chunk *c, struct loc *grid);
 extern bool square_hasgoldvein(struct chunk *c, struct loc *grid);
 extern bool square_hasgoldvein_p(struct player *p, struct loc *grid);
 extern bool square_isrubble(struct chunk *c, struct loc *grid);
+extern bool square_ishardrubble(struct chunk *c, struct loc *grid);
 extern bool square_issecretdoor(struct chunk *c, struct loc *grid);
 extern bool square_isopendoor(struct chunk *c, struct loc *grid);
 extern bool square_home_isopendoor(struct chunk *c, struct loc *grid);
@@ -348,6 +361,7 @@ extern bool square_isstrongtree(struct chunk *c, struct loc *grid);
 extern bool square_iswitheredtree(struct chunk *c, struct loc *grid);
 extern bool square_isdirt(struct chunk *c, struct loc *grid);
 extern bool square_isgrass(struct chunk *c, struct loc *grid);
+extern bool square_iscropbase(struct chunk *c, struct loc *grid);
 extern bool square_iscrop(struct chunk *c, struct loc *grid);
 extern bool square_iswater(struct chunk *c, struct loc *grid);
 extern bool square_islava(struct chunk *c, struct loc *grid);
@@ -372,6 +386,7 @@ extern bool square_iswall_outer(struct chunk *c, struct loc *grid);
 extern bool square_iswall_solid(struct chunk *c, struct loc *grid);
 extern bool square_ismon_restrict(struct chunk *c, struct loc *grid);
 extern bool square_isno_teleport(struct chunk *c, struct loc *grid);
+extern bool square_limited_teleport(struct chunk *c, struct loc *grid);
 extern bool square_isno_map(struct chunk *c, struct loc *grid);
 extern bool square_isno_esp(struct chunk *c, struct loc *grid);
 extern bool square_isproject(struct chunk *c, struct loc *grid);
@@ -448,7 +463,7 @@ extern void square_disable_trap(struct player *p, struct chunk *c, struct loc *g
 extern void square_destroy_decoy(struct player *p, struct chunk *c, struct loc *grid);
 extern void square_tunnel_wall(struct chunk *c, struct loc *grid);
 extern void square_destroy_wall(struct chunk *c, struct loc *grid);
-extern void square_smash_wall(struct chunk *c, struct loc *grid);
+extern void square_smash_wall(struct player *p, struct chunk *c, struct loc *grid);
 extern void square_destroy(struct chunk *c, struct loc *grid);
 extern void square_earthquake(struct chunk *c, struct loc *grid);
 extern void square_upgrade_mineral(struct chunk *c, struct loc *grid);

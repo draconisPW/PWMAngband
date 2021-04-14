@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1988 Christopher J Stuart (running code)
  * Copyright (c) 2004-2007 Christophe Cavalaria, Leon Marrick (pathfinding)
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -407,8 +407,8 @@ static bool run_test(struct player *p, struct chunk *c)
             if (!ignore_item_ok(p, obj)) return true;
         }
 
-        /* Hack -- always stop in damaging terrain */
-        if (square_isdamaging(c, &grid)) return true;
+        /* Hack -- handle damaging terrain */
+        if (square_isdamaging(c, &grid) && player_check_terrain_damage(p, c)) return true;
 
         /* Assume unknown */
         inv = true;

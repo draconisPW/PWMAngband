@@ -3,7 +3,7 @@
  * Purpose: Utility functions relating to UI events
  *
  * Copyright (c) 2011 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -171,6 +171,7 @@ void keypress_from_text(struct keypress *buf, size_t len, const char *str)
                 case '\\': STORE(buf, cur++, mods, '\\'); break;
                 case '^': STORE(buf, cur++, mods, '^'); break;
                 case '[': STORE(buf, cur++, mods, '['); break;
+                case '{': STORE(buf, cur++, mods, '{'); break;
                 default: STORE(buf, cur++, mods, *str); break;
             }
 
@@ -301,6 +302,7 @@ void keypress_to_text(char *buf, size_t len, const struct keypress *src, bool ex
                 }
                 case '^': strnfcat(buf, len, &end, "\\^"); break;
                 case '[': strnfcat(buf, len, &end, "\\["); break;
+                case '{': strnfcat(buf, len, &end, "\\{"); break;
                 default:
                 {
                     if (i < 127)

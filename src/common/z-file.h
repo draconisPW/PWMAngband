@@ -33,8 +33,8 @@ extern int player_egid;
  * opened, to prevent security risks, and restores the game's rights so that it
  * cannot write to the system-wide files.
  */
-void safe_setuid_drop(void);
-void safe_setuid_grab(void);
+extern void safe_setuid_drop(void);
+extern void safe_setuid_grab(void);
 #endif
 
 /*
@@ -205,7 +205,7 @@ extern bool file_skip(ang_file *f, int bytes);
  * Reads n bytes from file 'f' into buffer 'buf'.
  * Returns Number of bytes read; -1 on error
  */
-extern int file_read(ang_file *f, char *buf, size_t n);
+extern size_t file_read(ang_file *f, char *buf, size_t n);
 
 /*
  * Write the first `n` bytes following the pointer `buf` to the file represented

@@ -26,8 +26,8 @@
 # weight:wgt:modwgt
 # obj-flag:level of application:object flag
 # value:level of application:object modifier
-# brand:level of application:brand code
-# slay:level of application:slay code
+# brand:min level:max level:brand code
+# slay:min level:max level:slay code
 # player-flags:racial flags
 # shape:level of application:monster race
 # attack:verb:hit_extra:min_level:chance:effect

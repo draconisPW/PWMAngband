@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -1257,7 +1257,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
         mem_free(dun->tunn_flag);
     }
 
-    if (error) quit_fmt("cave_generate() failed 100 times!");
+    if (error) quit("cave_generate() failed 100 times!");
 
     if (random_level(&chunk->wpos))
     {
@@ -1282,7 +1282,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
 
     /* Allocate new known level, light it if requested */
     chunk_list_add(chunk);
-    if (p && chunk->light_level) wiz_light(p, chunk, false);
+    if (p && chunk->light_level) wiz_light(p, chunk, 0);
 
     /* Mark artifacts as "generated" */
     if (p) set_artifacts_generated(p, chunk);

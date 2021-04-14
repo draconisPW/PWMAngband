@@ -115,6 +115,7 @@ extern bool player_is_at(struct player *p, struct loc *grid);
 extern struct player_race *lookup_player_race(const char *name);
 extern bool forbid_entrance_weak(struct player *p);
 extern bool forbid_entrance_strong(struct player *p);
+extern bool forbid_reentrance(struct player *p);
 extern bool player_is_in_view(struct player *p, int p_idx);
 extern bool player_is_visible(struct player *p, int p_idx);
 extern bool player_is_invisible(struct player *q);

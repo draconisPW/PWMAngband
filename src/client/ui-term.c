@@ -3,7 +3,7 @@
  * Purpose: A generic, efficient, terminal window package
  *
  * Copyright (c) 1997 Ben Harrison
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:

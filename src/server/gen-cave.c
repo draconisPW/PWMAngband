@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, James E. Wilson, Robert A. Koeneke
  * Copyright (c) 2013 Erik Osheim, Nick McConnell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -21,6 +21,18 @@
 
 #include "s-angband.h"
 #include <math.h>
+
+
+/*
+ * Profile indexes
+ */
+enum
+{
+    #define DUN(a, b) dun_##b,
+    #include "list-dun-profiles.h"
+    #undef DUN
+    dun_max
+};
 
 
 /*
@@ -1125,7 +1137,7 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
         /* If we've tried all blocks we're done. */
         if (j == 0) break;
 
-        if (blocks_tried[by][bx]) quit_fmt("generation: inconsistent blocks");
+        if (blocks_tried[by][bx]) quit("generation: inconsistent blocks");
 
         /* Mark that we are trying this block. */
         blocks_tried[by][bx] = true;
@@ -1293,6 +1305,9 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     /* Apply illumination */
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_classic;
 
     return c;
 }
@@ -1656,13 +1671,13 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     int w = 51 + randint0(wpos->depth / 10) * 2;
 
     /* Most labyrinths are lit */
-    bool lit = ((randint0(wpos->depth) < z_info->lab_depth) || (randint0(2) < 1));
+    bool lit = ((randint0(wpos->depth) < z_info->lab_depth_lit) || (randint0(2) < 1));
 
     /* Many labyrinths are known */
-    bool known = (lit && (randint0(wpos->depth) < z_info->lab_depth));
+    bool known = (lit && (randint0(wpos->depth) < z_info->lab_depth_known));
 
     /* Most labyrinths have soft (diggable) walls */
-    bool soft = ((randint0(wpos->depth) < 35) || (randint0(3) < 2));
+    bool soft = ((randint0(wpos->depth) < z_info->lab_depth_soft) || (randint0(3) < 2));
 
     /* Enforce minimum dimensions */
     h = MAX(h, min_height);
@@ -1725,6 +1740,9 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     /* Notify if we want the player to see the maze layout */
     player_cave_clear(p, true);
     if (known) c->light_level = true;
+
+    /* Hack -- set profile */
+    c->profile = dun_labyrinth;
 
     return c;
 }
@@ -2324,6 +2342,9 @@ struct chunk *cavern_gen(struct player *p, struct worldpos *wpos, int min_height
 
     /* Clear the flags for each cave grid */
     player_cave_clear(p, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_cavern;
 
     return c;
 }
@@ -3170,6 +3191,9 @@ struct chunk *town_gen(struct player *p, struct worldpos *wpos, int min_height, 
     for (i = 0; i < residents; i++)
         pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
 
+    /* Hack -- set profile */
+    c->profile = dun_town;
+
     return c;
 }
 
@@ -3432,6 +3456,9 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
 
+    /* Hack -- set profile */
+    c->profile = dun_modified;
+
     return c;
 }
 
@@ -3692,6 +3719,9 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     /* Apply illumination */
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_moria;
 
     return c;
 }
@@ -3996,6 +4026,9 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
     /* Clear the flags for each cave grid */
     player_cave_clear(p, true);
 
+    /* Hack -- set profile */
+    c->profile = dun_hard_centre;
+
     return c;
 }
 
@@ -4171,6 +4204,9 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     player_cave_clear(p, true);
     cave_illuminate(p, c, true);
 
+    /* Hack -- set profile */
+    c->profile = dun_lair;
+
     return c;
 }
 
@@ -4224,9 +4260,9 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     line2 = line1 + gauntlet->width;
 
     /* Set the movement and mapping restrictions */
-    generate_mark(left, 0, 0, left->height - 1, left->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(left, 0, 0, left->height - 1, left->width - 1, SQUARE_LIMITED_TELE);
     generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_MAP);
-    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_TELEPORT);
+    generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_LIMITED_TELE);
 
     /* Open the ends of the gauntlet */
     loc_init(&grid, 0, randint1(gauntlet->height - 2));
@@ -4362,6 +4398,9 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
 
     /* Clear the flags for each cave grid */
     player_cave_clear(p, true);
+
+    /* Hack -- set profile */
+    c->profile = dun_gauntlet;
 
     return c;
 }
@@ -4830,6 +4869,9 @@ struct chunk *mang_town_gen(struct player *p, struct worldpos *wpos, int min_hei
     for (i = 0; i < residents; i++)
         pick_and_place_distant_monster(p, c, 0, MON_ASLEEP);
 
+    /* Hack -- set profile */
+    c->profile = dun_mang_town;
+
     return c;
 }
 
@@ -4914,7 +4956,7 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
         /* If we've tried all blocks we're done. */
         if (j == 0) break;
 
-        if (blocks_tried[by][bx]) quit_fmt("generation: inconsistent blocks");
+        if (blocks_tried[by][bx]) quit("generation: inconsistent blocks");
 
         /* Mark that we are trying this block. */
         blocks_tried[by][bx] = true;
@@ -5057,6 +5099,9 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     /* Apply illumination */
     player_cave_clear(p, true);
     if (lit) c->light_level = true;
+
+    /* Hack -- set profile */
+    c->profile = dun_arena;
 
     return c;
 }

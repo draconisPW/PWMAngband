@@ -3,7 +3,7 @@
  * Purpose: Deal with command processing
  *
  * Copyright (c) 2010 Andi Sidwell
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -648,6 +648,33 @@ void send_msg_chunks(char *pmsgbuf, int msglen)
     char *startmsg;
     int CUTOFF = 0;
 
+    /* Hack -- pre-process message to look for "/" commands */
+    if (pmsgbuf[0] == '/')
+    {
+        /* Purchase a house */
+        if (strstr(pmsgbuf, "house")) do_cmd_purchase_house();
+
+        /* Display current time */
+        else if (strstr(pmsgbuf, "time")) do_cmd_time();
+
+        /* Check knowledge */
+        else if (strstr(pmsgbuf, "know")) textui_browse_knowledge();
+
+        /* Access party menu */
+        else if (strstr(pmsgbuf, "party")) do_cmd_party();
+
+        /* Display connected players */
+        else if (strstr(pmsgbuf, "who")) do_cmd_players();
+
+        /* View abilities */
+        else if (strstr(pmsgbuf, "abi")) do_cmd_abilities();
+
+        /* Drop gold */
+        else if (strstr(pmsgbuf, "gold")) textui_cmd_drop_gold();
+
+        return;
+    }
+
     /*
      * Max message length depends on our nick (known)
      * and recepient nick (unknown, assume max length)
@@ -931,20 +958,7 @@ void do_cmd_message(void)
 
     buf[0] = '\0';
     ok = get_string_msg("Message: ", buf, sizeof(buf) - 1);
-    if (ok && buf[0])
-    {
-        /* Hack -- pre-process message to look for "/" commands */
-        if (buf[0] == '/')
-        {
-            /* Purchase a house */
-            if (strstr(buf, "house")) do_cmd_purchase_house();
-
-            /* Display current time */
-            else if (strstr(buf, "time")) do_cmd_time();
-        }
-        else
-            send_msg_chunks(buf, strlen(buf));
-    }
+    if (ok && buf[0]) send_msg_chunks(buf, strlen(buf));
 }
 
 

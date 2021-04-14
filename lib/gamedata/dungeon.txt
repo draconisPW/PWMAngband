@@ -393,6 +393,25 @@ rule:1000:0
 rule-symbols:p
 rule:500:1
 
+# Fallen Gondolin (boss: Maeglin, the Traitor of Gondolin)
+name:Fallen Gondolin
+wpos:-30:36
+min-depth:70
+max-depth:87
+flags:STREAMS
+floor:street:2000
+floor:packed dirt:1000
+floor:pile of hard passable rubble:500
+wall:pile of hard rubble:2000
+fill:pile of hard rubble:1000
+rule:2000:0
+rule-symbols:h
+rule:2000:0
+rule-flags:UNDEAD
+rule:2000:0
+rule-flags:ORC | TROLL
+rule:4000:1
+
 # Mount Doom (boss: The Balrog of the Sammath Naur)
 name:Mount Doom
 wpos:16:-13

@@ -2,7 +2,7 @@
  * File: netserver.c
  * Purpose: The server side of the network stuff
  *
- * Copyright (c) 2020 MAngband and PWMAngband Developers
+ * Copyright (c) 2021 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -2835,10 +2835,10 @@ int Send_aware(struct player *p, u16b num)
     if (num == z_info->k_max)
     {
         for (i = 0; i < z_info->k_max; i++)
-            Packet_printf(&connp->c, "%b", (unsigned)p->obj_aware[i]);
+            Packet_printf(&connp->c, "%b", (unsigned)p->kind_aware[i]);
     }
     else
-        Packet_printf(&connp->c, "%b", (unsigned)p->obj_aware[num]);
+        Packet_printf(&connp->c, "%b", (unsigned)p->kind_aware[num]);
 
     return 1;
 }
@@ -4169,9 +4169,10 @@ static int Receive_read(int ind)
     struct player *p;
     byte ch;
     s16b item;
+    char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_read read error");
         return n;
@@ -4186,11 +4187,11 @@ static int Receive_read(int ind)
 
         if (has_energy(p, true))
         {
-            do_cmd_read_scroll(p, item);
+            do_cmd_read_scroll(p, item, dir);
             return 2;
         }
 
-        Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
+        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
         return 0;
     }
 
@@ -4239,9 +4240,10 @@ static int Receive_use(int ind)
     struct player *p;
     byte ch;
     s16b item;
+    char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &item)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_use read error");
         return n;
@@ -4256,11 +4258,11 @@ static int Receive_use(int ind)
 
         if (has_energy(p, true))
         {
-            do_cmd_use_staff(p, item);
+            do_cmd_use_staff(p, item, dir);
             return 2;
         }
 
-        Packet_printf(&connp->q, "%b%hd", (unsigned)ch, (int)item);
+        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
         return 0;
     }
 
@@ -5704,6 +5706,36 @@ static int Receive_floor_ack(int ind)
 }
 
 
+static int Receive_monwidth(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    struct player *p;
+    byte ch;
+    int n;
+    s16b width;
+
+    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &width)) <= 0)
+    {
+        if (n == -1) Destroy_connection(ind, "Receive_monwidth read error");
+        return n;
+    }
+
+    if (connp->id != -1)
+    {
+        p = player_get(get_player_index(connp));
+
+        /* Break mind link */
+        break_mind_link(p);
+
+        /* Set monster list subwindow width and redraw */
+        p->monwidth = MIN(width, NORMAL_WID - 5);
+        p->upkeep->redraw |= (PR_MONLIST);
+    }
+
+    return 1;
+}
+
+
 /*
  * Check if screen size is compatible
  */
@@ -5768,8 +5800,8 @@ static void update_birth_options(struct player *p, struct birth_options *options
     if (cfg_limit_stairs == 3) OPT(p, birth_force_descend) = true;
     if (cfg_diving_mode == 3) OPT(p, birth_no_recall) = true;
     if (cfg_no_artifacts) OPT(p, birth_no_artifacts) = true;
-    if (cfg_no_selling) OPT(p, birth_no_selling) = true;
-    if (cfg_no_stores) OPT(p, birth_no_stores) = true;
+    if (cfg_limited_stores) OPT(p, birth_no_selling) = true;
+    if (cfg_limited_stores == 3) OPT(p, birth_no_stores) = true;
     if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
 
     /* Fruit bat mode: not when a Dragon or Hydra */
@@ -6079,9 +6111,11 @@ static int Enter_player(int ind)
         msg(p, "Server has no level feelings.");
     if ((cfg_level_feelings == 1) || (cfg_level_feelings == 2))
         msg(p, "Server has limited level feelings.");
-    if (cfg_no_selling)
+    if (cfg_limited_stores == 1)
+        msg(p, "Server has limited selling.");
+    if (cfg_limited_stores == 2)
         msg(p, "Server is no-selling.");
-    if (cfg_no_stores)
+    if (cfg_limited_stores == 3)
         msg(p, "Server has no stores.");
     if (cfg_no_ghost)
         msg(p, "Server is no-ghost.");
@@ -6110,14 +6144,14 @@ static int Enter_player(int ind)
     p->upkeep->redraw |= (PR_STATE);
 
     /* PWMAngband: give a warning when entering a gauntlet level */
-    if (square_isno_teleport(chunk_get(&p->wpos), &p->grid))
+    if (square_limited_teleport(chunk_get(&p->wpos), &p->grid))
         msgt(p, MSG_ENTER_PIT, "The air feels very still!");
 
     /*
      * Hack -- when processing a quickstart character, body has changed so we need to
      * resend the equipment indices
      */
-    if (roller < 0) p->upkeep->redraw |= (PR_EQUIP);
+    if (roller < 0) set_redraw_equip(p, NULL);
     redraw_stuff(p);
 
     /* Handle the cfg_secret_dungeon_master option */
@@ -7074,6 +7108,7 @@ static int Receive_store_leave(int ind)
 
         /* Redraw */
         p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_SPELL);
+        set_redraw_equip(p, NULL);
 
         sound(p, MSG_STORE_LEAVE);
 
@@ -7123,7 +7158,8 @@ static int Receive_store_leave(int ind)
         }
 
         /* Redraw (remove selling prices) */
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+        set_redraw_equip(p, NULL);
+        set_redraw_inven(p, NULL);
     }
 
     return 1;
