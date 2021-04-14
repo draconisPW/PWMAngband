@@ -341,6 +341,16 @@ msg:Your {name} makes you float just above the floor.
 desc:Makes you float just above the floor
 short-desc:Levit
 
+name:swimming
+type:flag
+subtype:misc ability
+id-type:on effect
+code:SWIM
+power:1
+msg:Your {name} makes you able to swim.
+desc:Makes you able to swim
+short-desc:Swim
+
 name:regeneration
 type:flag
 subtype:misc ability

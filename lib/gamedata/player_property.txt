@@ -244,6 +244,11 @@ name:Feather Falling
 desc:You fall lightly.
 
 type:object
+code:SWIM
+name:Swimming
+desc:You able to swim.
+
+type:object
 code:REGEN
 name:Regeneration
 desc:You regenerate quickly.
