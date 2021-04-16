@@ -626,6 +626,7 @@ void conf_default_save(void)
 
 	if (config = file_open(config_name, MODE_READ, -1))
 	{
+    file_close(config);
 	conf_need_save = false;
 	if (!conf_need_save) return;
 	}

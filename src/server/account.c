@@ -61,6 +61,7 @@ u32b get_account(const char *name, const char *pass)
                     if (pass_ok) break;
 
                     /* Incorrect password */
+                    file_close(fh);
                     return 0L;
                 }
                 name_ok = false;

@@ -2082,10 +2082,7 @@ void do_cmd_walk(struct player *p, int dir)
 
     /* Paranoia */
     if (!square_in_bounds(c, &grid))
-    {
-        plog("Trying to walk out of bounds, please report this bug.");
-        return;
-    }
+        quit("Trying to walk out of bounds, please report this bug.");
 
     /* Attempt to disarm unless it's a trap and we're trapsafe */
     move_player(p, c, dir, !(square_isdisarmabletrap(c, &grid) && trapsafe), true, false, 0);
@@ -2554,7 +2551,8 @@ void do_cmd_purchase_house(struct player *p, int dir)
                 reset_house(i);
 
                 /* Redraw */
-                p->upkeep->redraw |= (PR_INVEN | PR_GOLD);
+                p->upkeep->redraw |= (PR_GOLD);
+                set_redraw_inven(p, NULL);
 
                 /* Done */
                 return;

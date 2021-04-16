@@ -181,7 +181,7 @@ static void recharge_objects(struct player *p)
                 recharged_notice(p, obj, true);
 
                 /* Redraw */
-                p->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(p, obj);
             }
         }
 
@@ -204,7 +204,7 @@ static void recharge_objects(struct player *p)
                 p->upkeep->notice |= (PN_COMBINE);
 
                 /* Redraw */
-                p->upkeep->redraw |= (PR_INVEN);
+                set_redraw_inven(p, obj);
             }
 
             /* Handle corpse decay */
@@ -229,7 +229,7 @@ static void recharge_objects(struct player *p)
                     p->upkeep->notice |= (PN_COMBINE);
 
                     /* Redraw */
-                    p->upkeep->redraw |= (PR_INVEN);
+                    set_redraw_inven(p, obj);
                 }
                 else if (!obj->decay)
                 {
@@ -245,7 +245,7 @@ static void recharge_objects(struct player *p)
                     p->upkeep->notice |= (PN_COMBINE);
 
                     /* Redraw */
-                    p->upkeep->redraw |= (PR_INVEN);
+                    set_redraw_inven(p, NULL);
                 }
             }
         }
@@ -1721,6 +1721,9 @@ static void generate_new_level(struct player *p)
         plog_fmt("Cave type %d (w=%d,h=%d)", c->profile, c->width, c->height);
         my_assert(0);
     }
+
+    /* Hack -- player position is valid now */
+    p->placed = true;
 
     /* PWMAngband: give a warning when entering a gauntlet level */
     if (square_limited_teleport(c, &p->grid))

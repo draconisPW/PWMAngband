@@ -339,7 +339,8 @@ int quest_check(struct player *p, struct chunk *c, const struct monster *m)
             player->upkeep->notice |= (PN_COMBINE);
 
             /* Redraw */
-            player->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+            set_redraw_equip(p, NULL);
+            set_redraw_inven(p, NULL);
 
             /* Hack -- instantly retire any new winners if necessary */
             if (cfg_retire_timer == 0) do_cmd_suicide(player);

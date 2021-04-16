@@ -17,6 +17,8 @@ User interface
 Angband 4.2.x:
 
 - Added commands to birth option screen to save and restore custom birth options
+- Allow fuel to be drawn from the quiver
+- Display average damage for devices, spells, and activations
 
 MAngband 1.5.x:
 
@@ -61,6 +63,10 @@ PWMAngband:
   swapping items
 - Split MAngband options submenu into MAngband options and Advanced options
 - Add option to confirm recall when recalling out of non-reentrable dungeon
+- Add /know, /party, /who, /abi and /gold chat commands as shortcuts for
+  "Check knowledge", "Access party menu", "Display connected players",
+  "View abilities" and "Drop gold" commands
+- Add messages to explain why Raise Dead could fail
 
 Gameplay changes
 ----------------
@@ -122,6 +128,7 @@ PWMAngband:
 - Remove NO_STORES server option
 - Rename NO_SELLING server option to LIMITED_STORES, use an integer value
   to handle disabling selling completely and restricting the use of stores/home
+- Add life leech brand to forms with EXP_XXX melee blow effects
 
 Bugs fixed
 ----------
@@ -133,6 +140,7 @@ Angband 4.2.x:
 - Stop quest artifacts being stealable
 - Ensure grids on the target path are hit by projections in project()
 - Make SMASH_WALL destroy decoys
+- Notice changes to the weight limit in update_bonuses()
 
 MAngband 1.5.x:
 
@@ -161,6 +169,20 @@ PWMAngband:
 - Fix crash in process_monsters when mon->closest_player is dead
 - Fix weight decrease when wielding from a stack of inventory items
 - Fix Linux code not saving savefiles
+- Fix damaging terrain aborting running for players immune to damage
+- Fix aquatic forms able to run outside of water
+- Fix aquatic forms not suffocating outside of water
+- Fix aquatic forms drowning in water
+- Fix LEVITATE form not giving FEATHER flag
+- Fix FRIGHTENED form not giving AFRAID flag
+- Prevent out of bounds asserts when players change level
+- Plug resource leaks of missing file_close() calls
+- Fix monster list subwindow not reacting to subwindow horizontal resizing
+- Learn curses properly when applied directly to worn items
+- Learn runes of carried weapons properly for races and classes that cannot use
+  weapons
+- Fix keymaps using '{' symbol
+- Fix "base" kind flags not added to "kind" kind flags in the case of books
 
 Coding changes
 --------------
@@ -172,6 +194,8 @@ Angband 4.2.x:
 - Slightly tightened shape change logic
 - Account for throwing weapons in the quiver within pack_slots_used() and
   quiver_absorb_num()
+- Modify compare_items() so the result is zero when both items are unknown
+- Optimize obj_kind_can_browse()
 
 MAngband 1.5.x:
 
@@ -186,11 +210,12 @@ MAngband 1.5.x:
 - Rename "obj_aware" into "kind_aware" and "obj_tried" into "kind_tried"
 - Add 'conf_done' destructor
 - Add more hacks to vstrnfmt
+- Stop resending whole equipment/inventory when a single item is affected
 
 PWMAngband:
 
 - Change default FPS from 1 to 50
-- KEYMAP_ACTION_MAX increased from 20 to 30
+- KEYMAP_ACTION_MAX increased from 20 to 35
 - Move message truncation from server to client
 - Add paranoia check to avoid walking out of bounds
 - Add pre-processing to chat messages to look for '/' commands
@@ -202,6 +227,7 @@ PWMAngband:
   unlit/unknown/with hard walls
 - Re-enable signal handling on Linux
 - Add dungeon profile to struct chunk
+- Remove ladder info from character dumps
 
 Compilation
 -----------
@@ -210,3 +236,4 @@ Compilation
 - Compiling with Embarcadero C++ 7.20
 - Update docs for option customization
 - Remove Necklace of the Eye support
+- Fix some typos in documentation

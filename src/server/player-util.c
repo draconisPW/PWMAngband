@@ -118,6 +118,9 @@ void dungeon_change_level(struct player *p, struct chunk *c, struct worldpos *ne
         msg_misc(p, "'s charged aura disappears...");
         p->upkeep->redraw |= (PR_STATE);
     }
+
+    /* Hack -- player position is invalid */
+    p->placed = false;
 }
 
 
@@ -533,7 +536,7 @@ void player_update_light(struct player *p)
             if ((obj->timeout < 100) || (!(obj->timeout % 100)))
             {
                 /* Redraw */
-                p->upkeep->redraw |= (PR_EQUIP);
+                set_redraw_equip(p, obj);
             }
 
             /* Hack -- special treatment when blind */
@@ -712,6 +715,11 @@ int player_check_terrain_damage(struct player *p, struct chunk *c)
         /* Draining damage */
         dam_taken = p->mhp / 100 + randint1(3);
     }
+    else if (!square_iswater(c, &p->grid) && p->poly_race && rf_has(p->poly_race->flags, RF_AQUATIC))
+    {
+        /* Suffocating damage */
+        dam_taken = p->mhp / 100 + randint1(3);
+    }
 
     return dam_taken;
 }
@@ -727,10 +735,11 @@ void player_take_terrain_damage(struct player *p, struct chunk *c)
 
     if (!dam_taken) return;
 
-    msg(p, feat->hurt_msg);
+    msg(p, feat->hurt_msg? feat->hurt_msg: "You are suffocating!");
 
     /* Damage the player */
-    if (!take_hit(p, dam_taken, feat->die_msg, false, feat->died_flavor))
+    if (!take_hit(p, dam_taken, feat->die_msg? feat->die_msg: "suffocating", false,
+        feat->died_flavor? feat->died_flavor: "suffocated"))
     {
         /* Damage the inventory */
         if (square_isfiery(c, &p->grid)) inven_damage(p, PROJ_FIRE, dam_taken);
@@ -1217,7 +1226,8 @@ bool has_bowbrand(struct player *p, bitflag type, bool blast)
 
 bool can_swim(struct player *p)
 {
-    return (p->poly_race && rf_has(p->poly_race->flags, RF_IM_WATER));
+    return (p->poly_race &&
+        (rf_has(p->poly_race->flags, RF_IM_WATER) || rf_has(p->poly_race->flags, RF_AQUATIC)));
 }
 
 

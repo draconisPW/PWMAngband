@@ -214,7 +214,7 @@ static const struct object *find_stack_object_in_inventory(struct player *p,
  */
 static int auto_pickup_okay(struct player *p, struct object *obj)
 {
-    int num = inven_carry_num(p, obj, false);
+    int num = inven_carry_num(p, obj);
     unsigned obj_has_auto, obj_has_maxauto;
     int obj_maxauto;
 
@@ -309,7 +309,7 @@ static int auto_pickup_okay(struct player *p, struct object *obj)
 static void player_pickup_aux(struct player *p, struct chunk *c, struct object *obj, int auto_max,
     bool domsg)
 {
-    int max = inven_carry_num(p, obj, false);
+    int max = inven_carry_num(p, obj);
 
     /* Confirm at least some of the object can be picked up */
     if (!max) quit_fmt("Failed pickup of %s", obj->kind->name);

@@ -540,7 +540,7 @@ void dump_spells(struct player *p, struct object *obj)
             my_strcpy(spell_name, spell->name, sizeof(spell_name));
         strnfmt(out_val, sizeof(out_val), "%-30s%2d %4d %3d%%%s", spell_name, spell->slevel,
             spell->smana, spell_chance(p, spell_index), comment);
-        my_strcpy(out_desc, spell->text, sizeof(out_desc));
+        spell_description(p, spell_index, -1, true, out_desc, sizeof(out_desc));
 
         Send_spell_info(p, bidx, j, out_val, &flags);
         Send_spell_desc(p, bidx, j, out_desc);
@@ -647,7 +647,7 @@ static void fix_monster(struct player *p)
 static void fix_monlist(struct player *p)
 {
     /* Display visible monsters */
-    monster_list_show_subwindow(p, p->max_hgt - 2, NORMAL_WID - 5);
+    monster_list_show_subwindow(p, p->max_hgt - 2, p->monwidth);
 
     /* Notify player */
     notify_player_popup(p, "Monster List", NTERM_WIN_MONLIST, 0);
@@ -1394,9 +1394,31 @@ static void prt_minimap(struct player *p)
 
 static void prt_equip(struct player *p)
 {
-    display_equip(p);
-    prt_flags(p);
+    /* Single equipment object to redraw */
+    if (p->upkeep->redraw_equip != NULL)
+        display_item(p, p->upkeep->redraw_equip, 1);
+    else
+    {
+        display_equip(p);
+        prt_flags(p);
+    }
     update_prevent_inscriptions(p);
+
+    p->upkeep->redraw_equip = NULL;
+    p->upkeep->skip_redraw_equip = false;
+}
+
+
+static void prt_inven(struct player *p)
+{
+    /* Single inventory object to redraw */
+    if (p->upkeep->redraw_inven != NULL)
+        display_item(p, p->upkeep->redraw_inven, 0);
+    else
+        display_inven(p);
+
+    p->upkeep->redraw_inven = NULL;
+    p->upkeep->skip_redraw_inven = false;
 }
 
 
@@ -1464,7 +1486,7 @@ static const flag_event_trigger redraw_events[] =
     {PR_DTRAP, prt_dtrap, true},
     {PR_STATE, prt_state, true},
     {PR_MAP, prt_minimap, true},
-    {PR_INVEN, display_inven, true},
+    {PR_INVEN, prt_inven, true},
     {PR_EQUIP, prt_equip, true},
     {PR_MONSTER, prt_monster, true},
     {PR_MONLIST, prt_monsterlist, false},
@@ -1778,12 +1800,11 @@ void player_dump(struct player *p, bool server)
     /* Only record the original death */
     if (p->ghost == 1) return;
 
-    /* Save the server-side character dump (used by the online ladder) */
+    /* Save the server-side character dump */
     if (server)
     {
         strnfmt(dumpname, sizeof(dumpname), "%s-%s.txt", p->name, ht_show(&turn));
-        p->ladder = true;
-        if (dump_save(p, dumpname))
+        if (dump_save(p, dumpname, true))
             plog("Character dump successful.");
         else
             plog("Character dump failed!");
@@ -1791,8 +1812,7 @@ void player_dump(struct player *p, bool server)
 
     /* Save a client-side character dump */
     strnfmt(dumpname, sizeof(dumpname), "%s.txt", p->name);
-    p->ladder = false;
-    if (dump_save(p, dumpname))
+    if (dump_save(p, dumpname, false))
         plog("Character dump successful.");
     else
         plog("Character dump failed!");
@@ -1970,7 +1990,9 @@ void player_death(struct player *p)
     /* Notice, update and redraw */
     p->upkeep->notice |= (PN_COMBINE);
     p->upkeep->update |= (PU_BONUS | PU_INVEN);
-    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_INVEN | PR_SPELL);
+    p->upkeep->redraw |= (PR_STATE | PR_BASIC | PR_PLUSSES | PR_SPELL);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 /*
@@ -2025,6 +2047,7 @@ void resurrect_player(struct player *p, struct chunk *c)
 
     /* Redraw */
     p->upkeep->redraw |= (PR_BASIC | PR_SPELL);
+    set_redraw_equip(p, NULL);
     square_light_spot(c, &p->grid);
 
     /* Update */
@@ -4189,6 +4212,7 @@ static void master_player(struct player *p, char *parms)
             if (dm_ptr->poly_race && !dm_ptr->ghost) do_cmd_poly(dm_ptr, NULL, false, true);
             set_ghost_flag(dm_ptr, (dm_ptr->ghost? 0: 1), true);
             dm_ptr->upkeep->redraw |= (PR_BASIC | PR_SPELL);
+            set_redraw_equip(dm_ptr, NULL);
             dm_ptr->upkeep->update |= (PU_BONUS);
             return;
         }
@@ -4218,6 +4242,7 @@ static void master_player(struct player *p, char *parms)
             " Error: can't toggle ghost for no-ghost players");
         set_ghost_flag(dm_ptr, 0, true);
         dm_ptr->upkeep->redraw |= (PR_BASIC | PR_SPELL);
+        set_redraw_equip(dm_ptr, NULL);
         dm_ptr->upkeep->update |= (PU_BONUS);
         dm_ptr = NULL;
         return;

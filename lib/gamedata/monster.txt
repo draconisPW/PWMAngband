@@ -968,6 +968,41 @@ flags:HURT_FIRE
 flags:WILD_GRASS | WILD_WOOD | WILD_SWAMP
 desc:A lone insect may be harmless, but there is a whole swarm of them here!
 
+name:skeleton
+base:skeleton
+color:w
+speed:110
+hit-points:8
+hearing:20
+armor-class:24
+sleepiness:70
+depth:1
+rarity:1
+weight:0
+experience:5
+blow:HIT:HURT:1d5
+flags:EMPTY_MIND
+flags:OPEN_DOOR | BASH_DOOR
+desc:It is a small animated skeleton.
+
+name:zombie
+base:zombie
+color:s
+speed:110
+hit-points:8
+hearing:20
+armor-class:24
+sleepiness:70
+depth:1
+rarity:1
+weight:0
+experience:5
+blow:HIT:HURT:1d5
+flags:EMPTY_MIND
+flags:NO_FEAR
+desc:It is an animated corpse. Flesh falls off in large chunks as it
+desc: shambles forward.
+
 ### Dungeon level 2 ###
 
 name:kobold

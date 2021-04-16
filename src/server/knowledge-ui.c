@@ -1687,8 +1687,10 @@ void do_cmd_redraw(struct player *p)
     p->upkeep->update |= (PU_UPDATE_VIEW | PU_MONSTERS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR | PR_INVEN |
-        PR_SPELL | PR_MONSTER | PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
+    p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_FLOOR | PR_SPELL | PR_MONSTER |
+        PR_OBJECT | PR_MONLIST | PR_ITEMLIST);
+    set_redraw_equip(p, NULL);
+    set_redraw_inven(p, NULL);
 }
 
 
@@ -2825,7 +2827,8 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
         p->upkeep->update |= (PU_BONUS | PU_MONSTERS);
 
         /* Redraw */
-        p->upkeep->redraw |= (PR_MAP | PR_EQUIP | PR_SPELL);
+        p->upkeep->redraw |= (PR_MAP | PR_SPELL);
+        set_redraw_equip(p, NULL);
 
         return;
     }
@@ -2972,7 +2975,8 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
     p->upkeep->update |= (PU_BONUS | PU_MONSTERS);
 
     /* Redraw */
-    p->upkeep->redraw |= (PR_MAP | PR_EQUIP | PR_SPELL);
+    p->upkeep->redraw |= (PR_MAP | PR_SPELL);
+    set_redraw_equip(p, NULL);
 }
 
 

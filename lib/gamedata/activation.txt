@@ -524,8 +524,6 @@ effect:BREATH:ACID:0:20
 dice:250
 effect:RANDOM
 dice:5
-desc:allows you to randomly breathe acid, lightning, fire, cold or poison for
-desc: {250} points of damage
 
 name:DRAGON_SHADOW
 aim:1
@@ -536,7 +534,6 @@ effect:BREATH:LIGHT:0:20
 dice:200
 effect:RANDOM
 dice:2
-desc:allows you to randomly breathe light or darkness for {200} points of damage
 
 name:DRAGON_LAW
 aim:1
@@ -547,7 +544,6 @@ effect:BREATH:SOUND:0:20
 dice:230
 effect:RANDOM
 dice:2
-desc:allows you to randomly breathe sound or shards for {230} points of damage
 
 name:DRAGON_GOLD
 aim:1
@@ -564,8 +560,6 @@ effect:BREATH:CHAOS:0:20
 dice:220
 effect:RANDOM
 dice:2
-desc:allows you to randomly breathe chaos or disenchantment for {220} points of
-desc: damage
 
 name:DRAGON_BALANCE
 aim:1
@@ -580,15 +574,13 @@ effect:BREATH:SOUND:0:20
 dice:250
 effect:RANDOM
 dice:4
-desc:allows you to randomly breathe sound, shards, chaos or disenchantment for
-desc: {250} points of damage
 
 name:DRAGON_POWER
 aim:1
 power:25
 effect:BREATH:MISSILE:0:20
 dice:300
-desc:allows you to breathe a random element for {300} points of damage
+#desc:allows you to breathe a random element for {300} points of damage
 
 name:DRAGON_CRYSTAL
 aim:1
@@ -605,7 +597,6 @@ effect:BREATH:COLD:0:20
 dice:150
 effect:RANDOM
 dice:2
-desc:allows you to randomly breathe frost or inertia for {150} points of damage
 
 name:DRAGON_ETHEREAL
 aim:1
@@ -622,7 +613,6 @@ effect:BREATH:FIRE:0:20
 dice:200
 effect:RANDOM
 dice:2
-desc:allows you to randomly breathe fire or nexus for {200} points of damage
 
 name:DRAGON_WATER
 aim:1
@@ -673,7 +663,6 @@ effect:BREATH:FIRE:0:30
 dice:80
 effect:RANDOM
 dice:2
-desc:causes you to breathe either fire or frost for {80} points of damage
 
 name:EARTHQUAKES
 aim:0
@@ -881,7 +870,6 @@ effect:BOLT_OR_BEAM:MISSILE
 dice:3d4
 msg_other: fires a magic missile.
 msg:{name} glows very brightly...
-desc:fires a magic missile that inflicts {3d4} points of damage
 
 name:MON_CONFUSE
 aim:1
@@ -1106,8 +1094,6 @@ effect:TIMED_INC:OPP_ACID
 dice:20+1d20
 effect:BALL:ACID:2
 dice:70
-desc:shoots a radius-{2} acid ball that inflicts {70} points of damage at the
-desc: centre and grants temporary resistance to acid for {20+1d20} turns
 
 name:RING_FLAMES
 aim:1
@@ -1116,8 +1102,6 @@ effect:TIMED_INC:OPP_FIRE
 dice:20+1d20
 effect:BALL:FIRE:2
 dice:80
-desc:shoots a radius-{2} fire ball that inflicts {80} points of damage at the
-desc: centre and grants temporary resistance to fire for {20+1d20} turns
 
 name:RING_ICE
 aim:1
@@ -1126,8 +1110,6 @@ effect:TIMED_INC:OPP_COLD
 dice:20+1d20
 effect:BALL:COLD:2
 dice:75
-desc:shoots a radius-{2} frost ball that inflicts {75} points of damage at the
-desc: centre and grants temporary resistance to cold for {20+1d20} turns
 
 name:RING_LIGHTNING
 aim:1
@@ -1136,9 +1118,6 @@ effect:TIMED_INC:OPP_ELEC
 dice:20+1d20
 effect:BALL:ELEC:2
 dice:85
-desc:shoots a radius-{2} lightning ball that inflicts {85} points of damage at
-desc: the centre and grants temporary resistance to lightning for {20+1d20}
-desc: turns
 
 name:GLYPH
 aim:0
@@ -1286,8 +1265,6 @@ effect:STAR:LIGHT
 dice:10d8
 msg_self:Light shoots in all directions!
 msg:Your {kind} glow{s} with the light of a thousand stars...
-desc:fires a line of light in all eight cardinal directions, inflicting {10d8}
-desc: points of damage on creatures caught in one of the lines
 
 name:STINKING_CLOUD
 aim:1
@@ -1386,8 +1363,6 @@ dice:160
 msg_other: shoots dragon acid!
 effect:RANDOM
 dice:5
-desc:allows you to randomly breathe acid, lightning, fire, cold or poison for
-desc: {160} points of damage
 
 name:WONDER
 aim:1

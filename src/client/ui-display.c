@@ -1103,6 +1103,9 @@ static void update_monlist_subwindow(game_event_type type, game_event_data *data
     /* Activate */
     Term_activate(inv_term);
 
+    /* Send new width for dynamic resizing */
+    Send_monwidth(Term->wid);
+
     fix_remote_term(NTERM_WIN_MONLIST);
 
     Term_fresh();

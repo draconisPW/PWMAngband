@@ -5016,7 +5016,7 @@ int Send_fill(struct command *cmd)
         /* Prompt */ "Refuel with with fuel source? ",
         /* Error */ "You have nothing you can refuel with.",
         /* Filter */ obj_can_refill,
-        /* Choice */ USE_INVEN | USE_FLOOR) != CMD_OK)
+        /* Choice */ USE_INVEN | USE_FLOOR | USE_QUIVER) != CMD_OK)
     {
         return 0;
     }
@@ -5489,6 +5489,17 @@ int Send_floor_ack(void)
     int n;
 
     if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_FLOOR_ACK)) <= 0)
+        return n;
+
+    return 1;
+}
+
+
+int Send_monwidth(int width)
+{
+    int n;
+
+    if ((n = Packet_printf(&wbuf, "%b%hd", (unsigned)PKT_MONWIDTH, width)) <= 0)
         return n;
 
     return 1;

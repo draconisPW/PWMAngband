@@ -1277,7 +1277,7 @@ int race_modifier(const struct player_race *race, int mod, int lvl, bool poly)
 
             if (race->modifiers[mod].value.m_bonus && (lvl > race->modifiers[mod].value.m_bonus))
                 cap = race->modifiers[mod].value.m_bonus;
-            adj += race->modifiers[mod].value.dice * (cap - race->modifiers[mod].lvl) / xadj;
+            adj += race->modifiers[mod].value.dice * ((cap - race->modifiers[mod].lvl) / xadj);
         }
 
         /* Polymorphed players only get half adjustment from race */
@@ -1307,7 +1307,7 @@ int class_modifier(const struct player_class *clazz, int mod, int lvl)
 
             if (clazz->modifiers[mod].value.m_bonus && (lvl > clazz->modifiers[mod].value.m_bonus))
                 cap = clazz->modifiers[mod].value.m_bonus;
-            adj += clazz->modifiers[mod].value.dice * (cap - clazz->modifiers[mod].lvl) / xadj;
+            adj += clazz->modifiers[mod].value.dice * ((cap - clazz->modifiers[mod].lvl) / xadj);
         }
 
         return adj;

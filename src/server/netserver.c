@@ -5706,6 +5706,36 @@ static int Receive_floor_ack(int ind)
 }
 
 
+static int Receive_monwidth(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    struct player *p;
+    byte ch;
+    int n;
+    s16b width;
+
+    if ((n = Packet_scanf(&connp->r, "%b%hd", &ch, &width)) <= 0)
+    {
+        if (n == -1) Destroy_connection(ind, "Receive_monwidth read error");
+        return n;
+    }
+
+    if (connp->id != -1)
+    {
+        p = player_get(get_player_index(connp));
+
+        /* Break mind link */
+        break_mind_link(p);
+
+        /* Set monster list subwindow width and redraw */
+        p->monwidth = MIN(width, NORMAL_WID - 5);
+        p->upkeep->redraw |= (PR_MONLIST);
+    }
+
+    return 1;
+}
+
+
 /*
  * Check if screen size is compatible
  */
@@ -6121,7 +6151,7 @@ static int Enter_player(int ind)
      * Hack -- when processing a quickstart character, body has changed so we need to
      * resend the equipment indices
      */
-    if (roller < 0) p->upkeep->redraw |= (PR_EQUIP);
+    if (roller < 0) set_redraw_equip(p, NULL);
     redraw_stuff(p);
 
     /* Handle the cfg_secret_dungeon_master option */
@@ -7078,6 +7108,7 @@ static int Receive_store_leave(int ind)
 
         /* Redraw */
         p->upkeep->redraw |= (PR_BASIC | PR_EXTRA | PR_MAP | PR_SPELL);
+        set_redraw_equip(p, NULL);
 
         sound(p, MSG_STORE_LEAVE);
 
@@ -7127,7 +7158,8 @@ static int Receive_store_leave(int ind)
         }
 
         /* Redraw (remove selling prices) */
-        p->upkeep->redraw |= (PR_INVEN | PR_EQUIP);
+        set_redraw_equip(p, NULL);
+        set_redraw_inven(p, NULL);
     }
 
     return 1;

@@ -476,6 +476,10 @@ struct player_upkeep
     s16b quiver_cnt;                /* Number of items in the quiver */
     s16b recharge_pow;              /* Power of recharge effect */
     bool running_update;            /* True if updating monster/object lists while running */
+    struct object *redraw_equip;    /* Single equipment object to redraw */
+    bool skip_redraw_equip;         /* Skip redraw_equip object */
+    struct object *redraw_inven;    /* Single inventory object to redraw */
+    bool skip_redraw_inven;         /* Skip redraw_inven object */
 };
 
 /*
@@ -849,7 +853,6 @@ struct player
     char tempbuf[NORMAL_WID];
     s16b obj_feeling;               /* Object/monster feeling (for display) */
     s16b mon_feeling;
-    bool ladder;                    /* Hack -- add online ladder info to dump character */
     char depths[13];                /* Displayed coordinates */
     int frac_blow;                  /* Blow frac (%) */
     int frac_shot;                  /* Shot frac (%) */
@@ -857,6 +860,8 @@ struct player
     char terrain[40];               /* Displayed terrain */
     byte flicker;                   /* A counter to select the step color from the flicker table */
     bool no_disturb_icky;
+    bool placed;                    /* Player is properly placed on the level */
+    int monwidth;                   /* Monster list subwindow width */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

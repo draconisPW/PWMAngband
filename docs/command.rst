@@ -809,7 +809,7 @@ Help (``?``)
   just text files in a particular format, and that other help files may be
   available on the Net. In particular, there are a variety of spoiler files
   which do not come with the standard distribution. Check the place you got
-  PWMAngband from or ask on the Angband forums angband.oook.cz about them.
+  PWMAngband from or ask on the Angband forums, angband.oook.cz, about them.
 
 ..
 

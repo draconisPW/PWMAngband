@@ -229,7 +229,8 @@ static void adjust_level(struct player *p)
         p->upkeep->update |= (PU_BONUS | PU_SPELLS | PU_MONSTERS);
 
         /* Redraw some stuff */
-        p->upkeep->redraw |= (PR_LEV | PR_TITLE | PR_EXP | PR_STATS | PR_EQUIP | PR_SPELL | PR_PLUSSES);
+        p->upkeep->redraw |= (PR_LEV | PR_TITLE | PR_EXP | PR_STATS | PR_SPELL | PR_PLUSSES);
+        set_redraw_equip(p, NULL);
     }
 
     /* Handle stuff */
@@ -330,7 +331,9 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
             if (streq(p->poly_race->blow[m].effect->name, "EXP_80")) of_on(f, OF_HOLD_LIFE);
         }
 
+        /* Monster race flags */
         if (rf_has(p->poly_race->flags, RF_REGENERATE)) of_on(f, OF_REGEN);
+        if (rf_has(p->poly_race->flags, RF_FRIGHTENED)) of_on(f, OF_AFRAID);
         if (rf_has(p->poly_race->flags, RF_IM_NETHER)) of_on(f, OF_HOLD_LIFE);
         if (rf_has(p->poly_race->flags, RF_IM_WATER))
         {
@@ -342,6 +345,9 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
         if (rf_has(p->poly_race->flags, RF_NO_STUN)) of_on(f, OF_PROT_STUN);
         if (rf_has(p->poly_race->flags, RF_NO_CONF)) of_on(f, OF_PROT_CONF);
         if (rf_has(p->poly_race->flags, RF_NO_SLEEP)) of_on(f, OF_FREE_ACT);
+        if (rf_has(p->poly_race->flags, RF_LEVITATE)) of_on(f, OF_FEATHER);
+
+        /* Monster spell flags */
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_NETH)) of_on(f, OF_HOLD_LIFE);
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_LIGHT)) of_on(f, OF_PROT_BLIND);
         if (rsf_has(p->poly_race->spell_flags, RSF_BR_DARK)) of_on(f, OF_PROT_BLIND);
