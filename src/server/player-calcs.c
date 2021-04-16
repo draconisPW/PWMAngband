@@ -1572,6 +1572,8 @@ void calc_inventory(struct player *p)
 {
     int i;
     int old_inven_cnt = p->upkeep->inven_cnt;
+    int n_stack_split = 0;
+    int n_pack_remaining = z_info->pack_size - pack_slots_used(p);
     struct object **old_quiver = mem_zalloc(z_info->quiver_size * sizeof(struct object *));
     struct object **old_pack = mem_zalloc(z_info->pack_size * sizeof(struct object *));
     bool redraw = false;
@@ -1593,35 +1595,52 @@ void calc_inventory(struct player *p)
         /* Find the first quiver object with the correct label */
         for (current = p->gear; current; current = current->next)
         {
-            bool throwing = of_has(current->flags, OF_THROWING);
-
-            /* Only allow ammo and throwing weapons */
-            if (!(tval_is_ammo(current) || throwing)) continue;
-
             /* Allocate inscribed objects if it's the right slot */
-            if (current->note)
+            if (preferred_quiver_slot(current) == i)
             {
-                char *s = strchr(quark_str(current->note), '@');
+                int mult = (tval_is_ammo(current)? 1: z_info->thrown_quiver_mult);
+                struct object *to_quiver;
 
-                if (s && (s[1] == 'f' || s[1] == 'v'))
+                /*
+                 * Split the stack if necessary. Don't allow
+                 * splitting if it could result in overfilling
+                 * the pack by more than one slot.
+                 */
+                if (current->number * mult <= z_info->quiver_slot_size)
+                    to_quiver = current;
+                else
                 {
-                    int choice = s[2] - '0';
+                    int nsplit = z_info->quiver_slot_size / mult;
 
-                    /* Correct slot, fill it straight away */
-                    if (choice == i)
+                    my_assert(nsplit < current->number);
+                    if ((nsplit > 0) && (n_stack_split <= n_pack_remaining))
                     {
-                        int mult = (tval_is_ammo(current)? 1: 5);
-
-                        current->oidx = z_info->pack_size + p->body.count + i;
-                        p->upkeep->quiver[i] = current;
-                        p->upkeep->quiver_cnt += current->number * mult;
-
-                        /* In the quiver counts as worn */
-                        object_learn_on_wield(p, current);
-
-                        /* Done with this slot */
-                        break;
+                        /*
+                         * Split off the portion that go to the pack. Since the
+                         * stack in the quiver is earlier in the gear list
+                         * it will prefer to remain in the quiver in future
+                         * calls to calc_inventory() and will be the preferential
+                         * destination for merges in combine_pack().
+                         */
+                        to_quiver = current;
+                        gear_insert_end(p, object_split(current, current->number - nsplit));
+                        ++n_stack_split;
                     }
+                    else
+                        to_quiver = NULL;
+                }
+
+                if (to_quiver)
+                {
+                    to_quiver->oidx = z_info->pack_size + p->body.count + i;
+                    p->upkeep->quiver[i] = to_quiver;
+                    p->upkeep->quiver_cnt += to_quiver->number * mult;
+
+                    /* In the quiver counts as worn */
+                    object_learn_on_wield(p, to_quiver);
+
+                    /* Done with this slot */
+                    break;
                 }
             }
         }
@@ -1630,7 +1649,7 @@ void calc_inventory(struct player *p)
     /* Now fill the rest of the slots in order */
     for (i = 0; i < z_info->quiver_size; i++)
     {
-        struct object *current, *first = NULL;
+        struct object *current, *to_quiver, *first = NULL;
         int j;
 
         /* If the slot is full, move on */
@@ -1658,13 +1677,28 @@ void calc_inventory(struct player *p)
         /* Stop looking if there's nothing left */
         if (!first) break;
 
-        /* If we have an item, slot it */
-        first->oidx = z_info->pack_size + p->body.count + i;
-        p->upkeep->quiver[i] = first;
-        p->upkeep->quiver_cnt += first->number;
+        /* If we have an item, slot it, splitting if needed, to fit. */
+        if (first->number <= z_info->quiver_slot_size)
+            to_quiver = first;
+        else if ((z_info->quiver_slot_size > 0) && (n_stack_split <= n_pack_remaining))
+        {
+            /* As above, split off the portion that goes to the pack. */
+            to_quiver = first;
+            gear_insert_end(p, object_split(first, first->number - z_info->quiver_slot_size));
+            ++n_stack_split;
+        }
+        else
+            to_quiver = NULL;
 
-        /* In the quiver counts as worn */
-        object_learn_on_wield(p, first);
+        if (to_quiver)
+        {
+            to_quiver->oidx = z_info->pack_size + p->body.count + i;
+            p->upkeep->quiver[i] = to_quiver;
+            p->upkeep->quiver_cnt += to_quiver->number;
+
+            /* In the quiver counts as worn */
+            object_learn_on_wield(p, to_quiver);
+        }
     }
 
     /* Note reordering */

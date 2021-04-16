@@ -46,7 +46,8 @@ extern bool object_stackable(struct player *p, const struct object *obj1,
 extern bool object_similar(struct player *p, const struct object *obj1,
     const struct object *obj2, object_stack_t mode);
 extern void object_origin_combine(struct object *obj1, struct object *obj2);
-extern void object_absorb_partial(struct object *obj1, struct object *obj2);
+extern void object_absorb_partial(struct object *obj1, struct object *obj2, object_stack_t mode1,
+    object_stack_t mode2);
 extern void object_absorb(struct object *obj1, struct object *obj2);
 extern void object_wipe(struct object *obj);
 extern void object_copy(struct object *dest, const struct object *src);

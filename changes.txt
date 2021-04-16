@@ -18,6 +18,7 @@ Angband 4.2.x:
 
 - Added commands to birth option screen to save and restore custom birth options
 - Allow fuel to be drawn from the quiver
+- Display average damage for devices, spells, and activations
 
 MAngband 1.5.x:
 
@@ -65,6 +66,7 @@ PWMAngband:
 - Add /know, /party, /who, /abi and /gold chat commands as shortcuts for
   "Check knowledge", "Access party menu", "Display connected players",
   "View abilities" and "Drop gold" commands
+- Add messages to explain why Raise Dead could fail
 
 Gameplay changes
 ----------------
@@ -126,6 +128,7 @@ PWMAngband:
 - Remove NO_STORES server option
 - Rename NO_SELLING server option to LIMITED_STORES, use an integer value
   to handle disabling selling completely and restricting the use of stores/home
+- Add life leech brand to forms with EXP_XXX melee blow effects
 
 Bugs fixed
 ----------
@@ -179,6 +182,7 @@ PWMAngband:
 - Learn runes of carried weapons properly for races and classes that cannot use
   weapons
 - Fix keymaps using '{' symbol
+- Fix "base" kind flags not added to "kind" kind flags in the case of books
 
 Coding changes
 --------------

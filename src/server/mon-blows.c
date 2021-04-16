@@ -452,7 +452,18 @@ static void melee_effect_experience(melee_effect_handler_context_t *context, int
     /* PvX */
     if (context->style == TYPE_PVX)
     {
-        if (context->target->monster) return;
+        /* PvM: drain life attack */
+        if (context->target->monster)
+        {
+            if (monster_is_living(context->target->monster))
+            {
+                int drain = ((context->damage > context->target->monster->hp)?
+                    context->target->monster->hp: context->damage) * drain_amount / 100;
+
+                hp_player_safe(context->p, 1 + drain / 2);
+            }
+            return;
+        }
 
         /* PvP: lose-exp attack */
         drain_xp(context->target->player, drain_amount);

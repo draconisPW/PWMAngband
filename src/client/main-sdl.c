@@ -1940,10 +1940,6 @@ static void ResizeWin(term_window *win, int w, int h)
     if (win->Term_idx == 0)
         net_term_resize(win->cols, win->rows, win->max_rows);
 
-    /* Send new width for dynamic resizing */
-    if ((window_flag[win->Term_idx] & PW_MONLIST) && Setup.initialized)
-        Send_monwidth(win->cols);
-
     /* Hack -- redraw all windows */
     if (Setup.initialized) do_cmd_redraw();
 }

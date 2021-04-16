@@ -540,7 +540,7 @@ void dump_spells(struct player *p, struct object *obj)
             my_strcpy(spell_name, spell->name, sizeof(spell_name));
         strnfmt(out_val, sizeof(out_val), "%-30s%2d %4d %3d%%%s", spell_name, spell->slevel,
             spell->smana, spell_chance(p, spell_index), comment);
-        my_strcpy(out_desc, spell->text, sizeof(out_desc));
+        spell_description(p, spell_index, -1, true, out_desc, sizeof(out_desc));
 
         Send_spell_info(p, bidx, j, out_val, &flags);
         Send_spell_desc(p, bidx, j, out_desc);

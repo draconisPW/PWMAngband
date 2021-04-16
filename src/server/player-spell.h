@@ -36,4 +36,7 @@ extern void show_mimic_spells(struct player *p);
 extern bool cast_spell_proj(struct player *p, int cidx, int spell_index, bool silent);
 extern void fill_beam_info(struct player *p, int spell_index, struct beam_info *beam);
 
+extern void spell_description(struct player *p, int spell_index, int flag, bool need_know,
+    char *out_desc, int size);
+
 #endif /* PLAYER_SPELL_H */

@@ -1895,7 +1895,7 @@ static void display_entry(struct player *p, struct object *obj, bool home)
         }
 
         /* Limit to the number that can be carried */
-        amt = MIN(amt, inven_carry_num(p, obj, false));
+        amt = MIN(amt, inven_carry_num(p, obj));
     }
 
     /* Player owned stores */
@@ -1920,7 +1920,7 @@ static void display_entry(struct player *p, struct object *obj, bool home)
                 amt++;
 
             /* Limit to the number that can be carried */
-            amt = MIN(amt, inven_carry_num(p, obj, false));
+            amt = MIN(amt, inven_carry_num(p, obj));
         }
     }
 
@@ -2427,7 +2427,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     object_copy_amt(bought, obj, amt);
 
     /* Ensure we have room */
-    if (bought->number > inven_carry_num(p, bought, false))
+    if (bought->number > inven_carry_num(p, bought))
     {
         msg(p, "You cannot carry that many items.");
         object_delete(&bought);
@@ -2604,7 +2604,7 @@ void do_cmd_retrieve(struct player *p, int item, int amt)
     object_copy_amt(picked_item, obj, amt);
 
     /* Ensure we have room */
-    if (picked_item->number > inven_carry_num(p, picked_item, false))
+    if (picked_item->number > inven_carry_num(p, picked_item))
     {
         msg(p, "You cannot carry that many items.");
         object_delete(&picked_item);

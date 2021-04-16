@@ -371,42 +371,40 @@ static void project_object_handler_MAKE_TRAP(project_object_handler_context_t *c
 static void project_object_handler_STONE_WALL(project_object_handler_context_t *context) {}
 
 
-/* Can this race be raised? */
-static bool valid_race(project_object_handler_context_t *context, struct monster_race *race)
-{
-    int level = monster_level(&context->cave->wpos), summon_level;
+/*
+ * The "type" of the current "raise specific"
+ */
+static int raise_specific_type = 0;
 
-    if (!race) return false;
+
+/*
+ * Decide if a monster race is "okay" to raise as a skeleton.
+ *
+ * Compares the given monster to the monster type specified by
+ * raise_specific_type. Returns true if the monster is eligible to
+ * be raised, false otherwise.
+ */
+static bool raise_specific_skeleton(struct monster_race *race)
+{
+    struct monster_race *skeleton = &r_info[raise_specific_type];
 
     /* Skip uniques and monsters that can't be generated */
     if (monster_is_unique(race)) return false;
     if (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters) return false;
     if (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters) return false;
 
-    /* Raised monsters can't be too powerful */
-    if (context->origin->player)
-        summon_level = (level + context->origin->player->lev) / 2 + 5;
-    else
-        summon_level = (level + context->origin->monster->level) / 2 + 5;
-    return (race->level <= summon_level);
-}
+    /* Must be a skeleton */
+    if (race->base != lookup_monster_base("skeleton")) return false;
 
-
-/* Is the race consistent with the skeleton? */
-static bool consistent_skeleton(struct monster_race *race, struct monster_race *skeleton)
-{
+    /* Is the race consistent with the skeleton? */
     if (streq(race->name, "skeleton kobold"))
         return (skeleton->base == lookup_monster_base("kobold"));
-
     if (streq(race->name, "skeleton orc"))
         return (skeleton->base == lookup_monster_base("orc"));
-
     if (streq(race->name, "skeleton human"))
         return (skeleton->base == lookup_monster_base("person"));
-
     if (streq(race->name, "skeleton troll"))
         return (skeleton->base == lookup_monster_base("troll"));
-
     if (streq(race->name, "skeleton two-headed troll"))
         return streq(skeleton->name, "two-headed troll");
 
@@ -414,25 +412,45 @@ static bool consistent_skeleton(struct monster_race *race, struct monster_race *
     if (strstr(race->name, "druj"))
         return one_in_(100);
 
+    /* If we made it here, we're fine */
     return true;
 }
 
 
-/* Is the race consistent with the corpse? */
-static bool consistent_corpse(struct monster_race *race, struct monster_race *corpse)
+/*
+ * Decide if a monster race is "okay" to raise as a corpse.
+ *
+ * Compares the given monster to the monster type specified by
+ * raise_specific_type. Returns true if the monster is eligible to
+ * be raised, false otherwise.
+ */
+static bool raise_specific_corpse(struct monster_race *race)
 {
+    struct monster_race *corpse = &r_info[raise_specific_type];
+
+    /* Skip uniques and monsters that can't be generated */
+    if (monster_is_unique(race)) return false;
+    if (rf_has(race->flags, RF_PWMANG_BASE) && !cfg_base_monsters) return false;
+    if (rf_has(race->flags, RF_PWMANG_EXTRA) && !cfg_extra_monsters) return false;
+
+    /* Can be a wraith or a lich */
+    if (race->base == lookup_monster_base("wraith")) return true;
+    if (race->base == lookup_monster_base("lich")) return true;
+
+    /* Must be a zombie */
+    if (race->base != lookup_monster_base("zombie")) return false;
+
+    /* Is the race consistent with the corpse? */
     if (streq(race->name, "zombified kobold"))
         return (corpse->base == lookup_monster_base("kobold"));
-
     if (streq(race->name, "zombified orc") || streq(race->name, "mummified orc"))
         return (corpse->base == lookup_monster_base("orc"));
-
     if (streq(race->name, "zombified human") || streq(race->name, "mummified human"))
         return (corpse->base == lookup_monster_base("person"));
-
     if (streq(race->name, "mummified troll"))
         return (corpse->base == lookup_monster_base("troll"));
 
+    /* If we made it here, we're fine */
     return true;
 }
 
@@ -454,29 +472,25 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
     /* Skeletons must match an existing skeleton race */
     if (tval_is_skeleton(context->obj))
     {
-        struct monster_race *skeleton = &r_info[context->obj->pval];
-        int tries = 20;
+        int level = monster_level(&context->cave->wpos), raise_level;
 
-        /* Try hard to raise something */
-        while (tries)
-        {
-            while (true)
-            {
-                race = &r_info[randint1(z_info->r_max - 1)];
-                if (!race->name) continue;
+        /* Raised monsters can't be too powerful */
+        if (context->origin->player)
+            raise_level = (level + context->origin->player->lev) / 2 + 5;
+        else
+            raise_level = (level + context->origin->monster->level) / 2 + 5;
 
-                /* Animated skeletons can be any of non unique skeleton */
-                if ((race->base == lookup_monster_base("skeleton")) &&
-                    consistent_skeleton(race, skeleton))
-                {
-                    break;
-                }
-            }
+        /* Save the "raise" type */
+        raise_specific_type = context->obj->pval;
 
-            if (valid_race(context, race)) break;
-            race = NULL;
-            tries--;
-        }
+        /* Prepare allocation table */
+        get_mon_num_prep(raise_specific_skeleton);
+
+        /* Pick a monster, using the level calculation */
+        race = get_mon_num(c, raise_level, true);
+
+        /* Prepare allocation table */
+        get_mon_num_prep(NULL);
     }
 
     /* Humanoid corpses can be raised too */
@@ -489,31 +503,25 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
         /* Otherwise raise a zombie, wraith or lich */
         else
         {
-            struct monster_race *corpse = &r_info[context->obj->pval];
-            int tries = 20;
+            int level = monster_level(&context->cave->wpos), raise_level;
 
-            /* Try hard to raise something */
-            while (tries)
-            {
-                while (true)
-                {
-                    race = &r_info[randint1(z_info->r_max - 1)];
-                    if (!race->name) continue;
+            /* Raised monsters can't be too powerful */
+            if (context->origin->player)
+                raise_level = (level + context->origin->player->lev) / 2 + 5;
+            else
+                raise_level = (level + context->origin->monster->level) / 2 + 5;
 
-                    /* Animated corpses can be any of non unique z, W or L */
-                    if (race->base == lookup_monster_base("wraith")) break;
-                    if (race->base == lookup_monster_base("lich")) break;
-                    if ((race->base == lookup_monster_base("zombie")) &&
-                        consistent_corpse(race, corpse))
-                    {
-                        break;
-                    }
-                }
+            /* Save the "raise" type */
+            raise_specific_type = context->obj->pval;
 
-                if (valid_race(context, race)) break;
-                race = NULL;
-                tries--;
-            }
+            /* Prepare allocation table */
+            get_mon_num_prep(raise_specific_corpse);
+
+            /* Pick a monster, using the level calculation */
+            race = get_mon_num(c, raise_level, true);
+
+            /* Prepare allocation table */
+            get_mon_num_prep(NULL);
         }
     }
 
@@ -527,17 +535,26 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
     }
 
     /* Failure */
-    if (!valid_race(context, race)) return;
+    if (!race)
+    {
+        msg(context->origin->player, "You're not powerful enough to raise anything here.");
+        return;
+    }
 
     /* Raising dead costs mana */
     if (context->origin->player && !OPT(context->origin->player, risky_casting) &&
         (race->level > (context->origin->player->csp - context->origin->player->spell_cost)))
     {
+        msg(context->origin->player, "You don't have enough mana to raise any %s here.", race->name);
         return;
     }
 
     /* Look for a location */
-    if (!summon_location(c, &grid, &context->grid, 60)) return;
+    if (!summon_location(c, &grid, &context->grid, 60))
+    {
+        msg(context->origin->player, "Can't find a suitable location to raise any %s here.", race->name);
+        return;
+    }
 
     /* Place a new monster */
     if (place_new_monster(context->origin->player, c, &grid, race, 0, &info, ORIGIN_DROP_SUMMON))
@@ -561,6 +578,8 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
             context->origin->player->spell_cost += race->level;
         }
     }
+    else
+        msg(context->origin->player, "Can't place any %s here.", race->name);
 }
 
 

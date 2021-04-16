@@ -731,7 +731,7 @@ void show_ghost_spells(struct player *p)
         /* Format information */
         strnfmt(out_val, sizeof(out_val), "%-30s%2d %4d %3d%%%s", spell->name, spell->slevel,
             spell->smana, 0, comment);
-        my_strcpy(out_desc, spell->text, sizeof(out_desc));
+        spell_description(p, spell->sidx, -1, false, out_desc, sizeof(out_desc));
 
         flags.line_attr = line_attr;
         flags.flag = RSF_NONE;
@@ -1086,7 +1086,7 @@ void show_mimic_spells(struct player *p)
         /* Format information */
         strnfmt(out_val, sizeof(out_val), "%-30s%2d %4d %3d%%%s", spell->name, 0, spell->smana,
             spell->sfail, comment);
-        strnfmt(out_desc, sizeof(out_desc), spell->text, flag);
+        spell_description(p, spell->sidx, flag, false, out_desc, sizeof(out_desc));
 
         flags.line_attr = line_attr;
         flags.flag = flag;
@@ -1244,5 +1244,69 @@ void fill_beam_info(struct player *p, int spell_index, struct beam_info *beam)
                 }
             }
         }
+    }
+}
+
+
+/*
+ * Get spell description
+ */
+void spell_description(struct player *p, int spell_index, int flag, bool need_know, char *out_desc,
+    int size)
+{
+    int num_damaging = 0;
+    struct effect *e;
+    const struct player_class *c;
+    const struct class_spell *spell;
+    struct source actor_body;
+    struct source *data = &actor_body;
+    char buf[NORMAL_WID];
+    bool valid;
+
+    source_player(data, 0, p);
+
+    c = p->clazz;
+    if (p->ghost && !player_can_undead(p)) c = lookup_player_class("Ghost");
+    spell = spell_by_index(&c->magic, spell_index);
+
+    /* Spell description */
+    if (flag == -1) my_strcpy(out_desc, spell->text, size);
+    else strnfmt(out_desc, size, spell->text, flag);
+
+    /* To summarize average damage, count the damaging effects */
+    for (e = spell->effect; e != NULL; e = effect_next(e, data))
+    {
+        if (effect_damages(e, data)) num_damaging++;
+    }
+
+    /* Now enumerate the effects' damage and type if not forgotten */
+    valid = (need_know? (p->spell_flags && (p->spell_flags[spell_index] & PY_SPELL_WORKED) &&
+        !(p->spell_flags[spell_index] & PY_SPELL_FORGOTTEN)): true);
+    if ((num_damaging > 0) && valid)
+    {
+        int i = 0;
+
+        my_strcat(out_desc, " Inflicts an average of", size);
+        for (e = spell->effect; e != NULL; e = effect_next(e, data))
+        {
+            if (effect_damages(e, data))
+            {
+                const char *projection = effect_projection(e, data);
+
+                if ((num_damaging > 2) && (i > 0))
+                    my_strcat(out_desc, ",", size);
+                if ((num_damaging > 1) && (i == num_damaging - 1))
+                    my_strcat(out_desc, " and", size);
+                strnfmt(buf, sizeof(buf), " {%d}", effect_avg_damage(e, data));
+                my_strcat(out_desc, buf, size);
+                if (strlen(projection) > 0)
+                {
+                    strnfmt(buf, sizeof(buf), " %s", projection);
+                    my_strcat(out_desc, buf, size);
+                }
+                i++;
+            }
+        }
+        my_strcat(out_desc, " damage.", size);
     }
 }
