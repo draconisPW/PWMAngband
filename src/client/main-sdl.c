@@ -52,6 +52,9 @@ static bool fullscreen = false;
 /* Want nice graphics? */
 static bool nicegfx = false;
 
+/* Want window borders? */
+static bool windowborders = true;
+
 static int overdraw = 0;
 static int overdraw_max = 0;
 
@@ -245,6 +248,7 @@ static int MoreFullscreen;  /* Fullscreen toggle button */
 static int MoreNiceGfx;     /* Nice graphics toggle button */
 static int MoreSnapPlus;    /* Increase snap range */
 static int MoreSnapMinus;   /* Decrease snap range */
+static int MoreWindowBorders;  /* Window Borders toggle button */
 
 static bool Moving;             /* Moving a window */
 static bool Sizing;             /* Sizing a window */
@@ -1107,10 +1111,13 @@ static void sdl_BlitAll(void)
             }
         }
 
-        /* Paranoia: always redraw the borders of the window */
-        sdl_DrawBox(AppWin, &rc, colour, win->border);
+        if (windowborders)
+        {
+            /* Paranoia: always redraw the borders of the window */
+            sdl_DrawBox(AppWin, &rc, colour, win->border);
+        }
     }
-    
+
     sdl_RECT(window->left, window->top, window->width, window->height, &rc);
 
     SDL_BlitSurface(window->surface, NULL, AppWin, &rc);
@@ -1468,6 +1475,14 @@ static void AcceptChanges(sdl_Button *sender)
 
         do_video_reset = true;
     }
+    
+    button = sdl_ButtonBankGet(&PopUp.buttons, MoreWindowBorders);
+    
+    if (button->tag != windowborders)
+    {
+        windowborders = !windowborders;
+        do_update = true;
+    }
 
     SetStatusButtons();
 
@@ -1632,6 +1647,12 @@ static void MoreDraw(sdl_Window *win)
 
     sdl_ButtonMove(button, 150, y);
     y += 20;
+    
+    button = sdl_ButtonBankGet(&win->buttons, MoreWindowBorders);
+    sdl_WindowText(win, colour, 20, y, "Window borders:");
+
+    sdl_ButtonMove(button, 150, y);
+    y += 20;
 
     sdl_WindowText(win, colour, 20, y, format("Snap range is %d.", SnapRange));
     button = sdl_ButtonBankGet(&win->buttons, MoreSnapMinus);
@@ -1766,6 +1787,17 @@ static void MoreActivate(sdl_Button *sender)
     sdl_ButtonCaption(button, fullscreen? "On": "Off");
     button->tag = fullscreen;
     button->activate = FlipTag;
+    
+    MoreWindowBorders = sdl_ButtonBankNew(&PopUp.buttons);
+    button = sdl_ButtonBankGet(&PopUp.buttons, MoreWindowBorders);
+
+    button->unsel_colour = ucolour;
+    button->sel_colour = scolour;
+    sdl_ButtonSize(button, 50, PopUp.font.height + 2);
+    sdl_ButtonVisible(button, true);
+    sdl_ButtonCaption(button, windowborders? "On": "Off");
+    button->tag = windowborders;
+    button->activate = FlipTag;
 
     MoreSnapPlus = sdl_ButtonBankNew(&PopUp.buttons);
     button = sdl_ButtonBankGet(&PopUp.buttons, MoreSnapPlus);
@@ -1880,8 +1912,11 @@ static void ResizeWin(term_window *win, int w, int h)
         AppWin->format->BitsPerPixel, AppWin->format->Rmask, AppWin->format->Gmask,
         AppWin->format->Bmask, AppWin->format->Amask);
 
-    /* Fill it */
-    SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, 160, 160, 60));
+    if (windowborders)
+    {
+        /* Fill it */
+        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, 160, 160, 60));
+    }
 
     /* Label it */
     sdl_FontDraw(&SystemFont, win->surface, back_colour, 1, 1,
@@ -1940,6 +1975,10 @@ static void ResizeWin(term_window *win, int w, int h)
     if (win->Term_idx == 0)
         net_term_resize(win->cols, win->rows, win->max_rows);
 
+    /* Send new width for dynamic resizing */
+    if ((window_flag[win->Term_idx] & PW_MONLIST) && Setup.initialized)
+        Send_monwidth(win->cols);
+
     /* Hack -- redraw all windows */
     if (Setup.initialized) do_cmd_redraw();
 }
@@ -1980,6 +2019,8 @@ static errr load_prefs(void)
         }
         else if (strstr(buf, "Fullscreen"))
             fullscreen = atoi(s);
+        else if (strstr(buf, "WindowBorders"))
+            windowborders = atoi(s);
         else if (strstr(buf, "NiceGraphics"))
             nicegfx = atoi(s);
         else if (strstr(buf, "Graphics"))
@@ -2098,6 +2139,7 @@ static errr save_prefs(void)
 
     file_putf(fff, "Resolution = %dx%d\n", screen_w, screen_h);
     file_putf(fff, "Fullscreen = %d\n", fullscreen);
+    file_putf(fff, "WindowBorders = %d\n", windowborders);
     file_putf(fff, "NiceGraphics = %d\n", nicegfx);
     file_putf(fff, "Graphics = %d\n", use_graphics);
     file_putf(fff, "TileWidth = %d\n", tile_width);
