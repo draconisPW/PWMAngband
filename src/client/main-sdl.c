@@ -1475,13 +1475,20 @@ static void AcceptChanges(sdl_Button *sender)
 
         do_video_reset = true;
     }
-    
+
     button = sdl_ButtonBankGet(&PopUp.buttons, MoreWindowBorders);
-    
+
     if (button->tag != windowborders)
     {
+        int i;
+
         windowborders = !windowborders;
         do_update = true;
+
+        for (i = 0; i < ANGBAND_TERM_MAX; i++)
+        {
+            ResizeWin(&windows[i], windows[i].width, windows[i].height);
+        }
     }
 
     SetStatusButtons();
