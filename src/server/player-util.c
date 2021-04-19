@@ -312,7 +312,7 @@ void player_regen_hp(struct player *p, struct chunk *c)
     if (p->timed[TMD_REGEN]) percent *= 3;
 
     /* Some things slow it down */
-    if (player_of_has(p, OF_IMPAIR_HP) || player_has(p, PF_COMBAT_REGEN)) percent /= 2;
+    if (player_of_has(p, OF_IMPAIR_HP)) percent /= 2;
 
     /* Various things interfere with physical healing */
     else

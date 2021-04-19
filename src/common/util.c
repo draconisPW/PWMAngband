@@ -133,6 +133,7 @@ void cleanup_class(void)
         while (item)
         {
             item_next = item->next;
+            mem_free(item->eopts);
             mem_free(item);
             item = item_next;
         }

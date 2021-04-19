@@ -785,6 +785,7 @@ bool object_fully_known(struct player *p, const struct object *obj)
 /*
  * Checks whether the player knows whether an object has a given flag
  *
+ * p is the player
  * obj is the object
  * flag is the flag
  */

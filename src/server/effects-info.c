@@ -154,7 +154,7 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
                 break;
             }
 
-            case EFINFO_HURT:
+            case EFINFO_DICE:
             {
                 strnfmt(desc, sizeof(desc), effect_desc(e), dice_string);
                 break;
@@ -462,12 +462,6 @@ bool effect_describe(struct player *p, const struct object *obj, const struct ef
                 break;
             }
 
-            case EFINFO_TAP:
-            {
-                strnfmt(desc, sizeof(desc), effect_desc(e), dice_string);
-                break;
-            }
-
             /* PWMAngband: restore mana can restore a fixed amount of mana points, or all of them */
             case EFINFO_MANA:
             {
@@ -564,8 +558,10 @@ struct effect *effect_next(struct effect *effect, void *data)
  * Random effects are considered to deal damage if any sub-effect deals
  * damage.
  */
-bool effect_damages(const struct effect *effect, void *data)
+bool effect_damages(const struct effect *effect, void *data, const char *name)
 {
+    const char *type;
+
     if (effect->index == EF_RANDOM)
     {
         /* Random effect */
@@ -576,15 +572,17 @@ bool effect_damages(const struct effect *effect, void *data)
         /* Check if any of the subeffects do damage */
         for (i = 0; e != NULL && i < num_subeffects; i++)
         {
-            if (effect_damages(e, data)) return true;
+            if (effect_damages(e, data, name)) return true;
             e = e->next;
         }
 
         return false;
     }
 
+    type = effect_info(effect, name);
+
     /* Non-random effect, check the info string for damage */
-    return (effect_info(effect) != NULL && streq(effect_info(effect), "dam"));
+    return ((type != NULL) && streq(type, "dam"));
 }
 
 
@@ -592,7 +590,7 @@ bool effect_damages(const struct effect *effect, void *data)
  * Calculates the average damage of the effect. Random effects return an
  * average of all sub-effect averages.
  */
-int effect_avg_damage(const struct effect *effect, void *data)
+int effect_avg_damage(const struct effect *effect, void *data, const char *name)
 {
     if (effect->index == EF_RANDOM)
     {
@@ -604,7 +602,7 @@ int effect_avg_damage(const struct effect *effect, void *data)
 
         for (i = 0; e != NULL && i < num_subeffects; i++)
         {
-            total += effect_avg_damage(e, data);
+            total += effect_avg_damage(e, data, name);
             e = e->next;
         }
 
@@ -612,8 +610,11 @@ int effect_avg_damage(const struct effect *effect, void *data)
         return total / num_subeffects;
     }
 
-    /* Non-random effect, calculate the average damage */
-    return (effect_damages(effect, data)? dice_evaluate(effect->dice, 0, AVERAGE, data, NULL): 0);
+    /* Non-random effect, calculate the average damage (be sure dice is defined) */
+    if (effect_damages(effect, data, name) && (effect->dice != NULL))
+        return dice_evaluate(effect->dice, 0, AVERAGE, data, NULL);
+
+    return 0;
 }
 
 

@@ -8227,9 +8227,26 @@ bool effect_aim(const struct effect *effect)
 }
 
 
-const char *effect_info(const struct effect *effect)
+const char *effect_info(const struct effect *effect, const char *name)
 {
     if (!effect_valid(effect)) return NULL;
+
+    /* Hack -- teleport other (show nothing) */
+    if ((effect->index == EF_BOLT) && (effect->subtype == PROJ_AWAY_ALL)) return NULL;
+
+    /* Hack -- non-explosive branded shots (show nothing) */
+    if ((effect->index == EF_BOW_BRAND) && (effect->radius == 0)) return NULL;
+
+    /* Hack -- non-damaging LOS effects (show nothing) */
+    if ((effect->index == EF_PROJECT_LOS_AWARE) && (effect->other == 0)) return NULL;
+
+    /* Hack -- illumination ("damage" value is used for radius, so change the tip accordingly) */
+    if ((effect->index == EF_LIGHT_AREA) && streq(name, "elemental"))
+        return "range";
+
+    /* Hack -- mana drain ("damage" value is used for healing, so change the tip accordingly) */
+    if ((effect->index == EF_BOLT_AWARE) && (effect->subtype == PROJ_DRAIN_MANA))
+        return "heal";
 
     return effects[effect->index].info;
 }

@@ -366,24 +366,7 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
         if (first) effect = spell->effect;
         else effect = effect->next;
 
-        type = effect_info(effect);
-
-        /* Hack -- teleport other (show nothing) */
-        if ((effect->index == EF_BOLT) && (effect->subtype == PROJ_AWAY_ALL)) return;
-
-        /* Hack -- non-explosive branded shots (show nothing) */
-        if ((effect->index == EF_BOW_BRAND) && (effect->radius == 0)) return;
-
-        /* Hack -- non-damaging LOS effects (show nothing) */
-        if ((effect->index == EF_PROJECT_LOS_AWARE) && (effect->other == 0)) return;
-
-        /* Hack -- illumination ("damage" value is used for radius, so change the tip accordingly) */
-        if ((effect->index == EF_LIGHT_AREA) && streq(spell->realm->name, "elemental"))
-            type = "range";
-
-        /* Hack -- mana drain ("damage" value is used for healing, so change the tip accordingly) */
-        if ((effect->index == EF_BOLT_AWARE) && (effect->subtype == PROJ_DRAIN_MANA))
-            type = "heal";
+        type = effect_info(effect, spell->realm->name);
 
         /* Hack -- set current spell (for spell_value_base_by_name) */
         current_spell = p->current_spell;
@@ -511,8 +494,8 @@ void get_spell_info(struct player *p, int spell_index, char *buf, size_t len)
 
         /* Hack -- if next effect has the same tip, also append that info */
         if (!effect->next) return;
-        if (!effect_info(effect->next)) return;
-        if (strcmp(effect_info(effect->next), effect_info(effect))) return;
+        if (!effect_info(effect->next, spell->realm->name)) return;
+        if (strcmp(effect_info(effect->next, spell->realm->name), type)) return;
     }
 }
 
@@ -1276,7 +1259,7 @@ void spell_description(struct player *p, int spell_index, int flag, bool need_kn
     /* To summarize average damage, count the damaging effects */
     for (e = spell->effect; e != NULL; e = effect_next(e, data))
     {
-        if (effect_damages(e, data)) num_damaging++;
+        if (effect_damages(e, data, spell->realm->name)) num_damaging++;
     }
 
     /* Now enumerate the effects' damage and type if not forgotten */
@@ -1289,7 +1272,7 @@ void spell_description(struct player *p, int spell_index, int flag, bool need_kn
         my_strcat(out_desc, " Inflicts an average of", size);
         for (e = spell->effect; e != NULL; e = effect_next(e, data))
         {
-            if (effect_damages(e, data))
+            if (effect_damages(e, data, spell->realm->name))
             {
                 const char *projection = effect_projection(e, data);
 
@@ -1297,7 +1280,7 @@ void spell_description(struct player *p, int spell_index, int flag, bool need_kn
                     my_strcat(out_desc, ",", size);
                 if ((num_damaging > 1) && (i == num_damaging - 1))
                     my_strcat(out_desc, " and", size);
-                strnfmt(buf, sizeof(buf), " {%d}", effect_avg_damage(e, data));
+                strnfmt(buf, sizeof(buf), " {%d}", effect_avg_damage(e, data, spell->realm->name));
                 my_strcat(out_desc, buf, size);
                 if (strlen(projection) > 0)
                 {

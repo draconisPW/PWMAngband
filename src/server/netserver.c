@@ -5994,8 +5994,7 @@ static int Enter_player(int ind)
 
     /* Create the character */
     p = player_birth(NumPlayers + 1, connp->account, connp->nick, connp->pass, ind, connp->ridx,
-        connp->cidx, connp->psex, connp->stat_roll, connp->options[OPT_birth_start_kit],
-        connp->options[OPT_birth_no_recall]);
+        connp->cidx, connp->psex, connp->stat_roll, connp->options);
 
     /* Failed, connection already destroyed */
     if (!p) return -1;
@@ -6497,6 +6496,13 @@ static int Receive_text_screen(int ind)
     {
         if (n == -1) Destroy_connection(ind, "text_screen read error");
         return n;
+    }
+
+    /* Paranoia */
+    if ((type < 0) || (type >= MAX_TEXTFILES))
+    {
+        Destroy_connection(ind, "text_screen read error");
+        return -1;
     }
 
     Send_text_screen(ind, type, off);

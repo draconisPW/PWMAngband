@@ -3,7 +3,7 @@
  * Purpose: Options
  */
 
-/* name  description  normal  server */
+/* name  description  type  normal  server */
 OP(none, "", MAX, false, false)
 OP(rogue_like_commands, "Use the roguelike command keyset", INTERFACE, false, false)
 OP(use_old_target, "Use old target by default", INTERFACE, false, true)

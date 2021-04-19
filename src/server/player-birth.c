@@ -551,7 +551,7 @@ static void player_outfit_aux(struct player *p, struct object_kind *k, byte numb
  *
  * Having an item identifies it and makes the player "aware" of its purpose.
  */
-static void player_outfit(struct player *p, bool start_kit, bool no_recall)
+static void player_outfit(struct player *p, bool options[OPT_MAX])
 {
     int i;
     const struct start_item *si;
@@ -584,10 +584,30 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
         my_assert(kind);
 
         /* Without start_kit, only start with food and light */
-        if (!start_kit && !tval_is_food_k(kind) && !tval_is_light_k(kind)) continue;
+        if (!options[OPT_birth_start_kit] && !tval_is_food_k(kind) && !tval_is_light_k(kind))
+            continue;
 
-        /* Don't give unnecessary starting equipment to no_recall characters */
-        if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
+        /* Exclude if configured to do so based on birth options. */
+        if (si->eopts)
+        {
+            bool included = true;
+            int eind = 0;
+
+            while (si->eopts[eind] && included)
+            {
+                if (si->eopts[eind] > 0)
+                {
+                    if (options[si->eopts[eind]]) included = false;
+
+                    /* Don't give unnecessary starting equipment on no_recall servers */
+                    if ((si->eopts[eind] == OPT_birth_no_recall) && (cfg_diving_mode == 3))
+                        included = false;
+                }
+                else if (!options[-si->eopts[eind]]) included = false;
+                ++eind;
+            }
+            if (!included) continue;
+        }
 
         player_outfit_aux(p, kind, (byte)num);
     }
@@ -599,7 +619,7 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
      * Without start_kit, start at least with the amount of gold we would need for buying
      * the items we don't get
      */
-    if (!start_kit)
+    if (!options[OPT_birth_start_kit])
     {
       int value = 0;
 
@@ -611,8 +631,27 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
           /* Skip food and light (we get them) */
           if (tval_is_food_k(kind) || tval_is_light_k(kind)) continue;
 
-          /* Skip starting equipment no_recall characters don't get */
-          if (((cfg_diving_mode == 3) || no_recall) && !si->flag) continue;
+          /* Exclude if configured to do so based on birth options. */
+          if (si->eopts)
+          {
+              bool included = true;
+              int eind = 0;
+
+              while (si->eopts[eind] && included)
+              {
+                  if (si->eopts[eind] > 0)
+                  {
+                      if (options[si->eopts[eind]]) included = false;
+
+                      /* Skip starting equipment no_recall characters don't get */
+                      if ((si->eopts[eind] == OPT_birth_no_recall) && (cfg_diving_mode == 3))
+                          included = false;
+                  }
+                  else if (!options[-si->eopts[eind]]) included = false;
+                  ++eind;
+              }
+              if (!included) continue;
+          }
 
           /* Prepare the item */
           obj = object_new();
@@ -627,7 +666,7 @@ static void player_outfit(struct player *p, bool start_kit, bool no_recall)
       if (p->au < value) p->au = value;
     }
 
-    if ((cfg_diving_mode > 0) || no_recall || is_dm_p(p)) return;
+    if ((cfg_diving_mode > 0) || options[OPT_birth_no_recall] || is_dm_p(p)) return;
 
     /* Give the player a deed of property */
     player_outfit_aux(p, lookup_kind_by_name(TV_DEED, "Deed of Property"), 1);
@@ -1198,7 +1237,7 @@ static int quickstart_ok(struct player *p, const char *name, int conn, bool no_r
  * fields, so we must be sure to clear them first.
  */
 struct player *player_birth(int id, u32b account, const char *name, const char *pass, int conn,
-    byte ridx, byte cidx, byte psex, s16b* stat_roll, bool start_kit, bool no_recall)
+    byte ridx, byte cidx, byte psex, s16b* stat_roll, bool options[OPT_MAX])
 {
     struct player *p;
     int i;
@@ -1217,7 +1256,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     /* Handle dynastic quick start */
     if (stat_roll[STAT_MAX] == BR_QDYNA)
     {
-        int ret = quickstart_ok(p, name, conn, no_recall);
+        int ret = quickstart_ok(p, name, conn, options[OPT_birth_no_recall]);
 
         if (ret == -1)
         {
@@ -1230,7 +1269,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     }
 
     /* Clear old information */
-    init_player(p, conn, old_history, no_recall);
+    init_player(p, conn, old_history, options[OPT_birth_no_recall]);
 
     /* Copy his name */
     my_strcpy(p->name, name, sizeof(p->name));
@@ -1293,7 +1332,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
             quickstart_roll(p, character_existed, &ridx, &cidx, &psex, &old_history, stat_roll);
 
         /* Hack -- rewipe the player info if load failed */
-        init_player(p, conn, old_history, no_recall);
+        init_player(p, conn, old_history, options[OPT_birth_no_recall]);
 
         /* Copy his name and connection info */
         my_strcpy(p->name, name, sizeof(p->name));
@@ -1335,10 +1374,10 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
         player_embody(p);
 
         /* Give the player some money */
-        get_money(p, no_recall);
+        get_money(p, options[OPT_birth_no_recall]);
 
         /* Outfit the player, if they can sell the stuff */
-        player_outfit(p, start_kit, no_recall);
+        player_outfit(p, options);
         player_outfit_dm(p);
 
         /* Now try wielding everything */
@@ -1359,7 +1398,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
         }
 
         /* Set his location, panel, etc. */
-        player_setup(p, id, account, no_recall);
+        player_setup(p, id, account, options[OPT_birth_no_recall]);
 
         /* Add new starting message */
         history_add_unique(p, "Began the quest to destroy Morgoth", HIST_PLAYER_BIRTH);
@@ -1396,7 +1435,7 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
     }
 
     /* Loading succeeded */
-    player_setup(p, id, account, no_recall);
+    player_setup(p, id, account, options[OPT_birth_no_recall]);
     return p;
 }
 

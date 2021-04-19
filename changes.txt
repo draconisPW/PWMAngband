@@ -19,6 +19,7 @@ Angband 4.2.x:
 - Added commands to birth option screen to save and restore custom birth options
 - Allow fuel to be drawn from the quiver
 - Display average damage for devices, spells, and activations
+- Allow CMD_WIELD to select from the quiver
 
 MAngband 1.5.x:
 
@@ -67,6 +68,7 @@ PWMAngband:
   "Check knowledge", "Access party menu", "Display connected players",
   "View abilities" and "Drop gold" commands
 - Add messages to explain why Raise Dead could fail
+- Add option to remove borders in the SDL client
 
 Gameplay changes
 ----------------
@@ -76,6 +78,7 @@ Angband 4.2.x:
 - Allow inscribed throwing weapons to be quivered
 - Blackguard tweaks
 - Nerf to all powerful modifiers
+- Disentangle IMPAIR_HP and COMBAT_REGEN
 
 MAngband 1.5.x:
 
@@ -196,6 +199,10 @@ Angband 4.2.x:
   quiver_absorb_num()
 - Modify compare_items() so the result is zero when both items are unknown
 - Optimize obj_kind_can_browse()
+- Correct some miscellaneous comments
+- Improvements to effect info
+- Allow item in starting kit to be excluded by a logical or of one or more birth
+  options (or negated birth options)
 
 MAngband 1.5.x:
 
@@ -228,12 +235,17 @@ PWMAngband:
 - Re-enable signal handling on Linux
 - Add dungeon profile to struct chunk
 - Remove ladder info from character dumps
+- Add paranoia check in Receive_text_screen()
+- Refactor effect_info() to take into consideration various hacks
 
-Compilation
------------
+Compilation/documentation
+-------------------------
 
 - USE_NCURSES define
 - Compiling with Embarcadero C++ 7.20
 - Update docs for option customization
 - Remove Necklace of the Eye support
 - Fix some typos in documentation
+- Add some descriptions for the front-end specific details
+- Update comments in object.txt and object_base.txt
+- Update class.txt comments

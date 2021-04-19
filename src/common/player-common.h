@@ -274,7 +274,7 @@ struct start_item
     int sval;                   /* Object sub-type */
     int min;                    /* Minimum starting amount */
     int max;                    /* Maximum starting amount */
-    int flag;                   /* Flag for no_recall characters */
+    int *eopts;                 /* Indices (zero terminated array) for birth options which can exclude item */
     struct start_item *next;
 };
 

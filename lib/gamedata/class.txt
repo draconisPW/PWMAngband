@@ -19,16 +19,16 @@
 # skill-melee:base:increment
 # skill-shoot:base:increment
 # skill-dig:base:increment
-# hitdie:mhp
-# max-attacks:max attacks (attack info)
-# min-weight:min weight (attack info)
-# strength-multiplier:strength multiplier (attack info)
-# equip:tval:sval:min:max:no_recall
+# hitdie:increment
+# max-attacks:count
+# min-weight:weight in tenths of pounds
+# strength-multiplier:multiplicative factor
+# equip:tval:sval:min:max:eopts
 # obj-flag:level of application:object flag
 # value:level of application:object modifier
 # brand:min level:max level:brand code
 # slay:min level:max level:slay code
-# player-flags:class flags
+# player-flags:player property flags
 # shape:level of application:monster race
 # title:title
 # attack:verb:hit_extra:min_level:chance:effect
@@ -41,7 +41,7 @@
 # spell:name:level:mana:fail:exp:sproj
 # cooldown:cooldown
 # effect:effect:subtype (if needed):radius (if needed):parameter (if needed)
-# effect-yx:y value for effect:x value for effect
+# effect-yx:yrange:xrange
 # dice:dice string
 # expr:dice expression
 # msg_self:message to self
@@ -57,17 +57,22 @@
 # digging bonus. The base entry is what gets added to the character's skills
 # at birth, the increments are added to the base skill every ten levels.
 
-# 'hitdie' is for max. hitpoints gained per level
+# 'hitdie' sets the class's contribution to the maximum hitpoints gained per
+# level
 
-# 'max-attacks' is for attack info - maximum possible number of attacks
+# 'max-attacks' sets the maximum possible number of blows per round.
 
-# 'min-weight' is for attack info - minimum weapon weight for calculating
-# the number of attacks
+# 'min-weight' is the minimum, in tenths of pounds, imposed on a weapon's weight
+# when computing the number of blows per round.
 
-# 'strength-multiplier' is for attack info - multiplier for attack calculations
+# 'strength-multiplier' is the multiplier for strength's contribution to the
+# number of blows per round; a bigger value grants more blows.
 
 # 'equip' is for starting equipment - tval of the item, sval of the item,
-# minimum amount, maximum amount, flag for no_recall characters.
+# minimum amount, maximum amount, names of birth options separated by spaces
+# or | (or none for no exclusion rules) which will exclude the item if set
+# (or, if the name of the option is preceded by NOT-, will exclude the item if
+# not set).
 
 # 'obj-flag' is for object flags (as in list-object-flags.h) that
 # classes possess innately at a certain level.
@@ -79,7 +84,8 @@
 
 # 'slay' is for slays that classes possess innately at a certain level.
 
-# 'player-flags' is for class flags.
+# 'player-flags' is for player properties (from player_property.txt) that the
+# class has.
 
 # 'shape' is for shapes that classes can polymorph into at a certain level.
 
@@ -122,7 +128,9 @@
 # 'effect' defines the spell effect (as listed in list-effects.h), along
 # with up to three effect parameters if needed
 
-# 'effect-yx' is y and x values for an effect if necessary
+# 'effect-yx' sets the y (i.e. vertical) range and x (i.e. horizontal) range
+# about the effect's centre. Only some effects (often detections) use those
+# ranges.
 
 # 'dice' provides a random value to be used by an effect (for damage,
 # healing, etc). As well as the normal random value fields described above,
@@ -161,12 +169,12 @@ hitdie:10
 max-attacks:6
 min-weight:30
 strength-multiplier:5
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:potion:Berserk Strength:1:1:0
-equip:sword:Dagger:1:1:1
-equip:soft armour:Soft Leather Armour:1:1:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:potion:Berserk Strength:1:1:birth_no_recall
+equip:sword:Dagger:1:1:none
+equip:soft armour:Soft Leather Armour:1:1:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 obj-flag:30:PROT_FEAR
 value:1:STR[3]
 value:1:INT[-2]
@@ -202,10 +210,10 @@ hitdie:1
 max-attacks:4
 min-weight:40
 strength-multiplier:2
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Rapier:1:1:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Rapier:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-3]
 value:1:INT[3]
 value:1:CON[-2]
@@ -228,7 +236,7 @@ book-graphics:?:R
 book-properties:1:30:25
 book-alloc:40:1 to 100
 book-desc:A standard arcane book with a few spells.
-equip:magic book:[Magic for Beginners]:1:1:1
+equip:magic book:[Magic for Beginners]:1:1:none
 
 spell:Magic Missile:1:1:22:4:0
 effect:BOLT_OR_BEAM:MISSILE:0:-10
@@ -497,10 +505,10 @@ hitdie:2
 max-attacks:4
 min-weight:35
 strength-multiplier:3
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:hafted:Whip:1:1:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:hafted:Whip:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-2]
 value:1:WIS[3]
 value:1:DEX[-2]
@@ -545,7 +553,7 @@ book-graphics:?:y
 book-properties:1:30:25
 book-alloc:40:1 to 100
 book-desc:A standard nature book with a few verses.
-equip:nature book:[Lesser Charms]:1:1:1
+equip:nature book:[Lesser Charms]:1:1:none
 
 spell:Detect Life:1:1:23:2:0
 effect:DETECT_LIVING_MONSTERS
@@ -793,11 +801,11 @@ hitdie:2
 max-attacks:4
 min-weight:35
 strength-multiplier:3
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:hafted:Mace:1:1:1
-equip:potion:Cure Serious Wounds:2:2:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:hafted:Mace:1:1:none
+equip:potion:Cure Serious Wounds:2:2:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-1]
 value:1:INT[-3]
 value:1:WIS[3]
@@ -822,7 +830,7 @@ book-graphics:?:G
 book-properties:1:30:25
 book-alloc:40:1 to 100
 book-desc:A standard divine book with a few prayers.
-equip:prayer book:[Beginners Handbook]:1:1:1
+equip:prayer book:[Beginners Handbook]:1:1:none
 
 spell:Detect Evil:1:1:10:4:0
 effect:DETECT_EVIL
@@ -1095,10 +1103,10 @@ hitdie:1
 max-attacks:4
 min-weight:35
 strength-multiplier:3
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Main Gauche:1:1:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Main Gauche:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-3]
 value:1:INT[3]
 value:1:CON[-2]
@@ -1128,7 +1136,7 @@ book-graphics:?:s
 book-properties:1:30:25
 book-alloc:40:1 to 100
 book-desc:A standard shadow book with a few rituals.
-equip:shadow book:[Shadows for Beginners]:1:1:1
+equip:shadow book:[Shadows for Beginners]:1:1:none
 
 spell:Horrify:1:2:26:2:0
 effect:BOLT_AWARE:TURN_ALL
@@ -1414,11 +1422,11 @@ hitdie:7
 max-attacks:5
 min-weight:30
 strength-multiplier:5
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Main Gauche:1:1:1
-equip:scroll:Protection from Evil:1:1:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Main Gauche:1:1:none
+equip:scroll:Protection from Evil:1:1:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[1]
 value:1:INT[-3]
 value:1:WIS[1]
@@ -1439,7 +1447,7 @@ title:Paladin Lord
 magic:1:400:5
 
 book:prayer book:town:[Beginners Handbook]:5:divine
-equip:prayer book:[Beginners Handbook]:1:1:1
+equip:prayer book:[Beginners Handbook]:1:1:none
 
 spell:Detect Evil:1:1:30:4:0
 effect:DETECT_EVIL
@@ -1634,11 +1642,11 @@ hitdie:5
 max-attacks:5
 min-weight:20
 strength-multiplier:4
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Dagger:1:1:1
-equip:soft armour:Soft Leather Armour:1:1:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Dagger:1:1:none
+equip:soft armour:Soft Leather Armour:1:1:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:INT[1]
 value:1:WIS[-3]
 value:1:DEX[3]
@@ -1660,7 +1668,7 @@ title:Master Thief
 magic:5:350:5
 
 book:shadow book:town:[Shadows for Beginners]:5:shadow
-equip:shadow book:[Shadows for Beginners]:1:1:1
+equip:shadow book:[Shadows for Beginners]:1:1:none
 
 spell:Detect Creatures:5:1:50:4:0
 effect:DETECT_VISIBLE_MONSTERS
@@ -1845,12 +1853,12 @@ hitdie:6
 max-attacks:5
 min-weight:35
 strength-multiplier:4
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Main Gauche:1:1:1
-equip:bow:Short Bow:1:1:0
-equip:arrow:Arrow:15:20:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Main Gauche:1:1:none
+equip:bow:Short Bow:1:1:birth_no_recall
+equip:arrow:Arrow:15:20:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:WIS[2]
 value:1:DEX[1]
 value:1:CON[-1]
@@ -1869,7 +1877,7 @@ title:Ranger Lord
 magic:3:400:5
 
 book:nature book:town:[Lesser Charms]:4:nature
-equip:nature book:[Lesser Charms]:1:1:1
+equip:nature book:[Lesser Charms]:1:1:none
 
 spell:Detect Life:3:1:25:2:0
 effect:DETECT_LIVING_MONSTERS
@@ -2018,12 +2026,12 @@ hitdie:9
 max-attacks:5
 min-weight:100
 strength-multiplier:5
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Tulwar:1:1:1
-equip:shield:Leather Shield:1:1:1
-equip:scroll:Word of Recall:1:1:0
-equip:potion:Cure Light Wounds:1:1:1
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Tulwar:1:1:none
+equip:shield:Leather Shield:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
+equip:potion:Cure Light Wounds:1:1:none
 obj-flag:1:IMPAIR_HP
 value:1:STR[2]
 value:1:WIS[-3]
@@ -2045,7 +2053,7 @@ title:Tyrant
 magic:1:600:5
 
 book:shadow book:town:[Shadows for Beginners]:5:shadow
-equip:shadow book:[Shadows for Beginners]:1:1:1
+equip:shadow book:[Shadows for Beginners]:1:1:none
 
 spell:Seek Battle:1:1:15:2:0
 effect:DETECT_FEARFUL_MONSTERS
@@ -2247,10 +2255,10 @@ hitdie:0
 max-attacks:1
 min-weight:40
 strength-multiplier:2
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Dagger:1:1:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Dagger:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-5]
 value:1:INT[5]
 value:1:CON[-3]
@@ -2270,7 +2278,7 @@ title:Arch-Mage
 magic:1:300:5
 
 book:magic book:town:[Magic for Beginners]:8:arcane
-equip:magic book:[Magic for Beginners]:1:1:1
+equip:magic book:[Magic for Beginners]:1:1:none
 
 spell:Magic Missile:1:1:12:4:0
 effect:BOLT_OR_BEAM:MISSILE:0:-10
@@ -2590,12 +2598,12 @@ hitdie:9
 max-attacks:6
 min-weight:30
 strength-multiplier:5
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:potion:Berserk Strength:1:1:0
-equip:sword:Dagger:1:1:1
-equip:soft armour:Soft Leather Armour:1:1:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:potion:Berserk Strength:1:1:birth_no_recall
+equip:sword:Dagger:1:1:none
+equip:soft armour:Soft Leather Armour:1:1:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[3]
 value:1:INT[-4]
 value:1:WIS[-3]
@@ -2631,12 +2639,12 @@ hitdie:4
 max-attacks:2
 min-weight:35
 strength-multiplier:3
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Dagger:1:1:1
-equip:bow:Short Bow:1:1:0
-equip:arrow:Arrow:30:40:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Dagger:1:1:none
+equip:bow:Short Bow:1:1:birth_no_recall
+equip:arrow:Arrow:30:40:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-2]
 value:1:INT[-2]
 value:1:WIS[2]
@@ -2657,7 +2665,7 @@ title:Elite Archer
 magic:5:400:5
 
 book:nature book:town:[Lesser Charms]:4:nature
-equip:nature book:[Lesser Charms]:1:1:1
+equip:nature book:[Lesser Charms]:1:1:none
 
 spell:Lightning Shots:5:1:10:4:0
 effect:BOW_BRAND_SHOT:ELEC
@@ -2782,11 +2790,11 @@ skill-melee:64:40
 skill-shoot:60:30
 skill-dig:10:5
 hitdie:8
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:potion:Berserk Strength:1:1:0
-equip:soft armour:Soft Leather Armour:1:1:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:potion:Berserk Strength:1:1:birth_no_recall
+equip:soft armour:Soft Leather Armour:1:1:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 obj-flag:10:FEATHER
 obj-flag:15:PROT_FEAR
 obj-flag:20:PROT_CONF
@@ -2837,10 +2845,10 @@ hitdie:3
 max-attacks:4
 min-weight:35
 strength-multiplier:3
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Dagger:1:1:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Dagger:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-1]
 value:1:INT[-2]
 value:1:WIS[3]
@@ -2864,7 +2872,7 @@ book-graphics:?:B
 book-properties:1:30:25
 book-alloc:40:1 to 100
 book-desc:A glowing stone, engraved with runes of power.
-equip:psi book:of Telepathy:1:1:1
+equip:psi book:of Telepathy:1:1:none
 
 spell:Mind Blast:1:1:12:4:0
 effect:BOLT_OR_BEAM:PSI
@@ -3182,10 +3190,10 @@ hitdie:1
 max-attacks:3
 min-weight:40
 strength-multiplier:2
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:sword:Dagger:1:1:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Dagger:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-4]
 value:1:INT[4]
 value:1:CON[-2]
@@ -3285,7 +3293,7 @@ book-graphics:?:x
 book-properties:5:30:100
 book-alloc:25:5 to 100
 book-desc:A standard spellbook with a few spells.
-equip:elemental book:[Fire]:1:1:1
+equip:elemental book:[Fire]:1:1:none
 
 spell:Burning Hands:1:1:17:4:0
 effect:BOLT_MELEE:FIRE
@@ -3665,11 +3673,11 @@ hitdie:0
 max-attacks:1
 min-weight:40
 strength-multiplier:2
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:hafted:Quarterstaff:1:1:1
-equip:scroll:Summon Monster:10:10:1
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:hafted:Quarterstaff:1:1:none
+equip:scroll:Summon Monster:10:10:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-5]
 value:1:INT[-5]
 value:1:WIS[5]
@@ -3690,7 +3698,7 @@ title:Summoner Lord
 magic:1:300:5
 
 book:prayer book:town:[Beginners Handbook]:5:divine
-equip:prayer book:[Beginners Handbook]:1:1:1
+equip:prayer book:[Beginners Handbook]:1:1:none
 
 spell:Summon Monster:1:1:22:4:0
 effect:SUMMON:MONSTER:0:100
@@ -3896,12 +3904,12 @@ hitdie:5
 max-attacks:5
 min-weight:35
 strength-multiplier:4
-equip:food:Ration of Food:1:3:1
-equip:light:Wooden Torch:1:3:1
-equip:potion:Berserk Strength:1:1:0
-equip:sword:Dagger:1:1:1
-equip:soft armour:Soft Leather Armour:1:1:0
-equip:scroll:Word of Recall:1:1:0
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:potion:Berserk Strength:1:1:birth_no_recall
+equip:sword:Dagger:1:1:none
+equip:soft armour:Soft Leather Armour:1:1:birth_no_recall
+equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[1]
 value:1:INT[-1]
 value:1:WIS[-1]

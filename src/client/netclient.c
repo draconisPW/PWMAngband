@@ -4806,7 +4806,7 @@ int Send_wield(struct command *cmd)
         /* Prompt */ "Wear or wield which item? ",
         /* Error */ "You have nothing to wear or wield.",
         /* Filter */ obj_can_wear,
-        /* Choice */ USE_INVEN | USE_FLOOR);
+        /* Choice */ USE_INVEN | USE_FLOOR | USE_QUIVER);
 
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;

@@ -2830,11 +2830,28 @@ static enum parser_error parse_class_title(struct parser *p)
 }
 
 
+static int lookup_option(const char *name)
+{
+    int result = 1;
+
+    while (1)
+    {
+        if (result >= OPT_MAX) return 0;
+        if (streq(option_name(result), name)) return result;
+        ++result;
+    }
+}
+
+
 static enum parser_error parse_class_equip(struct parser *p)
 {
     struct player_class *c = parser_priv(p);
     struct start_item *si;
     int tval, sval;
+    char *eopts;
+    char *s;
+    int *einds;
+    int nind, nalloc;
     struct object_kind *kind;
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
@@ -2845,12 +2862,51 @@ static enum parser_error parse_class_equip(struct parser *p)
     sval = lookup_sval(tval, parser_getsym(p, "sval"));
     if (sval < 0) return PARSE_ERROR_UNRECOGNISED_SVAL;
 
+    eopts = string_make(parser_getsym(p, "eopts"));
+    einds = NULL;
+    nind = 0;
+    nalloc = 0;
+    s = strtok(eopts, " |");
+    while (s)
+    {
+        bool negated = false;
+        int ind;
+
+        if (prefix(s, "NOT-"))
+        {
+            negated = true;
+            s += 4;
+        }
+        ind = lookup_option(s);
+        if (ind > 0 && option_type(ind) == OP_BIRTH)
+        {
+            if (nind >= nalloc - 2)
+            {
+                if (nalloc == 0) nalloc = 2;
+                else nalloc *= 2;
+                einds = mem_realloc(einds, nalloc * sizeof(*einds));
+            }
+            einds[nind] = (negated? -ind: ind);
+            einds[nind + 1] = 0;
+            ++nind;
+        }
+        else if (!streq(s, "none"))
+        {
+            mem_free(einds);
+            mem_free(eopts);
+            quit_fmt("bad option name: %s", s);
+            return PARSE_ERROR_INVALID_FLAG;
+        }
+        s = strtok(NULL, " |");
+    }
+    mem_free(eopts);
+
     si = mem_zalloc(sizeof(*si));
     si->tval = tval;
     si->sval = sval;
     si->min = parser_getuint(p, "min");
     si->max = parser_getuint(p, "max");
-    si->flag = parser_getuint(p, "flag");
+    si->eopts = einds;
 
     kind = lookup_kind(si->tval, si->sval);
     if ((si->min > kind->base->max_stack) || (si->max > kind->base->max_stack))
@@ -3407,7 +3463,7 @@ static struct parser *init_parse_class(void)
     parser_reg(p, "max-attacks int max-attacks", parse_class_max_attacks);
     parser_reg(p, "min-weight int min-weight", parse_class_min_weight);
     parser_reg(p, "strength-multiplier int att-multiply", parse_class_str_mult);
-    parser_reg(p, "equip sym tval sym sval uint min uint max uint flag", parse_class_equip);
+    parser_reg(p, "equip sym tval sym sval uint min uint max sym eopts", parse_class_equip);
     parser_reg(p, "obj-flag uint level str flag", parse_class_obj_flag);
     parser_reg(p, "brand uint minlvl uint maxlvl str code", parse_class_obj_brand);
     parser_reg(p, "slay uint minlvl uint maxlvl str code", parse_class_obj_slay);

@@ -521,8 +521,8 @@ struct object
     bitflag flags[OF_SIZE];             /* Object flags */
     s32b modifiers[OBJ_MOD_MAX];        /* Object modifiers */
     struct element_info el_info[ELEM_MAX];  /* Object element info */
-    bool *brands;                       /* Array of brands */
-    bool *slays;                        /* Array of slays */
+    bool *brands;                       /* Flag absence/presence of each brand */
+    bool *slays;                        /* Flag absence/presence of each slay */
     struct curse_data *curses;          /* Array of curse powers and timeouts */
 
     struct effect *effect;              /* Effect this item produces (effects.c) */

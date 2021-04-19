@@ -19,10 +19,10 @@
 # alloc: commonness : min " to " max
 # charges: charges
 # pile: chance of being generated in a pile : dice for number of items
-# effect: effect when used : parameter : parameter : parameter
+# effect: effect when used : subtype (optional) : radius (optional) : parameter (optional)
 # effect-yx: y value for effect : x value for effect
 # dice: dice string
-# expr: dice expression
+# expr: substitution code : base value : expression
 # msg_self: message to give when the object is used
 # msg_other: message to give to other players when the object is used
 # act: activation
@@ -99,8 +99,11 @@
 # without a pile line appear singly.
 
 # 'effect' is for the effect when an object is eaten, activated or whatever.
-# Fields are the name of the effect (as found in list-effects.h) and
-# possibly one or two parameters to the effect.
+# Fields are the name of the effect (as found in src/list-effects.h), the
+# subtype which is either an index or a name (look at effect_subtype()
+# in src/effects.c for more information about the available subtypes), the
+# radius, and the other parameter. The effect name is required. The others
+# are optional, and the trailing ones that are unused can be omitted.
 
 # 'effect-yx' is y and x values for an effect if necessary
 

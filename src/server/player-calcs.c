@@ -2214,9 +2214,6 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         state->stat_add[STAT_CON] += 3;
     }
 
-    /* Combat Regeneration */
-    if (player_has(p, PF_COMBAT_REGEN)) of_on(state->flags, OF_IMPAIR_HP);
-
     /* Calculate the various stat values */
     for (i = 0; i < STAT_MAX; i++)
     {

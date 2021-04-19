@@ -9,10 +9,13 @@ These include:
 * `Showing extra info in subwindows`_
 * `Keymaps`_ - a way to assign commonly-used actions to specific keys
 * `Colours`_ - allowing you to make a given color brighter, darker, or even completely different
+* `Interface details`_ - depending on which interface to the game you use, these give you control over the font, window placement, and graphical tile set
 
-Except for the options, which are linked to the save file, you can save your
-preferences for these into files, which are called `user pref files`. For
-the options, customize those using the ``=`` command while playing.
+Except for the options, which are linked to the save file, and interface
+details, that are handled by the front end rather than the core of the game,
+you can save your preferences for these into files, which are called
+`user pref files`. For the options, customize those using the ``=`` command
+while playing.
 
 User Pref Files
 ---------------
@@ -259,3 +262,107 @@ The interface is quite clunky. You can move through the colours using ``n`` for
 'next colour' and ``N`` for 'previous colour'. Then upper and lower case ``r``,
 ``g`` and ``b`` will let you tweak the color. You can then save the results to
 user pref file.
+
+Interface details
+-----------------
+
+Some aspects of how the game is presented, notably the font, window placement
+and graphical tile set, are controlled by the front end, rather than the core
+of the game itself. Each front end has its own mechanism for setting those
+details and recording them between game sessions. Below are brief descriptions
+for what you can configure with the standard `Windows`_ and `SDL`_ front ends.
+
+Windows
+*******
+
+With the Windows front end, the game, by default, displays several of
+the subwindows and uses David Gervais's graphical tiles to display the map.
+You can close a subwindow with the standard close control on the window's
+upper right corner. Closing the main window with the standard control causes
+the game to save its current state and then exit. You can reopen or also
+close a subwindow via the "Visibility" menu, the first entry in the "Window"
+menu for the main window. To move a window, use the standard procedure:
+position the mouse pointer on the window's title bar and then click and drag
+the mouse to change the window's position. Click and drag on the edges or
+corners of a window to change its size. To select the font for a window, use
+the "Font" menu, the second entry in the "Window" menu for the main window.
+
+The "Term Options" entry in the "Window" menu for the main window is a shortcut
+to access the core game's method for selecting the contents of the subwindows.
+You can read more about that in `Showing extra info in subwindows`_. The
+"Reset Layout" will rearrange the windows to conform with the current size and
+will have a similar result to what you would get from restarting the Windows
+interface without a preset configuration.
+
+The "Bizarre Display" entry in the "Window" menu allows to toggle on or off
+an alternate text display algorithm for each window. That was added for
+compatibility with Windows Vista and later. The default setting, on, should
+likely be used, unless text display is garbled on your system and the off
+setting allows text to be displayed properly.
+
+The "Increase Tile Width" and "Decrease Tile Width" options in the "Window",
+let you increment or decrement, by one pixel, the width of the columns in a
+window. The "Increase Tile Height" and "Decrease Tile Height" options are
+similar but work with the height of the rows. For the primary window, you
+could use the "Term 0 Font Tile Size" entry as an alternative to those to set
+the width of the columns and height of the rows to certain combinations or to
+match the width and height of the font, which is the default. When the
+"Enable Nice Graphics" option is on (it's in the "Options" menu for the main
+window), the "Increase Tile Width", "Decrease Tile Width",
+"Increase Tile Height", "Decrease Tile Height", and "Term 0 Font Tile Size"
+entries will have no effect since the column width and row height are set
+automatically when that option is on.
+
+To change whether graphical tiles are used, use the "Graphics" menu, the first
+entry in the "Options" menu for the main window. The "None" option in the
+"Graphics" menu will disable graphical tiles and use text for the map. The
+next section section in that menu allows you to select one of the graphical
+tile sets. Turning on the "Enable Nice Graphics" option in the "Graphics"
+menu is a shortcut for automatically setting sizes to get a reasonable-looking
+result. When that is turned on or is already on and the tile set is changed,
+the width of the columns ("tile width"), height of the rows ("tile height")
+and the number of rows and columns used to display a tile (the
+"Tile Multiplier") will be adjusted to work well with the current font size and
+the native size of the graphical tiles. You can manually adjust the number of
+rows and columns used for displaying a tile with the "Tile Multiplier" entry
+in the "Graphics" menu. Since typical fonts are often twice as tall as wide,
+multipliers where the first value, for the width, is twice the second, often
+x work better with the tiles that are natively square.
+
+When you leave the game, the current settings for the Windows interface are
+saved as ``angband.INI`` in the directory that holds the executable. Those
+settings will be automatically reloaded the next time you start the Windows
+interface.
+
+SDL
+***
+
+With the SDL front end, the main window and any subwindows are displayed within
+the application's rectangular window. At the top of the application's window
+is a status line. Within that status line, items highlighted in yellow are
+buttons that can be pressed to initiate an action. From left to right they are:
+
+* The application's version number - pressing it displays an information dialog about the application
+* The currently selected terminal - pressing it brings up a menu for selecting the current terminal; you can also make a terminal the current one by clicking on the terminal's title bar if it is visible
+* Whether or not the current terminal is visible - pressing it for any terminal that is not the main window will allow you to show or hide that terminal
+* The font for the current terminal - pressing it brings up a menu to choose the font for the terminal
+* Options - brings up a dialog for selecting global options including those for the graphical tile set used and whether fullscreen mode is enabled
+* Quit - to save the game and exit
+
+To move a terminal window, click on its title bar and then drag the mouse.
+To resize a terminal window, position the mouse pointer over the lower right
+corner. That should cause a blue square to appear, then click and drag to
+resize the terminal.
+
+To change the graphical tile set used when displaying the game's map, press
+the Options button in the status bar. Then, in the dialog that appears, press
+one of the red buttons that appear to the right of the label,
+"Available Graphics:". The last of those buttons, labeled "None", selects
+text as the method for displaying the map. Your choice for the graphical tile
+set does not take effect until you press the red button labeled "OK" at the
+bottom of the dialog.
+
+When you leave the game, the current settings for the SDL interface are saved
+as ``sdlinit.txt`` in the same directory as is used for preference files, see
+`User Pref Files`_ for details. Those settings will be automatically reloaded
+the next time you start the SDL interface.
