@@ -330,7 +330,7 @@ multipliers where the first value, for the width, is twice the second, often
 x work better with the tiles that are natively square.
 
 When you leave the game, the current settings for the Windows interface are
-saved as ``angband.INI`` in the directory that holds the executable. Those
+saved as ``mangclient.ini`` in the directory that holds the executable. Those
 settings will be automatically reloaded the next time you start the Windows
 interface.
 
