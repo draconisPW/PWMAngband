@@ -231,6 +231,10 @@ static void loc_panel(struct player *p, struct loc *grid, struct loc *offset)
     int panel_wid = screen_wid / 2;
     int panel_hgt = screen_hgt / 2;
 
+    /* Paranoia */
+    /*if (panel_wid < 1) panel_wid = 1;
+    if (panel_hgt < 1) panel_hgt = 1;*/
+
     /* Hack -- enforce illegal panel */
     loc_init(offset, z_info->dungeon_wid, z_info->dungeon_hgt);
 
@@ -269,8 +273,15 @@ void house_list(struct player *p, ang_file *fff)
     char buf[160];
     char dpt[13];
 
-    int panel_wid = PANEL_SIZE / p->tile_wid;
-    int panel_hgt = PANEL_SIZE / p->tile_hgt;
+    int screen_hgt = p->screen_rows / p->tile_hgt;
+    int screen_wid = p->screen_cols / p->tile_wid;
+
+    int panel_wid = screen_wid / 2;
+    int panel_hgt = screen_hgt / 2;
+
+    /* Paranoia */
+    if (panel_wid < 1) panel_wid = 1;
+    if (panel_hgt < 1) panel_hgt = 1;
 
     for (i = 0; i < houses_count(); i++)
     {

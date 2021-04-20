@@ -44,19 +44,27 @@ static bool adjust_panel_help(struct player *p, int y, int x)
 {
     struct loc grid;
     int screen_hgt, screen_wid;
+    int panel_wid, panel_hgt;
 
     screen_hgt = p->screen_rows / p->tile_hgt;
     screen_wid = p->screen_cols / p->tile_wid;
 
+    panel_wid = screen_wid / 2;
+    panel_hgt = screen_hgt / 2;
+
+    /* Paranoia */
+    if (panel_wid < 1) panel_wid = 1;
+    if (panel_hgt < 1) panel_hgt = 1;
+
     loc_copy(&grid, &p->offset_grid);
 
     /* Adjust as needed */
-    while (y >= grid.y + screen_hgt) grid.y += screen_hgt / 2;
-    while (y < grid.y) grid.y -= screen_hgt / 2;
+    while (y >= grid.y + screen_hgt) grid.y += panel_hgt;
+    while (y < grid.y) grid.y -= panel_hgt;
 
     /* Adjust as needed */
-    while (x >= grid.x + screen_wid) grid.x += screen_wid / 2;
-    while (x < grid.x) grid.x -= screen_wid / 2;
+    while (x >= grid.x + screen_wid) grid.x += panel_wid;
+    while (x < grid.x) grid.x -= panel_wid;
 
     /* Use "modify_panel" */
     return (modify_panel(p, &grid));

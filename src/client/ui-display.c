@@ -90,6 +90,10 @@ static game_event_type statusline_events[] =
 };
 
 
+/* Monster subwindow witdh */
+static int monwidth = -1;
+
+
 /*** Sidebar display functions ***/
 
 
@@ -1103,8 +1107,12 @@ static void update_monlist_subwindow(game_event_type type, game_event_data *data
     /* Activate */
     Term_activate(inv_term);
 
-    /* Send new width for dynamic resizing */
-    Send_monwidth(Term->wid);
+    /* Send new width for dynamic resizing (but only if it changed!) */
+    if (Term->wid != monwidth)
+    {
+        Send_monwidth(Term->wid);
+        monwidth = Term->wid;
+    }
 
     fix_remote_term(NTERM_WIN_MONLIST);
 

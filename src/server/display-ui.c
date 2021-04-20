@@ -2122,6 +2122,7 @@ bool change_panel(struct player *p, int dir)
 {
     struct loc grid;
     int screen_hgt, screen_wid;
+    int panel_wid, panel_hgt;
 
     /* Ensure "dir" is in ddx/ddy array bounds */
     if (!VALID_DIR(dir)) return false;
@@ -2129,9 +2130,16 @@ bool change_panel(struct player *p, int dir)
     screen_hgt = p->screen_rows / p->tile_hgt;
     screen_wid = p->screen_cols / p->tile_wid;
 
+    panel_wid = screen_wid / 2;
+    panel_hgt = screen_hgt / 2;
+
+    /* Paranoia */
+    if (panel_wid < 1) panel_wid = 1;
+    if (panel_hgt < 1) panel_hgt = 1;
+
     /* Shift by half a panel */
-    loc_init(&grid, p->offset_grid.x + ddx[dir] * screen_wid / 2,
-        p->offset_grid.y + ddy[dir] * screen_hgt / 2);
+    loc_init(&grid, p->offset_grid.x + ddx[dir] * panel_wid,
+        p->offset_grid.y + ddy[dir] * panel_hgt);
 
     /* Use "modify_panel" */
     return modify_panel(p, &grid);

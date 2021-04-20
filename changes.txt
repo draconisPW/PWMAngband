@@ -69,6 +69,7 @@ PWMAngband:
   "View abilities" and "Drop gold" commands
 - Add messages to explain why Raise Dead could fail
 - Add option to remove borders in the SDL client
+- Display sector info the MAngband way and fix crash when using 16x16 tile size
 
 Gameplay changes
 ----------------

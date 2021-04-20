@@ -21,9 +21,6 @@ enum
 
 #define tf_has(f, flag) flag_has_dbg(f, TF_SIZE, flag, #f, #flag)
 
-/* Number of basic grids per panel, vertically and horizontally */
-#define PANEL_SIZE 11
-
 /* Maximum number of objects on the level (198x66) */
 #define MAX_OBJECTS 13068
 

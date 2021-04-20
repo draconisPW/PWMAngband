@@ -2268,10 +2268,18 @@ void do_cmd_locate(struct player *p, int dir)
     struct loc begin, end;
     char tmp_val[NORMAL_WID];
     char out_val[160];
+    int screen_hgt, screen_wid;
     int panel_wid, panel_hgt;
 
-    panel_wid = PANEL_SIZE / p->tile_wid;
-    panel_hgt = PANEL_SIZE / p->tile_hgt;
+    screen_hgt = p->screen_rows / p->tile_hgt;
+    screen_wid = p->screen_cols / p->tile_wid;
+
+    panel_wid = screen_wid / 2;
+    panel_hgt = screen_hgt / 2;
+
+    /* Paranoia */
+    if (panel_wid < 1) panel_wid = 1;
+    if (panel_hgt < 1) panel_hgt = 1;
 
     /* No direction, recenter */
     if (!dir)

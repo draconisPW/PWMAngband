@@ -7562,12 +7562,12 @@ bool process_pending_commands(int ind)
         if ((type < PKT_UNDEFINED) || (type >= PKT_MAX)) type = PKT_UNDEFINED;
 
         /* Cancel repeated commands */
-        if ((type != PKT_TUNNEL) && (type != PKT_KEEPALIVE) && p->digging_request)
-            p->digging_request = 0;
-        if ((type != PKT_FIRE_AT_NEAREST) && (type != PKT_SPELL) && (type != PKT_KEEPALIVE) &&
-            p->firing_request)
+        if ((type != PKT_KEEPALIVE) && (type != PKT_MONWIDTH))
         {
-            p->firing_request = 0;
+            if ((type != PKT_TUNNEL) && p->digging_request)
+                p->digging_request = 0;
+            if ((type != PKT_FIRE_AT_NEAREST) && (type != PKT_SPELL) && p->firing_request)
+                p->firing_request = 0;
         }
 
         result = (*receive_tbl[type])(ind);
