@@ -65,6 +65,7 @@ extern void dungeon_change_level(struct player *p, struct chunk *c, struct world
 extern bool take_hit(struct player *p, int damage, const char *kb_str, bool non_physical,
     const char *died_flavor);
 extern int energy_per_move(struct player *p);
+extern bool has_energy_per_move(struct player *p);
 extern void player_regen_hp(struct player *p, struct chunk *c);
 extern void player_regen_mana(struct player *p);
 extern void player_adjust_hp_precise(struct player *p, s32b hp_gain);
@@ -107,6 +108,7 @@ extern void poly_bat(struct player *p, int chance, char *killer);
 extern void drain_mana(struct player *p, struct source *who, int drain, bool seen);
 extern void recall_player(struct player *p, struct chunk *c);
 extern int player_digest(struct player *p);
+extern void use_energy_aux(struct player *p, int perc_turn);
 extern void use_energy(struct player *p);
 extern bool auto_retaliate(struct player *p, struct chunk *c, int mode);
 extern bool has_energy(struct player *p, bool real_command);

@@ -209,9 +209,14 @@ static void add_streamer(struct chunk *c, int feat, int flag, int chance)
 static bool customize_floor_valid(struct chunk *c, struct loc *grid)
 {
     struct monster *mon = square_monster(c, grid);
+    struct object *obj = square_object(c, grid);
 
     /* Damaging or blocking terrain */
     if (mon && (monster_hates_grid(c, mon, grid) || !square_ispassable(c, grid)))
+        return false;
+
+    /* Need to be passable */
+    if (obj && !square_ispassable(c, grid))
         return false;
 
     /* Floor can't hold objects */

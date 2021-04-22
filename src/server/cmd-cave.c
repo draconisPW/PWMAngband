@@ -2068,8 +2068,7 @@ void do_cmd_walk(struct player *p, int dir)
     if (!do_cmd_walk_test(p)) return;
 
     /* Take a turn */
-    p->energy -= energy_per_move(p);
-    if (p->energy < 0) p->energy = 0;
+    use_energy(p);
 
     /* Apply confusion/erratic movement */
     player_confuse_dir(p, &dir);
@@ -2106,8 +2105,7 @@ void do_cmd_jump(struct player *p, int dir)
     if (!do_cmd_walk_test(p)) return;
 
     /* Take a turn */
-    p->energy -= energy_per_move(p);
-    if (p->energy < 0) p->energy = 0;
+    use_energy(p);
 
     /* Apply confusion/erratic movement */
     player_confuse_dir(p, &dir);

@@ -231,10 +231,6 @@ static void loc_panel(struct player *p, struct loc *grid, struct loc *offset)
     int panel_wid = screen_wid / 2;
     int panel_hgt = screen_hgt / 2;
 
-    /* Paranoia */
-    /*if (panel_wid < 1) panel_wid = 1;
-    if (panel_hgt < 1) panel_hgt = 1;*/
-
     /* Hack -- enforce illegal panel */
     loc_init(offset, z_info->dungeon_wid, z_info->dungeon_hgt);
 

@@ -109,9 +109,7 @@ PWMAngband:
 - Only allow rings of polymorphing to be generated in the dungeon
 - Make rings of polymorphing more powerful but much rarer
 - Decrease the kill requirement with perfect affinity from 1/2 to 1/4
-- Give +1 moves every 10 speed instead of +5 speed to shapechangers under
-  level 20
-- Halve the energy gained from extra moves
+- Give +moves instead of +speed to shapechangers under level 20
 - Add option to avoid getting disturbed when effects end
 - Add possible direction choice for scrolls and staves
 - Allow all alter/teleport effects to be used on items
@@ -187,6 +185,7 @@ PWMAngband:
   weapons
 - Fix keymaps using '{' symbol
 - Fix "base" kind flags not added to "kind" kind flags in the case of books
+- Fix objects generated on customized floors
 
 Coding changes
 --------------

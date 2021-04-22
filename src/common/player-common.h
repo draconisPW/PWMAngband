@@ -862,6 +862,7 @@ struct player
     bool no_disturb_icky;
     bool placed;                    /* Player is properly placed on the level */
     int monwidth;                   /* Monster list subwindow width */
+    s32b extra_energy;              /* Extra energy */
 
     /*
      * In order to prevent the regeneration bonus from the first few turns, we have

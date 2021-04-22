@@ -3649,7 +3649,7 @@ static int Receive_walk(int ind)
             return 1;
         }
 
-        if (has_energy(p, true))
+        if (has_energy_per_move(p))
         {
             do_cmd_walk(p, dir);
             return 2;
@@ -3702,7 +3702,7 @@ static int Receive_run(int ind)
         break_mind_link(p);
 
         /* Start running */
-        if (has_energy(p, true))
+        if (has_energy_per_move(p))
         {
             do_cmd_run(p, dir);
             return 2;
@@ -5317,7 +5317,7 @@ static int Receive_jump(int ind)
             return 1;
         }
 
-        if (has_energy(p, true))
+        if (has_energy_per_move(p))
         {
             do_cmd_jump(p, dir);
             return 2;
@@ -7590,7 +7590,7 @@ bool process_pending_commands(int ind)
              * ASAP.
              *
              * Hack -- save our old energy and set our energy
-             * to 0.  This will allow us to execute "out of game"
+             * to 0. This will allow us to execute "out of game"
              * actions such as talking while we wait for enough
              * energy to execute our next queued in game action.
              */

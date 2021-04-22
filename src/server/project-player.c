@@ -656,6 +656,7 @@ static int project_player_handler_NETHER(project_player_handler_context_t *conte
         {
             msg(p, "Your energy is sapped!");
             p->energy = 0;
+            p->extra_energy = 0;
         }
     }
 

@@ -636,8 +636,7 @@ void run_step(struct player *p, int dir)
     }
 
     /* Take a turn */
-    p->energy -= energy_per_move(p);
-    if (p->energy < 0) p->energy = 0;
+    use_energy(p);
 
     /* Move the player, attempts to disarm if running straight at a trap */
     move_player(p, c, p->run_cur_dir, (dir && disarm), false, false, 0);

@@ -1808,6 +1808,10 @@ static void energize_player(struct player *p)
         p->energy += energy;
     }
 
+    /* Hack -- save the surplus in case we need more due to negative moves */
+    else if (p->energy + p->extra_energy < energy_per_move(p))
+        p->extra_energy += energy;
+
     /* Paralyzed or Knocked Out player gets no turn */
     if (p->timed[TMD_PARALYZED] || player_timed_grade_eq(p, TMD_STUN, "Knocked Out"))
         do_cmd_sleep(p);

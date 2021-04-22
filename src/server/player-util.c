@@ -287,6 +287,26 @@ int energy_per_move(struct player *p)
 
 
 /*
+ * Check if player has enough energy to move, taking extra moves into account
+ */
+bool has_energy_per_move(struct player *p)
+{
+    /* Check if we have enough energy */
+    if (p->energy + p->extra_energy < energy_per_move(p)) return false;
+
+    /* Occasional attack instead for bloodlust-affected characters */
+    if (randint0(200) < p->timed[TMD_BLOODLUST])
+    {
+        struct chunk *c = chunk_get(&p->wpos);
+
+        if (auto_retaliate(p, c, AR_BLOODLUST)) return false;
+    }
+
+    return true;
+}
+
+
+/*
  * Regenerate one turn's worth of hit points
  */
 void player_regen_hp(struct player *p, struct chunk *c)
@@ -1739,13 +1759,22 @@ int player_digest(struct player *p)
 }
 
 
-void use_energy(struct player *p)
+void use_energy_aux(struct player *p, int perc_turn)
 {
     /* Take a turn */
-    p->energy -= move_energy(p->wpos.depth);
+    p->energy -= (move_energy(p->wpos.depth) * perc_turn) / 100;
 
     /* Paranoia */
     if (p->energy < 0) p->energy = 0;
+
+    /* Hack -- reset the surplus in case we need more due to negative moves */
+    p->extra_energy = 0;
+}
+
+
+void use_energy(struct player *p)
+{
+    use_energy_aux(p, 100);
 }
 
 
