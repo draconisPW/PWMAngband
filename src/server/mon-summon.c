@@ -458,14 +458,8 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
     if (chance) status = MSTATUS_SUMMONED;
 
     /* Hack -- try to "charm" the monster (friendly summon) */
-    if (magik(chance))
-    {
-        /* A high level will help a lot */
-        if (!CHANCE(MAX(summon_level - 5, 1), p->lev * 5)) status_player = 1 + randint1(2);
-
-        /* A high wisdom will help a lot, and will always yield useful summons */
-        if (can_charm_monster(p)) status_player = MSTATUS_ATTACK;
-    }
+    if (magik(chance) && can_charm_monster(p, summon_level, STAT_WIS))
+        status_player = MSTATUS_CONTROLLED;
 
     /* Save the "summon" type */
     summon_specific_type = type;
@@ -494,14 +488,14 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
         }
 
         /* Uniques and breeders cannot be tamed */
-        if ((status_player > MSTATUS_SUMMONED) &&
+        if ((status_player == MSTATUS_CONTROLLED) &&
             (monster_is_unique(race) || rf_has(race->flags, RF_MULTIPLY)))
         {
             continue;
         }
 
         /* Useful summons should be "useful" (except specific summons) */
-        if ((status_player == MSTATUS_ATTACK) && (type != summon_name_to_idx("JELLY")) &&
+        if ((status_player == MSTATUS_CONTROLLED) && (type != summon_name_to_idx("JELLY")) &&
             (type != summon_name_to_idx("GOLEM")) && (type != summon_name_to_idx("VORTEX")) &&
             (type != summon_name_to_idx("HYDRA")) &&
             (rf_has(race->flags, RF_NEVER_BLOW) || rf_has(race->flags, RF_NEVER_MOVE) ||
@@ -554,7 +548,7 @@ int summon_specific(struct player *p, struct chunk *c, struct loc *grid, int lev
     }
 
     /* Hack -- monster summoned by the player */
-    if (status_player > MSTATUS_SUMMONED) monster_set_master(mon, p, status_player);
+    if (status_player == MSTATUS_CONTROLLED) monster_set_master(mon, p, MSTATUS_CONTROLLED);
     else mon->status = status;
 
     /* Success, return the level of the monster */
@@ -600,7 +594,7 @@ bool summon_specific_race_aux(struct player *p, struct chunk *c, struct loc *gri
         {
             struct monster *mon = square_monster(c, &new_grid);
 
-            monster_set_master(mon, p, MSTATUS_ATTACK);
+            monster_set_master(mon, p, MSTATUS_CONTROLLED);
         }
     }
 

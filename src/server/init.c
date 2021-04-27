@@ -283,7 +283,7 @@ static enum parser_error write_book_kind(struct class_book *book, const char *na
         kf_on(kind->kind_flags, KF_GOOD);
     }
 
-    /* Add base kind flags to kind kind flags */
+    /* Inherit base flags. */
     kf_union(kind->kind_flags, kb_info[kind->tval].kind_flags);
 
     return PARSE_ERROR_NONE;

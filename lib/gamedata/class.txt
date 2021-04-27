@@ -1232,10 +1232,8 @@ desc: dragged along.
 
 spell:Command:15:14:53:12:0
 effect:BOLT_AWARE:COMMAND
-dice:$B
-expr:B:PLAYER_LEVEL:* 2
 msg_other: emits a silent order.
-desc:Attempts to control the will of a single undead monster.
+desc:Attempts to control the will of a single summoned undead monster.
 desc: Uniques are not affected.
 
 spell:Disenchant:16:12:50:15:0
@@ -3757,11 +3755,10 @@ dice:24+1d24
 desc:Enables you to see invisible monsters for 24+1d24 turns.
 
 spell:Charm:16:15:48:8:0
-effect:PROJECT_LOS_AWARE:CONTROL
-dice:1+1d2
+effect:BOLT_AWARE:CONTROL
 msg_other: makes an hypnotic move.
-desc:Attempts to pacify any monster within line of sight that has been summoned
-desc: by a player. Uniques are not affected.
+desc:Attempts to control the will of a single summoned monster.
+desc: Uniques are not affected.
 
 spell:Summon Jelly:18:6:54:20:0
 effect:SUMMON:JELLY:0:100
@@ -3846,10 +3843,9 @@ desc: This spell has no effect when used in the town.
 
 spell:Summon Control:35:35:72:36:0
 effect:PROJECT_LOS_AWARE:CONTROL
-dice:4
 msg_other: screams a raging order.
-desc:Attempts to control the will of each summoned monster within line of sight
-desc: and order them to attack other monsters. Uniques are not affected.
+desc:Attempts to control the will of each summoned monster within line of sight.
+desc: Uniques are not affected.
 
 spell:Resilience:38:40:76:40:0
 effect:RESILIENCE

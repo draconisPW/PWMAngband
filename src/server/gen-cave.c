@@ -2127,10 +2127,19 @@ static void join_region(struct chunk *c, int *colors, int *counts, int color, in
                 struct loc grid, gridp;
 
                 i_to_grid(n1, w, &grid);
-
+                if (colors[n1] > 0) --counts[colors[n1]];
+                ++counts[color];
                 colors[n1] = color;
-                if (!square_isperm(c, &grid) && !square_isvault(c, &grid))
+
+                /*
+                 * Don't break permanent walls or vaults. Also don't override terrain that already
+                 * allows passage.
+                 */
+                if (!square_isperm(c, &grid) && !square_isvault(c, &grid) &&
+                    !(square_ispassable(c, &grid) || square_isdoor(c, &grid)))
+                {
                     square_set_feat(c, &grid, FEAT_FLOOR);
+                }
                 n1 = previous[n1];
 
                 /* Hack -- create broad corridors */
@@ -2138,7 +2147,8 @@ static void join_region(struct chunk *c, int *colors, int *counts, int color, in
                 if (gridp.y != grid.y) grid.x++;
                 else grid.y++;
                 if (square_in_bounds_fully(c, &grid) && !square_isperm(c, &grid) &&
-                    !square_isvault(c, &grid))
+                    !square_isvault(c, &grid) &&
+                    !(square_ispassable(c, &grid) || square_isdoor(c, &grid)))
                 {
                     square_set_feat(c, &grid, FEAT_FLOOR);
                 }
@@ -2165,9 +2175,14 @@ static void join_region(struct chunk *c, int *colors, int *counts, int color, in
             /* Make sure we stay inside the boundaries */
             if (!square_in_bounds(c, &grid)) continue;
 
-            /* If the cell hasn't already been processed, add it to the queue */
+            /*
+             * If the cell hasn't already been processed and we're willing to include it
+             * (do allow a vault, unlike above; though, that can allow the vault to disconnect
+             * regions), add it to the queue
+             */
             n2 = grid_to_i(&grid, w);
             if (previous[n2] >= 0) continue;
+            if (square_isperm(c, &grid)) continue;
             q_push_int(queue, n2);
             previous[n2] = n1;
         }
@@ -3515,8 +3530,11 @@ static struct chunk *moria_chunk(struct player *p, struct worldpos *wpos, int he
     dun->pit_num = 0;
     dun->cent_n = 0;
 
-    /* Build rooms until we have enough floor grids */
-    while (c->feat_count[FEAT_FLOOR] < num_floors)
+    /*
+     * Build rooms until we have enough floor grids and at least two rooms
+     * (the latter is to make it easier to satisfy the constraints for player placement)
+     */
+    while ((c->feat_count[FEAT_FLOOR] < num_floors) || (dun->cent_n < 2))
     {
         /* Roll for random key (to be compared against a profile's cutoff) */
         key = randint0(100);
@@ -3812,8 +3830,7 @@ static void connect_caverns(struct chunk *c, struct loc floor[])
     join_region(c, colors, counts, color_of_floor[0], color_of_floor[1]);
     join_region(c, colors, counts, color_of_floor[2], color_of_floor[3]);
 
-    /* Redo the colors, join the two big caverns */
-    build_colors(c, colors, counts, true);
+    /* Join the two big caverns */
     for (i = 1; i < 3; i++)
     {
         int spot = grid_to_i(&floor[i], c->width);
@@ -3968,9 +3985,6 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
     /* Connect up all the caverns */
     connect_caverns(c, floor);
 
-    /* Connect to the centre */
-    ensure_connectedness(c);
-
     /* Temporary until connecting to vault entrances works better */
     for (y = 0; y < centre_cavern_hgt; y++)
     {
@@ -3987,6 +4001,9 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
         loc_init(&grid, x + left_cavern_wid, centre_cavern_ypos + centre_cavern_hgt - 1);
         square_set_feat(c, &grid, FEAT_FLOOR);
     }
+
+    /* Connect to the centre */
+    ensure_connectedness(c);
 
     /* Free all the chunks */
     cave_free(upper_cavern);
@@ -4229,7 +4246,7 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
  */
 struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width)
 {
-    int i, k, y;
+    int i, k;
     struct chunk *c;
     struct chunk *left;
     struct chunk *gauntlet;
@@ -4269,11 +4286,61 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
     generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_NO_MAP);
     generate_mark(gauntlet, 0, 0, gauntlet->height - 1, gauntlet->width - 1, SQUARE_LIMITED_TELE);
 
-    /* Open the ends of the gauntlet */
-    loc_init(&grid, 0, randint1(gauntlet->height - 2));
-    square_set_feat(gauntlet, &grid, FEAT_GRANITE);
-    loc_init(&grid, gauntlet->width - 1, randint1(gauntlet->height - 2));
-    square_set_feat(gauntlet, &grid, FEAT_GRANITE);
+    /*
+     * Open the ends of the gauntlet. Make sure the opening is
+     * horizontally adjacent to a non-permanent wall for interoperability
+     * with ensure_connectedness().
+     */
+    i = 0;
+    while (1)
+    {
+        struct loc sum, off;
+
+        loc_init(&grid, 0, randint1(gauntlet->height - 2));
+
+        if (i >= 20)
+        {
+            cave_free(gauntlet);
+            cave_free(left);
+            cave_free(right);
+            return NULL;
+        }
+
+        loc_init(&off, 1, 0);
+        loc_sum(&sum, &grid, &off);
+
+        if (!square_isperm(gauntlet, &sum))
+        {
+            square_set_feat(gauntlet, &grid, FEAT_GRANITE);
+            break;
+        }
+        ++i;
+    }
+    i = 0;
+    while (1)
+    {
+        struct loc sum, off;
+
+        loc_init(&grid, gauntlet->width - 1, randint1(gauntlet->height - 2));
+
+        if (i >= 20)
+        {
+            cave_free(gauntlet);
+            cave_free(left);
+            cave_free(right);
+            return NULL;
+        }
+
+        loc_init(&off, -1, 0);
+        loc_sum(&sum, &grid, &off);
+
+        if (!square_isperm(gauntlet, &sum))
+        {
+            square_set_feat(gauntlet, &grid, FEAT_GRANITE);
+            break;
+        }
+        ++i;
+    }
 
     /* General amount of rubble, traps and monsters */
     k = MAX(MIN(wpos->depth / 3, 10), 2) / 2;
@@ -4357,15 +4424,6 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
 
     /* Generate permanent walls around the edge of the generated area */
     draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE);
-
-    /* Temporary until connecting to vault entrances works better */
-    for (y = 0; y < gauntlet_hgt; y++)
-    {
-        loc_init(&grid, line1 - 1, y + (y_size - gauntlet_hgt) / 2);
-        square_set_feat(c, &grid, FEAT_FLOOR);
-        loc_init(&grid, line2, y + (y_size - gauntlet_hgt) / 2);
-        square_set_feat(c, &grid, FEAT_FLOOR);
-    }
 
     /* Connect */
     ensure_connectedness(c);

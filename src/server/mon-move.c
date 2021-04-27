@@ -1794,7 +1794,8 @@ static bool monster_turn_try_push(struct source *who, struct chunk *c, struct mo
         }
 
         /* If the target is a player and there's a controlled monster on the way, try to retaliate */
-        if (!who->monster && master_in_party(mon1->master, who->player->id))
+        if (!who->monster && master_in_party(mon1->master, who->player->id) &&
+            !master_in_party(mon->master, mon1->master))
         {
             int chance = 25;
 
@@ -2339,13 +2340,13 @@ static bool monster_check_active(struct chunk *c, struct monster *mon, int *targ
     bool target_m_los, is_hurt = false, can_hear = false, can_smell = false;
 
     /* Hack -- MvM */
-    if (mon->status == MSTATUS_ATTACK)
+    if (mon->status == MSTATUS_CONTROLLED)
     {
         /* Find the closest monster */
         struct monster *target_mon = get_closest_target(c, mon, target_m_dis, &target_m_los);
 
         /* Paranoia -- make sure we found a closest monster */
-        if (target_mon)
+        if (target_mon && target_m_los)
         {
             /* Bypass MvM if a player is closest */
             if (master_in_party(mon->master, p->id) || (mon->cdis >= *target_m_dis))
@@ -2933,12 +2934,8 @@ static bool player_invis(struct player *p, struct monster *mon)
 bool is_closest(struct player *p, struct monster *mon, bool blos, bool new_los, int j,
     int dis_to_closest, int lowhp)
 {
-    /* Followers will try to reach their master */
-    if ((mon->status == MSTATUS_FOLLOW) && (mon->master != p->id)) return false;
-
-    /* Skip guards */
-    if (master_in_party(mon->master, p->id) && (mon->status == MSTATUS_GUARD))
-        return false;
+    /* Controlled monsters will try to reach their master */
+    if ((mon->status == MSTATUS_CONTROLLED) && (mon->master != p->id)) return false;
 
     /* Skip if the monster can't see the player */
     if (player_invis(p, mon)) return false;

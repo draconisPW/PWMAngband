@@ -1696,14 +1696,27 @@ static void update_player_aux(struct player *p, struct player *q, struct chunk *
 
 
 /*
+ * Removes player q from player p's view.
+ */
+static void remove_player_from_view(struct player *p, struct player *q)
+{
+    int id = get_player_index(get_connection(q->conn));
+
+    mflag_wipe(p->pflag[id]);
+    p->play_det[id] = 0;
+}
+
+
+/*
  * This function updates the visibility flags for everyone who may see
  * this player.
  */
 void update_player(struct player *q)
 {
-    int i, id = get_player_index(get_connection(q->conn));
+    int i;
     struct source who_body;
     struct source *who = &who_body;
+    bool health = false;
 
     /* Efficiency -- clear "shimmer" flag */
     q->shimmer = false;
@@ -1712,27 +1725,26 @@ void update_player(struct player *q)
     for (i = 1; i <= NumPlayers; i++)
     {
         struct player *p = player_get(i);
+        struct chunk *c = chunk_get(&p->wpos);
 
         /* Player can always see himself */
         if (q == p) continue;
 
-        /* Skip irrelevant players */
+        /* Irrelevant players: remove from view */
         if (!wpos_eq(&p->wpos, &q->wpos) || p->upkeep->new_level_method || p->upkeep->funeral ||
-            !p->placed)
+            !p->placed || !c)
         {
-            mflag_wipe(p->pflag[id]);
-            p->play_det[id] = 0;
-            source_player(who, 0, q);
-            update_cursor(who);
-            update_health(who);
+            remove_player_from_view(p, q);
+            health = true;
             continue;
         }
 
-        update_player_aux(p, q, chunk_get(&p->wpos));
+        update_player_aux(p, q, c);
     }
 
     source_player(who, 0, q);
     update_cursor(who);
+    if (health) update_health(who);
 }
 
 /*

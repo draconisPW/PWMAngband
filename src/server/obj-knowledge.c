@@ -1970,6 +1970,9 @@ void object_flavor_tried(struct player *p, struct object *obj)
 {
     my_assert(obj);
 
+    /* Paranoia: don't mark artifacts as tried */
+    if (obj->artifact) return;
+
     p->kind_tried[obj->kind->kidx] = true;
 }
 

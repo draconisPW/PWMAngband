@@ -45,7 +45,8 @@
 /*
  * Chooses a room template of a particular kind at random.
  *
- * typ template room type - currently unused
+ * typ template room type to select
+ * rating template room rating to select
  *
  * Returns a pointer to the room template.
  */
@@ -450,6 +451,109 @@ void set_marked_granite(struct chunk *c, struct loc *grid, int flag)
 {
     square_set_feat(c, grid, FEAT_GRANITE);
     if (flag) generate_mark(c, grid->y, grid->x, grid->y, grid->x, flag);
+}
+
+
+/*
+ * Given a room (with all grids converted to floors), convert floors on the
+ * edges to outer walls so no floor will be adjacent to a grid that is not a
+ * floor or outer wall.
+ *
+ * c the current chunk
+ * y1 lower y bound for room's bounding box
+ * x1 lower x bound for room's bounding box
+ * y2 upper y bound for rooms' bounding box
+ * x2 upper x bound for rooms' bounding box
+ *
+ * Will not properly handle cases where rooms are close enough that their
+ * minimal bounding boxes overlap.
+ */
+static void set_bordering_walls(struct chunk *c, int y1, int x1, int y2, int x2)
+{
+    int nx;
+	struct loc grid;
+	bool *walls;
+
+	my_assert((x2 >= x1) && (y2 >= y1));
+
+	/* Set up storage to track which grids to convert. */
+	nx = x2 - x1 + 1;
+	walls = mem_zalloc((x2 - x1 + 1) * (y2 - y1 + 1) * sizeof(*walls));
+
+	/* Find the grids to convert. */
+	y1 = MAX(0, y1);
+	y2 = MIN(c->height - 1, y2);
+	x1 = MAX(0, x1);
+	x2 = MIN(c->width - 1, x2);
+	for (grid.y = y1; grid.y <= y2; grid.y++)
+    {
+		int adjy1 = MAX(0, grid.y - 1);
+		int adjy2 = MIN(c->height - 1, grid.y + 1);
+
+		for (grid.x = x1; grid.x <= x2; grid.x++)
+        {
+			if (square_isfloor(c, &grid))
+            {
+				int adjx1 = MAX(0, grid.x - 1);
+				int adjx2 = MIN(c->width - 1, grid.x + 1);
+
+				my_assert(square_isroom(c, &grid));
+
+				if ((adjy2 - adjy1 != 2) || (adjx2 - adjx1 != 2))
+                {
+					/*
+					 * Adjacent grids are out of bounds.
+					 * Make it an outer wall.
+					 */
+					walls[grid.x - x1 + nx * (grid.y - y1)] = true;
+				}
+                else
+                {
+					int nfloor = 0;
+					struct loc adj;
+
+					for (adj.y = adjy1; adj.y <= adjy2; adj.y++)
+                    {
+						for (adj.x = adjx1; adj.x <= adjx2; adj.x++)
+                        {
+							bool floor = square_isfloor(c, &adj);
+
+							my_assert(floor == square_isroom(c, &adj));
+							if (floor) ++nfloor;
+						}
+					}
+					if (nfloor != 9)
+                    {
+						/*
+						 * At least one neighbor is not
+						 * in the room. Make it an
+						 * outer wall.
+						 */
+						walls[grid.x - x1 + nx * (grid.y - y1)] = true;
+					}
+				}
+			}
+            else
+            {
+				my_assert(!square_isroom(c, &grid));
+            }
+		}
+	}
+
+	/* Perform the floor to wall conversions. */
+	for (grid.y = y1; grid.y <= y2; grid.y++)
+    {
+		for (grid.x = x1; grid.x <= x2; grid.x++)
+        {
+			if (walls[grid.x - x1 + nx * (grid.y - y1)])
+            {
+				my_assert(square_isfloor(c, &grid) && square_isroom(c, &grid));
+				set_marked_granite(c, &grid, SQUARE_WALL_OUTER);
+			}
+		}
+	}
+
+	mem_free(walls);
 }
 
 
@@ -1089,7 +1193,7 @@ static bool build_room_template(struct player *p, struct chunk *c, struct loc *c
             return false;
     }
 
-    /* Place dungeon features and objects */
+    /* Place dungeon features, objects, and monsters for specific grids. */
     for (t = data, dy = 0; (dy < ymax) && *t; dy++)
     {
         for (dx = 0; (dx < xmax) && *t; dx++, t++)
@@ -1144,31 +1248,12 @@ static bool build_room_template(struct player *p, struct chunk *c, struct loc *c
                     else
                         place_random_stairs(c, &grid);
 
-                    /* Some monsters to guard it */
-                    vault_monsters(p, c, &grid, c->wpos.depth + 2, randint0(2) + 3);
-
+                    /* Place nearby guards in second pass. */
                     break;
                 }
                 case '9':
                 {
-                    struct loc off2, off3, vgrid;
-
-                    /* Create some interesting stuff nearby */
-                    loc_init(&off2, 2, -2);
-                    loc_init(&off3, 3, 3);
-
-                    /* A few monsters */
-                    loc_diff(&vgrid, &grid, &off3);
-                    vault_monsters(p, c, &vgrid, c->wpos.depth + randint0(2), randint1(2));
-                    loc_sum(&vgrid, &grid, &off3);
-                    vault_monsters(p, c, &vgrid, c->wpos.depth + randint0(2), randint1(2));
-
-                    /* And maybe a bit of treasure */
-                    loc_sum(&vgrid, &grid, &off2);
-                    if (one_in_(2)) vault_objects(p, c, &vgrid, 1 + randint0(2));
-                    loc_diff(&vgrid, &grid, &off2);
-                    if (one_in_(2)) vault_objects(p, c, &vgrid, 1 + randint0(2));
-
+                    /* Everything is handled in the second pass. */
                     break;
                 }
                 case '[':
@@ -1202,6 +1287,68 @@ static bool build_room_template(struct player *p, struct chunk *c, struct loc *c
         }
     }
 
+    /*
+     * Perform second pass for placement of monsters and objects at
+     * unspecified locations after all the features are in place.
+     */
+    for (t = data, dy = 0; (dy < ymax) && *t; dy++)
+    {
+        for (dx = 0; (dx < xmax) && *t; dx++, t++)
+        {
+            struct loc grid;
+
+            /* Extract the location */
+            loc_init(&grid, centre->x - (xmax / 2) + dx, centre->y - (ymax / 2) + dy);
+
+            /* Analyze the grid */
+            switch (*t)
+            {
+                case '8':
+                {
+                    /* Check consistency with first pass. */
+                    my_assert(square_isroom(c, &grid) &&
+                        (square_isfloor(c, &grid) || square_isstairs(c, &grid)));
+
+                    /* Add some monsters to guard it */
+                    vault_monsters(p, c, &grid, c->wpos.depth + 2, randint0(2) + 3);
+
+                    break;
+                }
+                case '9':
+                {
+                    struct loc off2, off3, vgrid;
+
+                    /* Create some interesting stuff nearby */
+                    loc_init(&off2, 2, -2);
+                    loc_init(&off3, 3, 3);
+
+                    /* Check consistency with first pass. */
+                    my_assert(square_isroom(c, &grid) && square_isfloor(c, &grid));
+
+                    /* Add a few monsters */
+                    loc_diff(&vgrid, &grid, &off3);
+                    vault_monsters(p, c, &vgrid, c->wpos.depth + randint0(2), randint1(2));
+                    loc_sum(&vgrid, &grid, &off3);
+                    vault_monsters(p, c, &vgrid, c->wpos.depth + randint0(2), randint1(2));
+
+                    /* And maybe a bit of treasure */
+                    loc_sum(&vgrid, &grid, &off2);
+                    if (one_in_(2)) vault_objects(p, c, &vgrid, 1 + randint0(2));
+                    loc_diff(&vgrid, &grid, &off2);
+                    if (one_in_(2)) vault_objects(p, c, &vgrid, 1 + randint0(2));
+
+                    break;
+                }
+
+                default:
+                {
+                    /* Everything was handled in the first pass. */
+                    break;
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -1212,7 +1359,8 @@ static bool build_room_template(struct player *p, struct chunk *c, struct loc *c
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
- * typ the room template type (currently unused)
+ * typ template room type to select
+ * rating template room rating to select
  *
  * Returns success.
  */
@@ -1846,9 +1994,12 @@ bool build_circular(struct player *p, struct chunk *c, struct loc *centre, int r
             return false;
     }
 
-    /* Generate outer walls and inner floors */
-    fill_circle(c, centre->y, centre->x, radius + 1, 1, FEAT_GRANITE, SQUARE_WALL_OUTER, light);
-    fill_circle(c, centre->y, centre->x, radius, 0, FEAT_FLOOR, SQUARE_NONE, light);
+    /* Mark as a room. */
+    fill_circle(c, centre->y, centre->x, radius + 1, 0, FEAT_FLOOR, SQUARE_NONE, light);
+
+    /* Convert some floors to be the outer walls. */
+    set_bordering_walls(c, centre->y - radius - 2, centre->x - radius - 2, centre->y + radius + 2,
+        centre->x + radius + 2);
 
     /* Especially large circular rooms will have a middle chamber */
     if ((radius - 4 > 0) && (randint0(4) < radius - 4))
@@ -1940,6 +2091,32 @@ bool build_simple(struct player *p, struct chunk *c, struct loc *centre, int rat
         for (grid.y = y1; grid.y <= y2; grid.y += 2)
             for (grid.x = x1; grid.x <= x2; grid.x += 2)
                 set_marked_granite(c, &grid, SQUARE_WALL_INNER);
+
+        /*
+         * Drop room/outer wall flags on corners if not adjacent to a
+         * floor. Lets tunnels enter those grids.
+         */
+        loc_init(&grid, x1 - 1, y1 - 1);
+        sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
+        sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+        if ((x2 - x1) % 2 == 0)
+        {
+            loc_init(&grid, x2 + 1, y1 - 1);
+            sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
+            sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+        }
+        if ((y2 - y1) % 2 == 0)
+        {
+            loc_init(&grid, x1 - 1, y2 + 1);
+            sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
+            sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+            if ((x2 - x1) % 2 == 0)
+            {
+                loc_init(&grid, x2 + 1, y2 + 1);
+                sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
+                sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+            }
+        }
     }
 
     /* Sometimes make a ragged-edge room */
@@ -2636,6 +2813,7 @@ bool build_nest(struct player *p, struct chunk *c, struct loc *centre, int ratin
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  *
@@ -2881,6 +3059,7 @@ bool build_pit(struct player *p, struct chunk *c, struct loc *centre, int rating
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating template room rating to select
  *
  * Returns success.
  */
@@ -2897,6 +3076,7 @@ bool build_template(struct player *p, struct chunk *c, struct loc *centre, int r
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  */
@@ -2912,6 +3092,7 @@ bool build_interesting(struct player *p, struct chunk *c, struct loc *centre, in
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  */
@@ -2929,6 +3110,7 @@ bool build_lesser_vault(struct player *p, struct chunk *c, struct loc *centre, i
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  */
@@ -2946,6 +3128,7 @@ bool build_medium_vault(struct player *p, struct chunk *c, struct loc *centre, i
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  *
@@ -3006,6 +3189,7 @@ bool build_greater_vault(struct player *p, struct chunk *c, struct loc *centre, 
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  */
@@ -3080,6 +3264,7 @@ bool build_moria(struct player *p, struct chunk *c, struct loc *centre, int rati
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  *
@@ -3413,6 +3598,7 @@ bool build_room_of_chambers(struct player *p, struct chunk *c, struct loc *centr
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  *

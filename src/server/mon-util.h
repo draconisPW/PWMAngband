@@ -16,9 +16,7 @@
 /* Monster status (hostile by default) */
 #define MSTATUS_HOSTILE     0   /* hostile */
 #define MSTATUS_SUMMONED    1   /* hostile, summoned by the player */
-#define MSTATUS_GUARD       2   /* guard, controlled by the player */
-#define MSTATUS_FOLLOW      3   /* follower, controlled by the player */
-#define MSTATUS_ATTACK      4   /* attacker, controlled by the player */
+#define MSTATUS_CONTROLLED  2   /* controlled by the player */
 
 /** Functions **/
 extern const char *describe_race_flag(int flag);

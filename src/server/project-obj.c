@@ -571,8 +571,9 @@ static void project_object_handler_RAISE(project_object_handler_context_t *conte
             /* Hack -- get new monster */
             mon = square_monster(c, &grid);
 
-            /* Raised monsters are mostly neutral */
-            if (magik(80)) monster_set_master(mon, context->origin->player, MSTATUS_GUARD);
+            /* Try to control the monster */
+            if (can_charm_monster(context->origin->player, mon->level, STAT_INT))
+                monster_set_master(mon, context->origin->player, MSTATUS_CONTROLLED);
 
             /* Use some mana */
             context->origin->player->spell_cost += race->level;

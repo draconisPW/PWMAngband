@@ -92,12 +92,7 @@ void look_mon_desc(struct monster *mon, char *buf, size_t max)
     if (mon->m_timed[MON_TMD_CUT]) my_strcat(buf, ", bleeding", max);
 
     /* Monster-specific conditions */
-    switch (mon->status)
-    {
-        case MSTATUS_GUARD: my_strcat(buf, ", guarding", max); break;
-        case MSTATUS_FOLLOW: my_strcat(buf, ", following", max); break;
-        case MSTATUS_ATTACK: my_strcat(buf, ", attacking", max); break;
-    }
+    if (mon->status == MSTATUS_CONTROLLED) my_strcat(buf, ", controlled", max);
 }
 
 

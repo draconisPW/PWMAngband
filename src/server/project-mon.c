@@ -1233,64 +1233,26 @@ static void project_monster_handler_DRAIN(project_monster_handler_context_t *con
 }
 
 
-static void project_monster_handler_order(project_monster_handler_context_t *context, byte status)
+/* Command undead monsters */
+static void project_monster_handler_COMMAND(project_monster_handler_context_t *context)
 {
-    int id = (context->origin->player? context->origin->player->id: -1);
-    bool controlled = ((context->mon->master == id)? true: false);
-
     if (context->seen) rf_on(context->lore->flags, RF_UNDEAD);
 
-    /* Only if the undead monster is not already under the spell */
-    if (context->origin->player && !(controlled && (context->mon->status == status)) &&
-        rf_has(context->mon->race->flags, RF_UNDEAD))
+    /* Works only on undead monsters */
+    if (rf_has(context->mon->race->flags, RF_UNDEAD))
     {
         /* Obvious */
         if (context->seen) context->obvious = true;
 
-        /* Controlled monsters are more likely to react to new orders */
-        if (controlled) context->dam *= 2;
+        /* Try to charm the monster */
+        context->hurt_msg = charm_monster(context->origin->player, context->mon, STAT_INT);
 
-        /* Attempt a saving throw */
-        if (monster_is_unique(context->mon->race) ||
-            CHANCE(context->mon->level - 10, (context->dam < 11)? 1: (context->dam - 10)))
-        {
-            /* No obvious effect */
-            context->hurt_msg = MON_MSG_UNAFFECTED;
-            context->obvious = false;
-        }
-        else if (player_of_has(context->origin->player, OF_AGGRAVATE))
-        {
-            /* Too enraged to be controlled */
-            context->hurt_msg = MON_MSG_HATE;
-            context->obvious = false;
-        }
-        else
-        {
-            /* Order monster */
-            context->hurt_msg = MON_MSG_REACT;
-            monster_set_master(context->mon, context->origin->player, status);
-        }
+        /* No obvious effect */
+        if (context->hurt_msg != MON_MSG_REACT) context->obvious = false;
     }
 
     /* No "real" damage */
     context->dam = 0;
-}
-
-
-/* Command undead monsters (Use "dam" as "power") */
-static void project_monster_handler_COMMAND(project_monster_handler_context_t *context)
-{
-    /* Order undead monsters to attack */
-    if (context->origin->player && magik(context->origin->player->lev * 9 / 5))
-        project_monster_handler_order(context, MSTATUS_ATTACK);
-
-    /* Order undead monsters to follow */
-    else if (context->origin->player && magik(context->origin->player->lev * 9 / 5))
-        project_monster_handler_order(context, MSTATUS_FOLLOW);
-
-    /* Order undead monsters to stay still */
-    else
-        project_monster_handler_order(context, MSTATUS_GUARD);
 }
 
 
@@ -1402,11 +1364,11 @@ static void project_monster_handler_SMASH(project_monster_handler_context_t *con
 }
 
 
-/* Order summoned monsters to attack */
+/* Control summoned monsters */
 static void project_monster_handler_CONTROL(project_monster_handler_context_t *context)
 {
     /* Try to charm the monster */
-    context->hurt_msg = charm_monster(context->mon, context->origin->player, context->dam);
+    context->hurt_msg = charm_monster(context->origin->player, context->mon, STAT_WIS);
 
     /* No obvious effect */
     if (context->hurt_msg != MON_MSG_REACT) context->obvious = false;
@@ -2059,7 +2021,7 @@ void monster_set_master(struct monster *mon, struct player *p, byte status)
 
 
 /*
- * Stat Table (WIS) -- chance of getting a friendly summon
+ * Stat Table -- chance of getting a friendly summon
  */
 static const byte summon_friendly[STAT_RANGE] =
 {
@@ -2069,51 +2031,56 @@ static const byte summon_friendly[STAT_RANGE] =
     12  /* 6 */,
     16  /* 7 */,
     20  /* 8 */,
-    23  /* 9 */,
-    26  /* 10 */,
-    29  /* 11 */,
-    32  /* 12 */,
-    35  /* 13 */,
-    38  /* 14 */,
-    41  /* 15 */,
-    44  /* 16 */,
-    47  /* 17 */,
-    50  /* 18/00-18/09 */,
-    52  /* 18/10-18/19 */,
-    54  /* 18/20-18/29 */,
-    56  /* 18/30-18/39 */,
-    58  /* 18/40-18/49 */,
-    60  /* 18/50-18/59 */,
-    62  /* 18/60-18/69 */,
-    64  /* 18/70-18/79 */,
-    66  /* 18/80-18/89 */,
-    68  /* 18/90-18/99 */,
-    70  /* 18/100-18/109 */,
-    72  /* 18/110-18/119 */,
-    74  /* 18/120-18/129 */,
-    76  /* 18/130-18/139 */,
-    78  /* 18/140-18/149 */,
-    80  /* 18/150-18/159 */,
-    83  /* 18/160-18/169 */,
-    86  /* 18/170-18/179 */,
-    89  /* 18/180-18/189 */,
-    92  /* 18/190-18/199 */,
-    95  /* 18/200-18/209 */,
-    98  /* 18/210-18/219 */,
+    24  /* 9 */,
+    28  /* 10 */,
+    32  /* 11 */,
+    36  /* 12 */,
+    40  /* 13 */,
+    44  /* 14 */,
+    48  /* 15 */,
+    52  /* 16 */,
+    56  /* 17 */,
+    60  /* 18/00-18/09 */,
+    62  /* 18/10-18/19 */,
+    64  /* 18/20-18/29 */,
+    66  /* 18/30-18/39 */,
+    68  /* 18/40-18/49 */,
+    70  /* 18/50-18/59 */,
+    72  /* 18/60-18/69 */,
+    74  /* 18/70-18/79 */,
+    76  /* 18/80-18/89 */,
+    78  /* 18/90-18/99 */,
+    80  /* 18/100-18/109 */,
+    82  /* 18/110-18/119 */,
+    84  /* 18/120-18/129 */,
+    86  /* 18/130-18/139 */,
+    88  /* 18/140-18/149 */,
+    90  /* 18/150-18/159 */,
+    92  /* 18/160-18/169 */,
+    94  /* 18/170-18/179 */,
+    96  /* 18/180-18/189 */,
+    97  /* 18/190-18/199 */,
+    98  /* 18/200-18/209 */,
+    99  /* 18/210-18/219 */,
     100 /* 18/220+ */
 };
 
 
-bool can_charm_monster(struct player *p)
+/*
+ * Returns true if the monster can be charmed, false otherwise.
+ */
+bool can_charm_monster(struct player *p, int level, int stat)
 {
-    return (magik(summon_friendly[p->state.stat_ind[STAT_WIS]]));
+    /* A high level will help a lot */
+    if (!CHANCE(MAX(level - 5, 1), p->lev * 5)) return true;
+
+    /* A high stat will help a lot */
+    return (magik(summon_friendly[p->state.stat_ind[stat]]));
 }
 
 
-int charm_monster(struct monster *mon, struct player *p, byte status)
+int charm_monster(struct player *p, struct monster *mon, int stat)
 {
-    bool charmed = false;
-
     /* Paranoia */
     if (!p) return MON_MSG_UNAFFECTED;
 
@@ -2126,23 +2093,13 @@ int charm_monster(struct monster *mon, struct player *p, byte status)
     /* Too enraged to be controlled */
     if (player_of_has(p, OF_AGGRAVATE)) return MON_MSG_HATE;
 
-    /* A high level will help a lot */
-    if (!CHANCE(MAX(mon->level - 5, 1), p->lev * 5)) charmed = true;
-
-    /* A high wisdom will help a lot, and will always yield useful summons */
-    if (can_charm_monster(p))
-    {
-        charmed = true;
-        status = MSTATUS_ATTACK;
-    }
-
     /* Only if the monster is not already under the spell */
-    if (mon->status >= status) return MON_MSG_UNAFFECTED;
+    if (mon->status == MSTATUS_CONTROLLED) return MON_MSG_UNAFFECTED;
 
     /* Monster is pacified */
-    if (charmed)
+    if (can_charm_monster(p, mon->level, stat))
     {
-        monster_set_master(mon, p, status);
+        monster_set_master(mon, p, MSTATUS_CONTROLLED);
         return MON_MSG_REACT;
     }
 

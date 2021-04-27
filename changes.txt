@@ -131,6 +131,7 @@ PWMAngband:
 - Rename NO_SELLING server option to LIMITED_STORES, use an integer value
   to handle disabling selling completely and restricting the use of stores/home
 - Add life leech brand to forms with EXP_XXX melee blow effects
+- More useful summons
 
 Bugs fixed
 ----------
@@ -203,6 +204,15 @@ Angband 4.2.x:
 - Improvements to effect info
 - Allow item in starting kit to be excluded by a logical or of one or more birth
   options (or negated birth options)
+- Change logic in join_region() and gauntlet_gen() to avoid disconnected
+  gauntlet levels
+- Require at least two rooms in moria_chunk()
+- Use square_islit() rather than square_isglow() for the initial determination
+  of whether the player's location is seen
+- Adjust some logic for hard centre levels
+- Change drawing of outer walls about circular rooms
+- Split building template rooms into two passes
+- For pillared rooms, cut off the corners when not adjacent to a floor
 
 MAngband 1.5.x:
 
@@ -249,3 +259,4 @@ Compilation/documentation
 - Add some descriptions for the front-end specific details
 - Update comments in object.txt and object_base.txt
 - Update class.txt comments
+- Update comments for room templates' rating and type

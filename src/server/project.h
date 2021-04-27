@@ -104,8 +104,8 @@ extern bool project_m_monster_attack_aux(struct monster *attacker, struct chunk 
 extern void project_m(struct source *origin, int r, struct chunk *c, struct loc *grid, int dam,
     int typ, int flg, bool *did_hit, bool *was_obvious, int *newy, int *newx);
 extern void monster_set_master(struct monster *mon, struct player *p, byte status);
-extern bool can_charm_monster(struct player *p);
-extern int charm_monster(struct monster *mon, struct player *p, byte status);
+extern bool can_charm_monster(struct player *p, int level, int stat);
+extern int charm_monster(struct player *p, struct monster *mon, int stat);
 
 /* project-obj.c */
 extern int inven_damage(struct player *p, int type, int cperc);

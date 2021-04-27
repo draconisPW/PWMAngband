@@ -819,13 +819,13 @@ void update_view(struct player *p, struct chunk *c)
     /* Record the current view */
     mark_wasseen(p, c);
 
-    /* Assume we can view the player grid */
-    sqinfo_on(square_p(p, &p->grid)->info, SQUARE_VIEW);
-    if ((p->state.cur_light > 0) || square_isglow(c, &p->grid))
-        sqinfo_on(square_p(p, &p->grid)->info, SQUARE_SEEN);
-
     /* Calculate light levels */
     calc_lighting(p, c);
+
+    /* Assume we can view the player grid */
+    sqinfo_on(square_p(p, &p->grid)->info, SQUARE_VIEW);
+    if ((p->state.cur_light > 0) || square_islit(c, &p->grid))
+        sqinfo_on(square_p(p, &p->grid)->info, SQUARE_SEEN);
 
     loc_init(&begin, 0, 0);
     loc_init(&end, c->width, c->height);
