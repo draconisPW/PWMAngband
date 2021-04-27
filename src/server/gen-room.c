@@ -492,7 +492,7 @@ static void set_bordering_walls(struct chunk *c, int y1, int x1, int y2, int x2)
 
 		for (grid.x = x1; grid.x <= x2; grid.x++)
         {
-			if (square_isfloor(c, &grid))
+			if (square_isanyfloor(c, &grid))
             {
 				int adjx1 = MAX(0, grid.x - 1);
 				int adjx2 = MIN(c->width - 1, grid.x + 1);
@@ -516,7 +516,7 @@ static void set_bordering_walls(struct chunk *c, int y1, int x1, int y2, int x2)
                     {
 						for (adj.x = adjx1; adj.x <= adjx2; adj.x++)
                         {
-							bool floor = square_isfloor(c, &adj);
+							bool floor = square_isanyfloor(c, &adj);
 
 							my_assert(floor == square_isroom(c, &adj));
 							if (floor) ++nfloor;
@@ -547,7 +547,7 @@ static void set_bordering_walls(struct chunk *c, int y1, int x1, int y2, int x2)
         {
 			if (walls[grid.x - x1 + nx * (grid.y - y1)])
             {
-				my_assert(square_isfloor(c, &grid) && square_isroom(c, &grid));
+				my_assert(square_isanyfloor(c, &grid) && square_isroom(c, &grid));
 				set_marked_granite(c, &grid, SQUARE_WALL_OUTER);
 			}
 		}
@@ -1307,7 +1307,7 @@ static bool build_room_template(struct player *p, struct chunk *c, struct loc *c
                 {
                     /* Check consistency with first pass. */
                     my_assert(square_isroom(c, &grid) &&
-                        (square_isfloor(c, &grid) || square_isstairs(c, &grid)));
+                        (square_isanyfloor(c, &grid) || square_isstairs(c, &grid)));
 
                     /* Add some monsters to guard it */
                     vault_monsters(p, c, &grid, c->wpos.depth + 2, randint0(2) + 3);
@@ -1323,7 +1323,7 @@ static bool build_room_template(struct player *p, struct chunk *c, struct loc *c
                     loc_init(&off3, 3, 3);
 
                     /* Check consistency with first pass. */
-                    my_assert(square_isroom(c, &grid) && square_isfloor(c, &grid));
+                    my_assert(square_isroom(c, &grid) && square_isanyfloor(c, &grid));
 
                     /* Add a few monsters */
                     loc_diff(&vgrid, &grid, &off3);
