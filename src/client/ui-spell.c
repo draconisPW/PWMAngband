@@ -582,8 +582,11 @@ int textui_obj_project(int book, int *dir)
 
 /*
  * Get spell by name
+ *
+ * Returns "0" if a spell was found, "1" if user has aborted input, and
+ * "-1" if no spell could be found.
  */
-bool get_spell_by_name(int *book, int *spell)
+errr get_spell_by_name(int *book, int *spell)
 {
     char buf[256];
     char *tok;
@@ -595,11 +598,11 @@ bool get_spell_by_name(int *book, int *spell)
     if (prompt_quote_hack) prompt = "Spell name: \"";
 
     buf[0] = '\0';
-    if (!get_string(prompt, buf, NORMAL_WID)) return false;
+    if (!get_string(prompt, buf, NORMAL_WID)) return 1;
 
     /* Hack -- remove final quote */
     len = strlen(buf);
-    if (len == 0) return false;
+    if (len == 0) return 1;
     if (buf[len - 1] == '"') buf[len - 1] = '\0';
 
     /* Split entry */
@@ -619,7 +622,7 @@ bool get_spell_by_name(int *book, int *spell)
                 {
                     (*book) = i;
                     (*spell) = sn;
-                    return true;
+                    return 0;
                 }
 
                 sn++;
@@ -628,7 +631,7 @@ bool get_spell_by_name(int *book, int *spell)
         tok = strtok(NULL, "|");
     }
 
-    return false;
+    return -1;
 }
 
 

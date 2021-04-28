@@ -5135,6 +5135,7 @@ static int Receive_clear(int ind)
 {
     byte ch;
     connection_t *connp = get_connection(ind);
+    struct player *p;
 
     /* Remove the clear command from the queue */
     if (Packet_scanf(&connp->r, "%b", &ch) != 1)
@@ -5147,6 +5148,14 @@ static int Receive_clear(int ind)
 
     /* Clear any queued commands prior to this clear request */
     Sockbuf_clear(&connp->q);
+
+    if (connp->id != -1)
+    {
+        p = player_get(get_player_index(connp));
+
+        /* Hack -- set clear request */
+        p->first_escape = true;
+    }
 
     return 2;
 }

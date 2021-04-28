@@ -1979,7 +1979,6 @@ bool build_circular(struct player *p, struct chunk *c, struct loc *centre, int r
         c->gen_hack = true;
         return build_simple(p, c, centre, rating);
     }
-    c->gen_hack = false;
 
     /* Pick a room size */
     radius = 2 + randint1(2) + randint1(3);
@@ -1991,15 +1990,29 @@ bool build_circular(struct player *p, struct chunk *c, struct loc *centre, int r
     if ((centre->y >= c->height) || (centre->x >= c->width))
     {
         if (!find_space(centre, 2 * radius + 10, 2 * radius + 10))
+        {
+            c->gen_hack = false;
             return false;
+        }
     }
 
-    /* Mark as a room. */
-    fill_circle(c, centre->y, centre->x, radius + 1, 0, FEAT_FLOOR, SQUARE_NONE, light);
+    /* Hack -- DF_CIRCULAR_ROOMS dungeons use the old method */
+    if (c->gen_hack)
+    {
+        /* Generate outer walls and inner floors */
+        fill_circle(c, centre->y, centre->x, radius + 1, 1, FEAT_GRANITE, SQUARE_WALL_OUTER, light);
+        fill_circle(c, centre->y, centre->x, radius, 0, FEAT_FLOOR, SQUARE_NONE, light);
+    }
+    else
+    {
+        /* Mark as a room. */
+        fill_circle(c, centre->y, centre->x, radius + 1, 0, FEAT_FLOOR, SQUARE_NONE, light);
 
-    /* Convert some floors to be the outer walls. */
-    set_bordering_walls(c, centre->y - radius - 2, centre->x - radius - 2, centre->y + radius + 2,
-        centre->x + radius + 2);
+        /* Convert some floors to be the outer walls. */
+        set_bordering_walls(c, centre->y - radius - 2, centre->x - radius - 2,
+            centre->y + radius + 2, centre->x + radius + 2);
+    }
+    c->gen_hack = false;
 
     /* Especially large circular rooms will have a middle chamber */
     if ((radius - 4 > 0) && (randint0(4) < radius - 4))

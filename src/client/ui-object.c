@@ -695,8 +695,11 @@ static bool get_tag(struct object **tagged_obj, char tag, cmd_code cmd, bool qui
 
 /*
  * Prompt player for a string, then try to find an item matching it
+ *
+ * Returns "0" if an item was found, "1" if user has aborted input, and
+ * "-1" if nothing could be found.
  */
-static bool get_item_by_name(int *k)
+static errr get_item_by_name(int *k)
 {
     char buf[256];
     char *tok;
@@ -708,24 +711,24 @@ static bool get_item_by_name(int *k)
     if (spellcasting)
     {
         int sn = -1;
-        bool ok = get_spell_by_name(k, &sn);
+        errr failed = get_spell_by_name(k, &sn);
 
         /* Remember spell index */
         spellcasting_spell = sn;
 
         /* Don't do any other tests */
-        return ok;
+        return failed;
     }
 
     /* Hack -- show opening quote symbol */
     if (prompt_quote_hack) prompt = "Item name: \"";
 
     buf[0] = '\0';
-    if (!get_string(prompt, buf, NORMAL_WID)) return false;
+    if (!get_string(prompt, buf, NORMAL_WID)) return 1;
 
     /* Hack -- remove final quote */
     len = strlen(buf);
-    if (len == 0) return false;
+    if (len == 0) return 1;
     if (buf[len - 1] == '"') buf[len - 1] = '\0';
 
     /* Split entry */
@@ -742,13 +745,13 @@ static bool get_item_by_name(int *k)
             if (my_stristr(items[i].o_name, tok))
             {
                 (*k) = i;
-                return true;
+                return 0;
             }
         }
         tok = strtok(NULL, "|");
     }
 
-    return false;
+    return -1;
 }
 
 
@@ -1039,14 +1042,16 @@ static bool get_item_action(struct menu *menu, const ui_event *event, int oid)
             case '@':
             {
                 int k;
+                errr r;
 
                 /* Lookup item by name */
-                if (get_item_by_name(&k))
+                r = get_item_by_name(&k);
+                if (!r)
                 {
                     selection = choice[k].object;
                     return true;
                 }
-                else
+                else if (r < 0)
                 {
                     bell("Cannot select item!");
 

@@ -32,7 +32,7 @@ byte trap_indicator;
 
 
 /* Escape command */
-bool first_escape = false;
+bool first_escape = true;
 
 
 /* Top line is icky */
@@ -929,6 +929,9 @@ void flush_now(void)
 {
     /* Clear various flags */
     inkey_xtra = false;
+
+    /* Restore "first escape" */
+    first_escape = true;
 
     /* Forgot old keypresses */
     Term_flush();

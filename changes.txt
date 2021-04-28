@@ -228,6 +228,8 @@ MAngband 1.5.x:
 - Add 'conf_done' destructor
 - Add more hacks to vstrnfmt
 - Stop resending whole equipment/inventory when a single item is affected
+- Add most of the missing bell() calls
+- Fix ESC key not clearing the queue
 
 PWMAngband:
 
@@ -247,6 +249,7 @@ PWMAngband:
 - Remove ladder info from character dumps
 - Add paranoia check in Receive_text_screen()
 - Refactor effect_info() to take into consideration various hacks
+- Prevent auto-retaliator after clear request
 
 Compilation/documentation
 -------------------------
