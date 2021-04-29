@@ -4451,7 +4451,7 @@ static void master_debug(struct player *p, char *parms)
             struct chunk *c = chunk_get(&p->wpos);
             struct trap_kind *trap;
 
-            if (!random_level(&p->wpos) || !square_isfloor(c, &p->grid))
+            if (!random_level(&p->wpos) || !square_player_trap_allowed(c, &p->grid))
             {
                 msg(p, "You can't place a trap there!");
                 break;

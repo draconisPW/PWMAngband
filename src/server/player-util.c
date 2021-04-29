@@ -727,8 +727,8 @@ int player_check_terrain_damage(struct player *p, struct chunk *c)
         /* Drowning damage */
         dam_taken = p->mhp / 100 + randint1(3);
 
-        /* Levitation prevents drowning */
-        if (player_of_has(p, OF_FEATHER)) dam_taken = 0;
+        /* Levitation and swimming prevents drowning */
+        if (player_of_has(p, OF_FEATHER) || player_has(p, PF_CAN_SWIM)) dam_taken = 0;
     }
     else if (square_isnether(c, &p->grid))
     {

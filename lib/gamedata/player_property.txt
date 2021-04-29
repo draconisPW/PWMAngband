@@ -38,6 +38,11 @@ code:SEE_ORE
 name:Miner
 desc:You can sense ore in the walls.
 
+type:player
+code:CAN_SWIM
+name:Swimming
+desc:You are able to swim.
+
 ## Class player flags
 
 type:player

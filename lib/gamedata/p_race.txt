@@ -387,7 +387,7 @@ value:1:CON[8]
 value:1:INFRA[5]
 value:1:RES_FIRE[-1]
 value:1:SPEED[-2]
-player-flags:GIANT
+player-flags:GIANT | CAN_SWIM
 
 name:Thunderlord
 skill-disarm-phys:6

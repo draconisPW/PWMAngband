@@ -1416,6 +1416,14 @@ int Send_race_struct_info(int ind)
         return -1;
     }
 
+    /* Hack -- send limits for client compatibility */
+    if (Packet_printf(&connp->c, "%hd%hd%hd%hd%hd%hd", (int)OBJ_MOD_MAX, (int)SKILL_MAX,
+        (int)PF_SIZE, (int)OF_SIZE, (int)OF_MAX, (int)ELEM_MAX) <= 0)
+    {
+        Destroy_connection(ind, "Send_race_struct_info write error");
+        return -1;
+    }
+
     for (r = races; r; r = r->next)
     {
         if (Packet_printf(&connp->c, "%b%s", r->ridx, r->name) <= 0)
@@ -1501,6 +1509,14 @@ int Send_class_struct_info(int ind)
 
     if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_CLASS,
         (unsigned)player_cmax()) <= 0)
+    {
+        Destroy_connection(ind, "Send_class_struct_info write error");
+        return -1;
+    }
+
+    /* Hack -- send limits for client compatibility */
+    if (Packet_printf(&connp->c, "%hd%hd%hd%hd%hd%hd", (int)OBJ_MOD_MAX, (int)SKILL_MAX,
+        (int)PF_SIZE, (int)OF_SIZE, (int)OF_MAX, (int)ELEM_MAX) <= 0)
     {
         Destroy_connection(ind, "Send_class_struct_info write error");
         return -1;
@@ -2093,8 +2109,8 @@ int Send_abilities_struct_info(int ind)
 
     for (a = player_abilities; a; a = a->next)
     {
-        if (Packet_printf(&connp->c, "%hu%hu%s%s%s", (unsigned)a->index, (unsigned)a->value,
-            a->type, a->desc, a->name) <= 0)
+        if (Packet_printf(&connp->c, "%hu%hd%s%s%s", (unsigned)a->index, (int)a->value, a->type,
+            a->desc, a->name) <= 0)
         {
             Destroy_connection(ind, "Send_abilities_struct_info write error");
             return -1;

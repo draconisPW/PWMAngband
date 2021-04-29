@@ -433,14 +433,14 @@ desc:An empty ornate basin.
 name:loose dirt
 graphics:%:u
 priority:10
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | BORING | OBJECT | EASY | NOTICEABLE
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | BORING | OBJECT | EASY | NOTICEABLE | TRAP
 look-prefix:some
 desc:A section of loose dirt.
 
 name:packed dirt
 graphics:.:u
 priority:3
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | DIRT | BORING | OBJECT | EASY
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | DIRT | BORING | OBJECT | EASY | TRAP
 look-prefix:some
 desc:A section of packed dirt.
 
@@ -477,7 +477,7 @@ desc:An open floor or bare ground that prevents any form of teleportation.
 name:grass
 graphics:.:g
 priority:2
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | GRASS | BORING | OBJECT | EASY | TORCH
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | GRASS | BORING | OBJECT | EASY | TORCH | TRAP
 look-prefix:some
 desc:A patch of grass.
 
@@ -525,7 +525,7 @@ desc:A section of wall from a public building. It is made of wood.
 name:sand
 graphics:.:y
 priority:2
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH | TRAP
 look-prefix:some
 desc:A section of sand.
 
@@ -543,7 +543,7 @@ desc: sight.
 name:ice
 graphics:.:W
 priority:2
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH | TRAP
 look-prefix:some
 desc:A section of ice.
 
@@ -889,7 +889,7 @@ desc: Objects dropped inside can be sold to other players.
 name:ash
 graphics:.:s
 priority:3
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TRAP
 look-prefix:some
 desc:A section of ash.
 
@@ -927,7 +927,7 @@ desc: to normal floor, and can be walked through by the player and monsters.
 name:void
 graphics:.:d
 priority:3
-flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY
+flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TRAP
 look-prefix:some
 desc:A section of nothingness.
 

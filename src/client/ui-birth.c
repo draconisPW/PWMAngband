@@ -842,7 +842,7 @@ static void menu_stats(enum birth_stage current, int cursor)
     struct player_class *c = NULL;
     const char *name;
     struct modifier *modifiers;
-    int mod, row = 2;
+    int mod, row = 2, ability_row;
     char buf[70];
     struct player_ability *ability;
     bitflag *flags, *pflags;
@@ -925,6 +925,7 @@ static void menu_stats(enum birth_stage current, int cursor)
     row++;
 
     /* Abilities */
+    ability_row = row;
     for (ability = player_abilities; ability; ability = ability->next)
     {
         if (!ability->name) continue;
@@ -944,6 +945,13 @@ static void menu_stats(enum birth_stage current, int cursor)
             strnfmt(buf, sizeof(buf), "%s from level %d", ability->name, el_info[ability->index].lvl);
         }
 
+        if (row == 23)
+        {
+            prt("-- more --", 23, 2);
+            inkey();
+            clear_from(ability_row);
+            row = ability_row;
+        }
         prt(buf, row++, 2);
     }
 

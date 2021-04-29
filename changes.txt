@@ -132,6 +132,10 @@ PWMAngband:
   to handle disabling selling completely and restricting the use of stores/home
 - Add life leech brand to forms with EXP_XXX melee blow effects
 - More useful summons
+- Allow create traps on more floors
+- Allow create stairs on more floors
+- Allow fire/plasma breaths to create lava on more floors
+- Implement CAN_SWIM player flag, add it to the Ent race
 
 Bugs fixed
 ----------
@@ -187,6 +191,7 @@ PWMAngband:
 - Fix keymaps using '{' symbol
 - Fix "base" kind flags not added to "kind" kind flags in the case of books
 - Fix objects generated on customized floors
+- Fix vulnerabilities not shown on birth screen
 
 Coding changes
 --------------
@@ -250,6 +255,7 @@ PWMAngband:
 - Add paranoia check in Receive_text_screen()
 - Refactor effect_info() to take into consideration various hacks
 - Prevent auto-retaliator after clear request
+- Send and check limits for race/class structure fields
 
 Compilation/documentation
 -------------------------

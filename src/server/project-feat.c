@@ -123,7 +123,7 @@ static void project_feature_handler_FIRE(project_feature_handler_context_t *cont
     }
 
     /* Can create lava if extremely powerful. */
-    if ((context->dam > randint1(1800) + 600) && square_isfloor(context->cave, &context->grid))
+    if ((context->dam > randint1(1800) + 600) && square_isanyfloor(context->cave, &context->grid))
     {
         /* Forget the floor, make lava. */
         square_set_feat(context->cave, &context->grid, FEAT_LAVA);
@@ -316,7 +316,7 @@ static void project_feature_handler_PLASMA(project_feature_handler_context_t *co
     if (context->line_sight && !context->is_blind) context->obvious = true;
 
     /* Can create lava if extremely powerful. */
-    if ((context->dam > randint1(1800) + 600) && square_isfloor(context->cave, &context->grid))
+    if ((context->dam > randint1(1800) + 600) && square_isanyfloor(context->cave, &context->grid))
     {
         /* Forget the floor, make lava. */
         square_set_feat(context->cave, &context->grid, FEAT_LAVA);
@@ -673,8 +673,8 @@ static void project_feature_handler_MAKE_TRAP(project_feature_handler_context_t 
     struct loc grid = context->grid;
     int i;
 
-    /* Require an "empty" floor grid */
-    if (!square_isopen(context->cave, &grid)) return;
+    /* Require an "empty" floor grid with no existing traps or glyphs */
+    if (!square_player_trap_allowed(context->cave, &grid)) return;
 
     /* Create a trap, try to notice it */
     if (one_in_(4))

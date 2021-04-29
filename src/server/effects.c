@@ -2368,7 +2368,7 @@ static bool effect_handler_CREATE_STAIRS(effect_handler_context_t *context)
     }
 
     /* Only allow stairs to be created on empty floor */
-    if (!square_isfloor(context->cave, &context->origin->player->grid))
+    if (!square_isanyfloor(context->cave, &context->origin->player->grid))
     {
         msg(context->origin->player, "There is no empty floor here.");
         return false;
