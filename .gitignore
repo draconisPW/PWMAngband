@@ -16,7 +16,7 @@ configure
 lib/scores/scores.*
 *.out
 *.exe
-lib/save/*
+lib/user/save/*
 .project
 .cproject
 *.orig
