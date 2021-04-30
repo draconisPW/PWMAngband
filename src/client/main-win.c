@@ -1641,7 +1641,7 @@ static errr Term_bigcurs_win(int x, int y)
         int j = 0;
 
         if (!Term_info(x, y, &a, &c, &ta, &tc)) j = (a & 0x7F);
-        if ((j > 2) && (j >= overdraw) && (j <= overdrawmax))
+        if ((j > ROW_MAP + 1) && (j >= overdraw) && (j <= overdrawmax))
         {
             rc.top -= tile_height * tile_hgt;
             rc.bottom = rc.top + ((tile_height * tile_hgt) << 1);
@@ -1973,14 +1973,14 @@ static void Term_pict_win_aux(int x, int y, int n, const u16b *ap, const char *c
                 StretchBlt(hdc, x2, y2, tw2, th2, hdcSrc, x3, y3, w1, h1, SRCCOPY);
             }
 
-            if (overdraw && (trow >= overdraw) && (y > 2) && (trow <= overdrawmax))
+            if (overdraw && (trow >= overdraw) && (y > ROW_MAP + 1) && (trow <= overdrawmax))
                 AlphaBlend(hdc, x2, y2 - th2, tw2, th2, hdcSrc, x3, y3 - h1, w1, h1, blendfn);
 
             /* Only draw if terrain and overlay are different */
             if ((x1 != x3) || (y1 != y3))
             {
                 /* Copy the picture from the bitmap to the window */
-                if (overdraw && (row >= overdraw) && (y > 2) && (row <= overdrawmax))
+                if (overdraw && (row >= overdraw) && (y > ROW_MAP + 1) && (row <= overdrawmax))
                 {
                     AlphaBlend(hdc, x2, y2 - th2, tw2, th2 * 2, hdcSrc, x1, y1 - h1, w1, h1 * 2,
                         blendfn);
@@ -2064,7 +2064,7 @@ static errr Term_text_win(int x, int y, int n, u16b a, const char *s)
             tilex = COL_MAP + ((x - COL_MAP + i) / tile_wid) * tile_wid;
             tiley = ROW_MAP + ((y - ROW_MAP) / tile_hgt + j) * tile_hgt;
 
-            if (overdraw && (tiley > 2) && !Term_info(tilex, tiley, &fa, &fc, &ta, &tc))
+            if (overdraw && (tiley > ROW_MAP + 1) && !Term_info(tilex, tiley, &fa, &fc, &ta, &tc))
             {
                 int row = (fa & 0x7F);
                 int trow = (ta & 0x7F);
@@ -2147,7 +2147,7 @@ static errr Term_pict_win(int x, int y, int n, const u16b *ap, const char *cp, c
 
         while (j)
         {
-            if (overdraw && (y + j * tile_hgt > 2) &&
+            if (overdraw && (y + j * tile_hgt > ROW_MAP + 1) &&
                 !Term_info(x + i * tile_wid, y + j * tile_hgt, &a, &c, &ta, &tc))
             {
                 int row = (a & 0x7F);

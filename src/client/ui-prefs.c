@@ -475,6 +475,9 @@ static const char *process_pref_file_expr(char **sp, char *fp)
             /* System */
             if (streq(b+1, "SYS")) v = ANGBAND_SYS;
 
+            /* Specific font */
+            else if (streq(b+1, "FONTNAME")) v = ANGBAND_FONTNAME;
+
             /* Race */
             else if (streq(b+1, "RACE")) v = player->race->name;
 

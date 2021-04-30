@@ -155,8 +155,8 @@ static void adjust_level(struct player *p)
     /* Redraw experience */
     p->upkeep->redraw |= (PR_EXP);
 
-    /* Handle stuff */
-    handle_stuff(p);
+    /* Update stuff */
+    update_stuff(p, chunk_get(&p->wpos));
 
     /* Lose levels while possible */
     while ((p->lev > 1) && (p->exp < adv_exp(p->lev - 1, p->expfact)))
@@ -233,8 +233,8 @@ static void adjust_level(struct player *p)
         set_redraw_equip(p, NULL);
     }
 
-    /* Handle stuff */
-    handle_stuff(p);
+    /* Update stuff */
+    update_stuff(p, chunk_get(&p->wpos));
 }
 
 

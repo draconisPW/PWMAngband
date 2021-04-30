@@ -407,7 +407,7 @@ static errr sdl_FontCreate(sdl_Font *font, const char *fontname, SDL_Surface *su
 /*
  * Draw some text onto a surface, allowing shaded backgrounds.
  * The surface is first checked to see if it is compatible with
- * this font, if it isn't the the font will be 're-precalculated'.
+ * this font, if it isn't then the font will be 're-precalculated'.
  *
  * You can, I suppose, use one font on many surfaces, but it is
  * definitely not recommended. One font per surface is good enough.
@@ -448,7 +448,7 @@ static errr sdl_mapFontDraw(sdl_Font *font, SDL_Surface *surface, SDL_Color colo
 /*
  * Draw some text onto a surface
  * The surface is first checked to see if it is compatible with
- * this font, if it isn't the the font will be 're-precalculated'
+ * this font, if it isn't then the font will be 're-precalculated'
  *
  * You can, I suppose, use one font on many surfaces, but it is
  * definitely not recommended. One font per surface is good enough.
@@ -2906,7 +2906,7 @@ static errr Term_bigcurs_sdl(int col, int row)
 
     /* If we are using overdraw, draw a double height cursor (disabled for now) */
     /*if (!Term_info(col, row, &a, &c, &ta, &tc)) j = (a & 0x7F);
-    if (overdraw && (j > 2) && (j >= overdraw) && (j <= overdraw_max))
+    if (overdraw && (j > ROW_MAP + 1) && (j >= overdraw) && (j <= overdraw_max))
     {
         rc.y -= rc.h;
         rc.h = (rc.h << 1);
@@ -3184,7 +3184,7 @@ static void sdl_DrawTile(term_window *win, int col, int row, SDL_Rect rc, SDL_Re
     }
 
     /* If we are using overdraw, draw the top rectangle */
-    if (overdraw && (row > 2) && (j >= overdraw) && (j <= overdraw_max))
+    if (overdraw && (row > ROW_MAP + 1) && (j >= overdraw) && (j <= overdraw_max))
     {
         /* Double the height */
         src.y -= rc.h;
@@ -3325,7 +3325,7 @@ static errr Term_text_sdl(int col, int row, int n, u16b a, const char *s)
             tilex = COL_MAP + ((col - COL_MAP + i) / tile_wid) * tile_wid;
             tiley = ROW_MAP + ((row - ROW_MAP) / tile_hgt + j) * tile_hgt;
 
-            if (overdraw && (tiley > 2) && !Term_info(tilex, tiley, &fa, &fc, &ta, &tc))
+            if (overdraw && (tiley > ROW_MAP + 1) && !Term_info(tilex, tiley, &fa, &fc, &ta, &tc))
             {
                 int row = (fa & 0x7F);
                 int trow = (ta & 0x7F);
@@ -3440,7 +3440,7 @@ static errr Term_pict_sdl(int col, int row, int n, const u16b *ap, const char *c
         /* Redraw the bottom tile (recursively) */
         while (j)
         {
-            if (overdraw && (row + j * tile_hgt > 2) &&
+            if (overdraw && (row + j * tile_hgt > ROW_MAP + 1) &&
                 !Term_info(col + i * tile_wid, row + j * tile_hgt, &a, &c, &ta, &tc))
             {
                 int frow = (a & 0x7F);
@@ -3743,6 +3743,9 @@ static void init_windows(void)
 
         /* Term 0 is at the top */
         Zorder[i] = ANGBAND_TERM_MAX - i - 1;
+
+        /* Hack -- set ANGBAND_FONTNAME for main window */
+        if (i == 0) ANGBAND_FONTNAME = win->req_font;
     }
 
     /* Good to go... */

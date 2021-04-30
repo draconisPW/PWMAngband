@@ -1,0 +1,34 @@
+# File: font-tng.prf
+
+#
+# Tangar 1-bit roguelike font mapping.
+#
+# Note that this file is a pure copy of the font-sdl.prf file by default and
+# doesn't include any mapping. These have to be added manually.
+#
+
+
+### Terrain features ###
+
+# Floors (white : centered dot)
+#feat:open floor:*:1:7
+feat:open floor:*:7:7
+
+# Simplified version to specify default attribute for all lighting effects
+# glyph : terrain name : symbol
+# glyph:open floor:7
+
+
+### Monster features ###
+
+# Regular version to bypass default value from monster.txt
+# monster : name : attr : char
+# monster:Uvatha the Horseman:1:205
+#
+# Simplified version to specify default attribute (client only)
+# monster-char : name : char
+# monster-char:Uvatha the Horseman:205
+#
+# Alternate version to specify attr by symbol (client only)
+# monster-attr : name : attr : char
+# monster-attr:Uvatha the Horseman:w:205

@@ -20,6 +20,7 @@ Angband 4.2.x:
 - Allow fuel to be drawn from the quiver
 - Display average damage for devices, spells, and activations
 - Allow CMD_WIELD to select from the quiver
+- Take into account sidebar/topbar in double-height tile rendering
 
 MAngband 1.5.x:
 
@@ -34,6 +35,8 @@ MAngband 1.5.x:
 - Add Ctrl+E toggle_inven_equip command from V
 - Add some shared monster messages
 - Hitpoint warning toggle hotkey
+- Use font-tng.prf instead of font-sdl.prf for "tg" fonts
+- Change visual mapping for PvP arena wall
 
 PWMAngband:
 
@@ -237,6 +240,8 @@ MAngband 1.5.x:
 - Stop resending whole equipment/inventory when a single item is affected
 - Add most of the missing bell() calls
 - Fix ESC key not clearing the queue
+- Add error condition check to file_putf
+- Don't use handle_stuff() in adjust_level()
 
 PWMAngband:
 

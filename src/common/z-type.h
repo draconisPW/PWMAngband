@@ -308,6 +308,7 @@ struct angband_constants
 extern struct angband_constants *z_info;
 
 extern const char *ANGBAND_SYS;
+extern const char *ANGBAND_FONTNAME;
 
 extern char *ANGBAND_DIR_GAMEDATA;
 extern char *ANGBAND_DIR_CUSTOMIZE;
