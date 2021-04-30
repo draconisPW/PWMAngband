@@ -271,3 +271,4 @@ Compilation/documentation
 - Update comments in object.txt and object_base.txt
 - Update class.txt comments
 - Update comments for room templates' rating and type
+- Update .gitignore
