@@ -404,6 +404,9 @@ static void process_world(struct player *p, struct chunk *c)
 {
     struct loc begin, end;
     struct loc_iterator iter;
+    struct worldpos dpos;
+    struct location *dungeon;
+    int respawn_rate;
 
     if (!p)
     {
@@ -464,10 +467,17 @@ static void process_world(struct player *p, struct chunk *c)
      * deeper in the dungeon.
      */
 
+    /* Get the dungeon */
+    wpos_init(&dpos, &c->wpos.grid, 0);
+    dungeon = get_dungeon(&dpos);
+
+    /* Hack -- increase respawn rate on no_recall servers and FAST_SPAWN dungeons */
+    respawn_rate = 1;
+    if (dungeon && c->wpos.depth && df_has(dungeon->flags, DF_FAST_SPAWN)) respawn_rate = 2;
+    if (cfg_diving_mode == 3) respawn_rate = 4;
+
     /* Check for creature generation */
-    /* Hack -- increase respawn rate on no_recall servers */
-    if (one_in_((cfg_diving_mode == 3)? z_info->alloc_monster_chance / 4:
-        z_info->alloc_monster_chance))
+    if (one_in_(z_info->alloc_monster_chance / respawn_rate))
     {
         if (in_wild(&p->wpos))
         {

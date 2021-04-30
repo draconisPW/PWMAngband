@@ -1996,8 +1996,8 @@ bool build_circular(struct player *p, struct chunk *c, struct loc *centre, int r
         }
     }
 
-    /* Hack -- DF_CIRCULAR_ROOMS dungeons use the old method */
-    if (c->gen_hack)
+    /* Hack -- DF_CIRCULAR_ROOMS dungeons and arena levels use the old method */
+    if (c->gen_hack || (c->profile == dun_arena))
     {
         /* Generate outer walls and inner floors */
         fill_circle(c, centre->y, centre->x, radius + 1, 1, FEAT_GRANITE, SQUARE_WALL_OUTER, light);

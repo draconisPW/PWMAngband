@@ -136,6 +136,8 @@ PWMAngband:
 - Allow create stairs on more floors
 - Allow fire/plasma breaths to create lava on more floors
 - Implement CAN_SWIM player flag, add it to the Ent race
+- Add FAST_SPAWN dungeon flag, double monster respawn rate if set
+- Set FAST_SPAWN flag to the Training Cave
 
 Bugs fixed
 ----------

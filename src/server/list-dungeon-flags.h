@@ -15,3 +15,5 @@ DF(STREAMS, "May have magma/quartz streams")
 DF(LAVA_RIVER, "May have lava streams")
 DF(WATER_RIVER, "May have water streams")
 DF(SAND_VEIN, "May have sand streams")
+DF(FAST_SPAWN, "Spawn monsters faster")
+

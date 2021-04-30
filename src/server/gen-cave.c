@@ -24,18 +24,6 @@
 
 
 /*
- * Profile indexes
- */
-enum
-{
-    #define DUN(a, b) dun_##b,
-    #include "list-dun-profiles.h"
-    #undef DUN
-    dun_max
-};
-
-
-/*
  * In this file, we use the SQUARE_WALL flags to the info field in
  * cave->squares, which should only be applied to granite. SQUARE_WALL_SOLID
  * indicates the wall should not be tunnelled; SQUARE_WALL_INNER is the
@@ -4988,6 +4976,9 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     dun->pit_num = 0;
     dun->cent_n = 0;
 
+    /* Hack -- set profile */
+    c->profile = dun_arena;
+
     /*
      * Build some rooms. Note that the theoretical maximum number of rooms
      * in this profile is currently 36, so built never reaches num_rooms,
@@ -5162,9 +5153,6 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     /* Apply illumination */
     player_cave_clear(p, true);
     if (lit) c->light_level = true;
-
-    /* Hack -- set profile */
-    c->profile = dun_arena;
 
     return c;
 }

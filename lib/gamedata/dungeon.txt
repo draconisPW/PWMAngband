@@ -78,7 +78,7 @@ wpos:-21:20
 min-depth:1
 max-depth:2
 max-level:10
-flags:EMPTY | STREAMS
+flags:EMPTY | STREAMS | FAST_SPAWN
 rule:10000:1
 
 # The Orc Cave (boss: Azog, Enemy of the Dwarves)

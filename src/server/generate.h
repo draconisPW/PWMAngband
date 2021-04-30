@@ -28,6 +28,17 @@ enum
 };
 
 /*
+ * Profile indexes
+ */
+enum
+{
+    #define DUN(a, b) dun_##b,
+    #include "list-dun-profiles.h"
+    #undef DUN
+    dun_max
+};
+
+/*
  * Monster base for a pit
  */
 struct pit_monster_profile
