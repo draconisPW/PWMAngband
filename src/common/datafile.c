@@ -419,7 +419,8 @@ errr grab_name(const char *from, const char *what, const char *list[], int max, 
 }
 
 
-errr grab_flag(bitflag *flags, const size_t size, const char **flag_table, const char *flag_name)
+errr grab_flag_aux(bitflag *flags, const size_t size, const char **flag_table,
+    const char *flag_name, int *pflag)
 {
     int flag = lookup_flag(flag_table, flag_name);
 
@@ -427,7 +428,15 @@ errr grab_flag(bitflag *flags, const size_t size, const char **flag_table, const
 
     flag_on(flags, size, flag);
 
+    if (pflag) *pflag = flag;
+
     return 0;
+}
+
+
+errr grab_flag(bitflag *flags, const size_t size, const char **flag_table, const char *flag_name)
+{
+    return grab_flag_aux(flags, size, flag_table, flag_name, NULL);
 }
 
 

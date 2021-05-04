@@ -1316,3 +1316,14 @@ int class_modifier(const struct player_class *clazz, int mod, int lvl)
 
     return 0;
 }
+
+
+/*
+ * Check if the player has the given PF_ flag.
+ */
+bool player_has(struct player *p, int flag)
+{
+    if (pf_has(p->race->pflags, flag) && (p->lev >= p->race->pflvl[flag])) return true;
+    if (pf_has(p->clazz->pflags, flag) && (p->lev >= p->clazz->pflvl[flag])) return true;
+    return false;
+}

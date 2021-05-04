@@ -243,6 +243,7 @@ struct player_race
     struct brand_info *brands;  /* Racial brands */
     struct slay_info *slays;    /* Racial slays */
     bitflag pflags[PF_SIZE];    /* Racial (player) flags */
+    byte pflvl[PF__MAX];        /* Application level for racial (player) flags */
     struct history_chart *history;
     struct element_info el_info[ELEM_MAX];  /* Resists */
     struct player_shape *shapes;
@@ -353,6 +354,7 @@ struct player_class
     struct brand_info *brands;      /* Class brands */
     struct slay_info *slays;        /* Class slays */
     bitflag pflags[PF_SIZE];        /* (Player) flags */
+    byte pflvl[PF__MAX];            /* Application level for racial (player) flags */
     struct element_info el_info[ELEM_MAX];  /* Resists */
     int max_attacks;                /* Maximum possible attacks */
     int min_weight;                 /* Minimum weapon weight for calculations */

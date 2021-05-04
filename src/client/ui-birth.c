@@ -422,6 +422,7 @@ static void race_help(int i, void *db, const region *l)
         else if (streq(ability->type, "player"))
         {
             if (!pf_has(r->pflags, ability->index)) continue;
+            if (r->pflvl[ability->index] > 1) continue;
         }
         else if (streq(ability->type, "element"))
         {
@@ -511,6 +512,7 @@ static void class_help(int i, void *db, const region *l)
         else if (streq(ability->type, "player"))
         {
             if (!pf_has(c->pflags, ability->index)) continue;
+            if (c->pflvl[ability->index] > 1) continue;
         }
         else if (streq(ability->type, "element"))
         {
@@ -842,12 +844,14 @@ static void menu_stats(enum birth_stage current, int cursor)
     struct player_class *c = NULL;
     const char *name;
     struct modifier *modifiers;
-    int mod, row = 2, ability_row;
+    int mod, row = 2, ability_row, i;
     char buf[70];
     struct player_ability *ability;
     bitflag *flags, *pflags;
-    byte *flvl;
+    byte *flvl, *pflvl;
     struct element_info *el_info;
+    int n_abilities;
+    struct player_ability **abilities;
 
     if ((current != BIRTH_RACE_CHOICE) && (current != BIRTH_CLASS_CHOICE)) return;
 
@@ -859,6 +863,7 @@ static void menu_stats(enum birth_stage current, int cursor)
         flags = r->flags;
         flvl = r->flvl;
         pflags = r->pflags;
+        pflvl = r->pflvl;
         el_info = r->el_info;
     }
     else
@@ -869,6 +874,7 @@ static void menu_stats(enum birth_stage current, int cursor)
         flags = c->flags;
         flvl = c->flvl;
         pflags = c->pflags;
+        pflvl = c->pflvl;
         el_info = c->el_info;
     }
 
@@ -924,25 +930,90 @@ static void menu_stats(enum birth_stage current, int cursor)
     /* Skip row */
     row++;
 
-    /* Abilities */
-    ability_row = row;
+    /* Count abilities */
+    n_abilities = 0;
     for (ability = player_abilities; ability; ability = ability->next)
     {
         if (!ability->name) continue;
         if (streq(ability->type, "object"))
         {
             if (!of_has(flags, ability->index)) continue;
-            strnfmt(buf, sizeof(buf), "%s from level %d", ability->name, flvl[ability->index]);
+            n_abilities++;
         }
         else if (streq(ability->type, "player"))
         {
             if (!pf_has(pflags, ability->index)) continue;
-            strnfmt(buf, sizeof(buf), "%s", ability->name);
+            n_abilities++;
         }
         else if (streq(ability->type, "element"))
         {
             if (el_info[ability->index].res_level != ability->value) continue;
-            strnfmt(buf, sizeof(buf), "%s from level %d", ability->name, el_info[ability->index].lvl);
+            n_abilities++;
+        }
+    }
+
+    /* Sort abilities */
+    abilities = mem_zalloc(n_abilities * sizeof(struct player_ability *));
+    for (ability = player_abilities; ability; ability = ability->next)
+    {
+        int lvl;
+
+        if (!ability->name) continue;
+        if (streq(ability->type, "object"))
+        {
+            if (!of_has(flags, ability->index)) continue;
+            lvl = flvl[ability->index];
+        }
+        else if (streq(ability->type, "player"))
+        {
+            if (!pf_has(pflags, ability->index)) continue;
+            lvl = pflvl[ability->index];
+        }
+        else if (streq(ability->type, "element"))
+        {
+            if (el_info[ability->index].res_level != ability->value) continue;
+            lvl = el_info[ability->index].lvl;
+        }
+        for (i = n_abilities - 1; i > 0; i--)
+        {
+            int curlvl;
+
+            if (abilities[i - 1] == NULL) continue;
+            if (streq(abilities[i - 1]->type, "object"))
+                curlvl = flvl[abilities[i - 1]->index];
+            else if (streq(abilities[i - 1]->type, "player"))
+                curlvl = pflvl[abilities[i - 1]->index];
+            else if (streq(abilities[i - 1]->type, "element"))
+                curlvl = el_info[abilities[i - 1]->index].lvl;
+            if (lvl >= curlvl) break;
+            abilities[i] = abilities[i - 1];
+        }
+        abilities[i] = ability;
+    }
+
+    /* Abilities */
+    ability_row = row;
+    for (i = 0; i < n_abilities; i++)
+    {
+        if (streq(abilities[i]->type, "object"))
+        {
+            strnfmt(buf, sizeof(buf), "%s from level %d", abilities[i]->name,
+                flvl[abilities[i]->index]);
+        }
+        else if (streq(abilities[i]->type, "player"))
+        {
+            if (pflvl[abilities[i]->index] > 0)
+            {
+                strnfmt(buf, sizeof(buf), "%s from level %d", abilities[i]->name,
+                    pflvl[abilities[i]->index]);
+            }
+            else
+                strnfmt(buf, sizeof(buf), "%s", abilities[i]->name);
+        }
+        else if (streq(abilities[i]->type, "element"))
+        {
+            strnfmt(buf, sizeof(buf), "%s from level %d", abilities[i]->name,
+                el_info[abilities[i]->index].lvl);
         }
 
         if (row == 23)
@@ -954,6 +1025,8 @@ static void menu_stats(enum birth_stage current, int cursor)
         }
         prt(buf, row++, 2);
     }
+
+    mem_free(abilities);
 
     inkey();
     screen_load(false);

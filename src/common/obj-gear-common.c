@@ -39,6 +39,9 @@ static const struct slot_info
 };
 
 
+/*
+ * Return the slot number for a given name, or quit game
+ */
 int slot_by_name(struct player *p, const char *name)
 {
     struct player_body body = (p? p->body: bodies[0]);
@@ -50,13 +53,21 @@ int slot_by_name(struct player *p, const char *name)
         if (streq(name, body.slots[i].name)) break;
     }
 
+    my_assert(i < p->body.count);
+
     /* Index for that slot */
     return i;
 }
 
 
+/*
+ * Get the object in a specific slot (if any). Quit if slot index is invalid.
+ */
 struct object *slot_object(struct player *p, int slot)
 {
+    /* Check bounds */
+    my_assert(slot >= 0 && slot < p->body.count);
+
     /* Ensure a valid body */
     if (p->body.slots) return p->body.slots[slot].obj;
 

@@ -28,7 +28,7 @@
 # value:level of application:object modifier
 # brand:min level:max level:brand code
 # slay:min level:max level:slay code
-# player-flags:racial flags
+# player-flags:level of application:racial flags
 # shape:level of application:monster race
 # attack:verb:hit_extra:min_level:chance:effect
 
@@ -62,7 +62,7 @@
 # 'slay' is for slays that races possess innately at a certain level.
 
 # 'player-flags' is for player flags (as in list-player-flags.h) that
-# races possess innately.
+# races possess innately at a certain level.
 
 # 'shape' is for shapes that races can polymorph into at a certain level.
 
@@ -157,7 +157,7 @@ value:1:WIS[1]
 value:1:DEX[3]
 value:1:CON[2]
 value:1:INFRA[4]
-player-flags:KNOW_MUSHROOM
+player-flags:0:KNOW_MUSHROOM
 
 name:Gnome
 skill-disarm-phys:10
@@ -181,7 +181,7 @@ value:1:INT[2]
 value:1:DEX[2]
 value:1:CON[1]
 value:1:INFRA[4]
-player-flags:KNOW_ZAPPER
+player-flags:0:KNOW_ZAPPER
 
 name:Dwarf
 skill-disarm-phys:2
@@ -206,7 +206,7 @@ value:1:WIS[2]
 value:1:DEX[-2]
 value:1:CON[2]
 value:1:INFRA[5]
-player-flags:SEE_ORE
+player-flags:0:SEE_ORE
 
 name:Half-Orc
 skill-disarm-phys:-3
@@ -229,7 +229,7 @@ value:1:INT[-1]
 value:1:CON[1]
 value:1:INFRA[3]
 value:1:RES_DARK[1]
-player-flags:ORC
+player-flags:0:ORC
 
 name:Half-Troll
 skill-disarm-phys:-5
@@ -255,7 +255,7 @@ value:1:WIS[-2]
 value:1:DEX[-4]
 value:1:CON[3]
 value:1:INFRA[3]
-player-flags:TROLL
+player-flags:0:TROLL
 
 name:Dunadan
 skill-disarm-phys:4
@@ -350,7 +350,7 @@ value:1:INT[-5]
 value:1:WIS[-5]
 value:1:DEX[-5]
 value:1:CON[-5]
-player-flags:ANIMAL
+player-flags:0:ANIMAL
 
 name:Ent
 skill-disarm-phys:5
@@ -387,7 +387,7 @@ value:1:CON[8]
 value:1:INFRA[5]
 value:1:RES_FIRE[-1]
 value:1:SPEED[-2]
-player-flags:GIANT | CAN_SWIM
+player-flags:0:GIANT | CAN_SWIM
 
 name:Thunderlord
 skill-disarm-phys:6
@@ -416,7 +416,7 @@ value:10:RES_FIRE[1]
 value:15:RES_COLD[1]
 value:20:RES_ACID[1]
 value:25:RES_ELEC[1]
-player-flags:THUNDERLORD
+player-flags:0:THUNDERLORD
 
 name:Dragon
 skill-disarm-phys:6
@@ -437,7 +437,7 @@ weight:240:60
 obj-flag:1:FEATHER
 value:1:INFRA[1]
 value:1:RES_NEXUS[1]
-player-flags:DRAGON | FAST_THROW
+player-flags:0:DRAGON | FAST_THROW
 attack:claw:none:1:0:NONE
 attack:bite:none:5:4:DAM
 attack:crush:none:45:40:CRUSH
@@ -458,7 +458,6 @@ history:97
 age:255:70
 height:170:20
 weight:240:60
-obj-flag:1:AGGRAVATE
-player-flags:HYDRA | FAST_THROW
+player-flags:0:HYDRA | FAST_THROW
 attack:bite:none:1:0:NONE
 attack:hit: with a circular attack:35:30:CIRCLE

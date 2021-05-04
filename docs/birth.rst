@@ -334,8 +334,7 @@ Hydra
   Hydras cannot wield any weapons, but get extra dice on their barehanded
   attacks as they gain levels. They can breathe several elements (poison, fire,
   acid) as they gain the corresponding head, and get the innate resistances and
-  abilities of their type (which also means they are all vulnerable to cold and
-  permanently aggravate).
+  abilities of their type (which also means they are all vulnerable to cold).
 
 Classes
 -------

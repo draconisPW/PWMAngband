@@ -67,9 +67,6 @@ enum
 #define pf_inter(f1, f2)       flag_inter(f1, f2, PF_SIZE)
 #define pf_diff(f1, f2)        flag_diff(f1, f2, PF_SIZE)
 
-#define player_has(P, flag) \
-    (pf_has((P)->race->pflags, (flag)) || pf_has((P)->clazz->pflags, (flag)))
-
 /*
  * All the variable state that changes when you put on/take off equipment.
  * Player flags are not currently variable, but useful here so monsters can

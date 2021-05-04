@@ -21,6 +21,7 @@ Angband 4.2.x:
 - Display average damage for devices, spells, and activations
 - Allow CMD_WIELD to select from the quiver
 - Take into account sidebar/topbar in double-height tile rendering
+- Improve quiver inscriptions
 
 MAngband 1.5.x:
 
@@ -73,6 +74,7 @@ PWMAngband:
 - Add messages to explain why Raise Dead could fail
 - Add option to remove borders in the SDL client
 - Display sector info the MAngband way and fix crash when using 16x16 tile size
+- Sort flags by level of application on character birth screen
 
 Gameplay changes
 ----------------
@@ -83,6 +85,7 @@ Angband 4.2.x:
 - Blackguard tweaks
 - Nerf to all powerful modifiers
 - Disentangle IMPAIR_HP and COMBAT_REGEN
+- Allow more variation for pillar or ragged edge rooms
 
 MAngband 1.5.x:
 
@@ -141,6 +144,8 @@ PWMAngband:
 - Implement CAN_SWIM player flag, add it to the Ent race
 - Add FAST_SPAWN dungeon flag, double monster respawn rate if set
 - Set FAST_SPAWN flag to the Training Cave
+- Add level of application for player flags
+- Remove AGGRAVATE from Hydra race
 
 Bugs fixed
 ----------
@@ -223,6 +228,7 @@ Angband 4.2.x:
 - Change drawing of outer walls about circular rooms
 - Split building template rooms into two passes
 - For pillared rooms, cut off the corners when not adjacent to a floor
+- Check input values for slot_by_name() and slot_object()
 
 MAngband 1.5.x:
 
@@ -277,3 +283,4 @@ Compilation/documentation
 - Update class.txt comments
 - Update comments for room templates' rating and type
 - Update .gitignore
+- Update version.rst with bits of MAngband history

@@ -2267,14 +2267,19 @@ static enum parser_error parse_p_race_play_flags(struct parser *p)
     struct player_race *r = parser_priv(p);
     char *flags;
     char *s;
+    byte level;
+    int flag;
 
     if (!r) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    level = (byte)parser_getuint(p, "level");
     if (!parser_hasval(p, "flags")) return PARSE_ERROR_NONE;
     flags = string_make(parser_getstr(p, "flags"));
     s = strtok(flags, " |");
     while (s)
     {
-        if (grab_flag(r->pflags, PF_SIZE, player_info_flags, s)) break;
+        if (grab_flag_aux(r->pflags, PF_SIZE, player_info_flags, s, &flag)) break;
+        r->pflvl[flag] = level;
         s = strtok(NULL, " |");
     }
     string_free(flags);
@@ -2381,7 +2386,7 @@ static struct parser *init_parse_p_race(void)
     parser_reg(p, "obj-flag uint level str flag", parse_p_race_obj_flag);
     parser_reg(p, "brand uint minlvl uint maxlvl str code", parse_p_race_obj_brand);
     parser_reg(p, "slay uint minlvl uint maxlvl str code", parse_p_race_obj_slay);
-    parser_reg(p, "player-flags ?str flags", parse_p_race_play_flags);
+    parser_reg(p, "player-flags uint level ?str flags", parse_p_race_play_flags);
     parser_reg(p, "value uint level str value", parse_p_race_value);
     parser_reg(p, "shape uint level str name", parse_p_race_shape);
     parser_reg(p, "attack sym verb sym extra int level int chance str effect", parse_p_race_attack);
@@ -3006,14 +3011,19 @@ static enum parser_error parse_class_play_flags(struct parser *p)
     struct player_class *c = parser_priv(p);
     char *flags;
     char *s;
+    byte level;
+    int flag;
 
     if (!c) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    level = (byte)parser_getuint(p, "level");
     if (!parser_hasval(p, "flags")) return PARSE_ERROR_NONE;
     flags = string_make(parser_getstr(p, "flags"));
     s = strtok(flags, " |");
     while (s)
     {
-        if (grab_flag(c->pflags, PF_SIZE, player_info_flags, s)) break;
+        if (grab_flag_aux(c->pflags, PF_SIZE, player_info_flags, s, &flag)) break;
+        c->pflvl[flag] = level;
         s = strtok(NULL, " |");
     }
 
@@ -3467,7 +3477,7 @@ static struct parser *init_parse_class(void)
     parser_reg(p, "obj-flag uint level str flag", parse_class_obj_flag);
     parser_reg(p, "brand uint minlvl uint maxlvl str code", parse_class_obj_brand);
     parser_reg(p, "slay uint minlvl uint maxlvl str code", parse_class_obj_slay);
-    parser_reg(p, "player-flags ?str flags", parse_class_play_flags);
+    parser_reg(p, "player-flags uint level ?str flags", parse_class_play_flags);
     parser_reg(p, "value uint level str value", parse_p_class_value);
     parser_reg(p, "shape uint level str name", parse_p_class_shape);
     parser_reg(p, "title str title", parse_class_title);

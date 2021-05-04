@@ -47,6 +47,7 @@ static bool class_has_ability(const struct player_class *c, struct player_abilit
     else if (streq(ability->type, "player"))
     {
         if (!pf_has(c->pflags, ability->index)) return false;
+        if (c->pflvl[ability->index] > player->lev) return false;
     }
     else if (streq(ability->type, "element"))
     {
@@ -70,6 +71,7 @@ static bool race_has_ability(const struct player_race *r, struct player_ability 
     else if (streq(ability->type, "player"))
     {
         if (!pf_has(r->pflags, ability->index)) return false;
+        if (r->pflvl[ability->index] > player->lev) return false;
     }
     else if (streq(ability->type, "element"))
     {

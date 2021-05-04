@@ -1289,7 +1289,7 @@ static bool obj_known_digging(struct player *p, const struct object *obj, int de
     struct player_state state;
     int i;
     int chances[DIGGING_MAX];
-    int slot = wield_slot(p, obj);
+    int slot;
     struct object *current;
     bool equipped = object_is_equipped(p->body, obj);
     s32b modifiers[OBJ_MOD_MAX];
@@ -1309,6 +1309,7 @@ static bool obj_known_digging(struct player *p, const struct object *obj, int de
     /* Pretend we're wielding the object, unless already equipped */
     if (!equipped)
     {
+        slot = wield_slot(p, obj);
         current = slot_object(p, slot);
         p->body.slots[slot].obj = (struct object *)obj;
     }

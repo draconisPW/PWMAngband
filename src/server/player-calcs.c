@@ -1596,7 +1596,7 @@ void calc_inventory(struct player *p)
         for (current = p->gear; current; current = current->next)
         {
             /* Allocate inscribed objects if it's the right slot */
-            if (preferred_quiver_slot(current) == i)
+            if (preferred_quiver_slot(p, current) == i)
             {
                 int mult = (tval_is_ammo(current)? 1: z_info->thrown_quiver_mult);
                 struct object *to_quiver;

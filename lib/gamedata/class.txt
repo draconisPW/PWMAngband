@@ -28,7 +28,7 @@
 # value:level of application:object modifier
 # brand:min level:max level:brand code
 # slay:min level:max level:slay code
-# player-flags:player property flags
+# player-flags:level of application:player property flags
 # shape:level of application:monster race
 # title:title
 # attack:verb:hit_extra:min_level:chance:effect
@@ -85,7 +85,7 @@
 # 'slay' is for slays that classes possess innately at a certain level.
 
 # 'player-flags' is for player properties (from player_property.txt) that the
-# class has.
+# class possesses innately at a certain level.
 
 # 'shape' is for shapes that classes can polymorph into at a certain level.
 
@@ -181,7 +181,7 @@ value:1:INT[-2]
 value:1:WIS[-2]
 value:1:DEX[2]
 value:1:CON[2]
-player-flags:NO_MANA | SHIELD_BASH
+player-flags:0:NO_MANA | SHIELD_BASH
 title:Rookie
 title:Soldier
 title:Swordsman
@@ -217,7 +217,7 @@ equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-3]
 value:1:INT[3]
 value:1:CON[-2]
-player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS
+player-flags:0:ZERO_FAIL | BEAM | CHOOSE_SPELLS
 title:Novice
 title:Apprentice
 title:Trickster
@@ -512,7 +512,7 @@ equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:STR[-2]
 value:1:WIS[3]
 value:1:DEX[-2]
-player-flags:ZERO_FAIL | CHOOSE_SPELLS | CHARM | SHAPECHANGE
+player-flags:0:ZERO_FAIL | CHOOSE_SPELLS | CHARM | SHAPECHANGE
 shape:5:cave bear
 shape:5:panther
 shape:10:grizzly bear
@@ -811,7 +811,7 @@ value:1:INT[-3]
 value:1:WIS[3]
 value:1:DEX[-1]
 value:1:CON[1]
-player-flags:BLESS_WEAPON | ZERO_FAIL
+player-flags:0:BLESS_WEAPON | ZERO_FAIL
 title:Believer
 title:Acolyte
 title:Devotee
@@ -1111,7 +1111,7 @@ value:1:STR[-3]
 value:1:INT[3]
 value:1:CON[-2]
 value:1:RES_DARK[1]
-player-flags:ZERO_FAIL | CHOOSE_SPELLS | UNLIGHT | SHAPECHANGE | UNDEAD_POWERS
+player-flags:0:ZERO_FAIL | CHOOSE_SPELLS | UNLIGHT | SHAPECHANGE | UNDEAD_POWERS
 shape:5:fruit bat
 shape:15:vampire bat
 shape:25:vampire
@@ -1430,7 +1430,7 @@ value:1:INT[-3]
 value:1:WIS[1]
 value:1:DEX[-1]
 value:1:CON[2]
-player-flags:BLESS_WEAPON | SHIELD_BASH
+player-flags:0:BLESS_WEAPON | SHIELD_BASH
 title:Gallant
 title:Keeper
 title:Protector
@@ -1650,8 +1650,8 @@ value:1:WIS[-3]
 value:1:DEX[3]
 value:1:CON[-1]
 value:5:SPEED[1+1d15]
-player-flags:CHOOSE_SPELLS | STEAL
-player-flags:BACK_STAB | STEALING_IMPROV | STEALTH_MODE
+player-flags:0:CHOOSE_SPELLS | STEAL
+player-flags:0:BACK_STAB | STEALING_IMPROV | STEALTH_MODE
 title:Vagabond
 title:Cutpurse
 title:Footpad
@@ -1860,7 +1860,7 @@ equip:scroll:Word of Recall:1:1:birth_no_recall
 value:1:WIS[2]
 value:1:DEX[1]
 value:1:CON[-1]
-player-flags:FAST_SHOT | CHOOSE_SPELLS
+player-flags:0:FAST_SHOT | CHOOSE_SPELLS
 title:Runner
 title:Strider
 title:Scout
@@ -2034,7 +2034,7 @@ obj-flag:1:IMPAIR_HP
 value:1:STR[2]
 value:1:WIS[-3]
 value:1:CON[2]
-player-flags:CHOOSE_SPELLS | SHIELD_BASH | COMBAT_REGEN | SHAPECHANGE
+player-flags:0:CHOOSE_SPELLS | SHIELD_BASH | COMBAT_REGEN | SHAPECHANGE
 shape:20:werewolf
 shape:40:werewolf of Sauron
 title:Rat
@@ -2261,7 +2261,7 @@ value:1:STR[-5]
 value:1:INT[5]
 value:1:CON[-3]
 value:1:MANA[5]
-player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS
+player-flags:0:ZERO_FAIL | BEAM | CHOOSE_SPELLS
 title:Novice
 title:Apprentice
 title:Trickster
@@ -2608,7 +2608,7 @@ value:1:WIS[-3]
 value:1:DEX[2]
 value:1:CON[2]
 value:0:ANTI_MAGIC[1d1]
-player-flags:NO_MANA
+player-flags:0:NO_MANA
 title:Asker
 title:Thinker
 title:Faithless
@@ -2648,7 +2648,7 @@ value:1:INT[-2]
 value:1:WIS[2]
 value:1:DEX[2]
 value:0:SHOTS[1d3]
-player-flags:CHOOSE_SPELLS | FAST_THROW
+player-flags:0:CHOOSE_SPELLS | FAST_THROW
 title:Rock Thrower
 title:Slinger
 title:Great Slinger
@@ -2803,7 +2803,7 @@ value:1:DEX[2]
 value:1:CON[1]
 value:0:SPEED[1d10]
 value:0:BLOWS[1d1]
-player-flags:NO_MANA | MARTIAL_ARTS | FAST_THROW
+player-flags:0:NO_MANA | MARTIAL_ARTS | FAST_THROW
 title:Initiate
 title:Brother
 title:Disciple
@@ -2851,7 +2851,7 @@ value:1:STR[-1]
 value:1:INT[-2]
 value:1:WIS[3]
 value:1:DEX[-1]
-player-flags:BEAM | CHOOSE_SPELLS
+player-flags:0:BEAM | CHOOSE_SPELLS
 title:Novice
 title:Talent
 title:Empath
@@ -3201,7 +3201,7 @@ value:15:RES_COLD[1]
 value:20:RES_ACID[1]
 value:25:RES_ELEC[1]
 value:50:TUNNEL[100]
-player-flags:ZERO_FAIL | BEAM | CHOOSE_SPELLS | ELEMENTAL_SPELLS
+player-flags:0:ZERO_FAIL | BEAM | CHOOSE_SPELLS | ELEMENTAL_SPELLS
 title:Novice
 title:Apprentice
 title:Trickster
@@ -3681,7 +3681,7 @@ value:1:INT[-5]
 value:1:WIS[5]
 value:1:DEX[-5]
 value:1:CON[-5]
-player-flags:BLESS_WEAPON | ZERO_FAIL | CHOOSE_SPELLS | SUMMON_SPELLS
+player-flags:0:BLESS_WEAPON | ZERO_FAIL | CHOOSE_SPELLS | SUMMON_SPELLS
 title:Novice
 title:Apprentice
 title:Evoker
@@ -3911,7 +3911,7 @@ value:1:INT[-1]
 value:1:WIS[-1]
 value:1:DEX[1]
 value:1:CON[1]
-player-flags:MONSTER_SPELLS | SHAPECHANGE
+player-flags:0:MONSTER_SPELLS | SHAPECHANGE
 title:Pretender
 title:Modifier
 title:Copier

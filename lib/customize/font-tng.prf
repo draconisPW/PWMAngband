@@ -11,8 +11,7 @@
 ### Terrain features ###
 
 # Floors (white : centered dot)
-#feat:open floor:*:1:7
-feat:open floor:*:7:7
+feat:open floor:*:1:7
 
 # Simplified version to specify default attribute for all lighting effects
 # glyph : terrain name : symbol

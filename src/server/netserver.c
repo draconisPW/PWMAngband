@@ -1417,8 +1417,8 @@ int Send_race_struct_info(int ind)
     }
 
     /* Hack -- send limits for client compatibility */
-    if (Packet_printf(&connp->c, "%hd%hd%hd%hd%hd%hd", (int)OBJ_MOD_MAX, (int)SKILL_MAX,
-        (int)PF_SIZE, (int)OF_SIZE, (int)OF_MAX, (int)ELEM_MAX) <= 0)
+    if (Packet_printf(&connp->c, "%hd%hd%hd%hd%hd%hd%hd", (int)OBJ_MOD_MAX, (int)SKILL_MAX,
+        (int)PF_SIZE, (int)PF__MAX, (int)OF_SIZE, (int)OF_MAX, (int)ELEM_MAX) <= 0)
     {
         Destroy_connection(ind, "Send_race_struct_info write error");
         return -1;
@@ -1459,6 +1459,14 @@ int Send_race_struct_info(int ind)
         for (j = 0; j < PF_SIZE; j++)
         {
             if (Packet_printf(&connp->c, "%b", (unsigned)r->pflags[j]) <= 0)
+            {
+                Destroy_connection(ind, "Send_race_struct_info write error");
+                return -1;
+            }
+        }
+        for (j = 1; j < PF__MAX; j++)
+        {
+            if (Packet_printf(&connp->c, "%b", (unsigned)r->pflvl[j]) <= 0)
             {
                 Destroy_connection(ind, "Send_race_struct_info write error");
                 return -1;
@@ -1515,8 +1523,8 @@ int Send_class_struct_info(int ind)
     }
 
     /* Hack -- send limits for client compatibility */
-    if (Packet_printf(&connp->c, "%hd%hd%hd%hd%hd%hd", (int)OBJ_MOD_MAX, (int)SKILL_MAX,
-        (int)PF_SIZE, (int)OF_SIZE, (int)OF_MAX, (int)ELEM_MAX) <= 0)
+    if (Packet_printf(&connp->c, "%hd%hd%hd%hd%hd%hd%hd", (int)OBJ_MOD_MAX, (int)SKILL_MAX,
+        (int)PF_SIZE, (int)PF__MAX, (int)OF_SIZE, (int)OF_MAX, (int)ELEM_MAX) <= 0)
     {
         Destroy_connection(ind, "Send_class_struct_info write error");
         return -1;
@@ -1564,6 +1572,14 @@ int Send_class_struct_info(int ind)
             if (Packet_printf(&connp->c, "%b", (unsigned)c->pflags[j]) <= 0)
             {
                 Destroy_connection(ind, "Send_class_struct_info write error");
+                return -1;
+            }
+        }
+        for (j = 1; j < PF__MAX; j++)
+        {
+            if (Packet_printf(&connp->c, "%b", (unsigned)c->pflvl[j]) <= 0)
+            {
+                Destroy_connection(ind, "Send_race_struct_info write error");
                 return -1;
             }
         }

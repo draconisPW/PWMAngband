@@ -5,7 +5,7 @@
 
 /* name  description  type  normal  server */
 OP(none, "", MAX, false, false)
-OP(rogue_like_commands, "Use the roguelike command keyset", INTERFACE, false, false)
+OP(rogue_like_commands, "Use the roguelike command keyset", INTERFACE, false, true)
 OP(use_old_target, "Use old target by default", INTERFACE, false, true)
 OP(pickup_always, "Always pickup items", INTERFACE, false, true)
 OP(pickup_inven, "Always pickup items matching inventory", INTERFACE, true, true)

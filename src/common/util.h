@@ -63,5 +63,6 @@ extern struct trap_kind *lookup_trap(const char *desc);
 extern int recharge_failure_chance(const struct object *obj, int strength);
 extern int race_modifier(const struct player_race *race, int mod, int lvl, bool poly); 
 extern int class_modifier(const struct player_class *clazz, int mod, int lvl);
+extern bool player_has(struct player *p, int flag);
 
 #endif /* INCLUDED_UTIL_H */

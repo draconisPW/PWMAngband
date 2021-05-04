@@ -320,7 +320,6 @@ static int Receive_struct_info(void)
     char typ;
     u16b max;
     char name[NORMAL_WID];
-    byte pflag;
     int bytes_read;
 
     typ = max = 0;
@@ -422,11 +421,11 @@ static int Receive_struct_info(void)
         {
             s16b base, dice, sides, m_bonus, r_skills, r_exp, res_level;
             byte ridx, r_mhp, flag, lvl;
-            s16b obj_mod_max, skill_max, pf_size, of_size, of_max, elem_max;
+            s16b obj_mod_max, skill_max, pf_size, pf_max, of_size, of_max, elem_max;
 
             /* Hack -- receive limits for client compatibility */
-            if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%hd%hd", &obj_mod_max, &skill_max, &pf_size,
-                &of_size, &of_max, &elem_max)) <= 0)
+            if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%hd%hd%hd", &obj_mod_max, &skill_max,
+                &pf_size, &pf_max, &of_size, &of_max, &elem_max)) <= 0)
             {
                 /* Rollback the socket buffer */
                 Sockbuf_rollback(&rbuf, bytes_read);
@@ -434,7 +433,7 @@ static int Receive_struct_info(void)
                 /* Packet isn't complete, graceful failure */
                 return n;
             }
-            bytes_read += 12;
+            bytes_read += 14;
 
             races = NULL;
 
@@ -517,7 +516,7 @@ static int Receive_struct_info(void)
                 memset(r->pflags, 0, PF_SIZE * sizeof(bitflag));
                 for (j = 0; j < pf_size; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%b", &pflag)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &flag)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -532,7 +531,27 @@ static int Receive_struct_info(void)
                     /* Hack -- discard extra fields */
                     if (j >= PF_SIZE) continue;
 
-                    r->pflags[j] = pflag;
+                    r->pflags[j] = flag;
+                }
+                memset(r->pflvl, 0, PF__MAX * sizeof(byte));
+                for (j = 1; j < pf_max; j++)
+                {
+                    if ((n = Packet_scanf(&rbuf, "%b", &lvl)) <= 0)
+                    {
+                        /* Rollback the socket buffer */
+                        Sockbuf_rollback(&rbuf, bytes_read);
+
+                        /* Packet isn't complete, graceful failure */
+                        string_free(r->name);
+                        mem_free(r);
+                        return n;
+                    }
+                    bytes_read += 1;
+
+                    /* Hack -- discard extra fields */
+                    if (j >= PF__MAX) continue;
+
+                    r->pflvl[j] = lvl;
                 }
                 memset(r->flags, 0, OF_SIZE * sizeof(bitflag));
                 for (j = 0; j < of_size; j++)
@@ -613,11 +632,11 @@ static int Receive_struct_info(void)
             u16b tval, sval;
             char num_books;
             char realm[NORMAL_WID];
-            s16b obj_mod_max, skill_max, pf_size, of_size, of_max, elem_max;
+            s16b obj_mod_max, skill_max, pf_size, pf_max, of_size, of_max, elem_max;
 
             /* Hack -- receive limits for client compatibility */
-            if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%hd%hd", &obj_mod_max, &skill_max, &pf_size,
-                &of_size, &of_max, &elem_max)) <= 0)
+            if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%hd%hd%hd", &obj_mod_max, &skill_max,
+                &pf_size, &pf_max, &of_size, &of_max, &elem_max)) <= 0)
             {
                 /* Rollback the socket buffer */
                 Sockbuf_rollback(&rbuf, bytes_read);
@@ -625,7 +644,7 @@ static int Receive_struct_info(void)
                 /* Packet isn't complete, graceful failure */
                 return n;
             }
-            bytes_read += 12;
+            bytes_read += 14;
 
             classes = NULL;
 
@@ -708,7 +727,7 @@ static int Receive_struct_info(void)
                 memset(c->pflags, 0, PF_SIZE * sizeof(bitflag));
                 for (j = 0; j < pf_size; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%b", &pflag)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &flag)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -723,7 +742,27 @@ static int Receive_struct_info(void)
                     /* Hack -- discard extra fields */
                     if (j >= PF_SIZE) continue;
 
-                    c->pflags[j] = pflag;
+                    c->pflags[j] = flag;
+                }
+                memset(c->pflvl, 0, PF__MAX * sizeof(byte));
+                for (j = 1; j < pf_max; j++)
+                {
+                    if ((n = Packet_scanf(&rbuf, "%b", &lvl)) <= 0)
+                    {
+                        /* Rollback the socket buffer */
+                        Sockbuf_rollback(&rbuf, bytes_read);
+
+                        /* Packet isn't complete, graceful failure */
+                        string_free(c->name);
+                        mem_free(c);
+                        return n;
+                    }
+                    bytes_read += 1;
+
+                    /* Hack -- discard extra fields */
+                    if (j >= PF__MAX) continue;
+
+                    c->pflvl[j] = lvl;
                 }
                 memset(c->flags, 0, OF_SIZE * sizeof(bitflag));
                 for (j = 0; j < of_size; j++)
@@ -936,6 +975,7 @@ static int Receive_struct_info(void)
             u16b tval, sval;
             u32b kidx;
             s16b ac;
+            byte flag;
 
             /* Alloc */
             k_info = mem_zalloc(max * sizeof(struct object_kind));
@@ -980,7 +1020,7 @@ static int Receive_struct_info(void)
 
                 for (j = 0; j < KF_SIZE; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%b", &pflag)) <= 0)
+                    if ((n = Packet_scanf(&rbuf, "%b", &flag)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -990,7 +1030,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    kind->kind_flags[j] = pflag;
+                    kind->kind_flags[j] = flag;
                 }
             }
 

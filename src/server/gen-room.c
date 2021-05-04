@@ -471,89 +471,89 @@ void set_marked_granite(struct chunk *c, struct loc *grid, int flag)
 static void set_bordering_walls(struct chunk *c, int y1, int x1, int y2, int x2)
 {
     int nx;
-	struct loc grid;
-	bool *walls;
+    struct loc grid;
+    bool *walls;
 
-	my_assert((x2 >= x1) && (y2 >= y1));
+    my_assert((x2 >= x1) && (y2 >= y1));
 
-	/* Set up storage to track which grids to convert. */
-	nx = x2 - x1 + 1;
-	walls = mem_zalloc((x2 - x1 + 1) * (y2 - y1 + 1) * sizeof(*walls));
+    /* Set up storage to track which grids to convert. */
+    nx = x2 - x1 + 1;
+    walls = mem_zalloc((x2 - x1 + 1) * (y2 - y1 + 1) * sizeof(*walls));
 
-	/* Find the grids to convert. */
-	y1 = MAX(0, y1);
-	y2 = MIN(c->height - 1, y2);
-	x1 = MAX(0, x1);
-	x2 = MIN(c->width - 1, x2);
-	for (grid.y = y1; grid.y <= y2; grid.y++)
+    /* Find the grids to convert. */
+    y1 = MAX(0, y1);
+    y2 = MIN(c->height - 1, y2);
+    x1 = MAX(0, x1);
+    x2 = MIN(c->width - 1, x2);
+    for (grid.y = y1; grid.y <= y2; grid.y++)
     {
-		int adjy1 = MAX(0, grid.y - 1);
-		int adjy2 = MIN(c->height - 1, grid.y + 1);
+        int adjy1 = MAX(0, grid.y - 1);
+        int adjy2 = MIN(c->height - 1, grid.y + 1);
 
-		for (grid.x = x1; grid.x <= x2; grid.x++)
+        for (grid.x = x1; grid.x <= x2; grid.x++)
         {
-			if (square_isfloor(c, &grid))
+            if (square_isfloor(c, &grid))
             {
-				int adjx1 = MAX(0, grid.x - 1);
-				int adjx2 = MIN(c->width - 1, grid.x + 1);
+                int adjx1 = MAX(0, grid.x - 1);
+                int adjx2 = MIN(c->width - 1, grid.x + 1);
 
-				my_assert(square_isroom(c, &grid));
+                my_assert(square_isroom(c, &grid));
 
-				if ((adjy2 - adjy1 != 2) || (adjx2 - adjx1 != 2))
+                if ((adjy2 - adjy1 != 2) || (adjx2 - adjx1 != 2))
                 {
-					/*
-					 * Adjacent grids are out of bounds.
-					 * Make it an outer wall.
-					 */
-					walls[grid.x - x1 + nx * (grid.y - y1)] = true;
-				}
+                    /*
+                     * Adjacent grids are out of bounds.
+                     * Make it an outer wall.
+                     */
+                    walls[grid.x - x1 + nx * (grid.y - y1)] = true;
+                }
                 else
                 {
-					int nfloor = 0;
-					struct loc adj;
+                    int nfloor = 0;
+                    struct loc adj;
 
-					for (adj.y = adjy1; adj.y <= adjy2; adj.y++)
+                    for (adj.y = adjy1; adj.y <= adjy2; adj.y++)
                     {
-						for (adj.x = adjx1; adj.x <= adjx2; adj.x++)
+                        for (adj.x = adjx1; adj.x <= adjx2; adj.x++)
                         {
-							bool floor = square_isfloor(c, &adj);
+                            bool floor = square_isfloor(c, &adj);
 
-							my_assert(floor == square_isroom(c, &adj));
-							if (floor) ++nfloor;
-						}
-					}
-					if (nfloor != 9)
+                            my_assert(floor == square_isroom(c, &adj));
+                            if (floor) ++nfloor;
+                        }
+                    }
+                    if (nfloor != 9)
                     {
-						/*
-						 * At least one neighbor is not
-						 * in the room. Make it an
-						 * outer wall.
-						 */
-						walls[grid.x - x1 + nx * (grid.y - y1)] = true;
-					}
-				}
-			}
+                        /*
+                         * At least one neighbor is not
+                         * in the room. Make it an
+                         * outer wall.
+                         */
+                        walls[grid.x - x1 + nx * (grid.y - y1)] = true;
+                    }
+                }
+            }
             else
             {
-				my_assert(!square_isroom(c, &grid));
+                my_assert(!square_isroom(c, &grid));
             }
-		}
-	}
+        }
+    }
 
-	/* Perform the floor to wall conversions. */
-	for (grid.y = y1; grid.y <= y2; grid.y++)
+    /* Perform the floor to wall conversions. */
+    for (grid.y = y1; grid.y <= y2; grid.y++)
     {
-		for (grid.x = x1; grid.x <= x2; grid.x++)
+        for (grid.x = x1; grid.x <= x2; grid.x++)
         {
-			if (walls[grid.x - x1 + nx * (grid.y - y1)])
+            if (walls[grid.x - x1 + nx * (grid.y - y1)])
             {
-				my_assert(square_isfloor(c, &grid) && square_isroom(c, &grid));
-				set_marked_granite(c, &grid, SQUARE_WALL_OUTER);
-			}
-		}
-	}
+                my_assert(square_isfloor(c, &grid) && square_isroom(c, &grid));
+                set_marked_granite(c, &grid, SQUARE_WALL_OUTER);
+            }
+        }
+    }
 
-	mem_free(walls);
+    mem_free(walls);
 }
 
 
@@ -2101,29 +2101,46 @@ bool build_simple(struct player *p, struct chunk *c, struct loc *centre, int rat
     {
         struct loc grid;
 
-        for (grid.y = y1; grid.y <= y2; grid.y += 2)
-            for (grid.x = x1; grid.x <= x2; grid.x += 2)
+        /*
+         * If a dimension is even, don't always put a pillar in the
+         * upper left corner.
+         */
+        int offx = ((x2 - x1) % 2 == 0)? 0: randint0(2);
+        int offy = ((y2 - y1) % 2 == 0)? 0: randint0(2);
+
+        for (grid.y = y1 + offy; grid.y <= y2; grid.y += 2)
+            for (grid.x = x1 + offx; grid.x <= x2; grid.x += 2)
                 set_marked_granite(c, &grid, SQUARE_WALL_INNER);
 
         /*
          * Drop room/outer wall flags on corners if not adjacent to a
          * floor. Lets tunnels enter those grids.
          */
-        loc_init(&grid, x1 - 1, y1 - 1);
-        sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
-        sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
-        if ((x2 - x1) % 2 == 0)
+        if (!offy)
         {
-            loc_init(&grid, x2 + 1, y1 - 1);
-            sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
-            sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+            if (!offx)
+            {
+                loc_init(&grid, x1 - 1, y1 - 1);
+                sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
+                sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+            }
+            if ((x2 - x1 - offx) % 2 == 0)
+            {
+                loc_init(&grid, x2 + 1, y1 - 1);
+                sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
+                sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+            }
         }
-        if ((y2 - y1) % 2 == 0)
+
+        if ((y2 - y1 - offy) % 2 == 0)
         {
-            loc_init(&grid, x1 - 1, y2 + 1);
-            sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
-            sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
-            if ((x2 - x1) % 2 == 0)
+            if (!offx)
+            {
+                loc_init(&grid, x1 - 1, y2 + 1);
+                sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
+                sqinfo_off(square(c, &grid)->info, SQUARE_WALL_OUTER);
+            }
+            if ((x2 - x1 - offx) % 2 == 0)
             {
                 loc_init(&grid, x2 + 1, y2 + 1);
                 sqinfo_off(square(c, &grid)->info, SQUARE_ROOM);
@@ -2137,14 +2154,21 @@ bool build_simple(struct player *p, struct chunk *c, struct loc *centre, int rat
     {
         struct loc grid;
 
-        for (grid.y = y1 + 2; grid.y <= y2 - 2; grid.y += 2)
+        /*
+         * If a dimension is even, don't always put the first
+         * indentations at (x1, y1 + 2) and (x1 + 2, y1).
+         */
+        int offx = ((x2 - x1) % 2 == 0)? 0: randint0(2);
+        int offy = ((y2 - y1) % 2 == 0)? 0: randint0(2);
+
+        for (grid.y = y1 + 2 + offy; grid.y <= y2 - 2; grid.y += 2)
         {
             grid.x = x1;
             set_marked_granite(c, &grid, SQUARE_WALL_INNER);
             grid.x = x2;
             set_marked_granite(c, &grid, SQUARE_WALL_INNER);
         }
-        for (grid.x = x1 + 2; grid.x <= x2 - 2; grid.x += 2)
+        for (grid.x = x1 + 2 + offx; grid.x <= x2 - 2; grid.x += 2)
         {
             grid.y = y1;
             set_marked_granite(c, &grid, SQUARE_WALL_INNER);

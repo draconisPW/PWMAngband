@@ -27,7 +27,7 @@ extern void inven_takeoff(struct player *p, struct object *obj);
 extern bool inven_drop(struct player *p, struct object *obj, int amt, bool bypass_inscr);
 extern void combine_pack(struct player *p);
 extern void pack_overflow(struct player *p, struct chunk *c, struct object *obj);
-extern int preferred_quiver_slot(const struct object *obj);
+extern int preferred_quiver_slot(struct player *p, const struct object *obj);
 extern bool item_tester_hook_wear(struct player *p, const struct object *obj);
 
 #endif /* OBJECT_GEAR_H */
