@@ -3397,6 +3397,11 @@ bool build_house(struct player *p)
         default: h_ptr = house_get(house);
     }
 
+    x1 = begin.x;
+    x2 = end.x;
+    y1 = begin.y;
+    y2 = end.y;
+
     /* Local tax: we already paid this amount (cost of foundation) */
     tax = 0 - 1000 * (x2 - x1 + 1) * (y2 - y1 + 1);
 

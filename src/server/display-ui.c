@@ -1925,12 +1925,12 @@ void player_death(struct player *p)
      * Handle permanent death:
      * - all characters have a chance to die permanently (based on number of past deaths)
      * - no ghost characters (except Necromancers that can turn into an undead being)
-     * - Dragon and Hydra characters
+     * - permanently polymorphed characters
      * - ghosts
      * - suiciding characters
      */
     perma_death = (magik(p->lives) || (no_ghost && !player_can_undead(p)) ||
-        player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) || p->ghost || !p->alive);
+        player_has(p, PF_PERM_SHAPE) || p->ghost || !p->alive);
 
     /* Know inventory and home items upon permadeath */
     if (perma_death) death_knowledge(p);
@@ -4242,9 +4242,8 @@ static void master_player(struct player *p, char *parms)
         return;
     }
 
-    /* Cannot toggle ghost for Dragon and Hydra players or in fruit bat mode */
-    if (dm_ptr->ghost && (player_has(dm_ptr, PF_DRAGON) || player_has(dm_ptr, PF_HYDRA) ||
-        OPT(dm_ptr, birth_fruit_bat)))
+    /* Cannot toggle ghost if permanently polymorphed or in fruit bat mode */
+    if (dm_ptr->ghost && (player_has(dm_ptr, PF_PERM_SHAPE) || OPT(dm_ptr, birth_fruit_bat)))
     {
         Send_special_line(p, 17, 17, 15, COLOUR_WHITE,
             " Error: can't toggle ghost for no-ghost players");

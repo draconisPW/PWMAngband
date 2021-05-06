@@ -748,8 +748,8 @@ static void player_generate(struct player *p, byte psex, const struct player_rac
     /* Initialize the spells */
     player_spells_init(p);
 
-    /* No Dragon/Hydra DMs, turn into a Human instead */
-    if ((player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA)) && is_dm_p(p))
+    /* No permanently polymorphed DMs, turn into a Human instead */
+    if (player_has(p, PF_PERM_SHAPE) && is_dm_p(p))
         p->race = player_id2race(0);
 
     p->sex = &sex_info[p->psex];
@@ -1383,17 +1383,11 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
         /* Now try wielding everything */
         wield_all(p);
 
-        /* Dragon */
-        if (player_has(p, PF_DRAGON))
+        /* Permanently polymorphed characters */
+        if (player_has(p, PF_PERM_SHAPE))
         {
-            poly_dragon(p, false);
-            get_bonuses(p);
-        }
-
-        /* Hydra */
-        if (player_has(p, PF_HYDRA))
-        {
-            poly_hydra(p, false);
+            if (player_has(p, PF_DRAGON)) poly_dragon(p, false);
+            else poly_shape(p, false);
             get_bonuses(p);
         }
 
@@ -1426,11 +1420,11 @@ struct player *player_birth(int id, u32b account, const char *name, const char *
         return p;
     }
 
-    /* Paranoia: ensure that Dragon and Hydra characters have the proper race when logging */
-    if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA))
+    /* Paranoia: ensure that permanently polymorphed characters have the proper race when logging */
+    if (player_has(p, PF_PERM_SHAPE))
     {
         if (player_has(p, PF_DRAGON)) poly_dragon(p, false);
-        else poly_hydra(p, false);
+        else poly_shape(p, false);
         get_bonuses(p);
     }
 

@@ -1457,6 +1457,9 @@ static struct monster_race *get_dragon_random(void)
 }
 
 
+/*
+ * Polymorph into a dragon
+ */
 void poly_dragon(struct player *p, bool msg)
 {
     struct monster_race *race = NULL;
@@ -1504,32 +1507,37 @@ void poly_dragon(struct player *p, bool msg)
 }
 
 
-static int hydra_progression[15] = {0, 1, 10, 15, 20, 24, 28, 32, 36, 40, 42, 44, 46, 48, 50};
-
-
-void poly_hydra(struct player *p, bool msg)
+/*
+ * Polymorph into a shape
+ */
+void poly_shape(struct player *p, bool msg)
 {
+    struct player_shape *shape;
     struct monster_race *race;
-    char nheads[20];
-    int i;
 
-    /* Get number of heads depending on level */
-    my_strcpy(nheads, "hydra", sizeof(nheads));
-    for (i = 14; i >= 2; i--)
+    /* Paranoia: only works for player race */
+    if (!pf_has(p->race->pflags, PF_PERM_SHAPE) || (p->lev < p->race->pflvl[PF_PERM_SHAPE]))
+        return;
+    if (!p->race->shapes) return;
+
+    /* Get the shape depending on level */
+    shape = p->race->shapes;
+    while (shape)
     {
-        if (p->lev >= hydra_progression[i])
-        {
-            strnfmt(nheads, sizeof(nheads), "%d-headed hydra", i);
-            break;
-        }
+        if (p->lev >= shape->lvl) break;
+        shape = shape->next;
     }
+    if (!shape) return;
 
-    /* Polymorph into that hydra */
-    race = get_race(nheads);
+    /* Polymorph into that shape */
+    race = get_race(shape->name);
     if (race && (race != p->poly_race)) do_cmd_poly(p, race, false, msg);
 }
 
 
+/*
+ * Polymorph into a fruit bat
+ */
 void poly_bat(struct player *p, int chance, char *killer)
 {
     char buf[MSG_LEN];
@@ -1545,11 +1553,8 @@ void poly_bat(struct player *p, int chance, char *killer)
     if (p->poly_race != race_fruit_bat)
     {
         /* Attempt a saving throw */
-        if (p->ghost || player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) ||
-            CHANCE(p->state.skills[SKILL_SAVE], chance))
-        {
+        if (p->ghost || player_has(p, PF_PERM_SHAPE) || CHANCE(p->state.skills[SKILL_SAVE], chance))
             msg(p, "You resist the effects!");
-        }
         else
         {
             char desc[NORMAL_WID];

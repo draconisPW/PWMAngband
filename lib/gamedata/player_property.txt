@@ -43,6 +43,11 @@ code:CAN_SWIM
 name:Swimming
 desc:You are able to swim.
 
+type:player
+code:PERM_SHAPE
+name:Permanently polymorphed
+desc:You are permanently polymorphed.
+
 ## Class player flags
 
 type:player
