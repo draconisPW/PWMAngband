@@ -607,7 +607,6 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
         p->upkeep->notice |= (PN_COMBINE);
 
         /* Hobbits ID mushrooms on pickup, gnomes ID wands and staffs on pickup */
-        /* PWMAngband: Dragons and Monks cannot use weapons, so they need to learn "on wield" */
         if (!object_is_known(p, obj))
         {
             if (player_has(p, PF_KNOW_MUSHROOM) && tval_is_mushroom(obj))
@@ -619,11 +618,12 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
             else if (player_has(p, PF_KNOW_ZAPPER) && tval_is_zapper(obj))
                 object_know_everything(p, obj);
 
-            else if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) ||
-                player_has(p, PF_MARTIAL_ARTS))
-            {
+            /*
+             * PWMAngband: permanently polymorphed characters and Monks cannot use weapons,
+             * so they need to learn "on wield"
+             */
+            else if (player_has(p, PF_PERM_SHAPE) || player_has(p, PF_MARTIAL_ARTS))
                 weapon_learn_on_carry(p, obj);
-            }
         }
     }
 
@@ -1129,8 +1129,8 @@ bool item_tester_hook_wear(struct player *p, const struct object *obj)
 
     if ((slot < 0) || (slot >= p->body.count)) return false;
 
-    /* Dragons, Hydras and Monks cannot use weapons */
-    if ((player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) || player_has(p, PF_MARTIAL_ARTS)) &&
+    /* Permanently polymorphed characters and Monks cannot use weapons */
+    if ((player_has(p, PF_PERM_SHAPE) || player_has(p, PF_MARTIAL_ARTS)) &&
         ((slot == slot_by_name(p, "weapon")) || (slot == slot_by_name(p, "shooting"))))
     {
         return false;

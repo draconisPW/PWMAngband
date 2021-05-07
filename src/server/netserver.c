@@ -1579,7 +1579,7 @@ int Send_class_struct_info(int ind)
         {
             if (Packet_printf(&connp->c, "%b", (unsigned)c->pflvl[j]) <= 0)
             {
-                Destroy_connection(ind, "Send_race_struct_info write error");
+                Destroy_connection(ind, "Send_class_struct_info write error");
                 return -1;
             }
         }
@@ -5845,9 +5845,8 @@ static void update_birth_options(struct player *p, struct birth_options *options
     if (cfg_limited_stores == 3) OPT(p, birth_no_stores) = true;
     if (cfg_no_ghost) OPT(p, birth_no_ghost) = true;
 
-    /* Fruit bat mode: not when a Dragon or Hydra */
-    if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA))
-        OPT(p, birth_fruit_bat) = false;
+    /* Fruit bat mode: not when permanently polymorphed */
+    if (player_has(p, PF_PERM_SHAPE)) OPT(p, birth_fruit_bat) = false;
 
     /* Fruit bat mode supercedes no-ghost mode */
     if (OPT(p, birth_fruit_bat)) OPT(p, birth_no_ghost) = true;
@@ -7064,8 +7063,8 @@ static int Receive_poly(int ind)
             return 1;
         }
 
-        /* Not if a Dragon or Hydra or in fruit bat mode */
-        if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) || OPT(p, birth_fruit_bat))
+        /* Not if permanently polymorphed or in fruit bat mode */
+        if (player_has(p, PF_PERM_SHAPE) || OPT(p, birth_fruit_bat))
         {
             msg(p, "You are already polymorphed permanently.");
             return 1;

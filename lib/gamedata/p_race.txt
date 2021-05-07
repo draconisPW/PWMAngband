@@ -437,7 +437,7 @@ weight:240:60
 obj-flag:1:FEATHER
 value:1:INFRA[1]
 value:1:RES_NEXUS[1]
-player-flags:0:DRAGON | FAST_THROW
+player-flags:0:DRAGON | FAST_THROW | PERM_SHAPE
 attack:claw:none:1:0:NONE
 attack:bite:none:5:4:DAM
 attack:crush:none:45:40:CRUSH
@@ -458,6 +458,20 @@ history:97
 age:255:70
 height:170:20
 weight:240:60
-player-flags:0:HYDRA | FAST_THROW
+player-flags:0:HYDRA | FAST_THROW | PERM_SHAPE
+shape:1:hydra
+shape:10:2-headed hydra
+shape:15:3-headed hydra
+shape:20:4-headed hydra
+shape:24:5-headed hydra
+shape:28:6-headed hydra
+shape:32:7-headed hydra
+shape:36:8-headed hydra
+shape:40:9-headed hydra
+shape:42:10-headed hydra
+shape:44:11-headed hydra
+shape:46:12-headed hydra
+shape:48:13-headed hydra
+shape:50:14-headed hydra
 attack:bite:none:1:0:NONE
 attack:hit: with a circular attack:35:30:CIRCLE

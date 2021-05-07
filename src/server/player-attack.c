@@ -907,7 +907,8 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
             }
 
             /* Special non-racial dragon/hydra attacks: tail attacks */
-            if ((player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA)) && (attacks == p->clazz->attacks))
+            if ((player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA)) &&
+                (attacks == p->clazz->attacks))
             {
                 my_strcpy(verb, "hit", sizeof(verb));
                 my_strcpy(hit_extra, " with your tail", sizeof(hit_extra));

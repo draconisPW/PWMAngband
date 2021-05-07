@@ -164,11 +164,12 @@ static void adjust_level(struct player *p)
         /* Lose a level */
         p->lev--;
 
-        /* Dragon */
-        if (player_has(p, PF_DRAGON)) poly_dragon(p, true);
-
-        /* Hydra */
-        if (player_has(p, PF_HYDRA)) poly_hydra(p, true);
+        /* Permanently polymorphed characters */
+        if (player_has(p, PF_PERM_SHAPE))
+        {
+            if (player_has(p, PF_DRAGON)) poly_dragon(p, true);
+            else poly_shape(p, true);
+        }
 
         /* Redraw */
         redraw = true;
@@ -180,11 +181,12 @@ static void adjust_level(struct player *p)
         /* Gain a level */
         p->lev++;
 
-        /* Dragon */
-        if (player_has(p, PF_DRAGON)) poly_dragon(p, true);
-
-        /* Hydra */
-        if (player_has(p, PF_HYDRA)) poly_hydra(p, true);
+        /* Permanently polymorphed characters */
+        if (player_has(p, PF_PERM_SHAPE))
+        {
+            if (player_has(p, PF_DRAGON)) poly_dragon(p, true);
+            else poly_shape(p, true);
+        }
 
         /* Save the highest level */
         if (p->lev > p->max_lev)

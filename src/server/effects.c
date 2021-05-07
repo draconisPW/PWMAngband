@@ -5521,8 +5521,7 @@ static bool effect_handler_POLY_RACE(effect_handler_context_t *context)
     context->ident = true;
 
     /* Restrict */
-    if (context->origin->player->ghost || player_has(context->origin->player, PF_DRAGON) ||
-        player_has(context->origin->player, PF_HYDRA) ||
+    if (context->origin->player->ghost || player_has(context->origin->player, PF_PERM_SHAPE) ||
         OPT(context->origin->player, birth_fruit_bat) ||
         (context->origin->player->poly_race == race))
     {
@@ -7734,8 +7733,7 @@ static bool effect_handler_TOUCH_AWARE(effect_handler_context_t *context)
 static bool effect_handler_UNDEAD_FORM(effect_handler_context_t *context)
 {
     /* Restrict */
-    if (context->origin->player->ghost || player_has(context->origin->player, PF_DRAGON) ||
-        player_has(context->origin->player, PF_HYDRA) ||
+    if (context->origin->player->ghost || player_has(context->origin->player, PF_PERM_SHAPE) ||
         OPT(context->origin->player, birth_fruit_bat))
     {
         msg(context->origin->player, "You try to turn into an undead being... but nothing happens.");

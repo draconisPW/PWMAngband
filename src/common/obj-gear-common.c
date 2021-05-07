@@ -186,8 +186,8 @@ bool obj_can_wear(struct player *p, const struct object *obj)
         case TV_MSTAFF:
         case TV_BOW:
         {
-            /* Dragons, Hydras and Monks cannot use weapons */
-            if (player_has(p, PF_DRAGON) || player_has(p, PF_HYDRA) || player_has(p, PF_MARTIAL_ARTS))
+            /* Monks and permanently polymorphed characters cannot use weapons */
+            if (player_has(p, PF_PERM_SHAPE) || player_has(p, PF_MARTIAL_ARTS))
                 return false;
 
             return true;

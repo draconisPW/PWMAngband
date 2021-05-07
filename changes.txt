@@ -248,6 +248,7 @@ MAngband 1.5.x:
 - Fix ESC key not clearing the queue
 - Add error condition check to file_putf
 - Don't use handle_stuff() in adjust_level()
+- Fix "%ull" format (vstrnfmt)
 
 PWMAngband:
 
