@@ -202,6 +202,7 @@ PWMAngband:
 - Fix "base" kind flags not added to "kind" kind flags in the case of books
 - Fix objects generated on customized floors
 - Fix vulnerabilities not shown on birth screen
+- Fix crash when calculating tax price for house expansion
 
 Coding changes
 --------------
