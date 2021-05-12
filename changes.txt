@@ -8,7 +8,7 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.5.0 beta 0
+New features in PWMAngband 1.5.0 beta 1
 =======================================
 
 User interface
@@ -203,6 +203,7 @@ PWMAngband:
 - Fix objects generated on customized floors
 - Fix vulnerabilities not shown on birth screen
 - Fix crash when calculating tax price for house expansion
+- Fix "Place feature" command only allowing to place staircases
 
 Coding changes
 --------------
@@ -271,6 +272,7 @@ PWMAngband:
 - Refactor effect_info() to take into consideration various hacks
 - Prevent auto-retaliator after clear request
 - Send and check limits for race/class structure fields
+- Un-hardcode Hydra form progression
 
 Compilation/documentation
 -------------------------
