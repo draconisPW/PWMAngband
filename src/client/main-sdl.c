@@ -55,9 +55,6 @@ static bool nicegfx = false;
 /* Want window borders? */
 static bool windowborders = true;
 
-/* Font size dimensions */
-static int font_size = 12;
-
 static int overdraw = 0;
 static int overdraw_max = 0;
 
@@ -71,6 +68,9 @@ static const char *DEFAULT_FONT_FILE = "6x10x.fon";
 #define MAX_FONTS 60
 char *FontList[MAX_FONTS];
 static int num_fonts = 0;
+
+/* Default font size */
+#define DEFAULT_FONT_SIZE    12
 
 /*
  * A font structure
@@ -111,6 +111,7 @@ struct term_window
     int keys;               /* Size of keypress storage */
     sdl_Font font;          /* Font info */
     char *req_font;         /* Requested font */
+    int font_size;          /* Font size dimensions */
     int rows;               /* Dimension in tiles */
     int cols;
     int border;             /* Border width */
@@ -337,24 +338,25 @@ static void sdl_DrawBox(SDL_Surface *surface, SDL_Rect *rect, SDL_Color colour, 
  */
 static errr sdl_CheckFont(const char *fontname, int *width, int *height)
 {
+    term_window *window = &windows[SelectedTerm];
     char buf[MSG_LEN];
     TTF_Font *ttf_font;
-    
+
     /* Build the path */
     path_build(buf, sizeof(buf), ANGBAND_DIR_FONTS, fontname);
-    
+
     /* Attempt to load it */
-    ttf_font = TTF_OpenFont(buf, font_size);
-    
+    ttf_font = TTF_OpenFont(buf, window->font_size);
+
     /* Bugger */
     if (!ttf_font) return (-1);
-    
+
     /* Get the size */
     if (TTF_SizeText(ttf_font, "M", width, height)) return (-1);
-    
+
     /* Finished with the font */
     TTF_CloseFont(ttf_font);
-    
+
     return (0);
 }
 
@@ -380,30 +382,31 @@ static void sdl_FontFree(sdl_Font *font)
  */
 static errr sdl_FontCreate(sdl_Font *font, const char *fontname, SDL_Surface *surface)
 {
+    term_window *window = &windows[SelectedTerm];
     char buf[MSG_LEN];
     TTF_Font *ttf_font;
-    
+
     /* Build the path */
     path_build(buf, sizeof(buf), ANGBAND_DIR_FONTS, fontname);
-    
+
     /* Attempt to load it */
-    ttf_font = TTF_OpenFont(buf, font_size);
-    
+    ttf_font = TTF_OpenFont(buf, window->font_size);
+
     /* Bugger */
     if (!ttf_font) return (-1);
-    
+
     /* Get the size */
     if (TTF_SizeText(ttf_font, "M", &font->width, &font->height)) return (-1);
 
     /* Get the best quality */
     TTF_SetFontHinting(ttf_font, TTF_HINTING_LIGHT);
-    
+
     /* Fill in some of the font struct */
     if (font->name != fontname) my_strcpy(font->name, fontname, 30);
     font->pitch = surface->pitch;
     font->bpp = surface->format->BytesPerPixel;
     font->sdl_font = ttf_font;
-    
+
     /* Success */
     return (0); 
 }
@@ -1606,9 +1609,11 @@ static void HeightChange(sdl_Button *sender)
 
 static void FontSizeChange(sdl_Button *sender)
 {
-    font_size += sender->tag;
-    if (font_size < 4) font_size = 4;
-    if (font_size > 64) font_size = 64;
+    term_window *window = &windows[SelectedTerm];
+
+    window->font_size += sender->tag;
+    if (window->font_size < 4) window->font_size = 4;
+    if (window->font_size > 64) window->font_size = 64;
     do_update_f = true;
     do_update = true;
 }
@@ -1616,6 +1621,7 @@ static void FontSizeChange(sdl_Button *sender)
 
 static void MoreDraw(sdl_Window *win)
 {
+    term_window *window = &windows[SelectedTerm];
     SDL_Rect rc;
     sdl_Button *button;
     int y = 20;
@@ -1718,7 +1724,7 @@ static void MoreDraw(sdl_Window *win)
 
     y += 20;
 
-    sdl_WindowText(win, colour, 20, y, format("Font size is %d.", font_size));
+    sdl_WindowText(win, colour, 20, y, format("Font size is %d.", window->font_size));
     button = sdl_ButtonBankGet(&win->buttons, MoreFontSizeMinus);
     sdl_ButtonMove(button, 150, y);
 
@@ -2111,8 +2117,6 @@ static errr load_prefs(void)
             tile_width = atoi(s);
         else if (strstr(buf, "TileHeight"))
             tile_height = atoi(s);
-        else if (strstr(buf, "FontSize"))
-            font_size = atoi(s);
     }
 
     if (screen_w < MIN_SCREEN_WIDTH) screen_w = MIN_SCREEN_WIDTH;
@@ -2146,6 +2150,9 @@ static errr load_window_prefs(void)
 
         /* Default font */
         win->req_font = string_make(DEFAULT_FONT_FILE);
+
+        /* Default font size */
+        win->font_size = DEFAULT_FONT_SIZE;
 
         /* Default width & height */
         sdl_CheckFont(win->req_font, &w, &h);
@@ -2200,6 +2207,8 @@ static errr load_window_prefs(void)
             win->height = atoi(s);
         else if (strstr(buf, "Keys"))
             win->keys = atoi(s);
+        else if (strstr(buf, "FontSize"))
+            win->font_size = atoi(s);
         else if (strstr(buf, "Font"))
             win->req_font = string_make(s);
     }
@@ -2228,7 +2237,6 @@ static errr save_prefs(void)
     file_putf(fff, "Graphics = %d\n", use_graphics);
     file_putf(fff, "TileWidth = %d\n", tile_width);
     file_putf(fff, "TileHeight = %d\n", tile_height);
-    file_putf(fff, "FontSize = %d\n", font_size);
 
     for (i = 0; i < ANGBAND_TERM_MAX; i++)
     {
@@ -2241,6 +2249,7 @@ static errr save_prefs(void)
         file_putf(fff, "Width = %d\n", win->width);
         file_putf(fff, "Height = %d\n", win->height);
         file_putf(fff, "Keys = %d\n", win->keys);
+        file_putf(fff, "FontSize = %d\n", win->font_size);
         file_putf(fff, "Font = %s\n", win->req_font);
     }   
 
