@@ -336,9 +336,8 @@ static void sdl_DrawBox(SDL_Surface *surface, SDL_Rect *rect, SDL_Color colour, 
 /*
  * Get the width and height of a given font file
  */
-static errr sdl_CheckFont(const char *fontname, int *width, int *height)
+static errr sdl_CheckFont(const char *fontname, int font_size, int *width, int *height)
 {
-    term_window *window = &windows[SelectedTerm];
     char buf[MSG_LEN];
     TTF_Font *ttf_font;
 
@@ -346,7 +345,7 @@ static errr sdl_CheckFont(const char *fontname, int *width, int *height)
     path_build(buf, sizeof(buf), ANGBAND_DIR_FONTS, fontname);
 
     /* Attempt to load it */
-    ttf_font = TTF_OpenFont(buf, window->font_size);
+    ttf_font = TTF_OpenFont(buf, font_size);
 
     /* Bugger */
     if (!ttf_font) return (-1);
@@ -380,9 +379,8 @@ static void sdl_FontFree(sdl_Font *font)
  * Create new font data with font fontname, optimizing the data
  * for the surface given
  */
-static errr sdl_FontCreate(sdl_Font *font, const char *fontname, SDL_Surface *surface)
+static errr sdl_FontCreate(sdl_Font *font, const char *fontname, int font_size, SDL_Surface *surface)
 {
-    term_window *window = &windows[SelectedTerm];
     char buf[MSG_LEN];
     TTF_Font *ttf_font;
 
@@ -390,7 +388,7 @@ static errr sdl_FontCreate(sdl_Font *font, const char *fontname, SDL_Surface *su
     path_build(buf, sizeof(buf), ANGBAND_DIR_FONTS, fontname);
 
     /* Attempt to load it */
-    ttf_font = TTF_OpenFont(buf, window->font_size);
+    ttf_font = TTF_OpenFont(buf, font_size);
 
     /* Bugger */
     if (!ttf_font) return (-1);
@@ -420,7 +418,7 @@ static errr sdl_FontCreate(sdl_Font *font, const char *fontname, SDL_Surface *su
  * You can, I suppose, use one font on many surfaces, but it is
  * definitely not recommended. One font per surface is good enough.
  */
-static errr sdl_mapFontDraw(sdl_Font *font, SDL_Surface *surface, SDL_Color colour,
+static errr sdl_mapFontDraw(sdl_Font *font, int font_size, SDL_Surface *surface, SDL_Color colour,
     SDL_Color bg, int x, int y, int n, const char *s)
 {
     Uint8 bpp = surface->format->BytesPerPixel;
@@ -429,7 +427,7 @@ static errr sdl_mapFontDraw(sdl_Font *font, SDL_Surface *surface, SDL_Color colo
     SDL_Surface *text;
 
     if ((bpp != font->bpp) || (pitch != font->pitch))
-        sdl_FontCreate(font, font->name, surface);
+        sdl_FontCreate(font, font->name, font_size, surface);
 
     /* Lock the window surface (if necessary) */
     if (SDL_MUSTLOCK(surface))
@@ -470,7 +468,7 @@ static errr sdl_FontDraw(sdl_Font *font, SDL_Surface *surface, SDL_Color colour,
     SDL_Surface *text;
 
     if ((bpp != font->bpp) || (pitch != font->pitch))
-        sdl_FontCreate(font, font->name, surface);
+        sdl_FontCreate(font, font->name, 0, surface);
 
     /* Lock the window surface (if necessary) */
     if (SDL_MUSTLOCK(surface))
@@ -791,7 +789,7 @@ static void sdl_WindowInit(sdl_Window* window, int w, int h, SDL_Surface *owner,
         owner->format->BitsPerPixel, owner->format->Rmask, owner->format->Gmask,
         owner->format->Bmask, owner->format->Amask);
     sdl_ButtonBankInit(&window->buttons, window);
-    sdl_FontCreate(&window->font, fontname, window->surface);
+    sdl_FontCreate(&window->font, fontname, 0, window->surface);
     window->visible = true;
     window->need_update = true;
 }
@@ -1323,7 +1321,7 @@ static void SelectFont(sdl_Button *sender)
 
     window->req_font = string_make(sender->caption);
     
-    sdl_CheckFont(window->req_font, &w, &h);
+    sdl_CheckFont(window->req_font, window->font_size, &w, &h);
 
     /* Invalidate the gfx surface */
     if (window->tiles)
@@ -1383,7 +1381,6 @@ static void FontActivate(sdl_Button *sender)
 
 static errr load_gfx(void);
 static bool do_update_f = false;
-static bool do_update_w = false;
 static bool do_update = false;
 
 static void SelectGfx(sdl_Button *sender)
@@ -1486,9 +1483,15 @@ static void AcceptChanges(sdl_Button *sender)
 
     if (button->tag != windowborders)
     {
+        int i;
+
         windowborders = !windowborders;
-        do_update_w = true;
         do_update = true;
+
+        for (i = 0; i < ANGBAND_TERM_MAX; i++)
+        {
+            ResizeWin(&windows[i], windows[i].width, windows[i].height);
+        }
     }
 
     SetStatusButtons();
@@ -1507,7 +1510,7 @@ static void AcceptChanges(sdl_Button *sender)
 
         window->req_font = string_make(window->req_font);
 
-        sdl_CheckFont(window->req_font, &w, &h);
+        sdl_CheckFont(window->req_font, window->font_size, &w, &h);
 
         /* Invalidate the gfx surface */
         if (window->tiles)
@@ -1516,28 +1519,20 @@ static void AcceptChanges(sdl_Button *sender)
             window->tiles = NULL;
         }
 
-        /* This will set up the windows correctly */
         ResizeWin(&windows[SelectedTerm], windows[SelectedTerm].width, windows[SelectedTerm].height);
 
         /* Show on the screen */
         sdl_BlitAll();
     }
 
-    if (do_update_w)
-    {
-        int i;
-
-        for (i = 0; i < ANGBAND_TERM_MAX; i++)
-        {
-            ResizeWin(&windows[i], windows[i].width, windows[i].height);
-        }
-    }
-
     if (do_update)
     {
         /* Redraw */
         if (Setup.initialized)
+        {
+            ResizeWin(&windows[0], windows[0].width, windows[0].height);
             do_cmd_redraw();
+        }
 
         /* This will set up the window correctly */
         else
@@ -1558,8 +1553,7 @@ static void AcceptChanges(sdl_Button *sender)
     }
 
     do_update_f = false;
-    do_update_w = false;
-	do_update = false;
+    do_update = false;
 }
 
 
@@ -1592,7 +1586,6 @@ static void WidthChange(sdl_Button *sender)
 	tile_width += sender->tag;
 	if (tile_width < 1) tile_width = 1;
 	if (tile_width > 12) tile_width = 12;
-    do_update_w = true;
     do_update = true;
 }
 
@@ -1602,7 +1595,6 @@ static void HeightChange(sdl_Button *sender)
 	tile_height += sender->tag;
 	if (tile_height < 1) tile_height = 1;
 	if (tile_height > 8) tile_height = 8;
-    do_update_w = true;
     do_update = true;
 }
 
@@ -1970,7 +1962,7 @@ static void ResizeWin(term_window *win, int w, int h)
     if (!win->font.data)
     {
         /* Get font dimensions */
-        sdl_CheckFont(win->req_font, &win->tile_wid, &win->tile_hgt);
+        sdl_CheckFont(win->req_font, win->font_size, &win->tile_wid, &win->tile_hgt);
 
         /* Oops */
         if (!win->tile_wid || !win->tile_hgt)
@@ -2019,7 +2011,7 @@ static void ResizeWin(term_window *win, int w, int h)
 
     /* Create the font if we need to */
     if (!win->font.data)
-        sdl_FontCreate(&win->font, win->req_font, win->surface);
+        sdl_FontCreate(&win->font, win->req_font, win->font_size, win->surface);
 
     /* This window was never visible before, or needs resizing */
     if (!angband_term[win->Term_idx])
@@ -2155,7 +2147,7 @@ static errr load_window_prefs(void)
         win->font_size = DEFAULT_FONT_SIZE;
 
         /* Default width & height */
-        sdl_CheckFont(win->req_font, &w, &h);
+        sdl_CheckFont(win->req_font, win->font_size, &w, &h);
         win->width = (NORMAL_WID * w) + (b * 2);
         win->height = (NORMAL_HGT * h) + b + StatusHeight;
 
@@ -3377,7 +3369,7 @@ static errr Term_text_sdl_aux(int col, int row, int n, u16b a, const char *s)
     }
 
     /* Draw it */
-    return (sdl_mapFontDraw(&win->font, win->surface, colour, bg, x, y, n, buf));
+    return (sdl_mapFontDraw(&win->font, win->font_size, win->surface, colour, bg, x, y, n, buf));
 }
 
 
@@ -3907,11 +3899,11 @@ static void init_sdl_local(void)
     }
 
     /* Get the height of the status bar */
-    sdl_CheckFont(DEFAULT_FONT_FILE, &w, &h);
+    sdl_CheckFont(DEFAULT_FONT_FILE, DEFAULT_FONT_SIZE, &w, &h);
     StatusHeight = h + 3;
 
     /* Font used for window titles */
-    sdl_FontCreate(&SystemFont, DEFAULT_FONT_FILE, AppWin);
+    sdl_FontCreate(&SystemFont, DEFAULT_FONT_FILE, DEFAULT_FONT_SIZE, AppWin);
 
     /* Get the icon for display in the About box */
     path_build(path, sizeof(path), ANGBAND_DIR_ICONS, "att-128.png");
