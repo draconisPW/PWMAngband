@@ -1601,11 +1601,13 @@ static void FontSizeChange(sdl_Button *sender)
 }
 
 
-static void VolumeChange(sdl_Button *sender)
-{
-    volume += sender->tag;
-    volume = set_volume(volume);
-}
+#ifdef SOUND_SDL
+    static void VolumeChange(sdl_Button *sender)
+    {
+        volume += sender->tag;
+        volume = set_volume(volume);
+    }
+#endif
 
 
 static void MoreDraw(sdl_Window *win)
