@@ -77,6 +77,8 @@ PWMAngband:
 - Sort flags by level of application on character birth screen
 - Add TTF font support
 - Add sound volume management, implement it for the SDL client
+- Display expected number of blows per round at character birth (point-based
+  roller)
 
 Gameplay changes
 ----------------
