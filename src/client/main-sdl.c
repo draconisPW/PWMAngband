@@ -52,11 +52,10 @@ static bool fullscreen = false;
 /* Want nice graphics? */
 static bool nicegfx = false;
 
-/* Want window borders? */
-static bool windowborders = true;
-
 static int overdraw = 0;
 static int overdraw_max = 0;
+
+static int statusbar_color = 29;
 
 static char *sdl_settings_file;
 
@@ -112,6 +111,7 @@ struct term_window
     sdl_Font font;          /* Font info */
     char *req_font;         /* Requested font */
     int font_size;          /* Font size dimensions */
+    int windowborders;      /* Window borders */
     int rows;               /* Dimension in tiles */
     int cols;
     int border;             /* Border width */
@@ -254,9 +254,10 @@ static int MoreSnapPlus;    /* Increase snap range */
 static int MoreSnapMinus;   /* Decrease snap range */
 static int MoreFontSizePlus;    /* Increase font size range */
 static int MoreFontSizeMinus;   /* Decrease font size range */
-static int MoreWindowBorders;   /* Window Borders toggle button */
 static int MoreVolumePlus;      /* Increase sound volume */
 static int MoreVolumeMinus;     /* Decrease sound volume */
+static int MoreWindowBordersPlus;  /* Increase window borders */
+static int MoreWindowBordersMinus; /* Decrease window borders */
 
 static bool Moving;             /* Moving a window */
 static bool Sizing;             /* Sizing a window */
@@ -628,36 +629,46 @@ static int sdl_ButtonBankNew(sdl_ButtonBank *bank)
     sdl_Button *new_button;
 
     while (bank->used[i] && (i < MAX_BUTTONS)) i++;
-    
+
     if (i == MAX_BUTTONS)
     {
         /* Bugger! */
         return (-1);
     }
-    
+
     /* Get the button */
     new_button = &bank->buttons[i];
-    
+
     /* Mark the button as used */
     bank->used[i] = true;
 
     /* Clear it */
     memset(new_button, 0, sizeof(sdl_Button));
-    
+
     /* Mark it as mine */
     new_button->owner = bank;
-    
+
     /* Default colours */
-    new_button->unsel_colour.r = 160;
-    new_button->unsel_colour.g = 160;
-    new_button->unsel_colour.b = 60;
+    if ((statusbar_color == 0) || (statusbar_color == 29))
+    {
+        new_button->unsel_colour.r = 160;
+        new_button->unsel_colour.g = 160;
+        new_button->unsel_colour.b = 60;
+    }
+    else
+    {
+        new_button->unsel_colour.r = text_colours[statusbar_color].r;
+        new_button->unsel_colour.g = text_colours[statusbar_color].g;
+        new_button->unsel_colour.b = text_colours[statusbar_color].b;
+    }
+
     new_button->sel_colour.r = 210;
     new_button->sel_colour.g = 210;
     new_button->sel_colour.b = 110;
     new_button->cap_colour.r = 0;
     new_button->cap_colour.g = 0;
     new_button->cap_colour.b = 0;
-    
+
     /* Success */
     return (i);
 }
@@ -1022,8 +1033,21 @@ static void draw_statusbar(sdl_Window *window)
     SDL_Color c = {160, 160, 60, 0};
 
     sdl_RECT(0, StatusBar.height - 1, StatusBar.width, 1, &rc);
-    SDL_FillRect(StatusBar.surface, &rc, SDL_MapRGB(StatusBar.surface->format, c.r, c.g, c.b));
-    
+
+    if ((statusbar_color == 0) || (statusbar_color == 29))
+    {    
+        SDL_FillRect(StatusBar.surface, &rc, SDL_MapRGB(StatusBar.surface->format, c.r, c.g, c.b));
+    }
+    else
+    {
+        c.r = text_colours[statusbar_color].r;
+        c.g = text_colours[statusbar_color].g;
+        c.b = text_colours[statusbar_color].b;
+
+        SDL_FillRect(StatusBar.surface, &rc, SDL_MapRGB(StatusBar.surface->format, text_colours[statusbar_color].r, \
+        text_colours[statusbar_color].g, text_colours[statusbar_color].b));
+    }
+
     button = sdl_ButtonBankGet(&StatusBar.buttons, AboutSelect);
     x += button->pos.w + 20;
 
@@ -1120,10 +1144,15 @@ static void sdl_BlitAll(void)
             }
         }
 
-        if (windowborders)
+        if (win->windowborders == 29)
         {
             /* Paranoia: always redraw the borders of the window */
             sdl_DrawBox(AppWin, &rc, colour, win->border);
+        }
+        else
+        {
+            /* Paranoia: always redraw the borders of the window */
+            sdl_DrawBox(AppWin, &rc, text_colours[win->windowborders], win->border);
         }
     }
 
@@ -1383,7 +1412,7 @@ static void FontActivate(sdl_Button *sender)
 
 
 static errr load_gfx(void);
-static bool do_update_f = false;
+static bool do_update_w = false;
 static bool do_update = false;
 
 
@@ -1483,27 +1512,12 @@ static void AcceptChanges(sdl_Button *sender)
         do_video_reset = true;
     }
 
-    button = sdl_ButtonBankGet(&PopUp.buttons, MoreWindowBorders);
-
-    if (button->tag != windowborders)
-    {
-        int i;
-
-        windowborders = !windowborders;
-        do_update = true;
-
-        for (i = 0; i < ANGBAND_TERM_MAX; i++)
-        {
-            ResizeWin(&windows[i], windows[i].width, windows[i].height);
-        }
-    }
-
     SetStatusButtons();
 
     RemovePopUp();
 
     /* Hacks */
-    if (do_update_f)
+    if (do_update_w)
     {
         ResizeWin(&windows[SelectedTerm], windows[SelectedTerm].width, windows[SelectedTerm].height);
 
@@ -1538,7 +1552,7 @@ static void AcceptChanges(sdl_Button *sender)
         SDL_PushEvent(&Event);
     }
 
-    do_update_f = false;
+    do_update_w = false;
     do_update = false;
 }
 
@@ -1569,18 +1583,18 @@ static void SnapChange(sdl_Button *sender)
 
 static void WidthChange(sdl_Button *sender)
 {
-	tile_width += sender->tag;
-	if (tile_width < 1) tile_width = 1;
-	if (tile_width > 12) tile_width = 12;
+    tile_width += sender->tag;
+    if (tile_width < 1) tile_width = 1;
+    if (tile_width > 12) tile_width = 12;
     do_update = true;
 }
 
 
 static void HeightChange(sdl_Button *sender)
 {
-	tile_height += sender->tag;
-	if (tile_height < 1) tile_height = 1;
-	if (tile_height > 8) tile_height = 8;
+    tile_height += sender->tag;
+    if (tile_height < 1) tile_height = 1;
+    if (tile_height > 8) tile_height = 8;
     do_update = true;
 }
 
@@ -1592,7 +1606,19 @@ static void FontSizeChange(sdl_Button *sender)
     window->font_size += sender->tag;
     if (window->font_size < 4) window->font_size = 4;
     if (window->font_size > 64) window->font_size = 64;
-    do_update_f = true;
+    do_update_w = true;
+    do_update = true;
+}
+
+
+static void WindowBordersChange(sdl_Button *sender)
+{
+    term_window *window = &windows[SelectedTerm];
+
+    window->windowborders += sender->tag;
+    if (window->windowborders < 0) window->windowborders = 0;
+    if (window->windowborders > 29) window->windowborders = 29;
+    do_update_w = true;
     do_update = true;
 }
 
@@ -1694,11 +1720,14 @@ static void MoreDraw(sdl_Window *win)
 
     sdl_ButtonMove(button, 150, y);
     y += 20;
-    
-    button = sdl_ButtonBankGet(&win->buttons, MoreWindowBorders);
-    sdl_WindowText(win, colour, 20, y, "Window borders:");
 
+    sdl_WindowText(win, colour, 20, y, format("Window borders is %d.", window->windowborders));
+    button = sdl_ButtonBankGet(&win->buttons, MoreWindowBordersMinus);
     sdl_ButtonMove(button, 150, y);
+
+    button = sdl_ButtonBankGet(&win->buttons, MoreWindowBordersPlus);
+    sdl_ButtonMove(button, 180, y);
+
     y += 20;
 
     sdl_WindowText(win, colour, 20, y, format("Volume is %d.", sound_volume));
@@ -1853,16 +1882,27 @@ static void MoreActivate(sdl_Button *sender)
     button->tag = fullscreen;
     button->activate = FlipTag;
     
-    MoreWindowBorders = sdl_ButtonBankNew(&PopUp.buttons);
-    button = sdl_ButtonBankGet(&PopUp.buttons, MoreWindowBorders);
+    MoreWindowBordersPlus = sdl_ButtonBankNew(&PopUp.buttons);
+    button = sdl_ButtonBankGet(&PopUp.buttons, MoreWindowBordersPlus);
 
     button->unsel_colour = ucolour;
     button->sel_colour = scolour;
-    sdl_ButtonSize(button, 50, PopUp.font.height + 2);
+    sdl_ButtonSize(button, 20, PopUp.font.height + 2);
+    sdl_ButtonCaption(button, "+");
+    button->tag = 1;
     sdl_ButtonVisible(button, true);
-    sdl_ButtonCaption(button, windowborders? "On": "Off");
-    button->tag = windowborders;
-    button->activate = FlipTag;
+    button->activate = WindowBordersChange;
+
+    MoreWindowBordersMinus = sdl_ButtonBankNew(&PopUp.buttons);
+    button = sdl_ButtonBankGet(&PopUp.buttons, MoreWindowBordersMinus);
+
+    button->unsel_colour = ucolour;
+    button->sel_colour = scolour;
+    sdl_ButtonSize(button, 20, PopUp.font.height + 2);
+    sdl_ButtonCaption(button, "-");
+    button->tag = -1;
+    sdl_ButtonVisible(button, true);
+    button->activate = WindowBordersChange;
 
     MoreVolumePlus = sdl_ButtonBankNew(&PopUp.buttons);
     button = sdl_ButtonBankGet(&PopUp.buttons, MoreVolumePlus);
@@ -2021,10 +2061,16 @@ static void ResizeWin(term_window *win, int w, int h)
         AppWin->format->BitsPerPixel, AppWin->format->Rmask, AppWin->format->Gmask,
         AppWin->format->Bmask, AppWin->format->Amask);
 
-    if (windowborders)
+    if (win->windowborders == 29)
     {
         /* Fill it */
         SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, 160, 160, 60));
+    }
+    else
+    {
+        /* Fill it */
+        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, text_colours[win->windowborders].r, \
+        text_colours[win->windowborders].g, text_colours[win->windowborders].b));
     }
 
     /* Label it */
@@ -2124,10 +2170,10 @@ static errr load_prefs(void)
         }
         else if (strstr(buf, "Fullscreen"))
             fullscreen = atoi(s);
-        else if (strstr(buf, "WindowBorders"))
-            windowborders = atoi(s);
         else if (strstr(buf, "Volume"))
             sound_volume = atoi(s);
+        else if (strstr(buf, "StatusBarColor"))
+            statusbar_color = atoi(s);
         else if (strstr(buf, "NiceGraphics"))
             nicegfx = atoi(s);
         else if (strstr(buf, "Graphics"))
@@ -2175,6 +2221,9 @@ static errr load_window_prefs(void)
 
         /* Default font size */
         win->font_size = DEFAULT_FONT_SIZE;
+
+        /* Default window borders */
+        win->windowborders = 29;
 
         /* Default width & height */
         sdl_CheckFont(win->req_font, win->font_size, &w, &h);
@@ -2229,6 +2278,8 @@ static errr load_window_prefs(void)
             win->height = atoi(s);
         else if (strstr(buf, "Keys"))
             win->keys = atoi(s);
+        else if (strstr(buf, "WinBorders"))
+            win->windowborders = atoi(s);
         else if (strstr(buf, "FontSize"))
             win->font_size = atoi(s);
         else if (strstr(buf, "Font"))
@@ -2257,8 +2308,8 @@ static errr save_prefs(void)
 
     file_putf(fff, "Resolution = %dx%d\n", screen_w, screen_h);
     file_putf(fff, "Fullscreen = %d\n", fullscreen);
-    file_putf(fff, "WindowBorders = %d\n", windowborders);
     file_putf(fff, "Volume = %d\n", sound_volume);
+    file_putf(fff, "StatusBarColor = %d\n", statusbar_color);
     file_putf(fff, "NiceGraphics = %d\n", nicegfx);
     file_putf(fff, "Graphics = %d\n", use_graphics);
     file_putf(fff, "TileWidth = %d\n", tile_width);
@@ -2275,6 +2326,7 @@ static errr save_prefs(void)
         file_putf(fff, "Width = %d\n", win->width);
         file_putf(fff, "Height = %d\n", win->height);
         file_putf(fff, "Keys = %d\n", win->keys);
+        file_putf(fff, "WinBorders = %d\n", win->windowborders);
         file_putf(fff, "FontSize = %d\n", win->font_size);
         file_putf(fff, "Font = %s\n", win->req_font);
     }   
