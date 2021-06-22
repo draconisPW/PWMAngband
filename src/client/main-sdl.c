@@ -55,7 +55,12 @@ static bool nicegfx = false;
 static int overdraw = 0;
 static int overdraw_max = 0;
 
-static int statusbar_color = 29;
+/*
+ * Status bar color:
+ *   0 = default color
+ *   COLOUR_WHITE to COLOUR_DEEP_L_BLUE = colored status bar
+ */
+static int statusbar_color = 0;
 
 static char *sdl_settings_file;
 
@@ -97,6 +102,11 @@ static sdl_Font SystemFont;
 /*
  * Window information
  * Each window has its own surface and coordinates
+ *
+ * Window border:
+ *   COLOUR_DARK = no border
+ *   COLOUR_WHITE to COLOUR_DEEP_L_BLUE = colored border
+ *   COLOUR_SHADE (BASIC_COLORS) = default border
  */
 typedef struct term_window term_window;
 struct term_window
@@ -649,17 +659,17 @@ static int sdl_ButtonBankNew(sdl_ButtonBank *bank)
     new_button->owner = bank;
 
     /* Default colours */
-    if ((statusbar_color == 0) || (statusbar_color == 29))
-    {
-        new_button->unsel_colour.r = 160;
-        new_button->unsel_colour.g = 160;
-        new_button->unsel_colour.b = 60;
-    }
-    else
+    if ((statusbar_color > 0) && (statusbar_color < BASIC_COLORS))
     {
         new_button->unsel_colour.r = text_colours[statusbar_color].r;
         new_button->unsel_colour.g = text_colours[statusbar_color].g;
         new_button->unsel_colour.b = text_colours[statusbar_color].b;
+    }
+    else
+    {
+        new_button->unsel_colour.r = 160;
+        new_button->unsel_colour.g = 160;
+        new_button->unsel_colour.b = 60;
     }
 
     new_button->sel_colour.r = 210;
@@ -1034,19 +1044,13 @@ static void draw_statusbar(sdl_Window *window)
 
     sdl_RECT(0, StatusBar.height - 1, StatusBar.width, 1, &rc);
 
-    if ((statusbar_color == 0) || (statusbar_color == 29))
-    {    
-        SDL_FillRect(StatusBar.surface, &rc, SDL_MapRGB(StatusBar.surface->format, c.r, c.g, c.b));
-    }
-    else
+    if ((statusbar_color > 0) && (statusbar_color < BASIC_COLORS))
     {
         c.r = text_colours[statusbar_color].r;
         c.g = text_colours[statusbar_color].g;
         c.b = text_colours[statusbar_color].b;
-
-        SDL_FillRect(StatusBar.surface, &rc, SDL_MapRGB(StatusBar.surface->format, text_colours[statusbar_color].r, \
-        text_colours[statusbar_color].g, text_colours[statusbar_color].b));
     }
+    SDL_FillRect(StatusBar.surface, &rc, SDL_MapRGB(StatusBar.surface->format, c.r, c.g, c.b));
 
     button = sdl_ButtonBankGet(&StatusBar.buttons, AboutSelect);
     x += button->pos.w + 20;
@@ -1144,16 +1148,11 @@ static void sdl_BlitAll(void)
             }
         }
 
-        if (win->windowborders == 29)
-        {
-            /* Paranoia: always redraw the borders of the window */
-            sdl_DrawBox(AppWin, &rc, colour, win->border);
-        }
-        else
-        {
-            /* Paranoia: always redraw the borders of the window */
+        /* Paranoia: always redraw the borders of the window */
+        if ((win->windowborders >= 0) && (win->windowborders < BASIC_COLORS))
             sdl_DrawBox(AppWin, &rc, text_colours[win->windowborders], win->border);
-        }
+        else
+            sdl_DrawBox(AppWin, &rc, colour, win->border);
     }
 
     sdl_RECT(window->left, window->top, window->width, window->height, &rc);
@@ -1617,7 +1616,7 @@ static void WindowBordersChange(sdl_Button *sender)
 
     window->windowborders += sender->tag;
     if (window->windowborders < 0) window->windowborders = 0;
-    if (window->windowborders > 29) window->windowborders = 29;
+    if (window->windowborders > BASIC_COLORS) window->windowborders = BASIC_COLORS;
     do_update_w = true;
     do_update = true;
 }
@@ -2061,17 +2060,15 @@ static void ResizeWin(term_window *win, int w, int h)
         AppWin->format->BitsPerPixel, AppWin->format->Rmask, AppWin->format->Gmask,
         AppWin->format->Bmask, AppWin->format->Amask);
 
-    if (win->windowborders == 29)
+    /* Fill it */
+    if ((win->windowborders >= 0) && (win->windowborders < BASIC_COLORS))
     {
-        /* Fill it */
-        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, 160, 160, 60));
+        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format,
+            text_colours[win->windowborders].r, text_colours[win->windowborders].g,
+            text_colours[win->windowborders].b));
     }
     else
-    {
-        /* Fill it */
-        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, text_colours[win->windowborders].r, \
-        text_colours[win->windowborders].g, text_colours[win->windowborders].b));
-    }
+        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, 160, 160, 60));
 
     /* Label it */
     sdl_FontDraw(&SystemFont, win->surface, back_colour, 1, 1,
@@ -2190,6 +2187,8 @@ static errr load_prefs(void)
     if (sound_volume < 0) sound_volume = 0;
     if (sound_volume > 100) sound_volume = 100;
 
+    if ((statusbar_color < 0) || (statusbar_color >= BASIC_COLORS)) statusbar_color = 0;
+
     file_close(fff);
 
     tile_distorted = is_tile_distorted(use_graphics, tile_width, tile_height);
@@ -2223,7 +2222,7 @@ static errr load_window_prefs(void)
         win->font_size = DEFAULT_FONT_SIZE;
 
         /* Default window borders */
-        win->windowborders = 29;
+        win->windowborders = BASIC_COLORS;
 
         /* Default width & height */
         sdl_CheckFont(win->req_font, win->font_size, &w, &h);

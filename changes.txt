@@ -80,6 +80,7 @@ PWMAngband:
 - Display expected number of blows per round at character birth (point-based
   roller)
 - Display %fail of first spell at character birth (point-based roller)
+- Support color for windows border and status bar (SDL client)
 
 Gameplay changes
 ----------------
