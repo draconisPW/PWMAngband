@@ -1125,7 +1125,7 @@ static void sdl_BlitAll(void)
     SDL_Rect rc;
     sdl_Window *window = &StatusBar;
     int i;
-    SDL_Color colour = {160, 160, 60, 0};
+    SDL_Color colour = {d_color_r, d_color_g, d_color_b, 0};
 
     SDL_FillRect(AppWin, NULL, back_pixel_colour);
 
@@ -2073,7 +2073,7 @@ static void ResizeWin(term_window *win, int w, int h)
             text_colours[win->windowborders].b));
     }
     else
-        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, 160, 160, 60));
+        SDL_FillRect(win->surface, NULL, SDL_MapRGB(AppWin->format, d_color_r, d_color_g, d_color_b));
 
     /* Label it */
     sdl_FontDraw(&SystemFont, win->surface, back_colour, 1, 1,
