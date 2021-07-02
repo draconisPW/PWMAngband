@@ -1045,9 +1045,13 @@ static void draw_statusbar(sdl_Window *window)
     int x = 1;
     sdl_Button *button;
     SDL_Rect rc;
-    SDL_Color c = {d_color_r, d_color_g, d_color_b, 0};
+    SDL_Color c;
 
     sdl_RECT(0, StatusBar.height - 1, StatusBar.width, 1, &rc);
+
+    c.r = d_color_r;
+    c.g = d_color_g;
+    c.b = d_color_b;
 
     if ((statusbar_color > 0) && (statusbar_color < BASIC_COLORS))
     {
@@ -1125,7 +1129,11 @@ static void sdl_BlitAll(void)
     SDL_Rect rc;
     sdl_Window *window = &StatusBar;
     int i;
-    SDL_Color colour = {d_color_r, d_color_g, d_color_b, 0};
+    SDL_Color colour;
+
+    colour.r = d_color_r;
+    colour.g = d_color_g;
+    colour.b = d_color_b;
 
     SDL_FillRect(AppWin, NULL, back_pixel_colour);
 
@@ -2175,9 +2183,7 @@ static errr load_prefs(void)
         else if (strstr(buf, "Volume"))
             sound_volume = atoi(s);
         else if (strstr(buf, "DefaultColor"))
-        {
             sscanf(s, "%d,%d,%d", &d_color_r, &d_color_g, &d_color_b);
-        }
         else if (strstr(buf, "StatusBarColor"))
             statusbar_color = atoi(s);
         else if (strstr(buf, "NiceGraphics"))
