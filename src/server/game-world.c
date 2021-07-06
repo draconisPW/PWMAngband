@@ -1773,6 +1773,9 @@ static void generate_new_level(struct player *p)
 
     /* Detect secret doors and traps */
     search(p, c);
+
+    /* Play music */
+    Send_sound(p, -1);
 }
 
 
