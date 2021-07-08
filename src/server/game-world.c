@@ -1775,6 +1775,7 @@ static void generate_new_level(struct player *p)
     search(p, c);
 
     /* Play music */
+    redraw_stuff(p);
     Send_sound(p, -1);
 }
 
