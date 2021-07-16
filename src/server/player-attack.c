@@ -2203,7 +2203,8 @@ bool do_cmd_fire(struct player *p, int dir, int item)
 
 
 /*
- * Throw an object from the quiver, pack or floor.
+ * Throw an object from the quiver, pack or floor, or, in limited circumstances,
+ * the equipment.
  */
 bool do_cmd_throw(struct player *p, int dir, int item)
 {
@@ -2229,13 +2230,6 @@ bool do_cmd_throw(struct player *p, int dir, int item)
     if (check_prevent_inscription(p, INSCRIPTION_THROW))
     {
         msg(p, "The item's inscription prevents it.");
-        return false;
-    }
-
-    /* Make sure the player isn't throwing wielded items */
-    if (object_is_equipped(p->body, obj))
-    {
-        msg(p, "You cannot throw wielded items.");
         return false;
     }
 
@@ -2281,6 +2275,12 @@ bool do_cmd_throw(struct player *p, int dir, int item)
     {
         msg(p, "You cannot throw this here.");
         return false;
+    }
+
+    if (object_is_equipped(p->body, obj))
+    {
+        my_assert(obj_can_takeoff(obj) && tval_is_melee_weapon(obj));
+        inven_takeoff(p, obj);
     }
 
     weight = MAX(obj->weight, 10);
