@@ -977,7 +977,7 @@ static void project_monster_handler_MON_CLONE(project_monster_handler_context_t 
     mon_inc_timed(context->origin->player, context->mon, MON_TMD_FAST, 50, MON_TMD_FLG_NOTIFY);
 
     /* Attempt to clone */
-    if (multiply_monster(context->origin->player, context->cave, context->mon))
+    if (multiply_monster(context->origin->player, context->cave, context->mon) && context->seen)
         context->hurt_msg = MON_MSG_SPAWN;
 
     /* No "real" damage */
@@ -1627,7 +1627,7 @@ static bool project_m_apply_side_effects(project_monster_handler_context_t *cont
         /* Uniques cannot be polymorphed */
         if (monster_is_unique(context->mon->race))
         {
-            if (typ == PROJ_MON_POLY)
+            if ((typ == PROJ_MON_POLY) && context->seen)
                 add_monster_message(context->origin->player, context->mon, MON_MSG_UNAFFECTED, false);
             return false;
         }
@@ -1641,7 +1641,7 @@ static bool project_m_apply_side_effects(project_monster_handler_context_t *cont
             savelvl = randint1(90);
         if (context->mon->level > savelvl)
         {
-            if (typ == PROJ_MON_POLY)
+            if ((typ == PROJ_MON_POLY) && context->seen)
             {
                 add_monster_message(context->origin->player, context->mon, MON_MSG_MAINTAIN_SHAPE,
                     false);
@@ -1658,7 +1658,8 @@ static bool project_m_apply_side_effects(project_monster_handler_context_t *cont
             struct monster_group_info info = {0, 0};
 
             /* Report the polymorph before changing the monster */
-            add_monster_message(context->origin->player, context->mon, MON_MSG_CHANGE, false);
+            if (context->seen)
+                add_monster_message(context->origin->player, context->mon, MON_MSG_CHANGE, false);
 
             /* Delete the old monster, and return a new one */
             delete_monster_idx(context->cave, *m_idx);
@@ -1670,6 +1671,10 @@ static bool project_m_apply_side_effects(project_monster_handler_context_t *cont
             }
             else
                 return true;
+
+            /* Note the appearance of the new one if it is visible but the old one wasn't. */
+            if (!context->seen && context->mon && monster_is_visible(context->origin->player, *m_idx))
+                add_monster_message(context->origin->player, context->mon, MON_MSG_APPEAR, false);
         }
     }
     else if (context->do_gravity)
@@ -1907,7 +1912,11 @@ void project_m(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     if (origin->player)
     {
         context.lore = get_lore(origin->player, context.mon->race);
-        context.seen = monster_is_visible(origin->player, m_idx);
+        if (monster_is_mimicking(context.mon))
+        {
+            if (monster_is_in_view(origin->player, m_idx)) context.seen = true;
+        }
+        else if (monster_is_visible(origin->player, m_idx)) context.seen = true;
     }
 
     /* Breathers may not blast members of the same race. */
@@ -1923,6 +1932,16 @@ void project_m(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     /* The caster is a player */
     if (origin->player)
     {
+        /* Reveal a camouflaged monster if in view and it stopped an effect. */
+        if ((flg & PROJECT_STOP) && monster_is_camouflaged(context.mon) &&
+            monster_is_in_view(origin->player, m_idx))
+        {
+            become_aware(origin->player, c, context.mon);
+
+            /* Reevaluate whether it's seen. */
+            if (monster_is_visible(origin->player, m_idx)) context.seen = true;
+        }
+
         /* Check hostility for threatening spells */
         if (project_m_is_threat(&context) && !pvm_check(origin->player, context.mon)) return;
     }
