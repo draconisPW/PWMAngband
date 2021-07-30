@@ -1727,6 +1727,8 @@ void show_splashscreen(void)
 
     /* Clear the screen again */
     Term_clear();
+
+    player->locname[0] = '\0';
 }
 
 
