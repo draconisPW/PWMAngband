@@ -24,6 +24,7 @@
 /* Daily log file */
 static int tm_mday = 0;
 static ang_file *fp = NULL;
+static bool fp_closed = false;
 
 
 /*
@@ -43,7 +44,7 @@ static void quit_hook(const char *s)
     if (fp)
     {
         file_close(fp);
-        fp = NULL;
+        fp_closed = true;
     }
 }
 
@@ -142,7 +143,7 @@ static void server_log(const char *str)
     fprintf(stderr, "%s %s\n", buf, ascii);
 
     /* Paranoia */
-    if (!fp) return;
+    if (fp_closed) return;
 
     /* Open the daily log file */
     if (tm_mday != local->tm_mday)
@@ -150,7 +151,7 @@ static void server_log(const char *str)
         tm_mday = local->tm_mday;
 
         /* Close the daily log file */
-        file_close(fp);
+        if (fp) file_close(fp);
 
         /* Open a new daily log file */
         strftime(file, 30, "pwmangband%d%m%y.log", local);
