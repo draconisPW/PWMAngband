@@ -908,77 +908,77 @@ static void render_cursor(struct subwindow *subwindow,
 			&rect, &color);
 }
 
-static void render_grid_cell_text(const struct subwindow *subwindow,
-		SDL_Texture *texture, int x, int y)
-{
+//static void render_grid_cell_text(const struct subwindow *subwindow,
+//		SDL_Texture *texture, int x, int y)
+//{
 //	struct grid_data grid_data;
-	int a;
-	int ta;
-	wchar_t c;
-	wchar_t tc;
-
+//	int a;
+//	int ta;
+//	wchar_t c;
+//	wchar_t tc;
+//
 //	map_info(loc(x, y), &grid_data);
 //	grid_data_as_text(&grid_data, &a, &c, &ta, &tc);
-	/* apparently either the same as a or obscured by a */
-	(void) tc;
-
-	SDL_Color fg = g_colors[a % MAX_COLORS];
-	SDL_Color bg;
-
-	switch (ta / MAX_COLORS) {
-		case BG_BLACK:
-			bg = subwindow->color;
-			break;
-		case BG_SAME:
-			bg = fg;
-			break;
-		case BG_DARK:
-			bg = g_colors[DEFAULT_SHADE_COLOR];
-			break;
-		default:
-			/* debugging */
-			bg = g_colors[DEFAULT_ERROR_COLOR];
-	}
-
-	SDL_Rect rect = {
-		x * subwindow->font_width,
-		y * subwindow->font_height,
-		subwindow->font_width,
-		subwindow->font_height
-	};
-
-	render_fill_rect(subwindow->window, texture, &rect, &bg);
-	render_glyph_mono(subwindow->window,
-			subwindow->font, texture, rect.x, rect.y, &fg, (uint32_t) c);
-}
+//	/* apparently either the same as a or obscured by a */
+//	(void) tc;
+//
+//	SDL_Color fg = g_colors[a % MAX_COLORS];
+//	SDL_Color bg;
+//
+//	switch (ta / MAX_COLORS) {
+//		case BG_BLACK:
+//			bg = subwindow->color;
+//			break;
+//		case BG_SAME:
+//			bg = fg;
+//			break;
+//		case BG_DARK:
+//			bg = g_colors[DEFAULT_SHADE_COLOR];
+//			break;
+//		default:
+//			/* debugging */
+//			bg = g_colors[DEFAULT_ERROR_COLOR];
+//	}
+//
+//	SDL_Rect rect = {
+//		x * subwindow->font_width,
+//		y * subwindow->font_height,
+//		subwindow->font_width,
+//		subwindow->font_height
+//	};
+//
+//	render_fill_rect(subwindow->window, texture, &rect, &bg);
+//	render_glyph_mono(subwindow->window,
+//			subwindow->font, texture, rect.x, rect.y, &fg, (uint32_t) c);
+//}
 
 /* does not SetRenderTarget */
-static void render_tile_rect_scaled(const struct subwindow *subwindow,
-		int col, int row, SDL_Rect dst, int a, int c)
-{
-	struct graphics *graphics = &subwindow->window->graphics;
-
-	SDL_Rect src = {0, 0, graphics->tile_pixel_w, graphics->tile_pixel_h};
-
-	int src_row = a & 0x7f;
-	int src_col = c & 0x7f;
-
-	src.x = src_col * src.w;
-	src.y = src_row * src.h;
-
-	if (graphics->overdraw_row != 0
-			&& src_row >= graphics->overdraw_row
-			&& src_row <= graphics->overdraw_max)
-	{
-		src.y -= src.h;
-		dst.y -= dst.h;
-		dst.h *= 2;
-		src.h *= 2;
-	}
-
-	SDL_RenderCopy(subwindow->window->renderer,
-			graphics->texture, &src, &dst);
-}
+//static void render_tile_rect_scaled(const struct subwindow *subwindow,
+//		int col, int row, SDL_Rect dst, int a, int c)
+//{
+//	struct graphics *graphics = &subwindow->window->graphics;
+//
+//	SDL_Rect src = {0, 0, graphics->tile_pixel_w, graphics->tile_pixel_h};
+//
+//	int src_row = a & 0x7f;
+//	int src_col = c & 0x7f;
+//
+//	src.x = src_col * src.w;
+//	src.y = src_row * src.h;
+//
+//	if (graphics->overdraw_row != 0
+//			&& src_row >= graphics->overdraw_row
+//			&& src_row <= graphics->overdraw_max)
+//	{
+//		src.y -= src.h;
+//		dst.y -= dst.h;
+//		dst.h *= 2;
+//		src.h *= 2;
+//	}
+//
+//	SDL_RenderCopy(subwindow->window->renderer,
+//			graphics->texture, &src, &dst);
+//}
 
 static void render_tile_font_scaled(const struct subwindow *subwindow,
 		int col, int row, int a, int c, bool fill)
@@ -1027,28 +1027,28 @@ static void render_tile_font_scaled(const struct subwindow *subwindow,
 	}
 }
 
-static void render_grid_cell_tile(const struct subwindow *subwindow,
-		SDL_Texture *texture, SDL_Rect tile, int x, int y)
-{
+//static void render_grid_cell_tile(const struct subwindow *subwindow,
+//		SDL_Texture *texture, SDL_Rect tile, int x, int y)
+//{
 //	struct grid_data grid_data;
-	int a;
-	int ta;
-	wchar_t c;
-	wchar_t tc;
-
+//	int a;
+//	int ta;
+//	wchar_t c;
+//	wchar_t tc;
+//
 //	map_info(loc(x, y), &grid_data);
 //	grid_data_as_text(&grid_data, &a, &c, &ta, &tc);
-
-	SDL_SetRenderTarget(subwindow->window->renderer, texture);
-
-	render_tile_rect_scaled(subwindow, x, y, tile, ta, tc);
-
-	if (a == ta && c == tc) {
-		return;
-	}
-
-	render_tile_rect_scaled(subwindow, x, y, tile, a, c);
-}
+//
+//	SDL_SetRenderTarget(subwindow->window->renderer, texture);
+//
+//	render_tile_rect_scaled(subwindow, x, y, tile, ta, tc);
+//
+//	if (a == ta && c == tc) {
+//		return;
+//	}
+//
+//	render_tile_rect_scaled(subwindow, x, y, tile, a, c);
+//}
 
 static void clear_all_borders(struct window *window)
 {
@@ -2675,23 +2675,23 @@ static void fit_rect_in_rect_by_xy(SDL_Rect *small, const SDL_Rect *big)
 	}
 }
 
-static void fit_rect_in_rect_proportional(SDL_Rect *small, const SDL_Rect *big)
-{
-	if (small->x < big->x) {
-		small->x = big->x;
-	}
-	if (small->y < big->y) {
-		small->y = big->y;
-	}
-	if (small->w > big->w) {
-		small->h = small->h * big->w / small->w;
-		small->w = big->w;
-	}
-	if (small->h > big->h) {
-		small->w = small->w * big->h / small->h;
-		small->h = big->h;
-	}
-}
+//static void fit_rect_in_rect_proportional(SDL_Rect *small, const SDL_Rect *big)
+//{
+//	if (small->x < big->x) {
+//		small->x = big->x;
+//	}
+//	if (small->y < big->y) {
+//		small->y = big->y;
+//	}
+//	if (small->w > big->w) {
+//		small->h = small->h * big->w / small->w;
+//		small->w = big->w;
+//	}
+//	if (small->h > big->h) {
+//		small->w = small->w * big->h / small->h;
+//		small->h = big->h;
+//	}
+//}
 
 static void resize_rect(SDL_Rect *rect,
 		int left, int top, int right, int bottom)
@@ -3807,7 +3807,7 @@ static errr term_wipe_hook(int col, int row, int n)
 	return 0;
 }
 
-static errr term_text_hook(int col, int row, int n, int a, const char *s)
+static errr term_text_hook(int col, int row, int n, u16b a, const char *s)
 {
 	struct subwindow *subwindow = Term->data;
 	assert(subwindow != NULL);
@@ -3856,7 +3856,7 @@ static errr term_text_hook(int col, int row, int n, int a, const char *s)
 }
 
 static errr term_pict_hook(int col, int row, int n,
-		const int *ap, const char *cp, const int *tap, const int *tcp)
+		const u16b *ap, const char *cp, const u16b *tap, const char *tcp)
 {
 	struct subwindow *subwindow = Term->data;
 	assert(subwindow != NULL);
@@ -3878,44 +3878,44 @@ static errr term_pict_hook(int col, int row, int n,
 	return 0;
 }
 
-static void term_view_map_shared(struct subwindow *subwindow,
-		SDL_Texture *map, int w, int h)
-{
-	render_all(subwindow->window);
-
-	SDL_Rect dst = {
-		0, 0,
-		w + 2 * DEFAULT_VISIBLE_BORDER,
-		h + 2 * DEFAULT_VISIBLE_BORDER
-	};
-	SDL_Rect full = {
-		0, 0,
-		subwindow->window->full_rect.w,
-		subwindow->window->full_rect.h
-	};
-	fit_rect_in_rect_proportional(&dst, &full);
-
-	dst.x = (subwindow->window->full_rect.w - dst.w) / 2;
-	dst.y = (subwindow->window->full_rect.h - dst.h) / 2;
-	resize_rect(&dst,
-			DEFAULT_VISIBLE_BORDER, DEFAULT_VISIBLE_BORDER,
-			-DEFAULT_VISIBLE_BORDER, -DEFAULT_VISIBLE_BORDER);
-
-	render_all(subwindow->window);
-	SDL_SetRenderTarget(subwindow->window->renderer, NULL);
-	SDL_RenderCopy(subwindow->window->renderer, map, NULL, &dst);
-
-	/* render borders around the whole map */
-	resize_rect(&dst,
-			-DEFAULT_VISIBLE_BORDER, -DEFAULT_VISIBLE_BORDER,
-			DEFAULT_VISIBLE_BORDER, DEFAULT_VISIBLE_BORDER);
-	render_outline_rect_width(subwindow->window,
-			NULL, &dst, &subwindow->borders.color, DEFAULT_VISIBLE_BORDER);
-
-	SDL_RenderPresent(subwindow->window->renderer);
-
-	wait_anykey();
-}
+//static void term_view_map_shared(struct subwindow *subwindow,
+//		SDL_Texture *map, int w, int h)
+//{
+//	render_all(subwindow->window);
+//
+//	SDL_Rect dst = {
+//		0, 0,
+//		w + 2 * DEFAULT_VISIBLE_BORDER,
+//		h + 2 * DEFAULT_VISIBLE_BORDER
+//	};
+//	SDL_Rect full = {
+//		0, 0,
+//		subwindow->window->full_rect.w,
+//		subwindow->window->full_rect.h
+//	};
+//	fit_rect_in_rect_proportional(&dst, &full);
+//
+//	dst.x = (subwindow->window->full_rect.w - dst.w) / 2;
+//	dst.y = (subwindow->window->full_rect.h - dst.h) / 2;
+//	resize_rect(&dst,
+//			DEFAULT_VISIBLE_BORDER, DEFAULT_VISIBLE_BORDER,
+//			-DEFAULT_VISIBLE_BORDER, -DEFAULT_VISIBLE_BORDER);
+//
+//	render_all(subwindow->window);
+//	SDL_SetRenderTarget(subwindow->window->renderer, NULL);
+//	SDL_RenderCopy(subwindow->window->renderer, map, NULL, &dst);
+//
+//	/* render borders around the whole map */
+//	resize_rect(&dst,
+//			-DEFAULT_VISIBLE_BORDER, -DEFAULT_VISIBLE_BORDER,
+//			DEFAULT_VISIBLE_BORDER, DEFAULT_VISIBLE_BORDER);
+//	render_outline_rect_width(subwindow->window,
+//			NULL, &dst, &subwindow->borders.color, DEFAULT_VISIBLE_BORDER);
+//
+//	SDL_RenderPresent(subwindow->window->renderer);
+//
+//	wait_anykey();
+//}
 
 //static void term_view_map_tile(struct subwindow *subwindow)
 //{

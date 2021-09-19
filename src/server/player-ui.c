@@ -363,7 +363,7 @@ static void write_character_dump(ang_file *fff, void *data)
     if (!p->dump_gen)
     {
         file_put(fff, "\n  [Player information]\n\n");
-        file_putf(fff, "Player name: %s", get_connection(p->conn)->real);
+        file_putf(fff, "Player name: %s\n", get_connection(p->conn)->real);
     }
 
     mem_free(home_list);
