@@ -1150,7 +1150,7 @@ void disturb(struct player *p, int unused_flag)
 
     /* Cancel repeated commands */
     p->digging_request = 0;
-    if (p->cancel_firing) p->firing_request = 0;
+    if (p->cancel_firing) p->firing_request = false;
     else p->cancel_firing = true;
 
     /* Cancel Resting */
