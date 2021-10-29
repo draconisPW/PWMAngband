@@ -2806,7 +2806,7 @@ void process_monsters(struct chunk *c, bool more_energy)
         /* Hack -- controlled monsters have a limited lifespan */
         if (mon->master && mon->lifespan)
         {
-            //mon->lifespan--;
+            mon->lifespan--;
 
             /* Delete the monster */
             if (!mon->lifespan)
