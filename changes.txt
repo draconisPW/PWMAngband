@@ -8,8 +8,35 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.5.0 build 6
+New features in PWMAngband 1.5.0 build 7
 ========================================
+
+User interface
+--------------
+
+PWMAngband:
+
+- Items with ignore_protect flag cannot be ignored anymore, just destroyed
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Don't "notice" players that have left the level
+- Refresh client after ignoring an item from inventory or floor
+- Add pack reordering notice when aborting item selection for unidentified
+  effects requiring an item
+  
+Coding changes
+--------------
+
+PWMAngband:
+
+- Revert making EF_IDENTIFY items aware before executing the effect
+
+Features in PWMAngband 1.5.0 build 6
+====================================
 
 User interface
 --------------
