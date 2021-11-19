@@ -5129,7 +5129,7 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
             if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
             if (p->timed[TMD_BLIND]) continue;
             if (!panel_contains(p, &blast_grid[i])) continue;
-            if (p->did_visuals) continue;
+            if (p->did_visuals && !p->do_visuals) continue;
 
             /* Only do visuals if the player can see the blast */
             if (square_isview(p, &blast_grid[i]))
@@ -5167,9 +5167,9 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
 
                 /* Delay to show this radius appearing */
                 if (drawing[j] || drawn[j])
-                    Send_flush(p, true, true);
+                    Send_flush(p, true, p->do_visuals? 4: 1);
                 else
-                    Send_flush(p, true, false);
+                    Send_flush(p, true, 0);
             }
 
             new_radius = false;
@@ -5203,7 +5203,7 @@ void display_explosion(struct chunk *cv, struct explosion *data, const bool *dra
             }
 
             /* Flush the explosion */
-            Send_flush(p, true, false);
+            Send_flush(p, true, 0);
         }
     }
 
@@ -5238,7 +5238,7 @@ void display_bolt(struct chunk *cv, struct bolt *data, bool *drawing)
         if (!wpos_eq(&p->wpos, &cv->wpos)) continue;
         if (p->timed[TMD_BLIND]) continue;
         if (!panel_contains(p, &data->grid)) continue;
-        if (p->did_visuals) continue;
+        if (p->did_visuals && !p->do_visuals) continue;
 
         /* Only do visuals if the player can "see" the bolt */
         if (square_isview(p, &data->grid))
@@ -5268,7 +5268,7 @@ void display_bolt(struct chunk *cv, struct bolt *data, bool *drawing)
 
         /* Delay for consistency */
         else if (drawing[j])
-            Send_flush(p, false, true);
+            Send_flush(p, false, p->do_visuals? 4: 1);
     }
 }
 
@@ -5298,7 +5298,7 @@ void display_missile(struct chunk *cv, struct missile *data)
         else
         {
             /* Delay anyway for consistency */
-            Send_flush(p, false, true);
+            Send_flush(p, false, p->do_visuals? 4: 1);
         }
     }
 }

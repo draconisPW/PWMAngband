@@ -3359,13 +3359,13 @@ int Send_ignore(struct player *p)
 }
 
 
-int Send_flush(struct player *p, bool fresh, bool delay)
+int Send_flush(struct player *p, bool fresh, char delay)
 {
     connection_t *connp = get_connp(p, "flush");
     if (connp == NULL) return 0;
 
     /* Hack -- don't display animations if fire_till_kill is enabled */
-    if (p->firing_request) delay = false;
+    if (p->firing_request) delay = 0;
 
     return Packet_printf(&connp->c, "%b%c%c", (unsigned)PKT_FLUSH, (int)fresh, (int)delay);
 }

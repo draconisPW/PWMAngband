@@ -1723,6 +1723,35 @@ static bool monster_turn_attack_glyph(struct player *p, struct monster *mon, str
 }
 
 
+static bool monster_turn_try_push_retaliate(struct source *who, struct monster *mon,
+    struct monster *mon1, struct source *target)
+{
+    if (!who->monster && master_in_party(mon1->master, who->player->id) &&
+            !master_in_party(mon->master, mon1->master))
+    {
+        int chance = 25;
+
+        /* Stupid monsters rarely retaliate */
+        if (monster_is_stupid(mon->race)) chance = 10;
+
+        /* Smart monsters always retaliate */
+        if (monster_is_smart(mon)) chance = 100;
+
+        /* Sometimes monsters retaliate */
+        if (magik(chance))
+        {
+            /* Do the attack */
+            make_attack_normal(mon, target);
+
+            /* Took a turn */
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 /*
  * Try to push past / kill another monster. Returns true on success.
  */
@@ -1804,27 +1833,7 @@ static bool monster_turn_try_push(struct source *who, struct chunk *c, struct mo
         }
 
         /* If the target is a player and there's a controlled monster on the way, try to retaliate */
-        if (!who->monster && master_in_party(mon1->master, who->player->id) &&
-            !master_in_party(mon->master, mon1->master))
-        {
-            int chance = 25;
-
-            /* Stupid monsters rarely retaliate */
-            if (monster_is_stupid(mon->race)) chance = 10;
-
-            /* Smart monsters always retaliate */
-            if (monster_is_smart(mon)) chance = 100;
-
-            /* Sometimes monsters retaliate */
-            if (magik(chance))
-            {
-                /* Do the attack */
-                make_attack_normal(mon, target);
-
-                /* Took a turn */
-                *did_something = true;
-            }
-        }
+        if (monster_turn_try_push_retaliate(who, mon, mon1, target)) *did_something = true;
 
         return false;
     }
@@ -1842,26 +1851,7 @@ static bool monster_turn_try_push(struct source *who, struct chunk *c, struct mo
     }
 
     /* If the target is a player and there's a controlled monster on the way, try to retaliate */
-    if (!who->monster && master_in_party(mon1->master, who->player->id))
-    {
-        int chance = 25;
-
-        /* Stupid monsters rarely retaliate */
-        if (monster_is_stupid(mon->race)) chance = 10;
-
-        /* Smart monsters always retaliate */
-        if (monster_is_smart(mon)) chance = 100;
-
-        /* Sometimes monsters retaliate */
-        if (magik(chance))
-        {
-            /* Do the attack */
-            make_attack_normal(mon, target);
-
-            /* Took a turn */
-            *did_something = true;
-        }
-    }
+    if (monster_turn_try_push_retaliate(who, mon, mon1, target)) *did_something = true;
 
     return false;
 }
@@ -2806,7 +2796,7 @@ void process_monsters(struct chunk *c, bool more_energy)
         /* Hack -- controlled monsters have a limited lifespan */
         if (mon->master && mon->lifespan)
         {
-            mon->lifespan--;
+            //mon->lifespan--;
 
             /* Delete the monster */
             if (!mon->lifespan)

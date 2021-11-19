@@ -4227,7 +4227,7 @@ static int Receive_flush(void)
     if (fresh) Term_fresh();
 
     /* Wait */
-    if (delay) Term_xtra(TERM_XTRA_DELAY, player->opts.delay_factor);
+    if (delay) Term_xtra(TERM_XTRA_DELAY, player->opts.delay_factor / delay);
 
     return 1;
 }
