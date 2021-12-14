@@ -1393,7 +1393,7 @@ void push_object(struct player *p, struct chunk *c, struct loc *grid)
     bool rune = square_iswarded(c, grid), glyph = square_isdecoyed(c, grid);
     struct monster *mon = square_monster(c, grid);
 
-    /* XXX */
+    /* PWMAngband: if this is a mimic, just reveal it instead of pushing the mimicked object */
     if (mon && mon->mimicked_obj) become_aware(p, c, mon);
     obj = square_object(c, grid);
     if (!obj) return;

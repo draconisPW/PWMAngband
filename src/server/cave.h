@@ -248,6 +248,8 @@ extern void set_terrain(void);
 extern struct chunk *cave_new(int height, int width);
 extern void cave_free(struct chunk *c);
 extern bool scatter(struct chunk *c, struct loc *place, struct loc *grid, int d, bool need_los);
+extern int scatter_ext(struct chunk *c, struct loc *places, int n, struct loc *grid, int d,
+    bool need_los, bool (*pred)(struct chunk *, struct loc *));
 extern struct monster *cave_monster(struct chunk *c, int idx);
 extern int cave_monster_max(struct chunk *c);
 extern int cave_monster_count(struct chunk *c);
@@ -425,6 +427,7 @@ extern bool square_changeable(struct chunk *c, struct loc *grid);
 extern bool square_in_bounds(struct chunk *c, struct loc *grid);
 extern bool square_in_bounds_fully(struct chunk *c, struct loc *grid);
 extern bool square_isbelievedwall(struct player *p, struct chunk *c, struct loc *grid);
+extern bool square_allows_summon(struct chunk *c, struct loc *grid);
 extern struct square *square(struct chunk *c, struct loc *grid);
 extern struct player_square *square_p(struct player *p, struct loc *grid);
 extern struct feature *square_feat(struct chunk *c, struct loc *grid);

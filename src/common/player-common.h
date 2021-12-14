@@ -91,6 +91,7 @@ enum
 /* Character rolling methods */
 enum birth_rollers
 {
+    BR_DEFAULT = -3,
     BR_QDYNA = -2,
     BR_QUICK = -1,
     BR_POINTBASED = 0,

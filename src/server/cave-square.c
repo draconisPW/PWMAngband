@@ -1386,6 +1386,15 @@ bool square_isbelievedwall(struct player *p, struct chunk *c, struct loc *grid)
 
 
 /*
+ * Checks if a square is appropriate for placing a summoned creature.
+ */
+bool square_allows_summon(struct chunk *c, struct loc *grid)
+{
+    return (square_isemptyfloor(c, grid) && !square_trap_flag(c, grid, TRF_GLYPH));
+}
+
+
+/*
  * OTHER SQUARE FUNCTIONS
  *
  * Below are various square-specific functions which are not predicates

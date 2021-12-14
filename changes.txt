@@ -17,6 +17,9 @@ User interface
 Angband 4.2.x:
 
 - Show spell description by default when browsing
+- Update scalable 16x16xw.woff to the newest upstream version
+- Allow '@' to fast forward the birth process using random choices and a default
+  point buy for the statistics
 
 MAngband 1.5.x:
 
@@ -39,6 +42,7 @@ Bugs fixed
 PWMAngband:
 
 - Fix unarmed rogues able to "stab" monsters
+- Fix crash when enabling/disabling tiles during character creation
 
 Coding changes
 --------------
@@ -53,6 +57,14 @@ Angband 4.2.x:
 - Split effect handlers into multiple files
 - Move choice between the old and new vaults to dungeon_profile.txt
 - In TAP_UNLIFE, cancel the target set if the creature dies
+- Rewrite scatter() and add an extended version
+- Make calc_inventory() more efficient
+- Simplify prepare_next_level()
+- Split target_set_interactive_aux()
+
+PWMAngband:
+
+- Remove random roller, use default roller instead
 
 Compilation/documentation
 -------------------------

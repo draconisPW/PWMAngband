@@ -1350,11 +1350,30 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
 }
 
 
+static void check_level_size(struct worldpos *wpos, int n, int *min_height, int *min_width)
+{
+    struct worldpos check;
+
+    wpos_init(&check, &wpos->grid, n);
+    if (random_level(&check))
+    {
+        struct chunk *c = chunk_get(&check);
+
+        if (c)
+        {
+            *min_height = MAX(*min_height, c->height);
+            *min_width = MAX(*min_width, c->width);
+        }
+    }
+}
+
+
 /*
  * Prepare the level the player is about to enter
  */
-struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
+struct chunk *prepare_next_level(struct player *p)
 {
+    struct worldpos *wpos = &p->wpos;
     int min_height = 0, min_width = 0;
     struct chunk *c;
 
@@ -1370,19 +1389,7 @@ struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
         {
             if (dungeon_get_next_level(p, n, 1) == wpos->depth)
             {
-                struct worldpos check;
-
-                wpos_init(&check, &wpos->grid, n);
-                if (random_level(&check))
-                {
-                    c = chunk_get(&check);
-                    if (c)
-                    {
-                        min_height = c->height;
-                        min_width = c->width;
-                    }
-                }
-
+                check_level_size(wpos, n, &min_height, &min_width);
                 break;
             }
         }
@@ -1393,19 +1400,7 @@ struct chunk *prepare_next_level(struct player *p, struct worldpos *wpos)
         {
             if (dungeon_get_next_level(p, n, -1) == wpos->depth)
             {
-                struct worldpos check;
-
-                wpos_init(&check, &wpos->grid, n);
-                if (random_level(&check))
-                {
-                    c = chunk_get(&check);
-                    if (c)
-                    {
-                        min_height = MAX(min_height, c->height);
-                        min_width = MAX(min_width, c->width);
-                    }
-                }
-
+                check_level_size(wpos, n, &min_height, &min_width);
                 break;
             }
         }
