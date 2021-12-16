@@ -532,7 +532,7 @@ static bool player_walled(struct player *p, struct chunk *c)
         struct loc grid;
 
         loc_sum(&grid, &p->grid, &ddgrid_ddd[d]);
-        if (square_iswall(c, &grid)) n++;
+        if (!square_allowslos(c, &grid)) n++;
     }
 
     return (n == 9);

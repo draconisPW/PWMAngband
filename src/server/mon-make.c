@@ -1050,8 +1050,7 @@ static bool mon_drop_carry(struct player *p, struct object **obj_address, struct
 
     /* Try to carry */
     if (ok && monster_carry(mon, *obj_address, true)) return true;
-    if ((*obj_address)->artifact && (*obj_address)->artifact->created)
-        (*obj_address)->artifact->created--;
+    preserve_artifact_aux(*obj_address);
     object_delete(obj_address);
     return false;
 }
@@ -1109,7 +1108,7 @@ static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *m
         /* Search all the artifacts */
         for (j = 0; j < z_info->a_max; j++)
         {
-            struct artifact *art = &a_info[j];
+            const struct artifact *art = &a_info[j];
             struct object_kind *kind = lookup_kind(art->tval, art->sval);
             if (!kf_has(kind->kind_flags, KF_QUEST_ART)) continue;
 
@@ -1118,7 +1117,7 @@ static bool mon_create_drop(struct player *p, struct chunk *c, struct monster *m
             object_prep(p, c, obj, kind, mon->level, RANDOMISE);
             obj->artifact = art;
             copy_artifact_data(obj, obj->artifact);
-            obj->artifact->created++;
+            mark_artifact_created(obj->artifact, true);
             if (p)
             {
                 if (!ht_zero(&c->generated))

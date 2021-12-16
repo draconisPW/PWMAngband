@@ -171,6 +171,9 @@ struct dun_data
 
     /* Current pit profile in use */
     struct pit_profile *pit_type;
+
+    /*  Whether or not this is a quest level */
+    bool quest;
 };
 
 struct tunnel_profile

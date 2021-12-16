@@ -159,7 +159,7 @@ desc:A staircase down to a deeper part of the dungeon.
 name:General Store
 graphics:1:U
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:1:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -168,7 +168,7 @@ desc:The General Store sells food, ammunition and lighting supplies.
 name:Armoury
 graphics:2:s
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:2:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -178,7 +178,7 @@ desc: your enemies.
 name:Weapon Smiths
 graphics:3:w
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:3:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -188,7 +188,7 @@ desc: backroom of this enticing shop.
 name:Temple
 graphics:4:g
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:4:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -198,7 +198,7 @@ desc: magical and hallowed goods for the pure of heart.
 name:Alchemy Shop
 graphics:5:b
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:5:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -207,7 +207,7 @@ desc:A dim, scented room where potions and scrolls are traded.
 name:Magic Shop
 graphics:6:r
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:6:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -217,7 +217,7 @@ desc: mystical tomes.
 name:Bookseller
 graphics:9:o
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:7:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -226,7 +226,7 @@ desc:A shop that sells and buys magical and mystical books.
 name:Black Market
 graphics:7:D
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:8:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -236,7 +236,7 @@ desc: haunt - and do not expect friendly service or good bargains.
 name:Expensive Black Market
 graphics:7:v
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:9:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -248,7 +248,7 @@ desc: them!
 name:Tavern
 graphics:8:y
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:10:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -257,7 +257,7 @@ desc:A safe place, perfect for drinking a pint of ale or two.
 name:Home
 graphics:0:B
 priority:24
-flags:SHOP | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
+flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
 info:11:0
 look-prefix:the entrance to the
 look-in-preposition:at
@@ -353,7 +353,7 @@ desc: them.
 name:lava
 graphics:#:r
 priority:25
-flags:PROJECT | FIERY | PASSABLE | NO_SCENT | BRIGHT
+flags:LOS | PROJECT | FIERY | PASSABLE | NO_SCENT | BRIGHT
 hurt-msg:The lava burns you!
 died-flavor:burned to a cinder in lava
 die-msg:burning to a cinder in lava

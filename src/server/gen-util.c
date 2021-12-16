@@ -642,6 +642,7 @@ void place_object(struct player *p, struct chunk *c, struct loc *grid, int level
     /* Give it to the floor */
     if (!floor_carry(p, c, grid, new_obj, &dummy))
     {
+        preserve_artifact_aux(new_obj);
         object_delete(&new_obj);
         return;
     }

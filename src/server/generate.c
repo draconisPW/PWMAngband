@@ -794,8 +794,8 @@ static void place_feeling(struct player *p, struct chunk *c)
             /* Pick a random dungeon coordinate */
             loc_init(&grid, randint0(c->width), randint0(c->height));
 
-            /* Check to see if it is not a wall */
-            if (square_iswall(c, &grid)) continue;
+            /* Check to see if it is not passable */
+            if (!square_ispassable(c, &grid)) continue;
 
             /* Check to see if it is already marked */
             if (square_isfeel(c, &grid)) continue;
@@ -1240,6 +1240,7 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
         dun->wall = mem_zalloc(z_info->wall_pierce_max * sizeof(struct loc));
         dun->tunn = mem_zalloc(z_info->tunn_grid_max * sizeof(struct loc));
         dun->tunn_flag = mem_zalloc(z_info->tunn_grid_max * sizeof(byte));
+        dun->quest = is_quest(wpos->depth);
 
         /* Choose a profile and build the level */
         dun->profile = choose_profile(wpos);
