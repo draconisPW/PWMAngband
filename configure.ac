@@ -202,7 +202,7 @@ AC_ARG_ENABLE(x11,
 	[enable_x11=$enableval],
 	[enable_x11=no])
 AC_ARG_ENABLE(sdl2,
-	[AS_HELP_STRING([--enable-sdl2],       [Enables SDL2 frontend (default: disabled)])],
+	[AS_HELP_STRING([--enable-sdl2],      [Enables SDL2 frontend (default: disabled)])],
 	[enable_sdl2=$enableval],
 	[enable_sdl2=no])
 AC_ARG_ENABLE(sdl,

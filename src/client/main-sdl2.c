@@ -20,9 +20,15 @@
 
 #ifdef USE_SDL2
 
+#ifdef WINDOWS
+#include "..\_SDL2\SDL.h"
+#include "..\_SDL2\SDL_image.h"
+#include "..\_SDL2\SDL_ttf.h"
+#else
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_ttf.h"
+#endif
 
 #define MAX_SUBWINDOWS \
     ANGBAND_TERM_MAX
