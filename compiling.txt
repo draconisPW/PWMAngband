@@ -37,7 +37,7 @@ To build PWMAngband to be run in-place:
 To build PWMAngband to be installed in some other location:
 
     ./autogen.sh
-    ./configure --prefix /path/to [other options as needed ]
+    ./configure --prefix /path/to [other options as needed]
     make
     make install
 
