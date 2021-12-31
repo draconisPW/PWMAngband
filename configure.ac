@@ -285,7 +285,7 @@ if test "$enable_sdl2" = "yes"; then
 
 		if test "$with_sdl2" = "yes"; then
 			AC_DEFINE(USE_SDL2, 1, [Define to 1 if using the SDL2 interface and SDL2 is found.])
-			CFLAGS="${CFLAGS} ${SDL2_CFLAGS}"
+			CFLAGS="${CFLAGS} ${SDL2_CFLAGS} -D_GNU_SOURCE=1"
 			LIBS="${LIBS} ${SDL2_LIBS} -lSDL2_image -lSDL2_ttf"
 			MAINFILES="${MAINFILES} \$(SDL2MAINFILES)"
 			enable_sdl=no
