@@ -313,7 +313,6 @@ struct subwindow {
 
     int rows;
     int cols;
-    int max_rows;
 
     /* struct ttf also has this information; these members are
      * just for convinience */
@@ -2946,7 +2945,7 @@ static void resize_subwindow(struct subwindow *subwindow)
 
     term *old = Term;
     Term_activate(subwindow->term);
-    Term_resize(subwindow->cols, subwindow->rows, subwindow->max_rows);
+    Term_resize(subwindow->cols, subwindow->rows, subwindow->rows);
     /* XXX if we don't redraw the term, resizing in birth screen is buggy */
     Term_redraw();
     Term_activate(old);
@@ -5217,7 +5216,7 @@ static void load_term(struct subwindow *subwindow)
 
     term_init(subwindow->term,
             subwindow->cols, subwindow->rows,
-            subwindow->max_rows,
+            subwindow->rows,
             SUBWINDOW_KEYQ_SIZE(subwindow));
 
     link_term(subwindow);
@@ -5605,7 +5604,7 @@ static void hack_plog(const char *str)
     const SDL_MessageBoxData messageboxdata = {
         SDL_MESSAGEBOX_INFORMATION, /* .flags */
         NULL, /* .window */
-        version_build(VERSION_NAME, true), /* .title */
+        VERSION_NAME, /* .title */
         str, /* .message */
         SDL_arraysize(buttons), /* .numbuttons */
         buttons, /* .buttons */
