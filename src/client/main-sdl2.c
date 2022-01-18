@@ -1963,7 +1963,7 @@ static void handle_menu_sound(struct window *window,
 
     struct menu_elem elems[] = {
         {
-            "< Sound Volume %d >",
+            "< Sound Volume: %d >",
             {
                 BUTTON_DATA_INT,
                 {.int_value = BUTTON_VOLUME_SOUND},
@@ -1972,7 +1972,7 @@ static void handle_menu_sound(struct window *window,
             handle_menu_sound_volume
         },
         {
-            "< Music Volume %d >",
+            "< Music Volume: %d >",
             {
                 BUTTON_DATA_INT,
                 {.int_value = BUTTON_VOLUME_MUSIC},
