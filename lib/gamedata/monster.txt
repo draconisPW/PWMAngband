@@ -3909,7 +3909,7 @@ name:baby black dragon
 base:dragon
 color:s
 speed:110
-hit-points:97
+hit-points:94
 hearing:20
 armor-class:36
 sleepiness:70
@@ -3934,7 +3934,7 @@ name:baby red dragon
 base:dragon
 color:r
 speed:110
-hit-points:97
+hit-points:94
 hearing:20
 armor-class:36
 sleepiness:70
@@ -3959,7 +3959,7 @@ name:baby gold dragon
 base:dragon
 color:y
 speed:110
-hit-points:97
+hit-points:94
 hearing:20
 armor-class:36
 sleepiness:70
@@ -4070,7 +4070,7 @@ name:baby silver dragon
 base:dragon
 color:z
 speed:110
-hit-points:97
+hit-points:94
 hearing:20
 armor-class:36
 sleepiness:70
@@ -4225,7 +4225,7 @@ name:baby shadow drake
 base:dragon
 color:o
 speed:110
-hit-points:106
+hit-points:101
 light:-2
 hearing:20
 armor-class:36
@@ -4249,7 +4249,7 @@ name:baby crystal drake
 base:dragon
 color:u
 speed:110
-hit-points:106
+hit-points:101
 hearing:20
 armor-class:36
 sleepiness:70
@@ -4272,7 +4272,7 @@ name:baby ethereal drake
 base:dragon
 color:T
 speed:110
-hit-points:106
+hit-points:101
 light:-2
 hearing:20
 armor-class:36
@@ -4298,7 +4298,7 @@ name:baby water dragon
 base:dragon
 color:Z
 speed:110
-hit-points:106
+hit-points:101
 hearing:20
 armor-class:36
 sleepiness:70
@@ -4720,7 +4720,7 @@ name:baby chaos drake
 base:dragon
 color:v
 speed:110
-hit-points:114
+hit-points:108
 hearing:20
 armor-class:36
 sleepiness:70
@@ -4745,7 +4745,7 @@ name:baby law drake
 base:dragon
 color:B
 speed:110
-hit-points:114
+hit-points:108
 hearing:20
 armor-class:36
 sleepiness:70
@@ -4959,7 +4959,7 @@ name:baby multi-hued dragon
 base:dragon
 color:v
 speed:110
-hit-points:123
+hit-points:114
 hearing:20
 armor-class:36
 sleepiness:70
@@ -5025,7 +5025,7 @@ name:baby balance drake
 base:dragon
 color:P
 speed:110
-hit-points:123
+hit-points:114
 hearing:20
 armor-class:36
 sleepiness:70
@@ -5213,7 +5213,7 @@ name:baby power dragon
 base:dragon
 color:I
 speed:110
-hit-points:132
+hit-points:120
 hearing:20
 armor-class:36
 sleepiness:70
@@ -9461,7 +9461,7 @@ name:young blue dragon
 base:dragon
 color:b
 speed:110
-hit-points:176
+hit-points:237
 hearing:20
 armor-class:60
 sleepiness:70
@@ -9487,7 +9487,7 @@ name:young white dragon
 base:dragon
 color:w
 speed:110
-hit-points:176
+hit-points:237
 hearing:20
 armor-class:60
 sleepiness:70
@@ -9513,7 +9513,7 @@ name:young green dragon
 base:dragon
 color:g
 speed:110
-hit-points:176
+hit-points:237
 hearing:20
 armor-class:60
 sleepiness:70
@@ -9807,7 +9807,7 @@ name:young black dragon
 base:dragon
 color:s
 speed:110
-hit-points:194
+hit-points:248
 hearing:20
 armor-class:60
 sleepiness:70
@@ -9833,7 +9833,7 @@ name:young gold dragon
 base:dragon
 color:y
 speed:110
-hit-points:194
+hit-points:248
 hearing:20
 armor-class:60
 sleepiness:70
@@ -9858,7 +9858,7 @@ name:young red dragon
 base:dragon
 color:r
 speed:110
-hit-points:194
+hit-points:248
 light:2
 hearing:20
 armor-class:60
@@ -9885,7 +9885,7 @@ name:young silver dragon
 base:dragon
 color:z
 speed:110
-hit-points:194
+hit-points:248
 hearing:20
 armor-class:60
 sleepiness:70
@@ -10266,7 +10266,7 @@ name:young shadow drake
 base:dragon
 color:o
 speed:110
-hit-points:211
+hit-points:259
 light:-2
 hearing:20
 armor-class:60
@@ -10291,7 +10291,7 @@ name:young crystal drake
 base:dragon
 color:u
 speed:110
-hit-points:211
+hit-points:259
 light:1
 hearing:20
 armor-class:60
@@ -10316,7 +10316,7 @@ name:young ethereal drake
 base:dragon
 color:T
 speed:110
-hit-points:211
+hit-points:259
 light:-2
 hearing:20
 armor-class:60
@@ -10343,7 +10343,7 @@ name:young water dragon
 base:dragon
 color:Z
 speed:110
-hit-points:211
+hit-points:259
 hearing:20
 armor-class:60
 sleepiness:70
@@ -10505,7 +10505,7 @@ name:young chaos drake
 base:dragon
 color:v
 speed:110
-hit-points:229
+hit-points:270
 hearing:20
 armor-class:60
 sleepiness:70
@@ -10531,7 +10531,7 @@ name:young law drake
 base:dragon
 color:B
 speed:110
-hit-points:229
+hit-points:270
 hearing:20
 armor-class:60
 sleepiness:70
@@ -10672,7 +10672,7 @@ name:young multi-hued dragon
 base:dragon
 color:v
 speed:110
-hit-points:246
+hit-points:281
 hearing:20
 armor-class:60
 sleepiness:70
@@ -10723,7 +10723,7 @@ name:young balance drake
 base:dragon
 color:P
 speed:110
-hit-points:246
+hit-points:281
 hearing:20
 armor-class:60
 sleepiness:70
@@ -11000,7 +11000,7 @@ name:young power dragon
 base:dragon
 color:I
 speed:110
-hit-points:264
+hit-points:292
 light:2
 hearing:20
 armor-class:60
@@ -19993,8 +19993,8 @@ desc: the heat of his body.
 name:sky drake
 base:ancient dragon
 color:Y
-speed:140
-hit-points:5800
+speed:130
+hit-points:5400
 light:3
 hearing:40
 armor-class:240
@@ -20003,10 +20003,10 @@ depth:89
 rarity:3
 weight:22000
 experience:40000
-blow:CLAW:HURT:6d12
-blow:CLAW:HURT:6d12
-blow:BITE:ELEC:8d14
-blow:BITE:ELEC:8d14
+blow:CLAW:HURT:7d12
+blow:CLAW:HURT:7d12
+blow:BITE:ELEC:7d14
+blow:BITE:ELEC:7d14
 flags:PWMANG_BASE
 flags:ONLY_ITEM | DROP_CORPSE
 flags:BASH_DOOR
@@ -20129,8 +20129,8 @@ desc: ancient shadow of death wilts every living thing it passes.
 name:ancient storm wyrm
 base:ancient dragon
 color:b
-speed:130
-hit-points:6500
+speed:125
+hit-points:5500
 light:1
 hearing:30
 armor-class:225
@@ -20141,8 +20141,8 @@ weight:22000
 experience:38000
 blow:CLAW:HURT:7d12
 blow:CRUSH:HURT:7d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20160,8 +20160,8 @@ desc: great muscles. It regards you with contempt.
 name:ancient ice wyrm
 base:ancient dragon
 color:w
-speed:130
-hit-points:6500
+speed:125
+hit-points:5500
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20171,8 +20171,8 @@ weight:22000
 experience:38000
 blow:CLAW:HURT:7d12
 blow:CRUSH:HURT:7d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20190,8 +20190,8 @@ desc: wrath!
 name:ancient swamp wyrm
 base:ancient dragon
 color:g
-speed:130
-hit-points:6500
+speed:125
+hit-points:5500
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20201,8 +20201,8 @@ weight:22000
 experience:38000
 blow:CLAW:HURT:7d12
 blow:CRUSH:HURT:7d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20222,8 +20222,8 @@ desc: breath as you fight it, it sees no reason to do likewise.
 name:ancient hell wyrm
 base:ancient dragon
 color:r
-speed:130
-hit-points:6800
+speed:125
+hit-points:5700
 light:2
 hearing:30
 armor-class:225
@@ -20234,8 +20234,8 @@ weight:22000
 experience:40000
 blow:CLAW:HURT:7d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20253,8 +20253,8 @@ desc: you truly realize how insignificant you are.
 name:ancient bile wyrm
 base:ancient dragon
 color:s
-speed:130
-hit-points:6800
+speed:125
+hit-points:5700
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20264,8 +20264,8 @@ weight:22000
 experience:40000
 blow:CLAW:HURT:7d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20284,8 +20284,8 @@ name:Ancient Wyrm of Thunder
 plural:Ancient Wyrms of Thunder
 base:ancient dragon
 color:y
-speed:130
-hit-points:6800
+speed:125
+hit-points:5700
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20295,8 +20295,8 @@ weight:22000
 experience:40000
 blow:CLAW:HURT:7d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20315,8 +20315,8 @@ name:Ancient Wyrm of Radiance
 plural:Ancient Wyrms of Radiance
 base:ancient dragon
 color:z
-speed:130
-hit-points:6800
+speed:125
+hit-points:5700
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20326,8 +20326,8 @@ weight:22000
 experience:40000
 blow:CLAW:HURT:7d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20346,8 +20346,8 @@ desc: your mind on the job of fighting for your life.
 name:ancient ethereal wyrm
 base:ancient dragon
 color:T
-speed:130
-hit-points:7100
+speed:125
+hit-points:5900
 light:-2
 hearing:30
 armor-class:225
@@ -20358,8 +20358,8 @@ weight:0
 experience:42000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:INVISIBLE | ATTR_FLICKER
 flags:ONLY_ITEM
 flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
@@ -20374,8 +20374,8 @@ desc:An ancient dragon of power with bright green scales.
 name:ancient crystal wyrm
 base:ancient dragon
 color:u
-speed:130
-hit-points:7100
+speed:125
+hit-points:5900
 light:1
 hearing:30
 armor-class:225
@@ -20386,8 +20386,8 @@ weight:22000
 experience:42000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR | NO_CUT
@@ -20402,8 +20402,8 @@ desc:An ancient dragon of power with crystalline brown scales.
 name:ancient shadow wyrm
 base:ancient dragon
 color:o
-speed:130
-hit-points:7100
+speed:125
+hit-points:5900
 light:-2
 hearing:30
 armor-class:225
@@ -20414,8 +20414,8 @@ weight:22000
 experience:42000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20430,8 +20430,8 @@ name:Ancient Wyrm of the Deep
 plural:Ancient Wyrms of the Deep
 base:ancient dragon
 color:Z
-speed:130
-hit-points:7100
+speed:125
+hit-points:5900
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20441,8 +20441,8 @@ weight:22000
 experience:42000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:9d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20524,8 +20524,8 @@ name:Ancient Wyrm of Chaos
 plural:Ancient Wyrms of Chaos
 base:ancient dragon
 color:v
-speed:130
-hit-points:7400
+speed:125
+hit-points:6100
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20535,8 +20535,8 @@ weight:22000
 experience:44000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:10d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:9d14
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_DISEN
@@ -20554,8 +20554,8 @@ name:Ancient Wyrm of Law
 plural:Ancient Wyrms of Law
 base:ancient dragon
 color:B
-speed:130
-hit-points:7400
+speed:125
+hit-points:6100
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20565,8 +20565,8 @@ weight:22000
 experience:44000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:9d14
-blow:CRUSH:HURT:10d14
+blow:BITE:HURT:8d14
+blow:CRUSH:HURT:9d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20587,8 +20587,8 @@ name:Ancient Wyrm of Balance
 plural:Ancient Wyrms of Balance
 base:ancient dragon
 color:P
-speed:130
-hit-points:7700
+speed:125
+hit-points:6300
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20598,8 +20598,8 @@ weight:22000
 experience:46000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:10d14
-blow:CRUSH:HURT:10d14
+blow:BITE:HURT:9d14
+blow:CRUSH:HURT:9d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
@@ -20619,8 +20619,8 @@ name:Ancient Wyrm of Many Colours
 plural:Ancient Wyrms of Many Colours
 base:ancient dragon
 color:v
-speed:130
-hit-points:7700
+speed:125
+hit-points:6300
 hearing:30
 armor-class:225
 sleepiness:20
@@ -20630,8 +20630,8 @@ weight:22000
 experience:46000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:8d12
-blow:BITE:HURT:10d14
-blow:CRUSH:HURT:10d14
+blow:BITE:HURT:9d14
+blow:CRUSH:HURT:9d14
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
 flags:IM_FIRE | IM_ACID | IM_POIS | IM_COLD | IM_ELEC
@@ -20649,8 +20649,8 @@ name:Ancient Wyrm of Power
 plural:Ancient Wyrms of Power
 base:ancient dragon
 color:I
-speed:130
-hit-points:8000
+speed:125
+hit-points:6500
 light:2
 hearing:30
 armor-class:225
@@ -20661,8 +20661,8 @@ weight:22000
 experience:48000
 blow:CLAW:HURT:8d12
 blow:CRUSH:HURT:9d12
-blow:BITE:HURT:10d14
-blow:CRUSH:HURT:10d14
+blow:BITE:HURT:9d14
+blow:CRUSH:HURT:9d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
 flags:OPEN_DOOR | BASH_DOOR
