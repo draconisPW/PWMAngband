@@ -2544,8 +2544,7 @@ static void handle_menu_terms(struct window *window,
             data, render_button_menu_simple, handle_menu_purpose
         },
         {
-            subwindow->index == MAIN_SUBWINDOW ? NULL : "Alpha",
-            data, render_button_menu_simple, handle_menu_alpha
+            "Alpha", data, render_button_menu_simple, handle_menu_alpha
         },
         {
             "Borders", data, render_button_menu_borders, handle_menu_borders
