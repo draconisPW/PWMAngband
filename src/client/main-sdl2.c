@@ -1321,21 +1321,9 @@ static void render_button_menu_tile_set(const struct window *window, struct butt
 
 static void render_button_menu_tile_sets(const struct window *window, struct button *button)
 {
-    SDL_Color *bg;
-    SDL_Color *fg;
+    CHECK_BUTTON_DATA_TYPE(button, BUTTON_DATA_SUBWINDOW);
 
-    if (!Setup.initialized) {
-        fg = &g_colors[DEFAULT_MENU_TOGGLE_FG_ACTIVE_COLOR];
-    } else {
-        fg = &g_colors[DEFAULT_MENU_TOGGLE_FG_INACTIVE_COLOR];
-    }
-    if (button->highlighted) {
-        bg = &g_colors[DEFAULT_MENU_BG_ACTIVE_COLOR];
-    } else {
-        bg = &g_colors[DEFAULT_MENU_BG_INACTIVE_COLOR];
-    }
-
-    render_button_menu(window, button, fg, bg);
+    render_button_menu_toggle(window, button, !Setup.initialized);
 }
 
 static void render_button_menu_font_size(const struct window *window,
@@ -3794,6 +3782,9 @@ static void refresh_angband_terms(void)
             Term_redraw();
         }
     }
+
+    /* Redraw */
+    do_cmd_redraw();
 
     Term_activate(old);
 
