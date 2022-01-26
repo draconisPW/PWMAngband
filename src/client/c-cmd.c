@@ -160,7 +160,8 @@ static void view_map_aux(byte mode)
     /* Hack -- if the screen is already icky, ignore this command */
     if (player->screen_save_depth) return;
 
-    if (Term->view_map_hook) {
+    if (Term->view_map_hook)
+    {
         (*(Term->view_map_hook))(Term);
 
         /* Send the request */

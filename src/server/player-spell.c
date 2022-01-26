@@ -638,7 +638,7 @@ void show_ghost_spells(struct player *p)
     struct class_spell *spell;
     int i;
     char out_val[NORMAL_WID];
-    char out_desc[MSG_LEN];
+    char out_desc[MSG_LEN], out_name[NORMAL_WID];
     byte line_attr;
     char help[20];
     const char *comment = help;
@@ -671,6 +671,7 @@ void show_ghost_spells(struct player *p)
         strnfmt(out_val, sizeof(out_val), "%-30s%2d %4d %3d%%%s", spell->name, spell->slevel,
             spell->smana, 0, comment);
         spell_description(p, spell->sidx, -1, false, out_desc, sizeof(out_desc));
+        my_strcpy(out_name, spell->name, sizeof(out_name));
 
         flags.line_attr = line_attr;
         flags.flag = RSF_NONE;
@@ -679,7 +680,7 @@ void show_ghost_spells(struct player *p)
 
         /* Send it */
         Send_spell_info(p, 0, i, out_val, &flags);
-        Send_spell_desc(p, 0, i, out_desc);
+        Send_spell_desc(p, 0, i, out_desc, out_name);
     }
 }
 
@@ -986,7 +987,7 @@ void show_mimic_spells(struct player *p)
     struct class_spell *spell;
     int i, j = 0, k = 0;
     char out_val[NORMAL_WID];
-    char out_desc[MSG_LEN];
+    char out_desc[MSG_LEN], out_name[NORMAL_WID];
     byte line_attr;
     char help[20];
     const char *comment = help;
@@ -1026,6 +1027,7 @@ void show_mimic_spells(struct player *p)
         strnfmt(out_val, sizeof(out_val), "%-30s%2d %4d %3d%%%s", spell->name, 0, spell->smana,
             spell->sfail, comment);
         spell_description(p, spell->sidx, flag, false, out_desc, sizeof(out_desc));
+        my_strcpy(out_name, spell->name, sizeof(out_name));
 
         flags.line_attr = line_attr;
         flags.flag = flag;
@@ -1034,7 +1036,7 @@ void show_mimic_spells(struct player *p)
 
         /* Send it */
         Send_spell_info(p, k, j, out_val, &flags);
-        Send_spell_desc(p, k, j, out_desc);
+        Send_spell_desc(p, k, j, out_desc, out_name);
 
         /* Next spell */
         j++;
