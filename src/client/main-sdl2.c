@@ -563,6 +563,9 @@ static struct font_info g_font_info[MAX_FONTS];
  * of not handling some keyboard layouts properly. */
 static int g_kp_as_mod = 1;
 
+/* term_view_map_hook */
+static int view_map_hook_mod = 0;
+
 /* Forward declarations */
 
 static void init_globals(void);
@@ -911,8 +914,8 @@ static void render_cursor(struct subwindow *subwindow,
     SDL_Rect rect = {
         subwindow->inner_rect.x + subwindow->font_width * col,
         subwindow->inner_rect.y + subwindow->font_height * row,
-        subwindow->font_width * (big ? tile_width : 1),
-        subwindow->font_height * (big ? tile_height : 1)
+        subwindow->font_width * (!Term->minimap_active ? (big ? tile_width : 1) : 1),
+        subwindow->font_height * (!Term->minimap_active ? (big ? tile_height : 1) : 1)
     };
 
     render_outline_rect(subwindow->window, subwindow->texture,
@@ -1005,8 +1008,8 @@ static void render_tile_font_scaled(const struct subwindow *subwindow,
     SDL_Rect dst = {
         subwindow->inner_rect.x + col * subwindow->font_width,
         subwindow->inner_rect.y + row * subwindow->font_height,
-        subwindow->font_width * tile_width,
-        subwindow->font_height * tile_height
+        subwindow->font_width * (!Term->minimap_active ? tile_width : 1),
+        subwindow->font_height * (!Term->minimap_active ? tile_height : 1)
     };
 
     if (fill) {
@@ -5336,7 +5339,10 @@ static void link_term(struct subwindow *subwindow)
     subwindow->term->wipe_hook = term_wipe_hook;
     subwindow->term->text_hook = term_text_hook;
     subwindow->term->pict_hook = term_pict_hook;
-    subwindow->term->view_map_hook = term_view_map_hook;
+
+    if (view_map_hook_mod) {
+        subwindow->term->view_map_hook = term_view_map_hook;
+    }
 
     subwindow->term->data = subwindow;
     angband_term[subwindow->index] = subwindow->term;
@@ -5910,6 +5916,7 @@ static void dump_config_file(void)
         }
     }
     file_putf(config, "kp-as-modifier:%d\n", (g_kp_as_mod) ? 1 : 0);
+    file_putf(config, "map-modifier:%d\n", (view_map_hook_mod) ? 1 : 0);
     file_putf(config, "sound-volume:%d\n", sound_volume);
     file_putf(config, "music-volume:%d\n", music_volume);
 
@@ -6215,6 +6222,12 @@ static enum parser_error config_kp_as_mod(struct parser *parser)
     return PARSE_ERROR_NONE;
 }
 
+static enum parser_error config_view_map_hook_mod(struct parser *parser)
+{
+    view_map_hook_mod = parser_getint(parser, "enabled");
+    return PARSE_ERROR_NONE;
+}
+
 static enum parser_error config_sound_volume(struct parser *parser)
 {
     sound_volume = parser_getint(parser, "sound_volume");
@@ -6263,6 +6276,7 @@ static struct parser *init_parse_config(void)
     parser_reg(parser, "subwindow-alpha uint index int alpha",
             config_subwindow_alpha);
     parser_reg(parser, "kp-as-modifier int enabled", config_kp_as_mod);
+    parser_reg(parser, "map-modifier int enabled", config_view_map_hook_mod);
     parser_reg(parser, "sound-volume int sound_volume", config_sound_volume);
     parser_reg(parser, "music-volume int music_volume", config_music_volume);
 
