@@ -1017,8 +1017,10 @@ static void render_tile_font_scaled(const struct subwindow *subwindow,
     SDL_Rect dst = {
         subwindow->inner_rect.x + col * subwindow->font_width,
         subwindow->inner_rect.y + row * subwindow->font_height,
-        subwindow->font_width * (!Term->minimap_active ? tile_width : 1),
-        subwindow->font_height * (!Term->minimap_active ? tile_height : 1)
+        subwindow->font_width * (subwindow->index == MAIN_SUBWINDOW && 
+            !Term->minimap_active ? tile_width : 1),
+        subwindow->font_height * (subwindow->index == MAIN_SUBWINDOW && 
+            !Term->minimap_active ? tile_height : 1)
     };
 
     if (fill) {
@@ -4210,6 +4212,12 @@ static void term_view_map_text(struct subwindow *subwindow)
 static void term_view_map_hook(term *term)
 {
     struct subwindow *subwindow = term->data;
+
+    subwindow->term->view_map_hook = NULL;
+    /* do_cmd_view_map(); waiting for a keypress inkey_ex();*/
+    do_cmd_view_map_w();
+    subwindow->term->view_map_hook = term_view_map_hook;
+
     if (subwindow->window->graphics.id == GRAPHICS_NONE) {
         term_view_map_text(subwindow);
     } else {
