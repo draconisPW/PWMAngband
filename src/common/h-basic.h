@@ -35,6 +35,93 @@
 #  endif
 # endif
 
+/* ANDROID */
+#ifdef ON_ANDROID
+/* Any files you put in the "app/src/main/assets" directory of your project 
+ * directory will get bundled into the application package and you can load 
+ * them using the standard functions in SDL_rwops.h. */
+/* #define USE_SDL_RWOPS */
+
+/* Path to the game's configuration data */
+#define DEFAULT_CONFIG_PATH "/storage/emulated/0/PWMAngband/lib/"
+/* Path to the game's variable data */
+#define DEFAULT_DATA_PATH "/storage/emulated/0/PWMAngband/lib/"
+/* Path to the game's lib directory */
+#define DEFAULT_LIB_PATH "/storage/emulated/0/PWMAngband/lib/"
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'. */
+#define HAVE_DIRENT_H 1
+/* Define to 1 if you have the <fcntl.h> header file. */
+#define HAVE_FCNTL_H 1
+/* Define to 1 if you have the <inttypes.h> header file. */
+#define HAVE_INTTYPES_H 1
+/* Define to 1 if you have the <memory.h> header file. */
+#define HAVE_MEMORY_H 1
+/* Define to 1 if you have the `mkdir' function. */
+#define HAVE_MKDIR 1
+/* Define to 1 if you have the `setegid' function. */
+#define HAVE_SETEGID 1
+/* Define to 1 if you have the `setresgid' function. */
+#define HAVE_SETRESGID 1
+/* Define to 1 if you have the `stat' function. */
+#define HAVE_STAT 1
+/* Define to 1 if stdbool.h conforms to C99. */
+#define HAVE_STDBOOL_H 1
+/* Define to 1 if you have the <stdint.h> header file. */
+#define HAVE_STDINT_H 1
+/* Define to 1 if you have the <stdlib.h> header file. */
+#define HAVE_STDLIB_H 1
+/* Define to 1 if you have the <strings.h> header file. */
+#define HAVE_STRINGS_H 1
+/* Define to 1 if you have the <string.h> header file. */
+#define HAVE_STRING_H 1
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#define HAVE_SYS_STAT_H 1
+/* Define to 1 if you have the <sys/types.h> header file. */
+#define HAVE_SYS_TYPES_H 1
+/* Define to 1 if you have the <unistd.h> header file. */
+#define HAVE_UNISTD_H 1
+/* Define to 1 if the system has the type `_Bool'. */
+#define HAVE__BOOL 1
+/* Name of package */
+#define PACKAGE "pwmangband"
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "team@mangband.org"
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "PWMAngband"
+/* Define to the full name and version of this package. */
+#define PACKAGE_STRING "PWMAngband 1.6.0"
+/* Define to the one symbol short name of this package. */
+#define PACKAGE_TARNAME "pwmangband"
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "1.6.0"
+/* Define as the return type of signal handlers (`int' or `void'). */
+#define RETSIGTYPE void
+/* Define to 1 if including sound support. */
+#define SOUND 1
+/* Define to 1 if using SDL2_mixer sound support and it's found. */
+#define SOUND_SDL2 1
+/* Define to 1 if you have the ANSI C header files. */
+#define STDC_HEADERS 1
+/* Define to use private save and score paths. */
+#define USE_PRIVATE_PATHS 1
+/* Define to 1 if using the SDL2 interface and SDL2 is found. */
+#define USE_SDL2 1
+/* Version number of package */
+#define VERSION ""
+/*
+#include <SDL.h>
+#include <android/log.h>
+#define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "PWMAngband", __VA_ARGS__)
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG  , "PWMAngband", __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO   , "PWMAngband", __VA_ARGS__)
+#define LOGW(...) __android_log_print(ANDROID_LOG_WARN   , "PWMAngband", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR  , "PWMAngband", __VA_ARGS__)
+#define LOG(...) __android_log_print(ANDROID_LOG_DEBUG  , "PWMAngband", __VA_ARGS__)
+*/
+#endif
+
 /**
  * Define UNIX if our OS is UNIXy
  */
@@ -230,6 +317,7 @@ typedef struct
 #ifndef MSG_LEN
 # define MSG_LEN 256
 #endif
-#endif
+
+#endif
 
 #endif
