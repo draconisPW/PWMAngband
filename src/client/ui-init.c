@@ -243,9 +243,9 @@ void init_stuff(void)
         my_strcpy(app_configpath, getenv("ANDROID_APP_PATH"), 1024);
         my_strcat(app_configpath, DEFAULT_CONFIG_PATH, 1024);
         my_strcpy(app_libpath, getenv("ANDROID_APP_PATH"), 1024);
-        my_strcat(app_libpath, DEFAULT_CONFIG_PATH, 1024);
+        my_strcat(app_libpath, DEFAULT_LIB_PATH, 1024);
         my_strcpy(app_datapath, getenv("ANDROID_APP_PATH"), 1024);
-        my_strcat(app_datapath, DEFAULT_CONFIG_PATH, 1024);
+        my_strcat(app_datapath, DEFAULT_DATA_PATH, 1024);
     }
 
     my_strcpy(configpath, app_configpath, sizeof(configpath));
