@@ -1,8 +1,5 @@
 package org.pwmangband.pwmangclient;
 
-import static org.pwmangband.pwmangclient.Settings.copyAssets;
-
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
