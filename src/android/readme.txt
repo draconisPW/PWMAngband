@@ -22,9 +22,7 @@ Extract them, copy or symlink directory into:
   android/pwmangclient/jni/SDL2_ttf
   android/pwmangclient/jni/SDL2_mixer
 
-Copy or symlink pwmangband lib directory into pwmangband src/android/pwmangclient/src/main/assets/lib
-  cd src/android
-  ln -s ../../../../../../lib pwmangclient/src/main/assets/lib
+Add 'lib' directory into archive src/android/pwmangclient/src/main/assets/lib.zip
 
 Prepare gradle
 --------------
