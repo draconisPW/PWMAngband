@@ -43,11 +43,11 @@
 /* #define USE_SDL_RWOPS */
 
 /* Path to the game's configuration data */
-#define DEFAULT_CONFIG_PATH "/storage/emulated/0/PWMAngband/lib/"
+#define DEFAULT_CONFIG_PATH "/lib/"
 /* Path to the game's variable data */
-#define DEFAULT_DATA_PATH "/storage/emulated/0/PWMAngband/lib/"
+#define DEFAULT_DATA_PATH "/lib/"
 /* Path to the game's lib directory */
-#define DEFAULT_LIB_PATH "/storage/emulated/0/PWMAngband/lib/"
+#define DEFAULT_LIB_PATH "/lib/"
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'. */
 #define HAVE_DIRENT_H 1
 /* Define to 1 if you have the <fcntl.h> header file. */
@@ -82,20 +82,6 @@
 #define HAVE_UNISTD_H 1
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1
-/* Name of package */
-#define PACKAGE "pwmangband"
-/* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "team@mangband.org"
-/* Define to the full name of this package. */
-#define PACKAGE_NAME "PWMAngband"
-/* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PWMAngband 1.6.0"
-/* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "pwmangband"
-/* Define to the home page for this package. */
-#define PACKAGE_URL ""
-/* Define to the version of this package. */
-#define PACKAGE_VERSION "1.6.0"
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
 /* Define to 1 if including sound support. */
@@ -104,12 +90,8 @@
 #define SOUND_SDL2 1
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
-/* Define to use private save and score paths. */
-#define USE_PRIVATE_PATHS 1
 /* Define to 1 if using the SDL2 interface and SDL2 is found. */
 #define USE_SDL2 1
-/* Version number of package */
-#define VERSION ""
 /*
 #include <android/log.h>
 #define LOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "PWMAngband", __VA_ARGS__)
