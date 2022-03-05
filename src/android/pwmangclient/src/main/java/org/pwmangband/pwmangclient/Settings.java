@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.libsdl.app.SDLActivity;
 
@@ -15,10 +16,38 @@ import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class Settings extends SDLActivity {
+public class Settings extends PWMAngClient {
+    public static void checkInstall(Context context) {
+        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient");
+        if (!folder.exists()) {
+            Log.i("Not Found Dir", "Creating directory 'pwmangclient'");
+            Settings.createNewDirectory("pwmangclient");
+        } else {
+            Log.i("Found Dir", "directory 'pwmangclient'" );
+        }
+
+        File file = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient/pwmangclient.ini");
+        if (!file.exists()) {
+            Log.i("File Not Found", "Copy assets file 'pwmangclient.ini'");
+            Toast.makeText(context,"assets file 'pwmangclient.ini'", Toast.LENGTH_LONG).show();
+            Settings.copyAssets(context, "pwmangclient.ini", "/pwmangclient");
+        } else {
+            Log.i("File Found", "file 'pwmangclient.ini'" );
+        }
+
+        File folder_lib = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient/lib");
+        if (!folder_lib.exists()) {
+            Log.i("Not Found Dir", "Copy assets files 'lib'");
+            Settings.unZip(context, "lib.zip", "/pwmangclient", true);
+            Toast.makeText(context,"assets files 'lib'", Toast.LENGTH_LONG).show();
+        } else {
+            Log.i("Found Dir", "directory 'lib'" );
+        }
+    }
+
     public static void setEnvVars() {
-        SDLActivity.nativeSetenv( "HOME", Environment.getExternalStorageDirectory().getAbsolutePath() + "/pwmangclient" );
-        SDLActivity.nativeSetenv( "ANDROID_APP_PATH", Environment.getExternalStorageDirectory().getAbsolutePath() + "/pwmangclient" );
+        SDLActivity.nativeSetenv("HOME", Environment.getExternalStorageDirectory().getAbsolutePath() + "/pwmangclient");
+        SDLActivity.nativeSetenv("ANDROID_APP_PATH", Environment.getExternalStorageDirectory().getAbsolutePath() + "/pwmangclient");
     }
 
     public static void createNewDirectory(String name) {
@@ -29,48 +58,53 @@ public class Settings extends SDLActivity {
         }
     }
 
-    public static void unZip(Context context, String assetName, String outputDirectory, boolean isReWrite) throws IOException {
-        //Create decompression target directory
-        File file = new File(outputDirectory);
-        //If the target directory does not exist, create
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        //Open compressed file
-        InputStream inputStream = context.getAssets().open(assetName);
-        ZipInputStream zipInputStream = new ZipInputStream(inputStream);
-        //read an entry point
-        ZipEntry zipEntry = zipInputStream.getNextEntry();
-        //Use 1Mbuffer
-        byte[] buffer = new byte[1024 * 1024];
-        //Byte count when decompressing
-        int count = 0;
-        //If the entry point is empty, it means that all files and directories in the compressed package have been traversed
-        while (zipEntry != null) {
-            //If it is a directory
-            if (zipEntry.isDirectory()) {
-                file = new File(Environment.getExternalStorageDirectory() + outputDirectory + File.separator + zipEntry.getName());
-                //The file needs to be overwritten or the file does not exist
-                if (isReWrite || !file.exists()) {
-                    file.mkdir();
-                }
-            } else {
-                //if it is a file
-                file = new File(Environment.getExternalStorageDirectory() + outputDirectory + File.separator + zipEntry.getName());
-                //The file needs to be overwritten or the file does not exist, unzip the file
-                if (isReWrite || !file.exists()) {
-                    file.createNewFile();
-                    FileOutputStream fileOutputStream = new FileOutputStream(file);
-                    while ((count = zipInputStream.read(buffer))> 0) {
-                        fileOutputStream.write(buffer, 0, count);
-                    }
-                    fileOutputStream.close();
-                }
+    public static void unZip(Context context, String assetName, String outputDirectory, boolean isReWrite) {
+        try {
+            //Create decompression target directory
+            File file = new File(outputDirectory);
+            //If the target directory does not exist, create
+            if (!file.exists()) {
+                file.mkdirs();
             }
-            //Locate to the next file entry
-            zipEntry = zipInputStream.getNextEntry();
+            //Open compressed file
+            InputStream inputStream = context.getAssets().open(assetName);
+            ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+            //read an entry point
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+            //Use 1Mbuffer
+            byte[] buffer = new byte[1024 * 1024];
+            //Byte count when decompressing
+            int count = 0;
+            //If the entry point is empty, it means that all files and directories in the compressed package have been traversed
+            while (zipEntry != null) {
+                //Log.v("Decompress", "Unzipping " + zipEntry.getName());
+                //If it is a directory
+                if (zipEntry.isDirectory()) {
+                    file = new File(Environment.getExternalStorageDirectory() + outputDirectory + File.separator + zipEntry.getName());
+                    //The file needs to be overwritten or the file does not exist
+                    if (isReWrite || !file.exists()) {
+                        file.mkdir();
+                    }
+                } else {
+                    //if it is a file
+                    file = new File(Environment.getExternalStorageDirectory() + outputDirectory + File.separator + zipEntry.getName());
+                    //The file needs to be overwritten or the file does not exist, unzip the file
+                    if (isReWrite || !file.exists()) {
+                        file.createNewFile();
+                        FileOutputStream fileOutputStream = new FileOutputStream(file);
+                        while ((count = zipInputStream.read(buffer))> 0) {
+                            fileOutputStream.write(buffer, 0, count);
+                        }
+                        fileOutputStream.close();
+                    }
+                }
+                //Locate to the next file entry
+                zipEntry = zipInputStream.getNextEntry();
+            }
+            zipInputStream.close();
+        } catch (Exception e) {
+            Log.e("Decompress", "unzip", e);
         }
-        zipInputStream.close();
     }
 
     public static void copyAssets(Context context, String file, String path) {
