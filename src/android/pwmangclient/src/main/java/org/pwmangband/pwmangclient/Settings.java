@@ -21,7 +21,7 @@ public class Settings extends PWMAngClient {
         File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient");
         if (!folder.exists()) {
             Log.i("Not Found Dir", "Creating directory 'pwmangclient'");
-            Settings.createNewDirectory("pwmangclient");
+            createNewDirectory("pwmangclient");
         } else {
             Log.i("Found Dir", "directory 'pwmangclient'" );
         }
@@ -30,7 +30,7 @@ public class Settings extends PWMAngClient {
         if (!file.exists()) {
             Log.i("File Not Found", "Copy assets file 'pwmangclient.ini'");
             Toast.makeText(context,"assets file 'pwmangclient.ini'", Toast.LENGTH_LONG).show();
-            Settings.copyAssets(context, "pwmangclient.ini", "/pwmangclient");
+            copyAssets(context, "pwmangclient.ini", "/pwmangclient");
         } else {
             Log.i("File Found", "file 'pwmangclient.ini'" );
         }
@@ -38,7 +38,7 @@ public class Settings extends PWMAngClient {
         File folder_lib = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient/lib");
         if (!folder_lib.exists()) {
             Log.i("Not Found Dir", "Copy assets files 'lib'");
-            Settings.unZip(context, "lib.zip", "/pwmangclient", true);
+            unZip(context, "lib.zip", "/pwmangclient", true);
             Toast.makeText(context,"assets files 'lib'", Toast.LENGTH_LONG).show();
         } else {
             Log.i("Found Dir", "directory 'lib'" );
