@@ -50,7 +50,7 @@
     <application android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
-        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+        android:theme="@style/splashScreenTheme"
         android:hardwareAccelerated="true"
         >
 
@@ -61,7 +61,7 @@
         <!-- Custom SDL hint: -->
         <meta-data android:name="SDL_ENV.SDL_ANDROID_ADJUST_DPI" android:value="1"/>
 
-        <activity android:name="PWMAngClient"
+        <activity android:name=".PWMAngClient"
             android:label="@string/app_name"
             android:alwaysRetainTaskState="true"
             android:launchMode="singleInstance"

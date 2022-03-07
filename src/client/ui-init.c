@@ -270,10 +270,9 @@ void init_stuff(void)
 
     /* Initialize */
     init_file_paths(configpath, libpath, datapath);
-#ifndef ON_ANDROID
+
     /* Create any missing directories */
     create_needed_dirs();
-#endif
 }
 
 
