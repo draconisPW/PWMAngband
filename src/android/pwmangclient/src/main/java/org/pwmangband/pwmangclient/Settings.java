@@ -17,37 +17,46 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Settings extends PWMAngClient {
+    public static final String angDir = "PWMAngband";
+
+    public static boolean ToastAngDir, ToastAngIni, ToastAngLib;
+
     public static void setEnvVars() {
-        SDLActivity.nativeSetenv("HOME", Environment.getExternalStorageDirectory().getAbsolutePath() + "/pwmangclient");
-        SDLActivity.nativeSetenv("ANDROID_APP_PATH", Environment.getExternalStorageDirectory().getAbsolutePath() + "/pwmangclient");
+        SDLActivity.nativeSetenv("HOME", Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + angDir);
+        SDLActivity.nativeSetenv("ANDROID_APP_PATH", Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + angDir);
     }
 
     public static void checkInstall(Context context) {
-        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient");
+        File folder = new File(Environment.getExternalStorageDirectory() + File.separator + angDir);
         if (!folder.exists()) {
-            Log.i("Not Found Dir", "Creating directory 'pwmangclient'");
-            createNewDirectory("pwmangclient");
+            Log.i("Not Found Dir", "Creating directory " + File.separator + angDir);
+            ToastAngDir = true;
+            createNewDirectory(angDir);
         } else {
-            Log.i("Found Dir", "directory 'pwmangclient'" );
+            Log.i("Found Dir", "directory " + File.separator + angDir);
         }
 
-        File file = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient/pwmangclient.ini");
+        File file = new File(Environment.getExternalStorageDirectory() + File.separator + angDir + "/pwmangclient.ini");
         if (!file.exists()) {
             Log.i("File Not Found", "Copy assets file 'pwmangclient.ini'");
-            Toast.makeText(context,"assets file 'pwmangclient.ini'", Toast.LENGTH_LONG).show();
-            copyAssets(context, "pwmangclient.ini", "/pwmangclient");
+            ToastAngIni = true;
+            copyAssets(context, "pwmangclient.ini", File.separator + angDir);
         } else {
             Log.i("File Found", "file 'pwmangclient.ini'" );
         }
 
-        File folder_lib = new File(Environment.getExternalStorageDirectory() + File.separator + "pwmangclient/lib");
+        File folder_lib = new File(Environment.getExternalStorageDirectory() + File.separator + angDir + "/lib");
         if (!folder_lib.exists()) {
             Log.i("Not Found Dir", "Copy assets files 'lib'");
-            unZip(context, "lib.zip", "/pwmangclient", true);
-            Toast.makeText(context,"assets files 'lib'", Toast.LENGTH_LONG).show();
+            ToastAngLib = true;
+            unZip(context, "lib.zip", File.separator + angDir, true);
         } else {
             Log.i("Found Dir", "directory 'lib'" );
         }
+
+        if (ToastAngDir) Toast.makeText(context,"Creating directory " + File.separator + angDir, Toast.LENGTH_LONG).show();
+        if (ToastAngIni) Toast.makeText(context,"assets file 'pwmangclient.ini'", Toast.LENGTH_LONG).show();
+        if (ToastAngLib) Toast.makeText(context,"assets files 'lib'", Toast.LENGTH_LONG).show();
     }
 
     public static void createNewDirectory(String name) {

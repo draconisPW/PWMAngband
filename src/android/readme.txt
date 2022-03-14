@@ -30,4 +30,12 @@ Prepare gradle
 Download and install Android Studio.
 https://developer.android.com/studio
 
-TODO
+Run it, select 'Open existing project' and navigate to pwmangband src/android directory.
+
+Android Studio will prompt you to download lots of stuff, android SDK, NDK, platform-tools, etc, and will ask to accept several EULAs. Do it.
+
+Note: Android Studio will also ask if you want to add some of the newly generated files to git. Don't!
+
+After all is done, both build and run buttons should work! That's it.
+
+You can also build from command line, by running ./gradlew build (or gradlew.bat, on Windows), but you will need to prepare some environmental variables, like JAVA_HOME and ANDROID_HOME, to do so.
