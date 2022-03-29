@@ -695,7 +695,7 @@ void wr_player_dungeon(void *data)
     /* Run length encoding of cave->squares[y][x].feat */
     do
     {
-        /* Extract a uint8_t */
+        /* Extract a byte */
         tmp16u = square_p(p, &iter.cur)->feat;
 
         /* If the run is broken, or too full, flush it */
@@ -807,7 +807,7 @@ void wr_level(void *data)
     /* Run length encoding of cave->squares[y][x].feat */
     do
     {
-        /* Extract a uint8_t */
+        /* Extract a byte */
         tmp16u = square(c, &iter.cur)->feat;
 
         /* If the run is broken, or too full, flush it */
