@@ -741,10 +741,17 @@ void inven_carry(struct player *p, struct object *obj, bool absorb, bool message
 
             /*
              * PWMAngband: permanently polymorphed characters and Monks cannot use weapons,
-             * so they need to learn "on wield"
+             * so they need to learn "on wield" flags when picking them up
              */
-            else if (player_has(p, PF_PERM_SHAPE) || player_has(p, PF_MARTIAL_ARTS))
-                weapon_learn_on_carry(p, obj);
+            else if ((player_has(p, PF_PERM_SHAPE) || player_has(p, PF_MARTIAL_ARTS)) &&
+                (tval_is_melee_weapon(obj) || tval_is_mstaff(obj) || tval_is_launcher(obj)))
+            {
+                object_learn_on_carry(p, obj);
+            }
+
+            /* PWMAngband: need to learn "on wield" flags when picking up ammo */
+            else if (tval_is_ammo(obj))
+                object_learn_on_carry(p, obj);
         }
     }
 
