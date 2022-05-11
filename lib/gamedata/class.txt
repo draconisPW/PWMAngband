@@ -4491,6 +4491,55 @@ desc: dungeon level.
 desc: This spell has no effect when used in the town (#%d).
 
 
+############### VILLAGER ###############
+name:Villager
+color:W
+skill-disarm-phys:31:10
+skill-disarm-magic:35:9
+skill-device:20:7
+skill-save:25:10
+skill-stealth:1:0
+skill-search:14:13
+skill-melee:50:28
+skill-shoot:51:35
+skill-dig:0:25
+hitdie:5
+max-attacks:4
+min-weight:35
+strength-multiplier:3
+equip:food:Ration of Food:1:3:none
+equip:light:Wooden Torch:1:3:none
+equip:sword:Dagger:1:1:none
+equip:scroll:Word of Recall:1:1:birth_no_recall
+player-flags:0:CHOOSE_SPELLS | SUMMON_PERMA | CAN_FARM
+title:Rambler
+title:Walker
+title:Tripper
+title:Tourist
+title:Traveller
+title:Discoverer
+title:Spelunker
+title:Voyager
+title:Navigator
+title:Explorer
+
+magic:1:400:1
+
+book:travel guide:town:[Basics]:1:common
+book-graphics:?:W
+book-properties:1:30:25
+book-alloc:40:1 to 100
+book-desc:A standard travel guide with a few tasks.
+equip:travel guide:[Basics]:1:1:none
+
+spell:Summon Pet:1:1:22:4:0
+effect:SUMMON:ANIMAL:0:100
+dice:1
+msg_other: summons a pet.
+desc:Attempts to summon one pet generated at the current dungeon level.
+desc: This spell has no effect when used in the town.
+
+
 ############### GHOST ###############
 # Hack -- not a real class, used for ghost realm spells
 name:Ghost

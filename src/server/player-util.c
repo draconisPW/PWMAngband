@@ -2033,7 +2033,7 @@ bool forbid_entrance_strong(struct player *p)
 {
     struct location *dungeon = get_dungeon(&p->wpos);
 
-    return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
+    return (dungeon && dungeon->max_level && (p->max_lev > dungeon->max_level) && !is_dm_p(p));
 }
 
 
@@ -2048,7 +2048,7 @@ bool forbid_reentrance(struct player *p)
     wpos_init(&dpos, &p->wpos.grid, 0);
     dungeon = get_dungeon(&dpos);
 
-    return (dungeon && dungeon->max_level && (p->lev > dungeon->max_level) && !is_dm_p(p));
+    return (dungeon && dungeon->max_level && (p->max_lev > dungeon->max_level) && !is_dm_p(p));
 }
 
 

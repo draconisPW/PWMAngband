@@ -171,3 +171,11 @@ help: Some of those forms will provide innate spells and even breath attacks.
 help: Shapechangers get basic mana points to cast those spells (note that breath
 help: attacks, like for the Dragon race, don't cost mana, but hit points
 help: instead...).
+
+class:Villager
+help:Villagers are common folks, versatile and able to do anything, but also
+help: average at everything they do. They have no strengths nor weaknesses.
+help: Villagers use stamina given by their constitution to perform common tasks
+help: and can be accompanied by a single pet that they can summon at their leisure.
+help: They can chop wood and mine ore more easily as they advance in levels. They
+help: are able to turn terrain into crops and farm food from them.

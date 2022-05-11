@@ -1120,6 +1120,71 @@ monster:<player>:0x80:0x80
 ?:[AND [EQU $CLASS Shapechanger] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x80:0x80
 
+?:[AND [EQU $CLASS Villager] [EQU $RACE Human] ]
+monster:<player>:0x84:0xF0
+?:[AND [EQU $CLASS Villager] [EQU $RACE Human] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF0
+?:[AND [EQU $CLASS Villager] [EQU $RACE Half-Elf] ]
+monster:<player>:0x84:0xF1
+?:[AND [EQU $CLASS Villager] [EQU $RACE Half-Elf] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF1
+?:[AND [EQU $CLASS Villager] [EQU $RACE Elf] ]
+monster:<player>:0x84:0xF2
+?:[AND [EQU $CLASS Villager] [EQU $RACE Elf] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF2
+?:[AND [EQU $CLASS Villager] [EQU $RACE Hobbit] ]
+monster:<player>:0x84:0xF3
+?:[AND [EQU $CLASS Villager] [EQU $RACE Hobbit] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF3
+?:[AND [EQU $CLASS Villager] [EQU $RACE Gnome] ]
+monster:<player>:0x84:0xF4
+?:[AND [EQU $CLASS Villager] [EQU $RACE Gnome] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF4
+?:[AND [EQU $CLASS Villager] [EQU $RACE Dwarf] ]
+monster:<player>:0x84:0xF5
+?:[AND [EQU $CLASS Villager] [EQU $RACE Dwarf] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF5
+?:[AND [EQU $CLASS Villager] [EQU $RACE Half-Orc] ]
+monster:<player>:0x84:0xF6
+?:[AND [EQU $CLASS Villager] [EQU $RACE Half-Orc] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF6
+?:[AND [EQU $CLASS Villager] [EQU $RACE Half-Troll] ]
+monster:<player>:0x84:0xF7
+?:[AND [EQU $CLASS Villager] [EQU $RACE Half-Troll] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF7
+?:[AND [EQU $CLASS Villager] [EQU $RACE Dunadan] ]
+monster:<player>:0x84:0xF8
+?:[AND [EQU $CLASS Villager] [EQU $RACE Dunadan] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF8
+?:[AND [EQU $CLASS Villager] [EQU $RACE High-Elf] ]
+monster:<player>:0x84:0xF9
+?:[AND [EQU $CLASS Villager] [EQU $RACE High-Elf] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xF9
+?:[AND [EQU $CLASS Villager] [EQU $RACE Kobold] ]
+monster:<player>:0x84:0xFA
+?:[AND [EQU $CLASS Villager] [EQU $RACE Kobold] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xFA
+?:[AND [EQU $CLASS Villager] [EQU $RACE Yeek] ]
+monster:<player>:0x84:0xFB
+?:[AND [EQU $CLASS Villager] [EQU $RACE Yeek] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xFB
+?:[AND [EQU $CLASS Villager] [EQU $RACE Ent] ]
+monster:<player>:0x84:0xFC
+?:[AND [EQU $CLASS Villager] [EQU $RACE Ent] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xFC
+?:[AND [EQU $CLASS Villager] [EQU $RACE Thunderlord] ]
+monster:<player>:0x84:0xFD
+?:[AND [EQU $CLASS Villager] [EQU $RACE Thunderlord] [EQU $GENDER Female] ]
+RF:<player>:0x84:0xFD
+?:[AND [EQU $CLASS Villager] [EQU $RACE Dragon] ]
+monster:<player>:0x80:0x80
+?:[AND [EQU $CLASS Villager] [EQU $RACE Dragon] [EQU $GENDER Female] ]
+RF:<player>:0x80:0x80
+?:[AND [EQU $CLASS Villager] [EQU $RACE Hydra] ]
+monster:<player>:0x80:0x80
+?:[AND [EQU $CLASS Villager] [EQU $RACE Hydra] [EQU $GENDER Female] ]
+RF:<player>:0x80:0x80
+
 # Hack -- not a real class, used for ghost realm spells
 ?:[AND [EQU $CLASS Ghost] [EQU $RACE Human] ]
 monster:<player>:0x94:0x98
