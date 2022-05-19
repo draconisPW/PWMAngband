@@ -3742,11 +3742,7 @@ static int Receive_walk(int ind)
             return 1;
         }
 
-        if (has_energy_per_move(p))
-        {
-            do_cmd_walk(p, dir);
-            return 2;
-        }
+        if (do_cmd_walk(p, dir)) return 2;
 
         /*
          * If we have no commands queued, then queue our walk request.
@@ -3795,11 +3791,7 @@ static int Receive_run(int ind)
         break_mind_link(p);
 
         /* Start running */
-        if (has_energy_per_move(p))
-        {
-            do_cmd_run(p, dir);
-            return 2;
-        }
+        if (do_cmd_run(p, dir)) return 2;
 
         /*
          * If we have no commands queued, then queue our run request.
@@ -5431,11 +5423,7 @@ static int Receive_jump(int ind)
             return 1;
         }
 
-        if (has_energy_per_move(p))
-        {
-            do_cmd_jump(p, dir);
-            return 2;
-        }
+        if (do_cmd_jump(p, dir)) return 2;
 
         Packet_printf(&connp->q, "%b%c", (unsigned)ch, (int)dir);
         return 0;
