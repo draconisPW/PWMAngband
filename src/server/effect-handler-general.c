@@ -3713,10 +3713,9 @@ bool effect_handler_READ_MINDS(effect_handler_context_t *context)
     {
         msg(context->origin->player, "Images form in your mind!");
         context->ident = true;
-        return true;
     }
 
-    return false;
+    return true;
 }
 
 
@@ -4721,6 +4720,11 @@ bool effect_handler_TELEPORT(effect_handler_context_t *context)
 
     /* Move the target */
     monster_swap(context->cave, &start, &iter.cur);
+    if (is_player)
+    {
+        player_handle_post_move(context->origin->player, context->cave, true, true, 0,
+            player_is_trapsafe(context->origin->player));
+    }
 
     /* Clear any projection marker to prevent double processing */
     sqinfo_off(square(context->cave, &iter.cur)->info, SQUARE_PROJECT);
@@ -5119,6 +5123,11 @@ bool effect_handler_TELEPORT_TO(effect_handler_context_t *context)
 
     /* Move player or monster */
     monster_swap(context->cave, &start, &land);
+    if (is_player)
+    {
+        player_handle_post_move(context->origin->player, context->cave, true, true, 0,
+            player_is_trapsafe(context->origin->player));
+    }
 
     /* Cancel target if necessary */
     if (is_player) target_set_monster(context->origin->player, NULL);
