@@ -3136,6 +3136,10 @@ static void resize_subwindow(struct subwindow *subwindow)
     Term_redraw();
     Term_activate(old);
 
+    /* Dungeon size */
+    if (subwindow->index == MAIN_SUBWINDOW)
+        net_term_resize(subwindow->cols, subwindow->rows, subwindow->rows);
+
     refresh_angband_terms();
 }
 
@@ -4128,8 +4132,8 @@ static void term_view_map_tile(struct subwindow *subwindow)
 
     fit_rect_in_rect_proportional(&tile, &source);
 
-    int w = tile.w * (subwindow->cols - 14);
-    int h = tile.h * (subwindow->rows - 2);
+    int w = tile.w * (subwindow->cols - (COL_MAP + 1));
+    int h = tile.h * (subwindow->rows - (ROW_MAP + 1));
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
@@ -4138,9 +4142,9 @@ static void term_view_map_tile(struct subwindow *subwindow)
 
     render_clear(subwindow->window, map, &subwindow->color);
 
-    for (int y = 0; y < subwindow->rows - 2; y++) {
+    for (int y = 0; y < subwindow->rows - (ROW_MAP + 1); y++) {
         tile.y = y * tile.w;
-        for (int x = 0; x < subwindow->cols - 14; x++) {
+        for (int x = 0; x < subwindow->cols - (COL_MAP + 1); x++) {
             tile.x = x * tile.h;
             render_grid_cell_tile(subwindow, map, tile, x, y);
         }
@@ -4165,8 +4169,8 @@ static void term_view_map_tile(struct subwindow *subwindow)
 
 static void term_view_map_text(struct subwindow *subwindow)
 {
-    int w = subwindow->font_width * (subwindow->cols - 14);
-    int h = subwindow->font_height * (subwindow->rows - 2);
+    int w = subwindow->font_width * (subwindow->cols - (COL_MAP + 1));
+    int h = subwindow->font_height * (subwindow->rows - (ROW_MAP + 1));
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
@@ -4175,8 +4179,8 @@ static void term_view_map_text(struct subwindow *subwindow)
 
     render_clear(subwindow->window, map, &subwindow->color);
 
-    for (int y = 0; y < subwindow->rows - 2; y++) {
-        for (int x = 0; x < subwindow->cols - 14; x++) {
+    for (int y = 0; y < subwindow->rows - (ROW_MAP + 1); y++) {
+        for (int x = 0; x < subwindow->cols - (COL_MAP + 1); x++) {
             render_grid_cell_text(subwindow, map, x, y);
         }
     }
