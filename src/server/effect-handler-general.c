@@ -2482,9 +2482,6 @@ bool effect_handler_DETECT_TRAPS(effect_handler_context_t *context)
                 /* Notice */
                 if (!ignore_item_ok(context->origin->player, obj))
                 {
-                    /* Notice it */
-                    disturb(context->origin->player, 0);
-
                     /* We found something to detect */
                     detect = true;
                 }
