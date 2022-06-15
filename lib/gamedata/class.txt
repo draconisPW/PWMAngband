@@ -4523,7 +4523,7 @@ title:Voyager
 title:Navigator
 title:Explorer
 
-magic:1:400:1
+magic:1:400:2
 
 book:travel guide:town:[Basics]:4:common
 book-graphics:?:W
