@@ -975,10 +975,12 @@ void lore_append_movement(struct player *p, const struct monster_race *race,
     text_out(p, ", and moves");
 
     /* Random-ness */
-    if (flags_test(known_flags, RF_SIZE, RF_RAND_50, RF_RAND_25, FLAG_END))
+    if (flags_test(known_flags, RF_SIZE, RF_RAND_100, RF_RAND_50, RF_RAND_25, FLAG_END))
     {
         /* Adverb */
-        if (rf_has(known_flags, RF_RAND_50) && rf_has(known_flags, RF_RAND_25))
+        if (rf_has(known_flags, RF_RAND_100))
+            text_out(p, " completely");
+        else if (rf_has(known_flags, RF_RAND_50) && rf_has(known_flags, RF_RAND_25))
             text_out(p, " extremely");
         else if (rf_has(known_flags, RF_RAND_50))
             text_out(p, " somewhat");

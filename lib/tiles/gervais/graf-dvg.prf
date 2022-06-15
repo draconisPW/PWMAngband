@@ -1155,6 +1155,7 @@ object:dragon armour:Water Dragon Scale Mail:0x80:0xB9
 object:deed:Deed of Property:0x87:0xCE
 object:scroll:Wilderness Mapping:0x87:0xD9
 object:travel guide:[Basics]:0x86:0xD0
+object:travel guide:[Advanced]:0x86:0xD1
 
 
 ##### Monster attr/char definitions #####

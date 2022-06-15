@@ -1949,6 +1949,7 @@ static bool erratic_dir(struct player *p, int *dp)
     {
         if (rf_has(p->poly_race->flags, RF_RAND_25)) erratic += 10;
         if (rf_has(p->poly_race->flags, RF_RAND_50)) erratic += 20;
+        if (rf_has(p->poly_race->flags, RF_RAND_100)) erratic = 40;
     }
 
     /* Apply "erratic movement" */
@@ -2294,8 +2295,8 @@ bool do_cmd_run(struct player *p, int dir)
     /* Handle polymorphed players */
     if (p->poly_race)
     {
-        if (rf_has(p->poly_race->flags, RF_RAND_25) ||
-            rf_has(p->poly_race->flags, RF_RAND_50))
+        if (rf_has(p->poly_race->flags, RF_RAND_25) || rf_has(p->poly_race->flags, RF_RAND_50) ||
+            rf_has(p->poly_race->flags, RF_RAND_100))
         {
             msg(p, "Your nature prevents you from running straight.");
             return true;
