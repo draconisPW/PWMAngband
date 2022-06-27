@@ -5501,6 +5501,7 @@ static void display_message_aux(struct player *p, int type, const char *msg)
     {
         /* We don't need to log *everything* */
         if (strchr("[", *msg)) log = false;
+        if (type == MSG_MOTD) log = false;
 
         /*
          * Log messages for each player, so we can dump last messages
