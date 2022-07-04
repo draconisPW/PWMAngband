@@ -661,8 +661,8 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
         /* Antimagic field from other players */
         else
         {
-            /* Lower effect from party mates (greatly) */
-            if (master_in_party(id, q->id)) amchance >>= 2;
+            /* Lower effect if not hostile (greatly) */
+            if (!master_is_hostile(id, q->id)) amchance >>= 2;
 
             /* Antimagic field is capped at 90% */
             if (amchance > 90) amchance = 90;
@@ -716,8 +716,8 @@ bool check_antimagic(struct player *p, struct chunk *c, struct monster *who)
         amchance = 25 + mon->level;
         amrad = 3 + (mon->level / 10);
 
-        /* Lower effect from party mates (greatly) */
-        if (master_in_party(id, mon->master)) amchance >>= 2;
+        /* Lower effect if not hostile (greatly) */
+        if (!master_is_hostile(id, mon->master)) amchance >>= 2;
 
         /* Antimagic field is capped at 90% */
         if (amchance > 90) amchance = 90;
@@ -811,8 +811,8 @@ bool check_antisummon(struct player *p, struct monster *mon)
         /* Antisummon field from other players */
         else
         {
-            /* Lower effect from party mates (greatly) */
-            if (master_in_party(id, q->id)) amchance >>= 2;
+            /* Lower effect if not hostile (greatly) */
+            if (!master_is_hostile(id, q->id)) amchance >>= 2;
 
             /* Compute distance */
             dist = distance(&grid, &q->grid);
