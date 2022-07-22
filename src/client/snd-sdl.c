@@ -269,10 +269,11 @@ static bool load_sound_sdl(const char *filename, int ft, struct sound_data *data
     if (!sample) sample = mem_zalloc(sizeof(*sample));
 
     /* Try and load the sample file */
-    data->loaded = load_sample_sdl(filename, ft, sample);
-
-    if (data->loaded)
+    if (load_sample_sdl(filename, ft, sample))
+    {
+        data->status = SOUND_ST_LOADED;
         sample->sample_type = ft;
+    }
     else
     {
         mem_free(sample);
@@ -326,7 +327,7 @@ static bool play_sound_sdl(struct sound_data *data)
             case SDL_MUSIC:
             {
                 /* Hack -- force reload next time a sound is played */
-                data->loaded = false;
+                data->status = SOUND_ST_UNKNOWN;
 
                 if (sample->sample_data.music)
                 {
@@ -380,7 +381,7 @@ static bool unload_sound_sdl(struct sound_data *data)
 
         mem_free(sample);
         data->plat_data = NULL;
-        data->loaded = false;
+        data->status = SOUND_ST_UNKNOWN;
     }
 
     return true;

@@ -1335,7 +1335,7 @@ void print_custom_message(struct player *p, struct object *obj, const char *stri
     while (next)
     {
         /* Copy the text leading up to this { */
-        strnfcat(buf, MSG_LEN, &end, "%.*s", next - string, string);
+        strnfcat(buf, MSG_LEN, &end, "%.*s", (int)(next - string), string);
 
         s = next + 1;
         while (*s && isalpha((unsigned char)*s)) s++;
@@ -1355,7 +1355,7 @@ void print_custom_message(struct player *p, struct object *obj, const char *stri
                     {
                       if (obj->kind->flavor && !obj->artifact)
                       {
-                          strnfcat(buf, MSG_LEN, &end, "Your ");
+                          strnfcat(buf, MSG_LEN, &end, "%s", "Your ");
                           object_desc(p, &buf[end], MSG_LEN - end, obj, ODESC_BASE);
                           end += strlen(&buf[end]);
                       }
@@ -1363,7 +1363,7 @@ void print_custom_message(struct player *p, struct object *obj, const char *stri
                           end += object_desc(p, buf, MSG_LEN, obj, ODESC_PREFIX | ODESC_BASE);
                     }
                     else
-                        strnfcat(buf, MSG_LEN, &end, "hands");
+                        strnfcat(buf, MSG_LEN, &end, "%s", "hands");
                     break;
                 case MSG_TAG_KIND:
                     if (obj)
@@ -1372,16 +1372,16 @@ void print_custom_message(struct player *p, struct object *obj, const char *stri
                         end += strlen(&buf[end]);
                     }
                     else
-                        strnfcat(buf, MSG_LEN, &end, "hands");
+                        strnfcat(buf, MSG_LEN, &end, "%s", "hands");
                     break;
                 case MSG_TAG_VERB:
-                    if (obj && (obj->number == 1)) strnfcat(buf, MSG_LEN, &end, "s");
+                    if (obj && (obj->number == 1)) strnfcat(buf, MSG_LEN, &end, "%s", "s");
                     break;
                 case MSG_TAG_VERB_IS:
                     if (!obj || (obj->number > 1))
-                        strnfcat(buf, MSG_LEN, &end, "are");
+                        strnfcat(buf, MSG_LEN, &end, "%s", "are");
                     else
-                        strnfcat(buf, MSG_LEN, &end, "is");
+                        strnfcat(buf, MSG_LEN, &end, "%s", "is");
                 default:
                     break;
             }
@@ -1393,7 +1393,7 @@ void print_custom_message(struct player *p, struct object *obj, const char *stri
 
         next = strchr(string, '{');
     }
-    strnfcat(buf, MSG_LEN, &end, string);
+    strnfcat(buf, MSG_LEN, &end, "%s", string);
 
     /* Capitalize (in case we start with the {name} tag) */
     my_strcap(buf);
