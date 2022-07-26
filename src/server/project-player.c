@@ -1555,6 +1555,8 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     blind = (p->timed[TMD_BLIND]? true: false);
     seen = !blind;
 
+    my_strcpy(killer, "something strange", sizeof(killer));
+
     /* Hack -- polymorph or heal self */
     if ((origin->player == p) && ((typ == PROJ_MON_POLY) || (typ == PROJ_MON_HEAL))) {}
 

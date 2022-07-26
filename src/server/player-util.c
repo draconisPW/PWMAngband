@@ -742,9 +742,13 @@ void use_mana(struct player *p)
 
 
 /*
- * See how much damage the player will take from damaging terrain
+ * See how much damage the player will take from terrain.
+ *
+ * p is the player to check
+ * actual, if true, will cause the player to learn the appropriate
+ * runes if equipment or effects mitigate the damage.
  */
-int player_check_terrain_damage(struct player *p, struct chunk *c)
+int player_check_terrain_damage(struct player *p, struct chunk *c, bool actual)
 {
     int dam_taken = 0;
 
@@ -762,7 +766,7 @@ int player_check_terrain_damage(struct player *p, struct chunk *c)
         if (player_of_has(p, OF_FEATHER))
         {
             dam_taken /= 2;
-            equip_learn_flag(p, OF_FEATHER);
+            if (actual) equip_learn_flag(p, OF_FEATHER);
         }
     }
     else if (square_islava(c, &p->grid))
@@ -781,7 +785,7 @@ int player_check_terrain_damage(struct player *p, struct chunk *c)
         if (player_of_has(p, OF_FEATHER) || player_has(p, PF_CAN_SWIM))
         {
             dam_taken = 0;
-            if (player_of_has(p, OF_FEATHER)) equip_learn_flag(p, OF_FEATHER);
+            if (player_of_has(p, OF_FEATHER) && actual) equip_learn_flag(p, OF_FEATHER);
         }
     }
     else if (square_isnether(c, &p->grid))
@@ -804,21 +808,18 @@ int player_check_terrain_damage(struct player *p, struct chunk *c)
  */
 void player_take_terrain_damage(struct player *p, struct chunk *c)
 {
-    int dam_taken = player_check_terrain_damage(p, c);
+    int dam_taken = player_check_terrain_damage(p, c, true);
     struct feature *feat = square_feat(c, &p->grid);
 
     if (!dam_taken) return;
 
     msg(p, feat->hurt_msg? feat->hurt_msg: "You are suffocating!");
 
-    /* Damage the player */
-    if (!take_hit(p, dam_taken, feat->die_msg? feat->die_msg: "suffocating", false,
-        feat->died_flavor? feat->died_flavor: "suffocated"))
-    {
-        /* Damage the inventory */
-        if (square_isfiery(c, &p->grid)) inven_damage(p, PROJ_FIRE, dam_taken);
-        else if (square_islava(c, &p->grid)) inven_damage(p, PROJ_FIRE, MIN(dam_taken * 5, 300));
-    }
+    /* Damage the player and inventory */
+    if (square_isfiery(c, &p->grid)) inven_damage(p, PROJ_FIRE, dam_taken);
+    else if (square_islava(c, &p->grid)) inven_damage(p, PROJ_FIRE, MIN(dam_taken * 5, 300));
+    take_hit(p, dam_taken, feat->die_msg? feat->die_msg: "suffocating", false,
+        feat->died_flavor? feat->died_flavor: "suffocated");
 }
 
 
@@ -868,7 +869,7 @@ bool player_resting_is_special(int16_t count)
 /*
  * Return true if the player is resting.
  */
-bool player_is_resting(struct player *p)
+bool player_is_resting(const struct player *p)
 {
     return ((p->upkeep->resting > 0) || player_resting_is_special(p->upkeep->resting));
 }
@@ -877,7 +878,7 @@ bool player_is_resting(struct player *p)
 /*
  * Return the remaining number of resting turns.
  */
-int16_t player_resting_count(struct player *p)
+int16_t player_resting_count(const struct player *p)
 {
     return p->upkeep->resting;
 }
@@ -927,7 +928,7 @@ void player_resting_cancel(struct player *p, bool disturb)
 /*
  * Return true if the player should get a regeneration bonus for the current rest.
  */
-bool player_resting_can_regenerate(struct player *p)
+bool player_resting_can_regenerate(const struct player *p)
 {
     return ((p->player_turns_rested >= REST_REQUIRED_FOR_REGEN) ||
         player_resting_is_special(p->upkeep->resting));
@@ -1017,7 +1018,7 @@ void player_resting_complete_special(struct player *p)
 /*
  * Check if the player state has the given OF_ flag.
  */
-bool player_of_has(struct player *p, int flag)
+bool player_of_has(const struct player *p, int flag)
 {
     my_assert(p);
 
@@ -1028,7 +1029,7 @@ bool player_of_has(struct player *p, int flag)
 /*
  * Check if the player resists (or better) an element
  */
-bool player_resists(struct player *p, int element)
+bool player_resists(const struct player *p, int element)
 {
     return (p->state.el_info[element].res_level > 0);
 }
@@ -1037,7 +1038,7 @@ bool player_resists(struct player *p, int element)
 /*
  * Check if the player resists (or better) an element
  */
-bool player_is_immune(struct player *p, int element)
+bool player_is_immune(const struct player *p, int element)
 {
     return (p->state.el_info[element].res_level == 3);
 }
@@ -1218,7 +1219,7 @@ void cancel_running(struct player *p)
  * player) of the traps in the grid.
  */
 void player_handle_post_move(struct player *p, struct chunk *c, bool eval_trap, bool check_pickup,
-    int delayed, bool trapsafe, bool autopickup)
+    int delayed, bool autopickup)
 {
     /* Handle store doors, or notice objects */
     if (!p->ghost && square_isshop(c, &p->grid))
@@ -1257,19 +1258,8 @@ void player_handle_post_move(struct player *p, struct chunk *c, bool eval_trap, 
     }
 
     /* Discover invisible traps, set off visible ones */
-    if (eval_trap)
-    {
-        if (square_issecrettrap(c, &p->grid))
-        {
-            disturb(p, 0);
-            hit_trap(p, &p->grid, delayed);
-        }
-        else if (square_isdisarmabletrap(c, &p->grid) && !trapsafe)
-        {
-            disturb(p, 0);
-            hit_trap(p, &p->grid, delayed);
-        }
-    }
+    if (eval_trap && square_isplayertrap(c, &p->grid) && !square_isdisabledtrap(c, &p->grid))
+        hit_trap(p, &p->grid, delayed);
 
     /* Mention fountains */
     if (square_isfountain(c, &p->grid))
@@ -2231,7 +2221,7 @@ bool player_is_living(struct player *q)
 /*
  * Check if the player is immune from traps
  */
-bool player_is_trapsafe(struct player *p)
+bool player_is_trapsafe(const struct player *p)
 {
     if (p->timed[TMD_TRAPSAFE]) return true;
     if (player_of_has(p, OF_TRAP_IMMUNE)) return true;

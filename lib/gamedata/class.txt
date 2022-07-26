@@ -401,7 +401,7 @@ book-desc:An advanced arcane book with a few spells.
 spell:Mana Channel:25:10:50:20:0
 effect:TIMED_INC:FASTCAST
 dice:5+1d5
-desc:Doubles spellcasting speed for 5+1d5 turns.
+desc:Increases spellcasting speed by 33% for 5+1d5 turns.
 
 spell:Mana Bolt:25:8:60:30:0
 effect:BOLT_OR_BEAM:MANA

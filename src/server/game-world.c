@@ -722,15 +722,24 @@ static void process_player_world(struct player *p, struct chunk *c)
 
     /* Take damage from permanent wraithform while inside walls */
     if ((p->timed[TMD_WRAITHFORM] == -1) && !square_ispassable(c, &p->grid))
+    {
         take_hit(p, 1, "hypoxia", false, "was entombed into solid terrain");
+        if (p->is_dead) return;
+    }
 
     /* Take damage from Undead Form */
     if (player_undead(p))
+    {
         take_hit(p, 1, "fading", false, "faded away");
+        if (p->is_dead) return;
+    }
 
     /* Take damage from poison */
     if (p->timed[TMD_POISONED])
+    {
         take_hit(p, 1, "poison", false, "died of blood poisoning");
+        if (p->is_dead) return;
+    }
 
     /* Take damage from cuts, worse from serious cuts */
     if (p->timed[TMD_CUT])
@@ -745,6 +754,7 @@ static void process_player_world(struct player *p, struct chunk *c)
 
         /* Take damage */
         take_hit(p, i, "a fatal wound", false, "bled to death");
+        if (p->is_dead) return;
     }
 
     /* Side effects of diminishing bloodlust */
@@ -752,6 +762,7 @@ static void process_player_world(struct player *p, struct chunk *c)
     {
         player_over_exert(p, PY_EXERT_HP | PY_EXERT_CUT | PY_EXERT_SLOW,
             MAX(0, 10 - p->timed[TMD_BLOODLUST]), p->chp / 10);
+        if (p->is_dead) return;
     }
 
     /* Timed healing */
@@ -767,6 +778,7 @@ static void process_player_world(struct player *p, struct chunk *c)
 
     /* Player can be damaged by terrain */
     player_take_terrain_damage(p, c);
+    if (p->is_dead) return;
 
     /* Effects of Black Breath */
     if (p->timed[TMD_BLACKBREATH])
@@ -843,6 +855,7 @@ static void process_player_world(struct player *p, struct chunk *c)
 
         /* Take damage */
         take_hit(p, i, "starvation", false, "starved to death");
+        if (p->is_dead) return;
     }
 
     /* Regenerate Hit Points if needed */
