@@ -1750,7 +1750,7 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
 
     /* Place some fountains in rooms */
-    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint1(k), wpos->depth, 0);
 
     /* Customize */
     customize_features(c);
@@ -3916,7 +3916,7 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
 
     /* Place some fountains in rooms */
-    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint1(k), wpos->depth, 0);
 
     /* Customize */
     customize_features(c);
@@ -4165,7 +4165,7 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
 
     /* Place some fountains in rooms */
-    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint1(k), wpos->depth, 0);
 
     /* Customize */
     customize_features(c);
@@ -4685,7 +4685,7 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
 
     /* Place some fountains in rooms */
-    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint1(k), wpos->depth, 0);
 
     /* Customize */
     customize_features(c);
@@ -5612,7 +5612,7 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     alloc_objects(p, c, SET_CORR, TYP_TRAP, randint1(k) / 5, wpos->depth, 0);
 
     /* Place some fountains in rooms */
-    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint0(1 + k / 2), wpos->depth, 0);
+    alloc_objects(p, c, SET_ROOM, TYP_FOUNTAIN, randint1(k), wpos->depth, 0);
 
     /* Customize */
     customize_features(c);
