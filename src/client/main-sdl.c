@@ -3092,12 +3092,11 @@ static errr get_sdl_rect(term_window *win, int col, int row, bool translate, SDL
 
 
 /*
- * Displays the "normal" cursor
+ * Displays a cursor
  */
-static errr Term_curs_sdl(int col, int row)
+static errr Term_curs_sdl_aux(int col, int row, SDL_Color colour)
 {
     term_window *win = (term_window*)(Term->data);
-    SDL_Color colour = text_colours[COLOUR_YELLOW];
     SDL_Rect rc;
 
     /* Make a rectangle */
@@ -3118,6 +3117,15 @@ static errr Term_curs_sdl(int col, int row)
 
     /* Success */
     return (0);
+}
+
+
+/*
+ * Displays the "normal" cursor
+ */
+static errr Term_curs_sdl(int col, int row)
+{
+    return Term_curs_sdl_aux(col, row, text_colours[COLOUR_YELLOW]);
 }
 
 
@@ -3592,6 +3600,10 @@ static errr Term_text_sdl(int col, int row, int n, uint16_t a, const char *s)
     if (Term->minimap_active && (win->Term_idx == 0) && cursor_x && cursor_y)
         Term_curs_sdl(cursor_x + COL_MAP, cursor_y + ROW_MAP);
 
+    /* Highlight party members */
+    for (i = 0; Term->minimap_active && (win->Term_idx == 0) && (i < party_n); i++)
+        Term_curs_sdl_aux(party_x[i] + COL_MAP, party_y[i] + ROW_MAP, text_colours[COLOUR_L_BLUE]);
+
     /* Success */
     return 0;
 }
@@ -3711,6 +3723,10 @@ static errr Term_pict_sdl(int col, int row, int n, const uint16_t *ap, const cha
     /* Highlight the player */
     if (Term->minimap_active && (win->Term_idx == 0) && cursor_x && cursor_y)
         Term_curs_sdl(cursor_x + COL_MAP, cursor_y + ROW_MAP);
+
+    /* Highlight party members */
+    for (i = 0; Term->minimap_active && (win->Term_idx == 0) && (i < party_n); i++)
+        Term_curs_sdl_aux(party_x[i] + COL_MAP, party_y[i] + ROW_MAP, text_colours[COLOUR_L_BLUE]);
 
     return (0);
 }

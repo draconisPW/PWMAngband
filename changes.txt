@@ -78,6 +78,8 @@ PWMAngband:
 - Add swear word protection for names and messages
 - Don't refresh monster list after a pause due to detecting some monsters
 - Add /dps command to display average normal damage per round
+- Always display all character symbols on the minimap
+- Highlight party members in blue on the minimap
 
 Gameplay changes
 ----------------
@@ -167,6 +169,7 @@ PWMAngband:
 - Fix pets attacking non-hostile player pets
 - Fix PROJECT_BEAM error making limited length beams not working
 - Hardcode poison effect on potions of poison to avoid identifying issues
+- Consider spells on cooldown as okay to cast by the client
 
 Coding changes
 --------------

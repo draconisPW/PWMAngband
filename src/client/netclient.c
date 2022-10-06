@@ -54,6 +54,12 @@ int cursor_x = 0;
 int cursor_y = 0;
 
 
+/* Hack -- party positions for the minimap */
+int party_n = 0;
+int *party_x = NULL;
+int *party_y = NULL;
+
+
 /* Similar to server's connp->state */
 static int conn_state;
 
@@ -3301,10 +3307,36 @@ static int Receive_minipos(void)
 {
     int n;
     uint8_t ch;
+    int16_t y, x, self, idx;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd", &ch, &cursor_y, &cursor_x)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd", &ch, &y, &x, &self, &idx)) <= 0)
     {
         return n;
+    }
+
+    /* Highlight player on the map */
+    if (self)
+    {
+        cursor_y = y;
+        cursor_x = x;
+        if (idx != party_n)
+        {
+            party_n = idx;
+            mem_free(party_y);
+            mem_free(party_x);
+            if (party_n > 0)
+            {
+                party_y = mem_zalloc(party_n * sizeof(int));
+                party_x = mem_zalloc(party_n * sizeof(int));
+            }
+        }
+    }
+
+    /* Highlight party member on the map */
+    else
+    {
+        party_y[idx] = y;
+        party_x[idx] = x;
     }
 
     return 1;

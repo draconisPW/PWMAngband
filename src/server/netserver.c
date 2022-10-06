@@ -2998,12 +2998,12 @@ int Send_player_pos(struct player *p)
 }
 
 
-int Send_minipos(struct player *p, int y, int x)
+int Send_minipos(struct player *p, int y, int x, bool self, int n)
 {
     connection_t *connp = get_connp(p, "minipos");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd", (unsigned)PKT_MINIPOS, y, x);
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd", (unsigned)PKT_MINIPOS, y, x, (int)self, n);
 }
 
 

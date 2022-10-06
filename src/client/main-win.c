@@ -202,6 +202,11 @@ static HINSTANCE hInstance;
 static HBRUSH hbrYellow;
 
 /*
+ * Blue brush for the cursor
+ */
+static HBRUSH hbrBlue;
+
+/*
  * Black brush for the chat window edit control
  */
 static HBRUSH hbrBlack;
@@ -1566,9 +1571,9 @@ static errr Term_xtra_win(int n, int v)
 /*
  * Low level graphics (Assumes valid input).
  *
- * Draw a "cursor" at (x,y), using a "yellow box".
+ * Draw a "cursor" at (x,y).
  */
-static errr Term_curs_win(int x, int y)
+static errr Term_curs_win_aux(int x, int y, HBRUSH hbr)
 {
     term_data *td = (term_data*)(Term->data);
     RECT rc;
@@ -1592,13 +1597,25 @@ static errr Term_curs_win(int x, int y)
     rc.top = y * tile_hgt + td->size_oh1;
     rc.bottom = rc.top + tile_hgt;
 
-    /* Cursor is done as a yellow "box" */
+    /* Cursor is done as a "box" */
     hdc = GetDC(td->w);
-    FrameRect(hdc, &rc, hbrYellow);
+    FrameRect(hdc, &rc, hbr);
     ReleaseDC(td->w, hdc);
 
     /* Success */
     return 0;
+}
+
+
+/*
+ * Low level graphics (Assumes valid input).
+ *
+ * Draw a "cursor" at (x,y), using a "yellow box".
+ */
+static errr Term_curs_win(int x, int y)
+{
+    /* Cursor is done as a yellow "box" */
+    return Term_curs_win_aux(x, y, hbrYellow);
 }
 
 
@@ -2052,6 +2069,10 @@ static errr Term_text_win(int x, int y, int n, uint16_t a, const char *s)
     if (Term->minimap_active && (td == &data[0]) && cursor_x && cursor_y)
         Term_curs_win(cursor_x + COL_MAP, cursor_y + ROW_MAP);
 
+    /* Highlight party members */
+    for (i = 0; Term->minimap_active && (td == &data[0]) && (i < party_n); i++)
+        Term_curs_win_aux(party_x[i] + COL_MAP, party_y[i] + ROW_MAP, hbrBlue);
+
     /* Redraw the current text */
     Term_text_win_aux(x, y, n, a, s);
 
@@ -2114,6 +2135,10 @@ static errr Term_pict_win(int x, int y, int n, const uint16_t *ap, const char *c
     /* Highlight the player */
     if (Term->minimap_active && (td == &data[0]) && cursor_x && cursor_y)
         Term_curs_win(cursor_x + COL_MAP, cursor_y + ROW_MAP);
+
+    /* Highlight party members */
+    for (i = 0; Term->minimap_active && (td == &data[0]) && (i < party_n); i++)
+        Term_curs_win_aux(party_x[i] + COL_MAP, party_y[i] + ROW_MAP, hbrBlue);
 
     /* Redraw the top tiles */
     for (i = 0; i < n; i++)
@@ -2501,6 +2526,9 @@ static void init_windows(void)
 
     /* Create a "brush" for drawing the "cursor" */
     hbrYellow = CreateSolidBrush(win_clr[COLOUR_YELLOW]);
+
+    /* Create a "brush" for drawing the "cursor" */
+    hbrBlue = CreateSolidBrush(win_clr[COLOUR_L_BLUE]);
 
     /* Create a "brush" for drawing the chat window edit control background */
     hbrBlack = CreateSolidBrush(0);
@@ -4035,6 +4063,7 @@ static void hook_quit(const char *str)
     /*** Free some other stuff ***/
 
     DeleteObject(hbrYellow);
+    DeleteObject(hbrBlue);
 
     if (hPal) DeleteObject(hPal);
 
