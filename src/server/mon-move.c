@@ -1329,12 +1329,15 @@ bool multiply_monster(struct player *p, struct chunk *c, struct monster *mon)
         /* Create a new monster (awake, no groups) */
         result = place_new_monster(p, c, &grid, mon->race, MON_CLONE, &info, ORIGIN_DROP_BREED);
 
-        /* Fix so multiplying a revealed mimic creates another revealed mimic. */
+        /*
+         * Fix so multiplying a revealed camouflaged monster creates
+         * another revealed camouflaged monster.
+         */
         if (result)
         {
             struct monster *child = square_monster(c, &grid);
 
-            if (child && monster_is_mimicking(child) && !monster_is_mimicking(mon))
+            if (child && monster_is_camouflaged(child) && !monster_is_camouflaged(mon))
                 become_aware(p, c, child);
         }
     }
@@ -1794,7 +1797,7 @@ static bool monster_turn_try_push(struct source *who, struct chunk *c, struct mo
             /* Get the names of the monsters involved */
             monster_desc(who->player, n_name, sizeof(n_name), mon1, MDESC_IND_HID);
 
-            /* Reveal mimics */
+            /* Reveal camouflaged monsters */
             if (monster_is_camouflaged(mon1)) become_aware(who->player, c, mon1);
 
             /* Note if visible */

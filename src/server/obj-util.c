@@ -493,6 +493,12 @@ int compare_items(struct player *p, const struct object *o1, const struct object
     if (object_is_known_artifact(o1)) return -1;
     if (object_is_known_artifact(o2)) return 1;
 
+    /* Artifact light sources will sort next */
+    if (kf_has(o1->kind->kind_flags, KF_ART_LIGHT) && !kf_has(o2->kind->kind_flags, KF_ART_LIGHT))
+        return -1;
+    if (!kf_has(o1->kind->kind_flags, KF_ART_LIGHT) && kf_has(o2->kind->kind_flags, KF_ART_LIGHT))
+        return 1;
+
     /* Unknown objects will sort next */
     if (!object_flavor_is_aware(p, o1) && !object_flavor_is_aware(p, o2))
         return compare_types(o1, o2);

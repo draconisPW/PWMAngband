@@ -454,7 +454,8 @@ static int project_player_handler_LIGHT(project_player_handler_context_t *contex
     /* Confusion for strong unresisted light */
     if (context->dam > 300)
     {
-        msg(p, "You are dazzled!");
+        /* Check for resistance before issuing a message. */
+        if (player_inc_check(p, NULL, TMD_CONFUSED, false)) msg(p, "You are dazzled!");
         player_inc_timed(p, TMD_CONFUSED, 2 + randint1(context->dam / 100), true, check);
     }
 
@@ -532,7 +533,8 @@ static int project_player_handler_SOUND(project_player_handler_context_t *contex
     /* Confusion for strong unresisted sound */
     if (context->dam > 300)
     {
-        msg(p, "The noise disorients you.");
+        /* Check for resistance before issuing a message. */
+        if (player_inc_check(p, NULL, TMD_CONFUSED, false)) msg(p, "The noise disorients you.");
         player_inc_timed(p, TMD_CONFUSED, 2 + randint1(context->dam / 100), true, check);
     }
 

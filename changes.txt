@@ -59,6 +59,7 @@ Angband 4.2.x:
 - Change default Enter key behavior in stores
 - Don't beep when escape is pressed while '*' targeting
 - Adjust description of Mana Channel
+- Move artifact light sources to top of item list if unidentified
 
 MAngband 1.5.x:
 
@@ -95,6 +96,7 @@ Angband 4.2.x:
 - Don't disturb the player when a chest trap is detected
 - Factor in player trap immunity for failed attempts to disable chest traps
 - Broaden the possible grids for teleport destinations
+- Adjust calculation for holding summoned monsters
 
 PWMAngband:
 
@@ -131,6 +133,8 @@ Angband 4.2.x:
 - Fix awkward word in the description for Create Arrows
 - Learn feather falling if equipped and exposed to fiery terrain
 - hit_trap(): interaction with disturb() and learning trap immunity rune
+- Check for resistance before issuing message about confusion from strong light
+  or sound attacks
 
 PWMAngband:
 
@@ -170,6 +174,7 @@ PWMAngband:
 - Fix PROJECT_BEAM error making limited length beams not working
 - Hardcode poison effect on potions of poison to avoid identifying issues
 - Consider spells on cooldown as okay to cast by the client
+- Update browse book screen when a spell enters or goes off cooldown
 
 Coding changes
 --------------
@@ -230,6 +235,12 @@ Angband 4.2.x:
 - Changes to UN_KTRL and ENCODE_KTRL
 - Return early from process_world() if the player takes fatal damage
 - Damage player last so messages are ordered properly if the player dies
+- Fix places where monster_is_mimicking() was used as a synonym for
+  monster_is_camouflaged()
+- Tweak obj-init.c for robustness, consistency, and formatting
+- Small optimization for lookup_sval()
+- Tighten parsing in z-expression.c
+- Tweak init.c for robustness and consistency
 
 PWMAngband:
 
@@ -262,3 +273,5 @@ Compilation/documentation
 - Add descriptions of all the knowledge menu entries to the documentation
   for the '~' command
 - Fix some compiler warnings
+- Extend and update comments in player_timed.txt
+- Extend comments in brand.txt and slay.txt

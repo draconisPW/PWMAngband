@@ -396,7 +396,11 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
     /* Spell cooldown */
     for (i = 0; i < p->clazz->magic.total_spells; i++)
     {
-        if (p->spell_cooldown[i]) p->spell_cooldown[i]--;
+        if (p->spell_cooldown[i])
+        {
+            p->spell_cooldown[i]--;
+            if (!p->spell_cooldown[i]) p->upkeep->redraw |= (PR_SPELL);
+        }
     }
 }
 

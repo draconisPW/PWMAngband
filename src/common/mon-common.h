@@ -123,11 +123,8 @@ struct monster_base
 
 	char *name;                     /* Name for recognition in code */
 	char *text;                     /* In-game name */
-
 	bitflag flags[RF_SIZE];         /* Flags */
-
 	char d_char;                    /* Default monster character */
-
 	struct monster_pain *pain;      /* Pain messages */
 };
 
