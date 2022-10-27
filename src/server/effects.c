@@ -274,7 +274,7 @@ int effect_subtype(int index, const char *type)
 }
 
 
-static int effect_value_base_spell_power(void *data)
+static int32_t effect_value_base_spell_power(void *data)
 {
     int power = 0;
 
@@ -295,7 +295,7 @@ static int effect_value_base_spell_power(void *data)
 }
 
 
-static int effect_value_base_player_level(void *data)
+static int32_t effect_value_base_player_level(void *data)
 {
     struct source *who = (struct source *)data;
 
@@ -303,7 +303,7 @@ static int effect_value_base_player_level(void *data)
 }
 
 
-static int effect_value_base_dungeon_level(void *data)
+static int32_t effect_value_base_dungeon_level(void *data)
 {
     struct source *who = (struct source *)data;
 
@@ -311,13 +311,13 @@ static int effect_value_base_dungeon_level(void *data)
 }
 
 
-static int effect_value_base_max_sight(void *data)
+static int32_t effect_value_base_max_sight(void *data)
 {
     return z_info->max_sight;
 }
 
 
-static int effect_value_base_weapon_damage(void *data)
+static int32_t effect_value_base_weapon_damage(void *data)
 {
     struct source *who = (struct source *)data;
     struct object *obj = who->player->body.slots[slot_by_name(who->player, "weapon")].obj;
@@ -327,7 +327,7 @@ static int effect_value_base_weapon_damage(void *data)
 }
 
 
-static int effect_value_base_monster_percent_hp_gone(void *data)
+static int32_t effect_value_base_monster_percent_hp_gone(void *data)
 {
     struct source *who = (struct source *)data;
 
@@ -339,7 +339,7 @@ static int effect_value_base_monster_percent_hp_gone(void *data)
 }
 
 
-static int effect_value_base_player_spell_power(void *data)
+static int32_t effect_value_base_player_spell_power(void *data)
 {
     struct source *who = (struct source *)data;
 
@@ -347,7 +347,7 @@ static int effect_value_base_player_spell_power(void *data)
 }
 
 
-static int effect_value_base_ball_element(void *data)
+static int32_t effect_value_base_ball_element(void *data)
 {
     struct source *who = (struct source *)data;
     int power = who->player->spell_power[who->player->current_spell];
@@ -356,7 +356,7 @@ static int effect_value_base_ball_element(void *data)
 }
 
 
-static int effect_value_base_xball_element(void *data)
+static int32_t effect_value_base_xball_element(void *data)
 {
     struct source *who = (struct source *)data;
     int power = who->player->spell_power[who->player->current_spell];
@@ -365,7 +365,7 @@ static int effect_value_base_xball_element(void *data)
 }
 
 
-static int effect_value_base_blast_element(void *data)
+static int32_t effect_value_base_blast_element(void *data)
 {
     struct source *who = (struct source *)data;
     int power = who->player->spell_power[who->player->current_spell];
@@ -374,7 +374,7 @@ static int effect_value_base_blast_element(void *data)
 }
 
 
-static int effect_value_base_xblast_element(void *data)
+static int32_t effect_value_base_xblast_element(void *data)
 {
     struct source *who = (struct source *)data;
     int power = who->player->spell_power[who->player->current_spell];

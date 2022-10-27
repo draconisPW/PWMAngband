@@ -241,6 +241,10 @@ Angband 4.2.x:
 - Small optimization for lookup_sval()
 - Tighten parsing in z-expression.c
 - Tweak init.c for robustness and consistency
+- Replace my_strcpy(b, format(...), sizeof(b)) with strnfmt(b, sizeof(b), ...)
+- Don't modify names in projections array while parsing player_property.txt
+- Tighten parsing in mon-init.c
+- Have expression_base_value_f functions return an int32_t to match declaration
 
 PWMAngband:
 
@@ -275,3 +279,5 @@ Compilation/documentation
 - Fix some compiler warnings
 - Extend and update comments in player_timed.txt
 - Extend comments in brand.txt and slay.txt
+- Add to the comments in monster_spell.txt
+- Extend comments in projection.txt

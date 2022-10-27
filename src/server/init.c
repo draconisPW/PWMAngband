@@ -3958,13 +3958,14 @@ static errr finish_parse_player_prop(struct parser *p)
 
             for (i = 0; i < n - 1; i++)
             {
-                char *name = projections[i].name;
+                char *name = string_make(projections[i].name);
 
 				new_ability->index = i;
 				new_ability->type = string_make(ability->type);
 				new_ability->desc = string_make(format("%s %s.", ability->desc, name));
                 my_strcap(name);
 				new_ability->name = string_make(format("%s %s", name, ability->name));
+                string_free(name);
                 new_ability->value = ability->value;
 				if ((i != n - 2) || ability->next)
                 {
