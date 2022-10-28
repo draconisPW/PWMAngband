@@ -60,6 +60,7 @@ Angband 4.2.x:
 - Don't beep when escape is pressed while '*' targeting
 - Adjust description of Mana Channel
 - Move artifact light sources to top of item list if unidentified
+- SDL: make use of scalable fixed-width fonts in lib/fonts
 
 MAngband 1.5.x:
 
