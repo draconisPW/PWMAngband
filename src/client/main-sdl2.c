@@ -2154,6 +2154,13 @@ static void handle_menu_tile_size(struct window *window,
         quit_fmt("bad int_value in button '%s'", button->caption);
     }
 
+    struct subwindow *subwindow = Term->data;
+    assert(subwindow != NULL);
+
+    /* Dungeon size */
+    if (subwindow->index == MAIN_SUBWINDOW)
+        net_term_resize(subwindow->cols, subwindow->rows, subwindow->rows);
+
     refresh_angband_terms();
 }
 
