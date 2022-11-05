@@ -568,7 +568,7 @@ static struct window g_windows[MAX_WINDOWS];
 static int g_kp_as_mod = 1;
 
 /* term_view_map_hook */
-static int view_map_hook_mod = 0;
+static int view_map_hook_mod = 1;
 
 /* handle_menu_font_names_page */
 static bool font_page = false;
@@ -5461,6 +5461,8 @@ static void link_term(struct subwindow *subwindow)
 
     if (view_map_hook_mod) {
         subwindow->term->view_map_hook = term_view_map_hook;
+    } else {
+        subwindow->term->view_map_hook = NULL;
     }
 
     subwindow->term->data = subwindow;
