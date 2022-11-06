@@ -4258,10 +4258,8 @@ static void term_view_map_hook(term *terminal)
 {
     struct subwindow *subwindow = terminal->data;
 
-    subwindow->term->view_map_hook = NULL;
     /* do_cmd_view_map(); waiting for a keypress inkey_ex(); */
     do_cmd_view_map_w();
-    subwindow->term->view_map_hook = term_view_map_hook;
 
     if (subwindow->window->graphics.id == GRAPHICS_NONE) {
         term_view_map_text(subwindow);
@@ -5461,8 +5459,6 @@ static void link_term(struct subwindow *subwindow)
 
     if (view_map_hook_mod) {
         subwindow->term->view_map_hook = term_view_map_hook;
-    } else {
-        subwindow->term->view_map_hook = NULL;
     }
 
     subwindow->term->data = subwindow;
