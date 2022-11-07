@@ -1462,7 +1462,7 @@ bool dir_create(const char *path)
 	#endif
 
     /*
-     * Iterate through the path looking for path segements. At each step,
+     * Iterate through the path looking for path segments. At each step,
      * create the path segment if it doesn't already exist.
      */
     for (ptr = path; *ptr; ptr++)

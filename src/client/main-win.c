@@ -285,6 +285,48 @@ static uint8_t win_pal[MAX_COLORS] =
 static int gamma_correction;
 
 
+struct idx_menu
+{
+    int idm;
+    int tw;
+    int th;
+};
+
+
+static struct idx_menu idm_options_tile[] =
+{
+    {IDM_OPTIONS_TILE_1x1, 1, 1},
+    {IDM_OPTIONS_TILE_2x1, 2, 1},
+    {IDM_OPTIONS_TILE_3x1, 3, 1},
+    {IDM_OPTIONS_TILE_2x2, 2, 2},
+    {IDM_OPTIONS_TILE_4x2, 4, 2},
+    {IDM_OPTIONS_TILE_3x3, 3, 3},
+    {IDM_OPTIONS_TILE_4x4, 4, 4},
+    {IDM_OPTIONS_TILE_6x3, 6, 3},
+    {IDM_OPTIONS_TILE_8x4, 8, 4},
+    {IDM_OPTIONS_TILE_6x6, 6, 6},
+    {IDM_OPTIONS_TILE_8x8, 8, 8},
+    {IDM_OPTIONS_TILE_16x8, 16, 8},
+    {IDM_OPTIONS_TILE_16x16, 16, 16}
+};
+
+
+static struct idx_menu idm_tile_font[] =
+{
+    {IDM_TILE_08X08, 8, 8},
+    {IDM_TILE_16X16, 16, 16},
+    {IDM_TILE_32X32, 32, 32},
+    {IDM_TILE_08X16, 8, 16},
+    {IDM_TILE_10X20, 10, 20},
+    {IDM_TILE_16X32, 16, 32},
+    {IDM_TILE_08X13, 8, 13},
+    {IDM_TILE_10X17, 10, 17},
+    {IDM_TILE_12X13, 12, 13},
+    {IDM_TILE_12X20, 12, 20},
+    {IDM_TILE_16X25, 16, 25}
+};
+
+
 static void show_win_error(void)
 {
     LPVOID lpMsgBuf;
@@ -443,6 +485,8 @@ static void term_getsize(term_data *td)
 
     if (arg_graphics_nice && (td == &data[0]))
     {
+        long best;
+        int ibest, i;
         graphics_mode *mode = get_graphics_mode(use_graphics, true);
 
         if (mode && mode->grafID)
@@ -477,28 +521,72 @@ static void term_getsize(term_data *td)
             td->tile_hgt = td->font_hgt;
         }
 
-        tile_width = 1;
-        tile_height = 1;
+        /*
+         * If the tile is enough smaller than the font in either
+         * dimension, consider using a scaled up version (preserving
+         * the aspect ratio) of the tile as the target size.
+         */
+        if (td->tile_wid <= (2 * td->font_wid) / 3 || td->tile_hgt <= (2 * td->font_wid) / 3)
+        {
+            int area_ratio = (int)(((long)td->font_wid * (long)td->font_hgt +
+                ((long)td->tile_wid * (long)td->tile_hgt) / 2) /
+                ((long)td->tile_wid * (long)td->tile_hgt));
 
-        if ((td->tile_hgt >= td->font_hgt * 3) && (td->tile_wid >= td->font_wid * 3))
-        {
-            tile_width = 3;
-            tile_height = 3;
-            td->tile_wid /= 3;
-            td->tile_hgt /= 3;
-        }
-        else if ((td->tile_hgt >= td->font_hgt * 2) && (td->tile_wid >= td->font_wid * 2))
-        {
-            tile_width = 2;
-            tile_height = 2;
-            td->tile_wid /= 2;
-            td->tile_hgt /= 2;
+            best = abs((long)td->font_wid * (long)td->font_hgt - (long)td->tile_wid *
+                (long)td->tile_hgt);
+            ibest = 1;
+            i = 2;
+            while (!best && (i - 1) * (i - 1) <= area_ratio)
+            {
+                int try_best = abs((long)td->font_wid * (long)td->font_hgt -
+                    ((long)td->tile_wid * i) * ((long)td->tile_hgt * i));
+
+                if (best > try_best)
+                {
+                    best = try_best;
+                    ibest = i;
+                }
+                ++i;
+            }
+            td->tile_wid *= i;
+            td->tile_hgt *= i;
         }
 
-        if (td->tile_wid >= td->font_wid * 2)
+        /*
+         * Find the best multiplier (size of the scaled up font does
+         * not exceed the tile size in either dimension, and the area
+         * of the scaled up font is closest to the area of the tile).
+         */
+        ibest = -1;
+        best = (long)td->tile_wid * (long)td->tile_hgt;
+        for (i = 0; i < (int) N_ELEMENTS(idm_options_tile) && best; ++i)
         {
-            tile_width *= 2;
-            td->tile_wid /= 2;
+            uint sclw = td->font_wid * idm_options_tile[i].tw;
+            uint sclh = td->font_hgt * idm_options_tile[i].th;
+
+            if (sclw <= td->tile_wid && sclh <= td->tile_hgt)
+            {
+                int try_best = abs((long)td->tile_wid * (long)td->tile_hgt - (long)sclw * (long)sclh);
+
+                if (best > try_best)
+                {
+                    best = try_best;
+                    ibest = i;
+                }
+            }
+        }
+
+        if (ibest >= 0)
+        {
+            tile_width = idm_options_tile[ibest].tw;
+            tile_height = idm_options_tile[ibest].th;
+            td->tile_wid /= tile_width;
+            td->tile_hgt /= tile_height;
+        }
+        else
+        {
+            tile_width = 1;
+            tile_height = 1;
         }
 
         if (td->tile_wid < td->font_wid) td->tile_wid = td->font_wid;
@@ -2572,48 +2660,6 @@ static void init_windows(void)
 }
 
 
-struct idx_menu
-{
-    int idm;
-    int tw;
-    int th;
-};
-
-
-static struct idx_menu idm_options_tile[] =
-{
-    {IDM_OPTIONS_TILE_1x1, 1, 1},
-    {IDM_OPTIONS_TILE_2x1, 2, 1},
-    {IDM_OPTIONS_TILE_2x2, 2, 2},
-    {IDM_OPTIONS_TILE_3x1, 3, 1},
-    {IDM_OPTIONS_TILE_3x3, 3, 3},
-    {IDM_OPTIONS_TILE_4x2, 4, 2},
-    {IDM_OPTIONS_TILE_4x4, 4, 4},
-    {IDM_OPTIONS_TILE_6x3, 6, 3},
-    {IDM_OPTIONS_TILE_6x6, 6, 6},
-    {IDM_OPTIONS_TILE_8x4, 8, 4},
-    {IDM_OPTIONS_TILE_8x8, 8, 8},
-    {IDM_OPTIONS_TILE_16x8, 16, 8},
-    {IDM_OPTIONS_TILE_16x16, 16, 16}
-};
-
-
-static struct idx_menu idm_tile_font[] =
-{
-    {IDM_TILE_08X08, 8, 8},
-    {IDM_TILE_16X16, 16, 16},
-    {IDM_TILE_32X32, 32, 32},
-    {IDM_TILE_08X16, 8, 16},
-    {IDM_TILE_10X20, 10, 20},
-    {IDM_TILE_16X32, 16, 32},
-    {IDM_TILE_08X13, 8, 13},
-    {IDM_TILE_10X17, 10, 17},
-    {IDM_TILE_12X13, 12, 13},
-    {IDM_TILE_12X20, 12, 20},
-    {IDM_TILE_16X25, 16, 25}
-};
-
-
 /*
  * Prepare the menus
  */
@@ -3105,14 +3151,14 @@ static void process_menus(WORD wCmd)
 
         case IDM_OPTIONS_TILE_1x1:
         case IDM_OPTIONS_TILE_2x1:
-        case IDM_OPTIONS_TILE_2x2:
         case IDM_OPTIONS_TILE_3x1:
-        case IDM_OPTIONS_TILE_3x3:
+        case IDM_OPTIONS_TILE_2x2:
         case IDM_OPTIONS_TILE_4x2:
+        case IDM_OPTIONS_TILE_3x3:
         case IDM_OPTIONS_TILE_4x4:
         case IDM_OPTIONS_TILE_6x3:
-        case IDM_OPTIONS_TILE_6x6:
         case IDM_OPTIONS_TILE_8x4:
+        case IDM_OPTIONS_TILE_6x6:
         case IDM_OPTIONS_TILE_8x8:
         case IDM_OPTIONS_TILE_16x8:
         case IDM_OPTIONS_TILE_16x16:

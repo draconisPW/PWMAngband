@@ -61,6 +61,8 @@ Angband 4.2.x:
 - Adjust description of Mana Channel
 - Move artifact light sources to top of item list if unidentified
 - SDL: make use of scalable fixed-width fonts in lib/fonts
+- Windows: allow "Enable nice graphics" to use all tile multipliers available
+  in the menu
 
 MAngband 1.5.x:
 
@@ -246,6 +248,7 @@ Angband 4.2.x:
 - Don't modify names in projections array while parsing player_property.txt
 - Tighten parsing in mon-init.c
 - Have expression_base_value_f functions return an int32_t to match declaration
+- Move more special cases hard coded in player-timed.c to player_timed.txt
 
 PWMAngband:
 
