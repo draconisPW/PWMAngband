@@ -1230,7 +1230,12 @@ static void wild_display_map(struct player *p)
 
             /* Put the player in the center */
             if ((y == map_hgt / 2) && (x == map_wid / 2))
+            {
                 player_pict(p, cv, p, false, &ta, &tc);
+
+                /* Highlight player on the wild map */
+                Send_minipos(p, y, x, true, 0);
+            }
 
             /* Save the char */
             mc[y][x] = tc;

@@ -568,7 +568,7 @@ static struct window g_windows[MAX_WINDOWS];
 static int g_kp_as_mod = 1;
 
 /* term_view_map_hook */
-static int view_map_hook_mod = 0;
+static int view_map_hook_mod = 1;
 
 /* handle_menu_font_names_page */
 static bool font_page = false;
@@ -2153,6 +2153,13 @@ static void handle_menu_tile_size(struct window *window,
     } else {
         quit_fmt("bad int_value in button '%s'", button->caption);
     }
+
+    struct subwindow *subwindow = Term->data;
+    assert(subwindow != NULL);
+
+    /* Dungeon size */
+    if (subwindow->index == MAIN_SUBWINDOW)
+        net_term_resize(subwindow->cols, subwindow->rows, subwindow->rows);
 
     refresh_angband_terms();
 }
@@ -4251,10 +4258,8 @@ static void term_view_map_hook(term *terminal)
 {
     struct subwindow *subwindow = terminal->data;
 
-    subwindow->term->view_map_hook = NULL;
     /* do_cmd_view_map(); waiting for a keypress inkey_ex(); */
     do_cmd_view_map_w();
-    subwindow->term->view_map_hook = term_view_map_hook;
 
     if (subwindow->window->graphics.id == GRAPHICS_NONE) {
         term_view_map_text(subwindow);
