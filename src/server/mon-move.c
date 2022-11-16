@@ -603,11 +603,31 @@ static bool get_move_advance(struct player *p, struct chunk *c, struct monster *
 
         /* Check path for damaging grid */
         num_path_grids = project_path(NULL, c, path_grid, z_info->max_range, &mon->grid, &target, 0);
-        if ((num_path_grids > 0) && !monster_hates_grid(c, mon, &path_grid[0]))
+        if (num_path_grids > 0)
         {
-          loc_copy(&mon->target.grid, &target);
-          *track = true;
-          return true;
+            /* No damaging grid: select */
+            if (!monster_hates_grid(c, mon, &path_grid[0]))
+            {
+                loc_copy(&mon->target.grid, &target);
+                *track = true;
+                return true;
+            }
+
+            /* Damaging grid: check if there is only one damaging tile on the path */
+            if ((num_path_grids > 1) && !monster_hates_grid(c, mon, &path_grid[1]))
+            {
+                /* Compute damage: if monster can sustain the damage, select */
+                int dam = min(1 + mon->maxhp / 2, 100 + randint1(100));
+
+                if (dam < mon->hp)
+                {
+                    mon->damhp = dam;
+                    mon->damaging = true;
+                    loc_copy(&mon->target.grid, &target);
+                    *track = true;
+                    return true;
+                }
+            }
         }
     }
 
@@ -1172,8 +1192,8 @@ static bool get_move(struct source *who, struct chunk *c, struct monster *mon, i
     {
         bool group_ai = (rf_has(mon->race->flags, RF_GROUP_AI) && !monster_passes_walls(mon->race));
 
-        /* Monster is taking damage from terrain */
-        if (monster_taking_terrain_damage(c, mon))
+        /* Monster is taking damage from terrain (unless voluntarily walking on damaging terrain) */
+        if (monster_taking_terrain_damage(c, mon) && !mon->damaging)
         {
             /* Try to find safe place */
             if (get_move_find_safety(who->player, c, mon))
@@ -1494,8 +1514,8 @@ static bool monster_turn_can_move(struct source *who, struct chunk *c, struct mo
     /* Always allow an attack upon the player or decoy. */
     if (square_isplayer(c, grid) || square_isdecoyed(c, grid)) return true;
 
-    /* Dangerous terrain in the way */
-    if (!confused && monster_hates_grid(c, mon, grid)) return false;
+    /* Dangerous terrain in the way (unless voluntarily walking on damaging terrain) */
+    if (!confused && monster_hates_grid(c, mon, grid) && !mon->damaging) return false;
 
     /* Safe floor */
     if (square_issafefloor(c, grid)) return false;
@@ -2353,7 +2373,7 @@ static bool monster_check_active(struct chunk *c, struct monster *mon, int *targ
             of_wipe(mon->known_pstate.flags);
             pf_wipe(mon->known_pstate.pflags);
             for (i = 0; i < ELEM_MAX; i++)
-                mon->known_pstate.el_info[i].res_level = 0;
+                mon->known_pstate.el_info[i].res_level[0] = 0;
         }
 
         /* Always track closest target */
@@ -2717,7 +2737,7 @@ static void get_closest_player(struct chunk *c, struct monster *mon)
         of_wipe(mon->known_pstate.flags);
         pf_wipe(mon->known_pstate.pflags);
         for (i = 0; i < ELEM_MAX; i++)
-            mon->known_pstate.el_info[i].res_level = 0;
+            mon->known_pstate.el_info[i].res_level[0] = 0;
     }
 
     /* Always track closest player */
@@ -2867,6 +2887,8 @@ void reset_monsters(struct chunk *c)
 
         /* Monster is ready to go again */
         mflag_off(mon->mflag, MFLAG_HANDLED);
+        mon->damhp = 0;
+        if (mon->damaging && !monster_hates_grid(c, mon, &mon->grid)) mon->damaging = false;
     }
 }
 

@@ -814,7 +814,7 @@ int player_check_terrain_damage(struct player *p, struct chunk *c, bool actual)
     if (square_isfiery(c, &p->grid))
     {
         int base_dam = 100 + randint1(100);
-        int res = p->state.el_info[ELEM_FIRE].res_level;
+        int res = p->state.el_info[ELEM_FIRE].res_level[0];
 
         /* Fire damage */
         dam_taken = adjust_dam(p, ELEM_FIRE, base_dam, RANDOMISE, res);
@@ -1088,7 +1088,7 @@ bool player_of_has(const struct player *p, int flag)
  */
 bool player_resists(const struct player *p, int element)
 {
-    return (p->state.el_info[element].res_level > 0);
+    return (p->state.el_info[element].res_level[0] > 0);
 }
 
 
@@ -1097,7 +1097,7 @@ bool player_resists(const struct player *p, int element)
  */
 bool player_is_immune(const struct player *p, int element)
 {
-    return (p->state.el_info[element].res_level == 3);
+    return (p->state.el_info[element].res_level[0] == 3);
 }
 
 

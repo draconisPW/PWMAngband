@@ -2296,8 +2296,10 @@ static enum parser_error parse_p_race_value(struct parser *p)
     if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))
     {
         found = true;
-        r->el_info[index].res_level = value;
-        r->el_info[index].lvl = level;
+        if (r->el_info[index].idx == MAX_EL_INFO) return PARSE_ERROR_TOO_MANY_ENTRIES;
+        r->el_info[index].res_level[r->el_info[index].idx] = value;
+        r->el_info[index].lvl[r->el_info[index].idx] = level;
+        r->el_info[index].idx++;
     }
     if (!found) return PARSE_ERROR_INVALID_VALUE;
 
@@ -3090,8 +3092,10 @@ static enum parser_error parse_p_class_value(struct parser *p)
     if (!grab_index_and_int(&value, &index, list_element_names, "RES_", name_and_value))
     {
         found = true;
-        c->el_info[index].res_level = value;
-        c->el_info[index].lvl = level;
+        if (c->el_info[index].idx == MAX_EL_INFO) return PARSE_ERROR_TOO_MANY_ENTRIES;
+        c->el_info[index].res_level[c->el_info[index].idx] = value;
+        c->el_info[index].lvl[c->el_info[index].idx] = level;
+        c->el_info[index].idx++;
     }
     if (!found) return PARSE_ERROR_INVALID_VALUE;
 

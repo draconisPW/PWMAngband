@@ -84,6 +84,7 @@ PWMAngband:
 - Add /dps command to display average normal damage per round
 - Always display all character symbols on the minimap
 - Highlight party members in blue on the minimap
+- Display ASCII symbols for distorted tiles in knowledge screens
 
 Gameplay changes
 ----------------
@@ -119,6 +120,8 @@ PWMAngband:
 - Increase the number of fountains in dungeons
 - New formula for average damage per attack for polymorphed players
 - Polymorphed monks get half the to-dam bonus
+- Allow monsters to cross one tile of damaging terrain if it doesn't kill them
+- Allow multiple values for race/class abilities depending on level
 - New class: Villager
 
 Bugs fixed

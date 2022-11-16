@@ -1237,7 +1237,7 @@ static enum parser_error parse_curse_values(struct parser *p)
         if (!grab_index_and_int(&value, &index, list_element_names, "RES_", t))
         {
             found = true;
-            curse->obj->el_info[index].res_level = value;
+            curse->obj->el_info[index].res_level[0] = value;
         }
         if (!found) break;
         t = strtok(NULL, " |");
@@ -2188,7 +2188,7 @@ static enum parser_error parse_object_values(struct parser *p)
         if (!grab_index_and_int(&value, &index, list_element_names, "RES_", t))
         {
             found = true;
-            k->el_info[index].res_level = value;
+            k->el_info[index].res_level[0] = value;
         }
         if (!found) break;
         t = strtok(NULL, " |");
@@ -2567,7 +2567,7 @@ static enum parser_error parse_ego_values(struct parser *p)
         if (!grab_index_and_int(&value, &index, list_element_names, "RES_", t))
         {
             found = true;
-            e->el_info[index].res_level = value;
+            e->el_info[index].res_level[0] = value;
         }
         if (!found) break;
         t = strtok(NULL, " |");
@@ -3045,7 +3045,7 @@ static enum parser_error parse_artifact_values(struct parser *p)
         if (!grab_index_and_int(&value, &index, list_element_names, "RES_", t))
         {
             found = true;
-            a->el_info[index].res_level = value;
+            a->el_info[index].res_level[0] = value;
         }
         if (!found) break;
         t = strtok(NULL, " |");

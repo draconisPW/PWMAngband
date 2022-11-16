@@ -397,6 +397,7 @@ struct player_ability
     char *desc;                     /* Ability description */
     int group;                      /* Ability group (set locally when viewing) */
     int value;                      /* Resistance value for elements */
+    int idx;                        /* Index value for elements */
 };
 
 /*  

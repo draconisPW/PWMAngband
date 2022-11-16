@@ -531,7 +531,7 @@ void unset_spells(struct player *p, bitflag *spells, bitflag *flags, bitflag *pf
         if (info->type & (RST_BOLT | RST_BALL | RST_BREATH))
         {
             int element = effect->subtype;
-            int learn_chance = el[element].res_level * (smart? 50: 25);
+            int learn_chance = el[element].res_level[0] * (smart? 50: 25);
 
             if (magik(learn_chance)) rsf_off(spells, info->index);
         }
@@ -560,13 +560,13 @@ void unset_spells(struct player *p, bitflag *spells, bitflag *flags, bitflag *pf
 
                             case TMD_FAIL_FLAG_RESIST:
                             {
-                                if (el[f->idx].res_level > 0) resisted = true;
+                                if (el[f->idx].res_level[0] > 0) resisted = true;
                                 break;
                             }
 
                             case TMD_FAIL_FLAG_VULN:
                             {
-                                if (el[f->idx].res_level < 0) resisted = true;
+                                if (el[f->idx].res_level[0] < 0) resisted = true;
                                 break;
                             }
 

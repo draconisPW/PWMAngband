@@ -86,7 +86,7 @@ int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resis
         /* Hack -- ice damage checks against cold resistance */
         int res_type = ((type == PROJ_ICE)? PROJ_COLD: type);
 
-        resist = ((res_type < ELEM_MAX)? p->state.el_info[res_type].res_level: 0);
+        resist = ((res_type < ELEM_MAX)? p->state.el_info[res_type].res_level[0]: 0);
 
         /* Notice element stuff */
         equip_learn_element(p, res_type);
@@ -211,7 +211,7 @@ void project_player_time_effects(struct player *p, struct source *who)
     /* Drain all stats */
     else
     {
-        int perma = p->state.el_info[ELEM_TIME].res_level;
+        int perma = p->state.el_info[ELEM_TIME].res_level[0];
 
         if (p->timed[TMD_ANCHOR]) perma--;
 
@@ -418,7 +418,7 @@ static int project_player_handler_POIS(project_player_handler_context_t *context
                 msg(p, "The venom stings your skin!");
                 inven_damage(p, PROJ_ACID, dam);
                 xtra = adjust_dam(p, PROJ_ACID, dam, RANDOMISE,
-                    p->state.el_info[PROJ_ACID].res_level);
+                    p->state.el_info[PROJ_ACID].res_level[0]);
             }
         }
         if (randint0(context->dam) > 200)

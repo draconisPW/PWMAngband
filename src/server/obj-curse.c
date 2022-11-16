@@ -170,12 +170,12 @@ static bool object_curse_conflicts(struct object *obj, int pick)
             if (f->code == TMD_FAIL_FLAG_RESIST)
             {
                 my_assert(f->idx >= 0 && f->idx < ELEM_MAX);
-                if (obj->el_info[f->idx].res_level > 0) return true;
+                if (obj->el_info[f->idx].res_level[0] > 0) return true;
             }
             if (f->code == TMD_FAIL_FLAG_VULN)
             {
                 my_assert(f->idx >= 0 && f->idx < ELEM_MAX);
-                if (obj->el_info[f->idx].res_level < 0) return true;
+                if (obj->el_info[f->idx].res_level[0] < 0) return true;
             }
             f = f->next;
         }
@@ -340,12 +340,12 @@ static bool artifact_curse_conflicts(struct artifact *art, int pick)
             if (f->code == TMD_FAIL_FLAG_RESIST)
             {
                 my_assert(f->idx >= 0 && f->idx < ELEM_MAX);
-                if (art->el_info[f->idx].res_level > 0) return true;
+                if (art->el_info[f->idx].res_level[0] > 0) return true;
             }
             if (f->code == TMD_FAIL_FLAG_VULN)
             {
                 my_assert(f->idx >= 0 && f->idx < ELEM_MAX);
-                if (art->el_info[f->idx].res_level < 0) return true;
+                if (art->el_info[f->idx].res_level[0] < 0) return true;
             }
             f = f->next;
         }

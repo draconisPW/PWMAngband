@@ -412,10 +412,10 @@ void object_elements(const struct object *obj, struct element_info el_info[ELEM_
     for (i = 0; i < ELEM_MAX; i++)
     {
         vuln[i] = false;
-        if (el_info[i].res_level == -1)
+        if (el_info[i].res_level[0] == -1)
         {
             vuln[i] = true;
-            el_info[i].res_level = 0;
+            el_info[i].res_level[0] = 0;
         }
     }
 
@@ -425,17 +425,17 @@ void object_elements(const struct object *obj, struct element_info el_info[ELEM_
         if (obj->curses[i].power == 0) continue;
         for (j = 0; j < ELEM_MAX; j++)
         {
-            if (curses[i].obj->el_info[j].res_level == -1)
+            if (curses[i].obj->el_info[j].res_level[0] == -1)
                 vuln[j] = true;
-            if (curses[i].obj->el_info[j].res_level > el_info[j].res_level)
-                el_info[j].res_level = curses[i].obj->el_info[j].res_level;
+            if (curses[i].obj->el_info[j].res_level[0] > el_info[j].res_level[0])
+                el_info[j].res_level[0] = curses[i].obj->el_info[j].res_level[0];
         }
     }
 
     for (i = 0; i < ELEM_MAX; i++)
     {
-        if (vuln[i] && (el_info[i].res_level < 3))
-            el_info[i].res_level--;
+        if (vuln[i] && (el_info[i].res_level[0] < 3))
+            el_info[i].res_level[0]--;
     }
 }
 

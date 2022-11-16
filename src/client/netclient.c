@@ -596,7 +596,11 @@ static int Receive_struct_info(void)
                 memset(r->el_info, 0, ELEM_MAX * sizeof(struct element_info));
                 for (j = 0; j < elem_max; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &lvl)) <= 0)
+                    int16_t res_level2, res_level3;
+                    uint8_t lvl2, lvl3;
+
+                    if ((n = Packet_scanf(&rbuf, "%hd%b%hd%b%hd%b", &res_level, &lvl, &res_level2,
+                        &lvl2, &res_level3, &lvl3)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -606,13 +610,17 @@ static int Receive_struct_info(void)
                         mem_free(r);
                         return n;
                     }
-                    bytes_read += 3;
+                    bytes_read += 9;
 
                     /* Hack -- discard extra fields */
                     if (j >= ELEM_MAX) continue;
 
-                    r->el_info[j].res_level = res_level;
-                    r->el_info[j].lvl = lvl;
+                    r->el_info[j].res_level[0] = res_level;
+                    r->el_info[j].lvl[0] = lvl;
+                    r->el_info[j].res_level[1] = res_level2;
+                    r->el_info[j].lvl[1] = lvl2;
+                    r->el_info[j].res_level[2] = res_level3;
+                    r->el_info[j].lvl[2] = lvl3;
                 }
 
                 r->r_mhp = r_mhp;
@@ -808,7 +816,11 @@ static int Receive_struct_info(void)
                 memset(c->el_info, 0, ELEM_MAX * sizeof(struct element_info));
                 for (j = 0; j < elem_max; j++)
                 {
-                    if ((n = Packet_scanf(&rbuf, "%hd%b", &res_level, &lvl)) <= 0)
+                    int16_t res_level2, res_level3;
+                    uint8_t lvl2, lvl3;
+
+                    if ((n = Packet_scanf(&rbuf, "%hd%b%hd%b%hd%b", &res_level, &lvl, &res_level2,
+                        &lvl2, &res_level3, &lvl3)) <= 0)
                     {
                         /* Rollback the socket buffer */
                         Sockbuf_rollback(&rbuf, bytes_read);
@@ -818,13 +830,17 @@ static int Receive_struct_info(void)
                         mem_free(c);
                         return n;
                     }
-                    bytes_read += 3;
+                    bytes_read += 9;
 
                     /* Hack -- discard extra fields */
                     if (j >= ELEM_MAX) continue;
 
-                    c->el_info[j].res_level = res_level;
-                    c->el_info[j].lvl = lvl;
+                    c->el_info[j].res_level[0] = res_level;
+                    c->el_info[j].lvl[0] = lvl;
+                    c->el_info[j].res_level[1] = res_level2;
+                    c->el_info[j].lvl[1] = lvl2;
+                    c->el_info[j].res_level[2] = res_level3;
+                    c->el_info[j].lvl[2] = lvl3;
                 }
                 if ((n = Packet_scanf(&rbuf, "%b%hu%c", &total_spells, &tval, &num_books)) <= 0)
                 {

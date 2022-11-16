@@ -1423,7 +1423,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
 
     /* Don't mention effects which already match the known player state. */
     if (timed_effects[idx].temp_resist != -1 &&
-        p->obj_k->el_info[timed_effects[idx].temp_resist].res_level &&
+        p->obj_k->el_info[timed_effects[idx].temp_resist].res_level[0] &&
         player_is_immune(p, timed_effects[idx].temp_resist))
     {
         notify = false;
@@ -1568,7 +1568,7 @@ bool player_inc_check(struct player *p, struct monster *mon, int idx, bool lore)
                 /* Effect is inhibited by a resist */
                 my_assert(f->idx >= 0 && f->idx < ELEM_MAX);
                 if (!lore) equip_learn_element(p, f->idx);
-                if (p->state.el_info[f->idx].res_level > 0) return false;
+                if (p->state.el_info[f->idx].res_level[0] > 0) return false;
 
                 break;
             }
@@ -1577,7 +1577,7 @@ bool player_inc_check(struct player *p, struct monster *mon, int idx, bool lore)
             {
                 /* Effect is inhibited by a vulnerability */
                 my_assert(f->idx >= 0 && f->idx < ELEM_MAX);
-                if (p->state.el_info[f->idx].res_level < 0)
+                if (p->state.el_info[f->idx].res_level[0] < 0)
                 {
                     if (!lore) equip_learn_element(p, f->idx);
                     return false;
@@ -1616,6 +1616,7 @@ bool player_inc_check(struct player *p, struct monster *mon, int idx, bool lore)
                 break;
             }
         }
+        f = f->next;
     }
 
     /* Nothing prevents this effect from incrementing. */
