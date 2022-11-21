@@ -2855,6 +2855,9 @@ int Send_pause(struct player *p)
     connection_t *connp = get_connp(p, "pause");
     if (connp == NULL) return 0;
 
+    /* Hack -- set locating (to avoid losing detection while pausing) */
+    p->locating = true;
+
     return Packet_printf(&connp->c, "%b", (unsigned)PKT_PAUSE);
 }
 
@@ -3590,6 +3593,9 @@ static int Receive_icky(int ind)
         p = player_get(get_player_index(connp));
 
         p->screen_save_depth = icky;
+
+        /* Hack -- unset locating (if it was set by pausing) */
+        if (!icky) p->locating = false;
     }
 
     return 1;
