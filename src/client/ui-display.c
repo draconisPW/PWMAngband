@@ -803,7 +803,7 @@ static void update_messages_subwindow(game_event_type type, game_event_data *dat
         if (!OPT(player, wrap_messages))
         {
             /* Dump the message on the appropriate line */
-            Term_putstr(0, (h - 1) - line, -1, color, msg);
+            Term_putstrex(0, (h - 1) - line, -1, color, msg);
 
             /* Cursor */
             Term_locate(&x, &y);
@@ -816,7 +816,7 @@ static void update_messages_subwindow(game_event_type type, game_event_data *dat
 
         /* Dump the message on the appropriate line(s) */
         else
-            line += prt_multi(0, (h - 1) - line, -1, -(h - line), color, msg);
+            line += prt_multi(0, (h - 1) - line, -1, -(h - line), color, msg, true);
     }
 
     Term_fresh();
@@ -933,7 +933,7 @@ static void update_message_chat_subwindow(game_event_type type, game_event_data 
         l++;
 
         /* Dump the message on the appropriate line(s) */
-        line += prt_multi(0, (h - 1) - line, -1, -(h - 1 - (yoff + 1) - line), color, msg);
+        line += prt_multi(0, (h - 1) - line, -1, -(h - 1 - (yoff + 1) - line), color, msg, false);
     }
 
     /* Erase rest */
