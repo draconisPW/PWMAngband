@@ -1693,11 +1693,14 @@ static errr Term_addstrex(int n, uint16_t a, const char *buf)
     /* Check for tags */
     my_strcpy(tmp, buf, sizeof(tmp));
     t = strtok(tmp, "{}");
-    pos = strlen(t);
+
+    /* Empty string */
+    if (!t) return Term_addstr(n, a, buf);
 
     /* Save current substring for display */
     my_strcpy(str, t, sizeof(str));
 
+    pos = strlen(t);
     t = strtok(NULL, "{}");
 
     /* No tags */
