@@ -1737,6 +1737,10 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
     if (trap && p->upkeep->running && !player_is_trapsafe(p))
     {
         disturb(p, 0);
+
+        /* No move made so no energy spent. */
+        p->upkeep->energy_use = false;
+
         return;
     }
 
@@ -1801,6 +1805,8 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
                 msgt(p, MSG_HITWALL, "There is a wall blocking your way.");
         }
 
+        /* No move but do not refund energy */
+
         return;
     }
 
@@ -1844,6 +1850,10 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         random_level(&p->wpos))
     {
         disturb(p, 0);
+
+        /* No move made so no energy spent. */
+        p->upkeep->energy_use = false;
+
         return;
     }
 
