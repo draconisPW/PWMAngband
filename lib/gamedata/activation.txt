@@ -513,37 +513,31 @@ name:DRAGON_MULTIHUED
 aim:1
 power:20
 effect:BREATH:POIS:0:20
-dice:250
+dice:50
 effect:BREATH:COLD:0:20
-dice:250
+dice:50
 effect:BREATH:FIRE:0:20
-dice:250
+dice:50
 effect:BREATH:ELEC:0:20
-dice:250
+dice:50
 effect:BREATH:ACID:0:20
-dice:250
-effect:RANDOM
-dice:5
+dice:50
 
 name:DRAGON_SHADOW
 aim:1
 power:21
 effect:BREATH:DARK:0:20
-dice:200
+dice:100
 effect:BREATH:LIGHT:0:20
-dice:200
-effect:RANDOM
-dice:2
+dice:100
 
 name:DRAGON_LAW
 aim:1
 power:23
 effect:BREATH:SHARD:0:20
-dice:230
+dice:115
 effect:BREATH:SOUND:0:20
-dice:230
-effect:RANDOM
-dice:2
+dice:115
 
 name:DRAGON_GOLD
 aim:1
@@ -555,25 +549,21 @@ name:DRAGON_CHAOS
 aim:1
 power:23
 effect:BREATH:DISEN:0:20
-dice:220
+dice:110
 effect:BREATH:CHAOS:0:20
-dice:220
-effect:RANDOM
-dice:2
+dice:110
 
 name:DRAGON_BALANCE
 aim:1
 power:24
 effect:BREATH:DISEN:0:20
-dice:250
+dice:63
 effect:BREATH:CHAOS:0:20
-dice:250
+dice:63
 effect:BREATH:SHARD:0:20
-dice:250
+dice:63
 effect:BREATH:SOUND:0:20
-dice:250
-effect:RANDOM
-dice:4
+dice:63
 
 name:DRAGON_POWER
 aim:1
@@ -592,11 +582,9 @@ name:DRAGON_SILVER
 aim:1
 power:19
 effect:BREATH:INERTIA:0:20
-dice:150
+dice:75
 effect:BREATH:COLD:0:20
-dice:150
-effect:RANDOM
-dice:2
+dice:75
 
 name:DRAGON_ETHEREAL
 aim:1
@@ -608,11 +596,9 @@ name:DRAGON_DLISK
 aim:1
 power:21
 effect:BREATH:NEXUS:0:20
-dice:200
+dice:100
 effect:BREATH:FIRE:0:20
-dice:200
-effect:RANDOM
-dice:2
+dice:100
 
 name:DRAGON_WATER
 aim:1
@@ -658,11 +644,9 @@ name:DRINK_BREATH
 aim:1
 power:8
 effect:BREATH:COLD:0:30
-dice:80
+dice:40
 effect:BREATH:FIRE:0:30
-dice:80
-effect:RANDOM
-dice:2
+dice:40
 
 name:EARTHQUAKES
 aim:0
@@ -1339,22 +1323,20 @@ name:WAND_BREATH
 aim:1
 power:12
 effect:BREATH:POIS:0:30
-dice:160
+dice:32
 msg_other: shoots dragon poison!
 effect:BREATH:COLD:0:30
-dice:160
+dice:32
 msg_other: shoots dragon frost!
 effect:BREATH:FIRE:0:30
-dice:160
+dice:32
 msg_other: shoots dragon fire!
 effect:BREATH:ELEC:0:30
-dice:160
+dice:32
 msg_other: shoots dragon lightning!
 effect:BREATH:ACID:0:30
-dice:160
+dice:32
 msg_other: shoots dragon acid!
-effect:RANDOM
-dice:5
 
 name:WONDER
 aim:1

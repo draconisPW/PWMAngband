@@ -3562,11 +3562,9 @@ pile:100:1d2
 alloc:20:40 to 100
 pile:70:1d3
 effect:BREATH:COLD:1:20
-dice:80
+dice:40
 effect:BREATH:FIRE:1:20
-dice:80
-effect:RANDOM
-dice:2
+dice:40
 
 
 ##### Wands #####
@@ -3943,22 +3941,20 @@ armor:0:0
 charges:1+d3
 flags:IGNORE_ACID | IGNORE_ELEC | IGNORE_FIRE | IGNORE_COLD
 effect:ARC:POIS:0:30
-dice:160
+dice:32
 msg_other: shoots dragon poison!
 effect:ARC:COLD:0:30
-dice:160
+dice:32
 msg_other: shoots dragon frost!
 effect:ARC:FIRE:0:30
-dice:160
+dice:32
 msg_other: shoots dragon fire!
 effect:ARC:ELEC:0:30
-dice:160
+dice:32
 msg_other: shoots dragon lightning!
 effect:ARC:ACID:0:30
-dice:160
+dice:32
 msg_other: shoots dragon acid!
-effect:RANDOM
-dice:5
 
 ### Drain lifes ###
 

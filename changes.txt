@@ -135,6 +135,7 @@ PWMAngband:
 - Give UNLIGHT players extra infravision
 - Add INC_BY_FIXED and DEC_BY_FIXED to increase/decrease satiation by a fixed
   amount instead of using percentage
+- Apply V's SELECT effect as an average of all effects
 - New class: Villager
 
 Bugs fixed
