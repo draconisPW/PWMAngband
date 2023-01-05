@@ -88,7 +88,7 @@ PWMAngband:
 - Don't clear monster/player detection counter if using the 'L' command
   after detection until the player has finished looking around
 - Add a loading screen between character selection and MotD display
-- Allow to color portions of a message using § and ^ tags
+- Allow to color portions of a message using $ and ^ tags
 - SDL: rearrange options menu like for the Win client and only allow changing
   tile options during setup phase
 - SDL2: only allow changing tile options during setup phase
