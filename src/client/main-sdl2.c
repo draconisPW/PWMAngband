@@ -939,7 +939,7 @@ static void render_glyph_mono(const struct window *window,
                 font->cache.texture, &font->cache.rects[codepoint], &dst);
     } else {
         SDL_Surface *surface = TTF_RenderGlyph_Blended(font->ttf.handle,
-                (Uint16) codepoint, *fg);
+                (Uint8) codepoint, *fg);
         if (surface == NULL) {
             return;
         }
@@ -4517,7 +4517,7 @@ static void make_font_cache(const struct window *window, struct font *font)
 
     for (size_t i = 0; i < ASCII_CACHE_SIZE; i++) {
         SDL_Surface *surface = TTF_RenderGlyph_Blended(font->ttf.handle,
-                (Uint16) g_ascii_codepoints_for_cache[i], white);
+                (Uint8) g_ascii_codepoints_for_cache[i], white);
         if (surface == NULL) {
             quit_fmt("font cache rendering failed for '%c'"
                 " (ASCII %lu) in font '%s': %s",
