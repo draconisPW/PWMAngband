@@ -3,6 +3,7 @@
  * \brief Angband SDL2 port
  *
  * Copyright (c) 1997 Ben Harrison and others
+ * Copyright (c) 2022 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -2341,6 +2342,11 @@ static void handle_menu_font_name(struct window *window,
         button->data.value.font_value.size_ok = true;
     } else {
         button->data.value.font_value.size_ok = false;
+    }
+
+    /* Hack -- set ANGBAND_FONTNAME for main window */
+    if (subwindow->index == MAIN_SUBWINDOW) {
+        ANGBAND_FONTNAME = subwindow->font->name;
     }
 }
 
@@ -5482,6 +5488,11 @@ static void load_subwindow(struct window *window, struct subwindow *subwindow)
     if (SDL_RenderClear(window->renderer) != 0) {
         quit_fmt("cannot clear texture in subwindow %u window %u: %s",
                 subwindow->index, window->index, SDL_GetError());
+    }
+
+    /* Hack -- set ANGBAND_FONTNAME for main window */
+    if (subwindow->index == MAIN_SUBWINDOW) {
+        ANGBAND_FONTNAME = subwindow->config->font_name;
     }
 
     subwindow->window = window;

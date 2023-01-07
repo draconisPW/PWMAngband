@@ -1608,8 +1608,7 @@ static void HelpWindowFontChange(term_window *window)
 	SetStatusButtons();
 
     /* Hack -- set ANGBAND_FONTNAME for main window */
-    if (!Setup.initialized && window->Term_idx == 0)
-        ANGBAND_FONTNAME = window->req_font.name;
+    if (window->Term_idx == 0) ANGBAND_FONTNAME = window->req_font.name;
 }
 
 
