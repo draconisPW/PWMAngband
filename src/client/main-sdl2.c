@@ -2343,11 +2343,6 @@ static void handle_menu_font_name(struct window *window,
     } else {
         button->data.value.font_value.size_ok = false;
     }
-
-    /* Hack -- set ANGBAND_FONTNAME for main window */
-    if (subwindow->index == MAIN_SUBWINDOW) {
-        ANGBAND_FONTNAME = subwindow->font->name;
-    }
 }
 
 static void handle_menu_font_size(struct window *window,
@@ -4608,6 +4603,11 @@ static bool reload_font(struct subwindow *subwindow,
     subwindow->font = new_font;
 
     resize_subwindow(subwindow);
+
+    /* Hack -- set ANGBAND_FONTNAME for main window */
+    if (subwindow->index == MAIN_SUBWINDOW) {
+        ANGBAND_FONTNAME = subwindow->font->name;
+    }
 
     return true;
 }
