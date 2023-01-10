@@ -5492,7 +5492,7 @@ static void load_subwindow(struct window *window, struct subwindow *subwindow)
 
     /* Hack -- set ANGBAND_FONTNAME for main window */
     if (subwindow->index == MAIN_SUBWINDOW) {
-        ANGBAND_FONTNAME = subwindow->config->font_name;
+        ANGBAND_FONTNAME = subwindow->font->name;
     }
 
     subwindow->window = window;
