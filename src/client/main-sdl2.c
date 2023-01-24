@@ -44,7 +44,7 @@
     (IMG_INIT_PNG)
 
 /* Chat window (term_chat) */
-#define CHAT_SUBWINDOW 4
+#define CHAT_SUBWINDOW PMSG_TERM
 
 /* this is the main term screen, where all the action takes place */
 #define MAIN_SUBWINDOW 0
