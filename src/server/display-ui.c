@@ -5538,6 +5538,22 @@ static void display_message_aux(struct player *p, int type, const char *msg)
          */
         if (p && log)
         {
+            char buf[MSG_LEN];
+            int i, j = 0;
+
+            /* Strip msg from color tags */
+            for (i = 0; msg[i] != '\0'; i++)
+            {
+                if (msg[i] != '$' && msg[i] != '^')
+                {
+                    buf[j] = msg[i];
+                    j++;
+                }
+                else
+                    i++;
+            }
+            buf[j] = '\0';
+
             add = true;
 
             /* Ensure we know where the last message is */
@@ -5545,7 +5561,7 @@ static void display_message_aux(struct player *p, int type, const char *msg)
             if (ptr < 0) ptr = MAX_MSG_HIST - 1;
 
             /* If this message is already in the buffer, count it as a dupe */
-            if (streq(p->msg_log[ptr], msg))
+            if (streq(p->msg_log[ptr], buf))
             {
                 p->msg_hist_dupe++;
 
@@ -5566,7 +5582,7 @@ static void display_message_aux(struct player *p, int type, const char *msg)
             if (add)
             {
                 /* Standard, unique (for the moment) message */
-                my_strcpy(p->msg_log[p->msg_hist_ptr], msg, NORMAL_WID - 1);
+                my_strcpy(p->msg_log[p->msg_hist_ptr], buf, NORMAL_WID - 1);
                 p->msg_hist_ptr++;
             }
 
@@ -5575,7 +5591,7 @@ static void display_message_aux(struct player *p, int type, const char *msg)
                 p->msg_hist_ptr = 0;
 
             /* Log the message */
-            plog_fmt("%s: %s", p->name, msg);
+            plog_fmt("%s: %s", p->name, buf);
         }
         else if (log)
         {
