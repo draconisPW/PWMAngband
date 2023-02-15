@@ -32,13 +32,7 @@ static void store_maint(struct store *s, bool force);
 
 
 /*
- * Maximum number of stores
- */
-int store_max;
-
-
-/*
- * Array[store_max] of stores
+ * Array[z_info->store_max] of stores
  */
 struct store *stores;
 
@@ -52,7 +46,7 @@ struct hint *swear;
 
 /* Black market */
 #define store_black_market(st) \
-    (((st)->type == STORE_B_MARKET) || ((st)->type == STORE_XBM))
+    (((st)->feat == FEAT_STORE_BLACK) || ((st)->feat == FEAT_STORE_XBM))
 
 
 /* Store orders */
@@ -76,19 +70,6 @@ struct store *store_at(struct player *p)
 
 
 /*
- * Create a new store.
- */
-static struct store *store_new(void)
-{
-    struct store *s = mem_zalloc(sizeof(*s));
-
-    s->stock_size = z_info->store_inven_max;
-
-    return s;
-}
-
-
-/*
  * Get rid of stores at cleanup. Gets rid of everything.
  */
 static void cleanup_stores(void)
@@ -100,12 +81,10 @@ static void cleanup_stores(void)
     if (!stores) return;
 
     /* Free the store inventories */
-    for (i = 0; i < store_max; i++)
+    for (i = 0; i < z_info->store_max; i++)
     {
         /* Get the store */
         struct store *s = &stores[i];
-
-        string_free(s->name);
 
         /* Free the store inventory */
         object_pile_free(s->stock);
@@ -140,28 +119,32 @@ static void cleanup_stores(void)
 
 static enum parser_error parse_store(struct parser *p)
 {
-    struct store *h = parser_priv(p);
+    int feat = lookup_feat_code(parser_getstr(p, "feat"));
     struct store *s;
 
-    s = store_new();
-    s->name = string_make(parser_getstr(p, "name"));
-    s->next = h;
-    parser_setpriv(p, s);
+    /* Non-feature: placeholder for player stores */
+    if (feat == FEAT_STORE_PLAYER)
+    {
+        s = &stores[z_info->store_max - 1];
+        s->feat = feat;
+        s->stock_size = z_info->store_inven_max;
+        parser_setpriv(p, s);
+        return PARSE_ERROR_NONE;
+    }
 
-    return PARSE_ERROR_NONE;
-}
+    if (feat < 0 || feat >= FEAT_MAX) return PARSE_ERROR_OUT_OF_BOUNDS;
+    if (!tf_has(f_info[feat].flags, TF_SHOP)) return PARSE_ERROR_INVALID_VALUE;
+    my_assert(f_info[feat].shopnum >= 1 && f_info[feat].shopnum <= z_info->store_max - 1);
 
-
-static enum parser_error parse_type(struct parser *p)
-{
-    struct store *s = parser_priv(p);
-
-    s->type = parser_getint(p, "type");
+    s = &stores[feat_shopnum(feat)];
+    s->feat = feat;
+    s->stock_size = z_info->store_inven_max;
 
     /* PWMAngband: the Home has its own capacity if we have access to houses */
-    if ((s->type == STORE_HOME) && (cfg_diving_mode < 2))
+    if ((s->feat == FEAT_HOME) && (cfg_diving_mode < 2))
         s->stock_size = z_info->home_inven_max;
 
+    parser_setpriv(p, s);
     return PARSE_ERROR_NONE;
 }
 
@@ -361,8 +344,7 @@ static struct parser *init_parse_stores(void)
     struct parser *p = parser_new();
 
     parser_setpriv(p, NULL);
-    parser_reg(p, "store str name", parse_store);
-    parser_reg(p, "type int type", parse_type);
+    parser_reg(p, "store str feat", parse_store);
     parser_reg(p, "owner uint purse str name", parse_owner);
     parser_reg(p, "slots uint min uint max", parse_slots);
     parser_reg(p, "turnover uint turnover", parse_turnover);
@@ -372,6 +354,11 @@ static struct parser *init_parse_stores(void)
     parser_reg(p, "buy-flag sym flag str base", parse_buy_flag);
     parser_reg(p, "welcome int index str welcome", parse_welcome);
 
+    /*
+     * The number of stores is known from terrain.txt so allocate the
+     * store array here and fill in the details when parsing.
+     */
+    stores = mem_zalloc(z_info->store_max * sizeof(*stores));
     return p;
 }
 
@@ -384,7 +371,6 @@ static errr run_parse_stores(struct parser *p)
 
 static errr finish_parse_stores(struct parser *p)
 {
-    stores = parser_priv(p);
     parser_destroy(p);
     return 0;
 }
@@ -405,41 +391,9 @@ static struct file_parser store_parser =
  */
 
 
-static struct store *flatten_stores(struct store *store_list)
-{
-    struct store *s;
-    struct store *stores_local;
-    int sidx;
-
-    /* Scan the list for the max id */
-    store_max = 0;
-    for (s = store_list; s; s = s->next) store_max++;
-
-    /* Allocate the direct access list and copy the data to it */
-    stores_local = mem_zalloc(store_max * sizeof(*stores_local));
-    sidx = store_max - 1;
-    for (s = store_list; s; s = s->next, sidx--)
-    {
-        memcpy(&stores_local[sidx], s, sizeof(*s));
-        stores_local[sidx].sidx = sidx;
-        stores_local[sidx].next = NULL;
-    }
-
-    while (store_list)
-    {
-        s = store_list->next;
-        mem_free(store_list);
-        store_list = s;
-    }
-
-    return stores_local;
-}
-
-
 static void store_init(void)
 {
     if (run_parser(&store_parser)) quit("Cannot initialize stores");
-    stores = flatten_stores(stores);
 }
 
 
@@ -448,14 +402,14 @@ void store_reset(void)
     int i, j;
     struct store *s;
 
-    for (i = 0; i < store_max; i++)
+    for (i = 0; i < z_info->store_max; i++)
     {
         s = &stores[i];
         s->stock_num = 0;
         store_shuffle(s, true);
         object_pile_free(s->stock);
         s->stock = NULL;
-        if (s->type >= STORE_TAVERN) continue;
+        if (s->feat >= FEAT_STORE_TAVERN) continue;
         for (j = 0; j < 10; j++) store_maint(s, true);
     }
 
@@ -616,17 +570,16 @@ static void purchase_analyze(struct player *p, int price, int value, int guess)
  *
  * Note that a shop-keeper must refuse to buy "worthless" objects
  */
-static bool store_will_buy(struct player *p, int sidx, const struct object *obj)
+static bool store_will_buy(struct player *p, struct store *s, const struct object *obj)
 {
     struct object_buy *buy;
-    struct store *s = &stores[sidx];
     bool unknown;
 
     /* Home accepts anything */
-    if (s->type == STORE_HOME) return true;
+    if (s->feat == FEAT_HOME) return true;
 
     /* PWMAngband: don't accept objects that are not fully known in the General Store */
-    if ((s->type == STORE_GENERAL) && !object_fully_known(p, obj)) return false;
+    if ((s->feat == FEAT_STORE_GENERAL) && !object_fully_known(p, obj)) return false;
 
     /* PWMAngband: store doesn't buy anything */
     if (cfg_limited_stores == 2) return false;
@@ -693,7 +646,7 @@ int32_t price_item(struct player *p, struct object *obj, bool store_buying, int 
     else factor = 8;
 
     /* Player owned shops */
-    if (s->type == STORE_PLAYER)
+    if (s->feat == FEAT_STORE_PLAYER)
     {
         /* Disable selling true artifacts */
         if (true_artifact_p(obj)) return (0L);
@@ -733,8 +686,8 @@ int32_t price_item(struct player *p, struct object *obj, bool store_buying, int 
         price = price * 2 / 3;
 
         /* Black markets suck */
-        if (s->type == STORE_B_MARKET) price = floor(price / 2);
-        if (s->type == STORE_XBM) price = floor(price / factor);
+        if (s->feat == FEAT_STORE_BLACK) price = floor(price / 2);
+        if (s->feat == FEAT_STORE_XBM) price = floor(price / factor);
 
         /* Check for no_selling option */
         if (cfg_limited_stores || OPT(p, birth_no_selling)) return (0L);
@@ -746,8 +699,8 @@ int32_t price_item(struct player *p, struct object *obj, bool store_buying, int 
         size_t i;
 
         /* Black markets suck */
-        if (s->type == STORE_B_MARKET) price = price * 2;
-        if (s->type == STORE_XBM) price = price * factor;
+        if (s->feat == FEAT_STORE_BLACK) price = price * 2;
+        if (s->feat == FEAT_STORE_XBM) price = price * factor;
 
         /* PWMAngband: apply price factor for normal items */
         for (i = 0; i < s->normal_num; i++)
@@ -888,7 +841,7 @@ void store_stock_list(struct player *p, struct store *s, struct object **list, i
 {
     int list_num;
     int num = 0;
-    bool home = ((s->type == STORE_HOME)? true: false);
+    bool home = ((s->feat == FEAT_HOME)? true: false);
 
     for (list_num = 0; list_num < n; list_num++)
     {
@@ -947,8 +900,8 @@ static void store_object_absorb(struct object *obj, struct object *new_obj)
 static bool store_check_num(struct player *p, struct store *s, struct object *obj)
 {
     struct object *stock_obj;
-    bool home = ((s->type == STORE_HOME)? true: false);
-    object_stack_t mode = ((s->type == STORE_HOME)? OSTACK_PACK: OSTACK_STORE);
+    bool home = ((s->feat == FEAT_HOME)? true: false);
+    object_stack_t mode = ((s->feat == FEAT_HOME)? OSTACK_PACK: OSTACK_STORE);
 
     /* Free space is always usable */
     if (s->stock_num < s->stock_size) return true;
@@ -1090,7 +1043,7 @@ struct object *store_carry(struct player *p, struct store *s, struct object *obj
     if (s->stock_num >= s->stock_size) return NULL;
 
     /* Check for orders */
-    if ((s->type == STORE_XBM) && !obj->ordered)
+    if ((s->feat == FEAT_STORE_XBM) && !obj->ordered)
     {
         char o_name[NORMAL_WID];
         char *str;
@@ -1277,11 +1230,11 @@ static bool black_market_ok(struct object *obj)
     if (object_value(NULL, obj, 1) < 10) return false;
 
     /* Check the other "normal" stores */
-    for (i = 0; i < store_max; i++)
+    for (i = 0; i < z_info->store_max; i++)
     {
         struct object *stock_obj;
 
-        if (stores[i].type >= STORE_B_MARKET) continue;
+        if (stores[i].feat >= FEAT_STORE_BLACK) continue;
 
         /* Check every object in the store */
         for (stock_obj = stores[i].stock; stock_obj; stock_obj = stock_obj->next)
@@ -1327,12 +1280,12 @@ static bool store_create_random(struct store *s)
     if (s->stock_num >= s->stock_size) return false;
 
     /* Decide min/max levels */
-    if (s->type == STORE_B_MARKET)
+    if (s->feat == FEAT_STORE_BLACK)
     {
         min_level = MIN(s->max_depth + 5, 55);
         max_level = MIN(s->max_depth + 20, 70);
     }
-    else if (s->type == STORE_XBM)
+    else if (s->feat == FEAT_STORE_XBM)
     {
         min_level = 55;
         max_level = 100;
@@ -1452,7 +1405,7 @@ static void store_maint(struct store *s, bool force)
     int j, n = 0;
 
     /* Ignore tavern, home and player shops */
-    if (s->type >= STORE_TAVERN) return;
+    if (s->feat >= FEAT_STORE_TAVERN) return;
 
     /* Make sure no one is in the store */
     if (!force)
@@ -1460,7 +1413,7 @@ static void store_maint(struct store *s, bool force)
         for (j = 1; j <= NumPlayers; j++)
         {
             /* Check this player */
-            if (player_get(j)->store_num == (int)s->sidx) return;
+            if (player_get(j)->store_num == feat_shopnum(s->feat)) return;
         }
     }
 
@@ -1479,7 +1432,7 @@ static void store_maint(struct store *s, bool force)
     }
 
     /* Check for orders */
-    for (j = 0; ((s->type == STORE_XBM) && (j < STORE_ORDERS)); j++)
+    for (j = 0; ((s->feat == FEAT_STORE_XBM) && (j < STORE_ORDERS)); j++)
     {
         if (!STRZERO(store_orders[j].order)) n++;
     }
@@ -1528,7 +1481,15 @@ static void store_maint(struct store *s, bool force)
             store_delete_random(s);
 
         if (!restock_attempts)
-            quit_fmt("Unable to (de-)stock store %d. Please report this bug.", s->sidx + 1);
+        {
+            if (f_info[s->feat].name)
+                quit_fmt("Unable to (de-)stock %s. Please report this bug.", f_info[s->feat].name);
+            else
+            {
+                quit_fmt("Unable to (de-)stock store %d. Please report this bug.",
+                    f_info[s->feat].shopnum);
+            }
+        }
     }
     else
     {
@@ -1584,7 +1545,15 @@ static void store_maint(struct store *s, bool force)
         while ((s->stock_num < stock) && --restock_attempts) store_create_random(s);
 
         if (!restock_attempts)
-            quit_fmt("Unable to (re-)stock store %d. Please report this bug.", s->sidx + 1);
+        {
+            if (f_info[s->feat].name)
+                quit_fmt("Unable to (re-)stock %s. Please report this bug.", f_info[s->feat].name);
+            else
+            {
+                quit_fmt("Unable to (re-)stock store %d. Please report this bug.",
+                    f_info[s->feat].shopnum);
+            }
+        }
     }
 }
 
@@ -1599,12 +1568,12 @@ void store_update(void)
         int n;
 
         /* Maintain each shop (except home) */
-        for (n = 0; n < store_max; n++)
+        for (n = 0; n < z_info->store_max; n++)
         {
             struct store *s = &stores[n];
 
             /* Skip the home */
-            if (s->type == STORE_HOME) continue;
+            if (s->feat == FEAT_HOME) continue;
 
             /* Maintain */
             store_maint(s, false);
@@ -1614,7 +1583,7 @@ void store_update(void)
         if (one_in_(z_info->store_shuffle))
         {
             /* Pick a random shop (except tavern, home and player store) */
-            n = randint0(store_max - 3);
+            n = randint0(z_info->store_max - 3);
 
             /* Shuffle it */
             store_shuffle(&stores[n], false);
@@ -1659,14 +1628,14 @@ void store_shuffle(struct store *s, bool force)
     struct owner *o = s->owner;
 
     /* Make sure no one is in the store (ignore tavern and player shops) */
-    if ((s->type < STORE_TAVERN) && !force)
+    if ((s->feat < FEAT_STORE_TAVERN) && !force)
     {
         int i;
 
         for (i = 1; i <= NumPlayers; i++)
         {
             /* Check this player */
-            if (player_get(i)->store_num == (int)s->sidx) return;
+            if (player_get(i)->store_num == feat_shopnum(s->feat)) return;
         }
     }
 
@@ -1877,7 +1846,7 @@ static void display_entry(struct player *p, struct object *obj, bool home)
         object_desc(p, o_name, sizeof(o_name), obj, ODESC_PREFIX | ODESC_FULL | ODESC_STORE);
 
     /* Mark ordered objects */
-    if ((s->type != STORE_PLAYER) && obj->ordered)
+    if ((s->feat != FEAT_STORE_PLAYER) && obj->ordered)
         my_strcat(o_name, " [*]", sizeof(o_name));
 
     attr = obj->kind->base->attr;
@@ -1886,7 +1855,7 @@ static void display_entry(struct player *p, struct object *obj, bool home)
     wgt = obj->weight;
 
     /* Normal stores */
-    if (s->type != STORE_PLAYER)
+    if (s->feat != FEAT_STORE_PLAYER)
     {
         if (home)
             amt = obj->number;
@@ -1971,7 +1940,7 @@ static bool set_askprice(struct object *obj)
 static int display_inventory(struct player *p)
 {
     struct store *s = store_at(p);
-    bool home = ((s->type == STORE_HOME)? true: false);
+    bool home = ((s->feat == FEAT_HOME)? true: false);
     int i;
 
     /* Stock -- sorted array of stock items */
@@ -2184,13 +2153,13 @@ static void display_store(struct player *p, bool entering)
     Send_spell_info(p, 0, 0, "", &flags, 0);
 
     /* Send the inventory */
-    if (s->type != STORE_PLAYER)
+    if (s->feat != FEAT_STORE_PLAYER)
         stockcount = display_inventory(p);
     else
         stockcount = display_live_inventory(p);
 
     /* Get the store info for normal stores */
-    if (s->type != STORE_PLAYER)
+    if (s->feat != FEAT_STORE_PLAYER)
     {
         struct owner *proprietor = store_at(p)->owner;
         const char *owner_name = proprietor->name;
@@ -2198,7 +2167,7 @@ static void display_store(struct player *p, bool entering)
         purse = proprietor->max_cost;
 
         /* Get the store name */
-        strnfmt(store_name, sizeof(store_name), "%s", store_at(p)->name);
+        strnfmt(store_name, sizeof(store_name), "%s", f_info[s->feat].name);
 
         /* Put the owner name and race */
         strnfmt(store_owner_name, sizeof(store_owner_name), "%s", owner_name);
@@ -2219,11 +2188,11 @@ static void display_store(struct player *p, bool entering)
 
     /* Say a friendly hello. */
     memset(welcome, 0, sizeof(welcome));
-    if ((s->type != STORE_HOME) && (s->type != STORE_PLAYER))
+    if ((s->feat != FEAT_HOME) && (s->feat != FEAT_STORE_PLAYER))
         prt_welcome(p, welcome, sizeof(welcome));
 
     /* Send the store info */
-    Send_store_info(p, s->type, store_name, store_owner_name, welcome, stockcount, purse);
+    Send_store_info(p, s->feat, store_name, store_owner_name, welcome, stockcount, purse);
 }
 
 
@@ -2373,20 +2342,20 @@ void do_cmd_buy(struct player *p, int item, int amt)
     char o_name[NORMAL_WID];
     int32_t price;
     struct store *s = store_at(p);
-    uint8_t origin = ((s->type == STORE_PLAYER)? ORIGIN_PLAYER: ORIGIN_STORE);
+    uint8_t origin = ((s->feat == FEAT_STORE_PLAYER)? ORIGIN_PLAYER: ORIGIN_STORE);
 
     /* Paranoia */
     if (item < 0) return;
 
     /* Player cannot buy from own store */
-    if ((s->type == STORE_PLAYER) && house_owned_by(p, p->player_store_num))
+    if ((s->feat == FEAT_STORE_PLAYER) && house_owned_by(p, p->player_store_num))
     {
         msg(p, "You cannot buy from yourself.");
         return;
     }
 
     /* Don't sell if someone has just entered the house (anti-exploit) */
-    if (s->type == STORE_PLAYER)
+    if (s->feat == FEAT_STORE_PLAYER)
     {
         int i;
 
@@ -2403,7 +2372,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     }
 
     /* Player owned stores */
-    if (s->type == STORE_PLAYER)
+    if (s->feat == FEAT_STORE_PLAYER)
     {
         /* Scan the store to find the item */
         obj = player_store_object(p, item, &original);
@@ -2429,7 +2398,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
         object_prevent_inscription(p, obj, INSCRIPTION_PURCHASE, false))
     {
         msg(p, "Sorry, this item is not for sale.");
-        if (s->type == STORE_PLAYER) object_delete(&obj);
+        if (s->feat == FEAT_STORE_PLAYER) object_delete(&obj);
         return;
     }
 
@@ -2446,7 +2415,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     {
         msg(p, "You cannot carry that many items.");
         object_delete(&bought);
-        if (s->type == STORE_PLAYER) object_delete(&obj);
+        if (s->feat == FEAT_STORE_PLAYER) object_delete(&obj);
         return;
     }
 
@@ -2455,7 +2424,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     {
         msg(p, "You are already too burdened to carry another object.");
         object_delete(&bought);
-        if (s->type == STORE_PLAYER) object_delete(&obj);
+        if (s->feat == FEAT_STORE_PLAYER) object_delete(&obj);
         return;
     }
 
@@ -2464,7 +2433,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     {
         msg(p, "You don't have the required level!");
         object_delete(&bought);
-        if (s->type == STORE_PLAYER) object_delete(&obj);
+        if (s->feat == FEAT_STORE_PLAYER) object_delete(&obj);
         return;
     }
 
@@ -2479,12 +2448,12 @@ void do_cmd_buy(struct player *p, int item, int amt)
     {
         msg(p, "You cannot afford that purchase.");
         object_delete(&bought);
-        if (s->type == STORE_PLAYER) object_delete(&obj);
+        if (s->feat == FEAT_STORE_PLAYER) object_delete(&obj);
         return;
     }
 
     /* If this is a player shop we have sold a real item */
-    if (s->type == STORE_PLAYER)
+    if (s->feat == FEAT_STORE_PLAYER)
         sell_player_item(p, original, bought);
 
     /* Spend the money */
@@ -2506,7 +2475,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     bought->bypass_aware = false;
 
     /* Message */
-    if ((s->type != STORE_PLAYER) && one_in_(3))
+    if ((s->feat != FEAT_STORE_PLAYER) && one_in_(3))
         msgt(p, MSG_STORE5, ONE_OF(comment_accept));
     msg(p, "You bought %s for %d gold.", o_name, price);
 
@@ -2521,7 +2490,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
         set_origin(bought, origin, p->wpos.depth, NULL);
 
     /* Ensure item owner = store owner */
-    if (s->type == STORE_PLAYER)
+    if (s->feat == FEAT_STORE_PLAYER)
     {
         const char *name = house_get(p->player_store_num)->ownername;
         hash_entry *ptr = lookup_player_by_name(name);
@@ -2536,7 +2505,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     }
 
     /* Hack -- reduce the number of charges in the original stack */
-    if ((s->type != STORE_PLAYER) && tval_can_have_charges(obj))
+    if ((s->feat != FEAT_STORE_PLAYER) && tval_can_have_charges(obj))
         obj->pval -= bought->pval;
 
     /* Give it to the player */
@@ -2546,7 +2515,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     handle_stuff(p);
 
     /* Remove the bought objects from the store if it's not a readily replaced staple item */
-    if ((s->type != STORE_PLAYER) && store_sale_should_reduce_stock(s, obj))
+    if ((s->feat != FEAT_STORE_PLAYER) && store_sale_should_reduce_stock(s, obj))
     {
         /* Reduce or remove the item */
         store_delete(s, obj, amt);
@@ -2578,7 +2547,7 @@ void do_cmd_buy(struct player *p, int item, int amt)
     display_store(p, false);
     store_prt_gold(p);
 
-    if (s->type == STORE_PLAYER) object_delete(&obj);
+    if (s->feat == FEAT_STORE_PLAYER) object_delete(&obj);
 }
 
 
@@ -2594,7 +2563,7 @@ void do_cmd_retrieve(struct player *p, int item, int amt)
     if (item < 0) return;
     if (!s) return;
 
-    if (s->type != STORE_HOME)
+    if (s->feat != FEAT_HOME)
     {
         msg(p, "You are not currently at home.");
         return;
@@ -2660,7 +2629,7 @@ bool store_will_buy_tester(struct player *p, const struct object *obj)
 
     if (!s) return false;
 
-    return store_will_buy(p, p->store_num, obj);
+    return store_will_buy(p, s, obj);
 }
 
 
@@ -2766,7 +2735,7 @@ void do_cmd_stash(struct player *p, int item, int amt)
     bool none_left = false;
 
     /* Check we are somewhere we can stash items. */
-    if (s->type != STORE_HOME)
+    if (s->feat != FEAT_HOME)
     {
         msg(p, "You are not in your home.");
         return;
@@ -2966,10 +2935,10 @@ void store_examine(struct player *p, int item, bool describe)
     uint32_t odesc_flags = ODESC_PREFIX | ODESC_FULL;
 
     /* Items in the home get less description */
-    if (s->type != STORE_HOME) odesc_flags |= ODESC_STORE;
+    if (s->feat != FEAT_HOME) odesc_flags |= ODESC_STORE;
 
     /* Player owned stores */
-    if (s->type == STORE_PLAYER)
+    if (s->feat == FEAT_STORE_PLAYER)
     {
         struct object *dummy;
 
@@ -2985,7 +2954,7 @@ void store_examine(struct player *p, int item, bool describe)
     else
     {
         /* Hack -- map the Home to each player */
-        if (s->type == STORE_HOME) s = p->home;
+        if (s->feat == FEAT_HOME) s = p->home;
 
         /* Get the actual item */
         for (obj = s->stock; obj; obj = obj->next)
@@ -3006,8 +2975,8 @@ void store_examine(struct player *p, int item, bool describe)
         int price;
 
         /* Get the store info for normal stores */
-        if (s->type != STORE_PLAYER)
-            strnfmt(store_name, sizeof(store_name), "%s", store_at(p)->name);
+        if (s->feat != FEAT_STORE_PLAYER)
+            strnfmt(store_name, sizeof(store_name), "%s", f_info[s->feat].name);
 
         /* Player owned stores */
         else
@@ -3019,7 +2988,7 @@ void store_examine(struct player *p, int item, bool describe)
 
             wpos_init(&wpos, &p->wpos.grid, 0);
             strnfmt(message, sizeof(message), "%s: %s (%s at %d')", p->name, store_name,
-                p->wpos.depth * 50, get_dungeon(&wpos)->name);
+                get_dungeon(&wpos)->name, p->wpos.depth * 50);
         }
         else
         {
@@ -3035,7 +3004,7 @@ void store_examine(struct player *p, int item, bool describe)
         }
         msg_all(p, message, MSG_BROADCAST_STORE);
 
-        price = ((s->type == STORE_HOME)? 0: price_item(p, obj, false, 1));
+        price = ((s->feat == FEAT_HOME)? 0: price_item(p, obj, false, 1));
         if (price > 0)
             strnfmt(message, sizeof(message), "%s: %s (%d au)", p->name, header, price);
         else
@@ -3049,7 +3018,7 @@ void store_examine(struct player *p, int item, bool describe)
     /* Handle stuff */
     handle_stuff(p);
 
-    if (s->type == STORE_PLAYER) object_delete(&obj);
+    if (s->feat == FEAT_STORE_PLAYER) object_delete(&obj);
 }
 
 
@@ -3065,7 +3034,7 @@ void store_order(struct player *p, const char *buf)
     char *str;
 
     /* Paranoia */
-    if (s->type != STORE_XBM)
+    if (s->feat != FEAT_STORE_XBM)
     {
         msg(p, "You cannot order from this store.");
         return;
@@ -3148,7 +3117,7 @@ void do_cmd_store(struct player *p, int pstore)
         s = &stores[which];
 
         /* Hack -- ignore the tavern */
-        if (s->type == STORE_TAVERN) return;
+        if (s->feat == FEAT_STORE_TAVERN) return;
 
         /* Check if we can enter the store */
         if ((cfg_limited_stores == 3) || OPT(p, birth_no_stores))
@@ -3180,10 +3149,10 @@ void do_cmd_store(struct player *p, int pstore)
             s = &stores[which_player];
 
             /* Hack -- ignore the tavern */
-            if (s->type == STORE_TAVERN) continue;
+            if (s->feat == FEAT_STORE_TAVERN) continue;
 
             /* Hack -- ignore the Home */
-            if (s->type == STORE_HOME) continue;
+            if (s->feat == FEAT_HOME) continue;
 
             /* Store is closed if someone is already in the shop */
             if (which_player == which)
@@ -3233,11 +3202,11 @@ void do_cmd_store(struct player *p, int pstore)
             }
         }
 
-        p->store_num = store_max - 1;
+        p->store_num = z_info->store_max - 1;
         p->player_store_num = pstore;
     }
 
-    sound(p, (s->type == STORE_HOME)? MSG_STORE_HOME: MSG_STORE_ENTER);
+    sound(p, (s->feat == FEAT_HOME)? MSG_STORE_HOME: MSG_STORE_ENTER);
 
     /* Display the store */
     display_store(p, true);
@@ -3294,10 +3263,10 @@ static struct object *store_get_order_item(int order)
     struct object *obj;
     int i;
 
-    for (i = 0; i < store_max; i++)
+    for (i = 0; i < z_info->store_max; i++)
     {
         s = &stores[i];
-        if (s->type == STORE_XBM) break;
+        if (s->feat == FEAT_STORE_XBM) break;
     }
 
     /* Iterate over stock items */

@@ -92,9 +92,9 @@ min-depth:10
 max-depth:23
 max-level:30
 flags:CAVERN | STREAMS
-floor:packed dirt:1000
-wall:mountain:1200
-fill:mountain:600
+floor:DIRT:1000
+wall:MOUNTAIN:1200
+fill:MOUNTAIN:600
 rule:5000:0
 rule-flags:ORC
 rule-symbols:koO
@@ -110,10 +110,10 @@ min-depth:13
 max-depth:25
 max-level:30
 flags:NO_DOORS | WATER_RIVER | STREAMS
-floor:packed dirt:8
-floor:water:200
-wall:tree:1200
-fill:tree:600
+floor:DIRT:8
+floor:WATER:200
+wall:TREE:1200
+fill:TREE:600
 rule:4000:0
 rule-flags:ANIMAL
 rule:3000:0
@@ -129,9 +129,9 @@ min-depth:18
 max-depth:30
 max-level:35
 flags:CAVERN | STREAMS
-floor:packed dirt:1000
-wall:mountain:1200
-fill:mountain:600
+floor:DIRT:1000
+wall:MOUNTAIN:1200
+fill:MOUNTAIN:600
 rule:5000:0
 rule-flags:TROLL
 rule:3000:0
@@ -147,9 +147,9 @@ min-depth:22
 max-depth:30
 max-level:35
 flags:NO_DOORS | SAND_VEIN | STREAMS
-floor:sand:1000
-wall:sandwall:1200
-fill:sandwall:600
+floor:SAND:1000
+wall:SANDWALL:1200
+fill:SANDWALL:600
 rule:9000:0
 rule-symbols:w
 rule:1000:0
@@ -163,11 +163,11 @@ min-depth:20
 max-depth:34
 max-level:40
 flags:STREAMS
-floor:grass:1000
-wall:tree:400
-wall:water:400
-fill:tree:200
-fill:water:200
+floor:GRASS:1000
+wall:TREE:400
+wall:WATER:400
+fill:TREE:200
+fill:WATER:200
 rule:3000:0
 rule-symbols:ph
 rule:3000:0
@@ -182,12 +182,12 @@ min-depth:1
 max-depth:35
 max-level:40
 flags:STREAMS
-floor:packed dirt:800
-floor:grass:200
-wall:tree:400
-wall:mountain:800
-fill:tree:200
-fill:mountain:400
+floor:DIRT:800
+floor:GRASS:200
+wall:TREE:400
+wall:MOUNTAIN:800
+fill:TREE:200
+fill:MOUNTAIN:400
 rule:2500:0
 rule-flags:UNDEAD
 rule:7500:1
@@ -226,9 +226,9 @@ min-depth:32
 max-depth:45
 max-level:45
 flags:STREAMS
-floor:water:1000
-wall:mountain:1200
-fill:mountain:600
+floor:WATER:1000
+wall:MOUNTAIN:1200
+fill:MOUNTAIN:600
 rule:4000:0
 rule-flags:IM_COLD
 rule:4000:0
@@ -245,9 +245,9 @@ min-depth:20
 max-depth:50
 max-level:45
 flags:CAVERN | WATER_RIVER | STREAMS
-floor:ice:1000
-wall:ice wall:1200
-fill:ice wall:600
+floor:ICE:1000
+wall:ICEWALL:1200
+fill:ICEWALL:600
 rule:10000:0
 rule-flags:IM_COLD
 
@@ -259,9 +259,9 @@ min-depth:30
 max-depth:50
 max-level:45
 flags:WATER_RIVER | STREAMS
-floor:packed dirt:1000
-wall:mountain:1200
-fill:mountain:600
+floor:DIRT:1000
+wall:MOUNTAIN:1200
+fill:MOUNTAIN:600
 rule:4000:0
 rule-flags:ORC
 rule:3000:0
@@ -278,10 +278,10 @@ min-depth:35
 max-depth:52
 max-level:45
 flags:STREAMS
-wall:glass wall:600
-wall:illusion wall:600
-fill:glass wall:300
-fill:illusion wall:300
+wall:GLASSWALL:600
+wall:ILLUSIONWALL:600
+fill:GLASSWALL:300
+fill:ILLUSIONWALL:300
 rule:7000:0
 rule-flags:STUPID | WEIRD_MIND | ATTR_MULTI | ATTR_FLICKER | RAND_25 |
 rule-flags:RAND_50 | EMPTY_MIND | INVISIBLE | PASS_WALL | KILL_WALL | MULTIPLY
@@ -296,12 +296,12 @@ min-depth:25
 max-depth:55
 max-level:45
 flags:CIRCULAR_ROOMS | STREAMS
-floor:packed dirt:700
-floor:web:300
-wall:mountain:1000
-wall:web:120
-fill:mountain:500
-fill:web:60
+floor:DIRT:700
+floor:WEB:300
+wall:MOUNTAIN:1000
+wall:WEB:120
+fill:MOUNTAIN:500
+fill:WEB:60
 rule:4900:0
 rule-symbols:caIS
 rule:4900:0
@@ -317,9 +317,9 @@ min-depth:35
 max-depth:55
 max-level:45
 flags:STREAMS
-floor:water:1000
-wall:water:1000
-fill:water:500
+floor:WATER:1000
+wall:WATER:1000
+fill:WATER:500
 rule:8000:0
 rule-flags:IM_WATER
 rule:2000:1
@@ -331,9 +331,9 @@ wpos:7:24
 min-depth:11
 max-depth:64
 flags:NO_DOORS | STREAMS
-floor:grass:1000
-wall:tree:1200
-fill:tree:600
+floor:GRASS:1000
+wall:TREE:1200
+fill:TREE:600
 rule:2500:0
 rule-symbols:S
 rule:7500:1
@@ -345,10 +345,10 @@ wpos:13:-10
 min-depth:34
 max-depth:65
 flags:CAVERN | LAVA_RIVER | STREAMS
-floor:packed dirt:700
-floor:ash:300
-wall:mountain:600
-fill:mountain:300
+floor:DIRT:700
+floor:ASH:300
+wall:MOUNTAIN:600
+fill:MOUNTAIN:300
 rule:10000:1
 
 # Erebor (boss: Glaurung, Father of the Dragons)
@@ -358,11 +358,11 @@ wpos:12:30
 min-depth:58
 max-depth:70
 flags:CAVERN | LAVA_RIVER | STREAMS
-floor:packed dirt:1000
-wall:mountain:1000
-wall:dark wall:120
-fill:mountain:500
-fill:dark wall:60
+floor:DIRT:1000
+wall:MOUNTAIN:1000
+wall:DARKWALL:120
+fill:MOUNTAIN:500
+fill:DARKWALL:60
 rule:6000:0
 rule-symbols:D
 rule:3000:0
@@ -376,9 +376,9 @@ wpos:25:3
 min-depth:45
 max-depth:72
 flags:STREAMS
-floor:grass:1000
-wall:mountain:1200
-fill:mountain:600
+floor:GRASS:1000
+wall:MOUNTAIN:1200
+fill:MOUNTAIN:600
 rule:10000:1
 
 # Dol Guldur (boss: The Necromancer of Dol Guldur)
@@ -388,7 +388,7 @@ wpos:6:9
 min-depth:57
 max-depth:75
 flags:STREAMS
-floor:water:200
+floor:WATER:200
 rule:3000:0
 rule-symbols:pP
 rule:3000:0
@@ -406,10 +406,10 @@ wpos:-2:-10
 min-depth:40
 max-depth:77
 flags:STREAMS
-floor:packed dirt:900
-floor:water:100
-wall:dark wall:400
-fill:dark wall:200
+floor:DIRT:900
+floor:WATER:100
+wall:DARKWALL:400
+fill:DARKWALL:200
 rule:8500:0
 rule-flags:UNDEAD | NONLIVING
 rule:1000:0
@@ -423,11 +423,11 @@ wpos:-30:36
 min-depth:70
 max-depth:87
 flags:STREAMS
-floor:street:2000
-floor:packed dirt:1000
-floor:pile of hard passable rubble:500
-wall:pile of hard rubble:2000
-fill:pile of hard rubble:1000
+floor:STREET:2000
+floor:DIRT:1000
+floor:HARD_PASS_RUBBLE:500
+wall:HARD_RUBBLE:2000
+fill:HARD_RUBBLE:1000
 rule:2000:0
 rule-symbols:h
 rule:2000:0
@@ -443,9 +443,9 @@ wpos:16:-13
 min-depth:84
 max-depth:98
 flags:CAVERN | LAVA_RIVER
-floor:lava stream:1000
-wall:lava:1200
-fill:lava:600
+floor:LAVA_STREAM:1000
+wall:LAVA:1200
+fill:LAVA:600
 rule:10000:0
 rule-flags:IM_FIRE
 
@@ -456,12 +456,12 @@ wpos:39:37
 min-depth:101
 max-depth:126
 flags:EMPTY | LAVA_RIVER | WINNERS_ONLY | STREAMS
-floor:nether mist:800
-floor:lava stream:200
-wall:lava:900
-wall:dark wall:300
-fill:lava:450
-fill:dark wall:150
+floor:MIST:800
+floor:LAVA_STREAM:200
+wall:LAVA:900
+wall:DARKWALL:300
+fill:LAVA:450
+fill:DARKWALL:150
 rule:9500:0
 rule-flags:IM_NETHER
 rule-symbols:GWU
@@ -474,7 +474,7 @@ wpos:42:42
 min-depth:102
 max-depth:127
 flags:EMPTY | WINNERS_ONLY | STREAMS
-floor:void:1000
+floor:VOID:1000
 rule:9900:0
 rule-flags:UNDEAD | DEMON | DRAGON | NONLIVING
 rule:100:1

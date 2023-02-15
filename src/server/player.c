@@ -565,8 +565,8 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
     p->ego_everseen = mem_zalloc(z_info->e_max * sizeof(uint8_t));
 
     /* Allocate memory for visuals */
-    p->f_attr = mem_zalloc(z_info->f_max * sizeof(byte_lit));
-    p->f_char = mem_zalloc(z_info->f_max * sizeof(char_lit));
+    p->f_attr = mem_zalloc(FEAT_MAX * sizeof(byte_lit));
+    p->f_char = mem_zalloc(FEAT_MAX * sizeof(char_lit));
     p->t_attr = mem_zalloc(z_info->trap_max * sizeof(byte_lit));
     p->t_char = mem_zalloc(z_info->trap_max * sizeof(char_lit));
     p->k_attr = mem_zalloc(z_info->k_max * sizeof(uint8_t));
@@ -590,7 +590,7 @@ void init_player(struct player *p, int conn, bool old_history, bool no_recall)
 
     /* Allocate memory for home storage */
     p->home = mem_zalloc(sizeof(struct store));
-    memcpy(p->home, &stores[store_max - 2], sizeof(struct store));
+    memcpy(p->home, &stores[z_info->store_max - 2], sizeof(struct store));
     p->home->stock = NULL;
 
     /* Analyze every object */

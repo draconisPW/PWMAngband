@@ -14,6 +14,17 @@
  */
 #define STAT_RANGE  38
 
+enum
+{
+    #define FEAT(x) FEAT_##x,
+    #include "list-terrain.h"
+    #undef FEAT
+    FEAT_MAX
+};
+
+/* Non-feature: placeholder for player stores */
+#define FEAT_STORE_PLAYER   FEAT_MAX
+
 extern const int adj_str_blow[STAT_RANGE];
 extern const int adj_mag_stat[STAT_RANGE];
 extern const int adj_mag_fail[STAT_RANGE];
@@ -78,5 +89,7 @@ extern bool player_has(struct player *p, int flag);
 extern int calc_blows_aux(struct player *p, int weight, int stat_str, int stat_dex);
 extern int calc_stat_ind(int use);
 extern int calc_blows_expected(struct player *p, int weight, int roll_str, int roll_dex);
+
+extern int lookup_feat_code(const char *code);
 
 #endif /* INCLUDED_UTIL_H */

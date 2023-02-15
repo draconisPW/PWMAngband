@@ -3,8 +3,8 @@
 # Terrain features
 
 # open floor
-feat:open floor:*:0x01:0x1F
+feat:FLOOR:*:0x01:0x1F
 # magma vein with treasure
-feat:magma vein with treasure:*:0x03:0x01
+feat:MAGMA_K:*:0x03:0x01
 # quartz vein with treasure
-feat:quartz vein with treasure:*:0x03:0x01
+feat:QUARTZ_K:*:0x03:0x01

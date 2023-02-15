@@ -66,4 +66,4 @@ name:The Brandywine Bridge
 short:Brandywine
 wpos:-19:21
 max-townies:10
-symbol:drawbridge
+symbol:DRAWBRIDGE

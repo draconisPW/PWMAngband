@@ -7,16 +7,21 @@
 # Do not modify this file unless you know exactly what you are doing,
 # unless you wish to risk possible system crashes and broken savefiles.
 
+# You may more freely alter the graphics, names, messages, and descriptions.
+# There is an implicit linkage between the symbols for the stores and the
+# shortcut keys in the main knowledge menu to display a store's contents
+# (those keys are set by the ordering of the stores within list-terrain.h).
 # Note that terrain feature zero contains the "darkness" picture.
 
 # === Understanding terrain.txt ===
 
-# name : terrain name
+# code : code name from list-terrain.h
+# name : terrain printable name
 # graphics : symbol : color
-# mimic : feature to mimic
+# mimic : code name for the feature to mimic
 # priority : display priority on mini-map
 # flags : terrain flags
-# info : shop number : digging
+# digging : digging index
 # hurt-msg: damage message
 # died-flavor: flavored death message
 # die-msg: death message
@@ -27,7 +32,11 @@
 # short-desc: short description -- overrides "name" when describing a feature
 # desc: long description
 
-# 'name' indicates the beginning of an entry.
+# 'code' indicates the start of an entry. The value used for the code
+# must match the argument to one of the FEAT() macros in list-terrain.h.
+
+# 'name' specifies the printable name for the terrain. As this is displayed
+# in the status bar and various menus, a short name is preferable.
 
 # 'graphics' is for graphics - symbol and color. There are 27 colors:
 
@@ -39,7 +48,8 @@
 # i - Magenta-Pink T - Light Teal     V - Light Violet  I - Light Pink
 # M - Mustard      z - Blue Slate     Z - Deep Light Blue
 
-# 'mimic' is a feature to mimic; some features look like another
+# 'mimic' is the code name (one of the arguments to the FEAT() macros in
+# list-terrain.h) of a feature to mimic; some features look like another
 # feature until they are discovered by the player.
 
 # 'priority' is for display priority on the minimap, where only a selection
@@ -77,9 +87,9 @@
 
 # 'flags' is for terrain flags.
 
-# 'info' is for other terrain information.  Shop number is the index of the
-# shop if the terrain is a shop entrance, and 0 otherwise. Digging is an
-# index used to get the difficulty of digging through this type of terrain.
+# 'digging' is to specify the difficulty of digging through the terrain. This
+# is optional and, if the terrain, based on its flags, is not diggable, setting
+# the index has no substantial effect besides error checking during parsing.
 
 # 'hurt-msg' is the message the player gets when damaged by terrain
 
@@ -105,10 +115,12 @@
 # together.
 
 
+code:NONE
 name:unknown grid
 graphics: :w
 priority:1
 
+code:FLOOR
 name:open floor
 graphics:.:w
 priority:16
@@ -116,11 +128,12 @@ flags:LOS | PROJECT | PASSABLE | FLOOR | OBJECT | EASY | TRAP | TORCH
 desc:An open floor or bare ground. Can be walked across by anything, and can
 desc: hold traps or items. Does not break line of sight.
 
+code:CLOSED
 name:closed door
 graphics:+:U
 priority:21
 flags:DOOR_ANY | DOOR_CLOSED | INTERESTING
-info:0:6
+digging:6
 confused-msg:bangs into a door
 look-in-preposition:in
 desc:Doors may be locked; getting through them may not be easy. Your
@@ -129,6 +142,7 @@ desc: but you can also take a pickaxe to them, or blast them open
 desc: with magic. Monsters are also slowed down by doors; you can earn yourself
 desc: valuable time by locking them.
 
+code:OPEN
 name:open door
 graphics:':U
 priority:20
@@ -137,6 +151,7 @@ look-in-preposition:in
 desc:A door that is already open. Player, monster, spell and missile can pass
 desc: through as long as it stays open.
 
+code:BROKEN
 name:broken door
 graphics:':u
 priority:20
@@ -144,100 +159,102 @@ flags:LOS | PROJECT | PASSABLE | DOOR_ANY | INTERESTING | EASY
 look-in-preposition:in
 desc:A door so broken that it cannot be shut.
 
+code:LESS
 name:up staircase
 graphics:<:w
 priority:26
 flags:LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | STAIR | UPSTAIR | EASY | TORCH
 desc:A staircase up to a shallower part of the dungeon.
 
+code:MORE
 name:down staircase
 graphics:>:w
 priority:26
 flags:LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | STAIR | DOWNSTAIR | EASY | TORCH
 desc:A staircase down to a deeper part of the dungeon.
 
+code:STORE_GENERAL
 name:General Store
 graphics:1:U
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:1:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:The General Store sells food, ammunition and lighting supplies.
 
+code:STORE_ARMOR
 name:Armoury
 graphics:2:s
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:2:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:The armour sold here will give you some protection against the blows of
 desc: your enemies.
 
+code:STORE_WEAPON
 name:Weapon Smiths
 graphics:3:w
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:3:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:Weapons for hitting and shooting your enemies are forged in the hot, acrid
 desc: backroom of this enticing shop.
 
+code:STORE_TEMPLE
 name:Temple
 graphics:4:g
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:4:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:A quiet, reflective place of refuge, with priestly books and supplies of
 desc: magical and hallowed goods for the pure of heart.
 
+code:STORE_ALCHEMY
 name:Alchemy Shop
 graphics:5:b
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:5:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:A dim, scented room where potions and scrolls are traded.
 
+code:STORE_MAGIC
 name:Magic Shop
 graphics:6:r
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:6:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:A shop for devices with magic trapped within, lined with shelves of
 desc: mystical tomes. 
 
+code:STORE_BOOK
 name:Bookseller
 graphics:9:o
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:7:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:A shop that sells and buys magical and mystical books.
 
+code:STORE_BLACK
 name:Black Market
 graphics:7:D
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:8:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:Watch your back and hold onto your purse as you enter this disreputable
 desc: haunt - and do not expect friendly service or good bargains.
 
+code:STORE_XBM
 name:Expensive Black Market
 graphics:7:v
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:9:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:Watch your back and hold onto your purse as you enter this disreputable
@@ -245,99 +262,107 @@ desc: haunt - and do not expect friendly service or good bargains. Although
 desc: you may find exceptional items, be ready to spend a lot of money for
 desc: them!
 
+code:STORE_TAVERN
 name:Tavern
 graphics:8:y
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:10:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:A safe place, perfect for drinking a pint of ale or two.
 
+code:HOME
 name:Home
 graphics:0:B
 priority:24
 flags:SHOP | LOS | PROJECT | PASSABLE | PERMANENT | INTERESTING | EASY
-info:11:0
 look-prefix:the entrance to the
 look-in-preposition:at
 desc:Your safe piece of Middle Earth, and the only place you can store goods
 desc: apart from on your person.
 
+code:SECRET
 name:secret door
 graphics:#:w
-mimic:granite wall
+mimic:GRANITE
 priority:11
 flags:WALL | ROCK | DOOR_ANY | GRANITE | TORCH
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A door that appears like a granite wall to untrained eyes.
 
+code:RUBBLE
 name:pile of rubble
 graphics:::W
 priority:18
 flags:ROCK | NO_SCENT | NO_FLOW | INTERESTING | TORCH
-info:0:2
+digging:2
 confused-msg:bumps into some rocks
 look-in-preposition:in
 desc:Ends LOS, stops missiles, bolts, and beams. May dissolve or be tunnelled
 desc: to normal floor.
 
+code:MAGMA
 name:magma vein
 graphics:%:D
 priority:15
 flags:WALL | ROCK | NO_SCENT | NO_FLOW | MAGMA | TORCH
-info:0:3
+digging:3
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A seam of soft rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
+code:QUARTZ
 name:quartz vein
 graphics:%:s
 priority:14
 flags:WALL | ROCK | NO_SCENT | NO_FLOW | QUARTZ | TORCH
-info:0:4
+digging:4
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A seam of hardish rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
+code:MAGMA_K
 name:magma vein with treasure
 graphics:*:o
 priority:19
 flags:WALL | ROCK | INTERESTING | NO_SCENT | NO_FLOW | GOLD | MAGMA
-info:0:3
+digging:3
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A seam of soft rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight. It contains visible treasure.
 
+code:QUARTZ_K
 name:quartz vein with treasure
 graphics:*:y
 priority:19
 flags:WALL | ROCK | INTERESTING | NO_SCENT | NO_FLOW | GOLD | QUARTZ
-info:0:4
+digging:4
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A seam of hardish rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight. It contains visible treasure.
 
+code:GRANITE
 name:granite wall
 graphics:#:W
 priority:11
 flags:WALL | ROCK | GRANITE | NO_SCENT | NO_FLOW | TORCH
-info:0:5
+digging:5
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A seam of hard rock. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
+code:PERM
 name:permanent wall
 graphics:#:z
 priority:25
@@ -350,6 +375,7 @@ desc: them.
 
 # New terrain
 
+code:LAVA
 name:lava
 graphics:#:r
 priority:25
@@ -361,17 +387,19 @@ resist-flag:IM_FIRE
 look-prefix:some
 desc:A fiery pool of glowing lava. Step in it at your peril!
 
+code:PASS_RUBBLE
 name:pile of passable rubble
 graphics:::u
 priority:18
 flags:ROCK | PASSABLE | INTERESTING | TORCH
-info:0:2
+digging:2
 desc:Ends LOS, stops missiles, bolts, and beams, and reduces the radius of ball
 desc: spells. May dissolve or be tunnelled to normal floor, and can be walked
 desc: through by the player and monsters.
 
 # MAngband-specific terrain elements
 
+code:PERM_STATIC
 name:static dungeon town wall
 graphics:#:z
 priority:25
@@ -381,6 +409,7 @@ look-in-preposition:in
 desc:You can dig through most walls but these are impenetrable. Static dungeon
 desc: towns are surrounded by these kinds of walls.
 
+code:PERM_HOUSE
 name:house wall
 graphics:#:u
 priority:22
@@ -391,6 +420,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a section of wall from such
 desc: house.
 
+code:PERM_ARENA
 name:arena wall
 graphics:#:r
 priority:25
@@ -399,6 +429,7 @@ confused-msg:bashes into a wall
 look-in-preposition:in
 desc:This is a section of wall from an arena.
 
+code:WATER
 name:water
 graphics:~:B
 priority:5
@@ -410,6 +441,7 @@ resist-flag:IM_WATER
 look-prefix:some
 desc:A pool of water.
 
+code:MUD
 name:mud
 graphics:~:u
 priority:8
@@ -417,24 +449,28 @@ flags:LOS | PROJECT | PASSABLE | BORING | EASY | NOTICEABLE
 look-prefix:some
 desc:A section of slippery mud.
 
+code:DRAWBRIDGE
 name:drawbridge
 graphics:=:u
 priority:10
 flags:LOS | PROJECT | PASSABLE | BORING | EASY
 desc:This is a section of a bridge.
 
+code:FOUNTAIN
 name:fountain
 graphics:_:w
 priority:22
 flags:LOS | PROJECT | PASSABLE | FOUNTAIN | BORING | EASY | INTERESTING | TORCH
 desc:An ornate basin filled with water.
 
+code:FNT_DRIED
 name:fountain (dried out)
 graphics:_:s
 priority:22
 flags:LOS | PROJECT | PASSABLE | FOUNTAIN | DRIED | BORING | EASY | INTERESTING
 desc:An empty ornate basin.
 
+code:LOOSE_DIRT
 name:loose dirt
 graphics:%:u
 priority:10
@@ -442,6 +478,7 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | BORING | OBJECT | EASY | N
 look-prefix:some
 desc:A section of loose dirt.
 
+code:DIRT
 name:packed dirt
 graphics:.:u
 priority:3
@@ -449,14 +486,16 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | DIRT | BORING | OBJECT | EASY | T
 look-prefix:some
 desc:A section of packed dirt.
 
+code:FLOOR_SAFE
 name:safe floor
 graphics:.:w
-mimic:open floor
+mimic:FLOOR
 priority:16
 flags:LOS | PROJECT | PASSABLE | FLOOR_SAFE | BORING | OBJECT | EASY | BRIGHT
 desc:An open floor or bare ground that prevents any hostile action from
 desc: monsters or other players.
 
+code:LAVA_STREAM
 name:lava stream
 graphics:.:r
 priority:7
@@ -467,18 +506,21 @@ die-msg:molten lava
 resist-flag:IM_FIRE
 desc:A stream of glowing lava.
 
+code:STREET
 name:street
 graphics:.:w
 priority:16
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH
 desc:A section of street.
 
+code:FLOOR_PIT
 name:pit floor
 graphics:.:D
 priority:16
 flags:LOS | PROJECT | PASSABLE | FLOOR | PIT | OBJECT | EASY | TRAP
 desc:An open floor or bare ground that prevents any form of teleportation.
 
+code:GRASS
 name:grass
 graphics:.:g
 priority:2
@@ -486,6 +528,7 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | GRASS | BORING | OBJECT | EASY | 
 look-prefix:some
 desc:A patch of grass.
 
+code:CROP
 name:crops
 graphics:%:g
 priority:10
@@ -493,24 +536,27 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | CROP_BASE | BORING 
 look-prefix:some
 desc:A piece of land used for growing any kind of vegetables.
 
+code:TREE
 name:tree
 graphics:*:g
 priority:4
 flags:TREE | NO_SCENT | NO_FLOW
-info:0:1
+digging:1
 confused-msg:bangs into a tree
 look-in-preposition:in
 desc:A tree.
 
+code:EVIL_TREE
 name:dark tree
 graphics:*:D
 priority:9
 flags:TREE | WITHERED | NO_SCENT | NO_FLOW
-info:0:1
+digging:1
 confused-msg:bangs into a tree
 look-in-preposition:in
 desc:A withered tree.
 
+code:MOUNTAIN
 name:mountain
 graphics:^:D
 priority:6
@@ -519,6 +565,7 @@ confused-msg:bumps into some mountain
 look-in-preposition:in
 desc:A section of mountains.
 
+code:LOGS
 name:log
 graphics:=:u
 priority:13
@@ -527,6 +574,7 @@ confused-msg:bashes into a log
 look-in-preposition:in
 desc:A section of wall from a public building. It is made of wood.
 
+code:SAND
 name:sand
 graphics:.:y
 priority:2
@@ -534,17 +582,19 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH | 
 look-prefix:some
 desc:A section of sand.
 
+code:SANDWALL
 name:sandwall
 graphics:#:y
 priority:11
 flags:WALL | ROCK | NO_SCENT | NO_FLOW | SAND
-info:0:2
+digging:2
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A seam of compact sand. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
+code:ICE
 name:ice
 graphics:.:W
 priority:2
@@ -552,29 +602,33 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TORCH | 
 look-prefix:some
 desc:A section of ice.
 
+code:ICEWALL
 name:ice wall
 graphics:#:W
 priority:11
 flags:WALL | ROCK | NO_SCENT | NO_FLOW | ICE
-info:0:3
+digging:3
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A seam of compact ice. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
+code:SWAMP
 name:swamp
 graphics:%:v
 priority:10
 flags:METAMAP
 desc:A section of swamps.
 
+code:TOWN
 name:town
 graphics:T:y
 priority:10
 flags:METAMAP
 desc:The location of a town.
 
+code:DEEP_WATER
 name:deep water
 graphics:~:b
 priority:10
@@ -582,18 +636,21 @@ flags:METAMAP
 look-prefix:some
 desc:A section of deep water.
 
+code:HILL
 name:hill
 graphics:^:u
 priority:10
 flags:METAMAP
 desc:A section of hills.
 
+code:SHORE
 name:shore
 graphics:~:y
 priority:10
 flags:METAMAP
 desc:Lake or sea shore.
 
+code:PERM_CLEAR
 name:border permawall
 graphics: :w
 priority:27
@@ -601,6 +658,7 @@ flags:BORDER | NO_SCENT | NO_FLOW
 look-in-preposition:in
 desc:The border of a wilderness or town level.
 
+code:HOME_OPEN
 name:open house door
 graphics:':U
 priority:23
@@ -608,6 +666,7 @@ flags:LOS | PROJECT | PASSABLE | DOOR_HOME | INTERESTING | CLOSABLE | EASY
 desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is an open door from such house.
 
+code:HOME_CLOSED
 name:closed house door
 graphics:+:U
 priority:23
@@ -619,6 +678,7 @@ desc: safely apart from on your person. This is a closed door from such house.
 
 # PWMAngband-specific colorized house doors
 
+code:HOME_CLOSED_WHITE
 name:closed house door (white)
 graphics:+:w
 priority:24
@@ -629,6 +689,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_SLATE
 name:closed house door (slate)
 graphics:+:s
 priority:24
@@ -639,6 +700,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_ORANGE
 name:closed house door (orange)
 graphics:+:o
 priority:24
@@ -649,6 +711,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_RED
 name:closed house door (red)
 graphics:+:r
 priority:24
@@ -659,6 +722,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_GREEN
 name:closed house door (green)
 graphics:+:g
 priority:24
@@ -669,6 +733,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_BLUE
 name:closed house door (blue)
 graphics:+:b
 priority:24
@@ -679,6 +744,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_UMBER
 name:closed house door (umber)
 graphics:+:u
 priority:24
@@ -689,6 +755,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LDARK
 name:closed house door (light dark)
 graphics:+:D
 priority:24
@@ -699,6 +766,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LWHITE
 name:closed house door (light white)
 graphics:+:W
 priority:24
@@ -709,6 +777,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LPURPLE
 name:closed house door (light purple)
 graphics:+:P
 priority:24
@@ -719,6 +788,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_YELLOW
 name:closed house door (yellow)
 graphics:+:y
 priority:24
@@ -729,6 +799,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LRED
 name:closed house door (light red)
 graphics:+:R
 priority:24
@@ -739,6 +810,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LGREEN
 name:closed house door (light green)
 graphics:+:G
 priority:24
@@ -749,6 +821,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LBLUE
 name:closed house door (light blue)
 graphics:+:B
 priority:24
@@ -759,6 +832,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LUMBER
 name:closed house door (light umber)
 graphics:+:U
 priority:24
@@ -769,6 +843,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_PURPLE
 name:closed house door (purple)
 graphics:+:p
 priority:24
@@ -779,6 +854,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_VIOLET
 name:closed house door (violet)
 graphics:+:v
 priority:24
@@ -789,6 +865,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_TEAL
 name:closed house door (teal)
 graphics:+:t
 priority:24
@@ -799,6 +876,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_MUD
 name:closed house door (mud)
 graphics:+:m
 priority:24
@@ -809,6 +887,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LYELLOW
 name:closed house door (light yellow)
 graphics:+:Y
 priority:24
@@ -819,6 +898,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_MAGENTA
 name:closed house door (magenta)
 graphics:+:i
 priority:24
@@ -829,6 +909,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LTEAL
 name:closed house door (light teal)
 graphics:+:T
 priority:24
@@ -839,6 +920,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LVIOLET
 name:closed house door (light violet)
 graphics:+:V
 priority:24
@@ -849,6 +931,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_LPINK
 name:closed house door (light pink)
 graphics:+:I
 priority:24
@@ -859,6 +942,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_MUSTARD
 name:closed house door (mustard)
 graphics:+:M
 priority:24
@@ -869,6 +953,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_BSLATE
 name:closed house door (blue slate)
 graphics:+:z
 priority:24
@@ -879,6 +964,7 @@ desc:A safe piece of Middle Earth, and the only place you can store goods
 desc: safely apart from on your person. This is a closed door from such house.
 desc: Objects dropped inside can be sold to other players.
 
+code:HOME_CLOSED_DLBLUE
 name:closed house door (deep light blue)
 graphics:+:Z
 priority:24
@@ -891,6 +977,7 @@ desc: Objects dropped inside can be sold to other players.
 
 # PWMAngband-specific terrain elements
 
+code:ASH
 name:ash
 graphics:.:s
 priority:3
@@ -898,6 +985,7 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TRAP
 look-prefix:some
 desc:A section of ash.
 
+code:MIST
 name:nether mist
 graphics:.:G
 priority:5
@@ -909,26 +997,29 @@ resist-flag:IM_NETHER
 look-prefix:some
 desc:Some nether mist.
 
+code:DARKWALL
 name:dark wall
 graphics:#:s
 priority:11
 flags:WALL | ROCK | DARK | NO_SCENT | NO_FLOW
-info:0:5
+digging:5
 confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A dark wall. It can be removed by digging or magic, and passed
 desc: through by immaterial monsters. It stops any spells, missiles or line of
 desc: sight.
 
+code:WEB
 name:web
 graphics:%:y
 priority:18
 flags:PASSABLE | INTERESTING | WEB
-info:0:2
+digging:2
 desc:A tangle of sticky spider webs. Ends LOS, stops missiles, bolts, and beams,
 desc: and reduces the radius of ball spells. May dissolve or be tunnelled
 desc: to normal floor, and can be walked through by the player and monsters.
 
+code:VOID
 name:void
 graphics:.:d
 priority:3
@@ -936,6 +1027,7 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | OBJECT | EASY | TRAP
 look-prefix:some
 desc:A section of nothingness.
 
+code:GLASSWALL
 name:glass wall
 graphics:#:B
 priority:25
@@ -944,12 +1036,14 @@ confused-msg:bashes into a wall
 look-in-preposition:in
 desc:A glass wall blocking your way.
 
+code:ILLUSIONWALL
 name:illusion wall
 graphics:#:w
 priority:10
 flags:LOS | PROJECT | PASSABLE | BORING | EASY
 desc:Looks like this wall is not so real.
 
+code:TRAINING
 name:training grounds
 graphics:.:o
 priority:3
@@ -957,71 +1051,79 @@ flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | BORING | EASY
 look-prefix:some
 desc:Training grounds suitable for training.
 
+code:CROP_POTATO
 name:potato crops
 graphics:%:g
-mimic:crops
+mimic:CROP
 priority:10
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
 look-prefix:some
 desc:A piece of land used for growing potatoes.
 
+code:CROP_CABBAGE
 name:cabbage crops
 graphics:%:g
-mimic:crops
+mimic:CROP
 priority:10
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
 look-prefix:some
 desc:A piece of land used for growing cabbages.
 
+code:CROP_CARROT
 name:carrot crops
 graphics:%:g
-mimic:crops
+mimic:CROP
 priority:10
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
 look-prefix:some
 desc:A piece of land used for growing carrots.
 
+code:CROP_BEET
 name:beet crops
 graphics:%:g
-mimic:crops
+mimic:CROP
 priority:10
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
 look-prefix:some
 desc:A piece of land used for growing beets.
 
+code:CROP_SQUASH
 name:squash crops
 graphics:%:g
-mimic:crops
+mimic:CROP
 priority:10
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
 look-prefix:some
 desc:A piece of land used for growing squashes.
 
+code:CROP_CORN
 name:corn crops
 graphics:%:g
-mimic:crops
+mimic:CROP
 priority:10
 flags:LOS | PROJECT | PASSABLE | FLOOR_OTHER | PLOT | CROP | BORING | OBJECT | EASY | NOTICEABLE
 look-prefix:some
 desc:A piece of land used for growing corn.
 
+code:HARD_RUBBLE
 name:pile of hard rubble
 graphics:::W
-mimic:pile of rubble
+mimic:RUBBLE
 priority:18
 flags:ROCK | NO_SCENT | NO_FLOW | INTERESTING | TORCH
-info:0:5
+digging:5
 confused-msg:bumps into some rocks
 look-in-preposition:in
 desc:Ends LOS, stops missiles, bolts, and beams. May dissolve or be tunnelled
 desc: to normal floor.
 
+code:HARD_PASS_RUBBLE
 name:pile of hard passable rubble
 graphics:::u
-mimic:pile of passable rubble
+mimic:PASS_RUBBLE
 priority:18
 flags:ROCK | PASSABLE | INTERESTING | TORCH
-info:0:5
+digging:5
 desc:Ends LOS, stops missiles, bolts, and beams, and reduces the radius of ball
 desc: spells. May dissolve or be tunnelled to normal floor, and can be walked
 desc: through by the player and monsters.

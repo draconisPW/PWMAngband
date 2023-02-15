@@ -711,29 +711,6 @@ static enum parser_error parse_prefs_monster_base(struct parser *p)
 }
 
 
-/*
- * Find a terrain feature index by name
- */
-static int lookup_feat(const char *name)
-{
-    int i;
-
-    /* Look for it */
-    for (i = 0; i < z_info->f_max; i++)
-    {
-        struct feature *feat = &f_info[i];
-
-        if (!feat->name) continue;
-
-        /* Test for equality */
-        if (streq(name, feat->name)) return i;
-    }
-
-    quit_fmt("Failed to find terrain feature %s", name);
-    return -1;
-}
-
-
 static enum parser_error parse_prefs_feat_aux(struct parser *p)
 {
     int idx;
@@ -744,7 +721,8 @@ static enum parser_error parse_prefs_feat_aux(struct parser *p)
     assert(d != NULL);
     if (d->bypass) return PARSE_ERROR_NONE;
 
-    idx = lookup_feat(parser_getsym(p, "idx"));
+    idx = lookup_feat_code(parser_getsym(p, "idx"));
+    if (idx < 0 || idx >= FEAT_MAX) return PARSE_ERROR_OUT_OF_BOUNDS;
 
     lighting = parser_getsym(p, "lighting");
     if (streq(lighting, "torch"))
@@ -802,7 +780,8 @@ static enum parser_error parse_prefs_glyph(struct parser *p)
     assert(d != NULL);
     if (d->bypass) return PARSE_ERROR_NONE;
 
-    idx = lookup_feat(parser_getsym(p, "idx"));
+    idx = lookup_feat_code(parser_getsym(p, "idx"));
+    if (idx < 0 || idx >= FEAT_MAX) return PARSE_ERROR_OUT_OF_BOUNDS;
 
     for (light_idx = 0; light_idx < LIGHTING_MAX; light_idx++)
     {
@@ -1512,8 +1491,8 @@ void reset_visuals(bool load_prefs)
     /* Reset the Client_setup info */
     memset(Client_setup.flvr_x_attr, 0, flavor_max * sizeof(uint8_t));
     memset(Client_setup.flvr_x_char, 0, flavor_max * sizeof(char));
-    memset(Client_setup.f_attr, 0, z_info->f_max * sizeof(byte_lit));
-    memset(Client_setup.f_char, 0, z_info->f_max * sizeof(char_lit));
+    memset(Client_setup.f_attr, 0, FEAT_MAX * sizeof(byte_lit));
+    memset(Client_setup.f_char, 0, FEAT_MAX * sizeof(char_lit));
     memset(Client_setup.t_attr, 0, z_info->trap_max * sizeof(byte_lit));
     memset(Client_setup.t_char, 0, z_info->trap_max * sizeof(char_lit));
     memset(Client_setup.k_attr, 0, z_info->k_max * sizeof(uint8_t));

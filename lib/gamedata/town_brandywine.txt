@@ -25,7 +25,7 @@
 
 
 # Special feats: grass/water
-feat:grass:water:50
+feat:GRASS:WATER:50
 
 map:######################################################################################################################################################################################################
 map:#------- V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V  V   V -------#

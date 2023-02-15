@@ -19,32 +19,32 @@
 
 # fake blank feature
 
-feat: : :unknown grid
+feat: : :NONE
 
 # terrain types
 
-feat:.:.:open floor
-feat:1:1:General Store
-feat:2:2:Armoury
-feat:3:3:Weapon Smiths
-feat:4:4:Temple
-feat:5:5:Alchemy Shop
-feat:6:6:Magic Shop
-feat:9:9:Bookseller
-feat:7:7:Black Market
-feat:B:B:Expensive Black Market
-feat:8:8:Tavern
-feat:#:#:permanent wall
-feat:V:V:water
-feat:@:@:mud
-feat:C:C:loose dirt
-feat:,:,:packed dirt
-feat:~:~:safe floor
-feat:O:O:street
-feat:-:-:grass
-feat:T:T:tree
-feat:^:^:mountain
-feat:>:>:down staircase
-feat:x:x:safe floor
-feat:=:=:drawbridge
-feat:T:D:dark tree
+feat:.:.:FLOOR
+feat:1:1:STORE_GENERAL
+feat:2:2:STORE_ARMOR
+feat:3:3:STORE_WEAPON
+feat:4:4:STORE_TEMPLE
+feat:5:5:STORE_ALCHEMY
+feat:6:6:STORE_MAGIC
+feat:9:9:STORE_BOOK
+feat:7:7:STORE_BLACK
+feat:B:B:STORE_XBM
+feat:8:8:STORE_TAVERN
+feat:#:#:PERM
+feat:V:V:WATER
+feat:@:@:MUD
+feat:C:C:LOOSE_DIRT
+feat:,:,:DIRT
+feat:~:~:FLOOR_SAFE
+feat:O:O:STREET
+feat:-:-:GRASS
+feat:T:T:TREE
+feat:^:^:MOUNTAIN
+feat:>:>:MORE
+feat:x:x:FLOOR_SAFE
+feat:=:=:DRAWBRIDGE
+feat:T:D:EVIL_TREE

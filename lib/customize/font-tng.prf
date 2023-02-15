@@ -11,11 +11,11 @@
 ### Terrain features ###
 
 # Floors (white : centered dot)
-feat:open floor:*:1:7
+feat:FLOOR:*:1:7
 
 # Simplified version to specify default attribute for all lighting effects
-# glyph : terrain name : symbol
-# glyph:open floor:7
+# glyph : terrain code : symbol
+# glyph:FLOOR:7
 
 
 ### Monster features ###
