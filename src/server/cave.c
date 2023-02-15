@@ -250,6 +250,45 @@ void next_grid(struct loc *next, struct loc *grid, int dir)
 }
 
 
+static const char *feat_code_list[] =
+{
+	#define FEAT(x) #x,
+	#include "..\common\list-terrain.h"
+	#undef FEAT
+	NULL
+};
+
+
+/*
+ * Find a terrain feature by its code name.
+ */
+int lookup_feat_code(const char *code)
+{
+    int i;
+
+    for (i = 0; feat_code_list[i]; i++)
+    {
+        if (streq(code, feat_code_list[i])) return i;
+    }
+
+    /* Non-feature: placeholder for player stores */
+    if (streq(code, "STORE_PLAYER")) return FEAT_STORE_PLAYER;
+
+    /* Backwards compatibility: find a terrain feature by its name. */
+    for (i = 0; i < FEAT_MAX; i++)
+    {
+        struct feature *feat = &f_info[i];
+
+        if (!feat->name) continue;
+        if (streq(code, feat->name)) return i;
+    }
+    if (streq(code, "Player shop")) return FEAT_STORE_PLAYER;
+
+    quit_fmt("Failed to find terrain feature %s", code);
+    return -1;
+}
+
+
 /*
  * Allocate a new chunk of the world
  */

@@ -159,6 +159,7 @@ enum
 /* cave.c */
 extern int motion_dir(struct loc *start, struct loc *finish);
 extern void next_grid(struct loc *next, struct loc *grid, int dir);
+extern int lookup_feat_code(const char *code);
 extern struct chunk *cave_new(int height, int width);
 extern void cave_free(struct chunk *c);
 extern bool scatter(struct chunk *c, struct loc *place, struct loc *grid, int d, bool need_los);

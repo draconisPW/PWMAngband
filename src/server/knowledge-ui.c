@@ -66,18 +66,18 @@ static int feat_order(int feat)
 
     if (tf_has(f_info[feat].flags, TF_SHOP)) return 6;
     if (tf_has(f_info[feat].flags, TF_STAIR)) return 2;
-	if (tf_has(f_info[feat].flags, TF_DOOR_ANY)) return 1;
+    if (tf_has(f_info[feat].flags, TF_DOOR_ANY)) return 1;
 
-	/* These also have WALL set so check them first before checking WALL. */
-	if (tf_has(f_info[feat].flags, TF_MAGMA) || tf_has(f_info[feat].flags, TF_QUARTZ)) return 4;
+    /* These also have WALL set so check them first before checking WALL. */
+    if (tf_has(f_info[feat].flags, TF_MAGMA) || tf_has(f_info[feat].flags, TF_QUARTZ)) return 4;
 
-	/* These also have ROCK set so check them first before checking ROCK. */
-	if (tf_has(f_info[feat].flags, TF_WALL)) return 3;
-	if (tf_has(f_info[feat].flags, TF_ROCK)) return 5;
+    /* These also have ROCK set so check them first before checking ROCK. */
+    if (tf_has(f_info[feat].flags, TF_WALL)) return 3;
+    if (tf_has(f_info[feat].flags, TF_ROCK)) return 5;
 
-	/* Many above have PASSABLE so do this last. */
-	if (tf_has(f_info[feat].flags, TF_PASSABLE)) return 0;
-	return 7;
+    /* Many above have PASSABLE so do this last. */
+    if (tf_has(f_info[feat].flags, TF_PASSABLE)) return 0;
+    return 7;
 }
 
 

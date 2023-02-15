@@ -1661,32 +1661,3 @@ const int adj_mag_fail[STAT_RANGE] =
     0   /* 18/210-18/219 */,
     0   /* 18/220+ */
 };
-
-
-static const char *feat_code_list[] =
-{
-	#define FEAT(x) #x,
-	#include "list-terrain.h"
-	#undef FEAT
-	NULL
-};
-
-
-/*
- * Find a terrain feature by its code name.
- */
-int lookup_feat_code(const char *code)
-{
-    int i;
-
-	for (i = 0; feat_code_list[i]; i++)
-    {
-		if (streq(code, feat_code_list[i])) return i;
-	}
-
-    /* Non-feature: placeholder for player stores */
-    if (streq(code, "STORE_PLAYER")) return FEAT_STORE_PLAYER;
-
-	quit_fmt("Failed to find terrain feature %s", code);
-    return -1;
-}

@@ -46,7 +46,7 @@ chance:2:MOUNTAIN:1
 chance:3:DIRT:97
 sound:WILD_WASTE
 
-# EVIL_TREE, mountain, packed dirt, lava
+# dark tree, mountain, packed dirt, lava
 name:volcano
 feat:50:LAVA:#
 chance:0:EVIL_TREE:1

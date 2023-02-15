@@ -1420,9 +1420,9 @@ static enum parser_error parse_feat_code(struct parser *p)
 
     if (idx < 0 || idx >= FEAT_MAX) return PARSE_ERROR_OUT_OF_BOUNDS;
     f = &f_info[idx];
-	f->fidx = idx;
-	parser_setpriv(p, f);
-	return PARSE_ERROR_NONE;
+    f->fidx = idx;
+    parser_setpriv(p, f);
+    return PARSE_ERROR_NONE;
 }
 
 
