@@ -253,7 +253,7 @@ void next_grid(struct loc *next, struct loc *grid, int dir)
 static const char *feat_code_list[] =
 {
 	#define FEAT(x) #x,
-	#include "..\common\list-terrain.h"
+	#include "../common/list-terrain.h"
 	#undef FEAT
 	NULL
 };
