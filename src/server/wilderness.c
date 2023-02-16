@@ -213,6 +213,7 @@ static void cleanup_wild_feat(void)
     for (i = 0; i < z_info->wf_max; i++)
         string_free(wf_info[i].name);
     mem_free(wf_info);
+    wf_info = NULL;
 }
 
 
@@ -286,6 +287,7 @@ static void cleanup_wild_info(void)
     {
         string_free(wild_info->text);
         mem_free(wild_info);
+        wild_info = NULL;
     }
 }
 
@@ -373,6 +375,7 @@ static errr finish_parse_town_feat(struct parser *p)
 static void cleanup_town_feat(void)
 {
     mem_free(tf_info);
+    tf_info = NULL;
 }
 
 
@@ -1053,6 +1056,7 @@ static void cleanup_town_info(void)
         string_free(towns[i].shortname);
     }
     mem_free(towns);
+    towns = NULL;
 }
 
 
@@ -1264,6 +1268,7 @@ static void cleanup_dungeon_info(void)
         mem_free(dungeons[i].rules);
     }
     mem_free(dungeons);
+    dungeons = NULL;
 }
 
 
@@ -1643,6 +1648,7 @@ void free_wild_info(void)
     for (i = 0; i <= 2 * radius_wild; i++)
         mem_free(wt_info[i]);
     mem_free(wt_info);
+    wt_info = NULL;
 }
 
 

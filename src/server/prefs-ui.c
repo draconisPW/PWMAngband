@@ -908,13 +908,23 @@ void textui_prefs_init(void)
 void textui_prefs_free(void)
 {
     mem_free(monster_x_attr);
+    monster_x_attr = NULL;
     mem_free(monster_x_char);
+    monster_x_char = NULL;
     mem_free(kind_x_attr);
+    kind_x_attr = NULL;
     mem_free(kind_x_char);
+    kind_x_char = NULL;
     mem_free(feat_x_attr);
+    feat_x_attr = NULL;
     mem_free(feat_x_char);
+    feat_x_char = NULL;
     mem_free(trap_x_attr);
+    trap_x_attr = NULL;
     mem_free(trap_x_char);
+    trap_x_char = NULL;
     mem_free(flavor_x_attr);
+    flavor_x_attr = NULL;
     mem_free(flavor_x_char);
+    flavor_x_char = NULL;
 }

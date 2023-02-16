@@ -765,6 +765,7 @@ static errr finish_parse_constants(struct parser *p)
 static void cleanup_constants(void)
 {
     mem_free(z_info);
+    z_info = NULL;
 }
 
 
@@ -1394,6 +1395,7 @@ static void cleanup_trap(void)
         free_effect(trap_info[i].effect_xtra);
 	}
 	mem_free(trap_info);
+    trap_info = NULL;
 }
 
 
@@ -1711,6 +1713,7 @@ static void cleanup_feat(void)
         string_free(f_info[i].name);
     }
     mem_free(f_info);
+    f_info = NULL;
 }
 
 
@@ -4263,6 +4266,7 @@ static void cleanup_soc(void)
         string_free(soc_info[i].text);
     }
     mem_free(soc_info);
+    soc_info = NULL;
 }
 
 
@@ -4703,6 +4707,7 @@ void cleanup_angband(void)
         }
     }
     mem_free(presets);
+    presets = NULL;
 
     /* Free the allocation tables */
     for (i = 0; modules[i]; i++)

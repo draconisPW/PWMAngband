@@ -61,6 +61,7 @@ static void init_connections(void)
 static void free_connections(void)
 {
     mem_free(Conn);
+    Conn = NULL;
 }
 
 

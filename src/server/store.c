@@ -106,6 +106,7 @@ static void cleanup_stores(void)
     }
 
     mem_free(stores);
+    stores = NULL;
 }
 
 

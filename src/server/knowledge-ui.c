@@ -301,6 +301,7 @@ static void do_cmd_knowledge_monsters(struct player *p, int line)
     }
 
     mem_free(default_join);
+    default_join = NULL;
     mem_free(monsters);
 
     /* Close the file */
@@ -776,6 +777,7 @@ static void do_cmd_knowledge_ego_items(struct player *p, int line)
     }
 
     mem_free(default_join);
+    default_join = NULL;
     mem_free(egoitems);
     mem_free(obj_group_order);
     obj_group_order = NULL;

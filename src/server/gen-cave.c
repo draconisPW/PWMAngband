@@ -1700,6 +1700,7 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     }
     mem_free(blocks_tried);
     mem_free(dun->room_map);
+    dun->room_map = NULL;
 
     /* Generate permanent walls around the edge of the generated area */
     draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE, true);
@@ -3813,6 +3814,7 @@ static struct chunk *modified_chunk(struct player *p, struct worldpos *wpos, int
     for (i = 0; i < dun->row_blocks; i++)
         mem_free(dun->room_map[i]);
     mem_free(dun->room_map);
+    dun->room_map = NULL;
 
     /* Connect all the rooms together */
     do_traditional_tunneling(c);
@@ -4069,6 +4071,7 @@ static struct chunk *moria_chunk(struct player *p, struct worldpos *wpos, int he
     for (i = 0; i < dun->row_blocks; i++)
         mem_free(dun->room_map[i]);
     mem_free(dun->room_map);
+    dun->room_map = NULL;
 
     /* Connect all the rooms together */
     do_traditional_tunneling(c);
@@ -5586,6 +5589,7 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     }
     mem_free(blocks_tried);
     mem_free(dun->room_map);
+    dun->room_map = NULL;
 
     /* Generate permanent walls around the edge of the generated area */
     draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM, SQUARE_NONE, true);
