@@ -714,7 +714,7 @@ static enum parser_error parse_prefs_monster_base(struct parser *p)
 static const char *feat_code_list[] =
 {
 	#define FEAT(x) #x,
-	#include "..\common\list-terrain.h"
+	#include "../common/list-terrain.h"
 	#undef FEAT
 	NULL
 };
