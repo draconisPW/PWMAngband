@@ -900,6 +900,8 @@ static errr finish_parse_names(struct parser *p)
 static void cleanup_names(void)
 {
     strings_free(name_sections, num_names, RANDNAME_NUM_TYPES);
+    name_sections = NULL;
+    num_names = NULL;
 }
 
 

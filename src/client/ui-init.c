@@ -817,6 +817,8 @@ void cleanup_angband(void)
 
     /* Free the random name fragments */
     strings_free(name_sections, num_names, RANDNAME_NUM_TYPES);
+    name_sections = NULL;
+    num_names = NULL;
 
     /* Free attr/chars */
     mem_free(Client_setup.k_attr);
