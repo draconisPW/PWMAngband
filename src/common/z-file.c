@@ -965,14 +965,14 @@ bool file_exists(const char *fname)
 #else
 bool file_exists(const char *fname)
 {
-	ang_file *f = file_open(fname, MODE_READ, 0);
+    ang_file *f = file_open(fname, MODE_READ, 0);
 
-	if (f)
+    if (f)
     {
         file_close(f);
         return true;
     }
-	return false;
+    return false;
 }
 #endif
 
