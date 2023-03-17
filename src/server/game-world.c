@@ -2800,6 +2800,7 @@ static volatile sig_atomic_t signalbusy = 0;
 
 static int16_t signal_count = 0;   /* Hack -- count interrupts */
 
+#ifdef SIGTSTP
 /*
  * Handle signals -- suspend
  *
@@ -2820,6 +2821,7 @@ static void handle_signal_suspend(int sig)
     /* Restore handler */
     signal(sig, handle_signal_suspend);
 }
+#endif
 
 /*
  * Handle signals -- simple (interrupt and quit)

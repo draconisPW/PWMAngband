@@ -181,9 +181,9 @@ static void store_display_entry(struct menu *menu, int oid, bool cursor, int row
 
         /* Actually draw the price */
         if (tval_can_have_charges(obj) && (obj->number > 1))
-            strnfmt(out_val, sizeof(out_val), "%9d avg", x);
+            strnfmt(out_val, sizeof(out_val), "%9ld avg", (long)x);
         else
-            strnfmt(out_val, sizeof(out_val), "%9d    ", x);
+            strnfmt(out_val, sizeof(out_val), "%9ld    ", (long)x);
 
         /* The price is not available if 0 (the item is not for sale) */
         if (x == 0)
@@ -242,7 +242,7 @@ static void store_display_frame(struct store_context *ctx)
             put_str(owner_name, ctx->scr_places_y[LOC_OWNER], 1);
 
             /* Show the max price in the store (above prices) */
-            strnfmt(buf, sizeof(buf), "%s (%d)", store_name, proprietor->max_cost);
+            strnfmt(buf, sizeof(buf), "%s (%ld)", store_name, (long)proprietor->max_cost);
             prt(buf, ctx->scr_places_y[LOC_OWNER], ctx->scr_places_x[LOC_OWNER] - strlen(buf));
         }
 
@@ -391,7 +391,7 @@ static void store_redraw(struct store_context *ctx)
 
     if (ctx->flags & (STORE_GOLD_CHANGE))
     {
-        prt(format("Gold Remaining: %9d", player->au),
+        prt(format("Gold Remaining: %9ld", (long)player->au),
             ctx->scr_places_y[LOC_AU], ctx->scr_places_x[LOC_AU]);
         ctx->flags &= ~(STORE_GOLD_CHANGE);
     }
@@ -1056,7 +1056,7 @@ void store_sell_accept(int32_t price, int16_t reset)
     if (reset)
         my_strcpy(buf, "Do you really want to reset this house? ", sizeof(buf));
     else
-        strnfmt(buf, sizeof(buf), "Price is %ld gold. Proceed? ", price);
+        strnfmt(buf, sizeof(buf), "Price is %ld gold. Proceed? ", (long)price);
 
     /* Accept the price, or cancel the wait */
     res = get_check_ex(buf);
