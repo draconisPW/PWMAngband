@@ -40,8 +40,9 @@
 /*
  * Since font selection goes through a menu panel with MAX_BUTTONS, there's
  * no point to having any more than can be selected with that menu.
+ * Hack -- MAX_BUTTONS * 2 for 'font_page'
  */
-#define MAX_FONTS (MAX_BUTTONS)
+#define MAX_FONTS (MAX_BUTTONS * 2)
 
 #define INIT_SDL_FLAGS \
     (SDL_INIT_VIDEO)
