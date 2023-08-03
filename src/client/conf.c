@@ -627,22 +627,22 @@ void conf_default_save(void)
     ang_file* config;
     char buf[1024];
 
-    if (config = file_open(config_name, MODE_READ, -1))
+    if ((config = file_open(config_name, MODE_READ, -1)))
     {
-    file_close(config);
-    conf_need_save = false;
-    if (!conf_need_save) return;
+        file_close(config);
+        conf_need_save = false;
+        if (!conf_need_save) return;
     }
 
     if (clia_read_string(buf, 1024, "config"))
     {
-    conf_need_save = false;
-    if (!conf_need_save) return;
+        conf_need_save = false;
+        if (!conf_need_save) return;
     }
 
     conf_set_string("MAngband", "nick", "PLAYER");
     conf_set_string("MAngband", "pass", "pass");
-    conf_set_string("MAngband", "\;host", "localhost");
+    conf_set_string("MAngband", ";host", "localhost");
     conf_set_string("MAngband", "meta_address", "mangband.org");
     conf_set_string("MAngband", "meta_port", "8802");
     conf_set_string("MAngband", "DisableNumlock", "1");
