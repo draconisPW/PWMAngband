@@ -4305,7 +4305,7 @@ blow:CLAW:HURT:1d4
 blow:BITE:HURT:1d6
 flags:INVISIBLE
 flags:DROP_40 | DROP_1 | ONLY_GOLD
-flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
+flags:PASS_WALL
 flags:IM_NETHER
 spell-freq:12
 innate-freq:100
@@ -5331,6 +5331,9 @@ flags:NEVER_MOVE
 flags:FORCE_SLEEP
 spell-freq:2
 spells:BLINK | DARKNESS | SCARE | SLOW
+message-invis:BLINK:Something hums softly.
+message-invis:DARKNESS:Something hums softly.
+message-invis:SLOW:Something hums softly.
 desc:Yum! It looks quite tasty. It seems to glow with an unusual light.
 
 name:guardian naga
@@ -7665,6 +7668,7 @@ flags:FORCE_SLEEP
 flags:NO_STUN
 spell-freq:7
 spells:SLOW
+message-invis:SLOW:Something rumbles.
 desc:It is a massive metal statue that moves steadily towards you.
 
 name:giant yellow scorpion
@@ -8415,6 +8419,8 @@ flags:NO_STUN
 spell-freq:4
 spells:CONF | SLOW
 spells:BO_ACID
+message-invis:SLOW:Something rumbles.
+message-invis:BO_ACID:Something rumbles.
 desc:A stumpy figure carved from stone, with glittering eyes, this sentinel
 desc: strides towards you with deadly intent.
 
@@ -10357,7 +10363,7 @@ blow:CLAW:HURT:2d5
 blow:BITE:HURT:3d7
 flags:INVISIBLE
 flags:DROP_2
-flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
+flags:PASS_WALL
 flags:IM_NETHER
 spell-freq:10
 innate-freq:50
@@ -11729,6 +11735,10 @@ spell-freq:6
 innate-freq:14
 spells:CONF | DRAIN_MANA | HOLD | MIND_BLAST | SHRIEK
 spells:S_MONSTER | S_MONSTERS
+message-vis:SHRIEK:The baleful presence of {name} inspires your enemies.
+message-invis:DRAIN_MANA:Something drains your mana away.
+message-invis:HOLD:Your muscles lock up for no apparent reason.
+message-invis:SHRIEK:Something inspires your enemies.
 desc:A figure carved from stone, with three vulture faces whose eyes glow with a
 desc: malevolent light.
 
@@ -11952,6 +11962,8 @@ flags:NO_STUN
 spell-freq:3
 spell-power:20
 spells:BO_ELEC | BE_ELEC | TELE_SELF_TO
+message-invis:BO_ELEC:The constant crackling subsides briefly and then resumes.
+message-invis:TELE_SELF_TO:The constant crackling subsides briefly and then resumes.
 desc:A man-shaped form of living lightning. Sparks and shocks crackle all over
 desc: this madly capering figure, as it leaps and whirls around and about you.
 
@@ -12652,6 +12664,9 @@ flags:FORCE_SLEEP
 flags:WILD_SWAMP
 spell-freq:2
 spells:BLINK | WOUND | CONF | TPORT
+message-vis:WOUND:{name} crackles softly.
+message-invis:BLINK:Something crackles softly.
+message-invis:WOUND:Something crackles softly.
 desc:A strange ball of glowing light. It disappears and reappears and seems to
 desc: draw you to it. You seem somehow compelled to stand still and watch its
 desc: strange dancing motion.
@@ -12833,6 +12848,8 @@ innate-freq:50
 spells:WEAVE | CONF | SLOW | BLIND
 spells:BR_POIS | BR_DARK
 spell-power:10
+message-invis:SLOW:Something chitters.
+message-invis:BLIND:Something chitters.
 desc:A massive spider, heaving the bloated bag of its body between great
 desc: spined legs.
 
@@ -12882,7 +12899,7 @@ blow:CLAW:HURT:3d8
 blow:CLAW:HURT:3d8
 blow:BITE:HURT:4d8
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_WASTE | WILD_MOUNTAIN | WILD_GLACIER
 spell-freq:8
@@ -12909,7 +12926,7 @@ blow:CLAW:HURT:3d8
 blow:CLAW:HURT:3d8
 blow:BITE:HURT:4d8
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ELEC | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_WOOD | WILD_MOUNTAIN
 spell-freq:8
@@ -12936,7 +12953,7 @@ blow:CLAW:HURT:3d8
 blow:CLAW:HURT:3d8
 blow:BITE:HURT:4d8
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_POIS | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_WOOD | WILD_MOUNTAIN
 spell-freq:8
@@ -13383,7 +13400,7 @@ blow:CLAW:HURT:3d8
 blow:CLAW:HURT:3d8
 blow:BITE:HURT:4d9
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_MOUNTAIN | WILD_VOLCANO | WILD_DESERT
 spell-freq:8
@@ -13410,7 +13427,7 @@ blow:CLAW:HURT:3d8
 blow:CLAW:HURT:3d8
 blow:BITE:HURT:4d9
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:NO_CONF | NO_SLEEP | NO_STUN
 flags:DROP_CORPSE | WILD_MOUNTAIN
 spell-freq:8
@@ -13437,7 +13454,7 @@ blow:CLAW:HURT:3d8
 blow:CLAW:HURT:3d8
 blow:BITE:HURT:4d9
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_SWAMP | WILD_MOUNTAIN
 spell-freq:8
@@ -13464,7 +13481,7 @@ blow:CLAW:HURT:3d8
 blow:CLAW:HURT:3d8
 blow:BITE:HURT:4d9
 flags:DROP_4 | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:NO_CONF | NO_SLEEP | IM_COLD | NO_SLOW
 spell-freq:8
 innate-freq:33
@@ -13883,7 +13900,7 @@ blow:BITE:HURT:2d12
 blow:BITE:HURT:2d12
 flags:UNIQUE | MALE | POWERFUL
 flags:DROP_4 | DROP_GOOD | ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_NEXUS | NO_CONF | NO_CUT
 flags:NO_SLEEP | NO_STUN | NO_HOLD
 spell-freq:4
@@ -13938,7 +13955,7 @@ blow:CLAW:HURT:3d9
 blow:BITE:HURT:4d9
 flags:INVISIBLE
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
+flags:PASS_WALL
 flags:NO_CONF | NO_SLEEP | IM_NETHER
 spell-freq:8
 innate-freq:33
@@ -13967,7 +13984,7 @@ blow:CLAW:HURT:3d9
 blow:CLAW:HURT:3d9
 blow:BITE:HURT:4d9
 flags:DROP_4 | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:NO_CONF | NO_SLEEP
 spell-freq:8
 innate-freq:33
@@ -13995,7 +14012,7 @@ blow:CLAW:HURT:3d9
 blow:CLAW:HURT:3d9
 blow:BITE:HURT:4d9
 flags:DROP_4 | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:NO_CONF | NO_SLEEP | NO_CUT
 spell-freq:8
 innate-freq:33
@@ -14022,7 +14039,7 @@ blow:CLAW:HURT:3d9
 blow:CLAW:HURT:3d9
 blow:BITE:HURT:4d9
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_WATER | NO_CONF | NO_SLEEP
 flags:DROP_CORPSE | WILD_SHORE
 spell-freq:8
@@ -14143,7 +14160,7 @@ blow:CLAW:HURT:3d9
 blow:CLAW:HURT:3d9
 blow:BITE:HURT:4d10
 flags:DROP_4 | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE | IM_DISEN | NO_CONF | NO_SLEEP
 flags:ATTR_MULTI
 spell-freq:8
@@ -14171,7 +14188,7 @@ blow:CLAW:HURT:3d9
 blow:CLAW:HURT:3d9
 blow:BITE:HURT:4d10
 flags:DROP_4 | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_CONF | NO_SLEEP | NO_STUN | NO_CUT
 spell-freq:8
 innate-freq:33
@@ -14312,7 +14329,7 @@ blow:CLAW:HURT:3d10
 blow:CLAW:HURT:3d10
 blow:BITE:HURT:4d10
 flags:DROP_4
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | NO_CONF
 flags:NO_SLEEP
 flags:ATTR_MULTI
@@ -14495,7 +14512,7 @@ blow:CLAW:HURT:3d10
 blow:CLAW:HURT:3d10
 blow:BITE:HURT:4d10
 flags:DROP_4 | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_CONF | NO_SLEEP | NO_STUN | NO_CUT
 spell-freq:8
 innate-freq:33
@@ -14607,7 +14624,7 @@ blow:CLAW:HURT:3d10
 blow:CLAW:HURT:3d10
 blow:BITE:HURT:4d11
 flags:DROP_4 | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR | NO_CUT
+flags:BASH_DOOR | NO_CUT
 flags:NO_STUN | NO_CONF | NO_SLEEP | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:8
@@ -14760,8 +14777,8 @@ spell-freq:2
 spells:BLINK | TPORT
 spells:S_DEMON
 message-invis:BLINK:Something slurps.
-desc:A pile of pulsing flesh that glows with an inner hellish fire. The world
-desc: itself seems to cry out against it.
+desc:A pile of pulsing flesh that reeks of sulfur. The world itself seems to
+desc: cry out against it.
 
 name:draconic quylthulg
 base:quylthulg
@@ -15444,7 +15461,7 @@ experience:6000
 blow:CLAW:HURT:6d8
 blow:CLAW:HURT:6d8
 blow:BITE:HURT:7d8
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ELEC
 flags:DROP_CORPSE
 spell-freq:6
@@ -15468,7 +15485,7 @@ experience:6000
 blow:CLAW:HURT:6d8
 blow:CLAW:HURT:6d8
 blow:BITE:HURT:7d8
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD
 flags:DROP_CORPSE
 spell-freq:6
@@ -15492,7 +15509,7 @@ experience:6000
 blow:CLAW:HURT:6d8
 blow:CLAW:HURT:6d8
 blow:BITE:HURT:7d8
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_POIS
 flags:DROP_CORPSE
 spell-freq:6
@@ -15721,7 +15738,7 @@ experience:7000
 blow:CLAW:HURT:6d8
 blow:CLAW:HURT:6d8
 blow:BITE:HURT:7d9
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID
 flags:DROP_CORPSE
 spell-freq:6
@@ -15746,7 +15763,7 @@ experience:7000
 blow:CLAW:HURT:6d8
 blow:CLAW:HURT:6d8
 blow:BITE:HURT:7d9
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE
 flags:DROP_CORPSE
 spell-freq:6
@@ -15771,7 +15788,7 @@ experience:7000
 blow:CLAW:HURT:6d8
 blow:CLAW:HURT:6d8
 blow:BITE:HURT:7d9
-flags:OPEN_DOOR | BASH_DOOR | NO_STUN
+flags:BASH_DOOR | NO_STUN
 flags:DROP_CORPSE
 spell-freq:6
 innate-freq:25
@@ -15911,7 +15928,7 @@ blow:CLAW:HURT:6d8
 blow:CLAW:HURT:6d8
 blow:BITE:HURT:7d9
 flags:DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_SLOW
 spell-freq:6
 innate-freq:25
@@ -16048,7 +16065,7 @@ blow:CLAW:HURT:6d9
 blow:CLAW:HURT:6d9
 blow:BITE:HURT:7d9
 flags:INVISIBLE
-flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
+flags:PASS_WALL
 flags:IM_NETHER
 spell-freq:6
 innate-freq:25
@@ -16074,7 +16091,7 @@ blow:CLAW:HURT:6d9
 blow:CLAW:HURT:6d9
 blow:BITE:HURT:7d9
 flags:DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR | NO_CUT
+flags:BASH_DOOR | NO_CUT
 spell-freq:6
 innate-freq:25
 spells:BLIND | CONF | SCARE
@@ -16100,7 +16117,7 @@ blow:CLAW:HURT:6d9
 blow:CLAW:HURT:6d9
 blow:BITE:HURT:7d9
 flags:DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 spell-freq:6
 innate-freq:25
 spells:BLIND | CONF | SCARE
@@ -16123,7 +16140,7 @@ experience:8000
 blow:CLAW:HURT:6d9
 blow:CLAW:HURT:6d9
 blow:BITE:HURT:7d9
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_WATER
 flags:DROP_CORPSE
 spell-freq:6
@@ -16297,7 +16314,7 @@ blow:CLAW:HURT:6d9
 blow:CLAW:HURT:6d9
 blow:BITE:HURT:7d10
 flags:DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE | IM_DISEN
 flags:ATTR_MULTI
 spell-freq:6
@@ -16322,7 +16339,7 @@ blow:CLAW:HURT:6d9
 blow:CLAW:HURT:6d9
 blow:BITE:HURT:7d10
 flags:DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 spell-freq:6
 innate-freq:25
@@ -16416,6 +16433,8 @@ spell-freq:5
 innate-freq:40
 spells:ARROW | BLIND | CONF | SLOW
 spells:BR_POIS
+message-invis:BLIND:Something rumbles.
+message-invis:SLOW:Something rumbles.
 desc:A constructed dragon, the drolem has massive strength. Powerful spells
 desc: weaved during its creation make it a fearsome adversary. Its eyes show
 desc: little intelligence, but it has been instructed to destroy all it meets.
@@ -16515,7 +16534,7 @@ experience:10000
 blow:CLAW:HURT:6d10
 blow:CLAW:HURT:6d10
 blow:BITE:HURT:7d10
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 flags:ATTR_MULTI
 flags:DROP_CORPSE
@@ -16542,7 +16561,7 @@ blow:CLAW:HURT:6d10
 blow:CLAW:HURT:6d10
 blow:BITE:HURT:7d10
 flags:DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_STUN | NO_CUT
 spell-freq:6
 innate-freq:25
@@ -16776,7 +16795,7 @@ blow:CLAW:HURT:6d10
 blow:CLAW:HURT:6d10
 blow:BITE:HURT:7d11
 flags:DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR | NO_CUT
+flags:BASH_DOOR | NO_CUT
 flags:NO_STUN | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:6
@@ -17961,6 +17980,9 @@ spell-freq:8
 spells:BRAIN_SMASH | WOUND | DRAIN_MANA | TELE_TO
 spells:BA_NETH
 spells:S_UNDEAD
+message-invis:WOUND:Something clatters.
+message-invis:DRAIN_MANA:Something clatters.
+message-invis:BA_NETH:Something clatters.
 desc:A skeletal form, black as night, constructed from the bones of its previous
 desc: victims.
 
@@ -18112,7 +18134,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ELEC
 flags:DROP_CORPSE
 spell-freq:4
@@ -18143,7 +18165,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD
 flags:DROP_CORPSE
 spell-freq:4
@@ -18174,7 +18196,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_POIS
 flags:DROP_CORPSE
 spell-freq:4
@@ -18298,7 +18320,7 @@ spell-freq:2
 spells:BLINK | TELE_TO
 spells:S_HI_DEMON
 message-invis:BLINK:Something slurps.
-desc:A massive pulsating mound of flesh, glowing with a hellish light.
+desc:A massive pulsating mound of flesh, strongly reeking of sulfur.
 
 name:greater draconic quylthulg
 base:quylthulg
@@ -18317,8 +18339,7 @@ spell-freq:2
 spells:BLINK | TELE_TO
 spells:S_HI_DRAGON
 message-invis:BLINK:Something slurps.
-desc:A massive mound of scaled flesh, throbbing and pulsating with multi-hued
-desc: light.
+desc:A massive mound of multi-hued scaled flesh, throbbing and pulsating.
 
 name:greater rotting quylthulg
 base:quylthulg
@@ -18422,7 +18443,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE
 flags:DROP_CORPSE
 spell-freq:4
@@ -18453,7 +18474,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID
 flags:DROP_CORPSE
 spell-freq:4
@@ -18485,7 +18506,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:DROP_CORPSE | NO_STUN
 spell-freq:4
 innate-freq:20
@@ -18516,7 +18537,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_SLOW
 spell-freq:4
 innate-freq:20
@@ -18798,6 +18819,9 @@ spells:BA_ELEC | BA_FIRE
 spells:BO_PLAS
 spells:BR_FIRE
 spells:S_DEMON
+message-invis:BA_ELEC:Something rumbles.
+message-invis:BA_FIRE:Something rumbles.
+message-invis:BO_PLAS:Something rumbles.
 desc:A gigantic four-armed animated bronze statue of demonic shape, glowing with
 desc: great heat.
 
@@ -18854,7 +18878,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:INVISIBLE | ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
+flags:PASS_WALL
 flags:IM_NETHER
 spell-freq:4
 innate-freq:20
@@ -18882,7 +18906,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR | NO_CUT
+flags:BASH_DOOR | NO_CUT
 spell-freq:4
 innate-freq:20
 spells:BLIND | CONF | SCARE
@@ -18910,7 +18934,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 spell-freq:4
 innate-freq:20
 spells:BLIND | CONF | SCARE
@@ -18937,7 +18961,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:6d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_WATER
 flags:DROP_CORPSE
 spell-freq:4
@@ -19198,7 +19222,7 @@ blow:CLAW:HURT:6d12
 blow:BITE:HURT:6d14
 blow:BITE:HURT:7d14
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE | IM_DISEN
 flags:ATTR_MULTI
 flags:DROP_CORPSE
@@ -19230,7 +19254,7 @@ blow:BITE:HURT:6d14
 blow:BITE:HURT:7d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 flags:DROP_CORPSE
 spell-freq:4
@@ -19465,7 +19489,7 @@ blow:BITE:HURT:7d14
 blow:BITE:HURT:7d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | IM_FIRE | IM_DISEN | NO_STUN | NO_CUT
 flags:DROP_CORPSE
 spell-freq:4
@@ -19497,7 +19521,7 @@ blow:CLAW:HURT:6d12
 blow:BITE:HURT:7d14
 blow:BITE:HURT:7d14
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS
 flags:ATTR_MULTI
 flags:DROP_CORPSE
@@ -19748,7 +19772,7 @@ blow:BITE:HURT:7d14
 blow:BITE:HURT:7d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:NO_STUN | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER | NO_CUT
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:4
@@ -19879,7 +19903,7 @@ blow:CLAW:HURT:8d14
 blow:BITE:HURT:10d16
 flags:UNIQUE | FEMALE | NAME_COMMA | PWMANG_BASE
 flags:DROP_GOOD | ONLY_ITEM | DROP_GREAT
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID | IM_FIRE | IM_COLD | IM_ELEC | IM_POIS
 flags:ATTR_FLICKER
 spell-freq:2
@@ -20183,7 +20207,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ELEC
 spell-freq:3
 innate-freq:17
@@ -20213,7 +20237,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD
 spell-freq:3
 innate-freq:17
@@ -20243,7 +20267,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_POIS
 spell-freq:3
 innate-freq:17
@@ -20276,7 +20300,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE
 spell-freq:3
 innate-freq:17
@@ -20306,7 +20330,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_ACID
 spell-freq:3
 innate-freq:17
@@ -20337,7 +20361,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:NO_STUN
 spell-freq:3
 innate-freq:17
@@ -20368,7 +20392,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_SLOW
 spell-freq:3
 innate-freq:17
@@ -20400,7 +20424,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:INVISIBLE | ATTR_FLICKER
 flags:ONLY_ITEM
-flags:OPEN_DOOR | BASH_DOOR | PASS_WALL
+flags:PASS_WALL
 flags:IM_NETHER
 spell-freq:3
 innate-freq:17
@@ -20428,7 +20452,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR | NO_CUT
+flags:BASH_DOOR | NO_CUT
 spell-freq:3
 innate-freq:17
 spells:BLIND | CONF | SCARE
@@ -20456,7 +20480,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 spell-freq:3
 innate-freq:17
 spells:BLIND | CONF | SCARE
@@ -20483,7 +20507,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:8d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_WATER
 spell-freq:3
 innate-freq:17
@@ -20576,7 +20600,7 @@ blow:CRUSH:HURT:8d12
 blow:BITE:HURT:8d14
 blow:CRUSH:HURT:9d14
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE | IM_DISEN
 flags:ATTR_MULTI
 spell-freq:3
@@ -20607,7 +20631,7 @@ blow:BITE:HURT:8d14
 blow:CRUSH:HURT:9d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | NO_STUN | NO_CUT
 spell-freq:3
 innate-freq:17
@@ -20640,7 +20664,7 @@ blow:BITE:HURT:9d14
 blow:CRUSH:HURT:9d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_COLD | IM_FIRE | NO_STUN | IM_DISEN | NO_CUT
 spell-freq:3
 innate-freq:17
@@ -20671,7 +20695,7 @@ blow:CRUSH:HURT:8d12
 blow:BITE:HURT:9d14
 blow:CRUSH:HURT:9d14
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:IM_FIRE | IM_ACID | IM_POIS | IM_COLD | IM_ELEC
 flags:ATTR_MULTI
 spell-freq:3
@@ -20703,7 +20727,7 @@ blow:BITE:HURT:9d14
 blow:CRUSH:HURT:9d14
 flags:ATTR_FLICKER
 flags:ONLY_ITEM | DROP_CORPSE
-flags:OPEN_DOOR | BASH_DOOR
+flags:BASH_DOOR
 flags:NO_STUN | IM_NEXUS | IM_PLASMA | IM_DISEN | IM_NETHER | NO_CUT
 flags:IM_ACID | IM_COLD | IM_ELEC | IM_FIRE | IM_POIS | IM_WATER | NO_SLOW
 spell-freq:3
@@ -21014,6 +21038,7 @@ flags:NO_STUN
 flags:FORCE_DEPTH
 spell-freq:8
 spells:HOLD
+message-invis:HOLD:Something rumbles.
 desc:An artificial bird completely made of hardened iron, kept in the air by
 desc: magical forces.
 
@@ -21042,6 +21067,7 @@ flags:FORCE_DEPTH | NO_PIT
 spell-freq:5
 spells:HEAL | TELE_TO
 spells:BA_NETH
+message-invis:BA_NETH:Something rumbles.
 desc:This berserk construct made of black ore has only one purpose: destroying
 desc: everything it sees.
 

@@ -1253,10 +1253,11 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
 
         /* Choose a profile and build the level */
         dun->profile = choose_profile(wpos);
-        chunk = dun->profile->builder(p, wpos, height, width);
+        chunk = dun->profile->builder(p, wpos, height, width, &error);
         if (!chunk)
         {
-            error = "Failed to find builder";
+            if (!error) error = "unspecified level builder failure";
+            plog_fmt("Generation restarted: %s.", error);
             cleanup_dun_data(dun);
             continue;
         }
@@ -1318,7 +1319,8 @@ static struct chunk *cave_generate(struct player *p, struct worldpos *wpos, int 
 
         if (error)
         {
-            plog_fmt("Generation restarted: (%s).", error);
+            plog_fmt("Generation restarted: %s.", error);
+            uncreate_artifacts(chunk);
             cave_clear(p, chunk);
             chunk = NULL;
         }
