@@ -157,6 +157,15 @@ struct keypress
 };
 
 /*
+ * Null keypress constant, for safe initializtion.
+ */
+static struct keypress const KEYPRESS_NULL = {
+    .type = EVT_NONE,
+    .code = 0,
+    .mods = 0
+};
+
+/*
  * Union type to hold information about any given event.
  */
 typedef union
