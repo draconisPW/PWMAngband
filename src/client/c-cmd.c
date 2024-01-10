@@ -179,6 +179,7 @@ static void view_map_aux(uint8_t mode)
 }
 
 
+/* Display map in subwindow "Term->view_map_hook" */
 void do_cmd_view_map_w(void)
 {
     ui_event ke = EVENT_EMPTY;
