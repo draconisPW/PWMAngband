@@ -1523,7 +1523,9 @@ ui_event textui_get_command(void)
             /* Allow "control chars" to be entered */
             case '^':
             {
-                if (get_com("Control: ", &ke.key)) ke.key.code = KTRL(ke.key.code);
+                if (!get_com_ex("Control: ", &ke)) break;
+                if (ENCODE_KTRL(ke.key.code)) ke.key.code = KTRL(ke.key.code);
+                else ke.key.mods |= KC_MOD_CONTROL;
                 break;
             }
         }

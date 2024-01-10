@@ -534,6 +534,16 @@ static Uint32 SHORTCUT_EDITOR_CODE;
 static bool view_map_hook_mod = true;
 
 /*
+ * Null keypress constant, for safe initializtion.
+ */
+static struct keypress const KEYPRESS_NULL =
+{
+    EVT_NONE,
+    0,
+    0
+};
+
+/*
  * Provide the hooks needed by primitive UI toolkit for SDL2.
  */
 SDL_Renderer *sdlpui_get_renderer(struct sdlpui_window *w)

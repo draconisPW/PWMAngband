@@ -858,9 +858,9 @@ void copy_artifact_data(struct object *obj, const struct artifact *art)
     copy_curses(obj, art->curses);
     for (i = 0; i < ELEM_MAX; i++)
     {
-        /* Take the larger of artifact and base object resist levels */
-        obj->el_info[i].res_level[0] =
-            MAX(art->el_info[i].res_level[0], obj->el_info[i].res_level[0]);
+        /* Use any non-zero artifact resist level */
+        if (art->el_info[i].res_level[0] != 0)
+            obj->el_info[i].res_level[0] = art->el_info[i].res_level[0];
 
         /* Union of flags so as to know when ignoring is notable */
         obj->el_info[i].flags |= art->el_info[i].flags;
