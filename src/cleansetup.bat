@@ -22,6 +22,7 @@ del /Q ..\setup\lib\tiles\gervais\*.*
 del /Q ..\setup\lib\user\save\*.*
 del /Q ..\setup\src\*.*
 del /Q ..\setup\src\_SDL\*.*
+del /Q ..\setup\src\_SDL2\*.*
 del /Q ..\setup\src\client\*.*
 del /Q ..\setup\src\common\*.*
 del /Q ..\setup\src\curses\*.*
