@@ -27,6 +27,7 @@ del /Q ..\setup\src\client\*.*
 del /Q ..\setup\src\common\*.*
 del /Q ..\setup\src\curses\*.*
 del /Q ..\setup\src\fix\*.*
+del /Q ..\setup\src\sdl2\*.*
 del /Q ..\setup\src\server\*.*
 del /Q ..\setup\src\win\*.*
 del /Q ..\setup\*.txt

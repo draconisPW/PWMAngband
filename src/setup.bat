@@ -27,6 +27,7 @@ copy client\*.* ..\setup\src\client
 copy common\*.* ..\setup\src\common
 copy curses\*.* ..\setup\src\curses
 copy fix\*.* ..\setup\src\fix
+copy sdl2\*.* ..\setup\src\sdl2
 copy server\*.* ..\setup\src\server
 copy win\*.* ..\setup\src\win
 pause
