@@ -195,7 +195,12 @@ static void play_music_sdl(void)
 static bool open_audio_sdl(void)
 {
     /* Initialize variables */
+#ifdef SOUND_SDL
     int audio_rate = 22050;
+#endif
+#ifdef SOUND_SDL2
+    int audio_rate = 44100;
+#endif
     Uint16 audio_format = AUDIO_S16;
     int audio_channels = 2;
 
