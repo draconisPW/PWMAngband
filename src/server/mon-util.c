@@ -1048,7 +1048,7 @@ void monster_death(struct player *p, struct chunk *c, struct monster *mon)
 {
     int dump_item = 0;
     int dump_gold = 0;
-    bool visible = (monster_is_visible(p, mon->midx) || monster_is_unique(mon->race));
+    bool visible = (monster_is_visible(p, mon->midx) || monster_is_unique(mon));
     int winners;
 
     /* Reward the player with experience */
@@ -1108,7 +1108,7 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
     }
 
     /* Play a special sound if the monster was unique */
-    if (monster_is_unique(mon->race))
+    if (monster_is_unique(mon))
     {
         if (mon->race->base == lookup_monster_base("Morgoth"))
             soundfx = MSG_KILL_KING;
@@ -1171,7 +1171,7 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
     }
 
     /* Take note of the killer (only the first time!) */
-    if (monster_is_unique(mon->race) && !lore->pkills)
+    if (monster_is_unique(mon) && !lore->pkills)
     {
         int type = MSG_BROADCAST_KILL_UNIQUE;
 
@@ -1212,7 +1212,7 @@ static void player_kill_monster(struct player *p, struct chunk *c, struct source
 
     /* Killing an unique multiple times is cheezy! */
     /* Adding clones here to avoid cloning/breeding abuse */
-    cheeze = ((monster_is_unique(mon->race) && lore->pkills) || mon->clone);
+    cheeze = ((monster_is_unique(mon) && lore->pkills) || mon->clone);
 
     /* Take note of the kill */
     if (lore->pkills < SHRT_MAX)

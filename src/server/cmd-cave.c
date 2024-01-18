@@ -867,6 +867,12 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     int digging_chances[DIGGING_MAX], chance = 0, dig_idx;
     bool okay = false;
     bool gold, rubble, tree, web;
+    int weapon_slot = slot_by_name(p, "weapon");
+    struct object *current_weapon = slot_object(p, weapon_slot);
+    struct object *current_tool = equipped_item_by_slot_name(p, "tool");
+    const char *with_clause = ((current_weapon == NULL)? "with your hands": "with your weapon");
+
+    if ((current_tool != NULL) && tval_is_digger(current_tool)) with_clause = "with your digger";
 
     gold = square_hasgoldvein(c, grid);
     rubble = square_isrubble(c, grid);
@@ -907,7 +913,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     /* Hack -- pit walls (to fool the player) */
     else if (square_ispermfake(c, grid))
     {
-        msg(p, "You tunnel into the %s.", square_apparent_name(p, c, grid));
+        msg(p, "You tunnel into the %s %s.", square_apparent_name(p, c, grid), with_clause);
         more = true;
     }
 
@@ -918,18 +924,18 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
         if (tree)
         {
             /* Message */
-            msg(p, "You hack your way through the vegetation.");
+            msg(p, "You hack your way through the vegetation %s.", with_clause);
         }
 
         /* Clear some web */
         else if (web)
-            msg(p, "You hack your way through the web.");
+            msg(p, "You hack your way through the web %s.", with_clause);
 
         /* Remove the rubble */
         else if (rubble)
         {
             /* Message */
-            msg(p, "You have removed the rubble.");
+            msg(p, "You have removed the rubble %s.", with_clause);
 
             /* Place an object */
             if (magik(10) && !square_ishardrubble(c, grid))
@@ -953,12 +959,12 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
             place_gold(p, c, grid, object_level(&p->wpos), ORIGIN_FLOOR);
 
             /* Message */
-            msg(p, "You have found something!");
+            msg(p, "You have found something digging %s!", with_clause);
         }
 
         /* Found nothing */
         else
-            msg(p, "You have finished the tunnel.");
+            msg(p, "You have finished the tunnel %s.", with_clause);
 
         /* On the surface, new terrain may be exposed to the sun. */
         if (c->wpos.depth == 0) expose_to_sun(c, grid, is_daytime());
@@ -973,11 +979,11 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     else if (chance > 0)
     {
         if (tree || web)
-            msg(p, "You attempt to clear a path.");
+            msg(p, "You attempt to clear a path %s.", with_clause);
         else if (rubble)
-            msg(p, "You dig in the rubble.");
+            msg(p, "You dig in the rubble %s.", with_clause);
         else
-            msg(p, "You tunnel into the %s.", square_apparent_name(p, c, grid));
+            msg(p, "You tunnel into the %s %s.", square_apparent_name(p, c, grid), with_clause);
          more = true;
     }
 
@@ -985,11 +991,14 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     else
     {
         if (tree || web)
-            msg(p, "You fail to clear a path.");
+            msg(p, "You fail to clear a path %s.", with_clause);
         else if (rubble)
-            msg(p, "You dig in the rubble with little effect.");
+            msg(p, "You dig in the rubble %s with little effect.", with_clause);
         else
-            msg(p, "You chip away futilely at the %s.", square_apparent_name(p, c, grid));
+        {
+            msg(p, "You chip away futilely %s at the %s.", with_clause,
+                square_apparent_name(p, c, grid));
+        }
     }
 
     /* Result */
