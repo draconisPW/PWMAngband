@@ -964,9 +964,12 @@ void display_map(struct player *p, bool subwindow)
         mc[y] = mem_zalloc(cv->width * sizeof(char));
     }
 
-    mpx = mem_zalloc(NumPlayers * sizeof(uint8_t*));
-    mpy = mem_zalloc(NumPlayers * sizeof(uint8_t*));
-    mpa = mem_zalloc(NumPlayers * sizeof(uint16_t*));
+    if (OPT(p, highlight_players))
+    {
+        mpx = mem_zalloc(NumPlayers * sizeof(uint8_t*));
+        mpy = mem_zalloc(NumPlayers * sizeof(uint8_t*));
+        mpa = mem_zalloc(NumPlayers * sizeof(uint16_t*));
+    }
 
     /* Initialize chars & attributes */
     for (y = 0; y < map_hgt; ++y)
@@ -1086,7 +1089,7 @@ void display_map(struct player *p, bool subwindow)
     /* Activate mini-map window */
     if (subwindow) Send_term_info(p, NTERM_ACTIVATE, NTERM_WIN_MAP);
 
-    if (subwindow)
+    if (subwindow && OPT(p, highlight_players))
     {
         int i;
 
@@ -1097,6 +1100,16 @@ void display_map(struct player *p, bool subwindow)
 
             /* If he's not here, skip him */
             if (!wpos_eq(&q->wpos, &cv->wpos))
+            {
+                /* Reset array */
+                mpy[i] = 255;
+                mpx[i] = 255;
+                mpa[i] = 0;
+                continue;
+            }
+
+            /* Skip hostile players */
+            if (pvp_check(p, q, PVP_CHECK_ONE, true, 0x00))
             {
                 /* Reset array */
                 mpy[i] = 255;
@@ -1125,7 +1138,7 @@ void display_map(struct player *p, bool subwindow)
             tc = mc[y][x];
 
             /* Display players on mini map */
-            if (subwindow)
+            if (subwindow && OPT(p, highlight_players))
             {
                 int i;
 
@@ -1173,9 +1186,12 @@ void display_map(struct player *p, bool subwindow)
     mem_free(ma);
     mem_free(mc);
 
-    mem_free(mpx);
-    mem_free(mpy);
-    mem_free(mpa);
+    if (OPT(p, highlight_players))
+    {
+        mem_free(mpx);
+        mem_free(mpy);
+        mem_free(mpa);
+    }
 }
 
 

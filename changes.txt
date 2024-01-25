@@ -35,6 +35,7 @@ PWMAngband:
 - Windows client SDL_mixer
 - SDL2 update
 - Fix sounds amb_bell_metal
+- Highlight players '@' on mini map
 
 Bugs fixed
 ----------
