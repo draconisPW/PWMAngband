@@ -932,6 +932,10 @@ void display_map(struct player *p, bool subwindow)
     uint16_t **ma;
     char **mc;
 
+    uint8_t *mpx;
+    uint8_t *mpy;
+    uint16_t *mpa;
+
     /* Desired map size */
     map_hgt = p->max_hgt - ROW_MAP - 1;
     map_wid = p->screen_cols;
@@ -959,6 +963,10 @@ void display_map(struct player *p, bool subwindow)
         ma[y] = mem_zalloc(cv->width * sizeof(uint16_t));
         mc[y] = mem_zalloc(cv->width * sizeof(char));
     }
+
+    mpx = mem_zalloc(NumPlayers * sizeof(uint8_t*));
+    mpy = mem_zalloc(NumPlayers * sizeof(uint8_t*));
+    mpa = mem_zalloc(NumPlayers * sizeof(uint16_t*));
 
     /* Initialize chars & attributes */
     for (y = 0; y < map_hgt; ++y)
@@ -1078,6 +1086,33 @@ void display_map(struct player *p, bool subwindow)
     /* Activate mini-map window */
     if (subwindow) Send_term_info(p, NTERM_ACTIVATE, NTERM_WIN_MAP);
 
+    if (subwindow)
+    {
+        int i;
+
+        /* Check players */
+        for (i = 1; i <= NumPlayers; i++)
+        {
+            struct player *q = player_get(i);
+
+            /* Reset the arrays */
+            mpy[i] = 255;
+            mpx[i] = 255;
+            mpa[i] = 0;
+
+            /* If he's not here, skip him */
+            if (!wpos_eq(&q->wpos, &cv->wpos)) continue;
+
+            /* Player location */
+            mpy[i] = (q->grid.y * map_hgt / cv->height);
+            mpx[i] = (q->grid.x * map_wid / cv->width);
+
+            if (q == p) mpa[i] = COLOUR_YELLOW;
+            else if (p->party && q->party == p->party) mpa[i] = COLOUR_L_BLUE;
+            else mpa[i] = COLOUR_L_UMBER;
+        }
+    }
+
     /* Display each map line in order */
     for (y = 0; y < map_hgt; ++y)
     {
@@ -1086,6 +1121,21 @@ void display_map(struct player *p, bool subwindow)
         {
             ta = ma[y][x];
             tc = mc[y][x];
+
+            /* Display players on mini map */
+            if (subwindow)
+            {
+                int i;
+
+                for (i = 1; i <= NumPlayers; i++)
+                {
+                    if ((x == mpx[i]) && (y == mpy[i]))
+                    {
+                        ta = mpa[i];
+                        tc = '@';
+                    }
+                }
+            }
 
             /* Add the character */
             p->scr_info[y][x].c = tc;
@@ -1120,6 +1170,10 @@ void display_map(struct player *p, bool subwindow)
     mem_free(mp);
     mem_free(ma);
     mem_free(mc);
+
+    mem_free(mpx);
+    mem_free(mpy);
+    mem_free(mpa);
 }
 
 
