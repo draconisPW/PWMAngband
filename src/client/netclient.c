@@ -1479,19 +1479,18 @@ static int Receive_death_cause(void)
 {
     int n;
     uint8_t ch;
-    int16_t x;
+    int16_t x, y;
 
     if ((n = Packet_scanf(&rbuf, "%b%s%hd%ld%ld%hd%hd%hd%s%s", &ch, player->death_info.title,
         &player->death_info.lev, &player->death_info.exp, &player->death_info.au,
-        &player->death_info.wpos.grid.y, &x,
-        &player->death_info.wpos.depth, player->death_info.died_from,
+        &y, &x, &player->death_info.wpos.depth, player->death_info.died_from,
         player->death_info.ctime)) <= 0)
     {
         return n;
     }
 
-    plog_fmt("x=%d",x);
     player->death_info.wpos.grid.x = x;
+    player->death_info.wpos.grid.y = y;
 
     display_exit_screen();
 
