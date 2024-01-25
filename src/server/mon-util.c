@@ -1000,7 +1000,7 @@ static void end_game(struct player *p, const struct monster *m)
             player_dump(player, true);
 
             /* Retire */
-            do_cmd_suicide(player);
+            do_cmd_retire(player);
         }
     }
 }
