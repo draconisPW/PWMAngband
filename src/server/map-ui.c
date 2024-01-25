@@ -1095,13 +1095,15 @@ void display_map(struct player *p, bool subwindow)
         {
             struct player *q = player_get(i);
 
-            /* Reset the arrays */
-            mpy[i] = 255;
-            mpx[i] = 255;
-            mpa[i] = 0;
-
             /* If he's not here, skip him */
-            if (!wpos_eq(&q->wpos, &cv->wpos)) continue;
+            if (!wpos_eq(&q->wpos, &cv->wpos))
+            {
+                /* Reset array */
+                mpy[i] = 255;
+                mpx[i] = 255;
+                mpa[i] = 0;
+                continue;
+            }
 
             /* Player location */
             mpy[i] = (q->grid.y * map_hgt / cv->height);
