@@ -174,7 +174,10 @@ void do_cmd_go_down(struct player *p)
     /* Warn a force_descend player if they're going to a quest level */
     if ((cfg_limit_stairs == 3) || OPT(p, birth_force_descend))
     {
-        descend_to = dungeon_get_next_level(p, p->max_depth, 1);
+        if (is_dm_p(p))
+            descend_to = dungeon_get_next_level(p, p->wpos.depth, 1);
+        else
+            descend_to = dungeon_get_next_level(p, p->max_depth, 1);
 
         /* Ask for confirmation */
         if (is_quest_active(p, descend_to) && !p->current_action)
