@@ -111,7 +111,7 @@ void dungeon_change_level(struct player *p, struct chunk *c, struct worldpos *ne
     p->upkeep->redraw |= (PR_DTRAP);
 
     /* Hack -- deactivate recall for force_descend players */
-    if (((cfg_limit_stairs == 3) || OPT(p, birth_force_descend)) && p->word_recall)
+    if (player_force_descend(p, 3) && p->word_recall)
     {
         p->word_recall = 0;
         msg(p, "A tension leaves the air around you...");
@@ -2282,5 +2282,16 @@ bool player_is_trapsafe(const struct player *p)
 {
     if (p->timed[TMD_TRAPSAFE]) return true;
     if (player_of_has(p, OF_TRAP_IMMUNE)) return true;
+    return false;
+}
+
+
+/*
+ * Check if the player has restricted use of stairs
+ */
+bool player_force_descend(struct player *p, int lvl)
+{
+    if (is_dm_p(p)) return false;
+    if ((cfg_limit_stairs >= lvl) || OPT(p, birth_force_descend)) return true;
     return false;
 }
