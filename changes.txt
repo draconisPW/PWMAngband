@@ -50,6 +50,7 @@ Bugs fixed
 PWMAngband:
 
 - Properly show level coordinates on tombstone/retirement screen if negative
+- Fix moronic bug in stair generation
 
 Coding changes
 --------------
