@@ -1993,7 +1993,7 @@ static void add_high_resist(struct artifact *art, struct artifact_set_data *data
 static void add_brand(struct artifact *art)
 {
     int count;
-    struct brand *brand;
+    struct brand *brand = NULL;
 
     /* Hack -- do not allow slays/brands on nonweapons other than rings and gloves */
     if (!art_is_weapon(art) && !art_is_ammo(art) && !art_is_ring(art) && (art->tval != TV_GLOVES))
@@ -2005,7 +2005,17 @@ static void add_brand(struct artifact *art)
     /* Get a random brand */
     for (count = 0; count < MAX_TRIES; count++)
     {
-        if (!append_random_brand(&art->brands, &brand, art_is_ammo(art))) continue;
+        int pick;
+
+        /* No life leech brand on ammo */
+        do
+        {
+            pick = randint0(z_info->brand_max);
+            brand = &brands[pick];
+        }
+        while (art_is_ammo(art) && streq(brand->name, "life leech"));
+
+        if (!append_brand(&art->brands, pick)) continue;
         if (art_is_ammo(art)) break;
 
         /* Frequently add the corresponding resist */
@@ -2031,7 +2041,7 @@ static void add_brand(struct artifact *art)
 static void add_slay(struct artifact *art)
 {
     int count;
-    struct slay *slay;
+    struct slay *slay = NULL;
     int i;
 
     /* Hack -- do not allow slays/brands on nonweapons other than rings and gloves */
@@ -2052,7 +2062,10 @@ static void add_slay(struct artifact *art)
 
     for (count = 0; count < MAX_TRIES; count++)
     {
-        if (!append_random_slay(&art->slays, &slay)) continue;
+        int pick = randint0(z_info->slay_max);
+
+        if (!append_slay(&art->slays, pick)) continue;
+        slay = &slays[pick];
         if (art_is_ammo(art)) break;
 
         /* Frequently add more slays if the first choice is weak */

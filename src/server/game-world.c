@@ -886,7 +886,7 @@ static void process_player_world(struct player *p, struct chunk *c)
             struct source *who = &who_body;
 
             source_player(who, get_player_index(get_connection(p->conn)), p);
-            effect_simple(EF_DETECT_GOLD, who, "0", 0, 0, 0, 3, 3, NULL);
+            effect_simple(EF_DETECT_ORE, who, "0", 0, 0, 0, 3, 3, NULL);
         }
     }
 

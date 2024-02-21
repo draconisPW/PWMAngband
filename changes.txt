@@ -18,8 +18,37 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.6.0 build 2
+New features in PWMAngband 1.6.0 build 3
 ========================================
+
+Bugs fixed
+----------
+
+Angband 4.2.x:
+
+- Scan full pile for detecting objects
+
+Coding changes
+--------------
+
+Angband 4.2.x:
+
+- Fix some code formatting
+- Rename DETECT_GOLD to DETECT_ORE
+- player_know_object(): forget traits no longer present
+- Remove append_random_brand() and append_random_slay()
+- Handle padding of text that could contain multibyte UTF-8 characters
+
+Compilation/documentation
+-------------------------
+
+Angband 4.2.x:
+
+- Fix typos in the comments for the player's timed effects data file
+- Correct some typos in the manual
+
+Features in PWMAngband 1.6.0 build 2
+====================================
 
 User interface
 --------------

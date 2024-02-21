@@ -2158,7 +2158,7 @@ bool effect_handler_DETECT_FEARFUL_MONSTERS(effect_handler_context_t *context)
  * the player is context->value.dice, the width either side of the player
  * context->value.sides.
  */
-bool effect_handler_DETECT_GOLD(effect_handler_context_t *context)
+bool effect_handler_DETECT_ORE(effect_handler_context_t *context)
 {
     int x1, x2, y1, y2;
     bool redraw = false;
@@ -2619,7 +2619,14 @@ bool effect_handler_DETECT_TREASURES(effect_handler_context_t *context)
         }
 
         /* Detect */
-        if (!ignore_item_ok(context->origin->player, obj) || !full) objects = true;
+        if (full)
+        {
+            for (; !objects && obj; obj = obj->next)
+            {
+                if (!ignore_item_ok(context->origin->player, obj)) objects = true;
+            }
+        }
+        else objects = true;
 
         /* Memorize the pile */
         if (full) square_know_pile(context->origin->player, context->cave, &iter.cur);
