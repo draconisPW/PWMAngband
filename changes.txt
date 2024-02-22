@@ -21,6 +21,13 @@ changes and fixes are specific to PWMAngband.
 New features in PWMAngband 1.6.0 build 3
 ========================================
 
+Gameplay changes
+----------------
+
+PWMAngband:
+
+- Rework Black Rings of Power
+
 Bugs fixed
 ----------
 

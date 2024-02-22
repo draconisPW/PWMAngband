@@ -264,7 +264,8 @@ static void build_obj_list(int last, struct object **list, item_tester tester, i
 
             if (u8len < 14)
             {
-                strnfmt(entry->equip_label, sizeof(entry->equip_label), "%s%*s", mention, (int)(14 - u8len), " ");
+                strnfmt(entry->equip_label, sizeof(entry->equip_label), "%s%*s", mention,
+                    (int)(14 - u8len), " ");
             }
             else
             {
@@ -278,7 +279,10 @@ static void build_obj_list(int last, struct object **list, item_tester tester, i
             my_strcap(entry->equip_label);
         }
         else if (in_term && quiver)
-            strnfmt(entry->equip_label, sizeof(entry->equip_label), "%-14s: ", format("In quiver [f%d]", i));
+        {
+            strnfmt(entry->equip_label, sizeof(entry->equip_label), "%-14s: ",
+                format("In quiver [f%d]", i));
+        }
         else
             entry->equip_label[0] = 0;
 

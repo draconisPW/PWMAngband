@@ -1632,7 +1632,7 @@ bool effect_handler_CURSE_ARMOR(effect_handler_context_t *context)
         obj->to_a -= randint1(3);
 
         /* Curse it */
-        append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
+        apply_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
         object_learn_obvious(context->origin->player, obj, false);
 
         /* Recalculate bonuses */
@@ -1686,7 +1686,7 @@ bool effect_handler_CURSE_WEAPON(effect_handler_context_t *context)
         obj->to_d -= randint1(3);
 
         /* Curse it */
-        append_object_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
+        apply_curse(obj, object_level(&context->origin->player->wpos), obj->tval);
         object_learn_obvious(context->origin->player, obj, false);
 
         /* Recalculate bonuses */
