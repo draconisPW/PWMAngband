@@ -210,8 +210,8 @@ static void wr_item(struct object *obj)
     wr_byte(obj->ordered);
     wr_s16b(obj->decay);
     wr_byte(obj->bypass_aware);
-
     wr_quark(obj->origin_player);
+    wr_hturn(&obj->worn_turn);
 }
 
 

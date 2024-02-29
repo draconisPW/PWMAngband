@@ -279,8 +279,8 @@ static struct object *rd_item(void)
     rd_byte(&obj->ordered);
     rd_s16b(&obj->decay);
     rd_byte(&obj->bypass_aware);
-
     rd_quark(&obj->origin_player);
+    rd_hturn(&obj->worn_turn);
 
     /* Dummy item */
     if (!obj->tval && !obj->sval)
