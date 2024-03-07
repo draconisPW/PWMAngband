@@ -29,6 +29,10 @@ Angband 4.2.x:
 
 - Scan full pile for detecting objects
 
+PWMAngband:
+
+- Fix bugged SDL client options buttons
+
 Coding changes
 --------------
 
@@ -39,6 +43,7 @@ Angband 4.2.x:
 - player_know_object(): forget traits no longer present
 - Remove append_random_brand() and append_random_slay()
 - Handle padding of text that could contain multibyte UTF-8 characters
+- Some client fixes and improvements
 
 Compilation/documentation
 -------------------------
