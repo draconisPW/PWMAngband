@@ -570,7 +570,7 @@ struct object
     int16_t decay;                      /* Decay timeout for corpses */
     uint8_t bypass_aware;               /* Bypasses the "aware" flag */
     quark_t origin_player;              /* Original owner */
-    hturn worn_turn;                    /* Number of turns object has been worn (in the dungeon) */
+    uint16_t worn_time;                 /* Number of seconds object has been worn (in the dungeon) */
 };
 
 typedef bool (*item_tester)(struct player *, const struct object *);

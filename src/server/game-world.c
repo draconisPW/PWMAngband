@@ -1962,15 +1962,14 @@ static void pre_turn_game_loop(void)
 
 static void process_worn(struct player *p, struct object *ring)
 {
-    uint32_t hour = (uint32_t)(cfg_fps * 3600);
-
     if (!ring) return;
+    if (ring->worn_time == 7200) return;
 
-    /* Increment worn turn counter */
-    ht_add(&ring->worn_turn, 1);
+    /* Increment worn time counter */
+    ring->worn_time++;
 
     /* Add up to two random permanent curses every hour */
-    if ((ring->worn_turn.turn == hour) || (ring->worn_turn.turn == 2 * hour))
+    if ((ring->worn_time == 3600) || (ring->worn_time == 7200))
     {
         if (ring->kind->sval == lookup_sval(TV_RING, "Black Ring of Power"))
         {
@@ -2118,21 +2117,22 @@ static void post_turn_game_loop(void)
         /* Player has energy */
         p->has_energy = has_energy(p, false);
 
-        /* Inform the client every second */
+        /* Process extra stuff every second */
         if (!(turn.turn % cfg_fps))
         {
+            /* Inform the client */
             Send_turn(p, ht_div(&p->game_turn, cfg_fps), ht_div(&p->player_turn, 1),
                 ht_div(&p->active_turn, 1));
-        }
 
-        /* Increment worn turn counter if inside a dungeon */
-        if (p->wpos.depth > 0)
-        {
-            struct object *right = slot_object(p, slot_by_name(p, "right hand"));
-            struct object *left = slot_object(p, slot_by_name(p, "left hand"));
+            /* Increment worn time counter if inside a dungeon */
+            if (p->wpos.depth > 0)
+            {
+                struct object *right = slot_object(p, slot_by_name(p, "right hand"));
+                struct object *left = slot_object(p, slot_by_name(p, "left hand"));
 
-            process_worn(p, right);
-            process_worn(p, left);
+                process_worn(p, right);
+                process_worn(p, left);
+            }
         }
     }
 

@@ -211,7 +211,7 @@ static void wr_item(struct object *obj)
     wr_s16b(obj->decay);
     wr_byte(obj->bypass_aware);
     wr_quark(obj->origin_player);
-    wr_hturn(&obj->worn_turn);
+    wr_u16b(obj->worn_time);
 }
 
 
