@@ -2278,7 +2278,7 @@ void do_cmd_steal(struct player *p, int dir)
 
         /* Monster base reaction, plus allowance for item weight */
         monster_reaction = guard / 2 + randint1(MAX(guard, 1));
-        if (obj && !tval_is_money(obj)) monster_reaction += obj->weight / 20;
+        if (obj && !tval_is_money(obj)) monster_reaction += (obj->number * obj->weight) / 20;
 
         /* Check for success */
         if (monster_reaction < steal_skill) success = true;
@@ -2724,7 +2724,14 @@ void do_cmd_fountain(struct player *p, int item)
     {
         msg(p, "You slip and fall in the water.");
         if (!player_passwall(p) && !can_swim(p))
-            take_hit(p, damroll(4, 5), "drowning", false, "slipped and fell in a fountain");
+        {
+            int dam = damroll(4, 5);
+
+            dam = player_apply_damage_reduction(p, dam, false);
+            if (dam && OPT(p, show_damage))
+                msg(p, "You take $r%d^r damage.", dam);
+            take_hit(p, dam, "drowning", "slipped and fell in a fountain");
+        }
 
         /* Done */
         return;

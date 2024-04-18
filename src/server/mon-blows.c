@@ -79,7 +79,7 @@ static const char *monster_blow_random_moan(void)
  *
  * method is the blow method.
  */
-const char *monster_blow_method_action(struct blow_method *method)
+static const char *monster_blow_method_action(const struct blow_method *method)
 {
 	const char *action = NULL;
 
@@ -238,6 +238,50 @@ static void steal_player_item(struct player *p, struct source *who, bool* obviou
 
 
 /*
+ * Display the message for a blow against a target.
+ */
+static void display_blow_message(melee_effect_handler_context_t *context, int damage)
+{
+    const char *act = monster_blow_method_action(context->method);
+
+    if (act)
+    {
+        const char *fullstop = ".";
+        const char *act_text = "";
+        const char *dmg_text = "";
+        char m_name[NORMAL_WID];
+        char target_m_name[NORMAL_WID];
+
+        monster_desc(context->p, m_name, sizeof(m_name), context->mon, MDESC_STANDARD);
+        if (context->target->monster)
+        {
+            monster_desc(context->p, target_m_name, sizeof(target_m_name), context->target->monster,
+                MDESC_DEFAULT);
+        }
+        else
+            my_strcpy(target_m_name, "you", sizeof(target_m_name));
+
+        if (suffix(act, "'") || suffix(act, "!")) fullstop = "";
+
+        if (context->method->act_msg)
+        {
+            act_text = format(act, target_m_name);
+            if (damage > 0 && OPT(context->p, show_damage))
+                dmg_text = format(" for $r%d^r damage", damage);
+        }
+        else if (strstr(act, "%s"))
+            act_text = format(act, target_m_name);
+        else if (context->target->monster)
+            act_text = format("insults %s!", target_m_name);
+        else
+            act_text = act;
+
+        msgt(context->p, context->method->msgt, "%s %s%s%s", m_name, act_text, dmg_text, fullstop);
+    }
+}
+
+
+/*
  * Get the elemental damage taken by a monster from another monster's melee
  */
 static void monster_elemental_damage(melee_effect_handler_context_t *context, int imm_flag,
@@ -262,6 +306,8 @@ static void monster_elemental_damage(melee_effect_handler_context_t *context, in
         if (context->visible) rf_on(context->target_l_ptr->flags, suscept_flag);
     }
 
+    display_blow_message(context, context->damage * mult);
+
     /* Take some damage */
     context->dead = project_m_monster_attack_aux(context->mon, chunk_get(&context->mon->wpos),
         context->target->monster, context->damage * mult, context->note_dies);
@@ -273,9 +319,13 @@ static void monster_elemental_damage(melee_effect_handler_context_t *context, in
  */
 static bool monster_damage_target(melee_effect_handler_context_t *context)
 {
+    int reduced;
+
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take some damage */
         context->dead = project_m_monster_attack_aux(context->mon,
             chunk_get(&context->mon->wpos), context->target->monster, context->damage,
@@ -283,8 +333,15 @@ static bool monster_damage_target(melee_effect_handler_context_t *context)
         return true;
     }
 
+    /*
+     * Player damage reduction does not affect the damage used for
+     * side effect calculations so leave context->damage as is.
+     */
+    reduced = player_apply_damage_reduction(context->p, context->damage, false);
+    display_blow_message(context, reduced);
+
     /* Take damage */
-	if (take_hit(context->p, context->damage, context->ddesc, false, context->flav)) return true;
+	if (take_hit(context->p, reduced, context->ddesc, context->flav)) return true;
 
     return false;
 }
@@ -341,9 +398,17 @@ static bool melee_effect_elemental(melee_effect_handler_context_t *context, int 
     {
         char df[160];
 
+        /*
+         * Player damage reduction does not affect the damage used for
+         * side effect calculations so leave context->damage as is.
+         */
+        int reduced = player_apply_damage_reduction(context->p, context->damage, false);
+
+        display_blow_message(context, reduced);
+
         my_strcpy(df, context->flav, sizeof(df));
         if (pure_element) strnfmt(df, sizeof(df), "was %s by %s", flav_msg, context->ddesc);
-        take_hit(context->p, context->damage, context->ddesc, false, df);
+        take_hit(context->p, reduced, context->ddesc, df);
     }
 
     /* Learn about the player */
@@ -366,8 +431,16 @@ static bool melee_effect_elemental(melee_effect_handler_context_t *context, int 
 static void melee_effect_timed(melee_effect_handler_context_t *context, int type, int amount,
     int of_flag, bool save, const char *save_msg, bool paralyze)
 {
+    /*
+     * Player damage reduction does not affect the damage used for
+     * side effect calculations so leave context->damage as is.
+     */
+    int reduced = player_apply_damage_reduction(context->p, context->damage, false);
+
+    display_blow_message(context, reduced);
+
     /* Take damage */
-	if (take_hit(context->p, context->damage, context->ddesc, false, context->flav)) return;
+	if (take_hit(context->p, reduced, context->ddesc, context->flav)) return;
 
 	/* Perform a saving throw if desired. */
 	if ((save && magik(context->p->state.skills[SKILL_SAVE])) ||
@@ -533,6 +606,8 @@ static void melee_effect_handler_POISON(melee_effect_handler_context_t *context)
 
         /* Notice immunity */
         if (rf_has(context->target->monster->race->flags, RF_IM_POIS)) mult = 1;
+
+        display_blow_message(context, context->damage * mult);
 
         /* Take some damage */
         context->dead = project_m_monster_attack_aux(context->mon,
@@ -881,6 +956,8 @@ static void melee_effect_handler_BLIND(melee_effect_handler_context_t *context)
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take damage */
         context->dead = project_m_monster_attack_aux(context->mon,
             chunk_get(&context->mon->wpos), context->target->monster, context->damage,
@@ -916,6 +993,8 @@ static void melee_effect_handler_CONFUSE(melee_effect_handler_context_t *context
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take damage */
         context->dead = project_m_monster_attack_aux(context->mon,
             chunk_get(&context->mon->wpos), context->target->monster, context->damage,
@@ -951,6 +1030,8 @@ static void melee_effect_handler_TERRIFY(melee_effect_handler_context_t *context
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take damage */
         context->dead = project_m_monster_attack_aux(context->mon,
             chunk_get(&context->mon->wpos), context->target->monster, context->damage,
@@ -999,6 +1080,8 @@ static void melee_effect_handler_PARALYZE(melee_effect_handler_context_t *contex
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take damage */
         context->dead = project_m_monster_attack_aux(context->mon,
             chunk_get(&context->mon->wpos), context->target->monster, context->damage,
@@ -1148,6 +1231,8 @@ static void melee_effect_handler_SHATTER(melee_effect_handler_context_t *context
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take damage */
         context->dead = project_m_monster_attack_aux(context->mon, chunk_get(&context->mon->wpos),
             context->target->monster, context->damage, context->note_dies);
@@ -1157,10 +1242,18 @@ static void melee_effect_handler_SHATTER(melee_effect_handler_context_t *context
     {
         char df[160];
 
+        /*
+         * Player damage reduction does not affect the damage used for
+         * side effect calculations so leave context->damage as is.
+         */
+        int reduced = player_apply_damage_reduction(context->p, context->damage, false);
+
+        display_blow_message(context, reduced);
+
         strnfmt(df, sizeof(df), "was splattered by %s", context->ddesc);
 
         /* Take damage */
-        if (take_hit(context->p, context->damage, context->ddesc, false, df)) return;
+        if (take_hit(context->p, reduced, context->ddesc, df)) return;
     }
 
     /* Earthquake centered at the monster, radius damage-determined */
@@ -1249,6 +1342,8 @@ static void melee_effect_handler_EXP_80(melee_effect_handler_context_t *context)
  */
 static void melee_effect_handler_HALLU(melee_effect_handler_context_t *context)
 {
+    int reduced;
+
     /* PvX */
     if (context->style == TYPE_PVX)
     {
@@ -1269,6 +1364,8 @@ static void melee_effect_handler_HALLU(melee_effect_handler_context_t *context)
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take damage */
         context->dead = project_m_monster_attack_aux(context->mon,
             chunk_get(&context->mon->wpos), context->target->monster, context->damage,
@@ -1283,8 +1380,16 @@ static void melee_effect_handler_HALLU(melee_effect_handler_context_t *context)
         return;
     }
 
+    /*
+     * Player damage reduction does not affect the damage used for
+     * side effect calculations so leave context->damage as is.
+     */
+    reduced = player_apply_damage_reduction(context->p, context->damage, false);
+
+    display_blow_message(context, reduced);
+
     /* Take damage */
-	if (take_hit(context->p, context->damage, context->ddesc, false, context->flav)) return;
+	if (take_hit(context->p, reduced, context->ddesc, context->flav)) return;
 
     /* Increase "image" */
     context->obvious = player_inc_timed(context->p, TMD_IMAGE, 3 + randint1(context->rlev / 2),
@@ -1302,8 +1407,16 @@ static void melee_effect_handler_HALLU(melee_effect_handler_context_t *context)
  */
 static void melee_effect_handler_BLACK_BREATH(melee_effect_handler_context_t *context)
 {
+    /*
+     * Player damage reduction does not affect the damage used for
+     * side effect calculations so leave context->damage as is.
+     */
+    int reduced = player_apply_damage_reduction(context->p, context->damage, false);
+
+    display_blow_message(context, reduced);
+
     /* Take damage */
-	if (take_hit(context->p, context->damage, context->ddesc, false, context->flav)) return;
+	if (take_hit(context->p, reduced, context->ddesc, context->flav)) return;
 
     /* Increase Black Breath counter a *small* amount, maybe */
     if (one_in_(5) && player_inc_timed(context->p, TMD_BLACKBREATH, context->damage / 10, true, false))
@@ -1540,6 +1653,7 @@ static void undress(struct player *p)
 static void melee_effect_handler_SEDUCE(melee_effect_handler_context_t *context)
 {
 	bool opposite;
+    int reduced;
 
     /* PvX */
     if (context->style == TYPE_PVX)
@@ -1575,6 +1689,8 @@ static void melee_effect_handler_SEDUCE(melee_effect_handler_context_t *context)
     /* MvM */
     if (context->style == TYPE_MVM)
     {
+        display_blow_message(context, context->damage);
+
         /* Take damage */
         context->dead = project_m_monster_attack_aux(context->mon,
             chunk_get(&context->mon->wpos), context->target->monster, context->damage,
@@ -1597,8 +1713,16 @@ static void melee_effect_handler_SEDUCE(melee_effect_handler_context_t *context)
         return;
     }
 
+    /*
+     * Player damage reduction does not affect the damage used for
+     * side effect calculations so leave context->damage as is.
+     */
+    reduced = player_apply_damage_reduction(context->p, context->damage, false);
+
+    display_blow_message(context, reduced);
+
     /* Take damage */
-	if (take_hit(context->p, context->damage, context->ddesc, false, context->flav)) return;
+	if (take_hit(context->p, reduced, context->ddesc, context->flav)) return;
 
     /* Obvious */
     context->obvious = true;
