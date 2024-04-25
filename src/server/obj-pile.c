@@ -1427,7 +1427,7 @@ void push_object(struct player *p, struct chunk *c, struct loc *grid)
     }
 
     /* Set feature to an open door */
-    square_open_door(c, grid);
+    square_create_open_door(c, grid);
 
     /* Drop objects back onto the floor */
     while (q_len(queue) > 0)

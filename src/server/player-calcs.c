@@ -1295,6 +1295,33 @@ void calc_digging_chances(struct player *p, struct player_state *state, int chan
 }
 
 
+/*
+ * Return the chance, out of 100, for unlocking a locked door with the given
+ * lock power.
+ *
+ * p is the player trying to unlock the door.
+ * lock_power is the power of the lock.
+ * lock_unseen, if true, assumes the player does not have sufficient
+ * light to work with the lock.
+ */
+int calc_unlocking_chance(const struct player *p, int lock_power, bool lock_unseen)
+{
+    int skill = p->state.skills[SKILL_DISARM_PHYS];
+
+    return calc_skill(p, skill, 4 * lock_power, lock_unseen);
+}
+
+
+int calc_skill(const struct player *p, int skill, int power, bool unseen)
+{
+    if (unseen || p->timed[TMD_BLIND]) skill /= 10;
+    if (p->timed[TMD_CONFUSED] || p->timed[TMD_IMAGE]) skill /= 10;
+
+    /* Always have a small chance of success */
+    return MAX(2, skill - power);
+}
+
+
 bool obj_kind_can_browse(struct player *p, const struct object_kind *kind)
 {
     int i;

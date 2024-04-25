@@ -1459,7 +1459,7 @@ int16_t place_monster(struct player *p, struct chunk *c, struct monster *mon, ui
                 push_object(p, c, &mon->grid);
 
                 /* Create a door */
-                square_close_door(c, &mon->grid);
+                square_create_closed_door(c, &mon->grid);
 
                 break;
             }

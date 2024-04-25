@@ -689,7 +689,7 @@ static void project_feature_handler_MAKE_DOOR(project_feature_handler_context_t 
     push_object(context->origin->player, context->cave, &grid);
 
     /* Create a closed door */
-    square_close_door(context->cave, &grid);
+    square_create_closed_door(context->cave, &grid);
 
     /* Observe */
     if (context->line_sound) context->obvious = true;

@@ -1983,11 +1983,21 @@ void square_add_stairs(struct chunk *c, struct loc *grid, int feat_stairs)
 
 void square_open_door(struct chunk *c, struct loc *grid)
 {
+    struct trap_kind *lock = lookup_trap("door lock");
+
+    my_assert(square_iscloseddoor(c, grid) || square_issecretdoor(c, grid));
+    my_assert(lock);
+    square_remove_all_traps_of_type(c, grid, lock->tidx);
+
+    square_create_open_door(c, grid);
+}
+
+
+void square_create_open_door(struct chunk *c, struct loc *grid)
+{
     int feat = FEAT_OPEN;
     struct worldpos dpos;
     struct location *dungeon;
-
-    square_remove_all_traps(c, grid);
 
     /* Get the dungeon */
     wpos_init(&dpos, &c->wpos.grid, 0);
@@ -2020,6 +2030,14 @@ void square_open_homedoor(struct chunk *c, struct loc *grid)
 
 
 void square_close_door(struct chunk *c, struct loc *grid)
+{
+    my_assert(square_isopendoor(c, grid));
+
+    square_create_closed_door(c, grid);
+}
+
+
+void square_create_closed_door(struct chunk *c, struct loc *grid)
 {
     int feat = FEAT_CLOSED;
     struct worldpos dpos;
@@ -2067,6 +2085,18 @@ void square_close_door(struct chunk *c, struct loc *grid)
 
 
 void square_smash_door(struct chunk *c, struct loc *grid)
+{
+    struct trap_kind *lock = lookup_trap("door lock");
+
+    my_assert(square_isdoor(c, grid));
+    my_assert(lock);
+    square_remove_all_traps_of_type(c, grid, lock->tidx);
+
+    square_create_smashed_door(c, grid);
+}
+
+
+void square_create_smashed_door(struct chunk *c, struct loc *grid)
 {
     int feat = FEAT_BROKEN;
     struct worldpos dpos;
@@ -2141,7 +2171,11 @@ void square_destroy_door(struct chunk *c, struct loc *grid)
 {
     int feat = ((c->wpos.depth > 0)? FEAT_FLOOR: FEAT_DIRT);
 
-    square_remove_all_traps(c, grid);
+    struct trap_kind *lock = lookup_trap("door lock");
+
+    my_assert(square_isdoor(c, grid));
+    my_assert(lock);
+    square_remove_all_traps_of_type(c, grid, lock->tidx);
     square_set_floor(c, grid, feat);
 }
 
@@ -2161,7 +2195,10 @@ void square_disable_trap(struct player *p, struct chunk *c, struct loc *grid)
 
 void square_destroy_decoy(struct player *p, struct chunk *c, struct loc *grid)
 {
-    square_remove_all_traps(c, grid);
+    struct trap_kind *decoy_kind = lookup_trap("decoy");
+
+    my_assert(decoy_kind);
+    square_remove_all_traps_of_type(c, grid, decoy_kind->tidx);
     loc_init(&c->decoy, 0, 0);
 
     if (!p) return;
