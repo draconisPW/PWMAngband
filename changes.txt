@@ -48,6 +48,7 @@ PWMAngband:
 - Fix mundane players able to use the Crown and Grond if not having anything
   in the corresponding equipment slot
 - Fix Dungeon Master being blasted by the Crown's power
+- Fix crash in SDL client when selecting 16x16xw.woff font
 
 Coding changes
 --------------

@@ -4520,7 +4520,7 @@ static errr load_window_prefs(void)
 				}
                 else
                 {
-					win->req_font.name = string_make(s);
+					win->req_font.alloc_name = string_make(s);
 					fsz = 0;
 				}
 			}
