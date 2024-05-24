@@ -4223,7 +4223,8 @@ bool effect_handler_RUBBLE(effect_handler_context_t *context)
      * necessary.
      */
     int rubble_grids = randint1(3);
-    int open_grids = count_feats(context->origin->player, context->cave, NULL, square_isempty, false);
+    int open_grids = count_neighbors(NULL, context->cave, &context->origin->player->grid,
+        square_isempty, false);
 
     /* Avoid infinite loops */
     int iterations = 0;

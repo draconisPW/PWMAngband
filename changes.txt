@@ -67,6 +67,7 @@ Angband 4.2.x:
 - Move some assertions
 - Include number in stack for monster's reaction to player theft
 - Have more logic accommodate multiple traps in a square
+- Correct some logic where square_isknown() is used
 
 Compilation/documentation
 -------------------------

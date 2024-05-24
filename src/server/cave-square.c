@@ -354,6 +354,16 @@ bool square_isperm(struct chunk *c, struct loc *grid)
 }
 
 
+/*
+ * True if the square is a permanent wall.
+ */
+bool square_isperm_p(struct player *p, struct loc *grid)
+{
+    return (tf_has(f_info[square_p(p, grid)->feat].flags, TF_PERMANENT) &&
+        tf_has(f_info[square_p(p, grid)->feat].flags, TF_ROCK));
+}
+
+
 bool square_isunpassable(struct chunk *c, struct loc *grid)
 {
     return (square_isperm(c, grid) || square_ispermfake(c, grid));
@@ -460,6 +470,16 @@ bool square_isrubble(struct chunk *c, struct loc *grid)
 
 
 /*
+ * True if the square is rubble.
+ */
+bool square_isrubble_p(struct player *p, struct loc *grid)
+{
+    return (!tf_has(f_info[square_p(p, grid)->feat].flags, TF_WALL) &&
+        tf_has(f_info[square_p(p, grid)->feat].flags, TF_ROCK));
+}
+
+
+/*
  * True if the square is hard rubble.
  */
 bool square_ishardrubble(struct chunk *c, struct loc *grid)
@@ -491,6 +511,15 @@ bool square_isopendoor(struct chunk *c, struct loc *grid)
 }
 
 
+/*
+ * True if the square is an open door.
+ */
+bool square_isopendoor_p(struct player *p, struct loc *grid)
+{
+    return (tf_has(f_info[square_p(p, grid)->feat].flags, TF_CLOSABLE));
+}
+
+
 bool square_home_isopendoor(struct chunk *c, struct loc *grid)
 {
     return (tf_has(f_info[square(c, grid)->feat].flags, TF_DOOR_HOME) &&
@@ -504,6 +533,15 @@ bool square_home_isopendoor(struct chunk *c, struct loc *grid)
 bool square_iscloseddoor(struct chunk *c, struct loc *grid)
 {
     return tf_has(f_info[square(c, grid)->feat].flags, TF_DOOR_CLOSED);
+}
+
+
+/*
+ * True if the square is a closed door.
+ */
+bool square_iscloseddoor_p(struct player *p, struct loc *grid)
+{
+    return tf_has(f_info[square_p(p, grid)->feat].flags, TF_DOOR_CLOSED);
 }
 
 
@@ -526,6 +564,14 @@ bool square_isbrokendoor(struct chunk *c, struct loc *grid)
     return (tf_has(f_info[square(c, grid)->feat].flags, TF_DOOR_ANY) &&
         tf_has(f_info[square(c, grid)->feat].flags, TF_PASSABLE) &&
         !tf_has(f_info[square(c, grid)->feat].flags, TF_CLOSABLE));
+}
+
+
+bool square_isbrokendoor_p(struct player *p, struct loc *grid)
+{
+    return (tf_has(f_info[square_p(p, grid)->feat].flags, TF_DOOR_ANY) &&
+        tf_has(f_info[square_p(p, grid)->feat].flags, TF_PASSABLE) &&
+        !tf_has(f_info[square_p(p, grid)->feat].flags, TF_CLOSABLE));
 }
 
 
@@ -656,6 +702,12 @@ bool square_ismark(struct player *p, struct loc *grid)
 bool square_istree(struct chunk *c, struct loc *grid)
 {
     return tf_has(f_info[square(c, grid)->feat].flags, TF_TREE);
+}
+
+
+bool square_istree_p(struct player *p, struct loc *grid)
+{
+    return tf_has(f_info[square_p(p, grid)->feat].flags, TF_TREE);
 }
 
 
@@ -1079,6 +1131,26 @@ bool square_seemsdiggable(struct chunk *c, struct loc *grid)
 
 
 /*
+ * True if a square seems diggable: this includes diggable squares as well as permanent walls,
+ * closed doors and mountain tiles.
+ */
+bool square_seemsdiggable_p(struct player *p, struct loc *grid)
+{
+    int feat = square_p(p, grid)->feat;
+
+    return ((tf_has(f_info[feat].flags, TF_GRANITE) && !tf_has(f_info[feat].flags, TF_DOOR_ANY)) ||
+        feat_is_magma(feat) || feat_is_quartz(feat) || tf_has(f_info[feat].flags, TF_SAND) ||
+        tf_has(f_info[feat].flags, TF_ICE) || tf_has(f_info[feat].flags, TF_DARK) ||
+        (tf_has(f_info[feat].flags, TF_DOOR_ANY) && tf_has(f_info[feat].flags, TF_ROCK)) ||
+        (!tf_has(f_info[feat].flags, TF_WALL) && tf_has(f_info[feat].flags, TF_ROCK)) ||
+        tf_has(f_info[feat].flags, TF_TREE) || tf_has(f_info[feat].flags, TF_WEB) ||
+        (tf_has(f_info[feat].flags, TF_DOOR_CLOSED) && !tf_has(f_info[feat].flags, TF_DOOR_HOME)) ||
+        (tf_has(f_info[feat].flags, TF_PERMANENT) && tf_has(f_info[feat].flags, TF_ROCK)) ||
+        tf_has(f_info[feat].flags, TF_MOUNTAIN));
+}
+
+
+/*
  * True if the square can be webbed.
  */
 bool square_iswebbable(struct chunk *c, struct loc *grid)
@@ -1131,6 +1203,17 @@ bool square_isprojectable(struct chunk *c, struct loc *grid)
     if (!square_in_bounds(c, grid)) return false;
 
     return feat_is_projectable(square(c, grid)->feat);
+}
+
+
+/*
+ * True if any projectable can pass through the square.
+ */
+bool square_isprojectable_p(struct player *p, struct loc *grid)
+{
+    if (!player_square_in_bounds(p, grid)) return false;
+
+    return feat_is_projectable(square_p(p, grid)->feat);
 }
 
 

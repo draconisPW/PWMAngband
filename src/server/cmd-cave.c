@@ -259,6 +259,11 @@ static bool do_cmd_open_test(struct player *p, struct chunk *c, struct loc *grid
     if (!square_iscloseddoor(c, grid))
     {
         msgt(p, MSG_NOTHING_TO_OPEN, "You see nothing there to open.");
+        if (square_iscloseddoor_p(p, grid))
+        {
+            square_forget(p, grid);
+            square_light_spot_aux(p, c, grid);
+        }
         return false;
     }
 
@@ -616,6 +621,12 @@ static bool do_cmd_close_test(struct player *p, struct chunk *c, struct loc *gri
         /* Message */
         msg(p, "You see nothing there to close.");
 
+        if (square_isopendoor_p(p, grid) || square_isbrokendoor_p(p, grid))
+        {
+            square_forget(p, grid);
+            square_light_spot_aux(p, c, grid);
+        }
+
         /* Nope */
         return false;
     }
@@ -789,6 +800,11 @@ static bool do_cmd_tunnel_test(struct player *p, struct chunk *c, struct loc *gr
     if (!square_seemsdiggable(c, grid))
     {
         msg(p, "You see nothing there to tunnel.");
+        if (square_seemsdiggable_p(p, grid))
+        {
+            square_forget(p, grid);
+            square_light_spot_aux(p, c, grid);
+        }
         return false;
     }
 
@@ -890,6 +906,12 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
             msg(p, "You cannot tunnel through that.");
         else
             msg(p, "This seems to be permanent rock.");
+
+        if (!square_isperm_p(p, grid))
+        {
+            square_memorize(p, c, grid);
+            square_light_spot_aux(p, c, grid);
+        }
     }
 
     /* Mountain */
@@ -1774,19 +1796,47 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         {
             /* Rubble */
             if (square_isrubble(c, &grid))
+            {
                 msgt(p, MSG_HITWALL, "There is a pile of rubble blocking your way.");
+                if (!square_isrubble_p(p, &grid))
+                {
+                    square_memorize(p, c, &grid);
+                    square_light_spot_aux(p, c, &grid);
+                }
+            }
 
             /* Closed doors */
             else if (square_iscloseddoor(c, &grid))
+            {
                 msgt(p, MSG_HITWALL, "There is a door blocking your way.");
+                if (!square_iscloseddoor_p(p, &grid))
+                {
+                    square_memorize(p, c, &grid);
+                    square_light_spot_aux(p, c, &grid);
+                }
+            }
 
             /* Tree */
             else if (square_istree(c, &grid))
+            {
                 msgt(p, MSG_HITWALL, "There is a tree blocking your way.");
+                if (!square_istree_p(p, &grid))
+                {
+                    square_memorize(p, c, &grid);
+                    square_light_spot_aux(p, c, &grid);
+                }
+            }
 
             /* Wall (or secret door) */
             else
+            {
                 msgt(p, MSG_HITWALL, "There is a wall blocking your way.");
+                if (square_ispassable_p(p, &grid))
+                {
+                    square_forget(p, &grid);
+                    square_light_spot_aux(p, c, &grid);
+                }
+            }
         }
 
         /* No move but do not refund energy */
@@ -2232,7 +2282,14 @@ static bool do_cmd_run_test(struct player *p, struct loc *grid)
     {
         /* Rubble */
         if (square_isrubble(c, grid))
+        {
             msgt(p, MSG_HITWALL, "There is a pile of rubble in the way!");
+            if (!square_isrubble_p(p, grid))
+            {
+                square_memorize(p, c, grid);
+                square_light_spot_aux(p, c, grid);
+            }
+        }
 
         /* Door */
         else if (square_iscloseddoor(c, grid))
@@ -2240,11 +2297,25 @@ static bool do_cmd_run_test(struct player *p, struct loc *grid)
 
         /* Tree */
         else if (square_istree(c, grid))
+        {
             msgt(p, MSG_HITWALL, "There is a tree in the way!");
+            if (!square_istree_p(p, grid))
+            {
+                square_memorize(p, c, grid);
+                square_light_spot_aux(p, c, grid);
+            }
+        }
 
         /* Wall */
         else
+        {
             msgt(p, MSG_HITWALL, "There is a wall in the way!");
+            if (square_ispassable_p(p, grid))
+            {
+                square_forget(p, grid);
+                square_light_spot_aux(p, c, grid);
+            }
+        }
 
         /* Cancel repeat */
         disturb(p, 1);
