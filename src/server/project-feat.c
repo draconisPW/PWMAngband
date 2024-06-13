@@ -641,14 +641,14 @@ static void project_feature_handler_KILL_TRAP(project_feature_handler_context_t 
     {
         place_closed_door(context->cave, &grid);
 
-        /* Observe */
+        /* Check if visible */
         if (context->line_sound) context->obvious = true;
     }
 
     /* Disable traps, unlock doors */
     if (square_isplayertrap(context->cave, &grid))
     {
-        /* Message */
+        /* Check if visible */
         if (context->line_sound)
         {
             msg(context->origin->player, "The trap seizes up.");

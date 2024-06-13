@@ -377,14 +377,13 @@ void player_flags(struct player *p, bitflag f[OF_SIZE])
  */
 void player_flags_timed(struct player *p, bitflag f[OF_SIZE])
 {
-    if (p->timed[TMD_BOLD]) of_on(f, OF_PROT_FEAR);
-    if (p->timed[TMD_HOLD_LIFE]) of_on(f, OF_HOLD_LIFE);
-    if (p->timed[TMD_FLIGHT]) of_on(f, OF_FEATHER);
-    if (p->timed[TMD_ESP]) of_on(f, OF_ESP_ALL);
-    if (p->timed[TMD_SINVIS]) of_on(f, OF_SEE_INVIS);
-    if (p->timed[TMD_FREE_ACT]) of_on(f, OF_FREE_ACT);
-    if (p->timed[TMD_AFRAID] || p->timed[TMD_TERROR]) of_on(f, OF_AFRAID);
-    if (p->timed[TMD_OPP_CONF]) of_on(f, OF_PROT_CONF);
+    int i;
+
+    for (i = 0; i < TMD_MAX; ++i)
+    {
+        if (p->timed[i] && timed_effects[i].oflag_dup != OF_NONE && i != TMD_TRAPSAFE)
+            of_on(f, timed_effects[i].oflag_dup);
+    }
 }
 
 

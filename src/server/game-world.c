@@ -2879,11 +2879,16 @@ static void handle_signal_suspend(int sig)
  */
 static void handle_signal_simple(int sig)
 {
+    char msg[48];
+
     /* Disable handler */
     signal(sig, SIG_IGN);
 
+    /* Construct the exit message in case it is needed */
+    strnfmt(msg, sizeof(msg), "Exiting on signal %d!", sig);
+
     /* Nothing to save, just quit */
-    if (!server_generated) quit(NULL);
+    if (!server_generated) quit(msg);
 
     /* Hack -- on SIGTERM, quit right away */
     if (sig == SIGTERM) signal_count = 5;
@@ -2913,14 +2918,19 @@ static void handle_signal_simple(int sig)
  */
 static void handle_signal_abort(int sig)
 {
+    char msg[48];
+
     /* We are *not* reentrant */
     if (signalbusy) raise(sig);
     signalbusy = 1;
 
     plog("Unexpected signal, panic saving.");
 
+    /* Construct the exit message */
+    strnfmt(msg, sizeof(msg), "Exiting on signal %d!", sig);
+
     /* Nothing to save, just quit */
-    if (!server_generated) quit(NULL);
+    if (!server_generated) quit(msg);
 
     /* Save everybody */
     exit_game_panic();

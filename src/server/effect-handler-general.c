@@ -2047,7 +2047,7 @@ bool effect_handler_DETECT_DOORS(effect_handler_context_t *context)
 
         /* Detect other types of doors. */
         else if (square_isdoor(context->cave, &iter.cur) &&
-            square_isnotknown(context->origin->player, context->cave, &iter.cur))
+            square_ismemorybad(context->origin->player, context->cave, &iter.cur))
         {
             square_memorize(context->origin->player, context->cave, &iter.cur);
             square_light_spot(context->cave, &iter.cur);
@@ -2056,9 +2056,9 @@ bool effect_handler_DETECT_DOORS(effect_handler_context_t *context)
             redraw = true;
         }
 
-        /* Forget unknown doors in the mapping area */
+        /* Forget misremembered doors in the mapping area */
         if (square_isdoor_p(context->origin->player, &iter.cur) &&
-            square_isnotknown(context->origin->player, context->cave, &iter.cur))
+            square_ismemorybad(context->origin->player, context->cave, &iter.cur))
         {
             square_forget(context->origin->player, &iter.cur);
             square_light_spot(context->cave, &iter.cur);
@@ -2201,9 +2201,9 @@ bool effect_handler_DETECT_ORE(effect_handler_context_t *context)
             redraw = true;
         }
 
-        /* Forget unknown gold in the mapping area */
+        /* Forget misremembered gold in the mapping area */
         if (square_hasgoldvein_p(context->origin->player, &iter.cur) &&
-            square_isnotknown(context->origin->player, context->cave, &iter.cur))
+            square_ismemorybad(context->origin->player, context->cave, &iter.cur))
         {
             square_forget(context->origin->player, &iter.cur);
             square_light_spot(context->cave, &iter.cur);
@@ -2432,9 +2432,9 @@ bool effect_handler_DETECT_STAIRS(effect_handler_context_t *context)
             redraw = true;
         }
 
-        /* Forget unknown stairs in the mapping area */
+        /* Forget misremembered stairs in the mapping area */
         if (square_isstairs_p(context->origin->player, &iter.cur) &&
-            square_isnotknown(context->origin->player, context->cave, &iter.cur))
+            square_ismemorybad(context->origin->player, context->cave, &iter.cur))
         {
             square_forget(context->origin->player, &iter.cur);
             square_light_spot(context->cave, &iter.cur);
@@ -2601,9 +2601,9 @@ bool effect_handler_DETECT_TREASURES(effect_handler_context_t *context)
             gold_buried = true;
         }
 
-        /* Forget unknown gold in the mapping area */
+        /* Forget misremembered gold in the mapping area */
         if (square_hasgoldvein_p(context->origin->player, &iter.cur) &&
-            square_isnotknown(context->origin->player, context->cave, &iter.cur))
+            square_ismemorybad(context->origin->player, context->cave, &iter.cur))
         {
             square_forget(context->origin->player, &iter.cur);
             square_light_spot(context->cave, &iter.cur);
@@ -3361,9 +3361,9 @@ bool effect_handler_MAP_AREA(effect_handler_context_t *context)
             }
         }
 
-        /* Forget unprocessed, unknown grids in the mapping area */
+        /* Forget grids that are both unprocessed and misremembered in the mapping area. */
         if (!square_ismark(context->origin->player, &iter.cur) &&
-            square_isnotknown(context->origin->player, context->cave, &iter.cur))
+            square_ismemorybad(context->origin->player, context->cave, &iter.cur))
         {
             square_forget(context->origin->player, &iter.cur);
         }

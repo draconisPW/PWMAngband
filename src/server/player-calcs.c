@@ -1746,7 +1746,7 @@ static void adjust_skill_scale(int *v, int num, int den, int minv)
     else
     {
         /*
-         * To mimic what (value * (den * num)) / num would give for
+         * To mimic what (value * (den + num)) / den would give for
          * positive value, need to round up the adjustment.
          */
         *v -= (MAX(minv, ABS(*v)) * -num + den - 1) / den;
@@ -2023,12 +2023,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
 
         /* Apply the bonuses to armor class */
         if (!known_only || object_is_known(p, obj) || obj->known->to_a)
-        {
-            int16_t to_a;
-
-            object_to_a(obj, &to_a);
-            eq_to_a += to_a;
-        }
+            eq_to_a += object_to_ac(obj);
 
         /* Do not apply weapon and bow bonuses until combat calculations */
         if (slot_type_is(p, i, EQUIP_WEAPON)) continue;
@@ -2039,8 +2034,8 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         {
             int16_t to_h, to_d;
 
-            object_to_h(obj, &to_h);
-            object_to_d(obj, &to_d);
+            to_h = object_to_hit(obj);
+            to_d = object_to_dam(obj);
 
             state->to_h += to_h;
             state->to_d += to_d;
@@ -2338,30 +2333,13 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
         of_on(state->flags, OF_ESP_ALL);
     }
     if (p->timed[TMD_TERROR]) state->speed += 10;
-    if (p->timed[TMD_OPP_ACID])
+    for (i = 0; i < TMD_MAX; ++i)
     {
-        if (state->el_info[ELEM_ACID].res_level[0] < 2)
-            state->el_info[ELEM_ACID].res_level[0]++;
-    }
-    if (p->timed[TMD_OPP_ELEC])
-    {
-        if (state->el_info[ELEM_ELEC].res_level[0] < 2)
-            state->el_info[ELEM_ELEC].res_level[0]++;
-    }
-    if (p->timed[TMD_OPP_FIRE])
-    {
-        if (state->el_info[ELEM_FIRE].res_level[0] < 2)
-            state->el_info[ELEM_FIRE].res_level[0]++;
-    }
-    if (p->timed[TMD_OPP_COLD])
-    {
-        if (state->el_info[ELEM_COLD].res_level[0] < 2)
-            state->el_info[ELEM_COLD].res_level[0]++;
-    }
-    if (p->timed[TMD_OPP_POIS])
-    {
-        if (state->el_info[ELEM_POIS].res_level[0] < 2)
-            state->el_info[ELEM_POIS].res_level[0]++;
+        if (p->timed[i] && timed_effects[i].temp_resist != -1 &&
+            state->el_info[timed_effects[i].temp_resist].res_level[0] < 2)
+        {
+            state->el_info[timed_effects[i].temp_resist].res_level[0]++;
+        }
     }
     if (p->timed[TMD_ANCHOR])
     {

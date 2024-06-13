@@ -12,8 +12,29 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.6.1 build 1
+New features in PWMAngband 1.6.1 build 2
 ========================================
+
+User interface
+--------------
+
+Angband 4.2.x:
+
+- Fixing Main Gauche plural to be in line with proper french
+
+Coding changes
+--------------
+
+Angband 4.2.x:
+
+- Rename square_isnotknown()
+- Have player calculations use resist and flag-synonym from player-timed.txt
+- SDL: plug potential leak of directory handle
+- Correct path_normalize() for Windows
+- For exits due to a signal, use non-zero exit code
+
+Features in PWMAngband 1.6.1 build 1
+====================================
 
 User interface
 --------------

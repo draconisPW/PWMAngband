@@ -1746,7 +1746,7 @@ void equip_learn_on_ranged_attack(struct player *p)
             obj->known->to_h = 1;
             object_check_for_ident(p, obj);
 
-            object_to_h(obj, &to_h);
+            to_h = object_to_hit(obj);
             has_standard_to_h = (object_has_standard_to_h(obj) && (obj->to_h < 0) && !obj->curses);
 
             if (to_h && !has_standard_to_h)
@@ -2536,7 +2536,7 @@ void object_notice_defence_plusses(struct player *p, struct object *obj)
     obj->known->to_a = 1;
     object_check_for_ident(p, obj);
 
-    object_to_a(obj, &to_a);
+    to_a = object_to_ac(obj);
 
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_BASE);
     msg(p, "You know more about the %s you are wearing.", o_name);
@@ -2572,9 +2572,9 @@ void object_notice_attack_plusses(struct player *p, struct object *obj)
     obj->known->to_d = 1;
     object_check_for_ident(p, obj);
 
-    object_to_h(obj, &to_h);
+    to_h = object_to_hit(obj);
     has_standard_to_h = (object_has_standard_to_h(obj) && (obj->to_h < 0) && !obj->curses);
-    object_to_d(obj, &to_d);
+    to_d = object_to_dam(obj);
 
     object_desc(p, o_name, sizeof(o_name), obj, ODESC_BASE);
 

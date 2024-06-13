@@ -66,12 +66,7 @@ int chance_of_melee_hit_base(const struct player *p, const struct object *weapon
     int bonus = p->state.to_h;
 
     if (weapon)
-    {
-        int16_t to_h;
-
-        object_to_h(weapon, &to_h);
-        bonus += to_h;
-    }
+        bonus += object_to_hit(weapon);
 
     return p->state.skills[SKILL_TO_HIT_MELEE] + bonus * BTH_PLUS_ADJ;
 }
@@ -106,7 +101,7 @@ static int chance_of_melee_hit(const struct player *p, const struct object *weap
 static int chance_of_missile_hit_base(struct player *p, struct object *missile,
     struct object *launcher)
 {
-    int bonus = missile->to_h;
+    int bonus = object_to_hit(missile);
     int chance;
 
     if (!launcher)
@@ -126,10 +121,7 @@ static int chance_of_missile_hit_base(struct player *p, struct object *missile,
     }
     else
     {
-        int16_t to_h;
-
-        object_to_h(launcher, &to_h);
-        bonus += p->state.to_h + to_h;
+        bonus += p->state.to_h + object_to_hit(launcher);
         chance = p->state.skills[SKILL_TO_HIT_BOW] + bonus * BTH_PLUS_ADJ;
     }
 
@@ -351,7 +343,6 @@ static int melee_damage(struct player *p, struct object *obj, random_value dice,
     struct source *target, struct delayed_effects *effects, int *d_dam)
 {
     int dmg = randcalc(dice, 0, RANDOMISE);
-    int16_t to_d;
 
     /* Base damage for Shadow touch and cuts/stuns */
     *d_dam = dmg;
@@ -365,8 +356,7 @@ static int melee_damage(struct player *p, struct object *obj, random_value dice,
         if (effects->stab_flee) dmg = dmg * 3 / 2;
     }
 
-    object_to_d(obj, &to_d);
-    dmg += to_d;
+    dmg += object_to_dam(obj);
 
     return dmg;
 }
@@ -391,14 +381,9 @@ static int ranged_damage(struct player *p, struct object *missile, struct object
 
     /* Apply damage: multiplier, slays, bonuses */
     dam = damroll(missile->dd, missile->ds);
-    dam += missile->to_d;
+    dam += object_to_dam(missile);
     if (launcher)
-    {
-        int16_t to_d;
-
-        object_to_d(launcher, &to_d);
-        dam += to_d;
-    }
+        dam += object_to_dam(launcher);
     else if (of_has(missile->flags, OF_THROWING))
     {
         /* Adjust damage for throwing weapons */
@@ -1010,10 +995,7 @@ static bool py_attack_real(struct player *p, struct chunk *c, struct loc *grid,
             /* For now, exclude criticals on unarmed combat */
             if (obj)
             {
-                int16_t to_h;
-
-                object_to_h(obj, &to_h);
-                dmg = critical_melee(p, target, weight, to_h, dmg, &msg_type);
+                dmg = critical_melee(p, target, weight, object_to_hit(obj), dmg, &msg_type);
 
                 /* Learn by use for the weapon */
                 object_notice_attack_plusses(p, obj);
@@ -2180,7 +2162,7 @@ static struct attack_result make_ranged_shot(struct player *p, struct object *am
     }
 
     result.dmg = ranged_damage(p, ammo, bow, best_mult, multiplier);
-    result.dmg = critical_shot(p, target, ammo->weight, ammo->to_h, result.dmg, true,
+    result.dmg = critical_shot(p, target, ammo->weight, object_to_hit(ammo), result.dmg, true,
         &result.msg_type);
 
     missile_learn_on_ranged_attack(p, bow);
@@ -2202,7 +2184,6 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
     struct source *target = &target_body;
     bool visible;
     int ac;
-    int16_t to_h;
 
     memset(&result, 0, sizeof(result));
     my_strcpy(result.verb, "hits", sizeof(result.verb));
@@ -2231,8 +2212,8 @@ static struct attack_result make_ranged_throw(struct player *p, struct object *o
         sizeof(result.verb), true);
 
     result.dmg = ranged_damage(p, obj, NULL, best_mult, multiplier);
-    object_to_h(obj, &to_h);
-    result.dmg = critical_shot(p, target, obj->weight, to_h, result.dmg, false, &result.msg_type);
+    result.dmg = critical_shot(p, target, obj->weight, object_to_hit(obj), result.dmg, false,
+        &result.msg_type);
 
     /* Direct adjustment for exploding things (flasks of oil) */
     if (of_has(obj->flags, OF_EXPLODE)) result.dmg *= 3;

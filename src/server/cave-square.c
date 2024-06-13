@@ -682,9 +682,9 @@ bool square_isknown(struct player *p, struct loc *grid)
  * True if the player's knowledge of the terrain of the square is wrong
  * or missing
  */
-bool square_isnotknown(struct player *p, struct chunk *c, struct loc *grid)
+bool square_ismemorybad(struct player *p, struct chunk *c, struct loc *grid)
 {
-    return (square_p(p, grid)->feat != square(c, grid)->feat);
+    return (!square_isknown(p, grid) || (square_p(p, grid)->feat != square(c, grid)->feat));
 }
 
 

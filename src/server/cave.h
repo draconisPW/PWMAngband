@@ -276,7 +276,7 @@ extern bool square_noticeable(struct chunk *c, struct loc *grid);
 extern bool square_isplayer(struct chunk *c, struct loc *grid);
 extern bool square_isoccupied(struct chunk *c, struct loc *grid);
 extern bool square_isknown(struct player *p, struct loc *grid);
-extern bool square_isnotknown(struct player *p, struct chunk *c, struct loc *grid);
+extern bool square_ismemorybad(struct player *p, struct chunk *c, struct loc *grid);
 extern bool square_ismark(struct player *p, struct loc *grid);
 extern bool square_istree(struct chunk *c, struct loc *grid);
 extern bool square_istree_p(struct player *p, struct loc *grid);
