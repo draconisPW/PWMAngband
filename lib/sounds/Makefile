@@ -54,7 +54,7 @@ DATA = amb_bell_metal1.ogg    mco_scurry_dry.ogg        plm_glass_smashing.ogg \
 	mco_bite_regular.ogg      plm_close_hatch.ogg       sto_man_haha.ogg \
 	mco_bite_short.ogg        plm_coins_dump.ogg        sto_man_hey.ogg \
 	mco_bite_small.ogg        plm_coins_light.ogg       sto_man_whoohaha.ogg \
-	mco_bite_soft.ogg         plm_coins_pour.ogg        sum_angel_song.ogg \
+	mco_bite_soft.ogg         plm_coins_pour.ogg        sum_ainu_song.ogg \
 	mco_card_shuffle.ogg      plm_coins_shake.ogg       sum_bell_crystal.ogg \
 	mco_castanet_trill.ogg    plm_cork_pop.ogg          sum_bell_hand.ogg \
 	mco_ceramic_trill.ogg     plm_cork_squeak.ogg       sum_bell_tone.ogg \
@@ -132,7 +132,7 @@ DATA = amb_bell_metal1.ogg    mco_scurry_dry.ogg        plm_glass_smashing.ogg \
 	mco_bite_regular.mp3      plm_close_hatch.mp3       sto_man_haha.mp3 \
 	mco_bite_short.mp3        plm_coins_dump.mp3        sto_man_hey.mp3 \
 	mco_bite_small.mp3        plm_coins_light.mp3       sto_man_whoohaha.mp3 \
-	mco_bite_soft.mp3         plm_coins_pour.mp3        sum_angel_song.mp3 \
+	mco_bite_soft.mp3         plm_coins_pour.mp3        sum_ainu_song.mp3 \
 	mco_card_shuffle.mp3      plm_coins_shake.mp3       sum_bell_crystal.mp3 \
 	mco_castanet_trill.mp3    plm_cork_pop.mp3          sum_bell_hand.mp3 \
 	mco_ceramic_trill.mp3     plm_cork_squeak.mp3       sum_bell_tone.mp3 \

@@ -214,7 +214,7 @@ sound:speed:pls_bell_sustain
 sound:shield:pls_bell_bowl
 
 # You become blessed.
-sound:blessed:sum_angel_song
+sound:blessed:sum_ainu_song
 
 # You feel heroic.
 sound:hero:pls_tone_goblet
@@ -359,7 +359,7 @@ sound:rune:id_good_hmm
 sound:cast_spell:plm_spell1 plm_spell2 plm_spell3
 
 # You successfully pray a prayer.
-sound:pray_prayer:sum_angel_song
+sound:pray_prayer:sum_ainu_song
 
 # You enter a pit.
 sound:enter_pit:enter_pit
@@ -457,7 +457,7 @@ sound:multiply:mco_frog_trill
 sound:summon_monster:sum_chime_jangle
 
 # Summon ainur.
-sound:summon_ainu:sum_angel_song
+sound:summon_ainu:sum_ainu_song
 
 # Summon undead.
 sound:summon_undead:sum_ghost_oooo

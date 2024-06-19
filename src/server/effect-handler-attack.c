@@ -1634,7 +1634,8 @@ bool effect_handler_EARTHQUAKE(effect_handler_context_t *context)
         /* Get player */
         struct player *player = player_get(abs(hurt[j]));
 
-        map[16 + player->grid.y - centre.y][16 + player->grid.x - centre.x] = false;
+        if (ABS(player->grid.x - centre.x) <= 15 && ABS(player->grid.y - centre.y) <= 15)
+            map[16 + player->grid.y - centre.y][16 + player->grid.x - centre.x] = false;
     }
 
     /* Examine the quaked region and damage marked grids if possible */

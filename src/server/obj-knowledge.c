@@ -1451,7 +1451,12 @@ void object_learn_unknown_rune(struct player *p, struct object *obj)
     int i = object_find_unknown_rune(obj);
 
     /* No unknown runes */
-    if (i < 0) return;
+    if (i < 0)
+    {
+        obj->known->notice |= OBJ_NOTICE_ASSESSED;
+        player_know_object(p, obj);
+        return;
+    }
 
     /* Learn the rune */
     player_learn_rune(p, i, true);

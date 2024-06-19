@@ -1176,6 +1176,7 @@ static bool attempt_shield_bash(struct player *p, struct chunk *c, struct monste
     bash_dam += adj_str_td[p->state.stat_ind[STAT_STR]];
 
     /* Paranoia. */
+    if (bash_dam <= 0) return false;
     bash_dam = MIN(bash_dam, 125);
 
     if (OPT(p, show_damage)) msgt(p, MSG_HIT, "You get in a shield bash for $g%d^g damage!", bash_dam);
