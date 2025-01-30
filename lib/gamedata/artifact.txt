@@ -1683,7 +1683,7 @@ desc:An arrow that was created to rid the Gondor of its enemies.
 name:'Dailir'
 base-object:arrow:Mithril Arrow
 level:50
-weight:2
+weight:1
 alloc:0:50 to 127
 attack:3d4:0:0
 armor:0:0
@@ -1758,7 +1758,7 @@ desc:Made of alloy of iron and ebonite, a very hard material.
 name:'Giver of Sleep'
 base-object:shot:Mithril Shot
 level:40
-weight:4
+weight:2
 alloc:0:40 to 127
 attack:2d4:0:0
 armor:0:0
