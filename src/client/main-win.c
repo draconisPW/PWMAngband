@@ -4299,7 +4299,7 @@ int FAR PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, in
     Rand_init();
 
     /* Initialize everything, contact the server, and start the loop */
-    client_init(true);
+    client_init(true, 0, NULL);
 
     /* Paranoia */
     quit(NULL);
