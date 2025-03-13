@@ -1,4 +1,4 @@
-# PWMAngband 1.6.1
+# PWMAngband 1.6.2
 
 PWMAngband is a graphical dungeon adventure game that uses textual characters
 to represent the walls and floors of a dungeon and the inhabitants therein,

@@ -42,8 +42,8 @@ bool beta_version(void)
  */
 #define VERSION_MAJOR   1
 #define VERSION_MINOR   6
-#define VERSION_PATCH   1
-#define VERSION_EXTRA   2
+#define VERSION_PATCH   2
+#define VERSION_EXTRA   1
 
 
 uint16_t current_version(void)
@@ -57,8 +57,8 @@ uint16_t current_version(void)
  */
 #define MIN_VERSION_MAJOR   1
 #define MIN_VERSION_MINOR   6
-#define MIN_VERSION_PATCH   1
-#define MIN_VERSION_EXTRA   2
+#define MIN_VERSION_PATCH   2
+#define MIN_VERSION_EXTRA   1
 
 
 uint16_t min_version(void)
