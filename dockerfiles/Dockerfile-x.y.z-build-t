@@ -6,8 +6,6 @@ ARG rel='x.y.z-build-t'
 RUN apk -U --no-progress --no-cache upgrade \
  && apk -U --no-progress --no-cache add git gcc make libc-dev dos2unix autoconf automake m4 bash patch wget
 
-COPY *.patch /
-
 RUN wget --quiet "$url"/"$rel".tar.gz \
 && tar -xzvf /"$rel".tar.gz \
 && cd /PWMAngband-"$rel"\
