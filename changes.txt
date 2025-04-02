@@ -27,6 +27,7 @@ Angband 4.2.x:
 - Use known version of equipment for combat information on character sheet
 - Apply purple_uniques to monster list glyphs
 - SDL2: provide ways to summarize details about the SDL2 installation
+- Add GameController support to SDL2 backend
 
 Gameplay changes
 ----------------
