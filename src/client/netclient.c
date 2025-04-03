@@ -4752,6 +4752,7 @@ int Send_aim(struct command *cmd)
     int n;
     int dir = DIR_UNKNOWN;
     struct object *obj;
+    uint8_t starting = 1;
 
     /* Hack -- don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
@@ -4769,8 +4770,11 @@ int Send_aim(struct command *cmd)
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
         return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_AIM_WAND, obj->oidx, dir)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%hd%c%b", (unsigned)PKT_AIM_WAND, obj->oidx, dir,
+        (unsigned)starting)) <= 0)
+    {
         return n;
+    }
 
     return 1;
 }
@@ -5011,6 +5015,7 @@ int Send_use(struct command *cmd)
     int n;
     int dir;
     struct object *obj;
+    uint8_t starting = 1;
 
     /* Hack -- don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
@@ -5031,8 +5036,11 @@ int Send_use(struct command *cmd)
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
         return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_USE, obj->oidx, dir)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%hd%c%b", (unsigned)PKT_USE, obj->oidx, dir,
+        (unsigned)starting)) <= 0)
+    {
         return n;
+    }
 
     return 1;
 }
@@ -5176,6 +5184,7 @@ int Send_zap(struct command *cmd)
     int n;
     int dir;
     struct object *obj;
+    uint8_t starting = 1;
 
     /* Hack -- don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
@@ -5195,8 +5204,11 @@ int Send_zap(struct command *cmd)
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
         return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_ZAP, obj->oidx, dir)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%hd%c%b", (unsigned)PKT_ZAP, obj->oidx, dir,
+        (unsigned)starting)) <= 0)
+    {
         return n;
+    }
 
     return 1;
 }
@@ -5271,6 +5283,7 @@ int Send_activate(struct command *cmd)
     int n;
     int dir;
     struct object *obj;
+    uint8_t starting = 1;
 
     /* Hack -- don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
@@ -5290,8 +5303,11 @@ int Send_activate(struct command *cmd)
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
         return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_ACTIVATE, obj->oidx, dir)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%hd%c%b", (unsigned)PKT_ACTIVATE, obj->oidx, dir,
+        (unsigned)starting)) <= 0)
+    {
         return n;
+    }
 
     return 1;
 }
@@ -5770,6 +5786,7 @@ int Send_use_any(struct command *cmd)
     int n;
     int dir;
     struct object *obj;
+    uint8_t starting = 1;
 
     /* Get arguments */
     if (cmd_get_item(cmd, "item", &obj,
@@ -5786,8 +5803,11 @@ int Send_use_any(struct command *cmd)
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
         return 0;
 
-    if ((n = Packet_printf(&wbuf, "%b%hd%c", (unsigned)PKT_USE_ANY, obj->oidx, dir)) <= 0)
+    if ((n = Packet_printf(&wbuf, "%b%hd%c%b", (unsigned)PKT_USE_ANY, obj->oidx, dir,
+        (unsigned)starting)) <= 0)
+    {
         return n;
+    }
 
     return 1;
 }

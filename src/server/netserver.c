@@ -3446,6 +3446,50 @@ int cmd_tunnel(struct player *p)
 }
 
 
+int cmd_zap(struct player *p, int item, int dir)
+{
+    uint8_t starting = 0;
+
+    connection_t *connp = get_connp(p, "zap");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)PKT_ZAP, item, dir, (unsigned)starting);
+}
+
+
+int cmd_use(struct player *p, int item, int dir)
+{
+    uint8_t starting = 0;
+
+    connection_t *connp = get_connp(p, "use");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)PKT_USE, item, dir, (unsigned)starting);
+}
+
+
+int cmd_aim_wand(struct player *p, int item, int dir)
+{
+    uint8_t starting = 0;
+
+    connection_t *connp = get_connp(p, "aim_wand");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)PKT_AIM_WAND, item, dir, (unsigned)starting);
+}
+
+
+int cmd_activate(struct player *p, int item, int dir)
+{
+    uint8_t starting = 0;
+
+    connection_t *connp = get_connp(p, "activate");
+    if (connp == NULL) return 0;
+
+    return Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)PKT_ACTIVATE, item, dir, (unsigned)starting);
+}
+
+
 int cmd_fire_at_nearest(struct player *p)
 {
     uint8_t starting = 0;
@@ -3942,9 +3986,9 @@ static int Receive_aim_wand(int ind)
     char dir;
     int16_t item;
     int n;
-    uint8_t ch;
+    uint8_t ch, starting;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c%b", &ch, &item, &dir, &starting)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_aim_wand read error");
         return n;
@@ -3957,13 +4001,16 @@ static int Receive_aim_wand(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        /* Repeat 99 times */
+        if (starting)
         {
-            do_cmd_aim_wand(p, item, dir);
-            return 2;
+            p->device_request = 99;
+            starting = 0;
         }
 
-        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
+        if (do_cmd_aim_wand(p, item, dir)) return 2;
+
+        Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)ch, (int)item, (int)dir, (unsigned)starting);
         return 0;
     }
 
@@ -4399,12 +4446,12 @@ static int Receive_use(int ind)
 {
     connection_t *connp = get_connection(ind);
     struct player *p;
-    uint8_t ch;
+    uint8_t ch, starting;
     int16_t item;
     char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c%b", &ch, &item, &dir, &starting)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_use read error");
         return n;
@@ -4417,13 +4464,16 @@ static int Receive_use(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        /* Repeat 99 times */
+        if (starting)
         {
-            do_cmd_use_staff(p, item, dir);
-            return 2;
+            p->device_request = 99;
+            starting = 0;
         }
 
-        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
+        if (do_cmd_use_staff(p, item, dir)) return 2;
+
+        Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)ch, (int)item, (int)dir, (unsigned)starting);
         return 0;
     }
 
@@ -4506,12 +4556,12 @@ static int Receive_zap(int ind)
 {
     connection_t *connp = get_connection(ind);
     struct player *p;
-    uint8_t ch;
+    uint8_t ch, starting;
     int16_t item;
     char dir;
     int n;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c%b", &ch, &item, &dir, &starting)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_zap read error");
         return n;
@@ -4524,13 +4574,16 @@ static int Receive_zap(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        /* Repeat 99 times */
+        if (starting)
         {
-            do_cmd_zap_rod(p, item, dir);
-            return 2;
+            p->device_request = 99;
+            starting = 0;
         }
 
-        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
+        if (do_cmd_zap_rod(p, item, dir)) return 2;
+
+        Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)ch, (int)item, (int)dir, (unsigned)starting);
         return 0;
     }
 
@@ -4631,9 +4684,9 @@ static int Receive_activate(int ind)
     char dir;
     int16_t item;
     int n;
-    uint8_t ch;
+    uint8_t ch, starting;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c%b", &ch, &item, &dir, &starting)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_activate read error");
         return n;
@@ -4646,13 +4699,16 @@ static int Receive_activate(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        /* Repeat 99 times */
+        if (starting)
         {
-            do_cmd_activate(p, item, dir);
-            return 2;
+            p->device_request = 99;
+            starting = 0;
         }
 
-        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
+        if (do_cmd_activate(p, item, dir)) return 2;
+
+        Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)ch, (int)item, (int)dir, (unsigned)starting);
         return 0;
     }
 
@@ -5324,6 +5380,7 @@ static int Receive_clear(int ind)
         /* Cancel repeated commands */
         if (mode != ES_END_MACRO)
         {
+            p->device_request = 0;
             p->digging_request = 0;
             p->firing_request = false;
         }
@@ -5767,9 +5824,9 @@ static int Receive_use_any(int ind)
     char dir;
     int16_t item;
     int n;
-    uint8_t ch;
+    uint8_t ch, starting;
 
-    if ((n = Packet_scanf(&connp->r, "%b%hd%c", &ch, &item, &dir)) <= 0)
+    if ((n = Packet_scanf(&connp->r, "%b%hd%c%b", &ch, &item, &dir, &starting)) <= 0)
     {
         if (n == -1) Destroy_connection(ind, "Receive_use_any read error");
         return n;
@@ -5782,13 +5839,16 @@ static int Receive_use_any(int ind)
         /* Break mind link */
         break_mind_link(p);
 
-        if (has_energy(p, true))
+        /* Repeat 99 times */
+        if (starting)
         {
-            do_cmd_use_any(p, item, dir);
-            return 2;
+            p->device_request = 99;
+            starting = 0;
         }
 
-        Packet_printf(&connp->q, "%b%hd%c", (unsigned)ch, (int)item, (int)dir);
+        if (do_cmd_use_any(p, item, dir)) return 2;
+
+        Packet_printf(&connp->q, "%b%hd%c%b", (unsigned)ch, (int)item, (int)dir, (unsigned)starting);
         return 0;
     }
 
@@ -7887,6 +7947,11 @@ bool process_pending_commands(int ind)
         /* Cancel repeated commands */
         if ((type != PKT_KEEPALIVE) && (type != PKT_MONWIDTH) && (type != PKT_CLEAR))
         {
+            if ((type != PKT_ZAP) && (type != PKT_USE) && (type != PKT_AIM_WAND) &&
+                (type != PKT_ACTIVATE) && (type != PKT_USE_ANY) && p->device_request)
+            {
+                p->device_request = 0;
+            }
             if ((type != PKT_TUNNEL) && p->digging_request)
                 p->digging_request = 0;
             if ((type != PKT_FIRE_AT_NEAREST) && (type != PKT_SPELL) && p->firing_request)
