@@ -601,7 +601,7 @@ int get_use_device_chance(struct player *p, const struct object *obj)
     int skill = p->state.skills[SKILL_DEVICE];
 
     /* Extract the item level, which is the difficulty rating */
-    lev = get_object_level(p, obj);
+    lev = get_object_level(p, obj, true);
 
     /* Calculate x */
     x = 2 * (skill - lev) + 1;
@@ -1074,7 +1074,7 @@ void object_own(struct player *p, struct object *obj)
     if (!obj->owner)
     {
         /* By default, use half the level */
-        int base = get_object_level(p, obj) / 2;
+        int base = get_object_level(p, obj, false) / 2;
 
         /* Wearables and ammo have object power */
         if (tval_has_variable_power(obj))
