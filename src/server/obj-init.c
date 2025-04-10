@@ -2462,6 +2462,17 @@ static enum parser_error parse_ego_info(struct parser *p)
 }
 
 
+static enum parser_error parse_ego_level(struct parser *p)
+{
+    struct ego_item *e = parser_priv(p);
+
+    if (!e) return PARSE_ERROR_MISSING_RECORD_HEADER;
+    e->level = parser_getint(p, "level");
+
+    return PARSE_ERROR_NONE;
+}
+
+
 static enum parser_error parse_ego_alloc(struct parser *p)
 {
     struct ego_item *e = parser_priv(p);
@@ -2748,6 +2759,7 @@ static struct parser *init_parse_ego(void)
     parser_setpriv(p, NULL);
     parser_reg(p, "name str name", parse_ego_name);
     parser_reg(p, "info int cost int rating", parse_ego_info);
+    parser_reg(p, "level int level", parse_ego_level);
     parser_reg(p, "alloc int common str minmax", parse_ego_alloc);
     parser_reg(p, "type sym tval", parse_ego_type);
     parser_reg(p, "item sym tval sym sval", parse_ego_item);

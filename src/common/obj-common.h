@@ -388,6 +388,7 @@ struct ego_item
     bool *slays;
     int *curses;                    /* Array of curse powers */
     int rating;                     /* Level rating boost */
+    int level;                      /* Difficulty level for activation */
     int alloc_prob;                 /* Chance of being generated (i.e. rarity) */
     int alloc_min;                  /* Minimum depth (can appear earlier) */
     int alloc_max;                  /* Maximum depth (will NEVER appear deeper) */

@@ -2241,8 +2241,8 @@ int Send_plusses(struct player *p, int dd, int ds, int mhit, int mdam, int shit,
     connection_t *connp = get_connp(p, "plusses");
     if (connp == NULL) return 0;
 
-    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd%hd", (unsigned)PKT_PLUSSES, dd, ds, mhit,
-        mdam, shit, sdam);
+    return Packet_printf(&connp->c, "%b%hd%hd%hd%hd%hd%hd%hd", (unsigned)PKT_PLUSSES, dd, ds, mhit,
+        mdam, shit, sdam, (int)p->known_state.bless_wield);
 }
 
 

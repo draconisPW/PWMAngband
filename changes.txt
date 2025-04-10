@@ -40,6 +40,12 @@ Angband 4.2.x:
 
 - Update object.txt (mithril ammo)
 - Autorepeat using a wand/staff/rod/activatable item on failure
+- Increase the curse removal power of a staff of remove curse
+- Rebalance activation difficulty for standard items
+
+PWMAngband:
+
+- Add level to ego items
 
 Bugs fixed
 ----------
@@ -49,6 +55,7 @@ Angband 4.2.x:
 - Avoid crash when locking file for high scores could not be opened
 - SDL2 fixes
 - Account for empty object groups in ego knowledge display
+- Apply BLESS_WEAPON to-hit bonus only to melee, not ranged
 
 PWMAngband:
 

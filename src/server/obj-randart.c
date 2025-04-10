@@ -3202,7 +3202,7 @@ void init_randart_generator(void)
 }
 
 
-int get_artifact_level(struct player *p, const struct object *obj)
+static int get_artifact_level(struct player *p, const struct object *obj)
 {
     if (obj->randart_seed)
     {
@@ -3216,6 +3216,19 @@ int get_artifact_level(struct player *p, const struct object *obj)
     }
 
     return obj->artifact->level;
+}
+
+
+int get_object_level(struct player *p, const struct object *obj)
+{
+    /* Artifacts */
+    if (obj->artifact) return get_artifact_level(p, obj);
+
+    /* Egos */
+    if (obj->ego) return MAX(obj->ego->level, obj->kind->level);
+
+    /* By default, use the kind level */
+    return obj->kind->level;
 }
 
 

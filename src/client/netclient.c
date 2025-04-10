@@ -1565,10 +1565,10 @@ static int Receive_plusses(void)
 {
     int n;
     uint8_t ch;
-    int16_t dd, ds, mhit, mdam, shit, sdam;
+    int16_t dd, ds, mhit, mdam, shit, sdam, bless_wield;
 
-    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd%hd", &ch, &dd, &ds, &mhit, &mdam, &shit,
-        &sdam)) <= 0)
+    if ((n = Packet_scanf(&rbuf, "%b%hd%hd%hd%hd%hd%hd%hd", &ch, &dd, &ds, &mhit, &mdam, &shit,
+        &sdam, &bless_wield)) <= 0)
     {
         return n;
     }
@@ -1579,6 +1579,7 @@ static int Receive_plusses(void)
     dis_to_mdam = mdam;
     dis_to_shit = shit;
     dis_to_sdam = sdam;
+    player->known_state.bless_wield = (bool)bless_wield;
 
     /* Redraw */
     player->upkeep->redraw |= (PR_PLUSSES);
