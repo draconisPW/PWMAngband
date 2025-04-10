@@ -62,6 +62,7 @@ PWMAngband:
 - Fix bug when displaying ego item knowledge
 - Fix flickering being very slow sometimes
 - Fix info on tombstone for retiring Dungeon Masters
+- Fix recharge_failure_chance()
 
 Coding changes
 --------------

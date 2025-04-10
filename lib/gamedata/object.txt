@@ -11,7 +11,7 @@
 # name: & object name~
 # graphics: symbol : color
 # type: tval
-# level: level
+# level: level : difficulty level
 # weight: weight
 # cost: cost
 # attack: base damage : plus to-hit : plus to-dam
@@ -75,12 +75,12 @@
 
 # 'type' is for the base type of item, from object_base.txt.
 
-# 'level' defines how "advanced" the object is, when determining how easy it
-# is to successfully use a wand, staff or rod. For an item with an activation,
-# it affects the chance of successfully activating the item. In a similar
-# vein, it affects how likely a wand or staff can be recharged without
-# backfiring. For a chest, the level affects the types of traps the chest
-# may have.
+# 'level' is the level of the item. difficulty defines how "advanced" the object
+# is, when determining how easy it is to successfully use a wand, staff or rod.
+# For an item with an activation, it affects the chance of successfully
+# activating the item. In a similar vein, it affects how likely a wand or staff
+# can be recharged without backfiring. For a chest, the level affects the types
+# of traps the chest may have.
 
 # 'weight' is in tenth-pounds.
 

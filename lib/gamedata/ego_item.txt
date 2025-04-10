@@ -13,7 +13,7 @@
 
 # name: ego type
 # info: cost : rating
-# level: level
+# level: level : difficulty level
 # alloc: commonness : min " to " max
 # combat: to-hit : to-dam : to-ac
 # min-combat: min to-hit : min to-dam : min to-ac
@@ -49,7 +49,8 @@
 # 'info' is for item information. Cost is the item's value and rating
 # affects level feelings.
 
-# 'level' indicates difficulty of any activation.
+# 'level' is the level of the ego item. difficulty indicates difficulty of any
+# activation.
 
 # 'alloc' is for allocation details. Commonness determines how common
 # the object is, min depth is the earliest it is normally found, max
