@@ -104,3 +104,4 @@ Angband 4.2.x:
 PWMAngband:
 
 - Add some docker files to build in alpine docker container
+- Simplify warning message in prf files
