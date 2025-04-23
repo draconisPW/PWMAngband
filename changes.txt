@@ -43,6 +43,7 @@ Angband 4.2.x:
 - Autorepeat using a wand/staff/rod/activatable item on failure
 - Increase the curse removal power of a staff of remove curse
 - Rebalance activation difficulty for standard items
+- Configure activation difficulty for randarts from activation.txt
 
 PWMAngband:
 

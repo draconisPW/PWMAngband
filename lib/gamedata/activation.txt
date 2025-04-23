@@ -10,7 +10,9 @@
 
 # name: effect name code
 # aim: 1 if the effect requires aiming, 0 if not
-# power: relative power of the effect for object power calculation
+# level: difficulty, an integer, for the activation
+# power: relative power of the effect for object power calculation; also
+#        used to calculate the recharge time when used for a random artifact
 # effect: effect when activated : subtype : radius : parameter
 # effect-yx: y value for effect : x value for effect
 # dice: dice string
@@ -23,6 +25,8 @@
 # 'name' is the effect name code
 
 # 'aim' is 1 if the effect requires aiming, 0 if not
+
+# 'level' is the difficulty for the activation
 
 # 'power' is the relative power of the effect for object power calculation
 
@@ -54,6 +58,7 @@
 
 name:ACID_BALL120
 aim:1
+level:55
 power:11
 effect:BALL:ACID:2
 dice:120
@@ -61,6 +66,7 @@ msg_other: fires an acid ball.
 
 name:ACID_BOLT
 aim:1
+level:30
 power:6
 effect:BOLT_OR_BEAM:ACID
 dice:10d8
@@ -69,6 +75,7 @@ msg:Your {kind} {is} covered in acid...
 
 name:ACID_BOLT2
 aim:1
+level:35
 power:7
 effect:BOLT_OR_BEAM:ACID
 dice:12d8
@@ -76,6 +83,7 @@ msg_other: fires an acid bolt.
 
 name:ANNOY_MON
 aim:0
+level:1
 power:0
 effect:PROJECT_LOS:MON_SPEED
 dice:25
@@ -85,6 +93,7 @@ msg:The {kind} sound{s} loud and clear...
 
 name:ARROW
 aim:1
+level:38
 power:11
 effect:BOLT:ARROW
 dice:150
@@ -93,12 +102,14 @@ msg:Your {kind} form{s} a magical arrow...
 
 name:BANISHMENT
 aim:0
+level:50
 power:20
 effect:BANISH
 msg:Your {kind} glow{s} deep blue...
 
 name:BERSERKER
 aim:0
+level:20
 power:10
 effect:TIMED_INC:SHERO
 dice:50+1d50
@@ -110,30 +121,35 @@ desc: a penalty of {-10} to AC) for {50+1d50} turns
 
 name:BIZARRE
 aim:1
+level:80
 power:20
 effect:BIZARRE
 msg:{name} glows intensely black...
 
 name:BLESSING
 aim:0
+level:8
 power:6
 effect:TIMED_INC:BLESSED
 dice:6+1d12
 
 name:BLESSING2
 aim:0
+level:12
 power:7
 effect:TIMED_INC:BLESSED
 dice:12+1d24
 
 name:BLESSING3
 aim:0
+level:18
 power:8
 effect:TIMED_INC:BLESSED
 dice:24+1d48
 
 name:BRAWN
 aim:0
+level:35
 power:30
 effect:LOSE_RANDOM_STAT:STR
 effect:GAIN_STAT:STR
@@ -142,6 +158,7 @@ desc:raises your strength at the expense of a random attribute
 
 name:INTELLECT
 aim:0
+level:31
 power:25
 effect:LOSE_RANDOM_STAT:INT
 effect:GAIN_STAT:INT
@@ -150,6 +167,7 @@ desc:raises your intelligence at the expense of a random attribute
 
 name:CONTEMPLATION
 aim:0
+level:31
 power:25
 effect:LOSE_RANDOM_STAT:WIS
 effect:GAIN_STAT:WIS
@@ -158,6 +176,7 @@ desc:raises your wisdom at the expense of a random attribute
 
 name:NIMBLENESS
 aim:0
+level:31
 power:25
 effect:LOSE_RANDOM_STAT:DEX
 effect:GAIN_STAT:DEX
@@ -166,6 +185,7 @@ desc:raises your dexterity at the expense of a random attribute
 
 name:TOUGHNESS
 aim:0
+level:35
 power:30
 effect:LOSE_RANDOM_STAT:CON
 effect:GAIN_STAT:CON
@@ -174,6 +194,7 @@ desc:raises your constitution at the expense of a random attribute
 
 name:CLAIRVOYANCE
 aim:0
+level:50
 power:22
 effect:LIGHT_LEVEL
 msg:The {kind} form{s} an image in your mind...
@@ -182,6 +203,7 @@ desc: objects
 
 name:COLD_BALL48
 aim:1
+level:10
 power:8
 effect:BALL:COLD:2
 dice:48
@@ -190,6 +212,7 @@ msg:Your {kind} {is} covered in frost...
 
 name:COLD_BALL96
 aim:1
+level:35
 power:10
 effect:BALL:COLD:2
 dice:96
@@ -198,6 +221,7 @@ msg:{name} glows an intense blue...
 
 name:COLD_BALL160
 aim:1
+level:55
 power:12
 effect:BALL:COLD:3
 dice:160
@@ -205,6 +229,7 @@ msg_other: shoots dragon frost!
 
 name:COLD_BALL200
 aim:1
+level:70
 power:13
 effect:BALL:COLD:3
 dice:200
@@ -212,6 +237,7 @@ msg_other: fires a frost ball.
 
 name:COLD_BOLT
 aim:1
+level:1
 power:4
 effect:BOLT_OR_BEAM:COLD
 dice:6d8
@@ -220,6 +246,7 @@ msg:Your {kind} {is} covered in frost...
 
 name:COLD_BOLT2
 aim:1
+level:20
 power:7
 effect:BOLT_OR_BEAM:COLD
 dice:10d8
@@ -228,12 +255,14 @@ msg:{name} glows a pale blue...
 
 name:CONFUSING
 aim:0
+level:12
 power:8
 effect:TIMED_INC:ATT_CONF
 dice:10000
 
 name:CURE_BODY
 aim:0
+level:15
 power:7
 effect:CURE:BLIND
 effect:CURE:POISONED
@@ -246,6 +275,7 @@ desc: neutralizes poison and cures blindness
 
 name:CURE_MIND
 aim:0
+level:18
 power:8
 effect:TIMED_INC:OPP_CONF
 dice:12+6d10
@@ -259,18 +289,21 @@ desc: and grants temporary resistance to confusion for {12+6d10} turns
 
 name:CURE_PARANOIA
 aim:0
+level:8
 power:2
 effect:CURE:AFRAID
 desc:removes fear
 
 name:CURE_POISON
 aim:0
+level:5
 power:1
 effect:CURE:POISONED
 desc:neutralizes poison
 
 name:CURE_LIGHT
 aim:0
+level:12
 power:3
 effect:TIMED_DEC:CONFUSED
 dice:20
@@ -284,6 +317,7 @@ desc: and cures blindness
 
 name:CURE_SERIOUS
 aim:0
+level:25
 power:6
 effect:CURE:CONFUSED
 effect:CURE:BLIND
@@ -296,6 +330,7 @@ desc: confusion
 
 name:CURE_CRITICAL
 aim:0
+level:40
 power:9
 effect:CURE:AMNESIA
 effect:CURE:CUT
@@ -310,6 +345,7 @@ desc: neutralizes poison, and cures blindness, confusion and amnesia
 
 name:CURE_FULL300
 aim:0
+level:80
 power:12
 effect:CURE:AMNESIA
 effect:CURE:CUT
@@ -324,6 +360,7 @@ desc: damage, neutralizes poison, and cures blindness, confusion and amnesia
 
 name:CURE_FULL500
 aim:0
+level:65
 power:14
 effect:CURE:AMNESIA
 effect:CURE:CUT
@@ -339,6 +376,7 @@ desc: neutralizes poison, and cures blindness, confusion and amnesia
 
 name:CURE_FULL1000
 aim:0
+level:80
 power:16
 effect:CURE:AMNESIA
 effect:CURE:CUT
@@ -354,6 +392,7 @@ desc: neutralizes poison, and cures blindness, confusion and amnesia
 
 name:CURE_FULL1200
 aim:0
+level:90
 power:18
 effect:CURE:AMNESIA
 effect:CURE:CUT
@@ -368,6 +407,7 @@ desc: neutralizes poison, and cures blindness, confusion and amnesia
 
 name:CURE_NONORLYBIG
 aim:0
+level:100
 power:21
 effect:HEAL_HP
 dice:5000
@@ -391,6 +431,7 @@ desc: amnesia
 
 name:CURE_TEMP
 aim:0
+level:27
 power:9
 effect:CURE:AMNESIA
 effect:CURE:CUT
@@ -403,22 +444,26 @@ desc: blindness, confusion and amnesia
 
 name:DEEP_DESCENT
 aim:0
+level:25
 power:19
 effect:DEEP_DESCENT
 
 name:DESTROY_DOORS
 aim:0
+level:5
 power:6
 effect:TOUCH:KILL_DOOR
 msg:Your {kind} glow{s} bright red...
 
 name:DESTRUCTION2
 aim:0
+level:57
 power:12
 effect:DESTRUCTION:LIGHT:15
 
 name:DETECT_ALL
 aim:0
+level:20
 power:10
 effect:MAP_AREA
 effect-yx:11:11
@@ -432,35 +477,41 @@ desc: maps out a small portion of the level around you
 
 name:DETECT_EVIL
 aim:0
+level:15
 power:6
 effect:DETECT_EVIL
 effect-yx:22:40
 
 name:DETECT_INVIS
 aim:0
+level:8
 power:6
 effect:DETECT_INVISIBLE_MONSTERS
 effect-yx:22:40
 
 name:DETECT_TREASURE
 aim:0
+level:5
 power:6
 effect:DETECT_TREASURES
 effect-yx:22:40
 
 name:DISABLE_TRAPS
 aim:1
+level:27
 power:7
 effect:ALTER:KILL_TRAP
 
 name:DISPEL_ALL
 aim:0
+level:75
 power:11
 effect:PROJECT_LOS:DISP_ALL:0:1
 dice:120
 
 name:DISPEL_EVIL
 aim:0
+level:65
 power:12
 effect:PROJECT_LOS_AWARE:DISP_EVIL:0:1
 dice:$B
@@ -469,48 +520,56 @@ msg:The {kind} flood{s} the area with goodness...
 
 name:DISPEL_EVIL60
 aim:0
+level:55
 power:9
 effect:PROJECT_LOS_AWARE:DISP_EVIL:0:1
 dice:60
 
 name:DISPEL_UNDEAD
 aim:0
+level:50
 power:9
 effect:PROJECT_LOS_AWARE:DISP_UNDEAD:0:1
 dice:60
 
 name:DRAGON_BLACK
 aim:1
+level:27
 power:19
 effect:BREATH:ACID:0:20
 dice:150
 
 name:DRAGON_BLUE
 aim:1
+level:30
 power:18
 effect:BREATH:ELEC:0:20
 dice:150
 
 name:DRAGON_WHITE
 aim:1
+level:25
 power:18
 effect:BREATH:COLD:0:20
 dice:150
 
 name:DRAGON_RED
 aim:1
+level:32
 power:20
 effect:BREATH:FIRE:0:20
 dice:200
 
 name:DRAGON_GREEN
 aim:1
+level:30
 power:19
 effect:BREATH:POIS:0:20
 dice:150
 
 name:DRAGON_MULTIHUED
 aim:1
+level:50
 power:20
 effect:BREATH:POIS:0:20
 dice:50
@@ -525,6 +584,7 @@ dice:50
 
 name:DRAGON_SHADOW
 aim:1
+level:37
 power:21
 effect:BREATH:DARK:0:20
 dice:100
@@ -533,6 +593,7 @@ dice:100
 
 name:DRAGON_LAW
 aim:1
+level:45
 power:23
 effect:BREATH:SHARD:0:20
 dice:115
@@ -541,12 +602,14 @@ dice:115
 
 name:DRAGON_GOLD
 aim:1
+level:40
 power:19
 effect:BREATH:SOUND:0:20
 dice:150
 
 name:DRAGON_CHAOS
 aim:1
+level:45
 power:23
 effect:BREATH:DISEN:0:20
 dice:110
@@ -555,6 +618,7 @@ dice:110
 
 name:DRAGON_BALANCE
 aim:1
+level:52
 power:24
 effect:BREATH:DISEN:0:20
 dice:63
@@ -567,6 +631,7 @@ dice:63
 
 name:DRAGON_POWER
 aim:1
+level:57
 power:25
 effect:BREATH:MISSILE:0:20
 dice:300
@@ -574,12 +639,14 @@ dice:300
 
 name:DRAGON_CRYSTAL
 aim:1
+level:30
 power:19
 effect:BREATH:SHARD:0:20
 dice:150
 
 name:DRAGON_SILVER
 aim:1
+level:32
 power:19
 effect:BREATH:INERTIA:0:20
 dice:75
@@ -588,12 +655,14 @@ dice:75
 
 name:DRAGON_ETHEREAL
 aim:1
+level:35
 power:21
 effect:BREATH:NETHER:0:20
 dice:200
 
 name:DRAGON_DLISK
 aim:1
+level:37
 power:21
 effect:BREATH:NEXUS:0:20
 dice:100
@@ -602,12 +671,14 @@ dice:100
 
 name:DRAGON_WATER
 aim:1
+level:37
 power:21
 effect:BREATH:WATER:0:20
 dice:200
 
 name:DRAIN_LIFE
 aim:1
+level:20
 power:9
 effect:BOLT_STATUS_DAM:MON_DRAIN
 dice:90
@@ -617,6 +688,7 @@ desc: demon, a golem, an elemental or a vortex
 
 name:DRAIN_LIFE2
 aim:1
+level:30
 power:10
 effect:BOLT_STATUS_DAM:MON_DRAIN
 dice:120
@@ -626,6 +698,7 @@ desc: demon, a golem, an elemental or a vortex
 
 name:DRAIN_LIFE3
 aim:1
+level:60
 power:11
 effect:BOLT_STATUS_DAM:MON_DRAIN
 dice:150
@@ -634,6 +707,7 @@ desc: demon, a golem, an elemental or a vortex
 
 name:DRAIN_LIFE4
 aim:1
+level:75
 power:12
 effect:BOLT_STATUS_DAM:MON_DRAIN
 dice:250
@@ -642,6 +716,7 @@ desc: demon, a golem, an elemental or a vortex
 
 name:DRINK_BREATH
 aim:1
+level:20
 power:8
 effect:BREATH:COLD:0:30
 dice:40
@@ -650,11 +725,13 @@ dice:40
 
 name:EARTHQUAKES
 aim:0
+level:47
 power:5
 effect:EARTHQUAKE:NONE:10
 
 name:ELEC_BALL64
 aim:1
+level:40
 power:9
 effect:BALL:ELEC:2
 dice:64
@@ -662,6 +739,7 @@ msg_other: fires a lightning ball.
 
 name:ELEC_BALL250
 aim:1
+level:77
 power:14
 effect:BALL:ELEC:3
 dice:250
@@ -669,6 +747,7 @@ msg_other: fires a lightning ball.
 
 name:ELEC_BOLT
 aim:1
+level:1
 power:5
 effect:BEAM:ELEC
 dice:6d6
@@ -677,41 +756,48 @@ msg:Your {kind} {is} covered in sparks...
 
 name:ENCHANT_ARMOR
 aim:0
+level:25
 power:12
 effect:ENCHANT:TOAC
 dice:1
 
 name:ENCHANT_ARMOR2
 aim:0
+level:40
 power:15
 effect:ENCHANT:TOAC
 dice:2+1d3
 
 name:ENCHANT_TODAM
 aim:0
+level:35
 power:20
 effect:ENCHANT:TODAM
 dice:1
 
 name:ENCHANT_TOHIT
 aim:0
+level:30
 power:15
 effect:ENCHANT:TOHIT
 dice:1
 
 name:ENCHANT_WEAPON
 aim:0
+level:45
 power:22
 effect:ENCHANT:TOBOTH
 dice:1d3
 
 name:ENLIGHTENMENT
 aim:0
+level:60
 power:25
 effect:LIGHT_LEVEL:NONE:1
 
 name:FIRE_BALL72
 aim:1
+level:30
 power:9
 effect:BALL:FIRE:2
 dice:72
@@ -720,6 +806,7 @@ msg:{name} rages in fire...
 
 name:FIRE_BALL120
 aim:1
+level:60
 power:11
 effect:BALL:FIRE:3
 dice:120
@@ -728,6 +815,7 @@ msg:The {kind} glow{s} deep red...
 
 name:FIRE_BALL144
 aim:1
+level:50
 power:11
 effect:BALL:FIRE:2
 dice:144
@@ -735,6 +823,7 @@ msg_other: fires a fire ball.
 
 name:FIRE_BALL200
 aim:1
+level:75
 power:13
 effect:BALL:FIRE:3
 dice:200
@@ -742,6 +831,7 @@ msg_other: shoots dragon fire!
 
 name:FIRE_BOLT
 aim:1
+level:32
 power:7
 effect:BOLT_OR_BEAM:FIRE
 dice:12d8
@@ -750,6 +840,7 @@ msg:Your {kind} {is} covered in fire...
 
 name:FOOD_WAYBREAD
 aim:0
+level:15
 power:4
 effect:CURE:POISONED
 effect:HEAL_HP
@@ -761,6 +852,7 @@ desc: fed
 
 name:HASTE
 aim:0
+level:20
 power:10
 effect:TIMED_INC:FAST:0:5
 dice:20+1d20
@@ -768,6 +860,7 @@ msg:Your {kind} glow{s} bright green...
 
 name:HASTE2
 aim:0
+level:60
 power:13
 effect:TIMED_INC:FAST:0:5
 dice:75+1d75
@@ -775,6 +868,7 @@ msg:The {kind} glow{s} brightly...
 
 name:HERO
 aim:0
+level:12
 power:7
 effect:TIMED_INC:HERO
 dice:25+1d25
@@ -788,6 +882,7 @@ desc: fear, and a bonus of {+12} to-hit) for {25+1d25} turns
 
 name:ILLUMINATION
 aim:0
+level:12
 power:4
 effect:LIGHT_AREA
 effect:BLAST:LIGHT_WEAK:3
@@ -797,6 +892,7 @@ msg:The {kind} well{s} with clear light...
 
 name:LIGHT
 aim:0
+level:10
 power:4
 effect:LIGHT_AREA
 effect:BLAST:LIGHT_WEAK:2
@@ -807,6 +903,7 @@ desc: {2d8} points of damage on any light-sensitive creatures within the radius
 
 name:LIGHT_LINE
 aim:1
+level:5
 power:6
 effect:LINE:LIGHT_WEAK
 dice:6d8
@@ -814,29 +911,34 @@ msg_self:A line of shimmering blue light appears.
 
 name:LOSCONF
 aim:0
+level:18
 power:10
 effect:PROJECT_LOS_AWARE:MON_CONF
 dice:5+1d5
 
 name:LOSKILL
 aim:0
+level:40
 power:25
 effect:MASS_BANISH
 msg:Your {kind} let{s} out a long, shrill note...
 
 name:LOSSLEEP
 aim:0
+level:18
 power:8
 effect:PROJECT_LOS_AWARE:SLEEP_ALL
 
 name:LOSSLOW
 aim:0
+level:16
 power:7
 effect:PROJECT_LOS_AWARE:MON_SLOW
 dice:20
 
 name:MANA_BOLT
 aim:1
+level:52
 power:7
 effect:BOLT:MANA
 dice:12d8
@@ -845,6 +947,7 @@ msg:Your {kind} glow{s} white...
 
 name:MAPPING
 aim:0
+level:30
 power:10
 effect:MAP_AREA
 effect-yx:22:40
@@ -852,6 +955,7 @@ msg:The {kind} shine{s} brightly...
 
 name:MISSILE
 aim:1
+level:5
 power:3
 effect:BOLT_OR_BEAM:MISSILE
 dice:3d4
@@ -860,6 +964,7 @@ msg:{name} glows very brightly...
 
 name:MON_CONFUSE
 aim:1
+level:15
 power:3
 effect:BOLT_AWARE:MON_CONF
 dice:5+1d5
@@ -868,6 +973,7 @@ desc:attempts to confuse a single monster
 
 name:MON_HOLD
 aim:1
+level:30
 power:3
 effect:BOLT_AWARE:MON_HOLD
 dice:3+1d5
@@ -875,6 +981,7 @@ desc:attempts to hold a single monster
 
 name:MON_SCARE
 aim:1
+level:12
 power:3
 effect:BOLT_AWARE:TURN_ALL
 dice:10
@@ -882,6 +989,7 @@ desc:attempts to scare a single monster
 
 name:MON_SLOW
 aim:1
+level:25
 power:3
 effect:BOLT_AWARE:MON_SLOW
 dice:10+1d20
@@ -889,6 +997,7 @@ desc:attempts to slow down a single monster
 
 name:POLYMORPH
 aim:1
+level:27
 power:7
 effect:BOLT_AWARE:MON_POLY:1
 dice:$B
@@ -897,12 +1006,14 @@ desc:attempts to polymorph a single non-unique monster
 
 name:PROBING
 aim:0
+level:20
 power:8
 effect:PROBE
 msg:{name} glows brightly...
 
 name:PROTEVIL
 aim:0
+level:40
 power:6
 effect:TIMED_INC:PROTEVIL
 dice:$B+1d25
@@ -911,6 +1022,7 @@ msg:The {kind} let{s} out a shrill wail...
 
 name:RAGE_BLESS_RESIST
 aim:0
+level:50
 power:21
 effect:CLEAR_VALUE
 effect:TIMED_INC:OPP_POIS
@@ -932,6 +1044,7 @@ desc: blessing and temporary resistance for {50+1d50} turns
 
 name:RECALL
 aim:0
+level:20
 power:15
 effect:RECALL
 dice:14+1d20
@@ -939,6 +1052,7 @@ msg:{name} pulses a soft white.
 
 name:RECHARGE
 aim:0
+level:60
 power:11
 effect:RECHARGE
 dice:10
@@ -946,6 +1060,7 @@ msg:Your {kind} glow{s} bright yellow...
 
 name:REMOVE_CURSE
 aim:0
+level:22
 power:8
 effect:REMOVE_CURSE
 dice:20+d20
@@ -953,6 +1068,7 @@ desc:attempts to remove a curse from an item
 
 name:REMOVE_CURSE2
 aim:0
+level:62
 power:20
 effect:REMOVE_CURSE
 dice:50+d50
@@ -960,6 +1076,7 @@ desc:strongly attempts to remove a curse from an item
 
 name:REM_FEAR_POIS
 aim:0
+level:10
 power:3
 effect:CURE:POISONED
 effect:CURE:AFRAID
@@ -968,6 +1085,7 @@ desc:removes fear and neutralizes poison
 
 name:RESIST_ALL
 aim:0
+level:15
 power:10
 effect:CLEAR_VALUE
 effect:TIMED_INC:OPP_POIS
@@ -983,6 +1101,7 @@ desc: {20+1d20} turns
 
 name:RESIST_ALL_LORDLY
 aim:0
+level:40
 power:10
 effect:CLEAR_VALUE
 effect:TIMED_INC:OPP_POIS
@@ -998,36 +1117,42 @@ desc: {40+1d40} turns
 
 name:RESIST_ACID
 aim:0
+level:5
 power:4
 effect:TIMED_INC:OPP_ACID
 dice:10+1d10
 
 name:RESIST_COLD
 aim:0
+level:5
 power:4
 effect:TIMED_INC:OPP_COLD
 dice:10+1d10
 
 name:RESIST_ELEC
 aim:0
+level:5
 power:4
 effect:TIMED_INC:OPP_ELEC
 dice:10+1d10
 
 name:RESIST_FIRE
 aim:0
+level:5
 power:4
 effect:TIMED_INC:OPP_FIRE
 dice:10+1d10
 
 name:RESIST_POIS
 aim:0
+level:5
 power:4
 effect:TIMED_INC:OPP_POIS
 dice:10+1d10
 
 name:RESTORE_ALL
 aim:0
+level:67
 power:15
 effect:RESTORE_STAT:CON
 effect:RESTORE_STAT:DEX
@@ -1038,24 +1163,28 @@ desc:restores all stats to maximum
 
 name:RESTORE_LIFE
 aim:0
+level:40
 power:8
 effect:RESTORE_EXP
 msg:Your {kind} glow{s} a deep red...
 
 name:RESTORE_MANA
 aim:0
+level:15
 power:10
 effect:RESTORE_MANA
 dice:500
 
 name:RESTORE_MANA2
 aim:0
+level:75
 power:20
 effect:RESTORE_MANA
 desc:restores mana points to maximum
 
 name:RESTORE_ST_LEV
 aim:0
+level:72
 power:17
 effect:RESTORE_STAT:CON
 effect:RESTORE_STAT:DEX
@@ -1067,6 +1196,7 @@ desc:restores experience points and all stats to maximum
 
 name:RING_ACID
 aim:1
+level:25
 power:11
 effect:TIMED_INC:OPP_ACID
 dice:20+1d20
@@ -1075,6 +1205,7 @@ dice:70
 
 name:RING_FLAMES
 aim:1
+level:30
 power:11
 effect:TIMED_INC:OPP_FIRE
 dice:20+1d20
@@ -1083,6 +1214,7 @@ dice:80
 
 name:RING_ICE
 aim:1
+level:28
 power:11
 effect:TIMED_INC:OPP_COLD
 dice:20+1d20
@@ -1091,6 +1223,7 @@ dice:75
 
 name:RING_LIGHTNING
 aim:1
+level:32
 power:11
 effect:TIMED_INC:OPP_ELEC
 dice:20+1d20
@@ -1099,11 +1232,13 @@ dice:85
 
 name:GLYPH
 aim:0
+level:70
 power:20
 effect:GLYPH:WARDING
 
 name:SATISFY
 aim:0
+level:10
 power:7
 effect:NOURISH:INC_TO
 dice:50
@@ -1111,6 +1246,7 @@ desc:magically renders you comfortably fed
 
 name:SHERO
 aim:0
+level:15
 power:9
 effect:TIMED_INC:SHERO
 dice:25+1d25
@@ -1125,6 +1261,7 @@ desc: AC) for {25+1d25} turns
 
 name:SHROOM_DEBILITY
 aim:0
+level:20
 power:5
 effect:DRAIN_STAT:CON
 effect:DRAIN_STAT:STR
@@ -1136,6 +1273,7 @@ desc: constitution
 
 name:SHROOM_EMERGENCY
 aim:0
+level:20
 power:7
 effect:HEAL_HP
 dice:200
@@ -1152,6 +1290,7 @@ desc: turns
 
 name:SHROOM_PURGING
 aim:0
+level:25
 power:5
 effect:CURE:POISONED
 effect:RESTORE_STAT:CON
@@ -1163,6 +1302,7 @@ desc: constitution
 
 name:SHROOM_SPRINTING
 aim:0
+level:25
 power:5
 effect:TIMED_INC:SPRINT
 dice:100
@@ -1171,6 +1311,7 @@ desc: ({-10} to speed) for {100} extra turns
 
 name:SHROOM_STONE
 aim:0
+level:10
 power:5
 effect:TIMED_SET:STONESKIN
 dice:60+1d40
@@ -1179,6 +1320,7 @@ desc: speed) for {60+1d40} turns
 
 name:SHROOM_TERROR
 aim:0
+level:10
 power:5
 effect:TIMED_SET:TERROR
 dice:80+1d40
@@ -1187,12 +1329,14 @@ desc: {80+1d40} turns
 
 name:SLEEPII
 aim:0
+level:12
 power:8
 effect:TOUCH_AWARE:SLEEP_ALL
 msg:{name} glows deep blue...
 
 name:STAFF_HOLY
 aim:0
+level:80
 power:12
 effect:CURE:AMNESIA
 effect:CURE:IMAGE
@@ -1217,6 +1361,7 @@ desc: from evil for {1d25+3*clvl} turns
 
 name:STAFF_MAGI
 aim:0
+level:77
 power:20
 effect:RESTORE_MANA
 effect:RESTORE_STAT:INT
@@ -1224,6 +1369,7 @@ desc:restores both intelligence and mana points to maximum
 
 name:STAR_BALL
 aim:0
+level:60
 power:18
 effect:STAR_BALL:ELEC:3
 dice:150
@@ -1232,6 +1378,7 @@ msg:Lightning surrounds your {kind}!
 
 name:STARLIGHT
 aim:0
+level:25
 power:5
 effect:STAR:LIGHT_WEAK
 dice:6d8
@@ -1239,6 +1386,7 @@ msg_self:Light shoots in all directions!
 
 name:STARLIGHT2
 aim:0
+level:30
 power:7
 effect:STAR:LIGHT
 dice:10d8
@@ -1247,6 +1395,7 @@ msg:Your {kind} glow{s} with the light of a thousand stars...
 
 name:STINKING_CLOUD
 aim:1
+level:3
 power:3
 effect:BALL:POIS:3
 dice:12
@@ -1255,6 +1404,7 @@ msg:{name} throws deep green shadows...
 
 name:STONE_TO_MUD
 aim:1
+level:5
 power:6
 effect:LINE:KILL_WALL
 dice:20+1d30
@@ -1262,16 +1412,19 @@ msg:Your {kind} pulsate{s}...
 
 name:DOOR_DEST
 aim:1
+level:1
 power:5
 effect:ALTER:KILL_DOOR
 
 name:TELE_LEVEL
 aim:0
+level:32
 power:15
 effect:TELEPORT_LEVEL
 
 name:TELE_LONG
 aim:0
+level:25
 power:6
 effect:TELEPORT
 dice:$B
@@ -1280,6 +1433,7 @@ msg:Your {kind} twist{s} space around you.
 
 name:TELE_OTHER
 aim:1
+level:25
 power:11
 effect:BOLT_STATUS:AWAY_ALL:1
 dice:$B
@@ -1288,6 +1442,7 @@ msg:Your {kind} glow{s} deep red...
 
 name:TELE_PHASE
 aim:0
+level:8
 power:5
 effect:TELEPORT
 dice:10
@@ -1295,6 +1450,7 @@ msg:{name} twists space around you...
 
 name:TMD_ESP
 aim:0
+level:15
 power:10
 effect:TIMED_INC:ESP
 dice:24+9d9
@@ -1303,6 +1459,7 @@ desc:cures blindness and grants the power of telepathy for {24+9d9} turns
 
 name:TMD_FREE_ACT
 aim:0
+level:8
 power:4
 effect:TIMED_INC:FREE_ACT
 dice:10+1d10
@@ -1310,6 +1467,7 @@ desc:grants temporary free action for {10+1d10} turns
 
 name:TMD_INFRA
 aim:0
+level:10
 power:5
 effect:TIMED_INC:SINFRA
 dice:100+4d25
@@ -1317,6 +1475,7 @@ desc:extends your infravision by {50} feet for {100+4d25} turns
 
 name:TMD_SINVIS
 aim:0
+level:12
 power:7
 effect:TIMED_INC:SINVIS
 dice:12+2d6
@@ -1324,6 +1483,7 @@ effect:CURE:BLIND
 
 name:WAND_BREATH
 aim:1
+level:35
 power:12
 effect:BREATH:POIS:0:30
 dice:32
@@ -1343,6 +1503,7 @@ msg_other: shoots dragon acid!
 
 name:WONDER
 aim:1
+level:10
 power:9
 effect:WONDER
 dice:$B+1d100
