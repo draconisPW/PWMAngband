@@ -88,6 +88,7 @@ PWMAngband:
 - Split VERIFY packet in chunks
 - Add class parser for SKILL_TO_HIT_THROW, port values from V
 - Split level and difficulty level for activation (base items/egos/artifacts)
+- Add parser for skill-throw in p_race.txt (unused)
 
 Compilation/documentation
 -------------------------
