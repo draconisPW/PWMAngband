@@ -33,6 +33,7 @@ PWMAngband:
 
 - Allow swapping items with similar @w1-@w9 inscriptions
 - Add support for F16-F24 keys in SDL2
+- Allow scrolling of long race/class descriptions using SPACE
 
 Gameplay changes
 ----------------
@@ -58,6 +59,7 @@ Angband 4.2.x:
 - SDL2 fixes
 - Account for empty object groups in ego knowledge display
 - Apply BLESS_WEAPON to-hit bonus only to melee, not ranged
+- Correct coordinate tested for monster lighting a wall
 
 PWMAngband:
 
