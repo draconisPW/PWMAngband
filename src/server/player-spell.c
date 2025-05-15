@@ -262,7 +262,7 @@ static size_t append_random_value_string(char *buffer, size_t size, random_value
 }
 
 
-static void spell_effect_append_value_info(struct player *p, const struct effect *effecte, char *buf,
+static void spell_effect_append_value_info(struct player *p, const struct effect *effect, char *buf,
     size_t len, const struct class_spell *spell, size_t *offset,
     struct spell_info_iteration_state *ist)
 {
@@ -274,9 +274,9 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
 
     source_player(data, 0, p);
 
-    if (effecte->index == EF_CLEAR_VALUE)
+    if (effect->index == EF_CLEAR_VALUE)
         ist->have_shared = false;
-    else if (effecte->index == EF_SET_VALUE && effecte->dice)
+    else if (effect->index == EF_SET_VALUE && effect->dice)
     {
         int16_t current_spell;
 
@@ -286,20 +286,20 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
         current_spell = p->current_spell;
         p->current_spell = spell->sidx;
 
-        dice_roll(effecte->dice, (void *)data, &ist->shared_rv);
+        dice_roll(effect->dice, (void *)data, &ist->shared_rv);
 
         /* Hack -- reset current spell */
         p->current_spell = current_spell;
     }
 
-    type = effect_info(effecte, spell->realm->name);
+    type = effect_info(effect, spell->realm->name);
     if (type == NULL) return;
 
     memset(&rv, 0, sizeof(rv));
     special[0] = '\0';
 
     /* Hack -- mana drain (show real value) */
-    if ((effecte->index == EF_BOLT_AWARE) && (effecte->subtype == PROJ_DRAIN_MANA))
+    if ((effect->index == EF_BOLT_AWARE) && (effect->subtype == PROJ_DRAIN_MANA))
     {
         rv.base = 6;
         rv.dice = 3;
@@ -307,7 +307,7 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
     }
 
     /* Normal case -- use dice */
-    else if (effecte->dice != NULL)
+    else if (effect->dice != NULL)
     {
         int16_t current_spell;
 
@@ -315,7 +315,7 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
         current_spell = p->current_spell;
         p->current_spell = spell->sidx;
 
-        dice_roll(effecte->dice, (void *)data, &rv);
+        dice_roll(effect->dice, (void *)data, &rv);
 
         /* Hack -- reset current spell */
         p->current_spell = current_spell;
@@ -324,7 +324,7 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
         memcpy(&rv, &ist->shared_rv, sizeof(random_value));
 
     /* Handle some special cases where we want to append some additional info. */
-    switch (effecte->index)
+    switch (effect->index)
     {
         case EF_HEAL_HP:
         {
@@ -340,10 +340,10 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
             /* Append radius */
             else
             {
-                int rad = (effecte->radius? effecte->radius: 2);
+                int rad = (effect->radius? effect->radius: 2);
                 struct beam_info beam;
 
-                if (effecte->other) rad += p->lev / effecte->other;
+                if (effect->other) rad += p->lev / effect->other;
                 if (p->poly_race && monster_is_powerful(p->poly_race)) rad++;
 
                 fill_beam_info(p, spell->sidx, &beam);
@@ -359,10 +359,10 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
         case EF_BLAST:
         {
             /* Append radius */
-            int rad = (effecte->radius? effecte->radius: 2);
+            int rad = (effect->radius? effect->radius: 2);
             struct beam_info beam;
 
-            if (effecte->other) rad += p->lev / effecte->other;
+            if (effect->other) rad += p->lev / effect->other;
             if (p->poly_race && monster_is_powerful(p->poly_race)) rad++;
 
             fill_beam_info(p, spell->sidx, &beam);
@@ -376,13 +376,13 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
         case EF_STRIKE:
         {
             /* Append radius */
-            if (effecte->radius) strnfmt(special, sizeof(special), ", rad %d", effecte->radius);
+            if (effect->radius) strnfmt(special, sizeof(special), ", rad %d", effect->radius);
             break;
         }
         case EF_SHORT_BEAM:
         {
             /* Append length of beam */
-            strnfmt(special, sizeof(special), ", len %d", effecte->radius);
+            strnfmt(special, sizeof(special), ", len %d", effect->radius);
             break;
         }
         case EF_BOLT_OR_BEAM:
@@ -405,7 +405,7 @@ static void spell_effect_append_value_info(struct player *p, const struct effect
             if (rv.m_bonus)
             {
                 /* Append percentage only, as the fixed value is always displayed */
-                if (effecte->subtype == TMD_EPOWER)
+                if (effect->subtype == TMD_EPOWER)
                     strnfmt(special, sizeof(special), "/+%d%%", rv.m_bonus);
 
                 /* Append the bonus only, since the duration is always displayed. */
