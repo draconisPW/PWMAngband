@@ -849,7 +849,7 @@ static bool player_set_timed_perma(struct player *p, int idx)
     /* Turning on, always mention */
     if (p->timed[idx] == 0)
     {
-        msg_misc(p, effect->near_begin);
+        if (effect->near_begin) msg_misc(p, effect->near_begin);
         msgt(p, effect->msgt, current_grade->up_msg);
         notify = true;
     }
@@ -1450,13 +1450,13 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
     /* Always mention going up a grade, otherwise on request */
     if (new_grade->grade > current_grade->grade)
     {
-        msg_misc(p, effect->near_begin);
+        if (effect->near_begin) msg_misc(p, effect->near_begin);
         print_custom_message(p, weapon, new_grade->up_msg, effect->msgt);
         notify = true;
     }
     else if ((new_grade->grade < current_grade->grade) && new_grade->down_msg)
     {
-        msg_misc(p, effect->near_begin);
+        if (effect->near_begin) msg_misc(p, effect->near_begin);
         print_custom_message(p, weapon, new_grade->down_msg, effect->msgt);
         notify = true;
     }
@@ -1465,7 +1465,7 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
         /* Finishing */
         if (v == 0)
         {
-            msg_misc(p, effect->near_end);
+            if (effect->near_end) msg_misc(p, effect->near_end);
             print_custom_message(p, weapon, effect->on_end, MSG_RECOVER);
             if (!OPT(p, disturb_effect_end)) no_disturb = true;
         }
