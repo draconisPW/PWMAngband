@@ -1378,7 +1378,7 @@ static int cmd_master_aux_generate_item_aux(void)
             {
                 /* Generate */
                 buf[1] = 'd';
-                buf[2] = get_quantity_ex("How many? ", 127);
+                buf[2] = get_quantity_ex("How many? ", 40);
                 if (buf[2] == -1) return 1;
                 if (!buf[2]) continue;
             }
@@ -1715,7 +1715,7 @@ static int cmd_master_aux_summon_type(char *buf)
             if (ke.key.code == '1')
             {
                 buf[0] = 'x';
-                buf[1] = get_quantity_ex("Summon how many? ", 127);
+                buf[1] = get_quantity_ex("Summon how many? ", 40);
                 if (buf[1] == -1) return 1;
                 if (!buf[1]) continue;
             }
@@ -1724,7 +1724,7 @@ static int cmd_master_aux_summon_type(char *buf)
             else if (ke.key.code == '2')
             {
                 buf[0] = 'X';
-                buf[1] = get_quantity_ex("Summon how many? ", 127);
+                buf[1] = get_quantity_ex("Summon how many? ", 40);
                 if (buf[1] == -1) return 1;
                 if (!buf[1]) continue;
             }
@@ -1801,7 +1801,7 @@ static int cmd_master_aux_summon(void)
             if (ke.key.code == '1')
             {
                 buf[2] = 'd';
-                buf[3] = get_quantity_ex("Summon from which depth? ", 127);
+                buf[3] = get_quantity_ex("Summon from which depth? ", 40);
                 if (buf[3] == -1) return 1;
                 if (!buf[3]) continue;
             }

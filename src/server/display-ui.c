@@ -3109,6 +3109,9 @@ static void master_summon(struct player *p, char *parms)
         count = parms[1];
         monster_type = parms[2];
 
+        /* Paranoia */
+        if (count > 40) count = 40;
+
         /* Hack -- since monster_parms is a string, throw it on the end */
         my_strcpy(monster_parms, &parms[3], sizeof(monster_parms));
     }
@@ -4167,6 +4170,9 @@ static void master_generate(struct player *p, char *parms)
                     if (!obj->kind) break;
 
                     obj->number = parms[2];
+
+                    /* Paranoia */
+                    if (obj->number > 40) obj->number = 40;
 
                     /* Set origin */
                     set_origin(obj, ORIGIN_CHEAT, p->wpos.depth, NULL);

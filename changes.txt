@@ -28,6 +28,8 @@ Bugs fixed
 PWMAngband:
 
 - Fix undiscovered mimics preventing "fast" running
+- Limit the size of the stack of objects the Dungeon Master can generate to 40
+- Limit the number of monsters the Dungeon Master can summon to 40
 
 Features in PWMAngband 1.6.2 build 1
 ====================================
