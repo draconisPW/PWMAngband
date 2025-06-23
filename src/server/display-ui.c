@@ -2510,6 +2510,9 @@ bool monsters_in_los(struct player *p, struct chunk *c)
         /* PWMAngband: don't count non hostile monsters */
         if (!pvm_check(p, mon)) continue;
 
+        /* PWMAngband: skip if the monster is hidden */
+        if (monster_is_camouflaged(mon)) continue;
+
         /* PWMAngband: if disturb_nomove isn't set, allow nonmovable monsters */
         if (rf_has(mon->race->flags, RF_NEVER_MOVE) && !OPT(p, disturb_nomove))
             incapacitated = true;

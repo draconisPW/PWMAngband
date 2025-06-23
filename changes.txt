@@ -19,8 +19,18 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.6.2 build 1
+New features in PWMAngband 1.6.2 build 2
 ========================================
+
+Bugs fixed
+----------
+
+PWMAngband:
+
+- Fix undiscovered mimics preventing "fast" running
+
+Features in PWMAngband 1.6.2 build 1
+====================================
 
 User interface
 --------------
