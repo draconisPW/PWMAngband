@@ -33,6 +33,7 @@ PWMAngband:
 - Fix not being able to macro spells starting from the eighth spell in a book
 - Fix running into trap
 - Clear command buffer when command inside a keymap fails
+- Don't redraw the screen when exiting a menu with distorted graphics
 
 Features in PWMAngband 1.6.2 build 1
 ====================================
