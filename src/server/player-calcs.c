@@ -809,7 +809,7 @@ static void calc_spells(struct player *p)
     const struct class_spell *spell;
     int16_t old_spells;
 
-    /* Hack -- must be literate */
+    /* Must be literate */
     if (!p->clazz->magic.total_spells) return;
 
     /* Save the new_spells value */
@@ -818,7 +818,7 @@ static void calc_spells(struct player *p)
     /* Determine the number of spells allowed */
     levels = p->lev - p->clazz->magic.spell_first + 1;
 
-    /* Hack -- no negative spells */
+    /* No negative spells */
     if (levels < 0) levels = 0;
 
     /* Number of 1/100 spells per level */
@@ -977,11 +977,11 @@ static void calc_spells(struct player *p)
     /* Cannot learn more spells than exist */
     if (p->upkeep->new_spells > k) p->upkeep->new_spells = k;
 
-    /* Hack -- wait for creation */
+    /* Wait for creation */
     if (!p->alive) return;
 
     /* Spell count changed */
-    /* Hack -- delay messages after character creation */
+    /* Delay messages after character creation */
     if (p->delayed_display || (old_spells != p->upkeep->new_spells))
     {
         /* Message if needed */
@@ -1155,7 +1155,7 @@ static void calc_mana(struct player *p, struct player_state *state, bool update)
             p->csp_frac = 0;
         }
 
-        /* Hack -- redraw picture */
+        /* Redraw picture */
         redraw_picture(p, old_num);
 
         /* Display mana later */
@@ -1208,7 +1208,7 @@ static void calc_hitpoints(struct player *p, struct player_state *state, bool up
             p->chp_frac = 0;
         }
 
-        /* Hack -- redraw picture */
+        /* Redraw picture */
         redraw_picture(p, old_num);
 
         /* Display hitpoints (later) */
@@ -1907,7 +1907,7 @@ void calc_bonuses(struct player *p, struct player_state *state, bool known_only,
     /* Ghost */
     if (p->ghost) state->see_infra += 3;
 
-    /* Hack -- UNLIGHT gives extra infravision */
+    /* UNLIGHT gives extra infravision */
     if (player_has(p, PF_UNLIGHT)) state->see_infra += (p->lev / 10 + 1);
 
     /* Handle polymorphed players */
@@ -2617,7 +2617,7 @@ static void update_bonuses(struct player *p)
         }
     }
 
-    /* Hack -- telepathy change */
+    /* Telepathy change */
     create_obj_flag_mask(f, 0, OFT_ESP, OFT_MAX);
     for (flag = of_next(f, FLAG_START); flag != FLAG_END; flag = of_next(f, flag + 1))
     {
@@ -2625,7 +2625,7 @@ static void update_bonuses(struct player *p)
             p->upkeep->update |= (PU_MONSTERS);
     }
 
-    /* Hack -- see invis change */
+    /* See invis change */
     if (of_has(state.flags, OF_SEE_INVIS) != of_has(p->state.flags, OF_SEE_INVIS))
         p->upkeep->update |= (PU_MONSTERS);
 
@@ -2661,7 +2661,7 @@ static void update_bonuses(struct player *p)
     if (weight_limit(&p->state) != weight_limit(&state))
         set_redraw_inven(p, NULL);
 
-    /* Hack -- wait for creation */
+    /* Wait for creation */
     if (!p->alive)
     {
         memcpy(&p->state, &state, sizeof(p->state));
@@ -2670,7 +2670,7 @@ static void update_bonuses(struct player *p)
         return;
     }
 
-    /* Hack -- delay messages after character creation */
+    /* Delay messages after character creation */
     if (!p->delayed_display)
     {
         /* Take note when "heavy bow" changes */
@@ -2737,7 +2737,7 @@ static void update_bonuses(struct player *p)
     Send_skills(p);
     Send_weight(p, p->upkeep->total_weight, weight_remaining(p));
 
-    /* Hack -- delay messages after character creation */
+    /* Delay messages after character creation */
     if (p->delayed_display)
     {
         /* Message */
@@ -2786,7 +2786,7 @@ void monster_race_track(struct player_upkeep *upkeep, struct source *who)
     if (source_null(who))
         memset(monster_race, 0, sizeof(struct actor_race));
 
-    /* Hack -- track this player */
+    /* Track this player */
     else if (who->player)
     {
         redraw = !ACTOR_PLAYER_EQUAL(monster_race, who);
@@ -2949,7 +2949,7 @@ void update_stuff(struct player *p, struct chunk *c)
  */
 void handle_stuff(struct player *p)
 {
-    /* Hack -- delay updating */
+    /* Delay updating */
     if (p->upkeep->new_level_method) return;
 
     update_stuff(p, chunk_get(&p->wpos));
@@ -2962,7 +2962,7 @@ void handle_stuff(struct player *p)
  */
 void refresh_stuff(struct player *p)
 {
-    /* Hack -- delay updating */
+    /* Delay updating */
     if (p->upkeep->new_level_method) return;
 
     /* Notice stuff */

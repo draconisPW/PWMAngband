@@ -421,7 +421,7 @@ static bool floor_purchase(struct player *p, struct chunk *c, int pickup, struct
 {
     char o_name[NORMAL_WID];
 
-    /* Hack -- allow purchase from floor */
+    /* Allow purchase from floor */
     if (protected_p(p, obj, INSCRIPTION_PICKUP, false))
     {
         int i;
@@ -662,7 +662,7 @@ uint8_t player_pickup_item(struct player *p, struct chunk *c, int pickup, struct
         domsg = false;
     }
 
-    /* Hack -- allow purchase from floor */
+    /* Allow purchase from floor */
     if (pickup == 4)
     {
         /* Use current */
@@ -686,7 +686,7 @@ uint8_t player_pickup_item(struct player *p, struct chunk *c, int pickup, struct
     /* Pick up object, if legal */
     if (current)
     {
-        /* Hack -- allow purchase from floor */
+        /* Allow purchase from floor */
         if (!floor_purchase(p, c, pickup, current))
         {
             mem_free(floor_list);
@@ -735,7 +735,7 @@ uint8_t do_autopickup(struct player *p, struct chunk *c, int pickup)
     if (p->ghost && !(p->dm_flags & DM_GHOST_BODY)) return 0;
 
     /* Always pickup gold, effortlessly */
-    /* Hack -- ghosts don't pick up gold automatically */
+    /* Ghosts don't pick up gold automatically */
     if (!(p->ghost && (pickup < 2))) player_pickup_gold(p, c);
 
     /* Scan the remaining objects */
@@ -749,10 +749,10 @@ uint8_t do_autopickup(struct player *p, struct chunk *c, int pickup)
         {
             bool auto_pickup;
 
-            /* Hack -- disturb */
+            /* Disturb */
             if (!p->ghost) disturb(p, 0);
 
-            /* Hack -- ghosts don't pick up gold automatically */
+            /* Ghosts don't pick up gold automatically */
             auto_pickup = (pickup? true: false);
             if (tval_is_money(obj) && p->ghost && (pickup < 2))
                 auto_pickup = false;

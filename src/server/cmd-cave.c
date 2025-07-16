@@ -186,7 +186,7 @@ void do_cmd_go_down(struct player *p)
 
     wpos_init(&wpos, &p->wpos.grid, descend_to);
 
-    /* Hack -- DM redesigning the level */
+    /* DM redesigning the level */
     if (chunk_inhibit_players(&wpos))
     {
         msg(p, "Something prevents you from going down...");
@@ -368,7 +368,7 @@ static bool do_cmd_open_aux(struct player *p, struct chunk *c, struct loc *grid)
             /* Disturb */
             disturb(p, 0);
 
-            /* Hack -- enter store */
+            /* Enter store */
             do_cmd_store(p, i);
         }
 
@@ -891,7 +891,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     if (dig_idx > 0 && dig_idx <= DIGGING_MAX) chance = digging_chances[dig_idx - 1];
     okay = CHANCE(chance, 1600);
 
-    /* Hack -- house walls */
+    /* House walls */
     if (square_ispermhouse(c, grid))
     {
         /* Either the player has lost his mind or he is trying to create a door! */
@@ -901,7 +901,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     /* Permanent */
     else if (square_isperm(c, grid))
     {
-        /* Hack -- logs */
+        /* Logs */
         if (!feat_is_wall(square(c, grid)->feat))
             msg(p, "You cannot tunnel through that.");
         else
@@ -918,7 +918,7 @@ static bool do_cmd_tunnel_aux(struct player *p, struct chunk *c, struct loc *gri
     else if (square_ismountain(c, grid))
         msg(p, "Digging a tunnel into that mountain would take forever!");
 
-    /* Hack -- pit walls (to fool the player) */
+    /* Pit walls (to fool the player) */
     else if (square_ispermfake(c, grid))
     {
         msg(p, "You tunnel into the %s %s.", square_apparent_name(p, c, grid), with_clause);
@@ -1594,7 +1594,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
             return;
         }
 
-        /* Hack -- DM redesigning the level */
+        /* DM redesigning the level */
         if (chunk_inhibit_players(&w_ptr->wpos))
         {
             msg(p, "Something prevents you from going this way...");
@@ -1604,7 +1604,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         /* Change location */
         dungeon_change_level(p, c, &w_ptr->wpos, LEVEL_OUTSIDE);
 
-        /* Hack -- replace the player */
+        /* Replace the player */
         loc_copy(&p->old_grid, &new_grid);
         loc_copy(&p->grid, &new_grid);
 
@@ -1936,12 +1936,12 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
 
     p->upkeep->running_firststep = false;
 
-    /* Hack -- we're done if player is gone (trap door) */
+    /* We're done if player is gone (trap door) */
     if (p->upkeep->new_level_method) return;
 
     /*
-     * Hack -- if we are the dungeon master, and our movement hook
-     * is set, call it.  This is used to make things like building walls
+     * If we are the dungeon master, and our movement hook
+     * is set, call it. This is used to make things like building walls
      * and summoning monster armies easier.
      */
     if (is_dm_p(p) && master_move_hook)
@@ -2274,7 +2274,7 @@ static bool do_cmd_run_test(struct player *p, struct loc *grid)
     /* Illegal grids are not known walls XXX XXX XXX */
     if (!square_in_bounds(c, grid)) return true;
 
-    /* Hack -- walking obtains knowledge XXX XXX */
+    /* Walking obtains knowledge XXX XXX */
     if (!square_isknown(p, grid)) return true;
 
     /* Require open space */
@@ -2565,7 +2565,7 @@ void display_feeling(struct player *p, bool obj_only)
         return;
     }
 
-    /* Hack -- special levels */
+    /* Special levels */
     if (special_level(&p->wpos))
     {
         msg(p, "Looks like a special level.");
@@ -2582,7 +2582,7 @@ void display_feeling(struct player *p, bool obj_only)
     /* PWMAngband: monster feeling on exploration + no object feeling at level 1 */
     if ((p->cave->feeling_squares < z_info->feeling_need) && (cfg_level_feelings == 1)) return;
 
-    /* Hack -- player entering a static level */
+    /* Player entering a static level */
     if (p->feeling < 0)
     {
         int i, obj_f, mon_f;

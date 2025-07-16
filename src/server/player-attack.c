@@ -508,7 +508,7 @@ static void blow_side_effects(struct player *p, struct source *target,
     /* Ghosts get fear attacks */
     if (p->ghost && !player_can_undead(p)) do_fear = true;
 
-    /* Hack -- only one of cut or stun */
+    /* Only one of cut or stun */
     if (seffects->do_cut && seffects->do_stun)
     {
         /* Cancel cut */
@@ -1275,7 +1275,7 @@ void py_attack(struct player *p, struct chunk *c, struct loc *grid)
     if (visible && p->timed[TMD_HOLD_WEAPON] && !stop)
         stop = mon_take_hit(p, c, mon, damroll(p->lev / 7 - 1, 6), &effects.fear, -2);
 
-    /* Hack -- delay messages */
+    /* Delay messages */
     if (visible && !stop)
     {
         if (effects.fear) add_monster_message(p, mon, MON_MSG_FLEE_IN_TERROR, true);
@@ -1738,7 +1738,7 @@ static bool ranged_helper(struct player *p, struct object *obj, int dir, int ran
         /* Calculate the path */
         path_n = project_path(NULL, c, path_g, range, &grid, &target, (pierce? PROJECT_THRU: 0));
 
-        /* Hack -- handle stuff */
+        /* Handle stuff */
         handle_stuff(p);
 
         /* Project along the path */
@@ -1746,10 +1746,10 @@ static bool ranged_helper(struct player *p, struct object *obj, int dir, int ran
         {
             struct missile data;
 
-            /* Hack -- disable throwing through open house door */
+            /* Disable throwing through open house door */
             if (square_home_isopendoor(c, &path_g[i])) break;
 
-            /* Hack -- stop before hitting walls */
+            /* Stop before hitting walls */
             if (!square_ispassable(c, &path_g[i]) && !square_isprojectable(c, &path_g[i]))
             {
                 /* Special case: potion VS house door */
@@ -2092,7 +2092,7 @@ static bool ranged_helper(struct player *p, struct object *obj, int dir, int ran
         shots++;
     }
 
-    /* Hack -- delay messages */
+    /* Delay messages */
     while (effects)
     {
         /* Paranoia: only process living monsters */
