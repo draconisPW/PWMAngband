@@ -1541,7 +1541,7 @@ void move_player(struct player *p, struct chunk *c, int dir, bool disarm, bool c
         if (in_base_town(&p->wpos))
         {
             /* Forbid */
-            if ((cfg_diving_mode > 1) || OPT(p, birth_no_recall))
+            if (player_no_recall(p, 2))
             {
                 if (cfg_diving_mode > 1)
                     msg(p, "There is a wall blocking your way.");

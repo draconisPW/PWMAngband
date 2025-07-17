@@ -790,7 +790,7 @@ static int valid_inscription(struct player *p, const char *inscription, int curr
                     (2 == sscanf(inscription, "%d,%d", &grid.x, &grid.y)))
                 {
                     /* Forbid if no wilderness */
-                    if ((cfg_diving_mode > 1) || OPT(p, birth_no_recall))
+                    if (player_no_recall(p, 2))
                     {
                         /* Deactivate recall */
                         memcpy(&p->recall_wpos, &p->wpos, sizeof(struct worldpos));
@@ -3409,7 +3409,7 @@ bool effect_handler_MAP_WILD(effect_handler_context_t *context)
     int max_radius = radius_wild - 1;
 
     /* Default to magic map if no wilderness */
-    if ((cfg_diving_mode > 1) || OPT(context->origin->player, birth_no_recall))
+    if (player_no_recall(context->origin->player, 2))
     {
         effect_handler_MAP_AREA(context);
         return true;
@@ -3803,8 +3803,7 @@ bool effect_handler_RECALL(effect_handler_context_t *context)
     context->ident = true;
 
     /* No recall */
-    if (((cfg_diving_mode == 3) || OPT(context->origin->player, birth_no_recall)) &&
-        !context->origin->player->total_winner)
+    if (player_no_recall(context->origin->player, 3) && !context->origin->player->total_winner)
     {
         msg(context->origin->player, "Nothing happens.");
         return false;
