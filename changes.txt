@@ -55,6 +55,7 @@ PWMAngband:
 - Don't redraw the screen when exiting a menu with distorted graphics
 - Allow ESC at start of a keymap to cancel a previous keymap requiring a
   direction
+- Prevent ironman ghosts from going up
 
 Coding changes
 --------------
