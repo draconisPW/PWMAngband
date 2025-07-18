@@ -1454,6 +1454,7 @@ bool project_m_monster_attack_aux(struct monster *attacker, struct chunk *c, str
     if (mon->hp < 0)
     {
         int i;
+        bool stale = false;
 
         for (i = 1; i <= NumPlayers; i++)
         {
@@ -1474,18 +1475,23 @@ bool project_m_monster_attack_aux(struct monster *attacker, struct chunk *c, str
             /* Death message */
             add_monster_message(p, mon, die_msg, false);
 
-            /* Reward the master with some experience */
-            if (attacker && (p->id == attacker->master)) monster_give_xp(p, c, mon, true);
+            /* Reward the master with some experience (except on stale levels) */
+            if (attacker && (p->id == attacker->master) && !player_stale_level(p))
+                monster_give_xp(p, c, mon, true);
 
             /* Redraw */
             p->upkeep->redraw |= (PR_MONLIST | PR_ITEMLIST);
+
+            /* No drops on stale levels */
+            if (attacker && (p->id == attacker->master) && player_stale_level(p))
+                stale = true;
         }
 
-        /* Drop objects being carried */
-        monster_drop_carried(NULL, c, mon, -1, false, NULL, NULL);
+        /* Drop objects being carried (except on stale levels) */
+        if (!stale) monster_drop_carried(NULL, c, mon, -1, false, NULL, NULL);
 
-        /* Drop a corpse */
-        monster_drop_corpse(NULL, c, mon);
+        /* Drop a corpse (except on stale levels) */
+        if (!stale) monster_drop_corpse(NULL, c, mon);
 
         /* Delete the monster */
         delete_monster_idx(c, mon->midx);

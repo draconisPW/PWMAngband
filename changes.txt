@@ -39,7 +39,7 @@ Gameplay changes
 
 PWMAngband:
 
-- Don't give experience to ironman characters on savescummed levels
+- Don't give experience/loot to ironman characters on savescummed levels
 
 Bugs fixed
 ----------
