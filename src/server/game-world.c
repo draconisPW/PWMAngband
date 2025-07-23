@@ -369,6 +369,13 @@ static void decrease_timeouts(struct player *p, struct chunk *c)
             p->no_disturb_icky = true;
             player_dec_timed(p, i, decr, false);
             p->no_disturb_icky = false;
+
+            /* Warn if some important effects are about to wear off */
+            if (((i == TMD_INVULN) || (i == TMD_MANASHIELD)) && (p->timed[i] == 10))
+            {
+                msg(p, "Your %s is about to wear off...", ((i == TMD_INVULN)?
+                    "globe of invulnerability": "disruption shield"));
+            }
         }
     }
 
