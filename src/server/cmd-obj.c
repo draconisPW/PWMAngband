@@ -1025,20 +1025,7 @@ static bool spell_cast(struct player *p, int spell_index, int dir, quark_t note,
             if (!used) return false;
         }
 
-        /* Reward COMBAT_REGEN with small HP recovery */
-        if (player_has(p, PF_COMBAT_REGEN)) convert_mana_to_hp(p, spell->smana << 16);
-
-        /* A spell was cast */
-        sound(p, (pious? MSG_PRAYER: MSG_SPELL));
-
         cast_spell_end(p);
-
-        /* Put on cooldown */
-        if (spell->cooldown)
-        {
-            p->spell_cooldown[spell->sidx] = spell->cooldown;
-            p->upkeep->redraw |= (PR_SPELL);
-        }
     }
 
     /* Use some mana */
