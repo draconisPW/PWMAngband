@@ -71,6 +71,10 @@ Angband 4.2.x:
 - Regularize score array after reading it
 - Remove some 'Hack' comments
 
+PWMAngband:
+
+- Rework level unstaticer code
+
 Compilation/documentation
 -------------------------
 
