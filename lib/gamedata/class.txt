@@ -3674,7 +3674,7 @@ title:Summoner Lord
 
 magic:1:300:5
 
-book:prayer book:town:[Beginners Handbook]:5:divine
+book:prayer book:town:[Beginners Handbook]:6:divine
 equip:prayer book:[Beginners Handbook]:1:1:none
 
 spell:Summon Monster:1:1:22:4:0
@@ -3709,12 +3709,15 @@ effect:HEAL_HP
 dice:$B+m$M
 expr:B:PLAYER_LEVEL:+ 10
 expr:M:PLAYER_LEVEL:/ 3 + 12
+desc:Cures a level-dependent percentage of your wounds and heals 20 points worth
+desc: of cuts and stunning.
+
+spell:Heal Other:5:3:27:4:0
 effect:BOLT_STATUS:MON_HEAL
 dice:$B+m$M
 expr:B:PLAYER_LEVEL:+ 10
 expr:M:PLAYER_LEVEL:/ 3 + 12
-desc:Cures a level-dependent percentage of your wounds and heals 20 points worth
-desc: of cuts and stunning.
+desc:Cures a level-dependent amount of damage points.
 
 spell:Portal:7:5:30:5:0
 effect:TELEPORT
