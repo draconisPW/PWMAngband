@@ -31,6 +31,14 @@ PWMAngband:
 - Split summoner's Minor Healing spell into Minor Healing (for self + party
   members -- similar to priest/paladin) and Heal Other (for controlled monsters)
 
+Coding changes
+--------------
+
+PWMAngband:
+
+- Add LAZY_CONNECTIONS cfg option to discard failed client connection attempts
+  instead of shutting down the server
+
 Features in PWMAngband 1.6.2 build 2
 ====================================
 
