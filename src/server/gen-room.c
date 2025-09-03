@@ -519,7 +519,7 @@ static bool square_isfloor_hack(struct chunk *c, struct loc *grid)
  * Place a square of granite with a flag
  *
  * c the current chunk
- * y, x the square co-ordinates
+ * grid is the coordinates for the grid to be modified
  * flag the SQUARE_* flag we are marking with
  */
 void set_marked_granite(struct chunk *c, struct loc *grid, int flag)
@@ -1151,7 +1151,7 @@ void set_pit_type(int depth, int type)
 /*
  * Find a good spot for the next room.
  *
- * "centre" centre of the room
+ * centre points to storage for the centre for the next room
  * height, width dimensions of the room
  *
  * Find and allocate a free space in the dungeon large enough to hold
@@ -1161,8 +1161,8 @@ void set_pit_type(int depth, int type)
  *
  * Be careful to include the edges of the room in height and width!
  *
- * Return true and values for the center of the room if all went well.
- * Otherwise, return false.
+ * Return true and dereference and set centre to the centre for the room if all
+ * went well. Otherwise, return false.
  */
 static bool find_space(struct loc *centre, int height, int width)
 {
@@ -1906,7 +1906,7 @@ bool build_vault(struct player *p, struct chunk *c, struct loc *centre, struct v
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
- * typ the vault type
+ * typ the name of the vault type (eg "Greater vault") to build
  *
  * Returns success.
  */
@@ -2049,7 +2049,7 @@ static void make_chamber(struct chunk *c, int y1, int x1, int y2, int x2)
  * Stop only when the magma and the open doors totally run out.
  *
  * c the chunk the room is being built in
- * grid location to start hollowing
+ * grid is the coordinates for the starting point of the hollowing
  */
 static void hollow_out_room(struct chunk *c, struct loc *grid)
 {
@@ -2094,6 +2094,7 @@ static void hollow_out_room(struct chunk *c, struct loc *grid)
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success
  */
@@ -2180,6 +2181,7 @@ bool build_circular(struct player *p, struct chunk *c, struct loc *centre, int r
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success
  */
@@ -2322,6 +2324,7 @@ bool build_simple(struct player *p, struct chunk *c, struct loc *centre, int rat
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success
  */
@@ -2398,6 +2401,7 @@ bool build_overlap(struct player *p, struct chunk *c, struct loc *centre, int ra
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success
  *
@@ -2574,6 +2578,7 @@ bool build_crossed(struct player *p, struct chunk *c, struct loc *centre, int ra
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  *
@@ -2844,6 +2849,7 @@ bool build_large(struct player *p, struct chunk *c, struct loc *centre, int rati
  * p the player
  * c the chunk the room is being built in
  * centre the room centre; out of chunk centre invokes find_space()
+ * rating is not used for this room type
  *
  * Returns success.
  *

@@ -762,7 +762,7 @@ desc: bathe it in the blood of your foes.
 
 name:'Firestar'
 base-object:hafted:Morning Star
-level:20:35
+level:20:25
 weight:150
 alloc:7:20 to 100
 attack:2d6:15:17
@@ -810,7 +810,7 @@ desc: crackle around its massive head.
 
 name:'Taratol'
 base-object:hafted:Mace
-level:20
+level:20:35
 weight:120
 alloc:7:20 to 100
 attack:3d6:12:12
@@ -1870,7 +1870,7 @@ desc: silent, hasted movement.
 
 name:of Fëanor
 base-object:boots:Pair of Leather Boots
-level:40:20
+level:40:30
 weight:20
 alloc:1:40 to 127
 attack:1d1:0:0
@@ -2482,7 +2482,7 @@ desc: nothing else can.
 
 name:'Colluin'
 base-object:cloak:Cloak
-level:5
+level:5:12
 weight:10
 alloc:2:5 to 100
 attack:0d0:0:0
@@ -2495,7 +2495,7 @@ desc: of Elements.
 
 name:'Holcolleth'
 base-object:cloak:Cloak
-level:5
+level:5:13
 weight:10
 alloc:5:5 to 100
 attack:0d0:0:0
@@ -2509,7 +2509,7 @@ desc: the Sindar.
 
 name:of Thingol
 base-object:cloak:Cloak
-level:5
+level:5:62
 weight:10
 alloc:5:5 to 100
 attack:0d0:0:0
@@ -2536,7 +2536,7 @@ desc: and sea.
 
 name:'Colannon'
 base-object:cloak:Cloak
-level:5
+level:5:26
 weight:10
 alloc:5:5 to 100
 attack:0d0:0:0

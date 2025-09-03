@@ -1919,7 +1919,7 @@ void do_cmd_knowledge(struct player *p, char type, int line)
 
 
 /*
- * Hack -- redraw the screen
+ * Redraw the screen
  *
  * This command performs various low level updates, clears all the "extra"
  * windows, does a total redraw of the main window, and requests all of the
@@ -2258,7 +2258,7 @@ void do_cmd_steal(struct player *p, int dir)
         notice = 5 * (adj_mag_stat[who->player->state.stat_ind[STAT_INT]] -
             p->state.skills[SKILL_STEALTH]);
 
-        /* Hack -- rogues get bonuses to chances */
+        /* Rogues get bonuses to chances */
         if (player_has(p, PF_STEALING_IMPROV))
         {
             /* Increase chance by level */
@@ -2266,7 +2266,7 @@ void do_cmd_steal(struct player *p, int dir)
             notice -= 3 * p->lev;
         }
 
-        /* Hack -- always small chance to succeed */
+        /* Always small chance to succeed */
         if (chance < 2) chance = 2;
 
         /* Check for success */
@@ -2526,7 +2526,7 @@ void do_cmd_locate(struct player *p, int dir)
     int screen_hgt, screen_wid;
     int panel_hgt, panel_wid;
 
-    /* Hack -- set locating */
+    /* Set locating */
     p->locating = (dir? true: false);
 
     /* Use dimensions that match those in display-ui.c. */
@@ -2950,7 +2950,7 @@ void do_cmd_check_players(struct player *p, int line)
             q->clazz->name, winner, batty, q->lev, parties[q->party].name);
 
         /* Print extra info if these people are not 'red' aka hostile */
-        /* Hack -- always show extra info to dungeon master */
+        /* Always show extra info to dungeon master */
         if ((attr != 'r') || (p->dm_flags & DM_SEE_PLAYERS))
         {
             /* Newline */
@@ -3215,7 +3215,7 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
     p->k_idx = 0;
     if (rf_has(race->flags, RF_UNAWARE)) p->k_idx = -1;
 
-    /* Hack -- random mimics */
+    /* Random mimics */
     if (race->base == lookup_monster_base("random mimic"))
     {
         /* Random symbol from object set */
@@ -3239,7 +3239,7 @@ void do_cmd_poly(struct player *p, struct monster_race *race, bool check_kills, 
         }
     }
 
-    /* Hack -- object mimics */
+    /* Object mimics */
     else if (race->mimic_kinds)
     {
         struct monster_mimic *mimic_kind;
@@ -3411,7 +3411,7 @@ void do_cmd_check_socials(struct player *p, int line)
 
 void do_cmd_interactive(struct player *p, int type, uint32_t query)
 {
-    /* Hack -- use special term */
+    /* Use special term */
     Send_term_info(p, NTERM_ACTIVATE, NTERM_WIN_SPECIAL);
 
     /* Let the player scroll through this info */
@@ -3427,6 +3427,6 @@ void do_cmd_interactive(struct player *p, int type, uint32_t query)
             break;
     }
 
-    /* Hack -- return to main term */
+    /* Return to main term */
     Send_term_info(p, NTERM_ACTIVATE, NTERM_WIN_OVERHEAD);
 }

@@ -25,6 +25,10 @@ New features in PWMAngband 1.6.2 build 3
 Gameplay changes
 ----------------
 
+Angband 4.2.x:
+
+- Tweak some artifact activation difficulties
+
 PWMAngband:
 
 - Drastically increase the lifespan of controlled monsters
@@ -34,10 +38,21 @@ PWMAngband:
 Coding changes
 --------------
 
+Angband 4.2.x:
+
+- Remove some more 'Hack' comments
+
 PWMAngband:
 
 - Add LAZY_CONNECTIONS cfg option to discard failed client connection attempts
   instead of shutting down the server
+
+Compilation/documentation
+-------------------------
+
+Angband 4.2.x:
+
+- Resolve doxygen warnings
 
 Features in PWMAngband 1.6.2 build 2
 ====================================
