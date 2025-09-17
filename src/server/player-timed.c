@@ -1395,10 +1395,10 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
         v = new_grade->max;
     }
 
-    /* Hack -- call other functions, reveal hidden players if noticed */
+    /* Call other functions, reveal hidden players if noticed */
     if ((idx == TMD_STUN) && (p->dm_flags & DM_INVULNERABLE))
     {
-        /* Hack -- the DM can not be stunned */
+        /* The DM can not be stunned */
         if (p->k_idx) aware_player(p, p);
         return true;
     }
@@ -1507,13 +1507,13 @@ bool player_set_timed(struct player *p, int idx, int v, bool notify)
         }
     }
 
-    /* Hack -- food meter */
+    /* Food meter */
     if (idx == TMD_FOOD) food_meter = p->timed[idx] / 100;
 
     /* Use the value */
     p->timed[idx] = v;
 
-    /* Hack -- food meter */
+    /* Food meter */
     if ((idx == TMD_FOOD) && (food_meter != p->timed[idx] / 100))
     {
         if (!notify) no_disturb = true;
@@ -1653,7 +1653,7 @@ bool player_inc_timed_aux(struct player *p, struct monster *mon, int idx, int v,
         if ((timed_effects[idx].flags & TMD_FLAG_NONSTACKING) && p->timed[idx] > 0)
             return false;
 
-        /* Hack -- permanent effect */
+        /* Permanent effect */
         if (p->timed[idx] == -1) return false;
 
         /* Handle polymorphed players */

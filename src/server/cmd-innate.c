@@ -153,7 +153,7 @@ void do_cmd_breath(struct player *p, int dir)
     rsf_wipe(mon_breath);
     if (p->poly_race)
     {
-        /* Hack -- require correct "breath attack" */
+        /* Require correct "breath attack" */
         rsf_copy(mon_breath, p->poly_race->spell_flags);
         set_breath(mon_breath);
     }
@@ -319,7 +319,7 @@ void do_cmd_mimic(struct player *p, int page, int spell_index, int dir)
 
             if (spell->effect && spell->effect->other_msg)
             {
-                /* Hack -- formatted message */
+                /* Formatted message */
                 switch (spell->effect->flag)
                 {
                     case RSF_HEAL:

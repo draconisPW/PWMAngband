@@ -861,7 +861,7 @@ bool effect_handler_BLAST_OBVIOUS(effect_handler_context_t *context)
  * Stop if we hit a monster, as a bolt
  * Affect monsters (not grids or objects)
  *
- * PWMAngband: setting context->radius is a hack for teleport other
+ * PWMAngband: set context->radius for teleport other
  */
 bool effect_handler_BOLT(effect_handler_context_t *context)
 {
@@ -1831,8 +1831,7 @@ bool effect_handler_LASH(effect_handler_context_t *context)
  * Pass through monsters, as a beam
  * Affect monsters and grids (not objects)
  *
- * PWMAngband: setting context->value.m_bonus is a hack for elementalists to
- * get multiple lines
+ * PWMAngband: set context->value.m_bonus for elementalists to get multiple lines
  */
 bool effect_handler_LINE(effect_handler_context_t *context)
 {

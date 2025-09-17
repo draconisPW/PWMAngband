@@ -1189,7 +1189,7 @@ monster:<player>:0x80:0x80
 ?:[AND [EQU $CLASS Villager] [EQU $RACE Hydra] [EQU $GENDER Female] ]
 RF:<player>:0x80:0x80
 
-# Hack -- not a real class, used for ghost realm spells
+# Not a real class, used for ghost realm spells
 ?:[AND [EQU $CLASS Ghost] [EQU $RACE Human] ]
 monster:<player>:0x94:0x98
 ?:[AND [EQU $CLASS Ghost] [EQU $RACE Half-Elf] ]

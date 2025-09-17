@@ -83,7 +83,7 @@ int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resis
     /* If an actual player exists, get their actual resist */
     if (p && (type < ELEM_MAX))
     {
-        /* Hack -- ice damage checks against cold resistance */
+        /* Ice damage checks against cold resistance */
         int res_type = ((type == PROJ_ICE)? PROJ_COLD: type);
 
         resist = ((res_type < ELEM_MAX)? p->state.el_info[res_type].res_level[0]: 0);
@@ -97,10 +97,10 @@ int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resis
     /* Immune */
     if (resist == 3) return 0;
 
-    /* Hack -- acid damage is halved by armour */
+    /* Acid damage is halved by armour */
     if ((type == PROJ_ACID) && p && minus_ac(p)) dam = (dam + 1) / 2;
 
-    /* Hack -- biofeedback halves "sharp" damage */
+    /* Biofeedback halves "sharp" damage */
     if (p && p->timed[TMD_BIOFEEDBACK])
     {
         switch (type)
@@ -117,10 +117,10 @@ int adjust_dam(struct player *p, int type, int dam, aspect dam_aspect, int resis
         }
     }
 
-    /* Hack -- no damage from certain attacks unless vulnerable */
+    /* No damage from certain attacks unless vulnerable */
     if (p && !is_susceptible(p->poly_race, type)) dam = 0;
 
-    /* Hack -- extra damage from certain attacks if vulnerable */
+    /* Extra damage from certain attacks if vulnerable */
     if (p && is_vulnerable(p->poly_race, type)) dam = dam * 4 / 3;
 
     /* Vulnerable */
@@ -594,7 +594,7 @@ static int project_player_handler_NEXUS(project_player_handler_context_t *contex
                 context->origin->player->grid.x, NULL);
         }
 
-        /* Hack -- get new location */
+        /* Get new location */
         loc_copy(&context->grid, &p->grid);
     }
 
@@ -614,7 +614,7 @@ static int project_player_handler_NEXUS(project_player_handler_context_t *contex
     {
         effect_simple(EF_TELEPORT, who, "200", 0, 0, 0, 0, 0, NULL);
 
-        /* Hack -- get new location */
+        /* Get new location */
         loc_copy(&context->grid, &p->grid);
     }
 
@@ -805,7 +805,7 @@ static int project_player_handler_GRAVITY(project_player_handler_context_t *cont
         source_player(who, get_player_index(get_connection(p->conn)), p);
         effect_simple(EF_TELEPORT, who, "5", 0, 0, 0, 0, 0, NULL);
 
-        /* Hack -- get new location */
+        /* Get new location */
         loc_copy(&context->grid, &p->grid);
     }
 
@@ -861,7 +861,7 @@ static int project_player_handler_FORCE(project_player_handler_context_t *contex
     who->trap = context->origin->trap;
     thrust_away(context->cave, who, &centre, 3 + context->dam / 20);
 
-    /* Hack -- get new location */
+    /* Get new location */
     loc_copy(&context->grid, &p->grid);
 
     return 0;
@@ -935,7 +935,7 @@ static int project_player_handler_AWAY_EVIL(project_player_handler_context_t *co
         source_player(who, get_player_index(get_connection(p->conn)), p);
         effect_simple(EF_TELEPORT, who, dice, 0, 0, 0, 0, 0, NULL);
 
-        /* Hack -- get new location */
+        /* Get new location */
         loc_copy(&context->grid, &p->grid);
     }
     else
@@ -960,7 +960,7 @@ static int project_player_handler_AWAY_SPIRIT(project_player_handler_context_t *
         source_player(who, get_player_index(get_connection(p->conn)), p);
         effect_simple(EF_TELEPORT, who, dice, 0, 0, 0, 0, 0, NULL);
 
-        /* Hack -- get new location */
+        /* Get new location */
         loc_copy(&context->grid, &p->grid);
     }
     else
@@ -981,7 +981,7 @@ static int project_player_handler_AWAY_ALL(project_player_handler_context_t *con
     source_player(who, get_player_index(get_connection(p->conn)), p);
     effect_simple(EF_TELEPORT, who, dice, 0, 0, 0, 0, 0, NULL);
 
-    /* Hack -- get new location */
+    /* Get new location */
     loc_copy(&context->grid, &p->grid);
 
     return 0;
@@ -1305,7 +1305,7 @@ static int project_player_handler_TELE_TO(project_player_handler_context_t *cont
     effect_simple(EF_TELEPORT_TO, who, "0", 0, 0, 0, context->origin->player->grid.y,
         context->origin->player->grid.x, NULL);
 
-    /* Hack -- get new location */
+    /* Get new location */
     loc_copy(&context->grid, &p->grid);
 
     return 0;
@@ -1453,7 +1453,7 @@ static int project_player_handler_AWAY_ANIMAL(project_player_handler_context_t *
         source_player(who, get_player_index(get_connection(p->conn)), p);
         effect_simple(EF_TELEPORT, who, dice, 0, 0, 0, 0, 0, NULL);
 
-        /* Hack -- get new location */
+        /* Get new location */
         loc_copy(&context->grid, &p->grid);
     }
     else
@@ -1577,7 +1577,7 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
 
     my_strcpy(killer, "something strange", sizeof(killer));
 
-    /* Hack -- polymorph or heal self */
+    /* Polymorph or heal self */
     if ((origin->player == p) && ((typ == PROJ_MON_POLY) || (typ == PROJ_MON_HEAL))) {}
 
     /* Hit by a trap */
@@ -1651,7 +1651,7 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
     /* Let player know what is going on */
     if (!seen && projections[typ].blind_desc) msg(p, "You %s!", projections[typ].blind_desc);
 
-    /* Hack -- polymorph self */
+    /* Polymorph self */
     if ((origin->player == p) && (typ == PROJ_MON_POLY))
     {
         /* XXX */
@@ -1713,8 +1713,6 @@ void project_p(struct source *origin, int r, struct chunk *c, struct loc *grid, 
         if ((projections[typ].flags & ATT_SAVE) && magik(p->state.skills[SKILL_SAVE]))
         {
             msg(p, "You resist the effects!");
-
-            /* Hack */
             dead = true;
         }
         else

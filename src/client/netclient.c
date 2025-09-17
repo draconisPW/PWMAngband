@@ -55,12 +55,12 @@ uint8_t section_icky_row;
 bool allow_disturb_icky = true;
 
 
-/* Hack -- player position for the minimap */
+/* Player position for the minimap */
 int cursor_x = 0;
 int cursor_y = 0;
 
 
-/* Hack -- party positions for the minimap */
+/* Party positions for the minimap */
 int party_n = 0;
 int *party_x = NULL;
 int *party_y = NULL;
@@ -447,7 +447,7 @@ static int Receive_struct_info(void)
             uint8_t ridx, r_mhp, flag, lvl;
             int16_t obj_mod_max, skill_max, pf_size, pf_max, of_size, of_max, elem_max;
 
-            /* Hack -- receive limits for client compatibility */
+            /* Receive limits for client compatibility */
             if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%hd%hd%hd", &obj_mod_max, &skill_max,
                 &pf_size, &pf_max, &of_size, &of_max, &elem_max)) <= 0)
             {
@@ -497,7 +497,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 9;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= OBJ_MOD_MAX) continue;
 
                     r->modifiers[j].value.base = base;
@@ -521,7 +521,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 2;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= SKILL_MAX) continue;
 
                     r->r_skills[j] = r_skills;
@@ -552,7 +552,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= PF_SIZE) continue;
 
                     r->pflags[j] = flag;
@@ -572,7 +572,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= PF__MAX) continue;
 
                     r->pflvl[j] = lvl;
@@ -592,7 +592,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= OF_SIZE) continue;
 
                     r->flags[j] = flag;
@@ -612,7 +612,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= OF_MAX) continue;
 
                     r->flvl[j] = lvl;
@@ -636,7 +636,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 9;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= ELEM_MAX) continue;
 
                     r->el_info[j].res_level[0] = res_level;
@@ -667,7 +667,7 @@ static int Receive_struct_info(void)
             char realm[NORMAL_WID];
             int16_t obj_mod_max, skill_max, pf_size, pf_max, of_size, of_max, elem_max;
 
-            /* Hack -- receive limits for client compatibility */
+            /* Receive limits for client compatibility */
             if ((n = Packet_scanf(&rbuf, "%hd%hd%hd%hd%hd%hd%hd", &obj_mod_max, &skill_max,
                 &pf_size, &pf_max, &of_size, &of_max, &elem_max)) <= 0)
             {
@@ -717,7 +717,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 9;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= OBJ_MOD_MAX) continue;
 
                     c->modifiers[j].value.base = base;
@@ -741,7 +741,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 2;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= SKILL_MAX) continue;
 
                     c->c_skills[j] = c_skills;
@@ -772,7 +772,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= PF_SIZE) continue;
 
                     c->pflags[j] = flag;
@@ -792,7 +792,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= PF__MAX) continue;
 
                     c->pflvl[j] = lvl;
@@ -812,7 +812,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= OF_SIZE) continue;
 
                     c->flags[j] = flag;
@@ -832,7 +832,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 1;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= OF_MAX) continue;
 
                     c->flvl[j] = lvl;
@@ -856,7 +856,7 @@ static int Receive_struct_info(void)
                     }
                     bytes_read += 9;
 
-                    /* Hack -- discard extra fields */
+                    /* Discard extra fields */
                     if (j >= ELEM_MAX) continue;
 
                     c->el_info[j].res_level[0] = res_level;
@@ -885,7 +885,7 @@ static int Receive_struct_info(void)
                 c->magic.num_books = num_books;
                 c->magic.books = mem_zalloc(num_books * sizeof(struct class_book));
 
-                /* Hack -- put the tval in the "tval_first" field */
+                /* Put the tval in the "tval_first" field */
                 c->magic.tval_first = tval;
 
                 for (j = 0; j < num_books; j++)
@@ -922,7 +922,7 @@ static int Receive_struct_info(void)
                 }
                 bytes_read += 8;
 
-                /* Hack -- put the weight in the unused "spell_weight" field */
+                /* Put the weight in the unused "spell_weight" field */
                 c->magic.spell_weight = weight;
 
                 c->att_multiply = att_multiply;
@@ -941,7 +941,7 @@ static int Receive_struct_info(void)
                 }
                 bytes_read += 4;
 
-                /* Hack -- put sfail and slevel into dummy placeholders */
+                /* Put sfail and slevel into dummy placeholders */
                 c->magic.sfail = sfail;
                 c->magic.slevel = slevel;
 
@@ -1095,7 +1095,7 @@ static int Receive_struct_info(void)
                 kind->sval = sval;
                 kind->kidx = kidx;
 
-                /* Hack -- put flavor index into unused field "ac" */
+                /* Put flavor index into unused field "ac" */
                 kind->ac = ac;
 
                 kind->difficulty = difficulty;
@@ -1554,7 +1554,7 @@ static int Receive_weight(void)
 
     player->upkeep->total_weight = weight;
 
-    /* Hack -- the capacity is stored in the inven_cnt (unused on client) */
+    /* The capacity is stored in the inven_cnt (unused on client) */
     player->upkeep->inven_cnt = max_weight;
 
     /* Redraw */
@@ -1957,7 +1957,7 @@ static int Receive_item_request(void)
 
                 if (obj) item = obj->oidx;
 
-                /* Hack -- select a single curse for uncursing */
+                /* Select a single curse for uncursing */
                 if (result && (tester_hook == HOOK_UNCURSE)) get_curse(&curse, obj, dice_string);
             }
         }
@@ -1982,7 +1982,7 @@ static int Receive_title(void)
     if ((n = Packet_scanf(&rbuf, "%b%s", &ch, title)) <= 0)
         return n;
 
-    /* Hack -- extract "ghost-ness" */
+    /* Extract "ghost-ness" */
     player->ghost = streq(title, "Ghost");
 
     /* Redraw */
@@ -2046,7 +2046,7 @@ static int Receive_depth(void)
     player->wpos.depth = depth;
     player->max_depth = maxdepth;
 
-    /* Hack -- put day/night toggle in the unused "no_disturb_icky" field */
+    /* Put day/night toggle in the unused "no_disturb_icky" field */
     player->no_disturb_icky = (daytime? true: false);
 
     player->upkeep->redraw |= (PR_DEPTH);
@@ -2366,7 +2366,7 @@ static int Receive_line_info(void)
 
             draw = !player->screen_save_depth;
 
-            /* Hack -- shopping */
+            /* Shopping */
             if (store_ctx) draw = false;
 
             /* Hang on! Icky section! */
@@ -2529,7 +2529,7 @@ static int Receive_char(void)
         return n;
     bytes_read = 6;
 
-    /* Hack -- use ANOTHER terminal */
+    /* Use ANOTHER terminal */
     if ((n = player->remote_term) != NTERM_WIN_OVERHEAD)
     {
         /* Only update the minimap window */
@@ -2564,7 +2564,7 @@ static int Receive_char(void)
         player->trn_info[y][x].c = tcp;
     }
 
-    /* Hack -- manipulate offset */
+    /* Manipulate offset */
     x_off = x + COL_MAP;
 
     if (player->screen_save_depth || section_icky_row || store_ctx) draw = false;
@@ -2617,7 +2617,7 @@ static int Receive_spell_info(void)
         return n;
     }
 
-    /* Hack -- wipe the arrays if blank */
+    /* Wipe the arrays if blank */
     if (!strlen(buf))
         memset(book_info, 0, MAX_PAGES * sizeof(struct book_info));
 
@@ -2747,7 +2747,7 @@ static int Receive_floor(void)
         obj->oidx = oidx;
         obj->ignore_protect = ignore_protect;
 
-        /* Hack -- extra information used by the client */
+        /* Extra information used by the client */
         obj->info_xtra.attr = attr;
         obj->info_xtra.act = act;
         obj->info_xtra.aim = aim;
@@ -2765,14 +2765,14 @@ static int Receive_floor(void)
         obj->info_xtra.bidx = bidx;
         obj->info_xtra.throwable = throwable;
 
-        /* Hack -- the name is stored separately */
+        /* The name is stored separately */
         my_strcpy(obj->info_xtra.name, name, sizeof(obj->info_xtra.name));
         my_strcpy(obj->info_xtra.name_terse, name_terse, sizeof(obj->info_xtra.name_terse));
         my_strcpy(obj->info_xtra.name_base, name_base, sizeof(obj->info_xtra.name_base));
         my_strcpy(obj->info_xtra.name_curse, name_curse, sizeof(obj->info_xtra.name_curse));
         my_strcpy(obj->info_xtra.name_power, name_power, sizeof(obj->info_xtra.name_power));
 
-        /* Hack -- number of floor items */
+        /* Number of floor items */
         floor_num++;
     }
 
@@ -2829,7 +2829,7 @@ static int Receive_store(void)
     current_store.stock[pos].number = num;
     current_store.stock[pos].askprice = price;
 
-    /* Hack -- extra information used by the client */
+    /* Extra information used by the client */
     current_store.stock[pos].info_xtra.attr = attr;
     current_store.stock[pos].info_xtra.max = max;
     current_store.stock[pos].info_xtra.owned = owned;
@@ -3010,7 +3010,7 @@ static int Receive_pause(void)
     /* Flush messages */
     c_msg_print(NULL);
 
-    /* Hack -- allow 'locate' as a valid command to quickly locate monsters/players around */
+    /* Allow 'locate' as a valid command to quickly locate monsters/players around */
     if (ke.type == EVT_KBRD && ke.key.code == ((mode == KEYMAP_MODE_ORIG)? 'L': 'W'))
         do_cmd_locate();
 
@@ -3324,7 +3324,7 @@ static int Receive_term_info(void)
         }
         case NTERM_POP:
         {
-            /* Popup Hack */
+            /* Popup */
             screen_save();
             last = last_remote_line[player->remote_term];
             for (n = 0; n <= (full_icky_screen? NORMAL_HGT - 1: last + 5); n++)
@@ -3457,7 +3457,7 @@ static int Receive_quit(void)
         errno = 0;
         plog_fmt("Quitting: %s", reason);
 
-        /* Hack -- restart game without quitting */
+        /* Restart game without quitting */
         if (!strstr(reason, "Server shutdown"))
         {
             strnfmt(buf, NORMAL_WID - 2, "%.70s[y/n] ", "Start a new game? ");
@@ -3645,7 +3645,7 @@ static int Receive_char_info_conn(void)
     /* Copy his name */
     my_strcpy(player->name, nick, sizeof(player->name));
 
-    /* Hack -- assume ready */
+    /* Assume ready */
     if (Setup.frames_per_second && mode)
         client_ready(newchar);
 
@@ -3807,7 +3807,7 @@ static int Receive_message(void)
     /* Perform a sanity check on our string */
     for (c = 0; c < strlen(buf); c++)
     {
-        /* Hack -- ' ' is probably the lowest character we will be trying to display */
+        /* ' ' is probably the lowest character we will be trying to display */
         if (buf[c] < ' ')
         {
             /* Two extended chars in a row: probably a bad string */
@@ -3820,7 +3820,7 @@ static int Receive_message(void)
             extended_char = false;
     }
 
-    /* Hack -- repeated message */
+    /* Repeated message */
     if ((buf[0] == ' ') && (buf[1] == '\0'))
         my_strcpy(buf, message_last(), sizeof(buf));
 
@@ -3841,7 +3841,7 @@ static int Receive_message(void)
     /* Always display chat messages */
     player->upkeep->redraw |= PR_MESSAGE_CHAT;
 
-    /* Hack -- highlight chat tabs messages */
+    /* Highlight chat tabs messages */
     if (type >= MSG_CHAT)
     {
         for (n = 0; n < MAX_CHANNELS; n++)
@@ -4048,7 +4048,7 @@ static int Receive_special_line(void)
     /* Remote term */
     r = player->remote_term;
 
-    /* Hack -- COLOUR_DARK means that we indent the line, print a symbol and then a string */
+    /* COLOUR_DARK means that we indent the line, print a symbol and then a string */
     if (attr == COLOUR_DARK)
     {
         uint8_t a = (uint8_t)buf[0];
@@ -4071,7 +4071,7 @@ static int Receive_special_line(void)
         cavestr(remote_info[r][line] + 7, buf + 3, color_char_to_attr(buf[2]), NORMAL_WID);
     }
 
-    /* Hack -- COLOUR_SPECIAL means that we extract attr/char directly */
+    /* COLOUR_SPECIAL means that we extract attr/char directly */
     else if (attr == COLOUR_SPECIAL)
     {
         /* Erase */
@@ -4091,7 +4091,7 @@ static int Receive_special_line(void)
         }
     }
 
-    /* Hack -- COLOUR_SYMBOL means that we have a symbol as first character */
+    /* COLOUR_SYMBOL means that we have a symbol as first character */
     else if (attr == COLOUR_SYMBOL)
     {
         /* Add symbol */
@@ -4116,7 +4116,7 @@ static int Receive_special_line(void)
 
     if (!player->screen_save_depth) return 1;
 
-    /* Hack -- decide to go popup/fullon mode */
+    /* Decide to go popup/fullon mode */
     if (line == 0)
     {
         /* Copy header to local buffer */
@@ -4593,7 +4593,7 @@ int Send_verify(int type)
         default: return 0;
     }
 
-    /* Hack -- if size is too big, split in chunks */
+    /* If size is too big, split in chunks */
     while (offset < size)
     {
         top = MIN(offset + 1024, size);
@@ -4647,7 +4647,7 @@ int Send_verify(int type)
                 return n;
         }
 
-        /* Hack -- flush the network output buffer */
+        /* Flush the network output buffer */
         Net_flush();
 
         offset += 1024;
@@ -4758,7 +4758,7 @@ int Send_aim(struct command *cmd)
     struct object *obj;
     uint8_t starting = 1;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -4934,7 +4934,7 @@ int Send_quaff(struct command *cmd)
     int dir;
     struct object *obj;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -4947,7 +4947,7 @@ int Send_quaff(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    /* Hack -- in case we add an aimed effect to potions */
+    /* In case we add an aimed effect to potions */
     dir = need_dir(obj);
 
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
@@ -4966,7 +4966,7 @@ int Send_read(struct command *cmd)
     int dir;
     struct object *obj;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -4979,7 +4979,7 @@ int Send_read(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    /* Hack -- in case we add an aimed effect to scrolls */
+    /* In case we add an aimed effect to scrolls */
     dir = need_dir(obj);
 
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
@@ -5021,7 +5021,7 @@ int Send_use(struct command *cmd)
     struct object *obj;
     uint8_t starting = 1;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -5034,7 +5034,7 @@ int Send_use(struct command *cmd)
     allow_disturb_icky = true;
     if (n != CMD_OK) return 0;
 
-    /* Hack -- in case we add an aimed effect to staves */
+    /* In case we add an aimed effect to staves */
     dir = need_dir(obj);
 
     if (cmd_get_target(cmd, "direction", &dir) != CMD_OK)
@@ -5155,7 +5155,7 @@ int Send_wield(struct command *cmd)
     int slot;
     struct object *obj;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -5209,7 +5209,7 @@ int Send_zap(struct command *cmd)
     struct object *obj;
     uint8_t starting = 1;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -5308,7 +5308,7 @@ int Send_activate(struct command *cmd)
     struct object *obj;
     uint8_t starting = 1;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -5356,7 +5356,7 @@ int Send_eat(struct command *cmd)
     int n;
     struct object *obj;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -5539,7 +5539,7 @@ int Send_redraw(void)
     if ((n = Packet_printf(&wbuf, "%b", (unsigned)PKT_REDRAW)) <= 0)
         return n;
 
-    /* Hack -- clear the screen */
+    /* Clear the screen */
     Term_clear();
 
     return 1;
@@ -6270,7 +6270,7 @@ int cmd_cast(struct command *cmd)
     int dir = 0;
     int spell;
 
-    /* Hack -- don't get out of icky screen if disturbed */
+    /* Don't get out of icky screen if disturbed */
     allow_disturb_icky = false;
 
     /* Get arguments */
@@ -6292,7 +6292,7 @@ int cmd_cast(struct command *cmd)
     /* Track the object kind */
     Send_track_object(book->oidx);
 
-    /* Hack -- spellcasting mode (spell already selected) */
+    /* Spellcasting mode (spell already selected) */
     if (spellcasting_spell > -1)
     {
         spell_flags flag = book_info[book->info_xtra.bidx].spell_info[spellcasting_spell].flag;
@@ -6354,7 +6354,7 @@ int cmd_project(struct command *cmd)
     /* Track the object kind */
     Send_track_object(book->oidx);
 
-    /* Hack -- spellcasting mode (spell already selected) */
+    /* Spellcasting mode (spell already selected) */
     if (spellcasting_spell > -1)
     {
         spell_flags flag = book_info[book->info_xtra.bidx].spell_info[spellcasting_spell].flag;

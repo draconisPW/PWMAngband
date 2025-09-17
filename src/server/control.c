@@ -94,7 +94,7 @@ static int accept_console(int read_fd, int arg)
     /*
      * Make a TCP connection
      *
-     * Hack -- check if this data has arrived on the contact socket or not.
+     * Check if this data has arrived on the contact socket or not.
      * If it has, then we have not created a connection with the client yet,
      * and so we must do so.
      */
@@ -130,7 +130,7 @@ static int accept_console(int read_fd, int arg)
     }
     if (bytes < 0)
     {
-        /* Hack -- ignore these errors */
+        /* Ignore these errors */
         if ((errno == EAGAIN) || (errno == EINTR))
         {
             GetSocketError(newsock);
@@ -187,7 +187,7 @@ static void console_read(int read_fd, int ind)
     {
         Packet_scanf(console_buf_r, "%N", passwd);
 
-        /* Hack -- comply with telnet */
+        /* Comply with telnet */
         buflen = strlen(passwd);
         if (buflen && passwd[buflen-1] == '\r') passwd[buflen-1] = '\0';
 
@@ -212,7 +212,7 @@ static void console_read(int read_fd, int ind)
     Packet_scanf(console_buf_r, "%N", buf);
     buflen = strlen(buf);
 
-    /* Hack -- comply with telnet */
+    /* Comply with telnet */
     if (buflen && buf[buflen - 1] == '\r') buf[buflen - 1] = '\0';
 
     /* Split up command and params */
@@ -297,7 +297,7 @@ static void console_who(int ind, char *dummy)
     char brave[30];
     sockbuf_t *console_buf_w = (sockbuf_t*)console_buffer(ind, CONSOLE_WRITE);
 
-    /* Hack -- count players */
+    /* Count players */
     for (k = 1; k <= NumPlayers; k++)
     {
         struct player *p = player_get(k);

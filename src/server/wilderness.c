@@ -57,7 +57,7 @@ uint16_t radius_wild;
 
 
 /*
- * Hack -- consistent wilderness layout
+ * Consistent wilderness layout
  */
 uint32_t seed_wild;
 
@@ -1676,7 +1676,7 @@ void wild_cat_depth(struct worldpos *wpos, char *buf, int len)
 
 bool wild_is_explored(struct player *p, struct worldpos *wpos)
 {
-    /* Hack -- DM has knowledge of the full world */
+    /* DM has knowledge of the full world */
     if (p->dm_flags & DM_SEE_LEVEL) return true;
 
     return (p->wild_map[radius_wild - wpos->grid.y][radius_wild + wpos->grid.x]? true: false);
@@ -1875,7 +1875,7 @@ void wild_add_monster(struct player *p, struct chunk *c)
 
         loc_init(&grid, randint0(c->width), randint0(c->height));
 
-        /* Hack -- don't place monster in an arena */
+        /* Don't place monster in an arena */
         if (pick_arena(&c->wpos, &grid) != -1) continue;
 
         if (rf_has(race->flags, RF_AQUATIC))
@@ -1945,7 +1945,7 @@ static void wild_grow_crop(struct chunk *c, struct loc *grid)
 
         case WILD_CROP_MUSHROOM:
         {
-            /* Hack -- mushrooms are rare */
+            /* Mushrooms are rare */
             static struct mushroom_crop
             {
                 int tval;
@@ -2090,7 +2090,7 @@ struct wild_type *get_neighbor(struct wild_type *origin, char dir)
             break;
     }
 
-    /* Hack -- skip the towns */
+    /* Skip the towns */
     if (neighbor && in_town(&neighbor->wpos)) return NULL;
 
     return neighbor;
@@ -2207,7 +2207,7 @@ static void wild_gen_bleedmap_aux(int *bleedmap, int span, char dir, int width, 
 
 /*
  * Using a simple fractal algorithm, generates the bleedmap used by the function below.
- * Hack -- for this algorithm to work nicely, an initial span of a power of 2 is required.
+ * For this algorithm to work nicely, an initial span of a power of 2 is required.
  */
 static void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end, int width, int height)
 {
@@ -2227,7 +2227,7 @@ static void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end, int w
     }
 
     /*
-     * Hack -- if the start and end are zeroed, add something in the middle
+     * If the start and end are zeroed, add something in the middle
      * to make exciting stuff happen.
      */
     if (!start && !end)
@@ -2246,7 +2246,7 @@ static void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end, int w
     /* Generate the bleedmap */
     wild_gen_bleedmap_aux(bleedmap, 128, dir, width, height);
 
-    /* Hack -- no bleedmags less than 8 except near the edges */
+    /* No bleedmags less than 8 except near the edges */
     bound = (dir % 2)? height - 1: width - 1;
 
     /* Beginning to middle */
@@ -2281,9 +2281,8 @@ static void wild_gen_bleedmap(int *bleedmap, char dir, int start, int end, int w
  * up until the bleedmap[point] edge of the bleed, the terrain is set to
  * that of bleed_from.
  *
- * We should hack this to add interesting features near the bleed edge.
- * Such as ponds near shoreline to make it more interesting and
- * groves of trees near the edges of forest.
+ * We should add interesting features near the bleed edge, such as ponds near shoreline to make it
+ * more interesting and groves of trees near the edges of forest.
  */
 static void wild_bleed_level(struct chunk *c, struct wild_type *bleed_from, struct wild_type *w_ptr,
     char dir, int start, int end)
@@ -2292,7 +2291,7 @@ static void wild_bleed_level(struct chunk *c, struct wild_type *bleed_from, stru
     int bleedmap[257], *bleed_begin, *bleed_end;
     struct loc grid;
 
-    /* Hack -- bleed hills for mountain type */
+    /* Bleed hills for mountain type */
     int type = ((bleed_from->type == WILD_MOUNTAIN)? WILD_HILL: bleed_from->type);
 
     /* Sanity check */
@@ -2386,7 +2385,7 @@ static void bleed_with_neighbors(struct chunk *c)
     uint32_t old_seed = Rand_value;
     bool rand_old = Rand_quick;
 
-    /* Hack -- use the "simple" RNG */
+    /* Use the "simple" RNG */
     Rand_quick = true;
 
     /* Get our neighbors */
@@ -2501,7 +2500,7 @@ static void bleed_with_neighbors(struct chunk *c)
         }
     }
 
-    /* Hack -- restore the random number generator */
+    /* Restore the random number generator */
     Rand_value = old_seed;
     Rand_quick = rand_old;
 }
@@ -2702,7 +2701,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
     gridmin.x = -1;
     if (magik(50)) wild_add_garden(c, plot, grid1, grid2, &gridmin, &gridmax);
 
-    /* Hack -- if we have created this level before, do not add anything more to it. */
+    /* If we have created this level before, do not add anything more to it. */
     if (w_ptr->generated != WILD_NONE) return;
 
     /* Mark level as furnished (objects + inhabitants) */
@@ -2816,7 +2815,7 @@ static void wild_furnish_dwelling(struct player *p, struct chunk *c, bool **plot
 
                 if (!square_in_bounds_fully(c, &grid)) continue;
 
-                /* Hack -- don't place monster in an arena */
+                /* Don't place monster in an arena */
                 if (pick_arena(&c->wpos, &grid) != -1) continue;
 
                 if ((grid.x < grid1->x - 1) || (grid.x > grid2->x + 1) || (grid.y < grid1->y - 1) ||
@@ -2915,7 +2914,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
     bool rand_old = Rand_quick;
     struct loc house1, house2, door, house_len, drawbridge[3], p_1, p_2, plot_len;
 
-    /* Hack -- use the "simple" RNG */
+    /* Use the "simple" RNG */
     Rand_quick = true;
 
     /* Find the dimensions of the house */
@@ -2961,7 +2960,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
     else
         loc_init(&plot_len, house_len.x + (area / 8) * 2, house_len.y + (area / 14) * 2);
 
-    /* Hack -- sometimes large buildings get moats */
+    /* Sometimes large buildings get moats */
     if ((area >= 70) && one_in_(16)) has_moat = true;
     if ((area >= 80) && one_in_(6)) has_moat = true;
     if ((area >= 100) && one_in_(2)) has_moat = true;
@@ -2969,7 +2968,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
     if (has_moat) plot_len.x += 8;
     if (has_moat) plot_len.y += 8;
 
-    /* Hack -- one chance at an arena in desert */
+    /* One chance at an arena in desert */
     if (w_ptr->type == WILD_DESERT)
     {
         /* Ensure standard dimensions */
@@ -3005,7 +3004,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
     /* Add extra houses near the towns */
     if (town_area(&p->wpos)) type = WILD_TOWN_HOME;
 
-    /* Hack -- one chance at an arena in desert */
+    /* One chance at an arena in desert */
     if (w_ptr->type == WILD_DESERT) type = WILD_ARENA;
 
     /* Select the door location... */
@@ -3107,7 +3106,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
         {
             price = house_price(area, false);
 
-            /* Hack -- only add a house if it is not already in memory */
+            /* Only add a house if it is not already in memory */
             i = pick_house(&p->wpos, &door);
             if (i == -1)
             {
@@ -3144,7 +3143,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
 
         case WILD_ARENA:
         {
-            /* Hack -- only add arena if it is not already in memory */
+            /* Only add arena if it is not already in memory */
             i = pick_arena(&c->wpos, &door);
             if (i == -1)
             {
@@ -3158,7 +3157,7 @@ static void wild_add_dwelling(struct player *p, struct chunk *c, bool **plot, st
         }
     }
 
-    /* Hack -- use the "complex" RNG */
+    /* Use the "complex" RNG */
     Rand_quick = rand_old;
 }
 
@@ -3177,7 +3176,7 @@ static void wild_add_hotspot(struct player *p, struct chunk *c, bool **plot)
     struct loc begin, end, gridcen;
     struct loc_iterator iter;
 
-    /* Hack -- minimum hotspot radius of 3 */
+    /* Minimum hotspot radius of 3 */
     while (magnitude < 3)
     {
         /* Determine the rough "coordinates" of the feature */
@@ -3199,7 +3198,7 @@ static void wild_add_hotspot(struct player *p, struct chunk *c, bool **plot)
         magnitude = randint0(randint0(randint0(max_mag)));
     }
 
-    /* Hack -- take the square to avoid square roots */
+    /* Take the square to avoid square roots */
     magsqr = magnitude * magnitude;
 
     /* The "roughness" of the hotspot */
@@ -3333,7 +3332,7 @@ static void wild_add_hotspot(struct player *p, struct chunk *c, bool **plot)
     do
     {
         /* a^2 + b^2 = c^2... the rand makes the edge less defined */
-        /* Hack -- multiply the y's by 4 to "squash" the shape */
+        /* Multiply the y's by 4 to "squash" the shape */
         if (((iter.cur.x - gridcen.x) * (iter.cur.x - gridcen.x) +
             (iter.cur.y - gridcen.y) * (iter.cur.y - gridcen.y) * 4) <
             (magsqr + randint0(chopiness)))
@@ -3362,7 +3361,7 @@ static void wilderness_gen_basic(struct chunk *c)
     {
         int type = w_ptr->type;
 
-        /* Hack -- surround mountain type with hills to keep a passable border */
+        /* Surround mountain type with hills to keep a passable border */
         if ((iter.cur.y == 1) || (iter.cur.y == c->height - 2) ||
             (iter.cur.x == 1) || (iter.cur.x == c->width - 2))
         {
@@ -3395,22 +3394,22 @@ static void wilderness_gen_layout(struct player *p, struct chunk *c)
     for (y = 0; y < c->height; y++)
         plot[y] = mem_zalloc(c->width * sizeof(bool));
 
-    /* Hack -- use the "simple" RNG */
+    /* Use the "simple" RNG */
     Rand_quick = true;
 
-    /* Hack -- induce consistant wilderness */
+    /* Induce consistant wilderness */
     Rand_value = seed_wild + world_index(&c->wpos) * 600;
 
     /* Create boundary */
     draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM_CLEAR, SQUARE_NONE, true);
 
-    /* Hack -- start with basic floors */
+    /* Start with basic floors */
     wilderness_gen_basic(c);
 
     /* To make the borders between wilderness levels more seamless, "bleed" the levels together */
     bleed_with_neighbors(c);
 
-    /* Hack -- reseed, just to make sure everything stays consistent. */
+    /* Reseed, just to make sure everything stays consistent. */
     Rand_value = seed_wild + world_index(&c->wpos) * 287 + 490836;
 
     /* To make the level more interesting, add some "hotspots" */
@@ -3428,7 +3427,7 @@ static void wilderness_gen_layout(struct player *p, struct chunk *c)
         {
             dwelling = 250;
 
-            /* Hack -- if close to the towns, make dwellings more likely */
+            /* If close to the towns, make dwellings more likely */
             if (w_ptr->distance == 1)
             {
                 dwelling *= 80;
@@ -3455,7 +3454,7 @@ static void wilderness_gen_layout(struct player *p, struct chunk *c)
             break;
         }
 
-        /* Hack -- one chance at an arena in desert */
+        /* One chance at an arena in desert */
         case WILD_DESERT:
         {
             if (num_arenas < MAX_ARENAS) dwelling = 50;
@@ -3465,7 +3464,7 @@ static void wilderness_gen_layout(struct player *p, struct chunk *c)
     }
 
     /*
-     * Hack -- 50% of the time in immediate suburbs there will be a "park" which will make
+     * 50% of the time in immediate suburbs there will be a "park" which will make
      * the rest of the level more densely packed together
      */
     if (add_park && one_in_(2))
@@ -3485,7 +3484,7 @@ static void wilderness_gen_layout(struct player *p, struct chunk *c)
 
         loc_init(&grid, -1, -1);
 
-        /* Hack -- the number of dwellings is proportional to their chance of existing */
+        /* The number of dwellings is proportional to their chance of existing */
         if (CHANCE(dwelling, 1000)) wild_add_dwelling(p, c, plot, &grid);
         dwelling -= 50;
     }
@@ -3493,7 +3492,7 @@ static void wilderness_gen_layout(struct player *p, struct chunk *c)
     /* For dungeon base levels, add down stairs */
     if (get_dungeon(&w_ptr->wpos) != NULL) add_down_stairs(c);
 
-    /* Hack -- use the "complex" RNG */
+    /* Use the "complex" RNG */
     Rand_value = tmp_seed;
     Rand_quick = rand_old;
 
@@ -3674,10 +3673,10 @@ static void wild_town_gen_layout(struct chunk *c)
     helper = parser_priv(p);
     parser_destroy(p);
 
-    /* Hack -- use the "simple" RNG */
+    /* Use the "simple" RNG */
     Rand_quick = true;
 
-    /* Hack -- induce consistant town */
+    /* Induce consistant town */
     Rand_value = seed_wild + world_index(&c->wpos) * 600;
 
     /* Initialize */
@@ -3698,7 +3697,7 @@ static void wild_town_gen_layout(struct chunk *c)
                 }
             }
 
-            /* Hack -- special feat */
+            /* Special feat */
             if (feat == 0)
             {
                 feat = helper->special_feat[0];
@@ -3709,17 +3708,17 @@ static void wild_town_gen_layout(struct chunk *c)
                 }
             }
 
-            /* Hack -- stairs */
+            /* Stairs */
             if (tf_has(f_info[feat].flags, TF_DOWNSTAIR))
             {
                 /* Place a staircase */
                 square_set_downstairs(c, &grid, feat);
 
-                /* Hack -- the players start on the stairs while recalling */
+                /* The players start on the stairs while recalling */
                 square_set_join_rand(c, &grid);
             }
 
-            /* Hack -- safe floor */
+            /* Safe floor */
             else if (feat == FEAT_FLOOR_SAFE)
             {
                 /* Create the tavern, make it PvP-safe */
@@ -3730,7 +3729,7 @@ static void wild_town_gen_layout(struct chunk *c)
                 sqinfo_on(square(c, &grid)->info, SQUARE_NOTRASH);
                 sqinfo_on(square(c, &grid)->info, SQUARE_ROOM);
 
-                /* Hack -- have everyone start in the tavern */
+                /* Have everyone start in the tavern */
                 if (*sym == 'x') square_set_join_down(c, &grid);
             }
 
@@ -3750,7 +3749,7 @@ static void wild_town_gen_layout(struct chunk *c)
     /* Create boundary */
     draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM_CLEAR, SQUARE_NONE, true);
 
-    /* Hack -- use the "complex" RNG */
+    /* Use the "complex" RNG */
     Rand_value = tmp_seed;
     Rand_quick = rand_old;
 }
@@ -3764,7 +3763,7 @@ static void wild_town_gen_layout(struct chunk *c)
  *
  * Returns a pointer to the generated chunk.
  *
- * Hack -- this function also generates all other towns except starting and base towns,
+ * This function also generates all other towns except starting and base towns,
  * which use their own cave profiles.
  */
 struct chunk *wilderness_gen(struct player *p, struct worldpos *wpos, int min_height, int min_width,
@@ -3833,22 +3832,22 @@ void wilderness_gen_basic_layout(struct chunk *c)
     uint32_t tmp_seed = Rand_value;
     bool rand_old = Rand_quick;
 
-    /* Hack -- use the "simple" RNG */
+    /* Use the "simple" RNG */
     Rand_quick = true;
 
-    /* Hack -- induce consistant wilderness */
+    /* Induce consistant wilderness */
     Rand_value = seed_wild + world_index(&c->wpos) * 600;
 
     /* Create boundary */
     draw_rectangle(c, 0, 0, c->height - 1, c->width - 1, FEAT_PERM_CLEAR, SQUARE_NONE, true);
 
-    /* Hack -- start with basic floors */
+    /* Start with basic floors */
     wilderness_gen_basic(c);
 
     /* To make the borders between wilderness levels more seamless, "bleed" the levels together */
     bleed_with_neighbors(c);
 
-    /* Hack -- use the "complex" RNG */
+    /* Use the "complex" RNG */
     Rand_value = tmp_seed;
     Rand_quick = rand_old;
 }
