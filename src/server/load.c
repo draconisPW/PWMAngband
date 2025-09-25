@@ -1072,6 +1072,7 @@ static int rd_stores_aux(rd_item_t rd_item_version)
 {
     int i;
     uint16_t tmp16u;
+    bool temp = false;
 
     /* Read the stores */
     rd_u16b(&tmp16u);
@@ -1090,11 +1091,21 @@ static int rd_stores_aux(rd_item_t rd_item_version)
     }
 
     /* Read the store orders */
+    /* XXX we temporarily check STORE_ORDERS+1 to tell if we should load order_turn */
     rd_u16b(&tmp16u);
+    if (tmp16u == STORE_ORDERS+1)
+    {
+        tmp16u = STORE_ORDERS;
+        temp = true;
+    }
     for (i = 0; i < tmp16u; i++)
     {
         rd_string(store_orders[i].order, NORMAL_WID);
         rd_hturn(&store_orders[i].turn);
+        if (temp)
+            rd_hturn(&store_orders[i].order_turn);
+        else
+            ht_copy(&store_orders[i].order_turn, &turn);
     }
 
     /* Success */
