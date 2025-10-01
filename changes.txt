@@ -37,12 +37,22 @@ PWMAngband:
 - Add a 7-day timer on XBM orders and reduce the timer on completed orders to
   1 day
 
+Bugs fixed
+----------
+
+Angband 4.2.x:
+
+- Correct transfer of charges/timeouts for a partial merger of stacks
+
 Coding changes
 --------------
 
 Angband 4.2.x:
 
 - Remove rest of 'Hack' comments
+- Adjust some code flagged by gcc's static analysis option
+- Prevent NULL returns from queue functions
+- Correct some typos in comments
 
 PWMAngband:
 
