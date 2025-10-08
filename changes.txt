@@ -29,6 +29,10 @@ Angband 4.2.x:
 
 - Remove limit on number of options shown per category
 
+PWMAngband:
+
+- Produce proper colored messages with $ and ^ tags
+
 Gameplay changes
 ----------------
 
