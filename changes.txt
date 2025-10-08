@@ -22,6 +22,13 @@ changes and fixes are specific to PWMAngband.
 New features in PWMAngband 1.6.2 build 3
 ========================================
 
+User interface
+--------------
+
+Angband 4.2.x:
+
+- Remove limit on number of options shown per category
+
 Gameplay changes
 ----------------
 
