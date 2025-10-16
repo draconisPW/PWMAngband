@@ -898,8 +898,9 @@ int alloc_stairs(struct chunk *c, int feat, int num, int minsep)
                 /* Allow another pass if we have minsep set */
                 if (minsep > 0) return count;
 
+                plog("Failed to place stairs; please report. Restarting generation.");
                 dump_level_simple(NULL, "Stair Placement Failure", c);
-                quit("Failed to place stairs!");
+                return -1;
             }
             walls--;
             cave_find_reset(state);

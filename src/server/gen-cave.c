@@ -1263,7 +1263,7 @@ static int percent_size(struct worldpos *wpos)
 }
 
 
-static void add_stairs(struct chunk *c, int feat)
+static bool add_stairs(struct chunk *c, int feat)
 {
     random_value *dir;
     int num;
@@ -1293,12 +1293,17 @@ static void add_stairs(struct chunk *c, int feat)
     {
         int count = alloc_stairs(c, feat, num, minsep);
 
+        /* Critical failure */
+        if (count == -1) return false;
+
         if (count == num) break;
         num -= count;
 
         /* Reduce minsep if all stairs cannot be placed due to high density */
         minsep /= 2;
     }
+
+    return true;
 }
 
 
@@ -1755,8 +1760,20 @@ struct chunk *classic_gen(struct player *p, struct worldpos *wpos, int min_heigh
     }
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);
@@ -2208,8 +2225,20 @@ struct chunk *labyrinth_gen(struct player *p, struct worldpos *wpos, int min_hei
     }
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* General amount of rubble, traps and monsters */
     k = MAX(MIN(wpos->depth / 3, 10), 2);
@@ -2846,8 +2875,18 @@ struct chunk *cavern_gen(struct player *p, struct worldpos *wpos, int min_height
     draw_rectangle(c, 0, 0, h - 1, w - 1, FEAT_PERM, SQUARE_NONE, true);
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* General amount of rubble, traps and monsters */
     k = MAX(MIN(wpos->depth / 3, 10), 2);
@@ -3956,8 +3995,20 @@ struct chunk *modified_gen(struct player *p, struct worldpos *wpos, int min_heig
     }
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);
@@ -4216,8 +4267,20 @@ struct chunk *moria_gen(struct player *p, struct worldpos *wpos, int min_height,
     }
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);
@@ -4599,8 +4662,20 @@ struct chunk *hard_centre_gen(struct player *p, struct worldpos *wpos, int min_h
         centre_cavern_wid * (upper_cavern_hgt + lower_cavern_hgt);
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* General amount of rubble, traps and monsters */
     k = MAX(MIN(wpos->depth / 3, 10), 2);
@@ -4758,8 +4833,20 @@ struct chunk *lair_gen(struct player *p, struct worldpos *wpos, int min_height, 
     ensure_connectedness(c, true);
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
     if (!cfg_limit_stairs)
     {
         generate_mark(c, 0, x_size / 2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
@@ -5021,7 +5108,16 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
 
     /* Place down stairs in the right cavern */
     generate_mark(c, 0, line1, c->height - 1, line2 - 1, SQUARE_NO_STAIRS);
-    add_stairs(c, FEAT_MORE);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        cave_free(left);
+        cave_free(gauntlet);
+        cave_free(right);
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* Pick some of monsters for the right cavern */
     i = z_info->level_monster_min + randint1(4) + k;
@@ -5036,7 +5132,16 @@ struct chunk *gauntlet_gen(struct player *p, struct worldpos *wpos, int min_heig
 
     /* Place up stairs in the left cavern */
     generate_mark(c, 0, line2, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        cave_free(left);
+        cave_free(gauntlet);
+        cave_free(right);
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
     generate_unmark(c, 0, 0, c->height - 1, c->width - 1, SQUARE_NO_STAIRS);
 
     /* Pick some monsters for the left cavern */
@@ -5728,8 +5833,20 @@ struct chunk *arena_gen(struct player *p, struct worldpos *wpos, int min_height,
     ensure_connectedness(c, true);
 
     /* Place stairs near some walls */
-    add_stairs(c, FEAT_MORE);
-    add_stairs(c, FEAT_LESS);
+    if (!add_stairs(c, FEAT_MORE))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
+    if (!add_stairs(c, FEAT_LESS))
+    {
+        uncreate_artifacts(c);
+        cave_free(c);
+        *p_error = "could not place stairs";
+        return NULL;
+    }
 
     /* Remove holes in corridors that were not used for stair placement */
     remove_unused_holes(c);

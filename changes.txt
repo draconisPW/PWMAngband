@@ -69,6 +69,7 @@ PWMAngband:
 
 - Add LAZY_CONNECTIONS cfg option to discard failed client connection attempts
   instead of shutting down the server
+- Adapt alloc_stairs() to restart level generation to match find_start()
 
 Compilation/documentation
 -------------------------
