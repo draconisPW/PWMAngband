@@ -77,5 +77,6 @@ extern bool option_normal(int opt);
 extern bool option_server(int opt);
 extern void option_init(void);
 extern void option_free(void);
+extern int option_number(const char *name);
 
 #endif /* INCLUDED_OPTIONS_H */

@@ -1749,6 +1749,50 @@ int Send_socials_struct_info(int ind)
 }
 
 
+int Send_modes_struct_info(int ind)
+{
+    connection_t *connp = get_connection(ind);
+    uint32_t i;
+
+    if (connp->state != CONN_SETUP)
+    {
+        errno = 0;
+        plog_fmt("Connection not ready for modes info (%d.%d.%d)", ind, connp->state, connp->id);
+        return 0;
+    }
+
+    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_MODES,
+        (unsigned)z_info->mode_max) <= 0)
+    {
+        Destroy_connection(ind, "Send_modes_struct_info write error");
+        return -1;
+    }
+
+    for (i = 0; i < (uint32_t)z_info->mode_max; i++)
+    {
+        if (Packet_printf(&connp->c, "%s", mode_info[i].option) <= 0)
+        {
+            Destroy_connection(ind, "Send_modes_struct_info write error");
+            return -1;
+        }
+
+        if (Packet_printf(&connp->c, "%s", mode_info[i].title) <= 0)
+        {
+            Destroy_connection(ind, "Send_modes_struct_info write error");
+            return -1;
+        }
+
+        if (Packet_printf(&connp->c, "%b", (unsigned)mode_info[i].max_account_chars) <= 0)
+        {
+            Destroy_connection(ind, "Send_modes_struct_info write error");
+            return -1;
+        }
+    }
+
+    return 1;
+}
+
+
 int Send_kind_struct_info(int ind)
 {
     connection_t *connp = get_connection(ind);
@@ -6739,6 +6783,7 @@ static int Receive_play(int ind)
         Send_class_struct_info(ind);
         Send_body_struct_info(ind);
         Send_socials_struct_info(ind);
+        Send_modes_struct_info(ind);
         Send_rinfo_struct_info(ind);
         Send_rbinfo_struct_info(ind);
         Send_curse_struct_info(ind);

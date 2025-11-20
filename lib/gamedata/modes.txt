@@ -1,0 +1,41 @@
+# File: modes.txt
+
+
+# This file is used to initialize the birth modes for PWMAngband.
+
+# Do not modify this file unless you know exactly what you are doing,
+# unless you wish to risk possible system crashes and broken savefiles.
+
+# === Understanding modes.txt ===
+
+# option: birth option
+# title: title
+# max_account_chars: max account chars
+
+# 'option' is for birth option: see list-options.h for the list
+
+# 'title' is for the title used for the death message and list of players
+
+# 'max_account_chars' is for the number of characters that can be created in
+# this mode per account
+
+
+## Normal
+option:none
+title: normal
+max_account_chars:12
+
+## Brave
+option:birth_no_ghost
+title: brave
+max_account_chars:1
+
+## Hardcore
+option:birth_no_recall
+title: hardcore
+max_account_chars:1
+
+## Diving
+option:birth_force_descend
+title: diving
+max_account_chars:1

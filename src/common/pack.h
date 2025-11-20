@@ -61,6 +61,7 @@ enum
 #define STRUCT_INFO_TRAP    13
 #define STRUCT_INFO_TIMED   14
 #define STRUCT_INFO_PROPS   15
+#define STRUCT_INFO_MODES   16
 
 /*
  * PKT_TERM helpers

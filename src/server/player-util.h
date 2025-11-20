@@ -132,5 +132,6 @@ extern bool player_is_trapsafe(const struct player *p);
 extern bool player_force_descend(struct player *p, int lvl);
 extern bool player_no_recall(struct player *p, int lvl);
 extern bool player_stale_level(struct player *p);
+extern bool player_mode_title(struct player *p, const char *prefix, char *title, int len);
 
 #endif /* PLAYER_UTIL_H */

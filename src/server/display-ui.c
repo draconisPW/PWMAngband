@@ -2126,17 +2126,8 @@ void player_death(struct player *p)
     {
         char brave[40];
 
-        if ((OPT(p, birth_no_ghost) && !cfg_no_ghost) ||
-            (OPT(p, birth_no_recall) && (cfg_diving_mode < 3)) ||
-            (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3)))
-        {
-            strnfmt(brave, sizeof(brave), "The%s%s%s",
-                (OPT(p, birth_no_ghost) && !cfg_no_ghost)? " brave": "",
-                (OPT(p, birth_no_recall) && (cfg_diving_mode < 3))? " hardcore": "",
-                (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3))? " diving": "");
-        }
-        else
-            my_strcpy(brave, "The unfortunate", sizeof(brave));
+        if (!player_mode_title(p, "The", brave, sizeof(brave)))
+            my_strcat(brave, " unfortunate", sizeof(brave));
 
         strnfmt(buf, sizeof(buf), "%s %s %s the level %i %s %s %s.", brave, prompt, p->name, p->lev,
             p->race->name, p->clazz->name, p->died_flavor);

@@ -99,6 +99,7 @@ extern int Send_race_struct_info(int ind);
 extern int Send_class_struct_info(int ind);
 extern int Send_body_struct_info(int ind);
 extern int Send_socials_struct_info(int ind);
+extern int Send_modes_struct_info(int ind);
 extern int Send_kind_struct_info(int ind);
 extern int Send_ego_struct_info(int ind);
 extern int Send_rinfo_struct_info(int ind);

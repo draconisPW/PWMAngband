@@ -2348,3 +2348,29 @@ bool player_stale_level(struct player *p)
 {
     return (player_force_descend(p, 3) && player_no_recall(p, 3) && p->stale);
 }
+
+
+/*
+ * Challenge options
+ */
+bool player_mode_title(struct player *p, const char *prefix, char *title, int len)
+{
+    int k, opt;
+    struct mode *m;
+    bool something = false;
+
+    my_strcpy(title, prefix, len);
+
+    for (k = 0; k < z_info->mode_max; k++)
+    {
+        m = &mode_info[k];
+        opt = option_number(m->option);
+        if ((opt > 0) && p->opts.opt[opt])
+        {
+            my_strcat(title, m->title, len);
+            something = true;
+        }
+    }
+
+    return something;
+}

@@ -149,3 +149,16 @@ void option_free(void)
         option_page[page] = NULL;
     }
 }
+
+
+int option_number(const char *name)
+{
+    int opt;
+
+    for (opt = 0; opt < OPT_MAX; opt++)
+    {
+        if (streq(options[opt].name, name)) return opt;
+    }
+
+    return -1;
+}

@@ -5671,18 +5671,24 @@ static void sort_to_top(struct sdlpui_window *window)
 static void bring_to_top(struct sdlpui_window *window,
         struct subwindow *subwindow)
 {
-    assert(subwindow->window == window);
-
+#ifndef NDEBUG
     bool found_subwindow_in_window = false;
+#endif
+
+    assert(subwindow->window == window);
     for (size_t i = 0; i < N_ELEMENTS(window->subwindows); i++) {
         if (window->subwindows[i] != NULL) {
             window->subwindows[i]->top = false;
+#ifndef NDEBUG
             if (window->subwindows[i] == subwindow) {
                 found_subwindow_in_window = true;
             }
+#endif
         }
     }
+#ifndef NDEBUG
     assert(found_subwindow_in_window);
+#endif
 
     subwindow->top = true;
 

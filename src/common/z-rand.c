@@ -377,8 +377,8 @@ int Rand_sample(int mean, int upper, int lower, int stand_u, int stand_l)
  */
 uint32_t Rand_simple(uint32_t m)
 {
-    static time_t seed;
-    time_t v = time(NULL);
+    static uint32_t seed;
+    uint32_t v = (uint32_t)time(NULL);
 
 #if defined(_WIN32)
     seed = LCRNG(seed % m) + ((v << 16) ^ v ^ GetCurrentProcessId());

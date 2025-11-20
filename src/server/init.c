@@ -4487,6 +4487,125 @@ static struct file_parser soc_parser =
 
 
 /*
+ * Initialize game modes
+ */
+
+
+static enum parser_error parse_mode_option(struct parser *p)
+{
+    struct mode *m = mem_zalloc(sizeof(*m));
+
+    m->next = parser_priv(p);
+    m->option = string_make(parser_getstr(p, "option"));
+    parser_setpriv(p, m);
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_mode_title(struct parser *p)
+{
+    struct mode *m = parser_priv(p);
+
+    if (!m) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    m->title = string_make(parser_getstr(p, "title"));
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static enum parser_error parse_mode_max_account_chars(struct parser *p)
+{
+    struct mode *m = parser_priv(p);
+
+    if (!m) return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+    m->max_account_chars = parser_getuint(p, "max_account_chars");
+
+    return PARSE_ERROR_NONE;
+}
+
+
+static struct parser *init_parse_mode(void)
+{
+    struct parser *p = parser_new();
+
+    parser_setpriv(p, NULL);
+    parser_reg(p, "option str option", parse_mode_option);
+    parser_reg(p, "title str title", parse_mode_title);
+    parser_reg(p, "max_account_chars uint max_account_chars", parse_mode_max_account_chars);
+
+    return p;
+}
+
+
+static errr run_parse_mode(struct parser *p)
+{
+    return parse_file_quit_not_found(p, "modes");
+}
+
+
+static errr finish_parse_mode(struct parser *p)
+{
+    struct mode *m, *n;
+    int midx;
+
+    /* Scan the list for the max id */
+    z_info->mode_max = 0;
+    m = parser_priv(p);
+    while (m)
+    {
+        z_info->mode_max++;
+        m = m->next;
+    }
+
+    /* Allocate the direct access list and copy the data to it */
+    mode_info = mem_zalloc(z_info->mode_max * sizeof(*m));
+    midx = z_info->mode_max - 1;
+    for (m = parser_priv(p); m; m = n, midx--)
+    {
+        memcpy(&mode_info[midx], m, sizeof(*m));
+        mode_info[midx].midx = midx;
+        n = m->next;
+        if (midx < z_info->mode_max - 1) mode_info[midx].next = &mode_info[midx + 1];
+        else mode_info[midx].next = NULL;
+        mem_free(m);
+    }
+
+    parser_destroy(p);
+    return 0;
+}
+
+
+static void cleanup_mode(void)
+{
+    int i;
+
+    /* Paranoia */
+    if (!mode_info) return;
+
+    for (i = 0; i < z_info->mode_max; i++)
+    {
+        string_free(mode_info[i].option);
+        string_free(mode_info[i].title);
+    }
+    mem_free(mode_info);
+    mode_info = NULL;
+}
+
+
+static struct file_parser mode_parser =
+{
+    "modes",
+    init_parse_mode,
+    run_parse_mode,
+    finish_parse_mode,
+    cleanup_mode
+};
+
+
+/*
  * Initialize hints
  */
 
@@ -4717,6 +4836,7 @@ static struct
     {"quests", &quests_parser},
     {"flavours", &flavor_parser},
     {"socials", &soc_parser},
+    {"modes", &mode_parser},
     {"hints", &hints_parser},
     {"swear", &swear_parser},
     {"level_golds", &level_golds_parser},

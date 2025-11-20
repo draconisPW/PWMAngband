@@ -28,6 +28,7 @@ User interface
 Angband 4.2.x:
 
 - Remove limit on number of options shown per category
+- Tweak Options/Map for Windows front end and bind M to Options/Map
 
 PWMAngband:
 
@@ -64,12 +65,16 @@ Angband 4.2.x:
 - Adjust some code flagged by gcc's static analysis option
 - Prevent NULL returns from queue functions
 - Correct some typos in comments
+- In Rand_simple(), only use the 32 least significant bits from time()
 
 PWMAngband:
 
 - Add LAZY_CONNECTIONS cfg option to discard failed client connection attempts
   instead of shutting down the server
 - Adapt alloc_stairs() to restart level generation to match find_start()
+- Add modes.txt parser for game modes (no-ghost, no-recall, force-descend...)
+  and use it to remove hardcoded references to "brave", "hardcore" and "diving"
+  characters
 
 Compilation/documentation
 -------------------------

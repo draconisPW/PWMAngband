@@ -285,3 +285,9 @@ struct angband_constants *z_info;
  * Socials
  */
 struct social *soc_info;
+
+
+/*
+ * Game modes
+ */
+struct mode *mode_info;

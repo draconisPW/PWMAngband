@@ -1482,6 +1482,61 @@ static int Receive_struct_info(void)
 
             break;
         }
+
+        /* Game modes */
+        case STRUCT_INFO_MODES:
+        {
+            char option[NORMAL_WID], title[NORMAL_WID];
+            uint8_t max_account_chars;
+
+            /* Alloc */
+            mode_info = mem_zalloc(max * sizeof(struct mode));
+            z_info->mode_max = max;
+
+            /* Fill */
+            for (i = 0; i < max; i++)
+            {
+                struct mode *m = &mode_info[i];
+
+                if ((n = Packet_scanf(&rbuf, "%s", option)) <= 0)
+                {
+                    /* Rollback the socket buffer */
+                    Sockbuf_rollback(&rbuf, bytes_read);
+
+                    /* Packet isn't complete, graceful failure */
+                    return n;
+                }
+                bytes_read += string_bytes(option);
+
+                m->option = string_make(option);
+
+                if ((n = Packet_scanf(&rbuf, "%s", title)) <= 0)
+                {
+                    /* Rollback the socket buffer */
+                    Sockbuf_rollback(&rbuf, bytes_read);
+
+                    /* Packet isn't complete, graceful failure */
+                    return n;
+                }
+                bytes_read += string_bytes(title);
+
+                m->title = string_make(title);
+
+                if ((n = Packet_scanf(&rbuf, "%b", &max_account_chars)) <= 0)
+                {
+                    /* Rollback the socket buffer */
+                    Sockbuf_rollback(&rbuf, bytes_read);
+
+                    /* Packet isn't complete, graceful failure */
+                    return n;
+                }
+                bytes_read += 1;
+
+                m->max_account_chars = max_account_chars;
+            }
+
+            break;
+        }
     }
 
     return 1;

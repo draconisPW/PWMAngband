@@ -315,17 +315,14 @@ static void console_who(int ind, char *dummy)
         char *entry;
 
         /* Challenge options */
-        strnfmt(brave, sizeof(brave), "a%s%s%s level",
-            (OPT(p, birth_no_ghost) && !cfg_no_ghost)? " brave": "",
-            (OPT(p, birth_no_recall) && (cfg_diving_mode < 3))? " hardcore": "",
-            (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3))? " diving": "");
+        player_mode_title(p, "a", brave, sizeof(brave));
 
         if (OPT(p, birth_fruit_bat)) batty = "(batty) ";
 
         /* Add an entry */
-        entry = format("%s is %s %d %s %s %sat %d ft (%d, %d)\n", p->name, brave, p->lev,
-            p->race->name, p->clazz->name, batty, p->wpos.depth * 50,
-            p->wpos.grid.x, p->wpos.grid.y);
+        entry = format("%s is %s level %d %s %s %sat %d ft (%d, %d)\n", p->name, brave, p->lev,
+            p->race->name, p->clazz->name, batty, p->wpos.depth * 50, p->wpos.grid.x,
+            p->wpos.grid.y);
         Packet_printf(console_buf_w, "%S", entry);
     }
     Sockbuf_flush(console_buf_w);
@@ -395,16 +392,12 @@ static void console_whois(int ind, char *name)
     }
 
     /* Output player information */
-    strnfmt(brave, sizeof(brave), "a%s%s%s level",
-        (OPT(p, birth_no_ghost) && !cfg_no_ghost)? " brave": "",
-        (OPT(p, birth_no_recall) && (cfg_diving_mode < 3))? " hardcore": "",
-        (OPT(p, birth_force_descend) && (cfg_limit_stairs < 3))? " diving": "");
+    player_mode_title(p, "a", brave, sizeof(brave));
     if (OPT(p, birth_fruit_bat)) batty = "(batty) ";
 
     /* General character description */
-    entry = format("%s is %s %d %s %s %sat %d ft (%d, %d)\n", p->name, brave, p->lev,
-            p->race->name, p->clazz->name, batty, p->wpos.depth * 50,
-            p->wpos.grid.x, p->wpos.grid.y);
+    entry = format("%s is %s level %d %s %s %sat %d ft (%d, %d)\n", p->name, brave, p->lev,
+        p->race->name, p->clazz->name, batty, p->wpos.depth * 50, p->wpos.grid.x, p->wpos.grid.y);
     Packet_printf(console_buf_w, "%S", entry);
 
     /* Breakup the client version identifier */

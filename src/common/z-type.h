@@ -256,6 +256,7 @@ struct angband_constants
     uint16_t property_max;          /* Maximum number of object properties */
     uint16_t summon_max;            /* Maximum number of summon types */
     uint16_t soc_max;               /* Maximum number of socials */
+    uint16_t mode_max;              /* Maximum number of game modes */
     uint16_t wf_max;                /* Maximum number of wilderness terrain features */
     uint16_t tf_max;                /* Maximum number of town terrain features */
     uint16_t town_max;              /* Maximum number of towns */
@@ -396,5 +397,19 @@ struct social
 };
 
 extern struct social *soc_info;
+
+/*
+ * Game modes
+ */
+struct mode
+{
+    char *option;
+    char *title;
+    uint8_t max_account_chars;
+    unsigned int midx;
+    struct mode *next;
+};
+
+extern struct mode *mode_info;
 
 #endif /* INCLUDED_ZTYPE_H */

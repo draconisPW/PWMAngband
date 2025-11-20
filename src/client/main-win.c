@@ -2325,14 +2325,14 @@ static void windows_map_aux(void)
     max_y = Setup.max_row;
 
     /* Draw the map */
-    for (x = min_x; x < max_x; x++)
+    for (y = min_y; y < max_y; y++)
     {
-        for (y = min_y; y < max_y; y++)
+        for (x = min_x; x < max_x; x++)
         {
             map_info(y, x, &a, &c, &ta, &tc);
 
             /* Ignore non-graphics */
-            if (a & 0x80) Term_pict_win(x - min_x, y - min_y, 1, &a, &c, &ta, &tc);
+            if (a & 0x80) (*td->t.pict_hook)(x - min_x, y - min_y, 1, &a, &c, &ta, &tc);
         }
     }
 
@@ -2414,6 +2414,21 @@ static void windows_map(void)
 }
 
 
+static void term_view_map_hook(term* t)
+{
+    if (!use_graphics)
+    {
+        /* Fall back to default view of map */
+        Term->view_map_hook = NULL;
+        do_cmd_view_map();
+        Term->view_map_hook = term_view_map_hook;
+        return;
+    }
+
+    windows_map();
+}
+
+
 /*
  * Other routines
  */
@@ -2445,6 +2460,7 @@ static void term_data_link(term_data *td)
     t->wipe_hook = Term_wipe_win;
     t->text_hook = Term_text_win;
     t->pict_hook = Term_pict_win;
+    t->view_map_hook = term_view_map_hook;
 
     /* Remember where we came from */
     t->data = td;
@@ -2753,12 +2769,6 @@ static void setup_menus(void)
 
     EnableMenuItem(hm, IDM_OPTIONS_SAVER, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
     EnableMenuItem(hm, IDM_OPTIONS_LOW_PRIORITY, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
-
-    /* Menu "Options", Item "Map" */
-    if (initialized && use_graphics)
-        EnableMenuItem(hm, IDM_OPTIONS_MAP, MF_BYCOMMAND | MF_ENABLED);
-    else
-        EnableMenuItem(hm, IDM_OPTIONS_MAP, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
 
     /* Menu "Options", update all */
     mode = graphics_modes;
@@ -3249,19 +3259,6 @@ static void process_menus(WORD wCmd)
             /* Toggle priority */
             low_priority = !low_priority;
 
-            break;
-        }
-
-        case IDM_OPTIONS_MAP:
-        {
-            /* Paranoia */
-            if (!initialized)
-            {
-                plog("You may not do that right now.");
-                break;
-            }
-
-            windows_map();
             break;
         }
 

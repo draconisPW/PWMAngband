@@ -24,8 +24,8 @@ typedef struct
     DWORD dwStyle;
     DWORD dwExStyle;
     uint keys;
-    byte rows;
-    byte cols;
+    uint16_t rows;
+    uint16_t cols;
     uint pos_x;
     uint pos_y;
     uint size_wid;
