@@ -249,7 +249,7 @@ enum parser_error parser_parse(struct parser *p, const char *line)
     p->ftail = NULL;
 
     /* Ignore empty lines and comments. */
-    while (*line && (isspace(*line))) line++;
+    while (*line && (isspace((unsigned char)*line))) line++;
     if (!*line || *line == '#') return PARSE_ERROR_NONE;
 
     cline = string_make(line);

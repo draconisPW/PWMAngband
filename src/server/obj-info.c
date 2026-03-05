@@ -1634,10 +1634,12 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
             text_out(p, "It can be quaffed.\n");
         else if (tval_is_scroll(obj))
             text_out(p, "It can be read.\n");
-        else if (aimed)
-            text_out(p, "It can be aimed.\n");
+        else if (tval_is_wand(obj))
+            text_out(p, "It requires a target. It can be used.\n");
+        else if (tval_is_staff(obj))
+            text_out(p, "It can be used.\n");
         else
-            text_out(p, "It can be activated.\n");
+            text_out(p, "It may require a target. It can be used.\n");
 
         return true;
     }
@@ -1646,9 +1648,8 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
     if (obj->activation && obj->activation->desc)
     {
         if (aimed)
-            text_out(p, "When aimed, it ");
-        else
-            text_out(p, "When activated, it ");
+            text_out(p, "It requires a target. ");
+        text_out(p, "When used, it ");
         print_effect(p, obj->activation->desc);
     }
     else
@@ -1673,10 +1674,12 @@ static bool describe_effect(struct player *p, const struct object *obj, bool onl
             text_out(p, "When quaffed, it ");
         else if (tval_is_scroll(obj))
             text_out(p, "When read, it ");
-        else if (aimed)
-            text_out(p, "When aimed, it ");
         else
-            text_out(p, "When activated, it ");
+        {
+            if (aimed)
+                text_out(p, "It requires a target. ");
+            text_out(p, "When used, it ");
+        }
 
         /* Print a colourised description */
         if (!effect_describe(p, obj, effect)) return false;

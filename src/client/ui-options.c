@@ -1967,7 +1967,7 @@ static bool ignore_sval_menu_action(struct menu *m, const ui_event *event, int o
     const ignore_choice *choice = menu_priv(m);
 
     if (event->type == EVT_SELECT ||
-        (event->type == EVT_KBRD && tolower(event->key.code) == 't'))
+        (event->type == EVT_KBRD && tolower((unsigned char)event->key.code) == 't'))
     {
         struct object_kind *kind = choice[oid].kind;
 

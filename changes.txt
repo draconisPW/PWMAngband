@@ -7,7 +7,7 @@ now loaded from the client instead of being fixed on the server. For this to
 work with a large amount of data, the network protocol has been altered so that
 the VERIFY packet is sent/received in chunks of 1024 lines of data.
 
-And still many bug fixes and code improvements from Angband 4.2.5...
+And still many bug fixes and code improvements from Angband 4.2.6...
 
 Note: due to some changes in activation difficulties, savefiles have been made
 incompatible with the previous version. Please restart a clean server to play
@@ -19,8 +19,27 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.6.2 build 3
+New features in PWMAngband 1.6.2 build 4
 ========================================
+
+User interface
+--------------
+
+Angband 4.2.x:
+
+- Windows: show help / contents in browser if possible
+- SDL: display buildid's copyright in the About dialog
+- Change introduction to the description of an item's effect
+
+Coding changes
+--------------
+
+Angband 4.2.x:
+
+- More SDL2 improvements
+
+Features in PWMAngband 1.6.2 build 3
+====================================
 
 User interface
 --------------

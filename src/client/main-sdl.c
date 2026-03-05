@@ -1494,14 +1494,15 @@ static void AboutDraw(sdl_Window *win)
     }
     sdl_WindowText(win, AltUnselColour, 20, 150,
         format("You are playing %s", version_build(VERSION_NAME, true)));
-    sdl_WindowText(win, AltUnselColour, 20, 160, "See http://www.mangband.org");
+     sdl_WindowText(win, AltUnselColour, 20, 160, VERSION_COPYRIGHT);
+    sdl_WindowText(win, AltUnselColour, 20, 170, "See http://www.mangband.org");
 }
 
 
 static void AboutActivate(sdl_Button *sender)
 {
     int width = 350;
-    int height = 200;
+    int height = 210;
     
     sdl_WindowInit(&PopUp, width, height, AppWin, StatusBar.font.req);
     PopUp.left = (AppWin->w / 2) - width / 2;

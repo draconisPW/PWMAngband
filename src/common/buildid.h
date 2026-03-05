@@ -10,7 +10,8 @@
 #ifndef BUILDID
 #define BUILDID
 
-#define VERSION_NAME    "PWMAngband"
+#define VERSION_NAME        "PWMAngband"
+#define VERSION_COPYRIGHT   "Copyright (c) 2026 PWMAngband contributors"
 
 extern bool beta_version(void);
 extern uint16_t current_version(void);

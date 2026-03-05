@@ -18,18 +18,22 @@
  *    are included in all such copies.  Other copyrights may also apply.
  */
 
-/* Set the minimum version of Windows to accept so AlphaBlend() is available */
+/*
+ * Set the minimum version of Windows to accept:
+ * - ShellExecuteA() requires Windows XP (_WIN32_WINNT >= 0x0501)
+ * - AlphaBlend() requires Windows 2000 (_WIN32_WINNT >= 0x0500)
+ */
 #ifndef WINVER
-#define WINVER 0x0500
-#elif WINVER < 0x0500
+#define WINVER 0x0501
+#elif WINVER < 0x0501
 #undef WINVER
-#define WINVER 0x0500
+#define WINVER 0x0501
 #endif
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
-#elif _WIN32_WINNT < 0x0500
+#define _WIN32_WINNT 0x0501
+#elif _WIN32_WINNT < 0x0501
 #undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
+#define _WIN32_WINNT 0x0501
 #endif
 
 #include "c-angband.h"
@@ -2840,12 +2844,42 @@ static void setup_menus(void)
 }
 
 
+static bool open_url(const char *url)
+{
+    HINSTANCE res = ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+
+    return ((INT_PTR)res > 32);
+}
+
+
+static bool open_local_docs(void)
+{
+    char exe_path[MAX_PATH];
+    char *slash;
+    char doc_path[MAX_PATH];
+    char url[MAX_PATH + 8];
+    DWORD attrs;
+
+    if (!GetModuleFileNameA(NULL, exe_path, sizeof(exe_path))) return false;
+    slash = strrchr(exe_path, '\\');
+    if (!slash) return false;
+    *slash = '\0';
+    snprintf(doc_path, sizeof(doc_path), "%s\\Manual.html", exe_path);
+    attrs = GetFileAttributesA(doc_path);
+    if (attrs == INVALID_FILE_ATTRIBUTES || (attrs & FILE_ATTRIBUTE_DIRECTORY)) return false;
+    snprintf(url, sizeof(url), "file:///%s", doc_path);
+
+    return open_url(url);
+}
+
+
 /*
- * Display a help file
+ * Display help
  */
 static void display_help(void)
 {
-    Term_keypress('?', 0);
+    if (open_local_docs()) return;
+    if (inkey_flag) Term_keypress('?', 0);
 }
 
 
