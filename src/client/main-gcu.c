@@ -4,7 +4,7 @@
  *
  * Copyright (c) 1997 Ben Harrison, and others
  * Copyright (c) 2009-2015 Erik Osheim
- * Copyright (c) 2025 MAngband and PWMAngband Developers
+ * Copyright (c) 2026 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:
@@ -33,13 +33,6 @@
 # include <curses.h>
 #endif
 #include <errno.h>
-
-/*
- * The TERM environment variable; used for terminal capabilities.
- * PWMAngband: pointless -- using PDCurses
- */
-/*static char *termtype;
-static bool loaded_terminfo;*/
 
 /* Windows already has this in curses.h */
 #ifndef WINDOWS
@@ -375,7 +368,6 @@ static void get_gcu_term_size(int i, int *rows, int *cols, int *y, int *x)
     balance_dimension(rows, y, term_row_index, term_rows, LINES, MIN_TERM0_LINES, COMFY_SUBTERM_LINES);
 }
 
-#ifdef USE_NCURSES
 /*
  * Query ncurses for new screen size and try to resize the GCU terms.
  */
@@ -399,7 +391,6 @@ static void do_gcu_resize(void)
     }
     do_cmd_redraw();
 }
-#endif
 
 /*
  * Handle keypresses.
@@ -408,8 +399,8 @@ static void gcu_keypress(int i)
 {
     int j, k, mods = 0;
 
-    /* Not sure if this is portable to non-ncurses platforms */
-    #ifdef USE_NCURSES
+    /* Both NCurses and PDCurses define KEY_RESIZE. */
+    #ifdef KEY_RESIZE
     if (i == KEY_RESIZE)
     {
         /*
@@ -1094,10 +1085,6 @@ errr init_gcu(int argc, char **argv)
     int rows, cols, y, x;
     int next_win = 0;
     bool lighterBlue = conf_get_int("MAngband", "LighterBlue", true);
-
-    /* Initialize info about terminal capabilities */
-    /*termtype = getenv("TERM");
-    loaded_terminfo = termtype && tgetent(0, termtype) == 1;*/
 
     /* We do it like this to prevent a link error with curseses that lack ESCDELAY. */
     if (!getenv("ESCDELAY")) putenv("ESCDELAY=20");

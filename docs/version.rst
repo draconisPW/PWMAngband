@@ -2,7 +2,7 @@ Version Information
 ===================
 
 PWMAngband 1.6.2 is based on Angband 4.2.x and MAngband 1.5.x. The latest
-build for PWMAngband 1.6.2 is build 1.
+build for PWMAngband 1.6.2 is build 3.
 
 Angband information was last updated for Angband 4.2.x.
 MAngband information was last updated for MAngband 1.5.x.
@@ -199,7 +199,7 @@ It would be difficult to list all of the changes between Angband 2.6.1 and
 3.0.6, because many of them were made in passing during the massive code
 level cleanup. Many of the changes are invisible to the user, but still
 provide increased simplicity and efficiency, and decreased code size, or
-make other more visable changes possible. For example, the new
+make other more visible changes possible. For example, the new
 'project()' code that handles all bolts, beams, and balls, the new
 'update_view()' code that simplifies line of sight computation, or the
 new 'generate()' code that builds new levels in the dungeon. Many changes

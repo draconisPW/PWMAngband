@@ -148,8 +148,8 @@ Inscribing an item with ``!`` followed by a command letter or ``*``:
     from drinking it to be sure you really meant to.
     Similarly, using !v!k!d makes it very hard for you to accidentally throw,
     ignore or put down the item it is inscribed on.
-    Some adventurers use this for Scrolls of Word of Recall so they don't
-    accidentally return to the dungeon too soon.
+    Some adventurers inscribe their Scrolls of Word of Recall with '!r'
+    so they don't accidentally return to the dungeon too soon.
 
 ..
 
@@ -174,6 +174,17 @@ Inscribing an item with ``@``, followed by a command letter, followed by 0-9:
     the worst! By inscribing your spellbooks with '@m1', '@m2', etc., if
     you lose your first spellbook and attempt to cast magic missile by
     using 'm1a', you cannot accidentally select the wrong spellbook.
+    The '\@v' plus number inscription has the side effect of placing the
+    item in the quiver if the item is good for throwing and the quiver has
+    room. So, inscribing a spear with '\@v0' will attempt to put the
+    spear in the quiver's first slot. Ammunition automatically goes into
+    the quiver when there is room, but you can inscribe it with '\@f' (for
+    the original keyset; use '\@t' for the roguelike keyset) plus the
+    desired slot number, 0 to 7, if you want a different ordering of
+    items in the quiver than what the game does on its own. If
+    inscriptions assign more than one stack to the same quiver slot, the
+    inscribed stack that has been in the inventory the longest will be
+    placed in the slot.
 
 ..
 
@@ -188,11 +199,14 @@ Showing extra info in subwindows
 --------------------------------
 
 In addition to the main window, you can create additional windows that have
-secondary information on them. You can access the subwindow menu by using ``=``
-then ``w``, where you can choose what to display in which window.
-
-You may then need to make the window visible using the "window" menu from the
-menu bar (if you have one in your version of the game).
+secondary information on them. You can access the subwindow menu by using
+``=`` then ``w``, where you can choose what to display in which window. The
+front end you use may provide a way to directly configure the subwindows
+without using that subwindow menu. For front ends that do not provide that,
+you may have to use the front end's controls to make the subwindow visible
+after you have made changes in the subwindow menu. Look at the
+`Interface details section` to see if it describes the front end you use and
+how that front end handles subwindows.
 
 There are a variety of subwindow choices and you should experiment to see which
 ones are the most useful for you.
@@ -221,7 +235,7 @@ sequence; you'll then be prompted for whether to keep the newly entered keymap.
 
 Within the action for a keymap, it is frequently useful to temporarily suppress
 -more- prompts since they can swallow keypresses from the keymap. To disable
-those prompts from within the action, include ``(``.  To reenable the prompts,
+those prompts from within the action, include ``(``. To reenable the prompts,
 include ``)``. So, a typical action where -more- prompts could happen would look
 like this: ``(`` your keypresses here ``)``.
 
@@ -287,9 +301,39 @@ example::
 	keymap-input:0:[F1]
 	keymap-input:1:[F1]
 
-Angband uses a few built-in keymaps. These are for the movement keys (they are
-mapped to ``;`` plus the number, e.g. ``5`` -> ``;5``), amongst others. You can
-see the full list in pref.prf, but they shouldn't impact you in any way.
+PWMAngband uses a few built-in keymaps. These are for the movement keys (they
+are mapped to ``;`` plus the number, e.g. ``5`` -> ``;5``), amongst others. You
+can see the full list in pref.prf, but they shouldn't impact you in any way.
+
+A keymap's action can include multiple commands. For instance, a priest who has
+inscribed the first spellbook with '@m1' could have a keymap with the action of
+'m1dm1f' to cast Bless and Heroism. Such keymaps can abort early without
+completing the remaining commands if:
+
+* The player is disturbed before the next command in the keymap.
+* The next key to be processed in the keymap does not correspond to a command.
+  Note that if the next key is a space, ESCAPE, or the alert key (ASCII 7),
+  those correspond to the NULL command: do nothing, successfully, without
+  requiring any input.
+* The next command has a prerequisite that is not met. For instance, firing a
+  missile requires an equipped launcher and using a scroll requires being able
+  to read (not blind, not confused, not subject to amnesia, and the current grid
+  is seen).
+* A scan of the equipped items found an inscription requiring a confirmation
+  (either '^*' to confirm for any action or '^' followed by the next command's
+  key) and that confirmation was denied.
+
+If the first key in a keymap's action is ESCAPE, the keymap's trigger can break
+out of a prompt for a direction, a target, an object, a spell, a curse, or an
+effect. It will not break out of a prompt for a string (for instance when
+inscribing an object or adding a note) or prompts for a key (for instance,
+yes/no prompts, the symbol for monsters to banish, the symbol to identify with
+``/``, or the key specified for ``^`` to pass along with the control modifier).
+The rest of the keymap's action will not be used after breaking out of the
+prompt. As an example, a mage has F1 as the trigger for the action
+'[ESCAPE]m1a'. If the game is prompting for a direction, that mage can press F1
+to break out of the prompt, but the Magic Missile spell will not be cast. The
+mage would have to press F1 again, for the spell to be cast.
 
 Colours
 -------
@@ -411,34 +455,37 @@ SDL2
 ****
 
 With the SDL2 front end, the application has one window that can contain the
-main window and any of the subwindows.  The application may also have up to
-three additional windows which can contain any of the subwindows.  A subwindow
-may not appear in more than one of those application windows:  adding a
+main window and any of the subwindows. The application may also have up to
+three additional windows which can contain any of the subwindows. A subwindow
+may not appear in more than one of those application windows: adding a
 subwindow to a window automatically removes it from the other window, if any,
-that had it.  Unused portions of an application window are tiled with
+that had it. Unused portions of an application window are tiled with
 repetitions of the game's logo.
 
-Each of the application windows has a menu bar along the top.  The "Menu"
+Each of the application windows has a menu bar along the top. The "Menu"
 entry at the left end of the menu bar has the main menu for controlling
 aspects of the SDL2 interface.
 
 Next to "Menu", are a series of one letter labels that act as toggles for the
-terminal windows shown in the application window.  Click on one to toggle it
-between on (drawn in white) and off (drawn in gray).  It is not possible to
-toggle off the main window shown in the primary application window.
+terminal windows shown in the application window. Click on one to toggle it
+between on (drawn with a filled rectangle next to it) and off (drawn with an
+empty rectangle next to it). It is not possible to toggle off the main window
+shown in the primary application window.
 
-At the end of the menu bar are two toggle buttons labeled "Size" and "Move".
-Each will be gray if disabled or white if enabled.  Clicking on "Size" when
-it is disabled will enable it, disable "Move", turn off input to the game's
-core, and cause clicks and drags within the displayed subwindows to change
-the sizes for those subwindows.  Clicking on "Move" when it is disabled will
-enable it, disable "Size", turn off input to the game's core, and cause clicks
-and drags within the displayed subwindows to change the positions for those
-subwindows.  Disable both "Move" and "Size", by clicking on one if it is
-enabled, to restore passing input to the game's core.
+At the end of the menu bar are two toggle buttons labeled "Move" and "Size".
+When the rectangle next to "Move" is empty, the positions of the subwindows
+are fixed in place. Clicking "Move" in that state will turn it on, turn off
+"Size", disable input to the game's core, and cause clicks and drags within the
+displayed to change the positions of those windows. Clicking "Move" when it is
+on will turn it off and restore passing input to the game's core. When the
+rectangle next to "Size" is empty, the size of the subwindows are fixed.
+Clicking "Size" in that state will turn it on, turn off "Move", disable input
+to the game's core, and cause clicks and drags withing the displayed windows
+to change the sizes for those subwindows. Clicking "Size" when it is on will
+turn it off and restore passing input to the game's core.
 
 Within "Menu", the first entries control properties for each of the displayed
-terminal windows within that application window.  For the main window, you
+terminal windows within that application window. For the main window, you
 can set the font, graphical tile set, whether the window is shown with borders
 or not, and whether or not the window will be shown on top of the other windows.
 For subwindows, you can set the font, the purpose (which is a shortcut for
@@ -448,37 +495,37 @@ whether the window is shown with borders or not, and whether or not the window
 will be shown on top of the other windows.
 
 Below the entries for the contained terminal windows, is an entry,
-"Fullscreen" for toggling fullscreen mode for that application window.  That
-entry will display a rectangle at the end of the entry when fullscreen mode
-is on.  That rectangle will be absent when fullscreen mode is off.
+"Fullscreen" for toggling fullscreen mode for that application window. That
+entry will display a filled rectangle at the end of the entry when fullscreen
+mode is on and an empty rectangle when fullscreen mode is off.
 
 In the primary application window which contains the main window, there is an
 entry, "Send Keypad Modifier", after that for whether key strokes from the
-numeric keypad will be sent to the game with the keypad modifier set.  That
-entry will be gray when the modifier is not send and will be white when the
-modifier is sent.  Sending the modifier allows some predefined keymaps to work,
-for instance shift with 8 from the numeric keypad to run north, at the cost of
-compatibility issues with some keyboard layouts that differ from the standard
-English keyboard layout for which normal keys have equivalents on the numeric
-keypad.  https://github.com/angband/angband/issues/4522 has an example of the
-problems that can be avoided by not sending the keypad modifier.
+numeric keypad will be sent to the game with the keypad modifier set. That
+entry will have an empty rectangle at the end when the modifier is not sent
+and a filled rectangle when the modifier is sent. Sending the modifier allows
+some predefined keymaps to work, for instance shift with 8 from the numeric
+keypad to run north, at the cost of compatibility issues with some keyboard
+layouts that differ from the standard English keyboard layout for which normal
+keys have equivalents on the numeric keypad.
 
 Below "Send Keypad Modifier" in the primary application window's "Menu" is
-"Menu Shortcuts...".  That allows you to set a keystroke to transfer control
-to a window's menu.  By default, no such keystrokes are defined.  That avoids
-potential conflicts with any keymaps you may have.  While in the menus,
-keystrokes can be used for navigation.  The in-game horizontal and vertical
+"Menu Shortcuts...". That allows you to set a keystroke to transfer control
+to a window's menu. By default, no such keystrokes are defined. That avoids
+potential conflicts with any keymaps you may have. While in the menus,
+keystrokes can be used for navigation. The in-game horizontal and vertical
 movement keys will work to move between controls as will Tab (to go to the
-"next" control) and Shift-Tab (to go to the previous control).  Enter will
-activate a menu item if it can be activated.  Trying to descend further into
+"next" control) and Shift-Tab (to go to the previous control). Enter will
+activate a menu item if it can be activated. Trying to descend further into
 the menus with the in-game movement keys will also activate if a menu item if
-it is as deep as you can go.  Below "Menu Shortcuts..." is "Windows":  use
-that to bring up one of the additional application windows.
+it is as deep as you can go. Below "Menu Shortcuts..." is "Windows": use
+that to bring up or hide one of the additional application windows.
 
-The final two entries in "Menu" are "About" for displaying an information
-dialog about the game and "Quit" to save the game and exit.
+The final three entries in "Menu" are "About" for displaying an information
+dialog about the game, "SDL Details" for displaying an information dialog
+with diagnostic details about SDL2, and "Quit" to save the game and exit.
 
 When you leave the game, the current settings for the SDL interface are saved
 as ``sdl2init.txt`` in the same directory as is used for preference files, see
-`User Pref Files`_ for details.  Those settings will be automatically reloaded
+`User Pref Files`_ for details. Those settings will be automatically reloaded
 the next time you start the SDL2 interface.

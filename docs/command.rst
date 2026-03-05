@@ -58,18 +58,24 @@ Equipment list (``e``)
 ..
  
 Quiver list (``|``)
-  Missiles that you carry will automatically be put in your quiver. The
-  quiver has 8 slots; it also takes up inventory space, so every 40
-  missiles will reduce your number of inventory slots by 1.
+  Displays the contents of your quiver. Missiles that you carry will
+  automatically be put in your quiver if there is space. The quiver has
+  8 slots; it also takes up inventory space: every 40 missiles will
+  reduce your number of inventory slots by 1. Items that are good for
+  throwing and have been `inscribed for throwing` (for
+  instance, the inscription includes ``@v0``) will also be placed in the
+  quiver if there is space. Each stack of such items takes a quiver slot
+  and every 8 such items will reduce your inventory slots by 1.
 
 ..
 
 Drop an item (``d``)
   This drops an item from your inventory or equipment onto the dungeon
-  floor. If the floor spot you are standing on already has an object in it,
-  PWMAngband will attempt to drop the item onto an adjacent space. Doors and
-  traps are considered objects for the purpose of determining if the space
-  is occupied. This command may take a quantity, and takes some energy.
+  floor. The item will remain at your feet if possible. Some terrain,
+  like doors and staircases, and any square with a trap can not hold
+  items, and, in that case, the game will attempt to place the item in
+  a nearby square that can hold items. This command may take a quantity,
+  and takes some energy.
 
 ..
 
@@ -84,8 +90,8 @@ Ignore an item (``k``) or Ignore an item ('^d')
   When ignored, the game will sometimes prompt you whether to ignore only this
   item or all others like it. If the second option is chosen, all similar
   items on the floor and in your inventory will be ignored. To view all
-  items regardless of whether they are ignored, you can use ``K`` to
-  toggle the ignore setting on and off. This command takes some energy.
+  items regardless of whether they are ignored, you can use ``K``(``O``
+  in the roguelike keyset) to toggle the ignore setting on and off.
 
 ..
 
@@ -115,25 +121,28 @@ Movement Commands
 Moving (arrow keys, number keys) or (arrow keys, number keys, 'yuhjklbn')
   This causes you to move one step in a given direction. If the square you
   wish to move into is occupied by a monster, you will attack it. If the
-  square is occupied by a door or a trap you may attempt to open or disarm
-  it if the appropriate option is set. Preceding this command with CTRL
-  will cause you to attack in the appropriate direction, but will not move
-  your character if no monster is there. These commands take some energy.
+  square is occupied by a door, you will attempt to open it. If the square
+  is occupied by a trap, you will attempt to disarm it unless you are
+  immune to traps: in that case, you simply move there without harm. Preceding
+  this command with CTRL will cause you to alter (attack, tunnel, open,
+  disarm or close) in the appropriate direction, but will not move your
+  character if there is nothing there to alter. These commands take some
+  energy.
 
 ..
 
 Walk (``W``) or Walk (``-``)
-  The walk command lets you willingly walk into a trap or a closed door,
-  without trying to open or disarm it. This command requires a direction, and
-  takes some energy.
+  The walk command lets you willingly walk into a trap without trying to
+  disarm it. This command may take a count, requires a direction, and takes
+  some energy.
 
 ..
 
 Run (``.``) or Run (``,``)
   This command will move in the given direction, following any bends in the
   corridor, until you either have to make a "choice" between two directions
-  or you are disturbed. You can configure what will disturb you by setting
-  the disturbance options. You may also use shift plus the "roguelike"
+  or you are disturbed. For more information about what can disturb you, see
+  the `Disturb` section. You may also use shift plus the "roguelike"
   direction keys (roguelike keyset), or shift plus the "original" direction
   keys on the keypad (both keysets, some machines) to run in a direction.
   This command may take an argument, requires a direction, and takes some
@@ -221,7 +230,7 @@ Tunnel (``T``) or Tunnel ('^t')
   Tunnelling or mining is a very useful art. There are many kinds of rock,
   with varying hardness, including permanent rock (permanent), granite
   (very hard), quartz veins (hard), magma veins (soft), and rubble (very
-  soft). Quartz and Magma veins may be displayed in a special way, and may
+  soft). Quartz and magma veins may be displayed in a special way, and may
   sometimes contain treasure, in which case they will be displayed in a
   different way. Rubble sometimes covers an object but is easy to tunnel
   through, even with your bare hands. Tunnelling ability increases with
@@ -325,9 +334,12 @@ Cast a spell (``m``)
   To cast a spell, you must have previously learned the spell and must have
   in your inventory a book from which the spell can be read. Each spell has
   a chance of failure which starts out fairly large but decreases as you
-  gain levels. If you don't have enough mana to cast a spell, you cannot cast
-  the spell. Since you must read the spell from a book, you cannot be blind or
-  confused while casting, and there must be some light present. Use this
+  gain levels. If you don't have enough mana to cast a spell, you will be
+  prompted for confirmation. If you decide to go ahead, the chance of
+  failure is greatly increased, and whether or not the spell is successfully
+  cast, you may wind up paralyzed for several turns or draining your
+  constitution. Since you must read the spell from a book, you cannot be blind
+  or confused while casting, and there must be some light present. Use this
   command when your character is turned into a ghost (after dying, if the
   server allows the feature). Unlike spells and prayers, undead abilities use
   experience as "fuel". If you don't have enough experience to invoke an undead
@@ -409,7 +421,7 @@ Read a scroll (``r``)
 Inscribe an object ('{')
   This command inscribes a string on an object. The inscription is displayed
   inside curly braces after the object description. The inscription is limited
-  to the particular object (or pile) and is not automatically transferred to
+  to the particular object (or stack) and is not automatically transferred to
   all similar objects. Under certain circumstances, PWMAngband will display
   "fake" inscriptions on certain objects ('cursed', 'tried', 'empty')
   when appropriate. These "fake" inscriptions remain all the time, even if the
@@ -420,8 +432,8 @@ Inscribe an object ('{')
   An item labeled as '{empty}' was found to be out of charges, and an
   item labeled as '{tried}' is a "flavored" item which the character has
   used, but whose effects are unknown. Certain inscriptions have a meaning
-  to the game, see '@#', '@x#', '!*', and '!x', in the section on
-  inventory object selection.
+  to the game, see '@#', '@x#', '!!', '=g`, '!*', '!x', '^*', and '^x' in the
+  `section on inscriptions`.
 
 ..
 
@@ -434,7 +446,8 @@ Uninscribe an object (``}``)
 Toggle ignore (``K``) or Toggle ignore (``O``)
   This command will toggle ignore settings. If on, all ignored items
   will be hidden from view. If off, all items will be shown regardless
-  of their ignore setting. See the customize section for more info.
+  of their ignore setting. See the `section on ignoring items`
+  for more information.
 
 Magical Object Commands
 -----------------------
@@ -515,12 +528,9 @@ Throw an item (``v``)
   weapons are especially designed for throwing. Once the
   creature is hit, the object may or may not do any damage to it.
   Note that flasks of oil will do some fire damage to a monster on impact.
-  If you are wielding a missile launcher compatible with the object you are
-  throwing, then you automatically use the launcher to fire the missile
-  with much higher range, accuracy, and damage, than you would get by just
-  throwing the missile. Throw, like fire, requires a direction. Targeting
-  mode (see the next command) can be invoked with ``*`` at the
-  'Direction?' prompt. This command takes some energy.
+  Throw, like fire, requires a direction. Targeting mode (see the next
+  command) can be invoked with ``*`` at the 'Direction?' prompt. This command
+  takes some energy.
 
 ..
 
@@ -830,11 +840,13 @@ Save and Quit ('^x')
 
 ..
 
-Quit (``Q``)
-  Kills your character and exits PWMAngband. You will be prompted to make sure
-  you really want to do this, and then asked to verify that choice. Note
-  that dead characters are dead forever. This command is also accessible by
-  pressing '^C'.
+Retire (``Q``)
+  Retires your character and exits PWMAngband. You will be prompted to make sure
+  you really want to do this, and then asked to verify that choice. The
+  only thing that can be done with a retired character's save file is to
+  start the game from the beginning. You will have the option to reuse
+  the same options and birth choices as the retired character when you do so.
+  This command is also accessible by pressing '^C'.
 
 User Pref File Commands
 -----------------------
@@ -844,16 +856,14 @@ User Pref File Commands
 Interact with options (``=``)
   Allow you to interact with options. The "window" options allow you to specify
   what should be drawn in any of the special sub-windows (not available on all
-  platforms). See the help files 'customize.txt' and 'options.txt' for more
-  info. You can also interact with keymaps under this menu.
+  platforms). See the help files for `customization` and `options` for more
+  information. You can also interact with keymaps under this menu.
 
 ..
 
 Interact with keymaps - option submenu
   Allow you to interact with keymaps. You may load or save keymaps from
-  user pref files, or define keymaps. You must define a "current action",
-  shown at the bottom of the screen, before you attempt to use any of the
-  "create macro" commands, which use that "current action" as their action.
+  user pref files, or define keymaps.
 
 ..
 
@@ -974,5 +984,27 @@ an "underlying command", which is okay, since they would have no effect.
 For many input requests or queries, the special character ESCAPE will abort
 the command. The '[y/n]' prompts may be answered with ``y`` or ``n``, or
 'ESCAPE'.
+
+Command Counts
+--------------
+
+Some commands can be executed a fixed number of times by preceding them
+with a count. Counted commands will execute until the count expires, until
+you type any character, or until something significant happens, such as
+being attacked. Thus, a counted command doesn't work to attack another
+creature.
+
+The open, tunnel, disarm, alter, close, aim a wand, use a staff, zap a rod, and
+activate equipment commands default to having a repeat count of 99. The generic
+use an item command also defaults to having a repeat count of 99 when it is
+used with a wand, staff, rod, or equipped item. All other commands default
+to not repeating at all.
+
+Counted commands are very useful for time consuming commands, as they
+automatically terminate on success, or if you are attacked. You may also
+terminate any counted command (or resting or running), by typing any
+character. This character is ignored, but it is safest to use a 'SPACE'
+or 'ESCAPE' which are always ignored as commands in case you type the
+command just after the count expires.
 
 .. |``)``| replace:: ``)``

@@ -171,8 +171,17 @@ terrain.txt
 ..
 
 trap.txt
-  This defines all traps, door locks and runes. Actual trap effects appear in
-  list-effects.h and effect-handler-xxx.c.
+  This defines all floor traps, door locks, webs, player decoys, and
+  glyphs of warding. Traps that can appear on chests are defined elsewhere,
+  chest_trap.txt. Actual trap effects appear in list-effects.h and
+  effect-handler-*something*.c.
+
+..
+
+chest_trap.txt
+  This defines the traps and locks that can appear on chests. Floor traps
+  are defined in trap.txt. Actual trap effects appear in list-effects.h
+  and effect-handler-*something*.c.
 
 ..
 
@@ -185,6 +194,12 @@ room_template.txt
 vault.txt
   Similar to room_template.txt, this handles vaults, which are very dangerous
   and lucrative rooms.
+
+..
+
+visuals.txt
+  Configures the sequences of colors used by monsters with the ATTR_FLICKER
+  flag.
 
 ..
 
@@ -245,6 +260,18 @@ object_power.txt
   This file contains formulas for calculating power of objects (used in
   determining prices and generating random artifacts). You should only change
   this file if you understand the way they are used (defined in obj-power.c).
+
+..
+
+player_property.txt
+  Configures properties the player can get from the player's race, class, or
+  shape. Some of those can come from no other sources and are tied to
+  entries in list-player-flags.h. Others overlap with what the player can
+  get from equipment and are tied to entries in list-object-flags.h or
+  list-elements.h. Sets the names and descriptions used by the birth
+  screens and the See abilities command, ``S``. Sets up links to the column
+  in the character screen's resistances panel and the line in the
+  equippable comparison that summarize the player's state.
 
 ..
 
@@ -362,7 +389,8 @@ break down each step in detail.
 2. Register the tileset in ``lib/tiles/list.txt``
 3. Create an empty bitmap image large enough to hold your tileset
 4. Store the empty bitmap image in your tileset folder
-5. Author one or more ``.prf`` files to inform Angband how to use your tileset
+5. Author one or more ``.prf`` files to inform PWMAngband how to use your
+   tileset
 6. Create a Makefile in your tileset folder
 
 First you need to create a directory to contain your tileset's files. Put the

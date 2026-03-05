@@ -98,7 +98,7 @@ Original Keyset Command Summary
 ``n``  (unused)                      ``N``  (unused)
 ``o``  Open a door or chest          ``O``  (unused)
 ``p``  Project a spell               ``P``  Access party menu
-``q``  Quaff a potion                ``Q``  End character & quit
+``q``  Quaff a potion                ``Q``  Retire character & quit
 ``r``  Read a scroll                 ``R``  Rest for a period
 ``s``  Steal                         ``S``  Toggle stealth mode
 ``t``  Take off equipment            ``T``  Dig a tunnel
@@ -110,7 +110,7 @@ Original Keyset Command Summary
 ``z``  Zap a rod                     ``Z``  (unused)
 ``!``  (unused)                      ``^a`` Do autopickup
 ``@``  Display connected players     ``^b`` (unused)
-``#``  See abilities                 ``^c`` End character & quit
+``#``  See abilities                 ``^c`` Retire character & quit
 ``$``  Drop gold                     ``^d`` Describe object
 ``%``  Interact with keymaps         ``^e`` Toggle inven/equip window
 ``^``  (special - control key)       ``^f`` Repeat level feeling
@@ -159,7 +159,7 @@ Roguelike Keyset Command Summary
  ``n``  (walk - south east)           ``N``  (run - south east)
  ``o``  Open a door or chest          ``O``  Toggle ignore
  ``p``  Project a spell               ``P``  Browse a book
- ``q``  Quaff a potion                ``Q``  End character & quit
+ ``q``  Quaff a potion                ``Q``  Retire character & quit
  ``r``  Read a scroll                 ``R``  Rest for a period
  ``s``  Steal                         ``S``  Toggle stealth mode
  ``t``  Fire an item                  ``T``  Take off equipment
@@ -171,7 +171,7 @@ Roguelike Keyset Command Summary
  ``z``  Aim a wand (Zap)              ``Z``  Use a staff (Zap)
  ``!``  Access party menu             ``^a`` Do autopickup
  ``@``  Center map                    ``^b`` (alter - south west)
- ``#``  See abilities                 ``^c`` End character & quit
+ ``#``  See abilities                 ``^c`` Retire character & quit
  ``$``  Drop gold                     ``^d`` Ignore an item
  ``%``  Interact with keymaps         ``^e`` Toggle inven/equip window
  ``^``  (special - control key)       ``^f`` Repeat level feeling
@@ -204,6 +204,77 @@ Roguelike Keyset Command Summary
 ======= ============================= ====== ============================
 
 Note: 'BKS' is equal to the BACKSPACE key.
+
+Disturb
+-------
+
+For commands that repeat, like resting, tunnneling or running, certain events
+will disturb the player. That stops the command, flushes queued input from
+the keyboard or mouse, and drops any unprocessed keys from a partially
+processed keymap. The events that disturb the player are:
+
+* The command reached its goal: the wall was tunnelled, the door or chest was
+  opened, the specific criteria for resting was met.
+* While running, following a precomputed path, resting, or executing a repeated
+  command (either with an explicit repeat count or one that repeats
+  automatically if no repeat count was specified), a keypress or, if the front
+  end supports it, a mouse button event, interrupts the command by disturbing
+  the player. Since the keypress could come from a keymap, such commands will
+  have to be last in the keymap (no further keystrokes in the action besides
+  what the command would normally consume) to have the intended effect. While
+  resting, checking for an input event that disturbs the rest only happens every
+  128 turns.
+* A monster's melee attack hits the player, regardless of whether any damage was
+  done.
+* A monster uses a ranged attack or spell, regardless of whether the attack
+  hits.
+* A monster that is visible and in the line of sight and either moves or
+  performs a melee attack on the player will disturb if the `Disturb whenever
+  viewable monster moves` option is on. With that option on, a monster that
+  enters the line of sight and is visible or leaves the line of sight while
+  visible, also disturbs the player.
+* A monster smashes open a door.
+* The player loses hit points.
+* The player makes a melee attack.
+* A projection affects the player, regardless of whether it does damage.
+* Changes to a timed effect, like confusion, can disturb the player. If the
+  change was initiated by the player by casting a spell or using an item, the
+  change will not disturb the player with the exception for when an unidentified
+  item is used. For effects that have more than two gradations, like cuts,
+  stunning, and the hunger meter, going up a grade will disturb the player and
+  going down a grade will disturb if the effect has a message for entering the
+  grade from a higher one. For effects that have two gradations (off and on),
+  going from off to on will disturb the player. Otherwise, the change will
+  disturb if the effect in question does not duplicate a state the player has
+  from another source and the change is not due to decreasing the effect's
+  duration because time passed.
+* The player tries to move into impassable terrain.
+* While following a precomputed path or on the second or later step of running,
+  a visible object, including gold, or visible monster in the next grid stops
+  running.
+* While following a precomputed path or on the second or later step of running,
+  the next grid contains a known trap and the player is not immune to traps.
+* If on the second or later step of a run or following a precomputed path, the
+  player's current grid is in an area that has had trap detection cast on it but
+  the next grid has not had trap detection cast on it.
+* While following a precomputed path, a known impassable grid that cannot be
+  autmatically dealt with as the next step on the path disturbs the player.
+* The player triggers a trap. That disturbs even if the player passed the saving
+  throw for the trap's effects.
+* The player finds a secret door or a trap on a chest.
+* The player faints because of hunger.
+* The player's pack overflows.
+* A curse on an equipped item triggers.
+* The delayed effect of deep descent or a word of recall activates.
+* The player's light source has run out of fuel or is close to running out of
+  fuel and a new "growing faint" reminder message is displayed.
+* An item that is equipped or in the pack has recharged and that item's
+  inscription includes '!!' or the `notify on object recharge` option is on.
+* The player is on a visible stack of objects that are not all gold and a scan
+  for autopickup happens (either by holding with autopickup, explicitly invoking
+  autopickup, or having just moved to the grid).
+* The player enters a store.
+* The player enters a new level.
 
 Special Keys
 ------------

@@ -5,7 +5,10 @@ After you have created your character, you will begin your PWMAngband
 adventure. Symbols appearing on your screen will represent the dungeon's
 walls, floor, objects, features, and creatures lurking about. In order to
 direct your character through their adventure, you will enter single
-character commands (see 'commands.txt').
+character commands (see `the Command Descriptions section` for
+descriptions of many of the most useful commands; the
+`Playing the Game section` and the in-game help, ``?``, have a full list but
+only with the briefest of descriptions for each command).
 
 Symbols On Your Map
 -------------------
@@ -152,7 +155,7 @@ Once inside a store, you will see the name and race of the store owner, the
 name of the store, the maximum amount of cash that the store owner will pay
 for any one item, and the store inventory, listed along with the prices.
 
-You will also see an (incomplete) list of available commands. Note that
+You can press ``?`` for a partial list of the available commands. Note that
 some of the commands which work in the dungeon work in the stores as well,
 but some do not, especially those which involve "using" objects.
 
@@ -164,11 +167,10 @@ gold, you can purchase every item in a store, which will induce the store owner
 to bring out new stock, and perhaps even retire.
 
 Store owners will not accept known harmful or useless items. If an object is
-unidentified, they will (if selling is enabled) pay you some base price for
-it. Once they have bought it they will immediately identify the object.
-If it is a good object, they will add it to their inventory. If it was a bad
-bargain, they simply throw the item away. You can use this feature to learn
-item flavors.
+unidentified, a store owner will accept it (paying out some gold if selling
+is on), identify the object, and then either add it to store's stock if it
+is good or throw it away. You can use this feature to learn item flavors
+or the magical properties, called "runes", of items that can be equipped.
 
 ..
 
@@ -210,7 +212,9 @@ The Alchemy shop (``5``)
 
 The Magic User's Shop (``6``)
   The Magic User's Shop deals in all sorts of rings, wands, amulets, staves, as
-  well as magic books.
+  well as magic books. Giving (or selling when selling is on) a useful wand or
+  staff with no charges to the Magic User's Shop is a convenient way to recharge
+  the item, if you have enough gold to buy it back.
 
 ..
 
@@ -294,14 +298,14 @@ the dungeon.
 
 Several objects may occupy a given floor location, which may or may not
 also contain one creature. However, doors, rubble, traps, and staircases
-cannot coexist with items. As below, any item may actually be a "pile"
-of up to 40 identical items. With the right choice of "options", you
-may be able to "stack" several items in the same grid.
+cannot coexist with items. As below, any item may actually be a "stack"
+of up to 40 identical items. With the default options, multiple stacks
+can be in the same grid forming a "pile".
 
 You pick up objects by moving on top of them. You can carry up to 23
 different items in your backpack while wearing and wielding up to 13
 others. Although you are limited to 23 different items, each item may
-actually be a "pile" of up to 40 similar items. If you |``t``ake| off an
+actually be a "stack" of up to 40 similar items. If you |``t``ake| off an
 item, it will go into your backpack if there is room: if there is no room
 in your backpack, it will drop onto the floor, so be careful when swapping
 one wielded weapon or worn piece of armor for another when your pack is
@@ -321,9 +325,10 @@ beginning of the game, all items are assigned a random 'flavor'. For example
 potions of 'cure light wounds' could be 'red potions'. If you have never
 used, sold, or bought one of these potions, you will only see the flavor.
 You can learn what type of item it is by selling it to a store, or using it
-(although learning by use does not always apply to magic devices). Lastly,
-items in stores that you have not yet identified the flavor of will be labeled
-'{unseen}'.
+(learning by use for wands, staves, and rods can require some work as you may
+need the right target or something appropriate nearby to identify what the
+device did). Lastly, items in stores that you have not yet identified the
+flavor of will be labeled '{unseen}'.
 
 Chests are complex objects, containing traps, locks, and possibly treasure
 or other objects inside them once they are opened. Many of the commands
@@ -346,14 +351,23 @@ effect will cancel the action.
 You may "inscribe" any object with a textual inscription of your choice.
 These inscriptions are not limited in length, though you may not be able to
 see the whole inscription on the item. The game applies special meaning to
-inscriptions containing any text of the form '@#' or '@x#' or '!x' or
-'!*', see 'customize.txt'.
+inscriptions containing any text of the form '@#', '@x#', '!!', '!x', '!*',
+'^x', '^*', or '=g`; see `the section on inscribing` for more details.
 
 The game provides some "fake" inscriptions to help you keep track of your
 possessions. Weapons, armor and jewellery which have properties you don't
-know about yet will get a '{??}' label. Wands, staves and rods can get a
+know about yet will get a '{??}' label. Weapons, armor, and jewellery
+with a known curse get a '{cursed}' label. Wands, staves and rods can get a
 '{tried}' label after use, particularly if they have an effect on a monster
-and were tested in the absence of monsters.
+and were tested in the absence of monsters. Unidentified wands or staves
+with no remaining charges will have an '{empty}' label. Items which are
+marked as ignored will have a '{ignored}' label. If an item has more than
+one of those labels or also has an inscription you provided, all the labels
+will be shown in one set of brackets, separated by commas, and the inscription
+you provided, if any, will be first. For instance, you could see
+'{empty, tried}' on an unidentified wand or staff or '{cursed, ??}' on a
+piece of armor with one or more known curses and one or more unidentified
+magical properties.
 
 It is rumored that rings of power and extra rare spell books may be found
 deeper in the dungeon...
@@ -406,7 +420,10 @@ need a shovel/pick to dig, but even the strongest character will benefit
 from a pick if trying to dig through a granite wall.
 
 It is sometimes possible to get a character trapped within the dungeon by
-using various magical spells and items. So it can be a good idea to always
+using various magical spells and items, encountering the right kind of
+trap, or entering the dungeon (either by word of recall or by a staircase
+when playing with disconnected stairs) and finding yourself in a part that
+has no passable route to a staircase. So it can be a good idea to always
 carry some kind of digging tool, even when you are not planning on
 tunneling for treasure.
 
@@ -431,9 +448,13 @@ the other.
 
 All characters have a chance to notice traps when they first come into view
 (dependent on searching skill). Some players will also get access to magical
-means of detecting all traps within a certain radius. If you cast one of these
-spells, there will be a 'Dtrap' green label on the bottom of the screen, below
-the dungeon map.
+means of detecting all traps within a certain radius. If you use such a spell
+or device and are still within the area it checked, there will be a 'DTrap'
+label in green on the bottom of the screen, below the dungeon map. If you are on
+the boundary of an area where a trap detection was done (the current square
+was affected by a trap detection effect but one or more of the four neighbors
+in the cardinal directions was not), there will be a 'DTrap' label in
+yellow on the bottom of the screen.
 
 Some monsters have the ability to create new traps on the level that may be
 hidden, even if the player is in a detected zone. The detection only finds
@@ -541,10 +562,10 @@ of dragon scale mail that resists everything... There are even rumors of
 creatures of pure evil lurking in the deepest levels of the fortress of
 Angband...
 
-When you are ready to retire, simply kill your character (using the ``Q`` key)
-to have your character entered into the high score list as a winner. Note
-that until you retire, you can still be killed, so you may want to retire
-before wandering into yet another horde of greater demons.
+When you are ready to retire, press the ``Q`` key to have your character
+entered into the high score list as a winner. Note that until you retire,
+you can still be killed, so you may want to retire before wandering into
+yet another horde of greater demons.
 
 Upon Death and Dying
 --------------------
@@ -562,4 +583,7 @@ come to the level where you died, kill the monsters that killed you and revive
 your character using a Scroll of Life (note that you still lose half of your
 experience when resurrecting this way); finally, you may decide to discard your
 dead character and start a new one (which is probably the best thing to do
-when your character is still low level).
+when your character is still low level). In that case, a tombstone showing
+information about your character will be displayed. You are also permitted to
+get a record of your character, and all your equipment (identified) either on
+the screen or in a file.

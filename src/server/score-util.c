@@ -3,7 +3,7 @@
  * Purpose: Define score functions shared by the game's core and the separate
  *
  * Copyright (c) 2025 Ben Harrison, James E. Wilson, Robert A. Koeneke, Eric Branlund
- * Copyright (c) 2025 MAngband and PWMAngband Developers
+ * Copyright (c) 2026 MAngband and PWMAngband Developers
  *
  * This work is free software; you can redistribute it and/or modify it
  * under the terms of either:

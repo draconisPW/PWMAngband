@@ -82,6 +82,11 @@ Compilation/documentation
 Angband 4.2.x:
 
 - Resolve doxygen warnings
+- Remove references to lib/user/info in the packaging script for Windows
+- Add player documentation for the keymap handling changes
+- Update and clarify documentation for other changes
+- Add a section on the events that disturb
+- Adapt for renaming the 'Q' command as retire
 
 Features in PWMAngband 1.6.2 build 2
 ====================================
