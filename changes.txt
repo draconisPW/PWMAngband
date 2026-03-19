@@ -38,6 +38,10 @@ Angband 4.2.x:
 
 - More SDL2 improvements
 
+PWMAngband:
+
+- Enforce LIMIT_PLAYER_CONNECTIONS more strictly
+
 Features in PWMAngband 1.6.2 build 3
 ====================================
 

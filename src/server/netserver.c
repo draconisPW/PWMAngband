@@ -621,8 +621,8 @@ static void Contact(int fd, int arg)
     if (getpeername(fd, (struct sockaddr *) &sin, &len) >= 0)
     {
         uint32_t addr = ntohl(sin.sin_addr.s_addr);
-        strnfmt(host_addr, sizeof(host_addr), "%d.%d.%d.%d", (uint8_t)(addr >> 24), (uint8_t)(addr >> 16),
-            (uint8_t)(addr >> 8), (uint8_t)addr);
+        strnfmt(host_addr, sizeof(host_addr), "%d.%d.%d.%d", (uint8_t)(addr >> 24),
+            (uint8_t)(addr >> 16), (uint8_t)(addr >> 8), (uint8_t)addr);
     }
 
     /* Read first data he sent us -- connection type */
@@ -6578,10 +6578,14 @@ static bool Limit_connections(int ind)
              return false;
         }
 
+        /* Skip DM */
+        if (!my_stricmp(connp->nick, cfg_dungeon_master)) continue;
+        if (!my_stricmp(p->name, cfg_dungeon_master)) continue;
+
         /* Only one connection allowed? */
-        if (cfg_limit_player_connections && !my_stricmp(p->full_name, connp->real) &&
-            !my_stricmp(p->addr, connp->addr) && !my_stricmp(p->hostname, connp->host) &&
-            my_stricmp(connp->nick, cfg_dungeon_master) && my_stricmp(p->name, cfg_dungeon_master))
+        if (!cfg_limit_player_connections) continue;
+        if (!my_stricmp(p->full_name, connp->real) || !my_stricmp(p->addr, connp->addr) ||
+            !my_stricmp(p->hostname, connp->host))
         {
             return true;
         }
