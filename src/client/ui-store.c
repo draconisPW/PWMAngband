@@ -1106,7 +1106,7 @@ bool check_store_leave(bool refresh)
     {
         /* Redisplay */
         store_ctx->flags |= STORE_INIT_CHANGE;
-        if (refresh) Term_key_push('&');
+        if (refresh) Term_key_push('&', 0);
     }
     return leave_store;
 }

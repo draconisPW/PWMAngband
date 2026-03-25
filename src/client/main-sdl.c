@@ -1594,7 +1594,7 @@ static void VisibleActivate(sdl_Button *sender)
     sdl_BlitAll();
 
     /* Push a key to force redraw */
-    Term_key_push(ESCAPE);
+    Term_key_push(ESCAPE, 0);
 }
 
 

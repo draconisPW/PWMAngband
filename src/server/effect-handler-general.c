@@ -2005,7 +2005,7 @@ bool effect_handler_DETECT_ALL_MONSTERS(effect_handler_context_t *context)
 
 /*
  * Detect doors around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * is context->y, the width to either side of the player is context->x.
  */
 bool effect_handler_DETECT_DOORS(effect_handler_context_t *context)
 {
@@ -2086,8 +2086,9 @@ bool effect_handler_DETECT_DOORS(effect_handler_context_t *context)
 
 
 /*
- * Detect evil monsters around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * Detect evil monsters around the player. The height to detect above and
+ * below the player is context->y. The width to either side of the player
+ * is context->x.
  */
 bool effect_handler_DETECT_EVIL(effect_handler_context_t *context)
 {
@@ -2125,9 +2126,9 @@ bool effect_handler_DETECT_EVIL(effect_handler_context_t *context)
 
 
 /*
- * Detect lmonsters susceptible to fear around the player. The height to detect
- * above and below the player is context->y, the width either side of
- * the player context->x.
+ * Detect monsters susceptible to fear around the player. The height to detect
+ * above and below the player is context->y. The width to either side of
+ * the player is context->x.
  */
 bool effect_handler_DETECT_FEARFUL_MONSTERS(effect_handler_context_t *context)
 {
@@ -2166,8 +2167,8 @@ bool effect_handler_DETECT_FEARFUL_MONSTERS(effect_handler_context_t *context)
 
 /*
  * Detect buried gold around the player. The height to detect above and below
- * the player is context->value.dice, the width either side of the player
- * context->value.sides.
+ * the player is context->y, the width to either side of the player is
+ * context->x.
  */
 bool effect_handler_DETECT_ORE(effect_handler_context_t *context)
 {
@@ -2222,8 +2223,9 @@ bool effect_handler_DETECT_ORE(effect_handler_context_t *context)
 
 
 /*
- * Detect invisible monsters around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * Detect invisible monsters around the player. The height to detect above and
+ * below the player is context->y. The width to either side of the player is
+ * context->x.
  */
 bool effect_handler_DETECT_INVISIBLE_MONSTERS(effect_handler_context_t *context)
 {
@@ -2235,8 +2237,9 @@ bool effect_handler_DETECT_INVISIBLE_MONSTERS(effect_handler_context_t *context)
 
 
 /*
- * Detect living monsters around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * Detect living monsters around the player. The height to detect above and
+ * below the player is context->y. The width to either side of the player is
+ * context->x.
  */
 bool effect_handler_DETECT_LIVING_MONSTERS(effect_handler_context_t *context)
 {
@@ -2275,7 +2278,7 @@ bool effect_handler_DETECT_LIVING_MONSTERS(effect_handler_context_t *context)
 
 /*
  * Detect all monsters around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * is context->y, the width to either side of the player is context->x.
  */
 bool effect_handler_DETECT_MONSTERS(effect_handler_context_t *context)
 {
@@ -2316,7 +2319,7 @@ bool effect_handler_DETECT_MONSTERS(effect_handler_context_t *context)
 
 /*
  * Detect non-evil monsters around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * is context->y, the width to either side of the player is context->x.
  */
 bool effect_handler_DETECT_NONEVIL(effect_handler_context_t *context)
 {
@@ -2355,8 +2358,8 @@ bool effect_handler_DETECT_NONEVIL(effect_handler_context_t *context)
 
 /*
  * Detect monsters possessing a spirit around the player.
- * The height to detect above and below the player is context->value.dice,
- * the width either side of the player context->value.sides.
+ * The height to detect above and below the player is context->y. The
+ * width to either side of the player is context->x.
  */
 bool effect_handler_DETECT_SOUL(effect_handler_context_t *context)
 {
@@ -2395,7 +2398,7 @@ bool effect_handler_DETECT_SOUL(effect_handler_context_t *context)
 
 /*
  * Detect stairs around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * is context->y, the width to either side of the player is context->x.
  */
 bool effect_handler_DETECT_STAIRS(effect_handler_context_t *context)
 {
@@ -2463,7 +2466,7 @@ bool effect_handler_DETECT_STAIRS(effect_handler_context_t *context)
 
 /*
  * Detect traps around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * is context->y, the width to either side of the player is context->x.
  */
 bool effect_handler_DETECT_TRAPS(effect_handler_context_t *context)
 {
@@ -2560,7 +2563,7 @@ bool effect_handler_DETECT_TRAPS(effect_handler_context_t *context)
 
 /*
  * Detect treasures around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * is context->y, the width to either side of the player is context->x.
  *
  * PWMAngband: set context->radius for full detection
  */
@@ -2668,8 +2671,11 @@ bool effect_handler_DETECT_TREASURES(effect_handler_context_t *context)
 
 
 /*
- * Detect visible monsters around the player. The height to detect above and below the player
- * is context->y, the width either side of the player context->x.
+ * Detect visible monsters around the player; note that this means monsters
+ * which are in principle visible, not monsters the player can currently see.
+ *
+ * The height to detect above and below the player is context->y. The width
+ * to either side of the player is context->x.
  */
 bool effect_handler_DETECT_VISIBLE_MONSTERS(effect_handler_context_t *context)
 {
@@ -3740,7 +3746,8 @@ bool effect_handler_PROBE(effect_handler_context_t *context)
 
 /*
  * Dummy effect, to tell the effect code to pick one of the next
- * context->value.base effects at random.
+ * context->value.base + damroll(context->value.dice, context->value.sides)
+ * effects at random.
  */
 bool effect_handler_RANDOM(effect_handler_context_t *context)
 {

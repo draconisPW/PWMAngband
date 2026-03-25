@@ -276,7 +276,7 @@ extern errr Term_info(int x, int y, uint16_t *a, char *c, uint16_t *ta, char *tc
 
 extern errr Term_flush(void);
 extern errr Term_keypress(keycode_t k, uint8_t mods);
-extern errr Term_key_push(int k);
+extern errr Term_key_push(int k, uint8_t mods);
 extern errr Term_event_push(const ui_event *ke);
 extern errr Term_inkey(ui_event *ch, bool wait, bool take);
 

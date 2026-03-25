@@ -1559,7 +1559,7 @@ static errr Term_xtra_win_flush(void)
         int i;
 
         /* Just in case a key is pending */
-        if (Setup.initialized) Term_key_push(ESCAPE);
+        if (Setup.initialized) Term_key_push(ESCAPE, 0);
 
         term_getsize(td);
         term_window_resize(td);
@@ -3012,7 +3012,7 @@ static void process_menus(WORD wCmd)
 			if (arg_graphics_nice)
 			{
                 /* Force redraw */
-                Term_key_push(KTRL('R'));
+                Term_key_push(KTRL('R'), 0);
 			}
 
             break;

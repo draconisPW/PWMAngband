@@ -37,10 +37,19 @@ Coding changes
 Angband 4.2.x:
 
 - More SDL2 improvements
+- Match Term_key_push()'s prototype to Term_keypress()'s
 
 PWMAngband:
 
 - Enforce LIMIT_PLAYER_CONNECTIONS more strictly
+
+Compilation/documentation
+-------------------------
+
+Angband 4.2.x:
+
+- Expand the comments in the data files about 'M' in dice expressions
+- Correct specific effect handlers' comments about the use of context->value
 
 Features in PWMAngband 1.6.2 build 3
 ====================================
