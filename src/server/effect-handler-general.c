@@ -4559,7 +4559,7 @@ bool effect_handler_TAP_DEVICE(effect_handler_context_t *context)
 bool effect_handler_TELEPORT(effect_handler_context_t *context)
 {
     struct loc start;
-    int dis = context->value.base;
+    int dis = effect_calculate_value(context, false);
     int pick;
     int num_spots = 0;
     bool is_player = (!context->origin->monster || context->subtype);
@@ -4701,7 +4701,7 @@ bool effect_handler_TELEPORT(effect_handler_context_t *context)
         return !used;
     }
 
-    /* Randomise the distance a little */
+    /* Randomise the distance a little, besides what is allowed by the dice */
     if (one_in_(2)) dis -= randint0(dis / 4);
     else dis += randint0(dis / 4);
 

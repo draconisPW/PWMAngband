@@ -279,7 +279,7 @@ static void choose_random_entrance(struct chunk *c, int ridx, struct loc *tgt, i
                     loc_copy(result, &dun->ent[ridx][low]);
                     return;
                 }
-                mid = (low + high) / 2;
+                mid = low + (high - low) / 2;
                 if (accum[mid] <= chosen) low = mid;
                 else high = mid;
             }

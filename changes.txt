@@ -38,6 +38,9 @@ Angband 4.2.x:
 
 - More SDL2 improvements
 - Match Term_key_push()'s prototype to Term_keypress()'s
+- Allow the TELEPORT and RECHARGE effects to use the number of dice and sides
+- Make RNG's z0, z1, and z2 private
+- Alter binary searches to avoid the possibility of integer overflow
 
 PWMAngband:
 
