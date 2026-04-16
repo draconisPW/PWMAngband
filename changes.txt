@@ -31,6 +31,15 @@ Angband 4.2.x:
 - SDL: display buildid's copyright in the About dialog
 - Change introduction to the description of an item's effect
 
+Bugs fixed
+----------
+
+Angband 4.2.x:
+
+- Correct edges of the Diagonal 1 interesting room
+- Correct doors line for Comb right room template
+- Fix minor edge asymmetry between Zag left and Zag right room templates
+
 Coding changes
 --------------
 
@@ -41,6 +50,7 @@ Angband 4.2.x:
 - Allow the TELEPORT and RECHARGE effects to use the number of dice and sides
 - Make RNG's z0, z1, and z2 private
 - Alter binary searches to avoid the possibility of integer overflow
+- Plug exploit for charges in store
 
 PWMAngband:
 

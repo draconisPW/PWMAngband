@@ -1027,6 +1027,12 @@ int rd_gear(struct player *p)
 typedef struct object *(*store_carry_t)(struct player *p, struct store *s, struct object *obj);
 
 
+static struct object *rd_store_carry(struct player *p, struct store *s, struct object *obj)
+{
+    return store_carry(p, s, obj, false);
+}
+
+
 static int rd_store(struct player *p, struct store **store, store_carry_t store_carry_fn,
     rd_item_t rd_item_version)
 {
@@ -1056,7 +1062,10 @@ static int rd_store(struct player *p, struct store **store, store_carry_t store_
 
         /* Accept any valid items */
         if (*store && ((*store)->stock_num < z_info->store_inven_max) && obj->kind)
-            (*store_carry_fn)(p, *store, obj);
+        {
+            if (!(*store_carry_fn)(p, *store, obj))
+                object_delete(&obj);
+        }
         else
             object_delete(&obj);
     }
@@ -1084,7 +1093,7 @@ static int rd_stores_aux(rd_item_t rd_item_version)
     for (i = 0; i < tmp16u; i++)
     {
         struct store *s = ((i < z_info->store_max)? &stores[i]: NULL);
-        int res = rd_store(NULL, &s, store_carry, rd_item_version);
+        int res = rd_store(NULL, &s, rd_store_carry, rd_item_version);
 
         if (res) return res;
 

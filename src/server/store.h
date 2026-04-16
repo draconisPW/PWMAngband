@@ -37,7 +37,8 @@ extern void store_update(void);
 extern int32_t price_item(struct player *p, struct object *obj, bool store_buying, int qty);
 extern void store_stock_list(struct player *p, struct store *s, struct object **list, int n);
 extern struct object *home_carry(struct player *p, struct store *s, struct object *obj);
-extern struct object *store_carry(struct player *p, struct store *s, struct object *obj);
+extern struct object *store_carry(struct player *p, struct store *s, struct object *obj,
+    bool maintain);
 extern struct owner *store_ownerbyidx(struct store *s, unsigned int idx);
 extern char *random_hint(void);
 extern void do_cmd_buy(struct player *p, int item, int amt);

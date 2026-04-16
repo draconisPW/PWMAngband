@@ -976,18 +976,22 @@ static bool str_contains(const char *str, const char *substr)
 
 
 /*
- * Add an object to a real stores inventory.
+ * Add an object to a real, not the home, store's inventory.
  *
- * If the object is "worthless", it is thrown away (except in the home).
+ * store points to the store of interest. It must not be the home.
+ * obj points to the object to be added.
+ * maintain causes, if true, the full suite of maintenance actions to
+ * be performed when adding the object. When false, maintenance actions that
+ * should not be repeated are skipped. It should normally be true, unless
+ * the maintenance actions have already been done (reloading a store's
+ * inventory from a save file, for instance).
  *
- * If the object cannot be combined with an object already in the inventory,
- * make a new slot for it, and calculate its "per item" price.  Note that
- * this price will be negative, since the price will not be "fixed" yet.
- * Adding an object to a "fixed" price stack will not change the fixed price.
- *
- * Returns the object inserted (for ease of use) or NULL if it disappears
+ * Return a pointer to the stack added to. If the store rejects the object,
+ * that will be NULL. In that case, the caller must handle cleanup for the
+ * object it tried to add. Otherwise, the store assumes the responsibility
+ * for cleaning up the added object.
  */
-struct object *store_carry(struct player *p, struct store *s, struct object *obj)
+struct object *store_carry(struct player *p, struct store *s, struct object *obj, bool maintain)
 {
     unsigned int i;
     int32_t value;
@@ -1010,7 +1014,7 @@ struct object *store_carry(struct player *p, struct store *s, struct object *obj
     else if (tval_can_have_charges(obj))
     {
         /* If the store can stock this item kind, we recharge */
-        if (store_can_carry(s, obj->kind))
+        if (maintain && store_can_carry(s, obj->kind))
         {
             int charges = 0;
 
@@ -1359,7 +1363,7 @@ static bool store_create_random(struct store *s)
         mass_produce(obj);
 
         /* Attempt to carry the object */
-        if (!store_carry(NULL, s, obj))
+        if (!store_carry(NULL, s, obj, true))
         {
             object_delete(&obj);
             continue;
@@ -1390,7 +1394,7 @@ static struct object *store_create_item(struct store *s, struct object_kind *kin
     object_notice_everything_aux(NULL, obj, true, false);
 
     /* Attempt to carry the object */
-    carried = store_carry(NULL, s, obj);
+    carried = store_carry(NULL, s, obj, true);
     if (!carried) object_delete(&obj);
     return carried;
 }
@@ -2927,7 +2931,7 @@ void store_confirm(struct player *p)
     }
 
     /* The store gets that (known) item */
-    if (!store_carry(NULL, s, sold_item))
+    if (!store_carry(NULL, s, sold_item, true))
     {
         /* The store rejected it; delete. */
         object_delete(&sold_item);
