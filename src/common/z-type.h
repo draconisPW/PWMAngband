@@ -408,6 +408,8 @@ struct mode
     uint8_t max_account_chars;
     unsigned int midx;
     struct mode *next;
+
+    uint16_t count;
 };
 
 extern struct mode *mode_info;

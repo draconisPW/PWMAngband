@@ -22,7 +22,6 @@ extern char *cfg_report_address;
 extern char *cfg_console_password;
 extern char *cfg_dungeon_master;
 extern bool cfg_secret_dungeon_master;
-extern uint32_t cfg_max_account_chars;
 extern bool cfg_no_steal;
 extern bool cfg_newbies_cannot_drop;
 extern int32_t cfg_level_unstatic_chance;

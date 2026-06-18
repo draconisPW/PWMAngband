@@ -727,7 +727,7 @@ static void Contact(int fd, int arg)
     if (!status)
     {
         num = (uint16_t)player_id_list(&id_list, account);
-        max = (uint16_t)cfg_max_account_chars;
+        max = get_max_account_chars();
     }
     else
     {
@@ -6693,7 +6693,7 @@ static int Receive_play(int ind)
             need_info = true;
 
             /* Check number of characters */
-            if (player_id_count(connp->account) >= cfg_max_account_chars)
+            if (player_id_count(connp->account) >= (uint32_t)get_max_account_chars())
             {
                 plog("Account is full");
                 Destroy_connection(ind, "Account is full");

@@ -179,4 +179,9 @@ extern int variance(const int *nums, int size);
     if (assert_aux && !(p)) (*assert_aux)(); \
     assert(p)
 
+/*
+ * Get max number of characters allowed per account
+ */
+extern uint16_t get_max_account_chars(void);
+
 #endif

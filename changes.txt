@@ -55,6 +55,7 @@ Angband 4.2.x:
 PWMAngband:
 
 - Enforce LIMIT_PLAYER_CONNECTIONS more strictly
+- Remove MAX_ACCOUNT_CHARS, start using modes.txt instead
 
 Compilation/documentation
 -------------------------

@@ -42,7 +42,6 @@ char *cfg_report_address = NULL;
 char *cfg_console_password = NULL;
 char *cfg_dungeon_master = NULL;
 bool cfg_secret_dungeon_master = true;
-uint32_t cfg_max_account_chars = 12;
 bool cfg_no_steal = true;
 bool cfg_newbies_cannot_drop = true;
 int32_t cfg_level_unstatic_chance = 60;
@@ -4497,6 +4496,7 @@ static enum parser_error parse_mode_option(struct parser *p)
 
     m->next = parser_priv(p);
     m->option = string_make(parser_getstr(p, "option"));
+    if (m->next != NULL) m->count = m->next->count;
     parser_setpriv(p, m);
 
     return PARSE_ERROR_NONE;
@@ -4522,6 +4522,8 @@ static enum parser_error parse_mode_max_account_chars(struct parser *p)
     if (!m) return PARSE_ERROR_MISSING_RECORD_HEADER;
 
     m->max_account_chars = parser_getuint(p, "max_account_chars");
+    m->count += m->max_account_chars;
+    if (m->count > 12) return PARSE_ERROR_TOO_MANY_ACCOUNT_CHARS;
 
     return PARSE_ERROR_NONE;
 }
@@ -5111,12 +5113,6 @@ static void set_server_option(const char *option, char *value)
 
         /* Reinstall the timer handler to match the new FPS */
         install_timer_tick(run_game_loop, cfg_fps);
-    }
-    else if (streq(option, "MAX_ACCOUNT_CHARS"))
-    {
-        cfg_max_account_chars = atoi(value);
-        if ((cfg_max_account_chars < 1) || (cfg_max_account_chars > 12))
-            cfg_max_account_chars = 12;
     }
     else if (streq(option, "NO_STEAL"))
         cfg_no_steal = str_to_boolean(value);
