@@ -44,10 +44,7 @@ bool play_again = false;
 
 
 /* Character list */
-uint16_t max_account_chars;
-uint16_t char_num;
-char **char_name;
-char *char_expiry;
+struct char_info_struct *char_info;
 
 
 static int Socket;
@@ -527,6 +524,8 @@ void client_init(bool new_game, int argc, char **argv)
     size_t i, j;
     struct keypress c;
     int32_t intro;
+    char option[NORMAL_WID], title[NORMAL_WID];
+    uint8_t max_account_chars;
 
     if (new_game)
     {
@@ -710,22 +709,39 @@ void client_init(bool new_game, int argc, char **argv)
             quit("Your client will not work on that server (not a PWMAngband server).");
     }
 
-    max_account_chars = max;
-    char_num = num;
-    char_name = NULL;
-    char_expiry = NULL;
-    if (char_num)
+    /* Game modes */
+    char_info = mem_zalloc(sizeof(struct char_info_struct));
+    char_info->mode_max = max;
+    char_info->mode_info = mem_zalloc(max * sizeof(struct mode));
+    for (i = 0; i < (size_t)max; i++)
     {
-        char_name = mem_zalloc(char_num * sizeof(char*));
-        char_expiry = mem_zalloc(char_num * sizeof(char));
+         struct mode *m = &char_info->mode_info[i];
+
+         Packet_scanf(&ibuf, "%s", option);
+         m->option = string_make(option);
+         Packet_scanf(&ibuf, "%s", title);
+         m->title = string_make(title);
+         Packet_scanf(&ibuf, "%b", &max_account_chars);
+         m->max_account_chars = max_account_chars;
     }
-    for (i = 0; i < (size_t)char_num; i++)
+
+    /* Information about characters */
+    char_info->char_num = num;
+    char_info->char_name = NULL;
+    char_info->char_expiry = NULL;
+    if (char_info->char_num)
+    {
+        char_info->char_name = mem_zalloc(char_info->char_num * sizeof(char*));
+        char_info->char_expiry = mem_zalloc(char_info->char_num * sizeof(char));
+    }
+    for (i = 0; i < (size_t)char_info->char_num; i++)
     {
         Packet_scanf(&ibuf, "%c", &expiry);
-        char_expiry[i] = expiry;
+        char_info->char_expiry[i] = expiry;
         Packet_scanf(&ibuf, "%s", buffer);
-        char_name[i] = string_make(buffer);
+        char_info->char_name[i] = string_make(buffer);
     }
+
     Packet_scanf(&ibuf, "%c", &num_types);
 
     /* Something went wrong... */
@@ -817,12 +833,23 @@ void cleanup_angband(void)
     mem_free(store_names);
     store_names = NULL;
 
+    /* Free the game modes */
+    for (i = 0; i < char_info->mode_max; i++)
+    {
+        string_free(char_info->mode_info[i].option);
+        string_free(char_info->mode_info[i].title);
+    }
+    mem_free(char_info->mode_info);
+    char_info->mode_info = NULL;
+
     /* Free the character list */
-    for (i = 0; i < char_num; i++) string_free(char_name[i]);
-    mem_free(char_name);
-    char_name = NULL;
-    mem_free(char_expiry);
-    char_expiry = NULL;
+    for (i = 0; i < char_info->char_num; i++) string_free(char_info->char_name[i]);
+    mem_free(char_info->char_name);
+    char_info->char_name = NULL;
+    mem_free(char_info->char_expiry);
+    char_info->char_expiry = NULL;
+    mem_free(char_info);
+    char_info = NULL;
 
     /* Free the random name fragments */
     strings_free(name_sections, num_names, RANDNAME_NUM_TYPES);

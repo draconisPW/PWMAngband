@@ -1960,6 +1960,7 @@ void get_char_name(void)
     size_t i;
     char charname[NORMAL_WID];
     struct keypress c;
+    uint16_t max_account_chars = get_max_account_chars(char_info->mode_info, char_info->mode_max);
 
     /* Clear screen */
     Term_clear();
@@ -1978,20 +1979,20 @@ void get_char_name(void)
     c_put_str(COLOUR_L_BLUE, "Please select your character from the list below:", 6, 1);
 
     /* Display character names */
-    for (i = 0; i < (size_t)char_num; i++)
+    for (i = 0; i < (size_t)char_info->char_num; i++)
     {
         /* Character is dead */
-        if (char_expiry[i] > 0)
+        if (char_info->char_expiry[i] > 0)
         {
             strnfmt(charname, sizeof(charname), "%c) %s (deceased, expires in %d days)", I2A(i),
-                char_name[i], char_expiry[i]);
+                char_info->char_name[i], char_info->char_expiry[i]);
             c_put_str(COLOUR_L_DARK, charname, 8 + i, 5);
         }
 
         /* Character is alive */
-        else if (char_expiry[i] == -1)
+        else if (char_info->char_expiry[i] == -1)
         {
-            strnfmt(charname, sizeof(charname), "%c) %s", I2A(i), char_name[i]);
+            strnfmt(charname, sizeof(charname), "%c) %s", I2A(i), char_info->char_name[i]);
             put_str(charname, 8 + i, 5);
         }
 
@@ -2004,17 +2005,17 @@ void get_char_name(void)
     }
 
     /* Check number of characters */
-    if (char_num >= max_account_chars)
+    if (char_info->char_num >= max_account_chars)
     {
-        c_put_str(COLOUR_YELLOW, "Your account is full.", 9 + char_num, 5);
+        c_put_str(COLOUR_YELLOW, "Your account is full.", 9 + char_info->char_num, 5);
         c_put_str(COLOUR_YELLOW, "You cannot create any new character with this account.",
-            10 + char_num, 5);
+            10 + char_info->char_num, 5);
     }
     else
     {
         /* Give choice for a new character */
-        strnfmt(charname, sizeof(charname), "%c) New character", I2A(char_num));
-        c_put_str(COLOUR_L_BLUE, charname, 9 + char_num, 5);
+        strnfmt(charname, sizeof(charname), "%c) New character", I2A(char_info->char_num));
+        c_put_str(COLOUR_L_BLUE, charname, 9 + char_info->char_num, 5);
     }
 
     /* Ask until happy */
@@ -2033,11 +2034,14 @@ void get_char_name(void)
         i = A2I(c.code);
 
         /* Check for legality */
-        if ((i > (size_t)char_num) || (i >= (size_t)max_account_chars)) continue;
+        if ((i > (size_t)char_info->char_num) || (i >= (size_t)max_account_chars)) continue;
 
         /* Paranoia */
-        if ((i == (size_t)char_num) || (char_expiry[i] > 0) || (char_expiry[i] == -1))
+        if ((i == (size_t)char_info->char_num) || (char_info->char_expiry[i] > 0) ||
+            (char_info->char_expiry[i] == -1))
+        {
             break;
+        }
     }
 
     /* Clear screen */
@@ -2050,10 +2054,10 @@ void get_char_name(void)
     quick_start = 0;
 
     /* Existing character */
-    if (i < (size_t)char_num)
+    if (i < (size_t)char_info->char_num)
     {
         /* Set the player name to the selected character name */
-        my_strcpy(nick, char_name[i], sizeof(nick));
+        my_strcpy(nick, char_info->char_name[i], sizeof(nick));
 
         /* Capitalize the name */
         my_strcap(nick);
@@ -2065,7 +2069,7 @@ void get_char_name(void)
         display_password();
 
         /* Display actions */
-        if (char_expiry[i] > 0)
+        if (char_info->char_expiry[i] > 0)
         {
             /* Display some helpful information */
             c_put_str(COLOUR_L_BLUE, "Please select an action from the list below:", 6, 1);

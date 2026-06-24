@@ -182,6 +182,6 @@ extern int variance(const int *nums, int size);
 /*
  * Get max number of characters allowed per account
  */
-extern uint16_t get_max_account_chars(void);
+extern uint16_t get_max_account_chars(struct mode *mode_info, uint16_t mode_max);
 
 #endif

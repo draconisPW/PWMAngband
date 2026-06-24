@@ -691,12 +691,12 @@ uint32_t djb2_hash(const char *str)
 /*
  * Get max number of characters allowed per account
  */
-uint16_t get_max_account_chars(void)
+uint16_t get_max_account_chars(struct mode *mode_info, uint16_t mode_max)
 {
     int k, count = 0;
     struct mode *m;
 
-    for (k = 0; k < z_info->mode_max; k++)
+    for (k = 0; k < mode_max; k++)
     {
         m = &mode_info[k];
         count += m->max_account_chars;

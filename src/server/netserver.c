@@ -727,7 +727,7 @@ static void Contact(int fd, int arg)
     if (!status)
     {
         num = (uint16_t)player_id_list(&id_list, account);
-        max = get_max_account_chars();
+        max = z_info->mode_max;
     }
     else
     {
@@ -748,6 +748,14 @@ static void Contact(int fd, int arg)
     {
         Net_Send(fd);
         return;
+    }
+
+    /* Send game modes */
+    for (i = 0; i < (size_t)z_info->mode_max; i++)
+    {
+        Packet_printf(&ibuf, "%s", mode_info[i].option);
+        Packet_printf(&ibuf, "%s", mode_info[i].title);
+        Packet_printf(&ibuf, "%b", (unsigned)mode_info[i].max_account_chars);
     }
 
     for (i = 0; i < (size_t)num; i++)
@@ -1741,50 +1749,6 @@ int Send_socials_struct_info(int ind)
         if (Packet_printf(&connp->c, "%b", (unsigned)soc_info[i].target) <= 0)
         {
             Destroy_connection(ind, "Send_socials_struct_info write error");
-            return -1;
-        }
-    }
-
-    return 1;
-}
-
-
-int Send_modes_struct_info(int ind)
-{
-    connection_t *connp = get_connection(ind);
-    uint32_t i;
-
-    if (connp->state != CONN_SETUP)
-    {
-        errno = 0;
-        plog_fmt("Connection not ready for modes info (%d.%d.%d)", ind, connp->state, connp->id);
-        return 0;
-    }
-
-    if (Packet_printf(&connp->c, "%b%c%hu", (unsigned)PKT_STRUCT_INFO, (int)STRUCT_INFO_MODES,
-        (unsigned)z_info->mode_max) <= 0)
-    {
-        Destroy_connection(ind, "Send_modes_struct_info write error");
-        return -1;
-    }
-
-    for (i = 0; i < (uint32_t)z_info->mode_max; i++)
-    {
-        if (Packet_printf(&connp->c, "%s", mode_info[i].option) <= 0)
-        {
-            Destroy_connection(ind, "Send_modes_struct_info write error");
-            return -1;
-        }
-
-        if (Packet_printf(&connp->c, "%s", mode_info[i].title) <= 0)
-        {
-            Destroy_connection(ind, "Send_modes_struct_info write error");
-            return -1;
-        }
-
-        if (Packet_printf(&connp->c, "%b", (unsigned)mode_info[i].max_account_chars) <= 0)
-        {
-            Destroy_connection(ind, "Send_modes_struct_info write error");
             return -1;
         }
     }
@@ -6693,7 +6657,8 @@ static int Receive_play(int ind)
             need_info = true;
 
             /* Check number of characters */
-            if (player_id_count(connp->account) >= (uint32_t)get_max_account_chars())
+            if (player_id_count(connp->account) >=
+                (uint32_t)get_max_account_chars(mode_info, z_info->mode_max))
             {
                 plog("Account is full");
                 Destroy_connection(ind, "Account is full");
@@ -6787,7 +6752,6 @@ static int Receive_play(int ind)
         Send_class_struct_info(ind);
         Send_body_struct_info(ind);
         Send_socials_struct_info(ind);
-        Send_modes_struct_info(ind);
         Send_rinfo_struct_info(ind);
         Send_rbinfo_struct_info(ind);
         Send_curse_struct_info(ind);

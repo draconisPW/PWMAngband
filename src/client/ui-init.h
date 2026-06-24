@@ -31,10 +31,20 @@ extern char real_name[NORMAL_WID];
 extern char server_name[NORMAL_WID];
 extern int server_port;
 extern bool play_again;
-extern uint16_t max_account_chars;
-extern uint16_t char_num;
-extern char **char_name;
-extern char *char_expiry;
+
+/*
+ * Information about characters.
+ */
+struct char_info_struct
+{
+    uint16_t mode_max;      /* Number of game modes */
+    struct mode *mode_info; /* Game modes */
+    uint16_t char_num;      /* Number of characters */
+    char **char_name;       /* Name of characters */
+    char *char_expiry;      /* Expiration date of characters */
+};
+
+extern struct char_info_struct *char_info;
 
 extern void init_file_paths(const char *configpath, const char *libpath, const char *datapath);
 extern void create_needed_dirs(void);
