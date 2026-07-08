@@ -37,6 +37,7 @@ char account[NORMAL_WID];
 char nick[NORMAL_WID];
 char pass[NORMAL_WID];
 char stored_pass[NORMAL_WID];
+char mode[NORMAL_WID];
 char real_name[NORMAL_WID];
 char server_name[NORMAL_WID];
 int server_port;
@@ -733,6 +734,7 @@ void client_init(bool new_game, int argc, char **argv)
     {
         char_info->char_name = mem_zalloc(char_info->char_num * sizeof(char*));
         char_info->char_expiry = mem_zalloc(char_info->char_num * sizeof(char));
+        char_info->char_mode = mem_zalloc(char_info->char_num * sizeof(char*));
     }
     for (i = 0; i < (size_t)char_info->char_num; i++)
     {
@@ -740,6 +742,8 @@ void client_init(bool new_game, int argc, char **argv)
         char_info->char_expiry[i] = expiry;
         Packet_scanf(&ibuf, "%s", buffer);
         char_info->char_name[i] = string_make(buffer);
+        Packet_scanf(&ibuf, "%s", buffer);
+        char_info->char_mode[i] = string_make(buffer);
     }
 
     Packet_scanf(&ibuf, "%c", &num_types);
@@ -848,6 +852,9 @@ void cleanup_angband(void)
     char_info->char_name = NULL;
     mem_free(char_info->char_expiry);
     char_info->char_expiry = NULL;
+    for (i = 0; i < char_info->char_num; i++) string_free(char_info->char_mode[i]);
+    mem_free(char_info->char_mode);
+    char_info->char_mode = NULL;
     mem_free(char_info);
     char_info = NULL;
 

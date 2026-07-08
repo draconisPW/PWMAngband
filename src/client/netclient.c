@@ -5888,7 +5888,7 @@ int Send_play(int phase)
     n = Packet_printf(&wbuf, "%b%b", (unsigned)PKT_PLAY, (unsigned)phase);
     if (n <= 0) return n;
 
-    /* Send nick/pass */
+    /* Send nick/pass/mode */
     if (phase == 0)
     {
         int pos = strlen(nick);
@@ -5896,7 +5896,7 @@ int Send_play(int phase)
         dump_only = false;
         chardump = 0;
 
-        n = Packet_printf(&wbuf, "%s%s", nick, stored_pass);
+        n = Packet_printf(&wbuf, "%s%s%s", nick, stored_pass, mode);
         if (n <= 0) return n;
 
         if (nick[pos - 1] == '=') nick[pos - 1] = '\0';

@@ -38,8 +38,8 @@ typedef struct
     hturn           start;
     long            timeout;
     bool            has_setup;
-    uint16_t            conntype;
-    uint8_t            char_state;
+    uint16_t        conntype;
+    uint8_t         char_state;
     int             id;
     unsigned        version;
     char            *real;
@@ -47,16 +47,17 @@ typedef struct
     char            *addr;
     char            *host;
     char            *pass;
-    uint8_t            ridx;
-    uint8_t            cidx;
-    uint8_t            psex;
-    int16_t            stat_roll[STAT_MAX + 1];
+    char            *mode;
+    uint8_t         ridx;
+    uint8_t         cidx;
+    uint8_t         psex;
+    int16_t         stat_roll[STAT_MAX + 1];
     client_setup_t  Client_setup;
     bool            options[OPT_MAX];
     bool            console_authenticated;
     bool            console_listen;
-    uint8_t            console_channels[MAX_CHANNELS];
-    uint32_t            account;
+    uint8_t         console_channels[MAX_CHANNELS];
+    uint32_t        account;
     char            *quit_msg;
 } connection_t;
 

@@ -27,6 +27,7 @@ extern char account[NORMAL_WID];
 extern char nick[NORMAL_WID];
 extern char pass[NORMAL_WID];
 extern char stored_pass[NORMAL_WID];
+extern char mode[NORMAL_WID];
 extern char real_name[NORMAL_WID];
 extern char server_name[NORMAL_WID];
 extern int server_port;
@@ -42,6 +43,7 @@ struct char_info_struct
     uint16_t char_num;      /* Number of characters */
     char **char_name;       /* Name of characters */
     char *char_expiry;      /* Expiration date of characters */
+    char **char_mode;       /* Game mode of characters */
 };
 
 extern struct char_info_struct *char_info;

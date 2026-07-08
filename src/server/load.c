@@ -2128,9 +2128,17 @@ int rd_player_names(struct player *unused)
     size_t i;
     uint32_t tmp32u;
     char name[NORMAL_WID];
+    char mode[NORMAL_WID];
+    bool temp = false;
 
     /* Current player ID */
+    /* XXX we temporarily check for a negative value to tell if we should load the mode */
     rd_s32b(&player_id);
+    if (player_id < 0)
+    {
+        player_id = 0 - player_id;
+        temp = true;
+    }
 
     /* Read the player name database */
     rd_u32b(&tmp32u);
@@ -2154,11 +2162,17 @@ int rd_player_names(struct player *unused)
         /* Read the time of death */
         rd_hturn(&death_turn);
 
+        /* Read the mode */
+        if (temp)
+            rd_string(mode, sizeof(mode));
+        else
+            my_strcpy(mode, " normal", sizeof(mode));
+
         /* Remove duplicates from the player name database */
         delete_player_name(name);
 
         /* Store the player name */
-        add_player_name(id, account, name, &death_turn);
+        add_player_name(id, account, name, &death_turn, mode);
     }
 
     /* Success */

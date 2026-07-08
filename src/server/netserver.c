@@ -770,11 +770,13 @@ static void Contact(int fd, int arg)
         {
             Packet_printf(&ibuf, "%c", player_expiry(&ptr->death_turn));
             Packet_printf(&ibuf, "%s", ptr->name);
+            Packet_printf(&ibuf, "%s", ptr->mode);
         }
         else
         {
             /* Paranoia: entry has not been found! */
             Packet_printf(&ibuf, "%c", -2);
+            Packet_printf(&ibuf, "%s", "--error--");
             Packet_printf(&ibuf, "%s", "--error--");
             plog_fmt("ERROR: player not found for id #%d", id_list[i]);
         }
@@ -1072,6 +1074,7 @@ void Destroy_connection(int ind, char *reason)
     string_free(connp->addr);
     string_free(connp->host);
     string_free(connp->pass);
+    string_free(connp->mode);
     string_free(connp->quit_msg);
     Sockbuf_cleanup(&connp->w);
     Sockbuf_cleanup(&connp->r);
@@ -6308,7 +6311,7 @@ static int Enter_player(int ind)
 
     /* Create the character */
     p = player_birth(NumPlayers + 1, connp->account, connp->nick, connp->pass, ind, connp->ridx,
-        connp->cidx, connp->psex, connp->stat_roll, connp->options);
+        connp->cidx, connp->psex, connp->stat_roll, connp->options, connp->mode);
 
     /* Failed, connection already destroyed */
     if (!p) return -1;
@@ -6566,6 +6569,7 @@ static int Receive_play(int ind)
     int n;
     char nick[NORMAL_WID];
     char pass[NORMAL_WID];
+    char mode[NORMAL_WID];
 
     /* Read marker */
     if ((n = Packet_scanf(&connp->r, "%b%b", &ch, &phase)) != 2)
@@ -6576,10 +6580,10 @@ static int Receive_play(int ind)
         return -1;
     }
 
-    /* Read nick/pass */
+    /* Read nick/pass/mode */
     if (phase == 0)
     {
-        if ((n = Packet_scanf(&connp->r, "%s%s", nick, pass)) != 2)
+        if ((n = Packet_scanf(&connp->r, "%s%s%s", nick, pass, mode)) != 3)
         {
             errno = 0;
             plog("Cannot receive play packet");
@@ -6681,6 +6685,14 @@ static int Receive_play(int ind)
             need_info = true;
         }
 
+        /* Check that game mode is coherent */
+        else if (strcmp(ptr->mode, mode))
+        {
+            plog("Invalid game mode");
+            Destroy_connection(ind, "Invalid game mode (different from the savefile)");
+            return -1;
+        }
+
         /* Test if his password is matching */
         if (!need_info)
         {
@@ -6709,14 +6721,16 @@ static int Receive_play(int ind)
         /* Set character connection info */
         string_free(connp->nick);
         string_free(connp->pass);
+        string_free(connp->mode);
         connp->nick = string_make(nick);
         connp->pass = string_make(pass);
+        connp->mode = string_make(mode);
         connp->char_state = (need_info? 0: 1);
         connp->ridx = ridx;
         connp->cidx = cidx;
         connp->psex = psex;
 
-        if ((connp->nick == NULL) || (connp->pass == NULL))
+        if ((connp->nick == NULL) || (connp->pass == NULL) || (connp->mode == NULL))
         {
             plog("Not enough memory for connection");
             Destroy_connection(ind, "Not enough memory for connection");

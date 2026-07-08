@@ -1546,7 +1546,8 @@ void wr_player_names(void *unused)
     hash_entry *ptr;
 
     /* Current player ID */
-    wr_s32b(player_id);
+    /* XXX we temporarily save a negative value to tell rd_player_names() to load the mode */
+    wr_s32b(0 - player_id);
 
     /* Get the list of player ID's */
     num = player_id_list(&id_list, 0L);
@@ -1571,6 +1572,9 @@ void wr_player_names(void *unused)
 
         /* Store the time of death */
         wr_hturn(&ptr->death_turn);
+
+        /* Store the game mode */
+        wr_string(ptr->mode);
     }
 
     /* Free the memory in the list */

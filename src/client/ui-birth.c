@@ -1957,10 +1957,13 @@ void get_account_name(void)
  */
 void get_char_name(void)
 {
-    size_t i;
+    size_t i, slot = 0;
     char charname[NORMAL_WID];
     struct keypress c;
     uint16_t max_account_chars = get_max_account_chars(char_info->mode_info, char_info->mode_max);
+    char **char_name;
+    char **char_mode;
+    bool *char_dead;
 
     /* Clear screen */
     Term_clear();
@@ -1978,44 +1981,74 @@ void get_char_name(void)
     /* Display some helpful information */
     c_put_str(COLOUR_L_BLUE, "Please select your character from the list below:", 6, 1);
 
-    /* Display character names */
-    for (i = 0; i < (size_t)char_info->char_num; i++)
+    char_name = mem_zalloc(max_account_chars * sizeof(char*));
+    char_mode = mem_zalloc(max_account_chars * sizeof(char*));
+    char_dead = mem_zalloc(max_account_chars * sizeof(bool));
+
+    /* Display character slots */
+    for (i = 0; i < (size_t)char_info->mode_max; i++)
     {
-        /* Character is dead */
-        if (char_info->char_expiry[i] > 0)
+        struct mode *m = &char_info->mode_info[i];
+        size_t k, count = 0;
+
+        /* Display character names */
+        for (k = 0; k < (size_t)char_info->char_num; k++)
         {
-            strnfmt(charname, sizeof(charname), "%c) %s (deceased, expires in %d days)", I2A(i),
-                char_info->char_name[i], char_info->char_expiry[i]);
-            c_put_str(COLOUR_L_DARK, charname, 8 + i, 5);
+            /* Paranoia: discard extraneous characters */
+            if (count == (size_t)m->max_account_chars) break;
+
+            /* Skip other modes */
+            if (strcmp(char_info->char_mode[k], m->title)) continue;
+
+            /* Character is dead */
+            if (char_info->char_expiry[k] > 0)
+            {
+                strnfmt(charname, sizeof(charname), "%c) %s (deceased, expires in %d days)",
+                    I2A(slot), char_info->char_name[k], char_info->char_expiry[k]);
+                c_put_str(COLOUR_L_DARK, charname, 8 + slot, 5);
+                char_name[slot] = string_make(char_info->char_name[k]);
+                char_mode[slot] = string_make(m->title);
+                char_dead[slot] = true;
+            }
+
+            /* Character is alive */
+            else if (char_info->char_expiry[k] == -1)
+            {
+                strnfmt(charname, sizeof(charname), "%c) %s", I2A(slot), char_info->char_name[k]);
+                put_str(charname, 8 + slot, 5);
+                char_name[slot] = string_make(char_info->char_name[k]);
+                char_mode[slot] = string_make(m->title);
+            }
+
+             /* Paranoia */
+            else
+            {
+                strnfmt(charname, sizeof(charname), "%c) ERROR: expired or unknown character",
+                    I2A(slot));
+                c_put_str(COLOUR_RED, charname, 8 + slot, 5);
+                char_mode[slot] = string_make("ERROR");
+            }
+
+            count++;
+            slot++;
         }
 
-        /* Character is alive */
-        else if (char_info->char_expiry[i] == -1)
+        /* Display empty slots */
+        for (k = count; k < (size_t)m->max_account_chars; k++)
         {
-            strnfmt(charname, sizeof(charname), "%c) %s", I2A(i), char_info->char_name[i]);
-            put_str(charname, 8 + i, 5);
-        }
-
-        /* Paranoia */
-        else
-        {
-            strnfmt(charname, sizeof(charname), "%c) ERROR: expired or unknown character", I2A(i));
-            c_put_str(COLOUR_RED, charname, 8 + i, 5);
+            strnfmt(charname, sizeof(charname), "%c) empty slot:%s", I2A(slot), m->title);
+            c_put_str(COLOUR_L_DARK, charname, 8 + slot, 5);
+            char_mode[slot] = string_make(m->title);
+            slot++;
         }
     }
 
     /* Check number of characters */
     if (char_info->char_num >= max_account_chars)
     {
-        c_put_str(COLOUR_YELLOW, "Your account is full.", 9 + char_info->char_num, 5);
+        c_put_str(COLOUR_YELLOW, "Your account is full.", 9 + max_account_chars, 5);
         c_put_str(COLOUR_YELLOW, "You cannot create any new character with this account.",
-            10 + char_info->char_num, 5);
-    }
-    else
-    {
-        /* Give choice for a new character */
-        strnfmt(charname, sizeof(charname), "%c) New character", I2A(char_info->char_num));
-        c_put_str(COLOUR_L_BLUE, charname, 9 + char_info->char_num, 5);
+            10 + max_account_chars, 5);
     }
 
     /* Ask until happy */
@@ -2034,14 +2067,10 @@ void get_char_name(void)
         i = A2I(c.code);
 
         /* Check for legality */
-        if ((i > (size_t)char_info->char_num) || (i >= (size_t)max_account_chars)) continue;
+        if (i >= (size_t)max_account_chars) continue;
 
         /* Paranoia */
-        if ((i == (size_t)char_info->char_num) || (char_info->char_expiry[i] > 0) ||
-            (char_info->char_expiry[i] == -1))
-        {
-            break;
-        }
+        if (strcmp(char_mode[i], "ERROR")) break;
     }
 
     /* Clear screen */
@@ -2054,10 +2083,10 @@ void get_char_name(void)
     quick_start = 0;
 
     /* Existing character */
-    if (i < (size_t)char_info->char_num)
+    if (char_name[i] != NULL)
     {
         /* Set the player name to the selected character name */
-        my_strcpy(nick, char_info->char_name[i], sizeof(nick));
+        my_strcpy(nick, char_name[i], sizeof(nick));
 
         /* Capitalize the name */
         my_strcap(nick);
@@ -2068,8 +2097,11 @@ void get_char_name(void)
         /* Redraw the password (in light blue) */
         display_password();
 
+        /* Set the game mode */
+        my_strcpy(mode, char_mode[i], sizeof(mode));
+
         /* Display actions */
-        if (char_info->char_expiry[i] > 0)
+        if (char_dead[i])
         {
             /* Display some helpful information */
             c_put_str(COLOUR_L_BLUE, "Please select an action from the list below:", 6, 1);
@@ -2128,5 +2160,17 @@ void get_char_name(void)
 
         /* Redraw the password (in light blue) */
         display_password();
+
+        /* Set the game mode */
+        my_strcpy(mode, char_mode[i], sizeof(mode));
     }
+
+    for (i = 0; i < (size_t)max_account_chars; i++) string_free(char_name[i]);
+    mem_free(char_name);
+    char_name = NULL;
+    for (i = 0; i < (size_t)max_account_chars; i++) string_free(char_mode[i]);
+    mem_free(char_mode);
+    char_mode = NULL;
+    mem_free(char_dead);
+    char_dead = NULL;
 }

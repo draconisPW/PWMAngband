@@ -1073,7 +1073,8 @@ static bool depth_is_valid(struct wild_type *w_ptr, int depth)
 }
 
 
-static void player_setup(struct player *p, int id, uint32_t account, bool no_recall)
+static void player_setup(struct player *p, int id, uint32_t account, bool no_recall,
+    const char *mode)
 {
     struct wild_type *w_ptr = get_wt_info_at(&p->wpos.grid);
     bool reposition = false, push_up = false;
@@ -1322,7 +1323,7 @@ static void player_setup(struct player *p, int id, uint32_t account, bool no_rec
 
     /* Add him to the player name database */
     ht_reset(&death_turn);
-    add_player_name(p->id, account, p->name, &death_turn);
+    add_player_name(p->id, account, p->name, &death_turn, mode);
     plog_fmt("Player Name is [%s], id is %d", p->name, (int)p->id);
 
     /* Set his "current activities" variables */
@@ -1533,7 +1534,8 @@ static int quickstart_ok(struct player *p, const char *name, int conn, bool no_r
  * fields, so we must be sure to clear them first.
  */
 struct player *player_birth(int id, uint32_t account, const char *name, const char *pass, int conn,
-    uint8_t ridx, uint8_t cidx, uint8_t psex, int16_t* stat_roll, bool options[OPT_MAX])
+    uint8_t ridx, uint8_t cidx, uint8_t psex, int16_t* stat_roll, bool options[OPT_MAX],
+    const char *mode)
 {
     struct player *p;
     int i;
@@ -1690,7 +1692,7 @@ struct player *player_birth(int id, uint32_t account, const char *name, const ch
         }
 
         /* Set his location, panel, etc. */
-        player_setup(p, id, account, options[OPT_birth_no_recall]);
+        player_setup(p, id, account, options[OPT_birth_no_recall], mode);
 
         /* Add new starting message */
         history_add_unique(p, "Began the quest to destroy Morgoth", HIST_PLAYER_BIRTH);
@@ -1727,7 +1729,7 @@ struct player *player_birth(int id, uint32_t account, const char *name, const ch
     }
 
     /* Loading succeeded */
-    player_setup(p, id, account, options[OPT_birth_no_recall]);
+    player_setup(p, id, account, options[OPT_birth_no_recall], mode);
     return p;
 }
 

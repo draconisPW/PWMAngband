@@ -1024,7 +1024,8 @@ char *lookup_player_name(int id)
 /*
  * Add a name to the hash table.
  */
-void add_player_name(int id, uint32_t account, const char *name, hturn *death_turn)
+void add_player_name(int id, uint32_t account, const char *name, hturn *death_turn,
+    const char *mode)
 {
     int slot;
     hash_entry *ptr;
@@ -1046,6 +1047,9 @@ void add_player_name(int id, uint32_t account, const char *name, hturn *death_tu
 
     /* Set the entry's time of death */
     ht_copy(&ptr->death_turn, death_turn);
+
+    /* Make a copy of the game mode in the entry */
+    ptr->mode = string_make(mode);
 
     /* Add the rest of the chain to this entry */
     ptr->next = hash_table[slot];
@@ -1106,6 +1110,9 @@ void delete_player_name(const char *name)
 
                 /* Free the memory in the player name */
                 string_free(ptr->name);
+
+                /* Free the memory in the game mode */
+                string_free(ptr->mode);
 
                 /* Free the memory for this struct */
                 mem_free(ptr);
@@ -1226,6 +1233,9 @@ void purge_player_names(void)
                 /* Free the memory in the player name */
                 string_free(ptr->name);
 
+                /* Free the memory in the game mode */
+                string_free(ptr->mode);
+
                 /* Free the memory for this struct */
                 mem_free(ptr);
 
@@ -1266,6 +1276,7 @@ void wipe_player_names(void)
             next = ptr->next;
 
             string_free(ptr->name);
+            string_free(ptr->mode);
             mem_free(ptr);
 
             ptr = next;

@@ -33,8 +33,9 @@
 typedef struct _hash_entry
 {
     int id;                     /* The ID */
-    uint32_t account;               /* Account ID */
+    uint32_t account;           /* Account ID */
     char *name;                 /* Player name */
+    char *mode;                 /* Game mode */
     hturn death_turn;           /* Time of death */
     struct _hash_entry *next;   /* Next entry in the chain */
 } hash_entry;
@@ -49,7 +50,7 @@ typedef struct
 {
     char name[NORMAL_WID];  /* Name of the party */
     char owner[20];         /* Owner's name */
-    int32_t num;               /* Number of people in the party */
+    int32_t num;            /* Number of people in the party */
     hturn created;          /* Creation (or disband) time */
 } party_type;
 
@@ -90,7 +91,8 @@ extern bool pvp_check(struct player *attacker, struct player *target, int mode, 
     uint16_t feat);
 extern bool pvm_check(struct player *p, struct monster *mon);
 extern void party_msg_near(struct player *p, const char *msg);
-extern void add_player_name(int id, uint32_t account, const char *name, hturn *death_turn);
+extern void add_player_name(int id, uint32_t account, const char *name, hturn *death_turn,
+    const char *mode);
 extern void remove_player_name(const char *name);
 extern void delete_player_name(const char *name);
 extern uint32_t player_id_count(uint32_t account);
