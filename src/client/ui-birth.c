@@ -2036,8 +2036,8 @@ void get_char_name(void)
         /* Display empty slots */
         for (k = count; k < (size_t)m->max_account_chars; k++)
         {
-            strnfmt(charname, sizeof(charname), "%c) empty slot:%s", I2A(slot), m->title);
-            c_put_str(COLOUR_L_DARK, charname, 8 + slot, 5);
+            strnfmt(charname, sizeof(charname), "%c) free%s-exclusive slot", I2A(slot), m->title);
+            c_put_str(COLOUR_SLATE, charname, 8 + slot, 5);
             char_mode[slot] = string_make(m->title);
             slot++;
         }

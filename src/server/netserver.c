@@ -6657,6 +6657,10 @@ static int Receive_play(int ind)
         ptr = lookup_player_by_name(nick);
         if (!ptr)
         {
+            int *id_list = NULL;
+            uint16_t num = 0, count = 0;
+            size_t i;
+
             /* New player */
             need_info = true;
 
@@ -6667,6 +6671,26 @@ static int Receive_play(int ind)
                 plog("Account is full");
                 Destroy_connection(ind, "Account is full");
                 return -1;
+            }
+
+            /* Check that game mode is coherent */
+            num = (uint16_t)player_id_list(&id_list, connp->account);
+            for (i = 0; i < (size_t)num; i++)
+            {
+                hash_entry *entry = lookup_player(id_list[i]);
+
+                if (entry && streq(entry->mode, mode)) count++;
+            }
+            for (i = 0; i < (size_t)z_info->mode_max; i++)
+            {
+                struct mode *m = &mode_info[i];
+
+                if (streq(m->title, mode) && (count == m->max_account_chars))
+                {
+                    plog("Invalid game mode");
+                    Destroy_connection(ind, "Invalid game mode (max_account_chars reached)");
+                    return -1;
+                }
             }
         }
 
