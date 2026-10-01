@@ -1,12 +1,12 @@
 Version Information
 ===================
 
-PWMAngband 1.6.2 is based on Angband 4.2.x and MAngband 1.5.x. The latest
-build for PWMAngband 1.6.2 is build 4.
+PWMAngband 1.7.0 is based on Angband 4.2.x and MAngband 1.5.x. The latest
+build for PWMAngband 1.7.0 is beta 0.
 
 Angband information was last updated for Angband 4.2.x.
 MAngband information was last updated for MAngband 1.5.x.
-PWMAngband information was last updated for PWMAngband 1.6.2.
+PWMAngband information was last updated for PWMAngband 1.7.0.
 
 Angband Version Information
 ---------------------------
@@ -743,3 +743,4 @@ Previous Versions (milestones)
 - PWMAngband 1.5.0    : 09/10/2021 (Angband 4.2.x  + MAngband 1.5.x)
 - PWMAngband 1.6.0    : 09/20/2023 (Angband 4.2.x  + MAngband 1.5.x)
 - PWMAngband 1.6.1    : 05/24/2024 (Angband 4.2.x  + MAngband 1.5.x)
+- PWMAngband 1.6.2    : 05/22/2025 (Angband 4.2.x  + MAngband 1.5.x)

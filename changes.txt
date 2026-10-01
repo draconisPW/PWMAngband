@@ -1,17 +1,15 @@
 ﻿================
-PWMAngband 1.6.2
+PWMAngband 1.7.0
 ================
 
-This release mainly changes the way race/class presets are handled. Presets are
-now loaded from the client instead of being fixed on the server. For this to
-work with a large amount of data, the network protocol has been altered so that
-the VERIFY packet is sent/received in chunks of 1024 lines of data.
+This release mainly reworked the character creation screen and introduced
+specific character slots for each mode (normal, brave, ironman...).
 
 And still many bug fixes and code improvements from Angband 4.2.6...
 
-Note: due to some changes in activation difficulties, savefiles have been made
-incompatible with the previous version. Please restart a clean server to play
-the new version.
+Note: due to some hacks being removed, savefiles have been made incompatible
+with the previous version. Please restart a clean server to play the new
+version.
 
 For a full list of changes made in older versions, check the Official
 PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
@@ -19,8 +17,8 @@ PWMAngband Forum: http://www.mangband.org/forum/viewforum.php?f=9
 Features from Angband 4.x and MAngband 1.x are explicitely mentioned. Other
 changes and fixes are specific to PWMAngband.
 
-New features in PWMAngband 1.6.2 build 4
-========================================
+New features in PWMAngband 1.7.0 beta 0
+=======================================
 
 User interface
 --------------
@@ -31,6 +29,22 @@ Angband 4.2.x:
 - SDL: display buildid's copyright in the About dialog
 - Change introduction to the description of an item's effect
 
+PWMAngband:
+
+- Rework character creation screen
+- Add specific character slots for each birth mode
+
+Gameplay changes
+----------------
+
+Angband 4.2.x:
+
+-
+
+PWMAngband:
+
+-
+
 Bugs fixed
 ----------
 
@@ -39,6 +53,10 @@ Angband 4.2.x:
 - Correct edges of the Diagonal 1 interesting room
 - Correct doors line for Comb right room template
 - Fix minor edge asymmetry between Zag left and Zag right room templates
+
+PWMAngband:
+
+-
 
 Coding changes
 --------------
@@ -55,7 +73,6 @@ Angband 4.2.x:
 PWMAngband:
 
 - Enforce LIMIT_PLAYER_CONNECTIONS more strictly
-- Remove MAX_ACCOUNT_CHARS, start using modes.txt instead
 
 Compilation/documentation
 -------------------------
@@ -65,243 +82,6 @@ Angband 4.2.x:
 - Expand the comments in the data files about 'M' in dice expressions
 - Correct specific effect handlers' comments about the use of context->value
 
-Features in PWMAngband 1.6.2 build 3
-====================================
-
-User interface
---------------
-
-Angband 4.2.x:
-
-- Remove limit on number of options shown per category
-- Tweak Options/Map for Windows front end and bind M to Options/Map
-
 PWMAngband:
 
-- Produce proper colored messages with $ and ^ tags
-
-Gameplay changes
-----------------
-
-Angband 4.2.x:
-
-- Tweak some artifact activation difficulties
-
-PWMAngband:
-
-- Drastically increase the lifespan of controlled monsters
-- Split summoner's Minor Healing spell into Minor Healing (for self + party
-  members -- similar to priest/paladin) and Heal Other (for controlled monsters)
-- Add a 7-day timer on XBM orders and reduce the timer on completed orders to
-  1 day
-
-Bugs fixed
-----------
-
-Angband 4.2.x:
-
-- Correct transfer of charges/timeouts for a partial merger of stacks
-
-Coding changes
---------------
-
-Angband 4.2.x:
-
-- Remove rest of 'Hack' comments
-- Adjust some code flagged by gcc's static analysis option
-- Prevent NULL returns from queue functions
-- Correct some typos in comments
-- In Rand_simple(), only use the 32 least significant bits from time()
-
-PWMAngband:
-
-- Add LAZY_CONNECTIONS cfg option to discard failed client connection attempts
-  instead of shutting down the server
-- Adapt alloc_stairs() to restart level generation to match find_start()
-- Add modes.txt parser for game modes (no-ghost, no-recall, force-descend...)
-  and use it to remove hardcoded references to "brave", "hardcore" and "diving"
-  characters
-
-Compilation/documentation
--------------------------
-
-Angband 4.2.x:
-
-- Resolve doxygen warnings
-- Remove references to lib/user/info in the packaging script for Windows
-- Add player documentation for the keymap handling changes
-- Update and clarify documentation for other changes
-- Add a section on the events that disturb
-- Adapt for renaming the 'Q' command as retire
-
-Features in PWMAngband 1.6.2 build 2
-====================================
-
-User interface
---------------
-
-Angband 4.2.x:
-
-- cumber_armor message clarity
-
-PWMAngband:
-
-- Add "Always ignore books" option
-- Make death popup message MB_SYSTEMMODAL
-
-Gameplay changes
-----------------
-
-PWMAngband:
-
-- Don't give experience/loot to ironman characters on savescummed levels
-- Prevent ironman characters from picking up items on savescummed levels
-- Increase duration of Globe of Invulnerabilty and Disruption Shield, add a
-  message and a different visual effect when they're about to wear off
-
-Bugs fixed
-----------
-
-PWMAngband:
-
-- Fix undiscovered mimics preventing "fast" running
-- Limit the size of the stack of objects the Dungeon Master can generate to 40
-- Limit the number of monsters the Dungeon Master can summon to 40
-- Fix not being able to macro spells starting from the eighth spell in a book
-- Fix running into trap
-- Clear command buffer when command inside a keymap fails
-- Don't redraw the screen when exiting a menu with distorted graphics
-- Allow ESC at start of a keymap to cancel a previous keymap requiring a
-  direction
-- Prevent ironman ghosts from going up
-- Fix cooldown not set properly on item manipulating spells
-
-Coding changes
---------------
-
-Angband 4.2.x:
-
-- Avoid warnings on msys2 about truncation when initializing array from string
-- Better match death logic for projections or non-player hits to mon_take_hit()
-- Regularize score array after reading it
-- Remove some 'Hack' comments
-
-PWMAngband:
-
-- Rework level unstaticer code
-
-Compilation/documentation
--------------------------
-
-Angband 4.2.x:
-
-- Fix missing word in the documentation about configuring SDL2
-- Correct some typos in comments
-- Dev How It Works documentation: command queue
-- Dev How It Works documentation: Monster AI
-- Dev How It Works documentation: Pref Files
-
-Features in PWMAngband 1.6.2 build 1
-====================================
-
-User interface
---------------
-
-Angband 4.2.x:
-
-- Fixing Main Gauche plural to be in line with proper french
-- Use known version of equipment for combat information on character sheet
-- Apply purple_uniques to monster list glyphs
-- SDL2: provide ways to summarize details about the SDL2 installation
-- Add GameController support to SDL2 backend
-
-PWMAngband:
-
-- Allow swapping items with similar @w1-@w9 inscriptions
-- Add support for F16-F24 keys in SDL2
-- Allow scrolling of long race/class descriptions using SPACE
-
-Gameplay changes
-----------------
-
-Angband 4.2.x:
-
-- Update object.txt (mithril ammo)
-- Autorepeat using a wand/staff/rod/activatable item on failure
-- Increase the curse removal power of a staff of remove curse
-- Rebalance activation difficulty for standard items
-- Configure activation difficulty for randarts from activation.txt
-- Change target handling for Lightning Strike
-
-PWMAngband:
-
-- Add level to ego items
-
-Bugs fixed
-----------
-
-Angband 4.2.x:
-
-- Avoid crash when locking file for high scores could not be opened
-- SDL2 fixes
-- Account for empty object groups in ego knowledge display
-- Apply BLESS_WEAPON to-hit bonus only to melee, not ranged
-- Correct coordinate tested for monster lighting a wall
-- Avoid extraneous path separator in the user and archive directories
-
-PWMAngband:
-
-- Fix bug when displaying ego item knowledge
-- Fix flickering being very slow sometimes
-- Fix info on tombstone for retiring Dungeon Masters
-- Fix recharge_failure_chance()
-- Fix BREATH and PROJECT_LOS effects not showing damage when browsing spells
-- Fix a bug in get_spell_info()
-- Fix many incorrect spell descriptions
-- Prevent Villagers from making doors on static levels
-- Fix harmless PROJECT_LOS effects harming other players
-- Don't display empty message to nearby players when triggering an effect
-  without a "near" message
-
-Coding changes
---------------
-
-Angband 4.2.x:
-
-- Rename square_isnotknown()
-- Have player calculations use resist and flag-synonym from player-timed.txt
-- SDL: plug potential leak of directory handle
-- Correct path_normalize() for Windows
-- For exits due to a signal, use non-zero exit code
-- sum_angel_song -> sum_ainu_song
-- Avoid assert failure for negative bash damage
-- Prevent out-of-bounds write to stack array in earthquake handler
-- Set an object to assessed that has all its runes known
-- Allow glowing terrain that's not in a room or on the surface to light a wall
-- Avoid SDL_Color initialisation error
-
-PWMAngband:
-
-- Load race/class presets from the client instead of fixing them on the server
-- Split VERIFY packet in chunks
-- Add class parser for SKILL_TO_HIT_THROW, port values from V
-- Split level and difficulty level for activation (base items/egos/artifacts)
-- Add parser for skill-throw in p_race.txt (unused)
-
-Compilation/documentation
--------------------------
-
-Angband 4.2.x:
-
-- Remove some warnings
-- Windows: set both WINVER and _WIN32_WINNT to enforce minimum version
-- Fix typos
-- Document v parameter for player_set_timed()
-- Docs: mention how window.prf is used
-- Docs: correct some details for shooting/throwing
-- AngbandPlus link fix
-
-PWMAngband:
-
-- Add some docker files to build in alpine docker container
-- Simplify warning message in prf files
+-

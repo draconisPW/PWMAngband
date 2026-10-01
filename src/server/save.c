@@ -646,8 +646,7 @@ void wr_stores(void *unused)
     }
 
     /* Note the store orders */
-    /* XXX we temporarily save STORE_ORDERS+1 to tell rd_stores() to load order_turn */
-    wr_u16b(STORE_ORDERS+1);
+    wr_u16b(STORE_ORDERS);
 
     /* Dump the store orders */
     for (i = 0; i < STORE_ORDERS; i++)
@@ -1546,8 +1545,7 @@ void wr_player_names(void *unused)
     hash_entry *ptr;
 
     /* Current player ID */
-    /* XXX we temporarily save a negative value to tell rd_player_names() to load the mode */
-    wr_s32b(0 - player_id);
+    wr_s32b(player_id);
 
     /* Get the list of player ID's */
     num = player_id_list(&id_list, 0L);

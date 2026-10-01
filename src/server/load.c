@@ -1081,7 +1081,6 @@ static int rd_stores_aux(rd_item_t rd_item_version)
 {
     int i;
     uint16_t tmp16u;
-    bool temp = false;
 
     /* Read the stores */
     rd_u16b(&tmp16u);
@@ -1100,21 +1099,12 @@ static int rd_stores_aux(rd_item_t rd_item_version)
     }
 
     /* Read the store orders */
-    /* XXX we temporarily check STORE_ORDERS+1 to tell if we should load order_turn */
     rd_u16b(&tmp16u);
-    if (tmp16u == STORE_ORDERS+1)
-    {
-        tmp16u = STORE_ORDERS;
-        temp = true;
-    }
     for (i = 0; i < tmp16u; i++)
     {
         rd_string(store_orders[i].order, NORMAL_WID);
         rd_hturn(&store_orders[i].turn);
-        if (temp)
-            rd_hturn(&store_orders[i].order_turn);
-        else
-            ht_copy(&store_orders[i].order_turn, &turn);
+        rd_hturn(&store_orders[i].order_turn);
     }
 
     /* Success */
@@ -2129,16 +2119,9 @@ int rd_player_names(struct player *unused)
     uint32_t tmp32u;
     char name[NORMAL_WID];
     char mode[NORMAL_WID];
-    bool temp = false;
 
     /* Current player ID */
-    /* XXX we temporarily check for a negative value to tell if we should load the mode */
     rd_s32b(&player_id);
-    if (player_id < 0)
-    {
-        player_id = 0 - player_id;
-        temp = true;
-    }
 
     /* Read the player name database */
     rd_u32b(&tmp32u);
@@ -2163,10 +2146,7 @@ int rd_player_names(struct player *unused)
         rd_hturn(&death_turn);
 
         /* Read the mode */
-        if (temp)
-            rd_string(mode, sizeof(mode));
-        else
-            my_strcpy(mode, " normal", sizeof(mode));
+        rd_string(mode, sizeof(mode));
 
         /* Remove duplicates from the player name database */
         delete_player_name(name);

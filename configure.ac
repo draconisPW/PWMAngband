@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([PWMAngband],[1.6.2],[team@mangband.org])
+AC_INIT([PWMAngband],[1.7.0],[team@mangband.org])
 AC_CONFIG_SRCDIR(src)
 AC_CONFIG_MACRO_DIR([m4])
 
