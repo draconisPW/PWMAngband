@@ -6029,6 +6029,9 @@ static void get_birth_options(struct player *p, struct birth_options *options)
 
 static void update_birth_options(struct player *p, struct birth_options *options, bool domsg)
 {
+    connection_t *connp = get_connection(p->conn);
+    size_t i;
+
     /* Birth options: can only be set at birth */
     if (!ht_zero(&p->game_turn))
     {
@@ -6060,6 +6063,20 @@ static void update_birth_options(struct player *p, struct birth_options *options
     /* Update form */
     if (OPT(p, birth_fruit_bat) != options->fruit_bat)
         do_cmd_poly(p, (OPT(p, birth_fruit_bat)? get_race("fruit bat"): NULL), false, domsg);
+
+    /* Enforce birth options from game mode */
+    for (i = 0; i < (size_t)z_info->mode_max; i++)
+    {
+        struct mode *m = &mode_info[i];
+
+         if (streq(m->title, connp->mode))
+         {
+            if (streq(m->option, "birth_no_ghost")) OPT(p, birth_no_ghost) = true;
+            if (streq(m->option, "birth_no_recall")) OPT(p, birth_no_recall) = true;
+            if (streq(m->option, "birth_force_descend")) OPT(p, birth_force_descend) = true;
+            break;
+         }
+    }
 }
 
 
