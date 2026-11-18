@@ -86,7 +86,7 @@ enum
 #define MAX_TXT_INFO    384
 
 /* Constants for character history */
-#define N_HIST_LINES    3
+#define N_HIST_LINES    4
 #define N_HIST_WRAP     73
 
 /* Character rolling methods */
