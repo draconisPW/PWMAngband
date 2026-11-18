@@ -4523,7 +4523,7 @@ static enum parser_error parse_mode_max_account_chars(struct parser *p)
 
     m->max_account_chars = parser_getuint(p, "max_account_chars");
     m->count += m->max_account_chars;
-    if (m->count > 12) return PARSE_ERROR_TOO_MANY_ACCOUNT_CHARS;
+    if (m->count > 15) return PARSE_ERROR_TOO_MANY_ACCOUNT_CHARS;
 
     return PARSE_ERROR_NONE;
 }

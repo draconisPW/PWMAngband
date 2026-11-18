@@ -17,13 +17,13 @@
 # 'title' is for the title used for the death message and list of players
 
 # 'max_account_chars' is for the number of characters that can be created in
-# this mode per account. Sum for all modes cannot go over 12.
+# this mode per account. Sum for all modes cannot go over 15.
 
 
 ## Normal
 option:none
 title: normal
-max_account_chars:9
+max_account_chars:10
 
 ## Brave
 option:birth_no_ghost
@@ -33,9 +33,9 @@ max_account_chars:1
 ## Hardcore
 option:birth_no_recall
 title: hardcore
-max_account_chars:1
+max_account_chars:2
 
 ## Diving
 option:birth_force_descend
 title: diving
-max_account_chars:1
+max_account_chars:2
